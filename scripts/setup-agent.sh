@@ -1,0 +1,476 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+INSTANCES_DIR="${BIAWS_INSTANCES_DIR:-${ROOT_DIR}/instances}"
+PROJECT_DIR="${PWD}"
+CLIENT=""
+INSTANCE=""
+API_PORT=""
+UI_PORT=""
+STORAGE_DIR=""
+MONGO_DATA_PATH=""
+ISSUE_FILES_PATH=""
+REQUEST_FILES_PATH=""
+PROCEDURE_FILES_PATH=""
+USE_DOCKER_VOLUMES=0
+SKIP_BOOTSTRAP=0
+LIST_INSTANCES=0
+
+usage() {
+  cat <<'EOF'
+Uso:
+  ./scripts/setup-agent.sh --instance <nome> --client codex|claude [opções]
+  ./scripts/setup-agent.sh --list-instances
+
+Opções:
+  --instance <nome>          Instância a criar ou selecionar
+  --client codex|claude      Cliente que receberá MCP e skills
+  --project <diretório>      Projeto consumidor; default: diretório atual
+  --api-port <porta>         Porta da API; automática para instância nova
+  --ui-port <porta>          Porta da UI; automática para instância nova
+  --storage-dir <diretório>  Raiz para MongoDB e arquivos no host
+  --mongo-data-path <dir>    Diretório do MongoDB no host
+  --issue-files-path <dir>   Diretório dos anexos de issues no host
+  --request-files-path <dir> Diretório dos arquivos de requests no host
+  --procedure-files-path <dir> Diretório dos arquivos de procedures no host
+  --use-docker-volumes       Usa volumes nomeados gerenciados pelo Docker
+  --instances-dir <diretório> Diretório de dados; default: ./instances
+  --skip-bootstrap           Configura apenas o cliente
+  --list-instances           Lista instâncias sem mostrar credenciais
+
+Sem --instance, um seletor interativo é exibido quando o terminal permitir.
+EOF
+}
+
+read_env_value() {
+  local env_file="$1"
+  local key="$2"
+  awk -F= -v key="${key}" '
+    $1 == key { print substr($0, index($0, "=") + 1) }
+  ' "${env_file}" | tail -n 1
+}
+
+replace_env_value() {
+  local env_file="$1"
+  local key="$2"
+  local value="$3"
+  local temporary_file
+  temporary_file="$(mktemp)"
+  awk -v key="${key}" -v value="${value}" '
+    BEGIN { replaced = 0 }
+    index($0, key "=") == 1 {
+      if (!replaced) {
+        print key "=" value
+        replaced = 1
+      }
+      next
+    }
+    { print }
+    END {
+      if (!replaced) print key "=" value
+    }
+  ' "${env_file}" > "${temporary_file}"
+  mv "${temporary_file}" "${env_file}"
+}
+
+list_instances() {
+  local found=0
+  local directory
+  shopt -s nullglob
+  for directory in "${INSTANCES_DIR}"/*; do
+    [[ -d "${directory}" && -f "${directory}/.env" ]] || continue
+    found=1
+    printf '%-24s API %-5s UI %-5s %s\n' \
+      "$(basename "${directory}")" \
+      "$(read_env_value "${directory}/.env" "ISSUE_API_PORT")" \
+      "$(read_env_value "${directory}/.env" "ISSUE_UI_PORT")" \
+      "${directory}"
+  done
+  shopt -u nullglob
+  if [[ "${found}" != "1" ]]; then
+    echo "Nenhuma instância encontrada em ${INSTANCES_DIR}."
+  fi
+}
+
+validate_instance() {
+  if [[ ! "$1" =~ ^[a-z0-9][a-z0-9-]{0,62}$ ]]; then
+    echo "Nome de instância inválido: use letras minúsculas, números e hífens." >&2
+    exit 2
+  fi
+}
+
+validate_port() {
+  local value="$1"
+  local label="$2"
+  if [[ ! "${value}" =~ ^[0-9]+$ ]] ||
+    [[ "${value}" -lt 1 ]] ||
+    [[ "${value}" -gt 65535 ]]; then
+    echo "${label} inválida: ${value}" >&2
+    exit 2
+  fi
+}
+
+normalize_storage_path() {
+  local value="$1"
+  local label="$2"
+  if [[ "${value}" != /* ]]; then
+    echo "${label} deve ser um caminho absoluto: ${value}" >&2
+    exit 2
+  fi
+  if [[ "${value}" == "/" ]]; then
+    echo "${label} não pode apontar para a raiz do sistema." >&2
+    exit 2
+  fi
+  if [[ "${value}" == *[\#\$:\'\"\\]* ]]; then
+    echo "${label} contém caractere incompatível com arquivos Compose: ${value}" >&2
+    exit 2
+  fi
+  mkdir -p "${value}"
+  (
+    cd "${value}"
+    pwd -P
+  )
+}
+
+validate_distinct_storage_paths() {
+  local values=(
+    "${MONGO_DATA_PATH}"
+    "${ISSUE_FILES_PATH}"
+    "${REQUEST_FILES_PATH}"
+    "${PROCEDURE_FILES_PATH}"
+  )
+  local first
+  local second
+  local left
+  local right
+  for ((first = 0; first < ${#values[@]}; first++)); do
+    [[ -n "${values[${first}]}" ]] || continue
+    for ((second = first + 1; second < ${#values[@]}; second++)); do
+      [[ -n "${values[${second}]}" ]] || continue
+      left="${values[${first}]%/}"
+      right="${values[${second}]%/}"
+      if [[ "${left}" == "${right}" ||
+        "${left}/" == "${right}/"* ||
+        "${right}/" == "${left}/"* ]]; then
+        echo "Diretórios persistentes não podem ser iguais nem aninhados: ${left}, ${right}" >&2
+        exit 2
+      fi
+    done
+  done
+}
+
+port_reserved() {
+  local port="$1"
+  local current_env="$2"
+  local env_file
+  shopt -s nullglob
+  for env_file in "${INSTANCES_DIR}"/*/.env; do
+    [[ "${env_file}" == "${current_env}" ]] && continue
+    if [[ "$(read_env_value "${env_file}" "ISSUE_API_PORT")" == "${port}" ]] ||
+      [[ "$(read_env_value "${env_file}" "ISSUE_UI_PORT")" == "${port}" ]]; then
+      shopt -u nullglob
+      return 0
+    fi
+  done
+  shopt -u nullglob
+  if command -v lsof >/dev/null 2>&1 &&
+    lsof -nP -iTCP:"${port}" -sTCP:LISTEN >/dev/null 2>&1; then
+    return 0
+  fi
+  return 1
+}
+
+next_port() {
+  local candidate="$1"
+  local current_env="$2"
+  while port_reserved "${candidate}" "${current_env}"; do
+    candidate=$((candidate + 1))
+  done
+  printf '%s' "${candidate}"
+}
+
+select_instance() {
+  local directories=()
+  local directory
+  local index=1
+  local selection
+  shopt -s nullglob
+  for directory in "${INSTANCES_DIR}"/*; do
+    [[ -d "${directory}" && -f "${directory}/.env" ]] || continue
+    directories+=("$(basename "${directory}")")
+  done
+  shopt -u nullglob
+
+  echo "Instâncias disponíveis:"
+  for directory in "${directories[@]}"; do
+    echo "  ${index}) ${directory}"
+    index=$((index + 1))
+  done
+  echo "  n) criar nova"
+  read -r -p "Selecione uma instância: " selection
+  if [[ "${selection}" == "n" || "${selection}" == "N" ]]; then
+    read -r -p "Nome da nova instância: " INSTANCE
+    return
+  fi
+  if [[ "${selection}" =~ ^[0-9]+$ ]] &&
+    [[ "${selection}" -ge 1 ]] &&
+    [[ "${selection}" -le "${#directories[@]}" ]]; then
+    INSTANCE="${directories[$((selection - 1))]}"
+    return
+  fi
+  echo "Seleção inválida." >&2
+  exit 2
+}
+
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --instance)
+      INSTANCE="${2:-}"
+      shift 2
+      ;;
+    --client)
+      CLIENT="${2:-}"
+      shift 2
+      ;;
+    --project)
+      PROJECT_DIR="${2:-}"
+      shift 2
+      ;;
+    --api-port)
+      API_PORT="${2:-}"
+      shift 2
+      ;;
+    --ui-port)
+      UI_PORT="${2:-}"
+      shift 2
+      ;;
+    --storage-dir)
+      STORAGE_DIR="${2:-}"
+      shift 2
+      ;;
+    --mongo-data-path)
+      MONGO_DATA_PATH="${2:-}"
+      shift 2
+      ;;
+    --issue-files-path)
+      ISSUE_FILES_PATH="${2:-}"
+      shift 2
+      ;;
+    --request-files-path)
+      REQUEST_FILES_PATH="${2:-}"
+      shift 2
+      ;;
+    --procedure-files-path)
+      PROCEDURE_FILES_PATH="${2:-}"
+      shift 2
+      ;;
+    --use-docker-volumes)
+      USE_DOCKER_VOLUMES=1
+      shift
+      ;;
+    --instances-dir)
+      INSTANCES_DIR="${2:-}"
+      shift 2
+      ;;
+    --skip-bootstrap)
+      SKIP_BOOTSTRAP=1
+      shift
+      ;;
+    --list-instances)
+      LIST_INSTANCES=1
+      shift
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Opção desconhecida: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+mkdir -p "$(dirname "${INSTANCES_DIR}")"
+INSTANCES_DIR="$(cd "$(dirname "${INSTANCES_DIR}")" && pwd)/$(basename "${INSTANCES_DIR}")"
+mkdir -p "${INSTANCES_DIR}"
+
+if [[ "${LIST_INSTANCES}" == "1" ]]; then
+  list_instances
+  exit 0
+fi
+
+if [[ -z "${INSTANCE}" ]]; then
+  if [[ -t 0 ]]; then
+    select_instance
+  else
+    echo "Informe --instance <nome> em execuções não interativas." >&2
+    exit 2
+  fi
+fi
+validate_instance "${INSTANCE}"
+
+if [[ "${CLIENT}" != "codex" && "${CLIENT}" != "claude" ]]; then
+  echo "Informe --client codex ou --client claude." >&2
+  exit 2
+fi
+if [[ ! -d "${PROJECT_DIR}" ]]; then
+  echo "Diretório de projeto inexistente: ${PROJECT_DIR}" >&2
+  exit 2
+fi
+if ! command -v node >/dev/null 2>&1; then
+  echo "Node.js 20.19 ou superior é necessário para executar o MCP." >&2
+  exit 1
+fi
+node_major="$(node -p 'Number(process.versions.node.split(".")[0])')"
+if [[ "${node_major}" -lt 20 ]]; then
+  echo "Node.js 20.19 ou superior é necessário; versão atual: $(node --version)." >&2
+  exit 1
+fi
+if ! command -v docker >/dev/null 2>&1; then
+  echo "Docker com Compose é necessário." >&2
+  exit 1
+fi
+if ! docker compose version >/dev/null 2>&1; then
+  echo "O plugin Docker Compose não está disponível." >&2
+  exit 1
+fi
+
+INSTANCE_DIR="${INSTANCES_DIR}/${INSTANCE}"
+ENV_FILE="${INSTANCE_DIR}/.env"
+new_instance=0
+if [[ ! -f "${ENV_FILE}" ]]; then
+  if [[ "${SKIP_BOOTSTRAP}" == "1" ]]; then
+    echo "A instância ${INSTANCE} ainda não existe; remova --skip-bootstrap." >&2
+    exit 2
+  fi
+  mkdir -p "${INSTANCE_DIR}"
+  cp "${ROOT_DIR}/.env.example" "${ENV_FILE}"
+  chmod 600 "${ENV_FILE}"
+  new_instance=1
+fi
+
+existing_mongo_data_path="$(read_env_value "${ENV_FILE}" "BIAWS_MONGO_DATA_PATH")"
+existing_issue_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_ISSUE_FILES_PATH")"
+existing_request_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_REQUEST_FILES_PATH")"
+existing_procedure_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_PROCEDURE_FILES_PATH")"
+
+if [[ "${USE_DOCKER_VOLUMES}" == "1" ]] &&
+  [[ -n "${STORAGE_DIR}${MONGO_DATA_PATH}${ISSUE_FILES_PATH}${REQUEST_FILES_PATH}${PROCEDURE_FILES_PATH}" ]]; then
+  echo "--use-docker-volumes não pode ser combinado com opções de diretório." >&2
+  exit 2
+fi
+
+if [[ "${USE_DOCKER_VOLUMES}" == "1" ]]; then
+  MONGO_DATA_PATH=""
+  ISSUE_FILES_PATH=""
+  REQUEST_FILES_PATH=""
+  PROCEDURE_FILES_PATH=""
+else
+  if [[ -n "${STORAGE_DIR}" ]]; then
+    STORAGE_DIR="$(normalize_storage_path "${STORAGE_DIR}" "Diretório de armazenamento")"
+    MONGO_DATA_PATH="${MONGO_DATA_PATH:-${STORAGE_DIR}/mongo}"
+    ISSUE_FILES_PATH="${ISSUE_FILES_PATH:-${STORAGE_DIR}/issues}"
+    REQUEST_FILES_PATH="${REQUEST_FILES_PATH:-${STORAGE_DIR}/requests}"
+    PROCEDURE_FILES_PATH="${PROCEDURE_FILES_PATH:-${STORAGE_DIR}/procedures}"
+  fi
+
+  MONGO_DATA_PATH="${MONGO_DATA_PATH:-${existing_mongo_data_path}}"
+  ISSUE_FILES_PATH="${ISSUE_FILES_PATH:-${existing_issue_files_path}}"
+  REQUEST_FILES_PATH="${REQUEST_FILES_PATH:-${existing_request_files_path}}"
+  PROCEDURE_FILES_PATH="${PROCEDURE_FILES_PATH:-${existing_procedure_files_path}}"
+
+  [[ -z "${MONGO_DATA_PATH}" ]] ||
+    MONGO_DATA_PATH="$(normalize_storage_path "${MONGO_DATA_PATH}" "Diretório do MongoDB")"
+  [[ -z "${ISSUE_FILES_PATH}" ]] ||
+    ISSUE_FILES_PATH="$(normalize_storage_path "${ISSUE_FILES_PATH}" "Diretório de issues")"
+  [[ -z "${REQUEST_FILES_PATH}" ]] ||
+    REQUEST_FILES_PATH="$(normalize_storage_path "${REQUEST_FILES_PATH}" "Diretório de requests")"
+  [[ -z "${PROCEDURE_FILES_PATH}" ]] ||
+    PROCEDURE_FILES_PATH="$(normalize_storage_path "${PROCEDURE_FILES_PATH}" "Diretório de procedures")"
+fi
+validate_distinct_storage_paths
+
+if [[ "${new_instance}" != "1" ]] &&
+  [[ "${MONGO_DATA_PATH}" != "${existing_mongo_data_path}" ||
+    "${ISSUE_FILES_PATH}" != "${existing_issue_files_path}" ||
+    "${REQUEST_FILES_PATH}" != "${existing_request_files_path}" ||
+    "${PROCEDURE_FILES_PATH}" != "${existing_procedure_files_path}" ]]; then
+  echo "Aviso: os destinos de armazenamento mudaram; dados existentes não são movidos automaticamente." >&2
+fi
+
+if [[ -z "${MONGO_DATA_PATH}${ISSUE_FILES_PATH}${REQUEST_FILES_PATH}${PROCEDURE_FILES_PATH}" ]]; then
+  STORAGE_DESCRIPTION="volumes Docker gerenciados"
+else
+  STORAGE_DESCRIPTION="bind mounts configurados no host"
+fi
+
+if [[ -z "${API_PORT}" ]]; then
+  API_PORT="$(read_env_value "${ENV_FILE}" "ISSUE_API_PORT")"
+  if [[ "${new_instance}" == "1" ]]; then
+    API_PORT="$(next_port "${API_PORT:-3100}" "${ENV_FILE}")"
+  fi
+fi
+if [[ -z "${UI_PORT}" ]]; then
+  UI_PORT="$(read_env_value "${ENV_FILE}" "ISSUE_UI_PORT")"
+  if [[ "${new_instance}" == "1" ]]; then
+    UI_PORT="$(next_port "${UI_PORT:-4400}" "${ENV_FILE}")"
+  fi
+fi
+validate_port "${API_PORT}" "Porta da API"
+validate_port "${UI_PORT}" "Porta da UI"
+if [[ "${API_PORT}" == "${UI_PORT}" ]]; then
+  echo "API e UI não podem usar a mesma porta." >&2
+  exit 2
+fi
+
+replace_env_value "${ENV_FILE}" "COMPOSE_PROJECT_NAME" "biaws-${INSTANCE}"
+replace_env_value "${ENV_FILE}" "ISSUE_API_PORT" "${API_PORT}"
+replace_env_value "${ENV_FILE}" "ISSUE_UI_PORT" "${UI_PORT}"
+replace_env_value "${ENV_FILE}" "ISSUE_API_URL" "http://127.0.0.1:${API_PORT}"
+replace_env_value "${ENV_FILE}" "BIAWS_MONGO_DATA_PATH" "${MONGO_DATA_PATH}"
+replace_env_value "${ENV_FILE}" "BIAWS_ISSUE_FILES_PATH" "${ISSUE_FILES_PATH}"
+replace_env_value "${ENV_FILE}" "BIAWS_REQUEST_FILES_PATH" "${REQUEST_FILES_PATH}"
+replace_env_value "${ENV_FILE}" "BIAWS_PROCEDURE_FILES_PATH" "${PROCEDURE_FILES_PATH}"
+replace_env_value "${ENV_FILE}" "BIAWS_PUBLIC_URL" "http://localhost:${UI_PORT}"
+replace_env_value \
+  "${ENV_FILE}" \
+  "BIAWS_TRUSTED_ORIGINS" \
+  "http://localhost:${UI_PORT},http://127.0.0.1:${UI_PORT}"
+chmod 600 "${ENV_FILE}"
+
+if [[ "${SKIP_BOOTSTRAP}" != "1" ]]; then
+  BIAWS_ENV_FILE="${ENV_FILE}" \
+    BIAWS_INSTANCE="${INSTANCE}" \
+    BIAWS_INSTANCES_DIR="${INSTANCES_DIR}" \
+    "${ROOT_DIR}/scripts/bootstrap.sh" \
+      --instance "${INSTANCE}" \
+      --instances-dir "${INSTANCES_DIR}"
+fi
+
+BIAWS_ENV_FILE="${ENV_FILE}" \
+  node "${ROOT_DIR}/biaws-cli/src/index.js" \
+    agent configure "${CLIENT}" \
+    --project "${PROJECT_DIR}"
+BIAWS_ENV_FILE="${ENV_FILE}" \
+  node "${ROOT_DIR}/biaws-cli/src/index.js" \
+    agent doctor "${CLIENT}" \
+    --project "${PROJECT_DIR}"
+
+cat <<EOF
+
+Configuração concluída:
+  Instância: ${INSTANCE}
+  Dados:     ${INSTANCE_DIR}
+  Storage:   ${STORAGE_DESCRIPTION}
+  Projeto:   ${PROJECT_DIR}
+  API:       http://localhost:${API_PORT}
+  UI:        http://localhost:${UI_PORT}
+
+Reabra o cliente no projeto e aprove o servidor MCP quando solicitado.
+Operação Docker:
+  docker compose --env-file "${ENV_FILE}" --project-name "biaws-${INSTANCE}" ps
+EOF

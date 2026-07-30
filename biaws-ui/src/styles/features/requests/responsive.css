@@ -1,0 +1,377 @@
+@media (max-width: 1120px) {
+  .filterGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .filterCode {
+    grid-column: span 2;
+  }
+
+  .filterText {
+    grid-column: span 4;
+  }
+
+  .filterDateField,
+  .filterFrom,
+  .filterTo {
+    grid-column: span 2;
+  }
+
+  .filterFooter {
+    grid-column: 1 / -1;
+  }
+
+  .summaryBand {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .aggregateArea {
+    grid-column: 1 / -1;
+  }
+
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+
+  .tagFilterGroups {
+    grid-template-columns: 1fr;
+  }
+
+  .tagCheckGrid {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+
+  .taxonomyMetrics,
+  .requestsLayout,
+  .requestMetrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .requestsMobileTabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 14px;
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .requestsMobileTabs .detailTab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+
+  .requestsLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .requestsLayout.mobileRequestsList:not(.requestDetailSelected)
+    > .requestWorkArea,
+  .requestsLayout.mobileRequestsOverview:not(.requestDetailSelected)
+    > .requestListPanel,
+  .requestsLayout.requestDetailSelected > .requestListPanel {
+    display: none;
+  }
+
+  .requestWorkArea {
+    grid-column: 1 / -1;
+  }
+
+  .requestListPanel {
+    position: static;
+  }
+
+  .requestFormGrid {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
+  .requestDetailsGrid {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
+  .requestCodeField,
+  .requestTitleField,
+  .requestDetailTitle,
+  .requestMetaField,
+  .requestStatusField {
+    grid-column: auto;
+  }
+
+  .requestChecklistItem,
+  .readOnlyChecklistItem,
+  .requestBillingRow {
+    grid-template-columns:
+      minmax(180px, 0.8fr) minmax(120px, 0.35fr) minmax(120px, 0.35fr)
+      minmax(220px, 1fr);
+  }
+
+  .requestTaskDialog {
+    max-height: calc(100dvh - 20px);
+  }
+}
+
+@media (max-width: 720px) {
+  .topBar,
+  .contentBand,
+  .summaryBand,
+  .tableBand,
+  .taxonomyPage,
+  .requestsPage {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .topBar {
+    align-items: flex-start;
+    display: grid;
+  }
+
+  .topBarHeading {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mobileMenuButton.iconButton {
+    display: inline-flex;
+  }
+
+  .topBarActions {
+    display: none;
+    width: 100%;
+  }
+
+  .topBarActions.mobileMenuOpen,
+  .taxonomyHero,
+  .taxonomyHeroActions,
+  .requestsHero,
+  .requestDetailTabsBar {
+    display: grid;
+    width: 100%;
+  }
+
+  .requestDetailActions {
+    justify-content: stretch;
+  }
+
+  .requestDetailActions button {
+    flex: 1;
+  }
+
+  .viewTabs {
+    display: grid;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .viewTab {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .settingsMenu {
+    width: 100%;
+  }
+
+  .settingsSubmenu {
+    position: static;
+    min-width: 0;
+    margin-top: 4px;
+    box-shadow: none;
+  }
+
+  .filterGrid,
+  .summaryBand,
+  .taxonomyMetrics,
+  .requestsLayout,
+  .requestMetrics,
+  .requestFormGrid,
+  .requestDetailsGrid,
+  .requestChecklistItem,
+  .requestBillingRow,
+  .requestNoteReadHeader,
+  .requestScheduleMain {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tagGroupsWorkspace,
+  .tagGroupFields,
+  .tagGroupTagsSection {
+    grid-template-columns: 1fr;
+  }
+
+  .tagGroupNavigation {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .requestNoteActions {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .requestTaskFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .requestTasksOverviewHeader,
+  .requestTasksOverviewMain {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .requestTasksStatusFilter {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .requestTasksStatusChips {
+    justify-content: flex-start;
+  }
+
+  .requestTaskTitleField {
+    grid-column: auto;
+  }
+
+  .requestTaskCardHeader,
+  .requestTaskDialogFooter {
+    display: grid;
+  }
+
+  .requestTaskDialogFooter > div {
+    display: grid;
+  }
+
+  .filterCode,
+  .filterText,
+  .filterDateField,
+  .filterFrom,
+  .filterTo,
+  .filterFooter,
+  .aggregateArea {
+    grid-column: auto;
+  }
+
+  .filterFooter {
+    display: grid;
+    gap: 10px;
+  }
+
+  .issueViewControls,
+  .issueSectionTabs {
+    width: 100%;
+  }
+
+  .issueViewNavigation {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .issueViewNavigation .issueSectionTabs {
+    width: auto;
+    flex: 1;
+  }
+
+  .issueViewControls {
+    align-items: stretch;
+    display: grid;
+  }
+
+  .filterActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .filterActions button {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .summaryHeader {
+    display: grid;
+  }
+
+  .summaryMetrics {
+    width: 100%;
+  }
+
+  .summaryMetrics .metric {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .taxonomySummaryRow {
+    grid-template-columns: 26px auto minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .taxonomySummaryIssues {
+    padding-left: calc(38px + (var(--depth) * 12px));
+  }
+
+  .taxonomySummaryIssue {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .taxonomySummaryIssueMeta {
+    text-align: left;
+  }
+
+  .inlineForm,
+  .treeActions {
+    grid-template-columns: 1fr;
+  }
+
+  .requestWorkArea {
+    grid-column: auto;
+  }
+
+  .errorBox {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+
+  .dialogBackdrop {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .issueDialog {
+    max-height: calc(100dvh - 20px);
+  }
+
+  .dialogHeader,
+  .dialogBody {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .detailTaxonomyCard,
+  .detailTagsCard {
+    grid-column: auto;
+  }
+
+  .commentItem header {
+    display: grid;
+  }
+
+  .tagCheckGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .dialogActions {
+    display: grid;
+  }
+}

@@ -1,0 +1,387 @@
+.taxonomySelector {
+  min-width: 0;
+}
+
+.taxonomyColumns {
+  display: flex;
+  min-height: 280px;
+  height: 360px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.taxonomyColumn {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-width: 240px;
+  border-right: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+}
+
+.taxonomyColumnList {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.taxonomyColumnRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 7px 10px;
+}
+
+.taxonomyColumnRow:last-child {
+  border-bottom: 0;
+}
+
+.taxonomyColumnRow:hover,
+.activeTaxonomyColumnRow {
+  background: #f8fbff;
+}
+
+.activeTaxonomyColumnRow {
+  box-shadow: inset 3px 0 0 var(--color-focus);
+}
+
+.checkedTaxonomyColumnRow {
+  background: #f1f8f4;
+}
+
+.activeTaxonomyColumnRow.checkedTaxonomyColumnRow {
+  background: #eef6ff;
+}
+
+.disabledTaxonomyColumnRow {
+  color: #98a2b3;
+}
+
+.taxonomyColumnRow:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.taxonomyColumnRow input {
+  margin: 0;
+}
+
+.taxonomyColumnRow span {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taxonomyColumnRow svg {
+  color: #98a2b3;
+}
+
+.taxonomyPrimaryBadge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-subtle);
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.taxonomyPrimaryBadge:hover {
+  border-color: var(--color-accent-border);
+  color: var(--color-accent-text);
+}
+
+.activeTaxonomyPrimaryBadge {
+  border-color: var(--color-focus);
+  background: #e8f1ff;
+  color: var(--color-accent-text);
+}
+
+.taxonomyColumnEditButton {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.taxonomyColumnEditButton:hover {
+  border-color: var(--color-accent-border);
+  color: var(--color-accent-text);
+}
+
+.taxonomyColumnEditButton svg {
+  color: currentColor;
+}
+
+.taxonomyColumnEmpty {
+  color: var(--color-text-subtle);
+  padding: 10px;
+  font-size: 12px;
+}
+
+.taxonomyColumnAdd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  gap: 6px;
+  margin-top: auto;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-subtle);
+  padding: 8px;
+}
+
+.taxonomyColumnAdd input {
+  min-height: 32px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.taxonomyColumnAdd button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+.taxonomyColumnAdd button:hover:not(:disabled) {
+  border-color: var(--color-accent-border);
+  color: var(--color-accent-text);
+}
+
+.taxonomyEditBackdrop {
+  position: fixed;
+  z-index: 35;
+  inset: 0;
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  background: rgba(16, 24, 40, 0.2);
+  padding: 20px;
+}
+
+.taxonomyEditDialog {
+  display: grid;
+  width: min(420px, calc(100vw - 40px));
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+  padding: 14px;
+}
+
+.taxonomyEditDialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.taxonomyEditDialog header strong {
+  display: block;
+  color: var(--color-text);
+  font-size: 15px;
+}
+
+.taxonomyEditDialog header span {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.taxonomyEditDialog .dialogActions {
+  gap: 8px;
+}
+
+.taxonomyDeleteNodeButton {
+  margin-right: auto;
+}
+
+@media (max-width: 720px) {
+  .tableWrap:has(.issueTable) {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .issueTable {
+    display: block;
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .issueTable thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .issueTable tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .issueTable tr {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .issueTable tr td {
+    display: grid;
+    grid-template-columns: minmax(88px, 0.34fr) minmax(0, 1fr);
+    gap: 10px;
+    min-width: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: 10px 12px;
+  }
+
+  .issueTable td::before {
+    content: attr(data-label);
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .issueTable .titleCell,
+  .issueTable .applicationCell,
+  .issueTable .textCell,
+  .issueTable .taxonomyCell,
+  .issueTable .tagsCell {
+    min-width: 0;
+  }
+
+  .issueTable .inlineIssueSelect {
+    width: 100%;
+    max-width: none;
+  }
+
+  .issueTable .emptyTable {
+    display: block;
+    border: 0;
+    padding: 24px 12px;
+  }
+
+  .issueTable .emptyTable::before {
+    content: none;
+  }
+
+  .taxonomyColumns {
+    height: min(420px, calc(100dvh - 190px));
+    min-height: 280px;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-inline: contain;
+  }
+
+  .taxonomyColumn {
+    min-width: min(86vw, 320px);
+    scroll-snap-align: start;
+  }
+}
+
+.classificationSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.classificationSummary span {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.tagGroupSelection {
+  display: grid;
+  gap: 8px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.checkItem input {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.checkItem span {
+  overflow-wrap: anywhere;
+}
+
+.tagGroupBlock {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 10px;
+}
+
+.tagGroupBlock:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.tagGroupBlock strong {
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.tagCheckGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 7px 10px;
+}
+
+.compactCheckItem {
+  min-width: 0;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}

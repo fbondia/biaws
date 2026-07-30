@@ -1,0 +1,84 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
+import { loadEnv } from "../../shared/index.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export const TOOL_DIR = path.resolve(__dirname, "..");
+
+loadEnv(TOOL_DIR);
+
+function readEnv(keys, fallback) {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (value !== undefined && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+  return fallback;
+}
+
+function readNumberEnv(keys, fallback) {
+  const rawValue = readEnv(keys, undefined);
+  if (rawValue === undefined) return fallback;
+
+  const value = Number(rawValue);
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`Invalid numeric environment value: ${rawValue}`);
+  }
+  return value;
+}
+
+function readCsvEnv(keys, fallback = []) {
+  const rawValue = readEnv(keys, undefined);
+  if (rawValue === undefined) return fallback;
+
+  return rawValue
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function readBooleanEnv(keys, fallback) {
+  const rawValue = readEnv(keys, undefined);
+  if (rawValue === undefined) return fallback;
+
+  const value = rawValue.toLowerCase();
+  if (["true", "1", "yes", "on"].includes(value)) return true;
+  if (["false", "0", "no", "off"].includes(value)) return false;
+  throw new Error(`Invalid boolean environment value: ${rawValue}`);
+}
+
+export function getServerConfig() {
+  const host = readEnv(["ISSUE_API_HOST", "HOST"], "127.0.0.1");
+  const port = readNumberEnv(["ISSUE_API_PORT", "PORT"], 3100);
+
+  return {
+    host,
+    port,
+    maxEmlBytes: readNumberEnv(["ISSUE_API_MAX_EML_BYTES"], 25 * 1024 * 1024),
+    maxAttachmentBytes: readNumberEnv(
+      ["ISSUE_API_MAX_ATTACHMENT_BYTES"],
+      50 * 1024 * 1024,
+    ),
+    maxJsonBytes: readNumberEnv(["ISSUE_API_MAX_JSON_BYTES"], 4 * 1024 * 1024),
+    logging: {
+      includeHealthChecks: readBooleanEnv(
+        ["ISSUE_API_LOG_HEALTH_REQUESTS"],
+        false,
+      ),
+    },
+    auth: {
+      secret: readEnv(["BETTER_AUTH_SECRET"], undefined),
+      baseUrl: readEnv(["BETTER_AUTH_URL"], `http://${host}:${port}`),
+      secureCookies: readBooleanEnv(
+        ["BETTER_AUTH_SECURE_COOKIES"],
+        process.env.NODE_ENV === "production",
+      ),
+      trustedOrigins: readCsvEnv(
+        ["BETTER_AUTH_TRUSTED_ORIGINS"],
+        ["http://127.0.0.1:4400"],
+      ),
+    },
+  };
+}

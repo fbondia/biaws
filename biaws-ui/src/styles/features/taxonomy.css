@@ -1,0 +1,329 @@
+.taxonomyPage {
+  padding: 20px 28px 28px;
+}
+
+.taxonomyHero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.taxonomyHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.taxonomyHero h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.taxonomyHero p {
+  max-width: 760px;
+  margin: 5px 0 0;
+  color: var(--color-text-subtle);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.taxonomyMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.taxonomyPanel {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  padding: 14px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.panelHeader h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.panelHeader span {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.groupEditor,
+.nodeEditor {
+  display: grid;
+  gap: 12px;
+}
+
+.taxonomyDefinitionTabs {
+  margin-bottom: 14px;
+}
+
+.taxonomyDefinitionTabs .detailTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.taxonomyTabPanel .taxonomyColumns {
+  height: 480px;
+}
+
+.tagGroupsWorkspace {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.32fr) minmax(0, 1fr);
+  min-height: 390px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+}
+
+.tagGroupNavigation {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-subtle);
+  padding: 8px;
+}
+
+.tagGroupNavigation > button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.tagGroupNavigation > button:hover,
+.tagGroupNavigation > .activeTagGroupNavigationItem {
+  background: #eef6ff;
+  color: var(--color-accent-text);
+}
+
+.tagGroupNavigation strong,
+.tagGroupNavigation small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tagGroupNavigation strong {
+  font-size: 13px;
+}
+
+.tagGroupNavigation small {
+  margin-top: 3px;
+  color: var(--color-text-subtle);
+  font-size: 11px;
+}
+
+.tagGroupEditor {
+  align-content: start;
+  padding: 16px;
+}
+
+.tagGroupFields {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(260px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.tagGroupTagsSection {
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 4px;
+  padding-top: 16px;
+}
+
+.tagGroupTagsSection > div > strong,
+.tagGroupTagsSection > div > span {
+  display: block;
+}
+
+.tagGroupTagsSection > div > strong {
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.tagGroupTagsSection > div > span {
+  margin-top: 3px;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+
+.inlineForm,
+.treeActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.treeActions {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  margin-bottom: 12px;
+}
+
+.tagCloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.editableTag {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  gap: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  padding: 4px 8px 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.editableTag button {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  padding: 0;
+}
+
+.editableTag button:hover {
+  background: #fff1f1;
+  color: #9b1c1c;
+}
+
+.addTagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  border: 1px dashed #7f56d9;
+  border-radius: 999px;
+  background: #f4f0ff;
+  color: #6941c6;
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.addTagChip:hover {
+  border-color: #6941c6;
+  background: #ebe3ff;
+}
+
+.taxonomyTreeWrap {
+  max-height: 470px;
+  overflow: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+}
+
+.taxonomyTree {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.taxonomyNode {
+  display: grid;
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding-bottom: 7px;
+  padding-right: 10px;
+  padding-top: 7px;
+  text-align: left;
+}
+
+.taxonomyNode:hover,
+.selectedTaxonomyNode {
+  background: #f8fbff;
+}
+
+.selectedTaxonomyNode {
+  box-shadow: inset 3px 0 0 var(--color-focus);
+}
+
+.taxonomyNode span {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.taxonomyNode small {
+  overflow-wrap: anywhere;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+
+.nodePath {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  background: var(--color-surface-subtle);
+  padding: 10px;
+}
+
+.nodePath span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.nodePath strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.35;
+}

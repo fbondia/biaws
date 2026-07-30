@@ -1,0 +1,308 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { PERMISSION_CATALOG } from "../../shared/index.js";
+import { normalizeComponentInput } from "../src/repositories/componentsRepository.js";
+import {
+  normalizeDeploymentInput,
+  normalizeRuntimeInput,
+} from "../src/repositories/deploymentsRepository.js";
+import { normalizeRepositoryInput } from "../src/repositories/repositoriesRepository.js";
+import { normalizeServerInput } from "../src/repositories/serversRepository.js";
+import {
+  buildScopedListFilter,
+  pagination,
+} from "../src/repositories/topologyRepositorySupport.js";
+
+test("topology permissions are part of the canonical catalog", () => {
+  const permissions = new Set(PERMISSION_CATALOG.map(({ id }) => id));
+  for (const domain of [
+    "components",
+    "integrations",
+    "repositories",
+    "servers",
+    "deployments",
+    "runtimes",
+  ]) {
+    for (const operation of ["read", "create", "update", "archive"]) {
+      assert.equal(permissions.has(`${domain}.${operation}`), true);
+    }
+  }
+});
+
+test("component relationships are normalized and duplicate references are rejected", () => {
+  assert.deepEqual(
+    normalizeComponentInput({
+      key: " Billing-API ",
+      name: " Billing API ",
+      type: "api",
+      repositoryLinks: [{ repositoryId: "repository-1", role: "source" }],
+      dependencies: [
+        {
+          componentId: "component-2",
+          kind: "http",
+          description: " Customer API ",
+        },
+      ],
+      tags: ["Backend", "backend"],
+    }),
+    {
+      key: "billing-api",
+      name: "Billing API",
+      description: "",
+      type: "api",
+      repositoryLinks: [{ repositoryId: "repository-1", role: "source" }],
+      dependencies: [
+        {
+          componentId: "component-2",
+          kind: "http",
+          description: "Customer API",
+        },
+      ],
+      tags: ["Backend"],
+    },
+  );
+
+  assert.throws(
+    () =>
+      normalizeComponentInput({
+        key: "api",
+        name: "API",
+        repositoryLinks: [
+          { repositoryId: "repository-1", role: "source" },
+          { repositoryId: "repository-1", role: "documentation" },
+        ],
+      }),
+    (error) =>
+      error.statusCode === 422 &&
+      error.code === "INVALID_COMPONENT_RELATIONSHIP",
+  );
+});
+
+test("repository URL rejects credentials and secret query parameters", () => {
+  for (const url of [
+    "https://user:password@example.test/repository.git",
+    "https://example.test/repository.git?access_token=secret",
+  ]) {
+    assert.throws(
+      () =>
+        normalizeRepositoryInput({
+          key: "repository",
+          name: "Repository",
+          url,
+        }),
+      (error) =>
+        error.statusCode === 422 && error.code === "INVALID_CATALOG_URL",
+    );
+  }
+});
+
+test("repository URL is mutable while its key remains immutable", () => {
+  const current = normalizeRepositoryInput({
+    key: "repository",
+    name: "Repository",
+    provider: "github",
+    url: "https://example.test/old.git",
+  });
+  assert.equal(
+    normalizeRepositoryInput({ url: "https://example.test/new.git" }, current)
+      .url,
+    "https://example.test/new.git",
+  );
+  assert.throws(
+    () => normalizeRepositoryInput({ key: "new-key" }, current),
+    (error) =>
+      error.statusCode === 409 && error.code === "CATALOG_KEY_IMMUTABLE",
+  );
+});
+
+test("server payload limits lifecycle changes and credential-bearing addresses", () => {
+  assert.equal(
+    normalizeServerInput({
+      key: "api-prod-1",
+      name: "API production 1",
+      status: "maintenance",
+      addresses: ["10.0.0.10", "https://api.example.test"],
+    }).status,
+    "maintenance",
+  );
+  assert.throws(
+    () =>
+      normalizeServerInput({
+        key: "api-prod-1",
+        name: "API production 1",
+        status: "archived",
+      }),
+    (error) => error.statusCode === 422,
+  );
+  assert.throws(
+    () =>
+      normalizeServerInput({
+        key: "api-prod-1",
+        name: "API production 1",
+        addresses: ["https://user:secret@example.test"],
+      }),
+    (error) => error.statusCode === 422 && error.code === "INVALID_CATALOG_URL",
+  );
+});
+
+test("deployment keeps its component immutable and validates source shape", () => {
+  const current = normalizeDeploymentInput({
+    key: "billing-production",
+    name: "Billing production",
+    componentId: "component-1",
+    environment: "production",
+    source: { repositoryId: "repository-1", revision: "abc123" },
+  });
+  assert.throws(
+    () => normalizeDeploymentInput({ componentId: "component-2" }, current),
+    (error) =>
+      error.statusCode === 409 &&
+      error.code === "DEPLOYMENT_COMPONENT_IMMUTABLE",
+  );
+  assert.throws(
+    () =>
+      normalizeDeploymentInput({
+        key: "invalid",
+        name: "Invalid",
+        componentId: "component-1",
+        source: { revision: "abc123" },
+      }),
+    (error) =>
+      error.statusCode === 422 && error.code === "INVALID_DEPLOYMENT_SOURCE",
+  );
+});
+
+test("deployment publications are append-only and materialize the latest release", () => {
+  const deployment = normalizeDeploymentInput(
+    {
+      key: "billing-production",
+      name: "Billing production",
+      componentId: "component-1",
+      environment: "production",
+      repositoryId: "repository-1",
+      publications: [
+        {
+          version: "2.4.0",
+          revision: "abc123",
+          publishedAt: "2026-07-30T12:00:00.000Z",
+          description: "Novo cálculo de cobrança",
+        },
+      ],
+    },
+    null,
+    { userId: "user-1" },
+  );
+  assert.equal(deployment.publications.length, 1);
+  assert.equal(deployment.publications[0].recordedBy, "user-1");
+  assert.equal(deployment.version, "2.4.0");
+  assert.equal(deployment.source.revision, "abc123");
+  assert.equal(deployment.source.repositoryId, "repository-1");
+  assert.equal(deployment.deployedAt.toISOString(), "2026-07-30T12:00:00.000Z");
+  assert.throws(
+    () =>
+      normalizeDeploymentInput(
+        { publications: [] },
+        { ...deployment, id: "deployment-1" },
+      ),
+    (error) =>
+      error.statusCode === 409 && error.code === "CATALOG_HISTORY_IMMUTABLE",
+  );
+});
+
+test("runtime metadata is flat, bounded and rejects secret-like keys", () => {
+  const runtime = normalizeRuntimeInput({
+    key: "pod-1",
+    name: "Pod 1",
+    kind: "kubernetes",
+    port: 8080,
+    metadata: {
+      cluster: "cluster-a",
+      replicas: 2,
+      zones: ["a", "b"],
+    },
+  });
+  assert.deepEqual(runtime.metadata, {
+    cluster: "cluster-a",
+    replicas: 2,
+    zones: ["a", "b"],
+  });
+  assert.throws(
+    () =>
+      normalizeRuntimeInput({
+        key: "pod-1",
+        name: "Pod 1",
+        metadata: { apiToken: "secret" },
+      }),
+    (error) =>
+      error.statusCode === 422 && error.code === "INVALID_RUNTIME_METADATA",
+  );
+  assert.throws(
+    () =>
+      normalizeRuntimeInput({
+        key: "pod-1",
+        name: "Pod 1",
+        metadata: { nested: { value: true } },
+      }),
+    (error) =>
+      error.statusCode === 422 && error.code === "INVALID_RUNTIME_METADATA",
+  );
+});
+
+test("runtime observations are append-only and procedure markdown is bounded", () => {
+  const runtime = normalizeRuntimeInput(
+    {
+      key: "pod-1",
+      name: "Pod 1",
+      observations: [
+        {
+          healthStatus: "healthy",
+          observedAt: "2026-07-30T13:00:00.000Z",
+          source: "zabbix",
+          message: "Respondendo normalmente",
+          metadata: { latency_ms: 35 },
+        },
+      ],
+      procedureMarkdown: "# Publicação\n\n1. Atualize a imagem.",
+    },
+    null,
+    { userId: "monitor-1" },
+  );
+  assert.equal(runtime.observations[0].healthStatus, "healthy");
+  assert.equal(runtime.observations[0].recordedBy, "monitor-1");
+  assert.equal(runtime.observedAt.toISOString(), "2026-07-30T13:00:00.000Z");
+  assert.match(runtime.procedureMarkdown, /Atualize a imagem/u);
+  assert.throws(
+    () =>
+      normalizeRuntimeInput(
+        { observations: [] },
+        { ...runtime, id: "runtime-1" },
+      ),
+    (error) =>
+      error.statusCode === 409 && error.code === "CATALOG_HISTORY_IMMUTABLE",
+  );
+});
+
+test("scoped topology filters escape search and pagination is bounded", () => {
+  const filter = buildScopedListFilter({
+    workspaceId: "workspace-1",
+    applicationId: "application-1",
+    statuses: ["active", "archived"],
+    query: { q: "api.*" },
+  });
+  assert.equal(filter.workspaceId, "workspace-1");
+  assert.equal(filter.applicationId, "application-1");
+  assert.equal(filter.status, "active");
+  assert.equal(filter.$or[0].key.test("api.*"), true);
+  assert.equal(filter.$or[0].key.test("api-anything"), false);
+  assert.deepEqual(pagination({ page: "2", limit: "500" }), {
+    page: 2,
+    limit: 100,
+    skip: 100,
+  });
+  assert.throws(
+    () => pagination({ page: "0" }),
+    (error) =>
+      error.statusCode === 422 && error.code === "INVALID_CATALOG_PAGINATION",
+  );
+});

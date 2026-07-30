@@ -1,0 +1,122 @@
+.auditHistory {
+  padding: 20px;
+}
+
+.auditHistoryHeader,
+.auditHistoryHeader > div,
+.auditEvent header,
+.auditActor,
+.auditChange > div {
+  display: flex;
+  align-items: center;
+}
+
+.auditHistoryHeader {
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.auditHistoryHeader > div {
+  gap: 10px;
+}
+
+.auditHistoryHeader h3 {
+  margin: 0;
+}
+
+.auditHistoryHeader span,
+.auditEvent header span,
+.auditActor,
+.auditTarget {
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+}
+
+.auditTimeline {
+  margin-left: 7px;
+}
+
+.auditEvent {
+  border-left: 2px solid var(--color-border);
+  padding: 0 0 22px 24px;
+  position: relative;
+}
+
+.auditEvent:last-child {
+  padding-bottom: 0;
+}
+
+.auditEventMarker {
+  background: var(--color-focus);
+  border: 3px solid var(--color-surface);
+  border-radius: 50%;
+  height: 13px;
+  left: -8px;
+  position: absolute;
+  top: 3px;
+  width: 13px;
+}
+
+.auditEventContent {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.auditEvent header {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.auditEvent header span,
+.auditActor {
+  gap: 5px;
+}
+
+.auditActor {
+  margin-top: 8px;
+}
+
+.auditActor small {
+  opacity: 0.8;
+}
+
+.auditTarget {
+  margin-top: 6px;
+}
+
+.auditChanges {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.auditChange {
+  background: var(--color-background);
+  border-radius: 7px;
+  padding: 9px 10px;
+}
+
+.auditChange > code {
+  color: var(--color-focus);
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+}
+
+.auditChange > div {
+  align-items: stretch;
+  gap: 8px;
+}
+
+.auditChange pre {
+  background: transparent;
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.8rem;
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}

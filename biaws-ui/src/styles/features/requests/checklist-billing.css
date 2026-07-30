@@ -1,0 +1,224 @@
+.dangerIconButton {
+  border-color: #fecdca;
+  background: #fff5f5;
+  color: #b42318;
+}
+
+.dangerIconButton:hover {
+  background: #fee4e2;
+}
+
+.requestDeleteActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.requestChecklist {
+  display: grid;
+  gap: 10px;
+}
+
+.requestChecklistItem {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.8fr) minmax(150px, 0.45fr) minmax(
+      260px,
+      1.2fr
+    );
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 10px;
+}
+
+.requestChecklistToggle,
+.requestChecklistStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.requestChecklistToggle {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+}
+
+.requestChecklistToggle:hover {
+  color: var(--color-accent-text);
+}
+
+.requestChecklistToggle svg {
+  color: var(--color-text-subtle);
+  flex: 0 0 auto;
+}
+
+.requestChecklistStatus input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.requestChecklistStatus svg {
+  color: var(--color-text-subtle);
+  flex: 0 0 auto;
+}
+
+.requestChecklistStatus input:checked + svg {
+  color: #246b49;
+}
+
+.requestChecklistStatus strong {
+  overflow-wrap: anywhere;
+}
+
+.readOnlyChecklistItem {
+  grid-template-columns: minmax(210px, 0.8fr) minmax(120px, 0.35fr) minmax(
+      260px,
+      1.35fr
+    );
+}
+
+.readOnlyChecklistStatus svg {
+  color: var(--color-text-subtle);
+}
+
+.completedChecklistStatus svg {
+  color: #246b49;
+}
+
+.requestChecklistDialog {
+  display: grid;
+  gap: 14px;
+  width: min(520px, 100%);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+  padding: 16px;
+}
+
+.requestChecklistDialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.requestChecklistDialog header span {
+  display: block;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.requestChecklistDialog header h3 {
+  margin: 3px 0 0;
+  color: var(--color-text);
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.requestChecklistDialogToggle {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 0 12px;
+  font-weight: 800;
+}
+
+.requestChecklistDialogToggle:hover {
+  border-color: var(--color-accent-border);
+  color: var(--color-accent-text);
+}
+
+.requestChecklistDialogToggle svg {
+  color: var(--color-text-subtle);
+}
+
+.requestChecklistDialogComment textarea {
+  min-height: 140px;
+}
+
+.requestChecklistDialog footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.requestChecklistDate input {
+  min-width: 0;
+}
+
+.requestChecklistComment textarea {
+  min-height: 72px;
+}
+
+.requestBillingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.requestBillingList {
+  display: grid;
+  gap: 10px;
+}
+
+.requestBillingRow {
+  display: grid;
+  grid-template-columns:
+    minmax(120px, 0.35fr) minmax(120px, 0.35fr) minmax(120px, 0.35fr)
+    minmax(260px, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 10px;
+}
+
+.requestBillingMonthLabel {
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.requestBillingMonthLabel span {
+  display: block;
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.requestBillingMonthLabel strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text);
+  font-size: 15px;
+}
+
+.requestBillingJourneys {
+  min-width: 0;
+}
+
+.requestBillingJourneys strong {
+  color: #d92e2e;
+  font-size: 15px;
+}
+.requestBillingComment textarea {
+  min-height: 72px;
+}

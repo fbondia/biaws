@@ -1,0 +1,70 @@
+# Bondia Workspaces CLI
+
+CLI do Bondia Workspaces para configurar capacidades locais.
+
+Neste primeiro recorte, o CLI trata exclusivamente do catálogo de skills exposto pela
+`biaws-api`.
+
+## Uso
+
+Com a `biaws-api` em execução:
+
+```bash
+node src/index.js skills list
+node src/index.js skills publish \
+  --dir ../../.agents/skills/biaws-example \
+  --version 1.0.0 \
+  --changelog "Publicação inicial"
+node src/index.js skills publish-all \
+  --dir ../../.agents/skills \
+  --initial-version 1.0.0 \
+  --changelog "Publicação inicial do catálogo"
+node src/index.js skills install biaws-example
+node src/index.js skills install-all
+node src/index.js skills status
+node src/index.js skills update
+node src/index.js agent configure codex --project /caminho/do/projeto
+node src/index.js agent configure claude --project /caminho/do/projeto
+node src/index.js agent doctor codex --project /caminho/do/projeto
+```
+
+Por padrão, as skills são instaladas em `.agents/skills`, considerando o diretório
+corrente. Outro destino pode ser informado com `--target`.
+
+O CLI mantém `.agents/biaws-skills.lock.json` com as versões instaladas. Ao usar
+`--force` ou `skills update`, a instalação anterior é preservada ao lado da nova com
+o sufixo `.backup-<data>`.
+
+`skills publish-all` examina somente os subdiretórios imediatos da pasta informada
+que contenham `SKILL.md`. Uma skill cuja versão já esteja no catálogo é ignorada,
+permitindo repetir a carga inicial sem gerar conflito. Falhas em uma skill não
+interrompem as demais e fazem o comando terminar com código de saída diferente de
+zero.
+
+`agent configure` registra o `biaws-mcp` e instala todas as skills do catálogo.
+Para Codex, usa `.codex/config.toml` e `.agents/skills`. Para Claude Code, usa
+`.mcp.json` e `.claude/skills`. O comando preserva outros servidores MCP e não
+altera configuração global. Use `agent doctor` para verificar Node.js, API,
+autenticação, configuração e skills.
+
+## Configuração
+
+- `ISSUE_API_URL` ou `ISSUE_API_BASE_URL`: endereço da API.
+- `ISSUE_API_KEY`: chave enviada como `Authorization: Bearer`.
+- `ISSUE_WORKSPACE_ID`: workspace enviado como
+  `X-Biaws-Workspace-Id` quando a identidade acessar mais de um.
+- `BIAWS_ENV_FILE`: caminho absoluto para o `.env` da instância selecionada;
+  o setup o grava também na configuração MCP do cliente.
+- `--api-url`: sobrescreve o endereço apenas para a execução atual.
+- `--api-key`: sobrescreve a chave apenas para a execução atual; evite porque o
+  valor pode ficar visível na lista de processos ou no histórico do shell.
+- `--workspace`: sobrescreve o workspace apenas para a execução atual.
+
+O valor padrão é `http://127.0.0.1:3100`.
+
+## Desenvolvimento
+
+```bash
+npm run check
+npm test
+```

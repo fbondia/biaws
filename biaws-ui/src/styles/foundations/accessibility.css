@@ -1,0 +1,67 @@
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+body:has([role="dialog"][aria-modal="true"]) {
+  overflow: hidden;
+}
+
+.dialogBackdrop,
+.tagFilterDialogBackdrop,
+.tagPickerBackdrop,
+.taxonomyEditBackdrop,
+.markdownFullscreenBackdrop {
+  overscroll-behavior: contain;
+}
+
+.issueDialog,
+.procedureDialog,
+.skillDialog,
+.requestNoteDialog,
+.requestTaskNoteDialog,
+.requestTaskDialog,
+.markdownFullscreenDialog,
+.filePreviewDialog,
+.tagFilterDialog {
+  max-height: calc(100dvh - 40px);
+}
+
+@media (pointer: coarse) {
+  .primaryButton,
+  .secondaryButton,
+  .dangerButton,
+  .iconButton,
+  .viewTab,
+  .issueSectionTab,
+  .detailTab,
+  .tab {
+    min-height: var(--control-height-touch);
+  }
+
+  .iconButton {
+    width: var(--control-height-touch);
+    height: var(--control-height-touch);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

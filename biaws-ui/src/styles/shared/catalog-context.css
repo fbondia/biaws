@@ -1,0 +1,260 @@
+.catalogContextFields {
+  margin: var(--space-3) 0;
+}
+
+.catalogColumns {
+  display: flex;
+  min-height: 280px;
+  height: 360px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.catalogColumn {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 260px;
+  flex: 1 0 260px;
+  border-right: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+}
+
+.catalogColumn:last-child {
+  border-right: 0;
+}
+
+.catalogColumn > header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.catalogColumnList {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.catalogColumnRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+label.catalogColumnRow {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.catalogColumnRow:hover:not(:disabled),
+.activeCatalogColumnRow {
+  background: #f8fbff;
+}
+
+.activeCatalogColumnRow {
+  box-shadow: inset 3px 0 0 var(--color-focus);
+}
+
+.checkedCatalogColumnRow {
+  background: #f1f8f4;
+}
+
+.catalogColumnRow:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.catalogColumnRow input {
+  margin: 0;
+}
+
+.catalogColumnRow span {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogColumnRow svg {
+  color: var(--color-text-subtle);
+}
+
+.catalogColumnEmpty {
+  margin: 0;
+  color: var(--color-text-subtle);
+  padding: 14px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.catalogContextFields small,
+.catalogWideField small {
+  color: var(--color-text-subtle);
+  font-size: 0.78rem;
+}
+
+.catalogContextActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+}
+
+.catalogContextDialog {
+  width: min(680px, calc(100vw - 32px));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.2);
+  padding: var(--space-5);
+}
+
+.catalogContextDialog > header h2,
+.catalogContextDialog > header span,
+.catalogContextDialog > p {
+  margin: 0;
+}
+
+.catalogContextDialog > header span,
+.catalogContextDialog > p {
+  color: var(--color-text-subtle);
+}
+
+.catalogContextDialog > p {
+  margin-top: var(--space-3);
+}
+
+.catalogContextDialog > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.requestCatalogFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+}
+
+.procedureCatalogFilters {
+  display: flex;
+}
+
+.filterDialogTriggerButton {
+  display: inline-flex;
+  min-width: min(100%, 230px);
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  text-align: left;
+  grid-column: span 2;
+}
+
+.filterDialogButtonText {
+  display: grid;
+  min-width: 0;
+  margin-right: auto;
+}
+
+.filterDialogButtonText strong,
+.filterDialogButtonText small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filterDialogButtonText strong {
+  font-size: 12px;
+}
+
+.filterDialogButtonText small {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.filterDialogCount {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-focus);
+  color: var(--color-surface);
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.catalogFilterDialog {
+  width: min(760px, calc(100vw - 40px));
+}
+
+.catalogFilterDialogContent {
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+}
+
+.catalogFilterDialogContent .catalogColumns {
+  height: 440px;
+}
+
+.emlImportContext {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  padding: var(--space-4);
+}
+
+.emlImportContext h3,
+.emlImportContext p {
+  margin: 0;
+}
+
+.emlImportContext p {
+  margin-top: var(--space-1);
+  color: var(--color-text-subtle);
+}
+
+@media (max-width: 720px) {
+  .catalogColumns {
+    height: min(420px, calc(100dvh - 190px));
+    min-height: 280px;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-inline: contain;
+  }
+
+  .catalogColumn {
+    min-width: min(86vw, 320px);
+    scroll-snap-align: start;
+  }
+
+  .filterDialogTriggerButton {
+    width: 100%;
+  }
+}

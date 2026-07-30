@@ -1,0 +1,230 @@
+.classificationGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.classificationPanel {
+  min-width: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 12px;
+}
+
+.classificationPanel h4 {
+  margin: 0 0 10px;
+  color: var(--color-text);
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.tagGroupButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.tagGroupButton {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--color-surface);
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tagGroupButton:hover {
+  filter: brightness(0.94);
+}
+
+.classificationTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.classificationTab {
+  min-height: 34px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  padding: 0 12px;
+  font-weight: 700;
+}
+
+.classificationTab:hover,
+.activeClassificationTab {
+  border-color: var(--color-accent-border);
+  background: #e8f1ff;
+  color: var(--color-accent-text);
+}
+
+.classificationPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.classificationPanelHeader h4 {
+  margin-bottom: 0;
+}
+
+.classificationTaxonomyChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.classificationTaxonomyChip {
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 3px 10px 3px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.primaryTaxonomyChip {
+  border-color: #f2c94c;
+  background: #fffbeb;
+  color: #6f4e00;
+}
+
+.primaryTaxonomyIcon {
+  flex: 0 0 auto;
+  color: #b7791f;
+}
+
+.classificationTaxonomyChip button {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  padding: 0;
+}
+
+.classificationTaxonomyChip button:hover {
+  background: #fff1f1;
+  color: #9b1c1c;
+}
+
+.clearTaxonomyChip {
+  color: #9b1c1c;
+}
+
+.clearTaxonomyChip:hover {
+  border-color: #f5b6b6;
+  background: #fff1f1;
+}
+
+.classificationTagChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.classificationTagChip {
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 3px 5px 3px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.classificationTagChip button {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  padding: 0;
+}
+
+.classificationTagChip button:hover {
+  background: #fff1f1;
+  color: #9b1c1c;
+}
+
+.tagPickerBackdrop {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  background: rgba(16, 24, 40, 0.2);
+  padding: 20px;
+}
+
+.tagPickerDialog {
+  display: grid;
+  width: min(560px, calc(100vw - 40px));
+  max-height: min(680px, calc(100dvh - 40px));
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+  padding: 14px;
+}
+
+.tagPickerDialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tagPickerDialog header strong {
+  display: block;
+  color: var(--color-text);
+  font-size: 15px;
+}
+
+.tagPickerDialog header span {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.tagPickerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+}

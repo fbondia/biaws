@@ -1,0 +1,263 @@
+.optionListsView {
+  display: block;
+}
+
+.optionListCategoryTabs {
+  margin-bottom: 1rem;
+}
+
+.optionListCategoryTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 0.9rem;
+}
+
+.optionListGroupPanel {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-subtle);
+  padding: 16px;
+}
+
+.optionListGroupHeader {
+  min-width: 0;
+}
+
+.optionListGroupHeader h3,
+.optionListGroupHeader p {
+  margin: 0;
+}
+
+.optionListGroupHeader h3 {
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.optionListGroupHeader p {
+  margin-top: 3px;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.optionListTabs {
+  overflow-x: auto;
+  margin: 10px 0 10px;
+}
+
+.optionListGroupPanel .optionListTabs {
+  flex-wrap: nowrap;
+}
+
+.optionListGroupPanel .detailTab {
+  font-size: 0.8rem;
+}
+
+.optionListHeader {
+  align-items: start;
+  display: flex;
+  gap: 18px;
+  justify-content: flex-end;
+}
+
+.optionListDefault {
+  margin-top: 16px;
+  max-width: 340px;
+}
+
+.optionListTableWrap {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+.optionListTable {
+  border-collapse: collapse;
+  min-width: 720px;
+  width: 100%;
+}
+
+.optionListTable th,
+.optionListTable td {
+  border-bottom: 1px solid #eaecf0;
+  padding: 8px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.optionListTable th {
+  color: var(--color-text-subtle);
+  font-size: 0.75rem;
+}
+
+.optionListTable .optionDragColumn {
+  padding-left: 4px;
+  padding-right: 4px;
+  width: 30px;
+}
+
+.optionDragHandle {
+  align-items: center;
+  color: #98a2b3;
+  cursor: grab;
+  display: inline-flex;
+  justify-content: center;
+  padding: 7px 2px;
+  touch-action: none;
+}
+
+.optionDragHandle:active {
+  cursor: grabbing;
+}
+
+.optionDragHandle.disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.draggingOptionItem {
+  opacity: 0.45;
+}
+
+.dropTargetOptionItem {
+  box-shadow: inset 0 2px 0 var(--color-focus);
+}
+
+.optionListTable input:not([type="color"]) {
+  border: 1px solid #d0d5dd;
+  border-radius: 7px;
+  box-sizing: border-box;
+  min-width: 120px;
+  padding: 8px;
+  width: 100%;
+}
+
+.optionListTable input:disabled {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.optionColorFields {
+  white-space: nowrap;
+}
+
+.optionColorFields input {
+  background: transparent;
+  border: 0;
+  display: inline-block;
+  height: 30px;
+  margin-right: 5px;
+  padding: 0;
+  vertical-align: middle;
+  width: 30px;
+}
+
+.optionColorFields label:last-child input {
+  margin-right: 0;
+}
+
+.optionEmlDetectionFields {
+  min-width: 360px;
+}
+
+.optionEmlDetectionFields > label {
+  align-items: center;
+  display: flex;
+  font-size: 0.78rem;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+
+.optionListTable .optionEmlDetectionFields > label input[type="checkbox"] {
+  flex: 0 0 auto;
+  min-width: auto;
+  width: auto;
+}
+
+.optionEmlDetectionFields textarea {
+  border: 1px solid #d0d5dd;
+  border-radius: 7px;
+  box-sizing: border-box;
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  min-height: 72px;
+  padding: 8px;
+  resize: vertical;
+  width: 100%;
+}
+
+.optionEmlDetectionFields small {
+  color: var(--color-text-muted);
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 5px;
+}
+
+.optionEmlDetectionTest {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  margin-top: 16px;
+  max-width: 720px;
+  padding: 12px;
+}
+
+.optionEmlDetectionTest .field {
+  margin: 0;
+}
+
+.optionDetectionResult {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+.optionDetectionResult.error {
+  color: #b42318;
+}
+
+.optionActiveButton {
+  background: #f2f4f7;
+  border: 0;
+  border-radius: 999px;
+  color: var(--color-text-subtle);
+  padding: 6px 10px;
+}
+
+.optionActiveButton.active {
+  background: #e7f6ec;
+  color: #1f7a45;
+}
+
+.optionAddButton {
+  margin-top: 14px;
+}
+
+.optionListError {
+  align-items: center;
+  background: #fff1f1;
+  border: 1px solid #f5b6b6;
+  border-radius: 8px;
+  color: #b42318;
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px;
+}
+
+@media (max-width: 720px) {
+  .optionListCategoryTabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .optionListCategoryTab {
+    width: 100%;
+    justify-content: center;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}

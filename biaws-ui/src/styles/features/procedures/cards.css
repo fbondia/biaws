@@ -1,0 +1,91 @@
+.procedureCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.procedureCard {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  padding: 16px;
+}
+
+.draggableProcedureCard {
+  cursor: grab;
+}
+
+.draggableProcedureCard:active {
+  cursor: grabbing;
+}
+
+.procedureCardDragHandle {
+  flex: 0 0 auto;
+  color: var(--color-text-subtle);
+}
+
+.procedureCollectionLocation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid #eef0f3;
+  color: var(--color-text-subtle);
+  padding: 9px 0;
+  font-size: 12px;
+}
+
+.procedureCard > header {
+  justify-content: space-between;
+  border-bottom: 1px solid #eef0f3;
+  padding-bottom: 12px;
+}
+
+.procedureCard h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.procedureCardSummary {
+  margin: 0;
+  padding-top: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.emptyProcedureSummary {
+  color: #98a2b3;
+  font-style: italic;
+}
+
+.procedureCardClassification {
+  display: grid;
+  gap: 10px;
+  border-bottom: 1px solid #eef0f3;
+  padding: 12px 0;
+}
+
+.procedureCardClassificationGroup {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.procedureCardClassificationGroup > span {
+  padding-top: 5px;
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.procedureCardClassificationGroup > strong {
+  padding-top: 4px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}
+
+.dangerIconButton {
+  color: #b42318;
+}

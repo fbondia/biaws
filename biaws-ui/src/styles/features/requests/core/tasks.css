@@ -1,0 +1,275 @@
+.requestTaskList {
+  display: grid;
+  gap: 10px;
+}
+
+.requestTaskCard {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.requestTaskCard:hover {
+  border-color: var(--color-accent-border);
+  background: #f8fbff;
+}
+
+.requestTaskCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.requestTaskCardHeader strong {
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.requestTaskCardTitle {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.requestTaskCardTitle span {
+  color: var(--color-accent-text);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.requestTaskCard p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.requestTaskDates,
+.requestTaskStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.requestTaskDates {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+
+.requestTaskStatus {
+  flex: 0 0 auto;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: var(--color-text-muted);
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.requestTaskDialog {
+  display: flex;
+  width: min(80vw, 100%);
+  height: 80vh;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.requestTaskDialogHeader,
+.requestTaskDialogFooter {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.requestTaskDialogHeader {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.requestTaskDialogHeader span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.requestTaskDialogHeader h3 {
+  margin: 4px 0 0;
+  color: var(--color-text);
+  font-size: 18px;
+}
+
+.requestTaskDialogBody {
+  flex: 1;
+  min-height: 320px;
+  overflow: auto;
+  padding: 16px 18px;
+}
+
+.requestTaskTabs {
+  margin-bottom: 16px;
+}
+
+.requestTaskFormGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.requestTaskMainTab {
+  display: grid;
+  gap: 18px;
+}
+
+.requestTaskTitleField {
+  grid-column: span 2;
+}
+
+.requestTaskMarkdownField textarea,
+.requestTaskMarkdownField .markdownPreview {
+  min-height: 360px;
+}
+
+.requestTaskDescriptionField textarea,
+.requestTaskDescriptionField .markdownPreview {
+  min-height: 260px;
+}
+
+.requestTaskNotesTab,
+.requestTaskNotesList {
+  display: grid;
+  gap: 12px;
+}
+
+.requestTaskNotesHeader,
+.requestTaskNote > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.requestTaskNotesHeader h4 {
+  margin: 0 0 3px;
+  color: var(--color-text);
+  font-size: 15px;
+}
+
+.requestTaskNotesHeader span {
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}
+
+.requestTaskNote {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 12px;
+}
+
+.requestTaskNoteDialogBackdrop {
+  z-index: 30;
+}
+
+.requestTaskNoteDialog {
+  display: flex;
+  width: min(720px, 100%);
+  max-height: min(760px, calc(100dvh - 44px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.requestTaskNoteDialogHeader,
+.requestTaskNoteDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.requestTaskNoteDialogHeader {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.requestTaskNoteDialogHeader span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.requestTaskNoteDialogHeader h3 {
+  margin: 4px 0 0;
+  color: var(--color-text);
+  font-size: 18px;
+}
+
+.requestTaskNoteDialogBody {
+  display: grid;
+  gap: 16px;
+  overflow: auto;
+  padding: 18px;
+}
+
+.requestTaskNoteDialogFooter {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+.requestTaskNoteDateField {
+  max-width: 190px;
+}
+
+.requestTaskNoteContentField textarea,
+.requestTaskNoteContentField .markdownPreview {
+  min-height: 220px;
+}
+
+.requestTaskNoteActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.requestTaskValidationError {
+  margin: 0 0 14px;
+}
+
+.requestTaskDialogFooter {
+  align-items: center;
+  border-top: 1px solid var(--color-border);
+}
+
+.requestTaskDialogFooter > div {
+  display: flex;
+  gap: 8px;
+}

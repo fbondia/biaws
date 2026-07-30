@@ -1,0 +1,90 @@
+.proceduresView {
+  display: grid;
+  gap: 18px;
+}
+
+.proceduresToolbar,
+.procedureToolbarActions,
+.procedureFiltersForm,
+.procedureFilterActions,
+.procedureCard > header,
+.procedureCard > header > div,
+.procedureDialogHeader,
+.procedureDialogFooter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.procedureDialogHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.procedureDialogHeaderActions .secondaryButton {
+  min-height: 34px;
+}
+
+.activeProcedureModeButton {
+  border-color: var(--color-accent-border);
+  background: #f0f6ff;
+  color: var(--color-accent-text);
+}
+
+.proceduresToolbar {
+  justify-content: space-between;
+}
+
+.procedureToolbarActions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.procedureFiltersBox {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-subtle);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  padding: 16px;
+}
+
+.procedureFiltersForm {
+  align-items: center;
+}
+
+.procedureFilterActions {
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  color: var(--color-text-subtle);
+}
+
+.procedureSearchInput {
+  display: flex;
+  min-width: 240px;
+  flex: 1 1 360px;
+  min-height: 40px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  padding: 0 12px;
+}
+
+.procedureSearchInput input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+}
+
+.proceduresToolbar select {
+  min-height: 40px;
+  max-width: 260px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 0 30px 0 10px;
+}

@@ -1,0 +1,350 @@
+.summaryBand {
+  display: block;
+  padding-top: 0;
+}
+
+.metric,
+.aggregateArea {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.metric {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px 12px;
+}
+
+.metric svg {
+  color: var(--color-focus);
+}
+
+.metric span {
+  display: block;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.aggregateArea {
+  min-width: 0;
+  padding: 12px;
+}
+
+.summaryHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.summaryMetrics {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.summaryMetrics .metric {
+  min-width: 150px;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tab {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-secondary);
+  padding: 0 12px;
+}
+
+.activeTab {
+  background: #e8f1ff;
+  border-color: var(--color-accent-border);
+  color: var(--color-accent-text);
+  font-weight: 700;
+}
+
+.summaryChartCard {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 12px;
+}
+
+.summaryCopyChartCard {
+  padding-top: 46px;
+}
+
+.summaryChartCopyButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.summaryChartCopyButton:hover {
+  border-color: #98a2b3;
+  color: var(--color-accent-text);
+}
+
+.summaryChartCopyButton:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.summaryChartCopyError {
+  border-color: #f5b6b6;
+  color: #9b1c1c;
+}
+
+.summaryPieCard {
+  padding-right: 20px;
+}
+
+.summaryTooltip {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  padding: 8px 10px;
+}
+
+.summaryTooltip strong {
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.summaryTooltip span {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryLegendText {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.summaryDrilldownPanel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.summaryDrilldownHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summaryDrilldownHeader div {
+  display: grid;
+  gap: 2px;
+}
+
+.summaryDrilldownHeader span {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.summaryDrilldownHeader strong {
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.summaryDrilldownError {
+  border: 1px solid #f5b6b6;
+  border-radius: 8px;
+  background: #fff1f1;
+  color: #9b1c1c;
+  padding: 12px 14px;
+}
+
+.taxonomySummaryCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.taxonomySummaryTree {
+  display: grid;
+}
+
+.taxonomySummaryChildren {
+  display: grid;
+}
+
+.taxonomySummaryRow {
+  display: grid;
+  grid-template-columns: 26px auto minmax(220px, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 46px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 8px 12px 8px calc(12px + (var(--depth) * 18px));
+}
+
+.taxonomySummaryRow:last-child {
+  border-bottom: 0;
+}
+
+.taxonomySummaryRow:hover {
+  background: var(--color-surface);
+}
+
+.taxonomySummaryToggle,
+.taxonomySummaryTogglePlaceholder {
+  width: 26px;
+  height: 26px;
+}
+
+.taxonomySummaryToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  padding: 0;
+}
+
+.taxonomySummaryToggle:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-accent-text);
+}
+
+.taxonomySummaryTogglePlaceholder {
+  display: block;
+}
+
+.taxonomySummaryCountBadge {
+  display: inline-flex;
+  min-width: 28px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cfe0ff;
+  border-radius: 999px;
+  background: #e8f1ff;
+  color: var(--color-accent-text);
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.taxonomySummaryMain {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.taxonomySummaryLabel {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taxonomySummaryDirect {
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-subtle);
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.taxonomySummaryIssues {
+  display: grid;
+  gap: 6px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  padding: 8px 12px 8px calc(38px + (var(--depth) * 18px));
+}
+
+.taxonomySummaryIssue {
+  display: grid;
+  grid-template-columns: minmax(82px, auto) minmax(0, 1fr) minmax(210px, auto);
+  gap: 10px;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.taxonomySummaryIssue:hover {
+  border-color: #cfe0ff;
+  background: #f8fbff;
+}
+
+.taxonomySummaryIssueCode {
+  color: var(--color-accent-text);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.taxonomySummaryIssueTitle {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taxonomySummaryIssueMeta {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+}

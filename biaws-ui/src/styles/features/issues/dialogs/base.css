@@ -1,0 +1,92 @@
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.46);
+  padding: 22px;
+}
+
+.issueDialog {
+  display: flex;
+  width: min(1120px, 100%);
+  max-height: min(840px, calc(100dvh - 44px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 18px 20px;
+}
+
+.dialogHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dialogHeaderActions .secondaryButton,
+.sanitizationPreviewToolbar .primaryButton,
+.sanitizationPreviewToolbar .secondaryButton,
+.sanitizationAddButton,
+.sanitizationDialog .importDialogFooter button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.dialogTitleBlock {
+  min-width: 0;
+}
+
+.dialogKicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  border: 1px solid #d6e4ff;
+  border-radius: 999px;
+  background: #f4f8ff;
+  color: var(--color-accent-text);
+  padding: 2px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dialogStatusSelect {
+  max-width: 132px;
+  min-height: 28px;
+}
+
+.dialogHeader h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 19px;
+  line-height: 1.32;
+  letter-spacing: 0;
+}
+
+.dialogBody {
+  overflow: auto;
+  padding: 18px 20px 22px;
+}

@@ -1,0 +1,86 @@
+name: biaws
+
+services:
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    ports:
+      - ${MONGO_PORT:-27017}:${MONGO_PORT:-27017}
+    volumes:
+      - ${BIAWS_MONGO_DATA_PATH:-mongo-data}:/data/db
+    healthcheck:
+      test:
+        ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    init: true
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongo:${MONGO_PORT:-27017}/biaws
+      MONGO_DB: ${MONGO_DB:-biaws}
+      ISSUE_API_HOST: 0.0.0.0
+      ISSUE_API_PORT: 3100
+      ISSUE_API_MAX_ATTACHMENT_BYTES: ${ISSUE_API_MAX_ATTACHMENT_BYTES:-52428800}
+      ISSUE_API_MAX_JSON_BYTES: ${ISSUE_API_MAX_JSON_BYTES:-4194304}
+      ISSUE_DIR: /data/issues
+      REQUEST_DIR: /data/requests
+      PROCEDURE_DIR: /data/procedures
+      ATTACHMENT_STORAGE_PROVIDER: local
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Execute ./scripts/bootstrap.sh para configurar o ambiente}
+      BETTER_AUTH_URL: ${BIAWS_PUBLIC_URL:-http://localhost:4400}
+      BETTER_AUTH_TRUSTED_ORIGINS: ${BIAWS_TRUSTED_ORIGINS:-http://localhost:4400,http://127.0.0.1:4400}
+      BETTER_AUTH_SECURE_COOKIES: ${BETTER_AUTH_SECURE_COOKIES:-false}
+      ISSUE_API_LOG_HEALTH_REQUESTS: ${ISSUE_API_LOG_HEALTH_REQUESTS:-false}
+    ports:
+      - "${ISSUE_API_PORT:-3100}:3100"
+    volumes:
+      - ${BIAWS_ISSUE_FILES_PATH:-issue-files}:/data/issues
+      - ${BIAWS_REQUEST_FILES_PATH:-request-files}:/data/requests
+      - ${BIAWS_PROCEDURE_FILES_PATH:-procedure-files}:/data/procedures
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3100/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  ui:
+    build:
+      context: .
+      dockerfile: docker/ui.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      ISSUE_API_MAX_ATTACHMENT_BYTES: ${ISSUE_API_MAX_ATTACHMENT_BYTES:-52428800}
+    ports:
+      - "${ISSUE_UI_PORT:-4400}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mongo-data:
+  issue-files:
+  request-files:
+  procedure-files:

@@ -1,0 +1,28 @@
+{
+  "name": "@bondia/biaws-cli",
+  "version": "0.1.0",
+  "description": "CLI do Bondia Workspaces para configuração do ambiente local",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fbondia/biaws.git",
+    "directory": "biaws-cli"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "bin": {
+    "biaws": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "format": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --write .",
+    "format:check": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --check .",
+    "check": "find src test -name '*.js' -type f -exec node --check {} \\;",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4"
+  }
+}

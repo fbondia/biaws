@@ -1,0 +1,233 @@
+.markdownEditor {
+  position: relative;
+}
+
+.markdownEditorTabs {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  width: fit-content;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.markdownEditor > textarea,
+.markdownEditor > .markdownPreview {
+  padding-top: 52px;
+}
+
+.markdownEditorTab {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-right: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-subtle);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.markdownEditorTab:last-child {
+  border-right: 0;
+}
+
+.markdownEditorTab:hover,
+.activeMarkdownEditorTab {
+  background: #f0f6ff;
+  color: var(--color-accent-text);
+}
+
+.markdownFullscreenBackdrop {
+  z-index: 40;
+}
+
+.markdownFullscreenDialog {
+  display: flex;
+  width: min(1200px, 100%);
+  height: min(900px, calc(100dvh - 44px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.markdownFullscreenHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding: 14px 18px;
+}
+
+.markdownFullscreenHeader h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 18px;
+}
+
+.markdownFullscreenBody {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 18px;
+}
+
+.markdownFullscreenBody > .markdownEditor {
+  width: 100%;
+  min-width: 0;
+}
+
+.markdownFullscreenBody .markdownEditor > textarea,
+.markdownFullscreenBody .markdownEditor > .markdownPreview {
+  display: block;
+  width: 100%;
+  min-height: calc(100dvh - 190px);
+}
+
+.markdownPreview {
+  min-height: 132px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.markdownPreview > *:first-child {
+  margin-top: 0;
+}
+
+.markdownPreview > *:last-child {
+  margin-bottom: 0;
+}
+
+.markdownPreview h3,
+.markdownPreview h4,
+.markdownPreview h5,
+.markdownPreview h6,
+.markdownPreview .markdownHeadingFallback {
+  margin: 14px 0 8px;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.markdownPreview p,
+.markdownPreview ul,
+.markdownPreview ol,
+.markdownPreview blockquote,
+.markdownPreview pre,
+.markdownTableWrap {
+  margin: 0 0 10px;
+}
+
+.markdownPreview ul,
+.markdownPreview ol {
+  padding-left: 22px;
+}
+
+.markdownPreview li > ul,
+.markdownPreview li > ol {
+  margin: 4px 0 0;
+}
+
+.markdownPreview hr {
+  height: 0;
+  margin: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.markdownPreview blockquote {
+  border-left: 3px solid var(--color-accent-border);
+  color: var(--color-text-muted);
+  padding-left: 10px;
+}
+
+.markdownPreview code {
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: #eef1f5;
+  color: var(--color-text);
+  padding: 1px 5px;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+  font-size: 0.92em;
+}
+
+.markdownPreview pre {
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-text);
+  color: #f8fbff;
+  padding: 10px;
+}
+
+.markdownPreview pre code {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.markdownPreview a {
+  color: var(--color-accent-text);
+  font-weight: 800;
+}
+
+.markdownTableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.markdownPreview table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 360px;
+}
+
+.markdownPreview th,
+.markdownPreview td {
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-right: 1px solid var(--color-border-subtle);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.markdownPreview th {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.markdownPreview tr:last-child td {
+  border-bottom: 0;
+}
+
+.markdownPreview th:last-child,
+.markdownPreview td:last-child {
+  border-right: 0;
+}
+
+.markdownPreviewEmpty {
+  color: #98a2b3;
+  font-weight: 700;
+}

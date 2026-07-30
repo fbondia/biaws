@@ -1,0 +1,307 @@
+.procedureDialog {
+  display: flex;
+  width: min(1120px, calc(100vw - 40px));
+  max-height: calc(100dvh - 40px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.procedureCollectionDialog {
+  width: min(520px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.procedureCollectionDialogHeader,
+.procedureCollectionDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+}
+
+.procedureCollectionDialogHeader {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.procedureCollectionDialogHeader span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.procedureCollectionDialogHeader h2 {
+  margin: 3px 0 0;
+  font-size: 19px;
+}
+
+.procedureCollectionDialogForm {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.procedureCollectionDialogForm > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.procedureCollectionDialogFooter {
+  margin: 2px -18px -18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.procedureDialogHeader,
+.procedureDialogFooter {
+  justify-content: space-between;
+  padding: 15px 18px;
+}
+
+.procedureDialogHeader {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.procedureDialogHeader span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.procedureDialogHeader h2 {
+  margin: 3px 0 0;
+  font-size: 18px;
+}
+
+.procedureDialogBody {
+  display: grid;
+  gap: 18px;
+  overflow: auto;
+  padding: 18px;
+}
+
+.procedureMainTab {
+  display: grid;
+  gap: 18px;
+}
+
+.procedureViewTitle,
+.procedureViewSummary,
+.procedureViewContent {
+  display: grid;
+  gap: 6px;
+}
+
+.procedureViewTitle > span,
+.procedureViewSummary > span,
+.procedureViewContent > span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.procedureViewTitle h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 19px;
+}
+
+.procedureViewSummary p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.procedureViewContent {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 14px;
+}
+
+.procedureViewContent .markdownPreview {
+  min-height: 260px;
+}
+
+.procedureClassificationView .procedureCardClassification {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 14px;
+}
+
+.procedureDates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.procedureDates > div {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  background: var(--color-surface-subtle);
+  padding: 10px;
+}
+
+.procedureDates span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.procedureDates strong {
+  font-size: 13px;
+}
+
+.procedureMarkdownField textarea,
+.procedureMarkdownField .markdownPreview {
+  width: 100%;
+  min-height: 260px;
+}
+
+.procedureClassification {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.procedureClassification > div {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 14px;
+}
+
+.procedureClassification h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.procedureClassification p {
+  margin: 4px 0 12px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}
+
+.procedureTaxonomyOptions {
+  display: grid;
+  max-height: 230px;
+  gap: 6px;
+  overflow: auto;
+  margin-bottom: 12px;
+}
+
+.procedureTaxonomyOptions label,
+.procedureTagGroup label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+}
+
+.procedureTagGroup {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.procedureTagGroup > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.procedureTagGroup label {
+  border: 1px solid;
+  border-radius: 999px;
+  background: var(--color-surface);
+  padding: 5px 9px;
+}
+
+.procedureDialogFooter {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 760px) {
+  .procedureFiltersForm,
+  .procedureClassification {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .procedureSearchInput {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .procedureFilterActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .procedureFilterActions button {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .procedureWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .procedureCollectionsPanel {
+    position: static;
+  }
+
+  .procedureCollectionTree {
+    max-height: 280px;
+  }
+
+  .procedureDates {
+    grid-template-columns: 1fr;
+  }
+
+  .procedureCards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .proceduresToolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .procedureToolbarActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .proceduresToolbar button {
+    width: 100%;
+  }
+
+  .procedureCollectionDialogFooter {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .procedureCollectionDialogFooter button {
+    width: 100%;
+  }
+}

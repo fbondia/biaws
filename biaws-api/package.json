@@ -1,0 +1,42 @@
+{
+  "name": "@bondia/biaws-api",
+  "version": "0.1.0",
+  "description": "API do Bondia Workspaces para suporte, demandas e conhecimento operacional",
+  "license": "Apache-2.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fbondia/biaws.git",
+    "directory": "biaws-api"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "bootstrap:admin": "node src/scripts/bootstrapAdmin.js",
+    "bootstrap:agent": "node src/scripts/bootstrapAgent.js",
+    "seed:skills": "node src/scripts/seedStarterSkills.js",
+    "seed:demo": "node src/scripts/seedDemo.js",
+    "format": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --write .",
+    "format:check": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --check .",
+    "check": "find src test -name '*.js' -type f -exec node --check {} \\;",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@better-auth/api-key": "1.6.25",
+    "@better-auth/mongo-adapter": "1.6.25",
+    "@node-rs/argon2": "2.0.2",
+    "better-auth": "1.6.25",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mailparser": "^3.7.2",
+    "mongodb": "^6.21.0",
+    "multer": "^2.2.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4"
+  }
+}

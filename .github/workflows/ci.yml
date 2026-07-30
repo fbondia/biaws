@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      BIAWS_INTEGRATION_MONGO_URI: mongodb://127.0.0.1:27017/biaws_ci
+      BIAWS_HTTP_INTEGRATION: "1"
+    defaults:
+      run:
+        working-directory: biaws-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: biaws-api/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run check
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=high
+
+  ui:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: biaws-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: biaws-ui/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run check:css
+      - run: npm run build
+      - run: npm audit --audit-level=high
+
+  mcp-and-cli:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [biaws-mcp, biaws-cli]
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.module }}/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run check
+      - run: npm test
+
+  compose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bootstrap from a clean checkout
+        env:
+          BIAWS_BOOTSTRAP_ADMIN_EMAIL: ci@example.test
+          BIAWS_BOOTSTRAP_ADMIN_NAME: CI
+          BIAWS_BOOTSTRAP_ADMIN_PASSWORD: ci-validation-password
+        run: |
+          mkdir -p /tmp/biaws-codex-project
+          ./scripts/setup-agent.sh \
+            --instance ci \
+            --client codex \
+            --project /tmp/biaws-codex-project
+      - name: Verify seed idempotence and public endpoints
+        run: |
+          docker compose \
+            --env-file instances/ci/.env \
+            --project-name biaws-ci \
+            exec -T api npm run seed:demo
+          curl --fail --silent --show-error http://127.0.0.1:3100/api/health
+          curl --fail --silent --show-error http://127.0.0.1:4400/ > /dev/null
+      - name: Collect service logs
+        if: failure()
+        run: >-
+          docker compose --env-file instances/ci/.env
+          --project-name biaws-ci logs --no-color
+      - name: Remove isolated services and volumes
+        if: always()
+        run: >-
+          docker compose --env-file instances/ci/.env
+          --project-name biaws-ci down --volumes --remove-orphans

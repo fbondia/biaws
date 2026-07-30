@@ -1,0 +1,295 @@
+import { BarChart3, Filter, FilterX, RefreshCw, Table2 } from "lucide-react";
+import { useState } from "react";
+
+import { IssueDetailsDialog } from "./IssueDetailsDialog/index.jsx";
+import { ImportEmlDialog } from "./ImportEmlDialog.jsx";
+import { IssueFilters } from "./IssueFilters/index.jsx";
+import { IssueList } from "./IssueList.jsx";
+import { IssueSummary } from "./IssueSummary.jsx";
+import { hasPermission } from "../../permissions.js";
+import { useCatalogOptions } from "../catalog/CatalogContextFields.jsx";
+
+const ISSUE_TABS = [
+  { key: "results", label: "Resultados", icon: Table2 },
+  { key: "summary", label: "Sumário", icon: BarChart3 },
+];
+
+function IssueViewTabs({ activeTab, loading, onRefresh, onSelect }) {
+  return (
+    <div className="issueViewNavigation">
+      <div
+        className="issueSectionTabs"
+        role="tablist"
+        aria-label="Visualização de issues"
+      >
+        {ISSUE_TABS.map((tab) => (
+          <IssueViewTab
+            active={activeTab === tab.key}
+            key={tab.key}
+            onSelect={onSelect}
+            tab={tab}
+          />
+        ))}
+      </div>
+      <button
+        aria-label="Atualizar issues"
+        className="iconButton issueRefreshButton"
+        disabled={loading}
+        onClick={onRefresh}
+        title="Atualizar issues"
+        type="button"
+      >
+        <RefreshCw className={loading ? "spinIcon" : undefined} size={18} />
+      </button>
+    </div>
+  );
+}
+
+function IssueViewTab({ active, onSelect, tab }) {
+  const Icon = tab.icon;
+  return (
+    <button
+      aria-controls={`issues-panel-${tab.key}`}
+      aria-selected={active}
+      className={
+        active ? "issueSectionTab activeIssueSectionTab" : "issueSectionTab"
+      }
+      id={`issues-tab-${tab.key}`}
+      onClick={() => onSelect(tab.key)}
+      role="tab"
+      type="button"
+    >
+      <Icon size={16} />
+      {tab.label}
+    </button>
+  );
+}
+
+function authorizedUpdater(
+  canUpdateIssue,
+  canUpdateStatus,
+  onUpdateIssueField,
+) {
+  if (!canUpdateIssue && !canUpdateStatus) return undefined;
+  return (issue, field, value) => {
+    const allowed = field === "status" ? canUpdateStatus : canUpdateIssue;
+    if (allowed) onUpdateIssueField(issue, field, value);
+  };
+}
+
+function IssuesPanel({ activeTab, listProps, summaryProps }) {
+  if (activeTab === "results") return <IssueList {...listProps} />;
+  return <IssueSummary {...summaryProps} />;
+}
+
+function IssueOverlays({
+  canImport,
+  canConfigureImport,
+  canUpdateIssue,
+  canUpdateStatus,
+  catalog,
+  detailError,
+  detailLoading,
+  importOpen,
+  onCloseImport,
+  onCloseIssue,
+  onImportCompleted,
+  onIssueUpdated,
+  onUpdateIssueField,
+  selectedIssue,
+  selectedIssueDetails,
+  updatingIssueField,
+}) {
+  return (
+    <>
+      {selectedIssue ? (
+        <IssueDetailsDialog
+          applications={catalog.applications}
+          canEditContext={canUpdateIssue}
+          components={catalog.components}
+          details={selectedIssueDetails}
+          error={detailError}
+          loading={detailLoading}
+          onClose={onCloseIssue}
+          onIssueUpdated={onIssueUpdated}
+          onUpdateIssueField={canUpdateStatus ? onUpdateIssueField : undefined}
+          preview={selectedIssue}
+          updatingIssueField={updatingIssueField}
+        />
+      ) : null}
+      {canImport && importOpen ? (
+        <ImportEmlDialog
+          applications={catalog.applications}
+          canConfigureSanitization={canConfigureImport}
+          components={catalog.components}
+          workspace={catalog.workspace}
+          onClose={onCloseImport}
+          onImported={onImportCompleted}
+        />
+      ) : null}
+    </>
+  );
+}
+
+export function IssuesView({
+  actor,
+  activeAggregate,
+  dateField,
+  detailError,
+  detailLoading,
+  draftFilters,
+  error,
+  items,
+  loading,
+  meta,
+  monthTaxonomyError,
+  monthTaxonomyLoading,
+  monthTaxonomySummary,
+  onAggregateChange,
+  onClearFilters,
+  onClearMonthTaxonomy,
+  onCloseIssue,
+  onFilterChange,
+  onIssueUpdated,
+  onImportCompleted,
+  onNextPage,
+  onOpenIssue,
+  onPreviousPage,
+  onRefresh,
+  onSelectMonthTaxonomy,
+  onSort,
+  onSubmitFilters,
+  onUpdateIssueField,
+  page,
+  selectedIssue,
+  selectedIssueDetails,
+  selectedMonthTaxonomy,
+  summary,
+  sort,
+  taxonomyPackage,
+  totalPages,
+  updatingIssueField,
+}) {
+  const [activeTab, setActiveTab] = useState("results");
+  const [filtersVisible, setFiltersVisible] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const canImport = hasPermission(actor, "issues.import.eml");
+  const canConfigureImport =
+    actor?.permissionScopes?.["issues.import.eml"]?.workspace === true;
+  const canReadCatalog =
+    hasPermission(actor, "applications.read") &&
+    hasPermission(actor, "components.read");
+  const catalog = useCatalogOptions(canReadCatalog, actor.workspaceId);
+  const canUpdateIssue = hasPermission(actor, "issues.update");
+  const canUpdateStatus = hasPermission(actor, "issues.status.update");
+  const onAuthorizedUpdate = authorizedUpdater(
+    canUpdateIssue,
+    canUpdateStatus,
+    onUpdateIssueField,
+  );
+  const listProps = {
+    applications: catalog.applications,
+    dateField,
+    items,
+    loading,
+    meta,
+    onNextPage,
+    onOpenImport: canImport ? () => setImportOpen(true) : undefined,
+    onOpenIssue,
+    onPreviousPage,
+    onSort,
+    onUpdateIssueField: onAuthorizedUpdate,
+    page,
+    taxonomyPackage,
+    totalPages,
+    sort,
+    updatingIssueField,
+  };
+  const summaryProps = {
+    activeAggregate,
+    monthTaxonomyError,
+    monthTaxonomyLoading,
+    monthTaxonomySummary,
+    meta,
+    onAggregateChange,
+    onClearMonthTaxonomy,
+    onOpenIssue,
+    onSelectMonthTaxonomy,
+    selectedMonthTaxonomy,
+    summary,
+    taxonomyPackage,
+  };
+
+  return (
+    <>
+      <section className="issueViewControls contentBand">
+        <IssueViewTabs
+          activeTab={activeTab}
+          loading={loading}
+          onRefresh={onRefresh}
+          onSelect={setActiveTab}
+        />
+        <button
+          aria-controls="issue-filters"
+          aria-expanded={filtersVisible}
+          className={
+            filtersVisible
+              ? "secondaryButton activeFiltersButton"
+              : "secondaryButton"
+          }
+          onClick={() => setFiltersVisible((current) => !current)}
+          type="button"
+        >
+          {filtersVisible ? <FilterX size={16} /> : <Filter size={16} />}
+          {filtersVisible ? "Ocultar filtros" : "Mostrar filtros"}
+        </button>
+      </section>
+
+      {filtersVisible ? (
+        <IssueFilters
+          draftFilters={draftFilters}
+          id="issue-filters"
+          onChange={onFilterChange}
+          onClear={onClearFilters}
+          onSubmit={onSubmitFilters}
+          applications={catalog.applications}
+          components={catalog.components}
+          taxonomyPackage={taxonomyPackage}
+        />
+      ) : null}
+
+      {error ? <div className="errorBox">{error}</div> : null}
+
+      <div
+        aria-labelledby={`issues-tab-${activeTab}`}
+        id={`issues-panel-${activeTab}`}
+        role="tabpanel"
+      >
+        <IssuesPanel
+          activeTab={activeTab}
+          listProps={listProps}
+          summaryProps={summaryProps}
+        />
+      </div>
+
+      <IssueOverlays
+        canConfigureImport={canConfigureImport}
+        canImport={canImport}
+        canUpdateIssue={canUpdateIssue}
+        canUpdateStatus={canUpdateStatus}
+        catalog={catalog}
+        detailError={detailError}
+        detailLoading={detailLoading}
+        importOpen={importOpen}
+        onCloseImport={() => setImportOpen(false)}
+        onCloseIssue={onCloseIssue}
+        onImportCompleted={onImportCompleted}
+        onIssueUpdated={onIssueUpdated}
+        onUpdateIssueField={onUpdateIssueField}
+        selectedIssue={selectedIssue}
+        selectedIssueDetails={selectedIssueDetails}
+        updatingIssueField={updatingIssueField}
+      />
+    </>
+  );
+}

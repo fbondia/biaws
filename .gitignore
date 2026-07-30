@@ -1,0 +1,14 @@
+issue-data/
+node_modules/
+dist/
+.scannerwork/
+biaws-api/sonar-project.properties
+biaws-cli/sonar-project.properties
+biaws-mcp/sonar-project.properties
+biaws-ui/sonar-project.properties
+.env
+.bootstrap-admin-password
+.DS_Store
+backups/biaws-20260729.archive.gz
+temp/
+instances/

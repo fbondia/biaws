@@ -1,0 +1,166 @@
+.importDialog {
+  width: min(920px, 100%);
+}
+
+.importDialogBody {
+  display: grid;
+  gap: 16px;
+}
+
+.emlDropZone {
+  display: grid;
+  min-height: 150px;
+  place-items: center;
+  gap: 7px;
+  border: 2px dashed #b8c1cc;
+  border-radius: 10px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  padding: 22px;
+  text-align: center;
+}
+
+.emlDropZone:hover,
+.activeEmlDropZone {
+  border-color: #246b49;
+  background: #f0f8f4;
+  color: #1d5a3d;
+}
+
+.emlDropZone span {
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}
+
+.emlImportList {
+  display: grid;
+  gap: 10px;
+}
+
+.emlImportItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.emlImportStatus {
+  display: grid;
+  min-height: 32px;
+  place-items: center;
+  color: var(--color-text-subtle);
+}
+
+.emlImportMain,
+.emlImportPreview {
+  display: grid;
+  gap: 6px;
+}
+
+.emlImportTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.emlImportTitle span,
+.emlImportPreview span {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+
+.emlImportPreview {
+  grid-template-columns: repeat(4, auto) minmax(0, 1fr);
+  align-items: center;
+}
+
+.emlImportPreview strong,
+.emlImportPreview em {
+  grid-column: 1 / -1;
+  font-size: 13px;
+}
+
+.emlImportPreview em {
+  color: #8a5700;
+}
+
+.emlImportEditableFields {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(140px, 0.7fr) minmax(130px, 0.5fr) minmax(
+      260px,
+      2fr
+    );
+  gap: 8px;
+}
+
+.emlImportEditableFields label {
+  display: grid;
+  gap: 4px;
+}
+
+.emlImportEditableFields input,
+.emlImportEditableFields select {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: var(--color-surface);
+  padding: 0 9px;
+  color: #1d2939;
+  font-size: 13px;
+}
+
+.emlRecalculateButton {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.emlImportActions,
+.importDialogFooter,
+.importDialogFooter > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.emlImportActions .secondaryButton {
+  min-height: 32px;
+}
+
+.emlImportError {
+  color: #9b1c1c;
+  font-size: 13px;
+}
+
+.importSuccessIcon {
+  color: #246b49;
+}
+
+.importErrorIcon {
+  color: #b42318;
+}
+
+.spinIcon {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.importDialogFooter {
+  justify-content: space-between;
+  border-top: 1px solid var(--color-border);
+  padding: 14px 20px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}

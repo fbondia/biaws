@@ -1,0 +1,12 @@
+.git/
+.scannerwork/
+**/.scannerwork/
+**/node_modules/
+**/dist/
+**/coverage/
+backups/
+issue-data/
+queroqr-web/
+temp/
+**/package-lock.json
+*.archive.gz

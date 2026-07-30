@@ -6,6 +6,7 @@ import {
   mkdtemp,
   readFile,
   realpath,
+  stat,
   writeFile,
 } from "node:fs/promises";
 import os from "node:os";
@@ -36,7 +37,10 @@ exit 0
   await writeFile(
     docker,
     `#!/usr/bin/env bash
-if [[ "\${1:-}" == "compose" && "\${2:-}" == "version" ]]; then
+if [[ "\${1:-}" == "compose" ]]; then
+  if [[ -n "\${BIAWS_TEST_DOCKER_LOG:-}" ]]; then
+    printf '%s\\n' "\$*" >> "\${BIAWS_TEST_DOCKER_LOG}"
+  fi
   exit 0
 fi
 exit 1
@@ -98,6 +102,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
 
   const configuredEnv = await readFile(path.join(instance, ".env"), "utf8");
   const canonicalStorage = await realpath(storage);
+  assert.match(configuredEnv, /^MONGO_PORT=27017$/mu);
   assert.match(
     configuredEnv,
     new RegExp(`^BIAWS_MONGO_DATA_PATH=${canonicalStorage}/mongo$`, "mu"),
@@ -117,6 +122,83 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
       "mu",
     ),
   );
+
+  const startScript = path.join(instance, "start.sh");
+  const stopScript = path.join(instance, "stop.sh");
+  const [startContents, stopContents, startMetadata, stopMetadata] =
+    await Promise.all([
+      readFile(startScript, "utf8"),
+      readFile(stopScript, "utf8"),
+      stat(startScript),
+      stat(stopScript),
+    ]);
+  assert.match(startContents, /up -d --wait "\$@"/u);
+  assert.match(stopContents, /stop "\$@"/u);
+  assert.equal(startMetadata.mode & 0o777, 0o755);
+  assert.equal(stopMetadata.mode & 0o777, 0o755);
+
+  const dockerLog = path.join(temporaryRoot, "docker.log");
+  for (const script of [startScript, stopScript]) {
+    const result = spawnSync(script, [], {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        BIAWS_TEST_DOCKER_LOG: dockerLog,
+        PATH: `${bin}:${process.env.PATH}`,
+      },
+    });
+    assert.equal(result.status, 0, result.stderr);
+  }
+  const dockerCommands = await readFile(dockerLog, "utf8");
+  assert.match(
+    dockerCommands,
+    new RegExp(
+      `compose --project-directory ${repositoryRoot} --file ${repositoryRoot}/compose.yaml --env-file ${instance}/\\.env --project-name biaws-storage-test up -d --wait`,
+      "u",
+    ),
+  );
+  assert.match(
+    dockerCommands,
+    new RegExp(
+      `compose --project-directory ${repositoryRoot} --file ${repositoryRoot}/compose.yaml --env-file ${instance}/\\.env --project-name biaws-storage-test stop`,
+      "u",
+    ),
+  );
+
+  const otherInstance = path.join(instances, "other-instance");
+  await mkdir(otherInstance, { recursive: true });
+  const otherEnv = await readFile(
+    path.join(repositoryRoot, ".env.example"),
+    "utf8",
+  );
+  await writeFile(
+    path.join(otherInstance, ".env"),
+    otherEnv
+      .replace(/^MONGO_PORT=.*$/mu, "MONGO_PORT=27018")
+      .replace(/^ISSUE_API_PORT=.*$/mu, "ISSUE_API_PORT=3101")
+      .replace(/^ISSUE_UI_PORT=.*$/mu, "ISSUE_UI_PORT=4401"),
+  );
+  const conflictingPort = runSetup({
+    bin,
+    instances,
+    project,
+    extraArguments: ["--mongo-port", "27018"],
+  });
+  assert.equal(conflictingPort.status, 2);
+  assert.match(
+    conflictingPort.stderr,
+    /A porta 27018 já pertence a outra instância/u,
+  );
+
+  const changedMongoPort = runSetup({
+    bin,
+    instances,
+    project,
+    extraArguments: ["--mongo-port", "27019"],
+  });
+  assert.equal(changedMongoPort.status, 0, changedMongoPort.stderr);
+  const changedPortEnv = await readFile(path.join(instance, ".env"), "utf8");
+  assert.match(changedPortEnv, /^MONGO_PORT=27019$/mu);
 
   const reset = runSetup({
     bin,

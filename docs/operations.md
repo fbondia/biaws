@@ -8,7 +8,24 @@ monitoramento e uma política própria de recuperação.
 ## Selecionar uma instância
 
 Instâncias criadas pelo setup ficam em `instances/<nome>`. Para executar
-comandos Compose, informe sempre o arquivo e o projeto correspondentes:
+as operações comuns, use os scripts gerados para a instância:
+
+```bash
+instances/meu-projeto/start.sh
+instances/meu-projeto/stop.sh
+```
+
+O primeiro executa `up -d --wait`; o segundo executa `stop` e preserva
+containers, volumes e bind mounts. Argumentos adicionais são encaminhados ao
+comando Compose, por exemplo `instances/meu-projeto/start.sh --build`.
+
+Cada instância executa um container MongoDB próprio. `MONGO_PORT`, no `.env`,
+define apenas a porta publicada no host; a comunicação entre API e MongoDB usa
+sempre `mongo:27017` na rede interna do Compose. O setup reserva portas externas
+distintas para impedir colisões entre instâncias.
+
+Para outros comandos Compose, informe sempre o arquivo e o projeto
+correspondentes:
 
 ```bash
 docker compose \

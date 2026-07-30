@@ -20,6 +20,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - coleções MongoDB padronizadas em `lowerCamelCase` plural, com namespace
   `auth*` para Better Auth e `workspaceMemberships` para vínculos de acesso.
 - ambiente Docker e validação contínua atualizados para MongoDB 8.0.
+- porta externa do MongoDB isolada por instância, mantendo `27017` somente na
+  rede interna do Compose.
 
 ### Added
 
@@ -29,6 +31,7 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
   sobre um único clone do código;
 - configuração por instância de bind mounts para MongoDB e arquivos de issues,
   requests e procedures, mantendo volumes Docker nomeados como padrão;
+- scripts executáveis de início e parada gerados para cada instância;
 - identidade técnica de menor privilégio e chave local criadas pelo bootstrap;
 - catálogo inicial idempotente de skills;
 - licença Apache-2.0;

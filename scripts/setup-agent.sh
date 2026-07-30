@@ -7,6 +7,7 @@ INSTANCES_DIR="${BIAWS_INSTANCES_DIR:-${ROOT_DIR}/instances}"
 PROJECT_DIR="${PWD}"
 CLIENT=""
 INSTANCE=""
+MONGO_PORT=""
 API_PORT=""
 UI_PORT=""
 STORAGE_DIR=""
@@ -28,6 +29,7 @@ Opções:
   --instance <nome>          Instância a criar ou selecionar
   --client codex|claude      Cliente que receberá MCP e skills
   --project <diretório>      Projeto consumidor; default: diretório atual
+  --mongo-port <porta>       Porta externa do MongoDB; automática para instância nova
   --api-port <porta>         Porta da API; automática para instância nova
   --ui-port <porta>          Porta da UI; automática para instância nova
   --storage-dir <diretório>  Raiz para MongoDB e arquivos no host
@@ -75,6 +77,53 @@ replace_env_value() {
   mv "${temporary_file}" "${env_file}"
 }
 
+write_instance_control_scripts() {
+  local start_file="${INSTANCE_DIR}/start.sh"
+  local stop_file="${INSTANCE_DIR}/stop.sh"
+  local quoted_root
+  local quoted_env
+  local quoted_project
+  printf -v quoted_root '%q' "${ROOT_DIR}"
+  printf -v quoted_env '%q' "${ENV_FILE}"
+  printf -v quoted_project '%q' "biaws-${INSTANCE}"
+
+  cat > "${start_file}" <<EOF
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BIAWS_ROOT=${quoted_root}
+BIAWS_ENV_FILE=${quoted_env}
+BIAWS_COMPOSE_PROJECT=${quoted_project}
+
+exec docker compose \\
+  --project-directory "\${BIAWS_ROOT}" \\
+  --file "\${BIAWS_ROOT}/compose.yaml" \\
+  --env-file "\${BIAWS_ENV_FILE}" \\
+  --project-name "\${BIAWS_COMPOSE_PROJECT}" \\
+  up -d --wait "\$@"
+EOF
+
+  cat > "${stop_file}" <<EOF
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BIAWS_ROOT=${quoted_root}
+BIAWS_ENV_FILE=${quoted_env}
+BIAWS_COMPOSE_PROJECT=${quoted_project}
+
+exec docker compose \\
+  --project-directory "\${BIAWS_ROOT}" \\
+  --file "\${BIAWS_ROOT}/compose.yaml" \\
+  --env-file "\${BIAWS_ENV_FILE}" \\
+  --project-name "\${BIAWS_COMPOSE_PROJECT}" \\
+  stop "\$@"
+EOF
+
+  chmod 755 "${start_file}" "${stop_file}"
+}
+
 list_instances() {
   local found=0
   local directory
@@ -82,8 +131,9 @@ list_instances() {
   for directory in "${INSTANCES_DIR}"/*; do
     [[ -d "${directory}" && -f "${directory}/.env" ]] || continue
     found=1
-    printf '%-24s API %-5s UI %-5s %s\n' \
+    printf '%-24s Mongo %-5s API %-5s UI %-5s %s\n' \
       "$(basename "${directory}")" \
+      "$(read_env_value "${directory}/.env" "MONGO_PORT")" \
       "$(read_env_value "${directory}/.env" "ISSUE_API_PORT")" \
       "$(read_env_value "${directory}/.env" "ISSUE_UI_PORT")" \
       "${directory}"
@@ -161,20 +211,30 @@ validate_distinct_storage_paths() {
   done
 }
 
-port_reserved() {
+port_reserved_by_instance() {
   local port="$1"
   local current_env="$2"
   local env_file
   shopt -s nullglob
   for env_file in "${INSTANCES_DIR}"/*/.env; do
     [[ "${env_file}" == "${current_env}" ]] && continue
-    if [[ "$(read_env_value "${env_file}" "ISSUE_API_PORT")" == "${port}" ]] ||
+    if [[ "$(read_env_value "${env_file}" "MONGO_PORT")" == "${port}" ]] ||
+      [[ "$(read_env_value "${env_file}" "ISSUE_API_PORT")" == "${port}" ]] ||
       [[ "$(read_env_value "${env_file}" "ISSUE_UI_PORT")" == "${port}" ]]; then
       shopt -u nullglob
       return 0
     fi
   done
   shopt -u nullglob
+  return 1
+}
+
+port_reserved() {
+  local port="$1"
+  local current_env="$2"
+  if port_reserved_by_instance "${port}" "${current_env}"; then
+    return 0
+  fi
   if command -v lsof >/dev/null 2>&1 &&
     lsof -nP -iTCP:"${port}" -sTCP:LISTEN >/dev/null 2>&1; then
     return 0
@@ -185,7 +245,10 @@ port_reserved() {
 next_port() {
   local candidate="$1"
   local current_env="$2"
-  while port_reserved "${candidate}" "${current_env}"; do
+  while port_reserved "${candidate}" "${current_env}" ||
+    [[ -n "${MONGO_PORT}" && "${candidate}" == "${MONGO_PORT}" ]] ||
+    [[ -n "${API_PORT}" && "${candidate}" == "${API_PORT}" ]] ||
+    [[ -n "${UI_PORT}" && "${candidate}" == "${UI_PORT}" ]]; do
     candidate=$((candidate + 1))
   done
   printf '%s' "${candidate}"
@@ -236,6 +299,10 @@ while [[ "$#" -gt 0 ]]; do
       ;;
     --project)
       PROJECT_DIR="${2:-}"
+      shift 2
+      ;;
+    --mongo-port)
+      MONGO_PORT="${2:-}"
       shift 2
       ;;
     --api-port)
@@ -408,6 +475,12 @@ else
   STORAGE_DESCRIPTION="bind mounts configurados no host"
 fi
 
+if [[ -z "${MONGO_PORT}" ]]; then
+  MONGO_PORT="$(read_env_value "${ENV_FILE}" "MONGO_PORT")"
+  if [[ "${new_instance}" == "1" ]]; then
+    MONGO_PORT="$(next_port "${MONGO_PORT:-27017}" "${ENV_FILE}")"
+  fi
+fi
 if [[ -z "${API_PORT}" ]]; then
   API_PORT="$(read_env_value "${ENV_FILE}" "ISSUE_API_PORT")"
   if [[ "${new_instance}" == "1" ]]; then
@@ -420,14 +493,25 @@ if [[ -z "${UI_PORT}" ]]; then
     UI_PORT="$(next_port "${UI_PORT:-4400}" "${ENV_FILE}")"
   fi
 fi
+MONGO_PORT="${MONGO_PORT:-27017}"
+validate_port "${MONGO_PORT}" "Porta do MongoDB"
 validate_port "${API_PORT}" "Porta da API"
 validate_port "${UI_PORT}" "Porta da UI"
-if [[ "${API_PORT}" == "${UI_PORT}" ]]; then
-  echo "API e UI não podem usar a mesma porta." >&2
+if [[ "${MONGO_PORT}" == "${API_PORT}" ||
+  "${MONGO_PORT}" == "${UI_PORT}" ||
+  "${API_PORT}" == "${UI_PORT}" ]]; then
+  echo "MongoDB, API e UI não podem usar a mesma porta." >&2
   exit 2
 fi
+for port in "${MONGO_PORT}" "${API_PORT}" "${UI_PORT}"; do
+  if port_reserved_by_instance "${port}" "${ENV_FILE}"; then
+    echo "A porta ${port} já pertence a outra instância." >&2
+    exit 2
+  fi
+done
 
 replace_env_value "${ENV_FILE}" "COMPOSE_PROJECT_NAME" "biaws-${INSTANCE}"
+replace_env_value "${ENV_FILE}" "MONGO_PORT" "${MONGO_PORT}"
 replace_env_value "${ENV_FILE}" "ISSUE_API_PORT" "${API_PORT}"
 replace_env_value "${ENV_FILE}" "ISSUE_UI_PORT" "${UI_PORT}"
 replace_env_value "${ENV_FILE}" "ISSUE_API_URL" "http://127.0.0.1:${API_PORT}"
@@ -441,6 +525,7 @@ replace_env_value \
   "BIAWS_TRUSTED_ORIGINS" \
   "http://localhost:${UI_PORT},http://127.0.0.1:${UI_PORT}"
 chmod 600 "${ENV_FILE}"
+write_instance_control_scripts
 
 if [[ "${SKIP_BOOTSTRAP}" != "1" ]]; then
   BIAWS_ENV_FILE="${ENV_FILE}" \
@@ -467,10 +552,13 @@ Configuração concluída:
   Dados:     ${INSTANCE_DIR}
   Storage:   ${STORAGE_DESCRIPTION}
   Projeto:   ${PROJECT_DIR}
+  MongoDB:   mongodb://127.0.0.1:${MONGO_PORT}/biaws
   API:       http://localhost:${API_PORT}
   UI:        http://localhost:${UI_PORT}
 
 Reabra o cliente no projeto e aprove o servidor MCP quando solicitado.
 Operação Docker:
-  docker compose --env-file "${ENV_FILE}" --project-name "biaws-${INSTANCE}" ps
+  Iniciar: "${INSTANCE_DIR}/start.sh"
+  Parar:   "${INSTANCE_DIR}/stop.sh"
+  Status:  docker compose --env-file "${ENV_FILE}" --project-name "biaws-${INSTANCE}" ps
 EOF

@@ -77,21 +77,34 @@ Para Claude Code:
 O setup:
 
 1. cria `instances/meu-projeto/.env`;
-2. seleciona portas disponíveis;
-3. gera os segredos locais;
-4. constrói e inicia MongoDB, API e UI;
-5. cria o administrador inicial;
-6. cria uma identidade técnica para o agente;
-7. publica o catálogo inicial de skills;
-8. instala as skills no projeto consumidor;
-9. configura o servidor MCP;
-10. executa o diagnóstico e o handshake MCP.
+2. cria `instances/meu-projeto/start.sh` e `stop.sh`;
+3. seleciona portas disponíveis;
+4. gera os segredos locais;
+5. constrói e inicia MongoDB, API e UI;
+6. cria o administrador inicial;
+7. cria uma identidade técnica para o agente;
+8. publica o catálogo inicial de skills;
+9. instala as skills no projeto consumidor;
+10. configura o servidor MCP;
+11. executa o diagnóstico e o handshake MCP.
+
+Depois do setup, a instância pode ser iniciada ou parada de qualquer diretório:
+
+```bash
+instances/meu-projeto/start.sh
+instances/meu-projeto/stop.sh
+```
+
+O `stop.sh` preserva os containers e todos os dados persistentes. Para
+reconstruir as imagens ao iniciar, use
+`instances/meu-projeto/start.sh --build`.
 
 Para escolher portas específicas:
 
 ```bash
 ./scripts/setup-agent.sh \
   --instance meu-projeto \
+  --mongo-port 27018 \
   --api-port 3101 \
   --ui-port 4401 \
   --client codex \
@@ -175,12 +188,16 @@ Ao final do setup, o terminal mostra:
 
 Por padrão, a primeira instância usa:
 
+- MongoDB: `mongodb://127.0.0.1:27017/biaws`;
 - UI: <http://localhost:4400>;
 - API: <http://localhost:3100>;
 - health check: <http://localhost:3100/api/health>.
 
-Se essas portas estiverem ocupadas, o setup seleciona outras e informa os
-endereços efetivos.
+Cada instância possui seu próprio container MongoDB e armazenamento. Se alguma
+das portas do MongoDB, da API ou da UI estiver ocupada ou reservada por outra
+instância, o setup seleciona outra e informa os endereços efetivos. A porta
+interna do MongoDB permanece sempre em `27017`; `MONGO_PORT` controla somente a
+porta publicada no host.
 
 A senha inicial também fica em:
 

@@ -77,19 +77,21 @@ Crie ou selecione uma instância e configure o projeto consumidor:
 O script:
 
 1. cria `instances/meu-projeto/.env`, se necessário;
-2. seleciona portas livres para a API e a UI;
-3. gera um `BETTER_AUTH_SECRET` local;
-4. constrói e inicia MongoDB, API e UI;
-5. cria o primeiro administrador;
-6. cria uma identidade técnica de menor privilégio para MCP e CLI;
-7. publica o catálogo inicial de skills;
-8. instala as skills e configura o MCP no projeto consumidor;
-9. executa o diagnóstico completo.
+2. cria os comandos `instances/meu-projeto/start.sh` e `stop.sh`;
+3. seleciona portas livres para o MongoDB, a API e a UI;
+4. gera um `BETTER_AUTH_SECRET` local;
+5. constrói e inicia MongoDB, API e UI;
+6. cria o primeiro administrador;
+7. cria uma identidade técnica de menor privilégio para MCP e CLI;
+8. publica o catálogo inicial de skills;
+9. instala as skills e configura o MCP no projeto consumidor;
+10. executa o diagnóstico completo.
 
 Ao final, ele mostra a credencial inicial e os endereços:
 
 - UI: <http://localhost:4400>
 - API: <http://localhost:3100>
+- MongoDB: `mongodb://127.0.0.1:27017/biaws`
 - health check: <http://localhost:3100/api/health>
 
 A senha inicial fica em
@@ -98,6 +100,13 @@ pela UI no primeiro acesso.
 
 A chave técnica fica somente no `.env` da instância, também ignorado pelo Git.
 Ela não é exibida no resumo do bootstrap.
+
+Inicie e pare a instância com:
+
+```bash
+instances/meu-projeto/start.sh
+instances/meu-projeto/stop.sh
+```
 
 Para informar sua própria credencial:
 
@@ -151,9 +160,9 @@ isolados.
   --project /projetos/cliente-b
 ```
 
-Portas são alocadas automaticamente para instâncias novas. Use `--api-port` e
-`--ui-port` para fixá-las. Sem `--instance`, o script oferece um seletor em
-terminais interativos.
+Portas são alocadas automaticamente para instâncias novas. Use `--mongo-port`,
+`--api-port` e `--ui-port` para fixá-las. Sem `--instance`, o script oferece um
+seletor em terminais interativos.
 
 Para repetir somente a configuração do cliente:
 

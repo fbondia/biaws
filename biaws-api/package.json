@@ -33,7 +33,7 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "mailparser": "^3.7.2",
-    "mongodb": "^6.21.0",
+    "mongodb": "^7.5.0",
     "multer": "^2.2.0"
   },
   "devDependencies": {

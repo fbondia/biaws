@@ -29,6 +29,19 @@ test("issue and demand creation schemas require applicationId", () => {
   }
 });
 
+test("improvement tools expose the journey model", () => {
+  const byName = new Map(listTools().map((tool) => [tool.name, tool]));
+  const create = byName.get("demands_create");
+  const journeyItems = create.inputSchema.properties.journeys.items.properties;
+
+  assert.ok(byName.has("demands_journey_calendar"));
+  assert.equal(byName.has("demands_billing_calendar"), false);
+  assert.ok(journeyItems.plannedJourneys);
+  assert.ok(journeyItems.executedJourneys);
+  assert.equal(Object.hasOwn(journeyItems, "billedJourneys"), false);
+  assert.equal(Object.hasOwn(create.inputSchema.properties, "billing"), false);
+});
+
 test("knowledge searches forward workspace, application and component filters", async () => {
   const originalFetch = globalThis.fetch;
   const originalBaseUrl = process.env.ISSUE_API_URL;

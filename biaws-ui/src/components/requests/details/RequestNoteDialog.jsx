@@ -28,7 +28,7 @@ export function RequestNoteDialog({
       >
         <header className="requestNoteDialogHeader">
           <div>
-            <span>Anotação da demanda</span>
+            <span>Anotação da melhoria</span>
             <h3 id="requestNoteDialogTitle">
               {mode === "edit" ? "Editar anotação" : "Incluir anotação"}
             </h3>

@@ -21,7 +21,7 @@ function IssueViewTabs({ activeTab, loading, onRefresh, onSelect }) {
       <div
         className="issueSectionTabs"
         role="tablist"
-        aria-label="Visualização de issues"
+        aria-label="Visualização de chamados"
       >
         {ISSUE_TABS.map((tab) => (
           <IssueViewTab
@@ -33,11 +33,11 @@ function IssueViewTabs({ activeTab, loading, onRefresh, onSelect }) {
         ))}
       </div>
       <button
-        aria-label="Atualizar issues"
+        aria-label="Atualizar chamados"
         className="iconButton issueRefreshButton"
         disabled={loading}
         onClick={onRefresh}
-        title="Atualizar issues"
+        title="Atualizar chamados"
         type="button"
       >
         <RefreshCw className={loading ? "spinIcon" : undefined} size={18} />

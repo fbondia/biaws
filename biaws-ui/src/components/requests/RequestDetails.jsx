@@ -1,7 +1,7 @@
 import { Edit3, Eye, X } from "lucide-react";
 
 import { REQUEST_DETAIL_TABS } from "./requestUtils.js";
-import { RequestBillingTab } from "./details/RequestBillingTab.jsx";
+import { RequestJourneyTab } from "./details/RequestJourneyTab.jsx";
 import { RequestChecklistDialog } from "./details/RequestChecklistDialog.jsx";
 import { RequestChecklistTab } from "./details/RequestChecklistTab.jsx";
 import { RequestMainTab } from "./details/RequestMainTab.jsx";
@@ -24,7 +24,7 @@ export function RequestDetails({
   activeTab,
   savingRequestId,
   selectedChecklistItem,
-  billingTotals,
+  journeyTotals,
   onTabChange,
   onToggleEditMode,
   onClose,
@@ -38,8 +38,8 @@ export function RequestDetails({
   onToggleChecklistItem,
   onUpdateChecklistItem,
   onCloseChecklistDialog,
-  onBillingMonthCommit,
-  onBillingCommentChange,
+  onJourneyMonthCommit,
+  onJourneyCommentChange,
   onCreateNote,
   onCreateTask,
   onCreateTaskNote,
@@ -65,7 +65,7 @@ export function RequestDetails({
         <div
           className="detailTabs requestDetailTabs"
           role="tablist"
-          aria-label="Detalhes da demanda"
+          aria-label="Detalhes da melhoria"
         >
           {REQUEST_DETAIL_TABS.map((tab) => (
             <button
@@ -160,13 +160,13 @@ export function RequestDetails({
         />
       ) : null}
 
-      {activeTab === "billing" ? (
-        <RequestBillingTab
-          billingTotals={billingTotals}
+      {activeTab === "journeys" ? (
+        <RequestJourneyTab
+          journeyTotals={journeyTotals}
           isEditing={isEditing}
           onBeginNumberDraft={onBeginNumberDraft}
-          onBillingCommentChange={onBillingCommentChange}
-          onBillingMonthCommit={onBillingMonthCommit}
+          onJourneyCommentChange={onJourneyCommentChange}
+          onJourneyMonthCommit={onJourneyMonthCommit}
           onClearNumberDraft={onClearNumberDraft}
           onReadDraftedNumber={onReadDraftedNumber}
           onUpdateNumberDraft={onUpdateNumberDraft}

@@ -13,7 +13,7 @@ regras não devem ser adicionadas diretamente nele.
 Issues e Requests são subdivididos por módulo para evitar arquivos monolíticos.
 As media queries ficam junto do módulo que alteram. A exceção atual é
 `features/requests/responsive.css`, porque suas regras coordenam vários módulos
-da tela de demandas.
+da tela de melhorias.
 
 ## Convenções
 

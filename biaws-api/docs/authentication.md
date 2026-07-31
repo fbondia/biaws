@@ -114,7 +114,7 @@ armazenadas, mas não autenticam enquanto a identidade estiver bloqueada.
 Somente `GET /api/health` e as operações públicas necessárias de
 `/api/auth/*`, como login, dispensam identidade prévia. O cadastro público
 `POST /api/auth/sign-up/email` permanece desabilitado. As rotas de issues,
-demandas, procedimentos e skills exigem autenticação, mas ainda não diferenciam
+melhorias, procedimentos e skills exigem autenticação, mas ainda não diferenciam
 grupos ou permissões.
 
 ## Atualizações e segurança

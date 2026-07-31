@@ -23,26 +23,26 @@ export function requestChecklist(items = []) {
   }));
 }
 
-export function billingRowsForRequest(request) {
-  const currentBilling = new Map(
-    (request.billing || []).map((item) => [
+export function journeyRowsForRequest(request) {
+  const currentJourneys = new Map(
+    (request.journeys || request.billing || []).map((item) => [
       item.month,
       {
         plannedJourneys: Number(item.plannedJourneys ?? item.journeys) || 0,
-        billedJourneys: Number(item.billedJourneys) || 0,
+        executedJourneys:
+          Number(item.executedJourneys ?? item.billedJourneys) || 0,
         comment: item.comment || "",
       },
     ]),
   );
 
   return monthKeysBetween(request.startDate, request.endDate).map((month) => {
-    const current = currentBilling.get(month) || {};
+    const current = currentJourneys.get(month) || {};
 
     return {
       month,
       plannedJourneys: current.plannedJourneys || 0,
-      billedJourneys: current.billedJourneys || 0,
-      journeys: current.plannedJourneys || 0,
+      executedJourneys: current.executedJourneys || 0,
       comment: current.comment || "",
     };
   });
@@ -181,7 +181,7 @@ export function normalizeRequest(request) {
     notes: normalizeRequestNotes(request.notes),
     tasks: normalizeRequestTasks(request.tasks),
     checklist: requestChecklist(request.checklist),
-    billing: billingRowsForRequest(request),
+    journeys: journeyRowsForRequest(request),
     specification: normalizeSpecification(request.specification),
   };
 }
@@ -205,7 +205,7 @@ export function newRequest() {
     tasks: [],
     listRank: now,
     checklist: [],
-    billing: [],
+    journeys: [],
     specification: {
       sections: defaultSpecificationSections(),
     },

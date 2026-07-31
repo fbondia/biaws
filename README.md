@@ -1,6 +1,6 @@
 # Bondia Workspaces
 
-Workspace operacional open source para organizar suporte, demandas, procedimentos
+Workspace operacional open source para organizar chamados, melhorias, procedimentos
 e capacidades de agentes em uma única aplicação.
 
 > **Status:** alpha (`0.x`). O projeto é adequado para avaliação, demonstração e
@@ -17,7 +17,7 @@ Para começar pela instalação guiada, consulte o [QUICKSTART](QUICKSTART.md).
 
 ## Por que este projeto existe
 
-Ferramentas tradicionais separam o histórico de suporte, a especificação de
+Ferramentas tradicionais separam o histórico de chamados, a especificação de
 melhorias, a base de procedimentos e o contexto consumido por agentes. O Bondia
 Workspaces conecta esses elementos e os expõe por interfaces humanas e programáticas.
 
@@ -27,15 +27,15 @@ capacidades versionadas sem oferecer acesso genérico ao banco de dados.
 
 ## Recursos
 
-- issues de suporte com importação EML, anexos, filtros, indicadores e taxonomia;
-- demandas com especificação Markdown, tarefas, checklist, prazos e faturamento;
+- chamados com importação EML, anexos, filtros, indicadores e taxonomia;
+- melhorias com especificação Markdown, tarefas, checklist, prazos e acompanhamento de jornadas;
 - procedimentos organizados em coleções e classificados pela mesma taxonomia;
 - workspaces e aplicações como fronteiras de organização e autorização;
 - componentes, repositórios, servidores, deployments e runtimes com consultas
   reversas e contexto agregado;
 - autenticação, chaves de API, grupos e permissões;
 - trilha de auditoria funcional;
-- servidor MCP com ferramentas de catálogo, topologia, issues, demandas e
+- servidor MCP com ferramentas de catálogo, topologia, issues, melhorias e
   procedimentos;
 - CLI para publicar, instalar e atualizar skills;
 - UI React responsiva e acessível;

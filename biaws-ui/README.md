@@ -33,7 +33,7 @@ VITE_ISSUE_API_URL=http://127.0.0.1:3100 npm run dev
 - Catálogo de aplicações com busca, criação, edição, arquivamento e histórico
 - Topologia por aplicação: componentes, repositórios, deployments e runtimes
 - Inventário de servidores com referências reversas de runtimes e deployments
-- Relações e filtros por aplicação e componente em issues, demandas e
+- Relações e filtros por aplicação e componente em issues, melhorias e
   procedimentos
 - Ações e áreas de navegação condicionadas às permissões do ator autenticado
 - Filtros por texto, código, tipo, status e intervalo de datas

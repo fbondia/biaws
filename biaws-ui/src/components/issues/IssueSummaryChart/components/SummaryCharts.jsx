@@ -54,7 +54,7 @@ export function LineSummaryChart({ items }) {
             activeDot={{ r: 6 }}
             dataKey="count"
             dot={{ r: 4 }}
-            name="Issues"
+            name="Chamados"
             stroke="#2d6cdf"
             strokeWidth={3}
             type="monotone"
@@ -180,7 +180,7 @@ export function BarSummaryChart({ activeTab, items, onSelectMonthTaxonomy }) {
           ) : (
             <Bar
               dataKey="count"
-              name="Issues"
+              name="Chamados"
               onClick={canSelectMonth ? handleBarClick : undefined}
               radius={[6, 6, 0, 0]}
             >

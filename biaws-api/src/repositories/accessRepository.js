@@ -30,8 +30,8 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
   },
   {
     id: "incident-management",
-    name: "Gestão de incidentes",
-    description: "Gerenciamento completo de issues e seus anexos.",
+    name: "Gestão de chamados",
+    description: "Gerenciamento completo de chamados e seus anexos.",
     permissions: [
       "workspaces.read",
       "applications.read",
@@ -41,8 +41,8 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
   },
   {
     id: "demand-management",
-    name: "Gestão de demandas",
-    description: "Gerenciamento completo de demandas, tarefas e anexos.",
+    name: "Gestão de melhorias",
+    description: "Gerenciamento completo de melhorias, tarefas e anexos.",
     permissions: permissionsStartingWith("demands.", "tasks."),
   },
   {
@@ -53,8 +53,8 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
   },
   {
     id: "support",
-    name: "Suporte",
-    description: "Consulta, comentários e atualização de status de issues.",
+    name: "Chamados",
+    description: "Consulta, comentários e atualização de status de chamados.",
     permissions: [
       "issues.read",
       "issues.status.update",
@@ -67,7 +67,7 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
     id: "improvement-development",
     name: "Desenvolvimento de melhorias",
     description:
-      "Leitura de demandas e colaboração em tarefas e especificações.",
+      "Leitura de melhorias e colaboração em tarefas e especificações.",
     permissions: [
       "demands.read",
       "demands.specification.update",

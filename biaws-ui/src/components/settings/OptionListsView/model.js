@@ -78,17 +78,17 @@ export const LIST_ICONS = {
 export const LIST_GROUPS = [
   {
     key: "demand",
-    label: "Demandas / Requests",
+    label: "Melhorias / Requests",
     description:
-      "Opções do fluxo de demandas, tarefas, checklist e especificação.",
+      "Opções do fluxo de melhorias, tarefas, checklist e especificação.",
     icon: BriefcaseBusiness,
     matches: (list) => list.key.startsWith("demand."),
   },
   {
     key: "issue",
-    label: "Suporte / Issues",
+    label: "Chamados",
     description:
-      "Opções usadas no cadastro, filtro e acompanhamento de issues.",
+      "Opções usadas no cadastro, filtro e acompanhamento de chamados.",
     icon: LifeBuoy,
     matches: (list) => list.key.startsWith("issue."),
   },

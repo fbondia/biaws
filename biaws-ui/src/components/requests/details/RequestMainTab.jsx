@@ -29,7 +29,7 @@ export function RequestMainTab({
       <section className="requestPanel">
         <div className="panelHeader">
           <div>
-            <h3>Dados da demanda</h3>
+            <h3>Dados da melhoria</h3>
             <span>
               {request.clientCode || "Código do cliente não informado"}
             </span>
@@ -47,7 +47,7 @@ export function RequestMainTab({
             />
             <div className="requestFormGrid">
               <label className="field requestCodeField">
-                <span>Código da demanda</span>
+                <span>Código da melhoria</span>
                 <input
                   onChange={(event) =>
                     onFieldChange("clientCode", event.target.value)
@@ -165,7 +165,7 @@ export function RequestMainTab({
               <strong>{request.affectedComponentIds?.length || 0}</strong>
             </div>
             <div className="requestDetailCard requestCodeField">
-              <span>Código da demanda</span>
+              <span>Código da melhoria</span>
               <strong>{request.clientCode || "-"}</strong>
             </div>
             <div className="requestDetailCard requestDetailTitle">
@@ -207,7 +207,7 @@ export function RequestMainTab({
         <div className="panelHeader">
           <div>
             <h3>Descrição</h3>
-            <span>Escopo e contexto da demanda</span>
+            <span>Escopo e contexto da melhoria</span>
           </div>
         </div>
 
@@ -237,7 +237,7 @@ export function RequestMainTab({
             type="button"
           >
             <Trash2 size={16} />
-            Excluir demanda
+            Excluir melhoria
           </button>
         </div>
       ) : null}

@@ -145,7 +145,7 @@ Restaure os três volumes correspondentes, suba API e UI e valide:
 
 1. `GET /api/health`;
 2. login de um administrador;
-3. leitura de uma aplicação, issue, demanda e procedimento;
+3. leitura de uma aplicação, issue, melhoria e procedimento;
 4. download de pelo menos um anexo de cada domínio utilizado;
 5. isolamento por workspace e aplicação;
 6. totais e registros recentes de auditoria.
@@ -216,8 +216,8 @@ opções equivalentes `--api-rate-limit-*`, `--auth-rate-limit-*` e
 preservada, sua cota é reconciliada com a configuração atual e a janela de
 consumo é reiniciada.
 
-Demandas, issues, procedimentos e catálogo têm paginação no backend. A UI de
-demandas carrega 25 registros por página. Ajuste os limites de corpo/anexo pelas
+Melhorias, issues, procedimentos e catálogo têm paginação no backend. A UI de
+melhorias carrega 25 registros por página. Ajuste os limites de corpo/anexo pelas
 variáveis documentadas em `.env.example`, considerando memória, proxy e storage.
 No ambiente Docker, `ISSUE_API_MAX_ATTACHMENT_BYTES` configura o mesmo limite
 na API e no Nginx; mantenha o proxy externo alinhado quando houver outra camada.

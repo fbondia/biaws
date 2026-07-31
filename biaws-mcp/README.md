@@ -7,8 +7,8 @@ O servidor separa os domínios:
 - `workspaces_*`, `applications_*`, `components_*`, `repositories_*`,
   `servers_*`, `deployments_*` e `runtimes_*`: catálogo de aplicações e
   topologia operacional.
-- `issues_*`: suporte, incidentes, requisições operacionais, taxonomia e classificação.
-- `demands_*`: demandas de melhoria, especificações, faturamento, prazos e contexto para desenvolvimento.
+- `issues_*`: chamados, incidentes, requisições operacionais, taxonomia e classificação.
+- `demands_*`: melhorias, especificações, jornadas, prazos e contexto para desenvolvimento.
 - `procedures_*`: procedimentos operacionais em Markdown, com tags e classificação taxonômica compartilhadas com issues.
 
 O carregamento de ambiente usa o `shared/loadEnv.js` do próprio repositório. O MCP conversa com a `biaws-api` por HTTP e não acessa diretamente o mecanismo de armazenamento.
@@ -80,13 +80,13 @@ imutável. Arquivamento não
 
 `applications_get_context` entrega, em uma única consulta, a aplicação,
 integrações, componentes, repositórios, deployments, runtimes, servidores referenciados e
-resumos de issues, demandas e procedimentos associados. O argumento `limit`
+resumos de issues, melhorias e procedimentos associados. O argumento `limit`
 vale separadamente para cada grupo, tem teto de 100 e padrão 25. O resultado
 informa totais e truncamentos e não contém credenciais, endereços dos
 servidores, metadata dos runtimes, anexos nem os textos extensos da base de
 conhecimento.
 
-### Issues / suporte
+### Issues / chamados
 
 - `issues_search`: busca issues com os mesmos filtros principais da
   `biaws-api`, inclusive por workspace, aplicação e componente afetado.
@@ -107,17 +107,17 @@ conhecimento.
 - `issues_by_taxonomy`: busca issues por assunto/taxonomia, incluindo todos os
   seus descendentes e filtros opcionais de contexto.
 
-### Demandas / melhorias
+### Melhorias
 
-- `demands_list`: lista demandas com filtros simples e de contexto.
-- `demands_get`: obtém uma demanda estruturada.
-- `demands_create`: cria uma demanda com dados cadastrais, especificação,
+- `demands_list`: lista melhorias com filtros simples e de contexto.
+- `demands_get`: obtém uma melhoria estruturada.
+- `demands_create`: cria uma melhoria com dados cadastrais, especificação,
   checklist e planejamento; `applicationId` é obrigatório.
-- `demands_billing_calendar`: consolida faturamento por mês.
-- `demands_deadlines`: consolida prazos e situação por demanda.
+- `demands_journey_calendar`: consolida jornadas previstas e executadas por mês.
+- `demands_deadlines`: consolida prazos e situação por melhoria.
 - `demands_implementation_context`: extrai contexto de especificação e tarefas para agentes de desenvolvimento.
-- `demands_add_note`: adiciona anotação a uma demanda.
-- `demands_update_description`: atualiza a descrição sucinta da demanda.
+- `demands_add_note`: adiciona anotação a uma melhoria.
+- `demands_update_description`: atualiza a descrição sucinta da melhoria.
 - `demands_list_tasks`: lista tarefas, com filtro opcional por status.
 - `demands_create_task`: inclui uma tarefa.
 - `demands_update_task`: altera código, título, status, datas, situação, descrição ou especificação de uma tarefa.
@@ -137,7 +137,7 @@ conhecimento.
 - `procedures_update`: atualiza parcialmente título, sumário, conteúdo,
   classificação ou contexto.
 
-Issues e demandas criadas pelo MCP sempre pertencem a uma aplicação e podem
+Issues e melhorias criadas pelo MCP sempre pertencem a uma aplicação e podem
 informar `affectedComponentIds`. Procedimentos podem permanecer gerais ao
 workspace ou ser vinculados opcionalmente a uma aplicação e seus componentes.
 Nas ferramentas de consulta, os filtros comuns são `workspaceId`,

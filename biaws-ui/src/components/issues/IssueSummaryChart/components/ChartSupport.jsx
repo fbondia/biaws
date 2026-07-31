@@ -78,10 +78,10 @@ async function copySvgToClipboard(svgElement) {
 
     const pngDataUrl = await blobToDataUrl(pngBlob);
     const htmlBlob = new Blob(
-      [`<img src="${pngDataUrl}" alt="Gráfico do sumário de issues">`],
+      [`<img src="${pngDataUrl}" alt="Gráfico do sumário de chamados">`],
       { type: "text/html" },
     );
-    const textBlob = new Blob(["Gráfico do sumário de issues"], {
+    const textBlob = new Blob(["Gráfico do sumário de chamados"], {
       type: "text/plain",
     });
 

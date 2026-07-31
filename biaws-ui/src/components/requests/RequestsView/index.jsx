@@ -40,14 +40,14 @@ export function RequestsView({ actor }) {
     setStatusFilters,
     selectedRequestId,
     activeDetailTab,
-    selectedBilledTotal,
-    selectedOverbilledTotal,
-    selectedPlannedBillingTotal,
-    selectedUnbilledTotal,
+    selectedExecutedTotal,
+    selectedOverExecutedTotal,
+    selectedPlannedJourneyTotal,
+    selectedPendingTotal,
     isEditing,
     beginNumberDraft,
-    updateBillingComment,
-    commitBillingMonth,
+    updateJourneyComment,
+    commitJourneyMonth,
     addRequestNote,
     addRequestTask,
     addRequestTaskNote,
@@ -79,8 +79,8 @@ export function RequestsView({ actor }) {
     selectedChecklistItem,
     activeOverviewTab,
     setActiveOverviewTab,
-    scheduleBillingMonths,
-    scheduleBillingRequests,
+    scheduleJourneyMonths,
+    scheduleJourneyRequests,
     scheduleRequests,
     newContext,
     setNewContext,
@@ -89,7 +89,7 @@ export function RequestsView({ actor }) {
     <section className="requestsPage">
       <header className="requestsHero">
         <div>
-          <h2>Projetos e Demandas</h2>
+          <h2>Projetos e Melhorias</h2>
         </div>
         <button
           className="primaryButton"
@@ -98,7 +98,7 @@ export function RequestsView({ actor }) {
           type="button"
         >
           <Plus size={16} />
-          Nova demanda
+          Nova melhoria
         </button>
       </header>
 
@@ -135,7 +135,7 @@ export function RequestsView({ actor }) {
         <div
           className="requestsMobileTabs"
           role="tablist"
-          aria-label="Navegação de demandas"
+          aria-label="Navegação de melhorias"
         >
           <button
             aria-selected={activeMobileSection === "requests"}
@@ -149,7 +149,7 @@ export function RequestsView({ actor }) {
             type="button"
           >
             <ClipboardList size={16} />
-            Demandas
+            Melhorias
           </button>
           <button
             aria-selected={activeMobileSection === "overview"}
@@ -204,16 +204,16 @@ export function RequestsView({ actor }) {
         {selectedRequest ? (
           <RequestDetails
             activeTab={activeDetailTab}
-            billingTotals={{
-              billedTotal: selectedBilledTotal,
-              overbilledTotal: selectedOverbilledTotal,
-              plannedTotal: selectedPlannedBillingTotal,
-              unbilledTotal: selectedUnbilledTotal,
+            journeyTotals={{
+              executedTotal: selectedExecutedTotal,
+              overExecutedTotal: selectedOverExecutedTotal,
+              plannedTotal: selectedPlannedJourneyTotal,
+              pendingTotal: selectedPendingTotal,
             }}
             isEditing={isEditing}
             onBeginNumberDraft={beginNumberDraft}
-            onBillingCommentChange={updateBillingComment}
-            onBillingMonthCommit={commitBillingMonth}
+            onJourneyCommentChange={updateJourneyComment}
+            onJourneyMonthCommit={commitJourneyMonth}
             onCreateNote={addRequestNote}
             onCreateTask={addRequestTask}
             onCreateTaskNote={addRequestTaskNote}
@@ -260,8 +260,8 @@ export function RequestsView({ actor }) {
         ) : (
           <RequestsOverview
             activeTab={activeOverviewTab}
-            billingMonths={scheduleBillingMonths}
-            billingRequests={scheduleBillingRequests}
+            journeyMonths={scheduleJourneyMonths}
+            journeyRequests={scheduleJourneyRequests}
             loading={loadingRequests}
             onSelectRequest={selectRequest}
             onTabChange={setActiveOverviewTab}
@@ -285,12 +285,12 @@ export function RequestsView({ actor }) {
           >
             <header>
               <div>
-                <span>Nova demanda</span>
+                <span>Nova melhoria</span>
                 <h2 id="new-demand-context-title">Defina o contexto</h2>
               </div>
             </header>
             <p>
-              A demanda precisa pertencer a uma aplicação. Os componentes
+              A melhoria precisa pertencer a uma aplicação. Os componentes
               afetados podem ser definidos agora ou depois.
             </p>
             <CatalogContextFields
@@ -316,7 +316,7 @@ export function RequestsView({ actor }) {
                 onClick={() => void addRequest(newContext)}
                 type="button"
               >
-                Criar demanda
+                Criar melhoria
               </button>
             </footer>
           </section>
@@ -360,14 +360,14 @@ function RequestStatusFilter({ onChange, value }) {
           }}
         >
           <section
-            aria-label="Filtrar demandas por status"
+            aria-label="Filtrar melhorias por status"
             aria-modal="true"
             className="tagFilterDialog issueOptionFilterDialog"
             role="dialog"
           >
             <header>
               <div>
-                <strong>Filtrar demandas por status</strong>
+                <strong>Filtrar melhorias por status</strong>
                 <span>
                   Selecione um ou mais status para restringir os resultados.
                 </span>

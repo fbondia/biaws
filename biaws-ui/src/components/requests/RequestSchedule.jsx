@@ -16,8 +16,8 @@ export function RequestSchedule({ requests, onSelectRequest }) {
   return (
     <div className="requestScheduleBlock">
       <div className="sectionTitleRow">
-        <h3>Demandas e prazos</h3>
-        <span>{ganttItems.length} demandas com datas</span>
+        <h3>Melhorias e prazos</h3>
+        <span>{ganttItems.length} melhorias com datas</span>
       </div>
 
       {timeline ? (
@@ -29,7 +29,7 @@ export function RequestSchedule({ requests, onSelectRequest }) {
             }}
           >
             <div className="requestGanttHeader">
-              <div className="requestGanttDemandHeader">Demanda</div>
+              <div className="requestGanttDemandHeader">Melhoria</div>
               <div className="requestGanttTimelineHeader">
                 {timeline.months.map((month) => (
                   <span
@@ -105,7 +105,7 @@ export function RequestSchedule({ requests, onSelectRequest }) {
         </div>
       ) : (
         <div className="emptyState compactEmpty">
-          Nenhuma demanda com datas para exibir no cronograma.
+          Nenhuma melhoria com datas para exibir no cronograma.
         </div>
       )}
     </div>

@@ -20,7 +20,7 @@ Os eventos são armazenados em `auditEvents` e contêm:
 - `changes`: caminhos dos campos com valores anterior e novo;
 - `metadata`: contexto funcional adicional sanitizado.
 
-Os documentos principais de issues, demandas e procedimentos também preservam
+Os documentos principais de issues, melhorias e procedimentos também preservam
 `createdAt`, `createdBy`, `updatedAt` e `updatedBy` para consultas diretas. A
 trilha de eventos é a fonte detalhada das alterações.
 
@@ -29,11 +29,11 @@ trilha de eventos é a fonte detalhada das alterações.
 | Domínio       | Eventos                                                                                                |
 | ------------- | ------------------------------------------------------------------------------------------------------ |
 | Issues        | criação, atualização, mudança de status, classificação, taxonomia, comentário inicial e importação EML |
-| Demandas      | criação, atualização, reordenação e exclusão                                                           |
-| Anotações     | inclusão, atualização e exclusão em demandas e tarefas                                                 |
+| Melhorias     | criação, atualização, reordenação e exclusão                                                           |
+| Anotações     | inclusão, atualização e exclusão em melhorias e tarefas                                                |
 | Tarefas       | criação, atualização, mudança de status e exclusão                                                     |
 | Procedimentos | criação, atualização e exclusão                                                                        |
-| Anexos        | inclusão, alteração de tags e exclusão em issues, demandas e procedimentos                             |
+| Anexos        | inclusão, alteração de tags e exclusão em issues, melhorias e procedimentos                            |
 | Skills        | publicação e descontinuação                                                                            |
 
 Leituras não são auditadas nesta fase, pois não mudam a responsabilidade
@@ -47,7 +47,7 @@ máximo 200. Os tipos aceitos são `issue`, `demand`, `task`, `procedure`,
 
 Não existe acesso administrativo global à coleção por essa rota. O usuário deve
 possuir a permissão de leitura da entidade correspondente. Eventos de tarefas
-aparecem tanto no histórico da demanda raiz quanto no histórico da própria
+aparecem tanto no histórico da melhoria raiz quanto no histórico da própria
 tarefa.
 
 ## Proteção e limites

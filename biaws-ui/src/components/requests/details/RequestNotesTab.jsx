@@ -80,7 +80,7 @@ export function RequestNotesTab({
         <div>
           <h3>Anotações</h3>
           <span>
-            Histórico de decisões, pendências e contexto operacional da demanda
+            Histórico de decisões, pendências e contexto operacional da melhoria
           </span>
         </div>
         <button
@@ -135,7 +135,7 @@ export function RequestNotesTab({
           })
         ) : (
           <div className="emptyState compactEmpty">
-            Nenhuma anotação registrada para esta demanda.
+            Nenhuma anotação registrada para esta melhoria.
           </div>
         )}
       </div>

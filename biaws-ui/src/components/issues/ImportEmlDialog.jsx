@@ -191,7 +191,7 @@ export function ImportEmlDialog({
             <div className="dialogKicker">
               <span className="typeBadge">Importação de EML</span>
             </div>
-            <h2 id="import-title">Importar issues</h2>
+            <h2 id="import-title">Importar chamados</h2>
           </div>
           <div className="dialogHeaderActions">
             {canConfigureSanitization ? (
@@ -218,7 +218,7 @@ export function ImportEmlDialog({
 
         <div className="dialogBody importDialogBody">
           <section className="emlImportContext">
-            <h3>Contexto das issues</h3>
+            <h3>Contexto dos chamados</h3>
             <p>
               A aplicação é obrigatória e será usada em todos os arquivos desta
               importação.

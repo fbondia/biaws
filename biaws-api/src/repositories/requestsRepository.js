@@ -23,7 +23,7 @@ import {
 } from "./knowledgeContextRepository.js";
 
 const REQUESTS_COLLECTION = COLLECTION_NAMES.REQUESTS;
-const BILLING_COLLECTION = COLLECTION_NAMES.REQUEST_BILLING_PERIODS;
+const JOURNEY_PERIODS_COLLECTION = COLLECTION_NAMES.REQUEST_JOURNEY_PERIODS;
 const SPECIFICATION_COLLECTION = COLLECTION_NAMES.REQUEST_SPECIFICATIONS;
 const NOTES_COLLECTION = COLLECTION_NAMES.REQUEST_NOTES;
 const TASKS_COLLECTION = COLLECTION_NAMES.REQUEST_TASKS;
@@ -199,28 +199,32 @@ function normalizeChecklist(items = []) {
   });
 }
 
-function normalizeBilling(payloadBilling = [], startDate = "", endDate = "") {
-  const billingByMonth = new Map();
+export function normalizeJourneyPeriods(
+  payloadJourneyPeriods = [],
+  startDate = "",
+  endDate = "",
+) {
+  const journeysByMonth = new Map();
 
-  if (Array.isArray(payloadBilling)) {
-    for (const [index, item] of payloadBilling.entries()) {
+  if (Array.isArray(payloadJourneyPeriods)) {
+    for (const [index, item] of payloadJourneyPeriods.entries()) {
       if (!isMonthString(item?.month)) {
         throw createHttpError(
           422,
-          `Invalid request payload: billing[${index}].month must be YYYY-MM`,
+          `Invalid request payload: journeys[${index}].month must be YYYY-MM`,
         );
       }
 
       const plannedJourneys = readNumber(
         item.plannedJourneys ?? item.predictedJourneys ?? item.journeys,
-        `billing[${index}].plannedJourneys`,
+        `journeys[${index}].plannedJourneys`,
       );
 
-      billingByMonth.set(item.month, {
+      journeysByMonth.set(item.month, {
         plannedJourneys,
-        billedJourneys: readNumber(
-          item.billedJourneys,
-          `billing[${index}].billedJourneys`,
+        executedJourneys: readNumber(
+          item.executedJourneys ?? item.billedJourneys,
+          `journeys[${index}].executedJourneys`,
         ),
         comment: readString(item.comment),
       });
@@ -228,13 +232,12 @@ function normalizeBilling(payloadBilling = [], startDate = "", endDate = "") {
   }
 
   return monthKeysBetween(startDate, endDate).map((month) => {
-    const current = billingByMonth.get(month) || {};
+    const current = journeysByMonth.get(month) || {};
 
     return {
       month,
       plannedJourneys: current.plannedJourneys || 0,
-      billedJourneys: current.billedJourneys || 0,
-      journeys: current.plannedJourneys || 0,
+      executedJourneys: current.executedJourneys || 0,
       comment: current.comment || "",
     };
   });
@@ -391,7 +394,11 @@ function normalizeRequestPayload(payload = {}, allowedHistoricalStatus = "") {
       description: readString(payload.description),
       checklist: normalizeChecklist(payload.checklist),
     },
-    billing: normalizeBilling(payload.billing, startDate, endDate),
+    journeys: normalizeJourneyPeriods(
+      payload.journeys ?? payload.billing,
+      startDate,
+      endDate,
+    ),
     specification: normalizeSpecification(payload.specification),
   };
 }
@@ -447,7 +454,7 @@ function normalizeTaskDocument(document, context = {}) {
 
 function normalizeRequestDocument(
   document,
-  billing = [],
+  journeys = [],
   specification = null,
   notes = [],
   tasks = [],
@@ -470,8 +477,8 @@ function normalizeRequestDocument(
     notes: notes.map(normalizeNoteDocument),
     tasks: tasks.map((task) => normalizeTaskDocument(task, context)),
     checklist: normalizeChecklist(document.checklist),
-    billing: normalizeBilling(
-      billing,
+    journeys: normalizeJourneyPeriods(
+      journeys,
       document.startDate || "",
       document.endDate || "",
     ),
@@ -535,7 +542,7 @@ async function ensureIndexes(db) {
       affectedComponentIds: 1,
     }),
     db
-      .collection(BILLING_COLLECTION)
+      .collection(JOURNEY_PERIODS_COLLECTION)
       .createIndex({ requestId: 1, month: 1 }, { unique: true }),
     db
       .collection(SPECIFICATION_COLLECTION)
@@ -595,11 +602,11 @@ async function nextTopListRank(db) {
   return Math.max(Date.now(), topRank + LIST_RANK_STEP);
 }
 
-async function readBilling(db, requestIds) {
+async function readJourneyPeriods(db, requestIds) {
   if (!requestIds.length) return new Map();
 
   const rows = await db
-    .collection(BILLING_COLLECTION)
+    .collection(JOURNEY_PERIODS_COLLECTION)
     .find({ requestId: { $in: requestIds } })
     .sort({ month: 1 })
     .toArray();
@@ -611,8 +618,7 @@ async function readBilling(db, requestIds) {
     items.push({
       month: row.month,
       plannedJourneys: Number(row.plannedJourneys ?? row.journeys) || 0,
-      billedJourneys: Number(row.billedJourneys) || 0,
-      journeys: Number(row.plannedJourneys ?? row.journeys) || 0,
+      executedJourneys: Number(row.executedJourneys ?? row.billedJourneys) || 0,
       comment: row.comment || "",
     });
     byRequestId.set(key, items);
@@ -815,19 +821,18 @@ async function migrateLegacyNotes(db, requests) {
   );
 }
 
-async function syncBilling(db, requestId, billing, now) {
-  const billingCollection = db.collection(BILLING_COLLECTION);
-  await billingCollection.deleteMany({ requestId });
+async function syncJourneyPeriods(db, requestId, journeys, now) {
+  const journeyPeriodsCollection = db.collection(JOURNEY_PERIODS_COLLECTION);
+  await journeyPeriodsCollection.deleteMany({ requestId });
 
-  if (!billing.length) return;
+  if (!journeys.length) return;
 
-  await billingCollection.insertMany(
-    billing.map((item) => ({
+  await journeyPeriodsCollection.insertMany(
+    journeys.map((item) => ({
       requestId,
       month: item.month,
       plannedJourneys: item.plannedJourneys,
-      billedJourneys: item.billedJourneys,
-      journeys: item.plannedJourneys,
+      executedJourneys: item.executedJourneys,
       comment: item.comment || "",
       createdAt: now,
       updatedAt: now,
@@ -893,19 +898,19 @@ async function readRequestById(db, requestId, query = {}) {
   await migrateLegacyNotes(db, [request]);
 
   const [
-    billingByRequestId,
+    journeyPeriodsByRequestId,
     specificationByRequestId,
     notesByRequestId,
     tasksByRequestId,
   ] = await Promise.all([
-    readBilling(db, [requestId]),
+    readJourneyPeriods(db, [requestId]),
     readSpecifications(db, [requestId]),
     readNotes(db, [requestId]),
     readTasks(db, [requestId]),
   ]);
   return normalizeRequestDocument(
     request,
-    billingByRequestId.get(requestId.toString()) || [],
+    journeyPeriodsByRequestId.get(requestId.toString()) || [],
     specificationByRequestId.get(requestId.toString()),
     notesByRequestId.get(requestId.toString()) || [],
     tasksByRequestId.get(requestId.toString()) || [],
@@ -950,12 +955,12 @@ export async function listRequests(query = {}) {
   await migrateLegacyNotes(db, requests);
   const requestIds = requests.map((request) => request._id);
   const [
-    billingByRequestId,
+    journeyPeriodsByRequestId,
     specificationByRequestId,
     notesByRequestId,
     tasksByRequestId,
   ] = await Promise.all([
-    readBilling(db, requestIds),
+    readJourneyPeriods(db, requestIds),
     readSpecifications(db, requestIds),
     readNotes(db, requestIds),
     readTasks(db, requestIds),
@@ -966,7 +971,7 @@ export async function listRequests(query = {}) {
       database: db.databaseName,
       collections: {
         requests: REQUESTS_COLLECTION,
-        billing: BILLING_COLLECTION,
+        journeys: JOURNEY_PERIODS_COLLECTION,
         specifications: SPECIFICATION_COLLECTION,
         notes: NOTES_COLLECTION,
         tasks: TASKS_COLLECTION,
@@ -982,7 +987,7 @@ export async function listRequests(query = {}) {
     items: requests.map((request) =>
       normalizeRequestDocument(
         request,
-        billingByRequestId.get(request._id.toString()) || [],
+        journeyPeriodsByRequestId.get(request._id.toString()) || [],
         specificationByRequestId.get(request._id.toString()),
         notesByRequestId.get(request._id.toString()) || [],
         tasksByRequestId.get(request._id.toString()) || [],
@@ -997,7 +1002,7 @@ export async function createRequest(payload, query = {}) {
   await ensureIndexes(db);
   await ensureRequestListRanks(db);
 
-  const { request, billing, specification } = normalizeRequestPayload(payload);
+  const { request, journeys, specification } = normalizeRequestPayload(payload);
   const context = await resolveKnowledgeContext(db, payload, null, {
     applicationRequired: true,
     authorizationScope: query.authorizationScope,
@@ -1015,7 +1020,7 @@ export async function createRequest(payload, query = {}) {
     updatedBy: payload.createdBy || "biaws-api",
   });
 
-  await syncBilling(db, result.insertedId, billing, now);
+  await syncJourneyPeriods(db, result.insertedId, journeys, now);
   await syncSpecification(db, result.insertedId, specification, now);
   await insertInitialNotes(db, result.insertedId, initialNotes, now);
 
@@ -1039,22 +1044,22 @@ export async function updateRequest(requestIdValue, payload, query = {}) {
     throw createHttpError(404, `Request not found: ${requestIdValue}`);
   }
 
-  const [existingBillingByRequestId, existingSpecificationByRequestId] =
+  const [existingJourneyPeriodsByRequestId, existingSpecificationByRequestId] =
     await Promise.all([
-      readBilling(db, [requestId]),
+      readJourneyPeriods(db, [requestId]),
       readSpecifications(db, [requestId]),
     ]);
-  const existingBilling =
-    existingBillingByRequestId.get(requestId.toString()) || [];
+  const existingJourneyPeriods =
+    existingJourneyPeriodsByRequestId.get(requestId.toString()) || [];
   const existingSpecification = existingSpecificationByRequestId.get(
     requestId.toString(),
   );
-  const { request, billing, specification } = normalizeRequestPayload(
+  const { request, journeys, specification } = normalizeRequestPayload(
     {
       ...existing,
       ...payload,
       checklist: payload.checklist ?? existing.checklist,
-      billing: payload.billing ?? existingBilling,
+      journeys: payload.journeys ?? payload.billing ?? existingJourneyPeriods,
       specification: payload.specification ?? existingSpecification,
     },
     existing.status,
@@ -1082,7 +1087,7 @@ export async function updateRequest(requestIdValue, payload, query = {}) {
         notes: "",
       },
     });
-  await syncBilling(db, requestId, billing, now);
+  await syncJourneyPeriods(db, requestId, journeys, now);
   await syncSpecification(db, requestId, specification, now);
   if (typeof payload.notes === "string") {
     await syncLegacyNotes(
@@ -1506,7 +1511,7 @@ export async function deleteRequest(requestIdValue, query = {}) {
     throw createHttpError(404, `Request not found: ${requestIdValue}`);
   }
 
-  await db.collection(BILLING_COLLECTION).deleteMany({ requestId });
+  await db.collection(JOURNEY_PERIODS_COLLECTION).deleteMany({ requestId });
   await db.collection(SPECIFICATION_COLLECTION).deleteMany({ requestId });
   await db.collection(NOTES_COLLECTION).deleteMany({ requestId });
   await db.collection(TASKS_COLLECTION).deleteMany({ requestId });

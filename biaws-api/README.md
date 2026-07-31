@@ -220,7 +220,7 @@ curl -X PATCH http://127.0.0.1:3100/api/issues/INC1234567/attachments/<attachmen
 
 Anexos legados sem `id` também podem ser obtidos usando seu `index`.
 
-O mesmo contrato está disponível para demandas e procedimentos:
+O mesmo contrato está disponível para melhorias e procedimentos:
 
 ```text
 POST /api/requests/:id/attachments
@@ -379,28 +379,28 @@ O payload esperado é o pacote completo:
 }
 ```
 
-## Demandas faturáveis
+## Melhorias planejadas
 
-As demandas são persistidas em seis collections:
+As melhorias são persistidas em seis collections:
 
-- `requests`: dados principais da demanda, checklist e `listRank` para ordenação manual.
-- `requestBillingPeriods`: distribuição mensal de jornadas, com `requestId`,
-  `month`, `plannedJourneys`, `billedJourneys` e `comment`.
-- `requestSpecifications`: especificação técnica da demanda, com `requestId` e
+- `requests`: dados principais da melhoria, checklist e `listRank` para ordenação manual.
+- `requestJourneyPeriods`: distribuição mensal de jornadas, com `requestId`,
+  `month`, `plannedJourneys`, `executedJourneys` e `comment`.
+- `requestSpecifications`: especificação técnica da melhoria, com `requestId` e
   `sections` ordenadas.
-- `requestNotes`: anotações da demanda, com `requestId`, `date` e `content`.
-- `requestTasks`: tarefas vinculadas à demanda.
+- `requestNotes`: anotações da melhoria, com `requestId`, `date` e `content`.
+- `requestTasks`: tarefas vinculadas à melhoria.
 - `requestTaskNotes`: notas de execução das tarefas.
 
-Listar demandas:
+Listar melhorias:
 
 ```bash
 curl http://127.0.0.1:3100/api/requests
 ```
 
-A listagem é ordenada por `listRank` decrescente, depois `updatedAt` e `createdAt`. Demandas antigas sem `listRank` recebem esse campo automaticamente com base em `updatedAt` ou `createdAt`.
+A listagem é ordenada por `listRank` decrescente, depois `updatedAt` e `createdAt`. Melhorias antigas sem `listRank` recebem esse campo automaticamente com base em `updatedAt` ou `createdAt`.
 
-Criar demanda:
+Criar melhoria:
 
 ```bash
 curl -X POST http://127.0.0.1:3100/api/requests \
@@ -413,7 +413,7 @@ curl -X POST http://127.0.0.1:3100/api/requests \
     "startDate": "2026-07-15",
     "endDate": "2026-09-30",
     "estimatedJourneys": 18,
-    "description": "Escopo e contexto da demanda.",
+    "description": "Escopo e contexto da melhoria.",
     "specification": {
       "sections": [
         { "id": "default-1", "title": "Objetivo", "content": "Reduzir esforço manual.", "order": 0 },
@@ -426,18 +426,18 @@ curl -X POST http://127.0.0.1:3100/api/requests \
         "label": "Solicitação",
         "done": true,
         "date": "2026-07-03",
-        "comment": "Demanda recebida."
+        "comment": "Melhoria recebida."
       }
     ],
-    "billing": [
-      { "month": "2026-07", "plannedJourneys": 4, "billedJourneys": 4, "comment": "Levantamento e desenho técnico." },
-      { "month": "2026-08", "plannedJourneys": 8, "billedJourneys": 0, "comment": "Desenvolvimento principal." },
-      { "month": "2026-09", "plannedJourneys": 6, "billedJourneys": 0, "comment": "Homologação e ajustes finais." }
+    "journeys": [
+      { "month": "2026-07", "plannedJourneys": 4, "executedJourneys": 4, "comment": "Levantamento e desenho técnico." },
+      { "month": "2026-08", "plannedJourneys": 8, "executedJourneys": 0, "comment": "Desenvolvimento principal." },
+      { "month": "2026-09", "plannedJourneys": 6, "executedJourneys": 0, "comment": "Homologação e ajustes finais." }
     ]
   }'
 ```
 
-Atualizar demanda:
+Atualizar melhoria:
 
 ```bash
 curl -X PUT http://127.0.0.1:3100/api/requests/64f000000000000000000000 \
@@ -446,10 +446,25 @@ curl -X PUT http://127.0.0.1:3100/api/requests/64f000000000000000000000 \
 ```
 
 O payload de atualização usa o mesmo formato da criação. A API normaliza o
-checklist fixo, mantém `requestBillingPeriods` sincronizada com os meses entre
+checklist fixo, mantém `requestJourneyPeriods` sincronizada com os meses entre
 `startDate` e `endDate` e sincroniza `requestSpecifications` por `requestId`.
 
-A criação define a demanda no topo da lista atualizando `listRank`. Atualizações de conteúdo não alteram `listRank`; depois da criação, a posição só muda pelo reposicionamento manual.
+Instalações que ainda possuem `requestBillingPeriods` devem executar a migração
+uma vez antes de iniciar esta versão da API:
+
+```bash
+cd biaws-api
+npm run migrate:journeys
+```
+
+A migração renomeia a collection para `requestJourneyPeriods`, converte
+`billedJourneys` em `executedJourneys` e remove o alias legado `journeys` de
+cada período. Ela também atualiza os grupos de sistema e as listas de opções
+que ainda usam os nomes padrão antigos. Durante a transição, a API ainda aceita
+payloads antigos com `billing` e `billedJourneys`, mas responde e persiste
+somente o modelo novo.
+
+A criação define a melhoria no topo da lista atualizando `listRank`. Atualizações de conteúdo não alteram `listRank`; depois da criação, a posição só muda pelo reposicionamento manual.
 
 Criar anotação:
 
@@ -479,9 +494,9 @@ Excluir anotação:
 curl -X DELETE http://127.0.0.1:3100/api/requests/64f000000000000000000000/notes/64f000000000000000000010
 ```
 
-As operações de anotação retornam a demanda atualizada, mas não alteram `listRank`.
+As operações de anotação retornam a melhoria atualizada, mas não alteram `listRank`.
 
-Reordenar demanda manualmente:
+Reordenar melhoria manualmente:
 
 ```bash
 curl -X PATCH http://127.0.0.1:3100/api/requests/64f000000000000000000000/order \
@@ -492,16 +507,16 @@ curl -X PATCH http://127.0.0.1:3100/api/requests/64f000000000000000000000/order 
   }'
 ```
 
-O reposicionamento calcula um novo `listRank` entre os vizinhos informados. Essa operação não altera `updatedAt`, porque não representa alteração de conteúdo da demanda.
+O reposicionamento calcula um novo `listRank` entre os vizinhos informados. Essa operação não altera `updatedAt`, porque não representa alteração de conteúdo da melhoria.
 
-Excluir demanda:
+Excluir melhoria:
 
 ```bash
 curl -X DELETE http://127.0.0.1:3100/api/requests/64f000000000000000000000
 ```
 
 A exclusão remove o documento em `requests` e também os registros associados em
-`requestBillingPeriods`, `requestSpecifications` e `requestNotes`.
+`requestJourneyPeriods`, `requestSpecifications` e `requestNotes`.
 
 O campo `status` aceita apenas:
 

@@ -223,7 +223,7 @@ async function ensureRequest(db, context, query) {
         endDate: dateLabel(20),
         estimatedJourneys: 12,
         description:
-          "Demanda fictícia que demonstra planejamento, checklist, faturamento e tarefas.",
+          "Melhoria fictícia que demonstra planejamento, checklist, jornadas e tarefas.",
         checklist: [
           {
             label: "Solicitação",
@@ -238,17 +238,17 @@ async function ensureRequest(db, context, query) {
             comment: "Escopo inicial aprovado.",
           },
         ],
-        billing: [
+        journeys: [
           {
             month: monthLabel(0),
             plannedJourneys: 8,
-            billedJourneys: 4,
+            executedJourneys: 4,
             comment: "Primeira etapa.",
           },
           {
             month: monthLabel(1),
             plannedJourneys: 4,
-            billedJourneys: 0,
+            executedJourneys: 0,
             comment: "Conclusão prevista.",
           },
         ],
@@ -354,7 +354,7 @@ async function ensureProcedure(db, context, query) {
         "",
         "1. Acesse a UI em `http://localhost:4400`.",
         "2. Entre com a credencial criada pelo bootstrap.",
-        "3. Explore Suporte, Demandas e Procedimentos.",
+        "3. Explore Chamados, Melhorias e Procedimentos.",
         "4. Crie uma chave de API na área da conta para usar MCP e CLI.",
         "",
         "> Todos os registros deste seed são fictícios e podem ser removidos.",

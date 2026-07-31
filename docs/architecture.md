@@ -39,7 +39,7 @@ MCP e CLI usam chaves de API e nunca acessam MongoDB diretamente.
 ## Dados
 
 MongoDB mantém identidades, workspaces, aplicações, topologia, permissões,
-issues, demandas, procedimentos, taxonomia, skills e auditoria. Anexos ficam
+issues, melhorias, procedimentos, taxonomia, skills e auditoria. Anexos ficam
 fora do documento, referenciados por `provider` e `key`.
 
 Os nomes físicos das coleções são centralizados em
@@ -54,8 +54,8 @@ workspace; componentes, repositórios, deployments e runtimes pertencem a uma
 aplicação; servidores pertencem diretamente ao workspace e podem ser
 referenciados por runtimes.
 
-Issues e demandas exigem aplicação. Procedimentos podem ser gerais ao workspace
-ou associados a uma aplicação. Tarefas herdam o contexto da demanda. O contexto
+Issues e melhorias exigem aplicação. Procedimentos podem ser gerais ao workspace
+ou associados a uma aplicação. Tarefas herdam o contexto da melhoria. O contexto
 agregado de uma aplicação retorna apenas resumos sanitizados e limita cada
 coleção a 100 itens.
 

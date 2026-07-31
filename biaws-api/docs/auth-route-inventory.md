@@ -51,7 +51,7 @@ identidades também conserva as verificações internas do Better Auth.
 | `PATCH`  | `/api/issues/:id/attachments/:attachmentId/tags` | `issues.attachment.update`                           |
 | `DELETE` | `/api/issues/:id/attachments/:attachmentId`      | `issues.attachment.delete`                           |
 
-## Demandas e tarefas
+## Melhorias e tarefas
 
 | Método   | Rota                                               | Permissão aplicada                                                                        |
 | -------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------- |

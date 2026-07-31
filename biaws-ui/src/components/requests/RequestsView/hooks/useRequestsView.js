@@ -136,21 +136,21 @@ export function useRequestsView(actor) {
     );
   }, [requests, statusFilters]);
 
-  const selectedPlannedBillingTotal = (selectedRequest?.billing || []).reduce(
+  const selectedPlannedJourneyTotal = (selectedRequest?.journeys || []).reduce(
     (total, item) => total + (Number(item.plannedJourneys) || 0),
     0,
   );
-  const selectedBilledTotal = (selectedRequest?.billing || []).reduce(
-    (total, item) => total + (Number(item.billedJourneys) || 0),
+  const selectedExecutedTotal = (selectedRequest?.journeys || []).reduce(
+    (total, item) => total + (Number(item.executedJourneys) || 0),
     0,
   );
-  const selectedUnbilledTotal = Math.max(
+  const selectedPendingTotal = Math.max(
     0,
-    selectedPlannedBillingTotal - selectedBilledTotal,
+    selectedPlannedJourneyTotal - selectedExecutedTotal,
   );
-  const selectedOverbilledTotal = Math.max(
+  const selectedOverExecutedTotal = Math.max(
     0,
-    selectedBilledTotal - selectedPlannedBillingTotal,
+    selectedExecutedTotal - selectedPlannedJourneyTotal,
   );
 
   const scheduleRequests = useMemo(() => {
@@ -166,14 +166,14 @@ export function useRequestsView(actor) {
     });
   }, [filteredRequests]);
 
-  const scheduleBillingMonths = useMemo(() => {
+  const scheduleJourneyMonths = useMemo(() => {
     const months = new Set();
 
     for (const request of filteredRequests) {
-      for (const item of request.billing) {
+      for (const item of request.journeys) {
         if (
           (Number(item.plannedJourneys) || 0) > 0 ||
-          (Number(item.billedJourneys) || 0) > 0
+          (Number(item.executedJourneys) || 0) > 0
         ) {
           months.add(item.month);
         }
@@ -183,17 +183,17 @@ export function useRequestsView(actor) {
     return [...months].sort((first, second) => first.localeCompare(second));
   }, [filteredRequests]);
 
-  const scheduleBillingRequests = useMemo(() => {
-    if (!scheduleBillingMonths.length) return [];
+  const scheduleJourneyRequests = useMemo(() => {
+    if (!scheduleJourneyMonths.length) return [];
 
     return scheduleRequests.filter((request) =>
-      request.billing.some(
+      request.journeys.some(
         (item) =>
           (Number(item.plannedJourneys) || 0) > 0 ||
-          (Number(item.billedJourneys) || 0) > 0,
+          (Number(item.executedJourneys) || 0) > 0,
       ),
     );
-  }, [scheduleBillingMonths.length, scheduleRequests]);
+  }, [scheduleJourneyMonths.length, scheduleRequests]);
 
   function upsertRequestInList(nextRequest) {
     setRequests((current) => {
@@ -283,13 +283,13 @@ export function useRequestsView(actor) {
     addSpecificationSection,
     beginNumberDraft,
     clearNumberDraft,
-    commitBillingMonth,
+    commitJourneyMonth,
     commitEstimatedJourneys,
     moveSpecificationSection,
     readDraftedNumber,
     removeSpecificationSection,
     toggleChecklistItem,
-    updateBillingComment,
+    updateJourneyComment,
     updateChecklistItem,
     updateNumberDraft,
     updateSpecificationSection,
@@ -355,7 +355,7 @@ export function useRequestsView(actor) {
   async function removeSelectedRequest() {
     if (!selectedRequest?.id) return;
 
-    const confirmed = window.confirm("Excluir esta demanda?");
+    const confirmed = window.confirm("Excluir esta melhoria?");
     if (!confirmed) return;
 
     const requestId = selectedRequest.id;
@@ -492,14 +492,14 @@ export function useRequestsView(actor) {
     requests,
     selectedRequestId,
     activeDetailTab,
-    selectedBilledTotal,
-    selectedOverbilledTotal,
-    selectedPlannedBillingTotal,
-    selectedUnbilledTotal,
+    selectedExecutedTotal,
+    selectedOverExecutedTotal,
+    selectedPlannedJourneyTotal,
+    selectedPendingTotal,
     isEditing,
     beginNumberDraft,
-    updateBillingComment,
-    commitBillingMonth,
+    updateJourneyComment,
+    commitJourneyMonth,
     addRequestNote,
     addRequestTask,
     addRequestTaskNote,
@@ -531,8 +531,8 @@ export function useRequestsView(actor) {
     selectedChecklistItem,
     activeOverviewTab,
     setActiveOverviewTab,
-    scheduleBillingMonths,
-    scheduleBillingRequests,
+    scheduleJourneyMonths,
+    scheduleJourneyRequests,
     scheduleRequests,
     newContext,
     setNewContext,

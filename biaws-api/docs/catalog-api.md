@@ -13,7 +13,7 @@ Workspace
 └── Servers
 ```
 
-Issues e demandas pertencem obrigatoriamente a uma aplicação e podem afetar
+Issues e melhorias pertencem obrigatoriamente a uma aplicação e podem afetar
 um ou mais componentes dela. Procedimentos podem permanecer gerais ao
 workspace ou ser relacionados opcionalmente a uma aplicação e seus
 componentes. A UI e o MCP consomem esses contratos exclusivamente pela API.
@@ -90,7 +90,7 @@ Filtros adicionais: `type`, `repositoryId` e `dependencyComponentId`.
 {
   "key": "billing-api",
   "name": "Billing API",
-  "description": "API de faturamento",
+  "description": "API de acompanhamento de jornadas",
   "type": "api",
   "repositoryLinks": [
     {
@@ -288,7 +288,7 @@ aceita até 20.000 caracteres em Markdown.
 
 `GET /api/catalog/applications/:applicationId/context` retorna a aplicação e
 resumos limitados de integrações, componentes, repositórios, deployments, runtimes,
-servidores referenciados, issues, demandas e procedimentos.
+servidores referenciados, issues, melhorias e procedimentos.
 
 - `limit` controla o máximo por coleção, com teto de 100 e padrão 25;
 - `includeArchived=true` inclui recursos arquivados;
@@ -296,7 +296,7 @@ servidores referenciados, issues, demandas e procedimentos.
 - `meta.truncated` informa quais grupos foram truncados;
 - hostname e endereços de servidores e `metadata` de runtimes não são expostos
   no agregado;
-- anexos e textos extensos de issues, demandas e procedimentos também são
+- anexos e textos extensos de issues, melhorias e procedimentos também são
   omitidos.
 
 Como o endpoint combina todos os domínios, ele exige as sete permissões de
@@ -310,13 +310,13 @@ não consulta o banco diretamente.
 
 ## Relação da base de conhecimento com o catálogo
 
-Os documentos de issue, demanda e procedimento usam os campos:
+Os documentos de issue, melhoria e procedimento usam os campos:
 
 - `workspaceId`;
 - `applicationId`;
 - `affectedComponentIds`.
 
-`applicationId` é obrigatório na criação de issues e demandas. Em
+`applicationId` é obrigatório na criação de issues e melhorias. Em
 procedimentos, `applicationId` e os componentes afetados são opcionais. A API
 confirma que a aplicação pertence ao workspace e que cada componente pertence
 à aplicação antes de persistir a relação.

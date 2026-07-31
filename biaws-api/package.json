@@ -1,7 +1,7 @@
 {
   "name": "@bondia/biaws-api",
   "version": "0.1.0",
-  "description": "API do Bondia Workspaces para suporte, demandas e conhecimento operacional",
+  "description": "API do Bondia Workspaces para chamados, melhorias e conhecimento operacional",
   "license": "Apache-2.0",
   "private": true,
   "repository": {
@@ -20,6 +20,7 @@
     "bootstrap:agent": "node src/scripts/bootstrapAgent.js",
     "seed:skills": "node src/scripts/seedStarterSkills.js",
     "seed:demo": "node src/scripts/seedDemo.js",
+    "migrate:journeys": "node src/scripts/migrateJourneyModel.js",
     "format": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --write .",
     "format:check": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --check .",
     "check": "find src test -name '*.js' -type f -exec node --check {} \\;",

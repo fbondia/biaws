@@ -32,9 +32,9 @@ const KEY_PATTERN = /^[a-z0-9]+(?:[.-][a-z0-9]+)*$/u;
 const DEFAULT_OPTION_LISTS = Object.freeze([
   {
     key: OPTION_LIST_KEYS.ISSUE_TYPE,
-    name: "Tipos de issues",
+    name: "Tipos de chamados",
     description:
-      "Tipos disponíveis para cadastro, importação e filtro de issues.",
+      "Tipos disponíveis para cadastro, importação e filtro de chamados.",
     defaultValue: DEFAULT_ISSUE_TYPE,
     items: ISSUE_TYPE_OPTIONS.map((item, index) => ({
       ...item,
@@ -50,9 +50,9 @@ const DEFAULT_OPTION_LISTS = Object.freeze([
   },
   {
     key: OPTION_LIST_KEYS.ISSUE_STATUS,
-    name: "Status de issues",
+    name: "Status de chamados",
     description:
-      "Situações disponíveis para cadastro, edição e filtro de issues.",
+      "Situações disponíveis para cadastro, edição e filtro de chamados.",
     defaultValue: DEFAULT_ISSUE_STATUS,
     items: ISSUE_STATUS_OPTIONS.map((item, index) => ({
       ...item,
@@ -63,8 +63,8 @@ const DEFAULT_OPTION_LISTS = Object.freeze([
   },
   {
     key: OPTION_LIST_KEYS.DEMAND_STATUS,
-    name: "Status de demandas",
-    description: "Situações disponíveis para uma demanda.",
+    name: "Status de melhorias",
+    description: "Situações disponíveis para uma melhoria.",
     defaultValue: DEFAULT_REQUEST_STATUS,
     items: Object.entries(REQUEST_STATUS_COLORS).map(
       ([value, metadata], index) => ({
@@ -79,7 +79,7 @@ const DEFAULT_OPTION_LISTS = Object.freeze([
   {
     key: OPTION_LIST_KEYS.TASK_STATUS,
     name: "Status de tarefas",
-    description: "Situações disponíveis para tarefas de demandas.",
+    description: "Situações disponíveis para tarefas de melhorias.",
     defaultValue: DEFAULT_REQUEST_TASK_STATUS,
     items: Object.entries(REQUEST_TASK_STATUS_COLORS).map(
       ([value, metadata], index) => ({
@@ -93,9 +93,9 @@ const DEFAULT_OPTION_LISTS = Object.freeze([
   },
   {
     key: OPTION_LIST_KEYS.CHECKLIST,
-    name: "Checklist de demandas",
+    name: "Checklist de melhorias",
     description:
-      "Etapas criadas automaticamente no checklist de novas demandas.",
+      "Etapas criadas automaticamente no checklist de novas melhorias.",
     defaultValue: "",
     items: REQUEST_CHECKLIST_ITEMS.map((value, index) => ({
       value,

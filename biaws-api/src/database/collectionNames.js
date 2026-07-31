@@ -20,7 +20,7 @@ export const COLLECTION_NAMES = Object.freeze({
   PERMISSION_GROUPS: "permissionGroups",
   PROCEDURE_COLLECTIONS: "procedureCollections",
   PROCEDURES: "procedures",
-  REQUEST_BILLING_PERIODS: "requestBillingPeriods",
+  REQUEST_JOURNEY_PERIODS: "requestJourneyPeriods",
   REQUEST_NOTES: "requestNotes",
   REQUEST_SPECIFICATIONS: "requestSpecifications",
   REQUEST_TASK_NOTES: "requestTaskNotes",

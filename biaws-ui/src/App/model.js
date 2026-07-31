@@ -18,13 +18,13 @@ import {
 export const APP_VIEWS = [
   {
     key: "issues",
-    label: "Suporte",
+    label: "Chamados",
     icon: ListChecks,
     permission: "issues.read",
   },
   {
     key: "requests",
-    label: "Demandas",
+    label: "Melhorias",
     icon: BriefcaseBusiness,
     permission: "demands.read",
   },

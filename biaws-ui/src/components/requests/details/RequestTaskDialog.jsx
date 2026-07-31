@@ -96,7 +96,7 @@ export function RequestTaskDialog({
       >
         <header className="requestTaskDialogHeader">
           <div>
-            <span>Tarefa da demanda</span>
+            <span>Tarefa da melhoria</span>
             <h3 id="requestTaskDialogTitle">
               {task.id
                 ? [task.code, task.title].filter(Boolean).join(" - ")

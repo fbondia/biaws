@@ -14,7 +14,7 @@ seus na primeira operação.
 | deployments | `workspaceId, applicationId, deployedAt, id` |
 | runtimes no contexto | `workspaceId, applicationId, name, id` |
 | issues recentes | `workspaceId, applicationId, dates.receivedEmailAt, updatedAt, id` |
-| demandas ordenadas | `workspaceId, applicationId, listRank, updatedAt, createdAt` |
+| melhorias ordenadas | `workspaceId, applicationId, listRank, updatedAt, createdAt` |
 | procedimentos por título | `workspaceId, applicationId, title, updatedAt` |
 | contexto de conhecimento | `workspaceId, applicationId, updatedAt, id` |
 | auditoria por raiz | `rootType, rootId, occurredAt` |
@@ -38,7 +38,7 @@ db.issues
   .explain("executionStats");
 ```
 
-Repita para demandas e procedimentos:
+Repita para melhorias e procedimentos:
 
 ```javascript
 db.requests
@@ -80,7 +80,7 @@ No seed final, os planos com `hint()` retornaram `IXSCAN`, sem estágio `SORT`:
 | aplicações | 2 | 2 | 2 |
 | componentes | 1 | 1 | 1 |
 | issues | 1 | 1 | 1 |
-| demandas | 1 | 1 | 1 |
+| melhorias | 1 | 1 | 1 |
 | procedimentos | 1 | 1 | 1 |
 | deployments e runtimes vazios | 0 | 0 | 0 |
 

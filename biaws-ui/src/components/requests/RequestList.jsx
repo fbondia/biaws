@@ -93,7 +93,7 @@ export function RequestList({
       ) : null}
       <div className="panelHeader">
         <div>
-          <h3>Demandas</h3>
+          <h3>Melhorias</h3>
           <span>
             {loadingRequests
               ? "Carregando registros"
@@ -125,7 +125,7 @@ export function RequestList({
             className="iconButton"
             disabled={loadingRequests}
             onClick={onRefresh}
-            title="Atualizar demandas"
+            title="Atualizar melhorias"
             type="button"
           >
             <RefreshCw
@@ -139,7 +139,7 @@ export function RequestList({
         {loadingRequests ? (
           <div className="requestLoadingState" role="status">
             <LoaderCircle aria-hidden="true" className="spinIcon" size={24} />
-            <span>Carregando demandas...</span>
+            <span>Carregando melhorias...</span>
           </div>
         ) : null}
         {filteredRequests.map((request, index) => {
@@ -206,8 +206,8 @@ export function RequestList({
         {!loadingRequests && !filteredRequests.length ? (
           <div className="emptyState compactEmpty">
             {hasActiveFilters
-              ? "Nenhuma demanda para os filtros selecionados."
-              : "Nenhuma demanda cadastrada."}
+              ? "Nenhuma melhoria para os filtros selecionados."
+              : "Nenhuma melhoria cadastrada."}
           </div>
         ) : null}
       </div>

@@ -121,21 +121,21 @@ async function readDemand(requestId) {
   };
 }
 
-function billingSummaryForRequest(request) {
-  const plannedJourneys = request.billing.reduce(
+function journeySummaryForRequest(request) {
+  const plannedJourneys = request.journeys.reduce(
     (total, item) => total + (Number(item.plannedJourneys) || 0),
     0,
   );
-  const billedJourneys = request.billing.reduce(
-    (total, item) => total + (Number(item.billedJourneys) || 0),
+  const executedJourneys = request.journeys.reduce(
+    (total, item) => total + (Number(item.executedJourneys) || 0),
     0,
   );
 
   return {
     plannedJourneys,
-    billedJourneys,
-    pendingJourneys: Math.max(0, plannedJourneys - billedJourneys),
-    months: request.billing.length,
+    executedJourneys,
+    pendingJourneys: Math.max(0, plannedJourneys - executedJourneys),
+    months: request.journeys.length,
   };
 }
 
@@ -182,7 +182,7 @@ export async function createDemand(args = {}) {
           : [],
       },
       checklist: Array.isArray(args.checklist) ? args.checklist : [],
-      billing: Array.isArray(args.billing) ? args.billing : [],
+      journeys: Array.isArray(args.journeys) ? args.journeys : [],
       workspaceId: args.workspaceId,
       applicationId,
       affectedComponentIds: Array.isArray(args.affectedComponentIds)
@@ -194,7 +194,7 @@ export async function createDemand(args = {}) {
   );
 }
 
-export async function getBillingCalendar(args = {}) {
+export async function getJourneyCalendar(args = {}) {
   const payload = await readAllDemands(args);
   const filtered = filterDemands(payload.items, args);
   const fromMonth = String(args.fromMonth || "");
@@ -202,30 +202,33 @@ export async function getBillingCalendar(args = {}) {
   const months = new Map();
 
   for (const request of filtered) {
-    for (const item of request.billing || []) {
+    for (const item of request.journeys || []) {
       if (fromMonth && item.month < fromMonth) continue;
       if (toMonth && item.month > toMonth) continue;
 
       const current = months.get(item.month) || {
         month: item.month,
         plannedJourneys: 0,
-        billedJourneys: 0,
+        executedJourneys: 0,
         pendingJourneys: 0,
         requests: [],
       };
       const plannedJourneys = Number(item.plannedJourneys) || 0;
-      const billedJourneys = Number(item.billedJourneys) || 0;
+      const executedJourneys = Number(item.executedJourneys) || 0;
 
       current.plannedJourneys += plannedJourneys;
-      current.billedJourneys += billedJourneys;
-      current.pendingJourneys += Math.max(0, plannedJourneys - billedJourneys);
+      current.executedJourneys += executedJourneys;
+      current.pendingJourneys += Math.max(
+        0,
+        plannedJourneys - executedJourneys,
+      );
       current.requests.push({
         id: request.id,
         clientCode: request.clientCode,
         title: request.title,
         status: request.status,
         plannedJourneys,
-        billedJourneys,
+        executedJourneys,
         comment: item.comment || "",
       });
       months.set(item.month, current);
@@ -277,7 +280,7 @@ export async function getDemandDeadlines(args = {}) {
           !isDone &&
           daysToEstimatedDelivery !== null &&
           daysToEstimatedDelivery < 0,
-        billing: billingSummaryForRequest(request),
+        journeys: journeySummaryForRequest(request),
       };
     }),
   };
@@ -291,7 +294,7 @@ export async function getDemandImplementationContext(args = {}) {
 
   return {
     request: compactDemand(request),
-    billing: billingSummaryForRequest(request),
+    journeys: journeySummaryForRequest(request),
     checklist: request.checklist,
     specification: {
       sections,

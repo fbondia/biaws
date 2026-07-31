@@ -99,7 +99,7 @@ requestsRouter.post(
     await auditDemand({
       req,
       action: "created",
-      summary: "Demanda criada",
+      summary: "Melhoria criada",
       after: result.request,
     });
     res.status(201).json(result);
@@ -125,7 +125,7 @@ requestsRouter.put(
     await auditDemand({
       req,
       action: "updated",
-      summary: "Demanda atualizada",
+      summary: "Melhoria atualizada",
       before,
       after: result.request,
     });
@@ -143,7 +143,7 @@ requestsRouter.patch(
     await auditDemand({
       req,
       action: "reordered",
-      summary: "Demanda reordenada",
+      summary: "Melhoria reordenada",
       before,
       after: result.request,
     });
@@ -164,7 +164,7 @@ requestsRouter.post(
     await auditDemand({
       req,
       action: "note_added",
-      summary: "Anotação adicionada à demanda",
+      summary: "Anotação adicionada à melhoria",
       before: null,
       after: added || req.body,
       targetType: "note",
@@ -192,7 +192,7 @@ requestsRouter.put(
     await auditDemand({
       req,
       action: "note_updated",
-      summary: "Anotação da demanda atualizada",
+      summary: "Anotação da melhoria atualizada",
       before,
       after,
       targetType: "note",
@@ -217,7 +217,7 @@ requestsRouter.delete(
     await auditDemand({
       req,
       action: "note_deleted",
-      summary: "Anotação da demanda excluída",
+      summary: "Anotação da melhoria excluída",
       before,
       after: null,
       targetType: "note",
@@ -410,7 +410,7 @@ requestsRouter.delete(
     await auditDemand({
       req,
       action: "deleted",
-      summary: "Demanda excluída",
+      summary: "Melhoria excluída",
       before,
       after: null,
     });

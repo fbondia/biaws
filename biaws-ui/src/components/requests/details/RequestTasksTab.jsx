@@ -78,7 +78,7 @@ export function RequestTasksTab({
       <div className="panelHeader">
         <div>
           <h3>Tarefas</h3>
-          <span>Atividades vinculadas à execução da demanda</span>
+          <span>Atividades vinculadas à execução da melhoria</span>
         </div>
         <button
           className="primaryButton"
@@ -139,7 +139,7 @@ export function RequestTasksTab({
           })
         ) : (
           <div className="emptyState">
-            Nenhuma tarefa cadastrada para esta demanda.
+            Nenhuma tarefa cadastrada para esta melhoria.
           </div>
         )}
       </div>

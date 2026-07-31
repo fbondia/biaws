@@ -28,13 +28,13 @@ export const REQUEST_DETAIL_TABS = [
   { key: "checklist", label: "Checklist" },
   { key: "files", label: "Arquivos" },
   { key: "history", label: "Histórico" },
-  { key: "billing", label: "Faturamento" },
+  { key: "journeys", label: "Jornadas" },
 ];
 
 export const REQUEST_OVERVIEW_TABS = [
   { key: "tasks", label: "Tarefas" },
   { key: "schedule", label: "Cronograma" },
-  { key: "billing", label: "Faturamento" },
+  { key: "journeys", label: "Jornadas" },
 ];
 
 export const REQUEST_SAVE_DEBOUNCE_MS = 5000;

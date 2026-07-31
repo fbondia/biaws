@@ -83,12 +83,12 @@ export function useRequestDraftActions({
     setChecklistDialogLabel(item.label);
   }
 
-  function updateBillingMonth(month, field, value) {
+  function updateJourneyMonth(month, field, value) {
     if (!selectedRequest) return;
 
     const nextRequest = normalizeRequest({
       ...selectedRequest,
-      billing: selectedRequest.billing.map((item) =>
+      journeys: selectedRequest.journeys.map((item) =>
         item.month === month ? { ...item, [field]: Number(value) || 0 } : item,
       ),
     });
@@ -97,12 +97,12 @@ export function useRequestDraftActions({
     schedulePersistRequest(nextRequest);
   }
 
-  function updateBillingComment(month, comment) {
+  function updateJourneyComment(month, comment) {
     if (!selectedRequest) return;
 
     const nextRequest = normalizeRequest({
       ...selectedRequest,
-      billing: selectedRequest.billing.map((item) =>
+      journeys: selectedRequest.journeys.map((item) =>
         item.month === month ? { ...item, comment } : item,
       ),
     });
@@ -178,9 +178,9 @@ export function useRequestDraftActions({
     updateSpecification(sections);
   }
 
-  function commitBillingMonth(month, field, rawValue) {
+  function commitJourneyMonth(month, field, rawValue) {
     const value = rawValue === "" ? 0 : Number(rawValue);
-    clearNumberDraft(`billing:${field}:${month}`);
+    clearNumberDraft(`journeys:${field}:${month}`);
 
     if (!Number.isFinite(value) || value < 0) {
       setRequestError(
@@ -189,7 +189,7 @@ export function useRequestDraftActions({
       return;
     }
 
-    updateBillingMonth(month, field, value);
+    updateJourneyMonth(month, field, value);
   }
 
   return {
@@ -197,13 +197,13 @@ export function useRequestDraftActions({
     addSpecificationSection,
     beginNumberDraft,
     clearNumberDraft,
-    commitBillingMonth,
+    commitJourneyMonth,
     commitEstimatedJourneys,
     moveSpecificationSection,
     readDraftedNumber,
     removeSpecificationSection,
     toggleChecklistItem,
-    updateBillingComment,
+    updateJourneyComment,
     updateChecklistItem,
     updateNumberDraft,
     updateSpecificationSection,

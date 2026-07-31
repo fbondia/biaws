@@ -1,47 +1,47 @@
 import { formatMonth } from "../requestUtils.js";
 
-export function RequestBillingTab({
+export function RequestJourneyTab({
   request,
   isEditing,
-  billingTotals,
+  journeyTotals,
   onBeginNumberDraft,
   onUpdateNumberDraft,
   onClearNumberDraft,
   onReadDraftedNumber,
-  onBillingMonthCommit,
-  onBillingCommentChange,
+  onJourneyMonthCommit,
+  onJourneyCommentChange,
 }) {
-  const { billedTotal, plannedTotal, unbilledTotal, overbilledTotal } =
-    billingTotals;
-  const isBalanced = unbilledTotal === 0 && overbilledTotal === 0;
+  const { executedTotal, plannedTotal, pendingTotal, overExecutedTotal } =
+    journeyTotals;
+  const isOnPlan = pendingTotal === 0 && overExecutedTotal === 0;
 
   return (
     <section className="requestPanel">
       <div className="panelHeader">
         <div>
-          <h3>Faturamento por mês</h3>
+          <h3>Jornadas por mês</h3>
           <span>
-            {billedTotal} de {plannedTotal} jornadas faturadas
+            {executedTotal} de {plannedTotal} jornadas executadas
           </span>
         </div>
         <strong
           className={
-            isBalanced
+            isOnPlan
               ? "billingBalance billingBalanced"
               : "billingBalance billingPending"
           }
         >
-          {isBalanced
-            ? "Balanceado"
-            : unbilledTotal > 0
-              ? `${unbilledTotal} jornadas não faturadas`
-              : `${overbilledTotal} jornadas acima do previsto`}
+          {isOnPlan
+            ? "Conforme o previsto"
+            : pendingTotal > 0
+              ? `${pendingTotal} jornadas a executar`
+              : `${overExecutedTotal} jornadas executadas acima do previsto`}
         </strong>
       </div>
 
-      {request.billing.length ? (
+      {request.journeys.length ? (
         <div className="requestBillingList">
-          {request.billing.map((item) => (
+          {request.journeys.map((item) => (
             <div className="requestBillingRow" key={item.month}>
               <div className="requestBillingMonthLabel">
                 <span>Mês</span>
@@ -51,20 +51,20 @@ export function RequestBillingTab({
                 field="plannedJourneys"
                 isEditing={isEditing}
                 item={item}
-                label="Previsto"
+                label="Previstas"
                 onBeginNumberDraft={onBeginNumberDraft}
-                onBillingMonthCommit={onBillingMonthCommit}
+                onJourneyMonthCommit={onJourneyMonthCommit}
                 onClearNumberDraft={onClearNumberDraft}
                 onReadDraftedNumber={onReadDraftedNumber}
                 onUpdateNumberDraft={onUpdateNumberDraft}
               />
               <BillingJourneyField
-                field="billedJourneys"
+                field="executedJourneys"
                 isEditing={isEditing}
                 item={item}
-                label="Faturado"
+                label="Executadas"
                 onBeginNumberDraft={onBeginNumberDraft}
-                onBillingMonthCommit={onBillingMonthCommit}
+                onJourneyMonthCommit={onJourneyMonthCommit}
                 onClearNumberDraft={onClearNumberDraft}
                 onReadDraftedNumber={onReadDraftedNumber}
                 onUpdateNumberDraft={onUpdateNumberDraft}
@@ -73,7 +73,7 @@ export function RequestBillingTab({
                 <span>Comentário</span>
                 <textarea
                   onChange={(event) =>
-                    onBillingCommentChange(item.month, event.target.value)
+                    onJourneyCommentChange(item.month, event.target.value)
                   }
                   value={item.comment || ""}
                 />
@@ -83,7 +83,7 @@ export function RequestBillingTab({
         </div>
       ) : (
         <div className="emptyState">
-          Informe início e fim para gerar os meses da demanda.
+          Informe início e fim para gerar o planejamento mensal da melhoria.
         </div>
       )}
     </section>
@@ -99,9 +99,9 @@ function BillingJourneyField({
   onUpdateNumberDraft,
   onClearNumberDraft,
   onReadDraftedNumber,
-  onBillingMonthCommit,
+  onJourneyMonthCommit,
 }) {
-  const draftKey = `billing:${field}:${item.month}`;
+  const draftKey = `journeys:${field}:${item.month}`;
 
   const value = Number(item[field]) || 0;
   return (
@@ -112,7 +112,7 @@ function BillingJourneyField({
           <input
             min="0"
             onBlur={(event) =>
-              onBillingMonthCommit(item.month, field, event.target.value)
+              onJourneyMonthCommit(item.month, field, event.target.value)
             }
             onChange={(event) =>
               onUpdateNumberDraft(draftKey, event.target.value)

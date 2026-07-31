@@ -1,14 +1,14 @@
 import { LoaderCircle } from "lucide-react";
 
-import { BillingCalendar } from "../../BillingCalendar.jsx";
+import { JourneyCalendar } from "../../JourneyCalendar.jsx";
 import { RequestSchedule } from "../../RequestSchedule.jsx";
 import { RequestTasksOverview } from "../../RequestTasksOverview.jsx";
 import { REQUEST_OVERVIEW_TABS } from "../../requestUtils.js";
 
 export function RequestsOverview({
   activeTab,
-  billingMonths,
-  billingRequests,
+  journeyMonths,
+  journeyRequests,
   loading,
   onSelectRequest,
   onTabChange,
@@ -22,7 +22,7 @@ export function RequestsOverview({
           <div>
             <h3>Acompanhamento</h3>
             <span>
-              Visão consolidada de tarefas, prazos e faturamento das demandas
+              Visão consolidada de tarefas, prazos e jornadas das melhorias
               listadas
             </span>
           </div>
@@ -31,7 +31,7 @@ export function RequestsOverview({
         <div
           className="detailTabs requestOverviewTabs"
           role="tablist"
-          aria-label="Visões gerais das demandas"
+          aria-label="Visões gerais das melhorias"
         >
           {REQUEST_OVERVIEW_TABS.map((tab) => (
             <button
@@ -62,11 +62,11 @@ export function RequestsOverview({
           </div>
         ) : null}
 
-        {!loading && activeTab === "billing" ? (
-          <BillingCalendar
-            months={billingMonths}
+        {!loading && activeTab === "journeys" ? (
+          <JourneyCalendar
+            months={journeyMonths}
             onSelectRequest={onSelectRequest}
-            requests={billingRequests}
+            requests={journeyRequests}
           />
         ) : null}
 

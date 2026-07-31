@@ -82,7 +82,7 @@ export function RequestTasksOverview({ requests, onSelectRequest }) {
       <div className="requestTasksOverviewHeader">
         {/*
         <div className="sectionTitleRow requestTasksOverviewTitle">
-          <h3>Tarefas das demandas</h3>
+          <h3>Tarefas das melhorias</h3>
           <span>{tasks.length} tarefas</span>
         </div>
         */}

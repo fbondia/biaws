@@ -53,7 +53,10 @@ export async function getIssueDetails(args = {}) {
 }
 
 export async function getIssueClassificationCatalog(args = {}) {
-  const payload = await fetchJson("/api/issues/taxonomy");
+  const payload = await fetchJson(
+    "/api/issues/taxonomy",
+    cleanParams({ applicationId: args.applicationId }),
+  );
   const catalog = payload.taxonomy || {};
   const result = {
     meta: payload.meta,
@@ -162,16 +165,21 @@ export async function updateIssueState(args = {}) {
 export async function suggestTaxonomy(args = {}) {
   const limit = Math.min(Number(args.limit || 5), 20);
   let text = `${args.title || ""}\n${args.text || ""}`;
+  let applicationId = args.applicationId || "";
 
   if (args.issueId) {
     const payload = await fetchJson(
       `/api/issues/${encodeURIComponent(args.issueId)}`,
     );
     if (!payload.issue) throw new Error(`Issue not found: ${args.issueId}`);
+    applicationId = payload.issue.applicationId || applicationId;
     text = `${payload.issue.title || ""}\n${payload.issue.text || ""}\n${payload.comments?.map((comment) => comment.text).join("\n") || ""}`;
   }
 
-  const taxonomyPayload = await fetchJson("/api/issues/taxonomy");
+  const taxonomyPayload = await fetchJson(
+    "/api/issues/taxonomy",
+    cleanParams({ applicationId }),
+  );
   const nodes = flattenTaxonomy(taxonomyPayload.taxonomy?.taxonomy || []);
   const rawText = tokenize(text).join(" ");
   const tokens = [...new Set(tokenize(text))];

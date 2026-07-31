@@ -328,6 +328,14 @@ Obter o pacote ativo de taxonomia:
 curl http://127.0.0.1:3100/api/issues/taxonomy
 ```
 
+Cada nó pode declarar `applicationIds`. Uma lista vazia mantém o nó
+compartilhado no workspace; uma lista preenchida restringe sua utilização às
+aplicações informadas. Para obter a árvore efetiva de uma aplicação:
+
+```bash
+curl 'http://127.0.0.1:3100/api/issues/taxonomy?applicationId=application-id'
+```
+
 Gravar ou substituir o pacote ativo de taxonomia em `taxonomies`:
 
 ```bash

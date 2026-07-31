@@ -25,6 +25,7 @@ import {
   serializeClassification,
   updateTaxonomyNodeLabel,
 } from "../components/ClassificationControls.jsx";
+import { findTaxonomyNode } from "../../../taxonomy/scope.js";
 
 export function useIssueDetailsDialog({
   details,
@@ -281,6 +282,10 @@ export function useIssueDetailsDialog({
         trimmedLabel,
       ),
       label: trimmedLabel,
+      applicationIds: [
+        ...(findTaxonomyNode(taxonomyPackage.taxonomy || [], parentId)
+          ?.applicationIds || []),
+      ],
     };
     const nextTaxonomyPackage = {
       ...taxonomyPackage,
@@ -304,11 +309,14 @@ export function useIssueDetailsDialog({
     }
   }
 
-  async function editTaxonomyCatalogNode(nodeId, label) {
+  async function editTaxonomyCatalogNode(nodeId, patch) {
     if (!taxonomyPackage) return null;
 
-    const trimmedLabel = label.trim();
+    const trimmedLabel = String(patch?.label || "").trim();
     if (!nodeId || !trimmedLabel) return null;
+    const applicationIds = [
+      ...new Set((patch?.applicationIds || []).map(String).filter(Boolean)),
+    ];
 
     setSavingTaxonomyCatalog(true);
     setTaxonomyError("");
@@ -319,7 +327,7 @@ export function useIssueDetailsDialog({
       taxonomy: updateTaxonomyNodeLabel(
         taxonomyPackage.taxonomy || [],
         nodeId,
-        trimmedLabel,
+        { label: trimmedLabel, applicationIds },
       ),
     };
 
@@ -327,7 +335,7 @@ export function useIssueDetailsDialog({
       const payload = await saveIssueTaxonomy(nextTaxonomyPackage);
       setTaxonomyPackage(payload.taxonomy || nextTaxonomyPackage);
       setClassificationMessage("Assunto atualizado no catálogo.");
-      return { id: nodeId, label: trimmedLabel };
+      return { id: nodeId, label: trimmedLabel, applicationIds };
     } catch (saveError) {
       setTaxonomyError(saveError.message);
       return null;

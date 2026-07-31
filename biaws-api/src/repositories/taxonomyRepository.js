@@ -1,4 +1,5 @@
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
+import { filterTaxonomyForApplication } from "../helpers/taxonomy.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
 
 const TAXONOMIES_COLLECTION = COLLECTION_NAMES.TAXONOMIES;
@@ -66,7 +67,24 @@ function assertTagGroups(tagGroups) {
   }
 }
 
-function assertTaxonomyNodes(nodes, path = "taxonomy") {
+function normalizeApplicationIds(value, fieldName) {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) {
+    throw createHttpError(
+      422,
+      `Invalid taxonomy payload: ${fieldName} must be an array`,
+    );
+  }
+  return [
+    ...new Set(value.map((id) => String(id || "").trim()).filter(Boolean)),
+  ];
+}
+
+function normalizeTaxonomyNodes(
+  nodes,
+  path = "taxonomy",
+  parentApplicationIds = null,
+) {
   if (!Array.isArray(nodes)) {
     throw createHttpError(
       422,
@@ -74,15 +92,42 @@ function assertTaxonomyNodes(nodes, path = "taxonomy") {
     );
   }
 
-  for (const [index, node] of nodes.entries()) {
+  return nodes.map((node, index) => {
     const nodePath = `${path}[${index}]`;
     assertString(node?.id, `${nodePath}.id`);
     assertString(node?.label, `${nodePath}.label`);
-
-    if (node.children !== undefined) {
-      assertTaxonomyNodes(node.children, `${nodePath}.children`);
+    const applicationIds = normalizeApplicationIds(
+      node?.applicationIds,
+      `${nodePath}.applicationIds`,
+    );
+    if (parentApplicationIds?.length) {
+      const outsideParentScope = applicationIds.filter(
+        (id) => !parentApplicationIds.includes(id),
+      );
+      if (outsideParentScope.length) {
+        throw createHttpError(
+          422,
+          `Invalid taxonomy payload: ${nodePath}.applicationIds must be contained in its parent scope`,
+        );
+      }
     }
-  }
+
+    const children =
+      node.children === undefined
+        ? undefined
+        : normalizeTaxonomyNodes(
+            node.children,
+            `${nodePath}.children`,
+            applicationIds.length ? applicationIds : parentApplicationIds,
+          );
+    return {
+      ...node,
+      id: node.id.trim(),
+      label: node.label.trim(),
+      applicationIds,
+      ...(children === undefined ? {} : { children }),
+    };
+  });
 }
 
 function normalizeTaxonomyPayload(payload = {}) {
@@ -96,13 +141,13 @@ function normalizeTaxonomyPayload(payload = {}) {
   }
 
   assertTagGroups(payload.tagGroups);
-  assertTaxonomyNodes(payload.taxonomy);
+  const taxonomy = normalizeTaxonomyNodes(payload.taxonomy);
 
   return {
     schemaVersion,
     source: payload.source || null,
     tagGroups: payload.tagGroups,
-    taxonomy: payload.taxonomy,
+    taxonomy,
   };
 }
 
@@ -128,6 +173,22 @@ export async function getIssueTaxonomy(query = {}) {
     key: ACTIVE_TAXONOMY_KEY,
     status: ACTIVE_STATUS,
   });
+  const applications = await db
+    .collection(COLLECTION_NAMES.APPLICATIONS)
+    .find({ workspaceId: workspaceId(query) })
+    .project({ _id: 0, id: 1, key: 1, name: 1, status: 1 })
+    .sort({ name: 1, id: 1 })
+    .toArray();
+  const requestedApplicationId = Object.hasOwn(query, "applicationId")
+    ? String(query.applicationId || "").trim()
+    : undefined;
+  if (
+    requestedApplicationId &&
+    !applications.some(({ id }) => id === requestedApplicationId)
+  ) {
+    throw createHttpError(404, "Application not found");
+  }
+  const normalizedTaxonomy = normalizeDocument(taxonomy);
 
   return {
     meta: {
@@ -136,7 +197,16 @@ export async function getIssueTaxonomy(query = {}) {
       key: ACTIVE_TAXONOMY_KEY,
       status: ACTIVE_STATUS,
     },
-    taxonomy: normalizeDocument(taxonomy),
+    taxonomy: normalizedTaxonomy
+      ? {
+          ...normalizedTaxonomy,
+          taxonomy: filterTaxonomyForApplication(
+            normalizedTaxonomy.taxonomy || [],
+            requestedApplicationId,
+          ),
+        }
+      : null,
+    applications,
   };
 }
 
@@ -146,6 +216,34 @@ export async function saveIssueTaxonomy(payload, query = {}) {
   await ensureTaxonomyIndexes(collection);
 
   const taxonomyPackage = normalizeTaxonomyPayload(payload);
+  const scopedApplicationIds = [
+    ...new Set(
+      taxonomyPackage.taxonomy.flatMap(function collect(node) {
+        return [
+          ...(node.applicationIds || []),
+          ...(node.children || []).flatMap(collect),
+        ];
+      }),
+    ),
+  ];
+  if (scopedApplicationIds.length) {
+    const knownApplications = await db
+      .collection(COLLECTION_NAMES.APPLICATIONS)
+      .find({
+        workspaceId: workspaceId(query),
+        id: { $in: scopedApplicationIds },
+      })
+      .project({ id: 1 })
+      .toArray();
+    const knownIds = new Set(knownApplications.map(({ id }) => id));
+    const unknownIds = scopedApplicationIds.filter((id) => !knownIds.has(id));
+    if (unknownIds.length) {
+      throw createHttpError(
+        422,
+        `Invalid taxonomy payload: applications do not belong to the workspace: ${unknownIds.join(", ")}`,
+      );
+    }
+  }
   const now = new Date();
 
   await collection.updateOne(

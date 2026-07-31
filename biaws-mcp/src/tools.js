@@ -172,6 +172,11 @@ const tools = [
       type: "object",
       additionalProperties: false,
       properties: {
+        applicationId: {
+          type: "string",
+          description:
+            "Retorna somente assuntos compartilhados e aplicáveis à aplicação",
+        },
         flatten: {
           type: "boolean",
           default: false,
@@ -310,6 +315,11 @@ const tools = [
       type: "object",
       additionalProperties: false,
       properties: {
+        applicationId: {
+          type: "string",
+          description:
+            "Aplicação usada para restringir as sugestões de taxonomia",
+        },
         issueId: { type: "string" },
         title: { type: "string" },
         text: { type: "string" },
@@ -403,6 +413,11 @@ const tools = [
       type: "object",
       additionalProperties: false,
       properties: {
+        applicationId: {
+          type: "string",
+          description:
+            "Retorna somente assuntos compartilhados e aplicáveis à aplicação",
+        },
         flatten: {
           type: "boolean",
           default: false,

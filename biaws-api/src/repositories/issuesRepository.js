@@ -14,7 +14,10 @@ import {
   getSummaryOptions,
 } from "../helpers/query.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
-import { expandTaxonomyIds } from "../helpers/taxonomy.js";
+import {
+  assertTaxonomyIdsApplicable,
+  expandTaxonomyIds,
+} from "../helpers/taxonomy.js";
 import {
   buildKnowledgeContextFilter,
   knowledgeContextWasProvided,
@@ -621,6 +624,17 @@ export async function saveIssueClassification(
   const collection = db.collection(ISSUES_COLLECTION);
   const classification = normalizeClassificationPayload(payload);
   const now = new Date();
+  const issue = await collection.findOne(
+    { id: issueId, ...buildKnowledgeContextFilter(query) },
+    { projection: { workspaceId: 1, applicationId: 1 } },
+  );
+  if (!issue) throw createHttpError(404, `Issue not found: ${issueId}`);
+  await assertTaxonomyIdsApplicable(
+    db,
+    [classification.primaryTaxonomyId, ...classification.secondaryTaxonomyIds],
+    issue.workspaceId,
+    issue.applicationId,
+  );
 
   const result = await collection.updateOne(
     { id: issueId, ...buildKnowledgeContextFilter(query) },
@@ -664,6 +678,15 @@ export async function updateIssue(issueId, payload = {}, query = {}) {
         applicationRequired: true,
         authorizationScope: query.authorizationScope,
       }),
+    );
+    await assertTaxonomyIdsApplicable(
+      db,
+      [
+        current.classification?.primaryTaxonomyId,
+        ...(current.classification?.secondaryTaxonomyIds || []),
+      ],
+      patch.workspaceId,
+      patch.applicationId,
     );
   }
   const now = new Date();

@@ -18,6 +18,7 @@ export function IssueTaxonomyManager() {
   const {
     uploadInputRef,
     catalog,
+    applications,
     selectedGroupId,
     setSelectedGroupId,
     selectedNodeId,
@@ -182,6 +183,7 @@ export function IssueTaxonomyManager() {
 
           <TaxonomySelector
             activeValue={selectedNodeId}
+            applications={applications}
             nodes={catalog.taxonomy}
             onActiveChange={setSelectedNodeId}
             onAddNode={addNode}

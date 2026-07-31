@@ -16,6 +16,7 @@ import { CatalogContextFields } from "../../catalog/CatalogContextFields.jsx";
 import { AuditHistory } from "../../shared/AuditHistory.jsx";
 import { FilesPanel } from "../../shared/FilesPanel.jsx";
 import { TaxonomySelector } from "../../taxonomy/TaxonomySelector.jsx";
+import { filterTaxonomyForApplication } from "../../taxonomy/scope.js";
 import {
   DETAIL_TABS,
   getTaxonomyDisplayValue,
@@ -729,8 +730,12 @@ function IssueKnowledgeTab({
           />
 
           <TaxonomySelector
+            applications={applications}
             multiple
-            nodes={taxonomyPackage?.taxonomy || []}
+            nodes={filterTaxonomyForApplication(
+              taxonomyPackage?.taxonomy || [],
+              issue.applicationId,
+            )}
             onAddNode={savingTaxonomyCatalog ? null : addTaxonomyCatalogNode}
             onChange={updateTaxonomies}
             onEditNode={savingTaxonomyCatalog ? null : editTaxonomyCatalogNode}

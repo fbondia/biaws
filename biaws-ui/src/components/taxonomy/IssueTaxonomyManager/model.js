@@ -124,6 +124,9 @@ export function compactTreeNode(node) {
   const compacted = {
     id: node.id,
     label: node.label,
+    applicationIds: Array.isArray(node.applicationIds)
+      ? [...new Set(node.applicationIds.map(String).filter(Boolean))]
+      : [],
   };
 
   if (children.length) {
@@ -131,6 +134,15 @@ export function compactTreeNode(node) {
   }
 
   return compacted;
+}
+
+export function findTreeNode(nodes = [], nodeId) {
+  for (const node of nodes) {
+    if (node.id === nodeId) return node;
+    const child = findTreeNode(node.children || [], nodeId);
+    if (child) return child;
+  }
+  return null;
 }
 
 export function flatTaxonomyToTree(rows) {

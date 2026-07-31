@@ -55,6 +55,7 @@ function normalizeSelectedValues(value, multiple) {
 
 export function TaxonomySelector({
   activeValue = "",
+  applications = [],
   disabledIds = [],
   multiple = false,
   nodes = [],
@@ -78,6 +79,8 @@ export function TaxonomySelector({
   const [draftLabels, setDraftLabels] = useState({});
   const [editingNode, setEditingNode] = useState(null);
   const [editLabel, setEditLabel] = useState("");
+  const [editScopeMode, setEditScopeMode] = useState("workspace");
+  const [editApplicationIds, setEditApplicationIds] = useState([]);
   const canAddNodes = CAN_MODIFY_CATALOG && Boolean(onAddNode);
   const canDeleteNodes = CAN_MODIFY_CATALOG && Boolean(onDeleteNode);
   const canEditNodes = CAN_MODIFY_CATALOG && Boolean(onEditNode);
@@ -122,11 +125,18 @@ export function TaxonomySelector({
     event.stopPropagation();
     setEditingNode(node);
     setEditLabel(node.label || "");
+    const applicationIds = Array.isArray(node.applicationIds)
+      ? node.applicationIds
+      : [];
+    setEditApplicationIds(applicationIds);
+    setEditScopeMode(applicationIds.length ? "applications" : "workspace");
   }
 
   function closeEditDialog() {
     setEditingNode(null);
     setEditLabel("");
+    setEditApplicationIds([]);
+    setEditScopeMode("workspace");
   }
 
   async function editNode(event) {
@@ -136,12 +146,21 @@ export function TaxonomySelector({
     const trimmedLabel = editLabel.trim();
     if (!trimmedLabel) return;
 
-    if (trimmedLabel === editingNode.label) {
+    const applicationIds =
+      editScopeMode === "workspace" ? [] : editApplicationIds;
+    if (
+      trimmedLabel === editingNode.label &&
+      JSON.stringify(applicationIds) ===
+        JSON.stringify(editingNode.applicationIds || [])
+    ) {
       closeEditDialog();
       return;
     }
 
-    const updatedNode = await onEditNode(editingNode.id, trimmedLabel);
+    const updatedNode = await onEditNode(editingNode.id, {
+      label: trimmedLabel,
+      applicationIds,
+    });
     if (updatedNode) closeEditDialog();
   }
 
@@ -311,13 +330,15 @@ export function TaxonomySelector({
           <section
             aria-label="Editar assunto"
             aria-modal="true"
-            className="taxonomyEditDialog"
+            className="taxonomyEditDialog taxonomyNodeEditDialog"
             role="dialog"
           >
             <header>
               <div>
                 <strong>Editar assunto</strong>
-                <span>Altere apenas o título do item selecionado.</span>
+                <span>
+                  Altere o título e onde este item pode ser utilizado.
+                </span>
               </div>
             </header>
             <form onSubmit={editNode}>
@@ -329,6 +350,72 @@ export function TaxonomySelector({
                   value={editLabel}
                 />
               </label>
+              <fieldset className="taxonomyApplicationScope">
+                <legend>Aplicável a</legend>
+                <label className="taxonomyScopeOption">
+                  <input
+                    checked={editScopeMode === "workspace"}
+                    name="taxonomy-scope"
+                    onChange={() => setEditScopeMode("workspace")}
+                    type="radio"
+                  />
+                  <span>
+                    <strong>Todas as aplicações</strong>
+                    <small>
+                      O item fica disponível em todo o workspace, respeitando o
+                      escopo do item superior.
+                    </small>
+                  </span>
+                </label>
+                <label className="taxonomyScopeOption">
+                  <input
+                    checked={editScopeMode === "applications"}
+                    name="taxonomy-scope"
+                    onChange={() => setEditScopeMode("applications")}
+                    type="radio"
+                  />
+                  <span>
+                    <strong>Aplicações específicas</strong>
+                    <small>Selecione uma ou mais aplicações abaixo.</small>
+                  </span>
+                </label>
+                {editScopeMode === "applications" ? (
+                  <div className="taxonomyApplicationList">
+                    {applications.length ? (
+                      applications.map((application) => {
+                        const checked = editApplicationIds.includes(
+                          application.id,
+                        );
+                        return (
+                          <label key={application.id}>
+                            <input
+                              checked={checked}
+                              onChange={() =>
+                                setEditApplicationIds((current) =>
+                                  checked
+                                    ? current.filter(
+                                        (id) => id !== application.id,
+                                      )
+                                    : [...current, application.id],
+                                )
+                              }
+                              type="checkbox"
+                            />
+                            <span>{application.name || application.id}</span>
+                            {application.status !== "active" ? (
+                              <small>Arquivada</small>
+                            ) : null}
+                          </label>
+                        );
+                      })
+                    ) : (
+                      <span className="fieldHint">
+                        Nenhuma aplicação cadastrada no workspace.
+                      </span>
+                    )}
+                  </div>
+                ) : null}
+              </fieldset>
               <div className="dialogActions">
                 {canDeleteNodes ? (
                   <button
@@ -350,7 +437,11 @@ export function TaxonomySelector({
                 </button>
                 <button
                   className="primaryButton"
-                  disabled={!editLabel.trim()}
+                  disabled={
+                    !editLabel.trim() ||
+                    (editScopeMode === "applications" &&
+                      !editApplicationIds.length)
+                  }
                   type="submit"
                 >
                   Salvar

@@ -4,6 +4,7 @@ import {
   copyFile,
   mkdir,
   mkdtemp,
+  readdir,
   readFile,
   realpath,
   stat,
@@ -40,6 +41,9 @@ exit 0
 if [[ "\${1:-}" == "compose" ]]; then
   if [[ -n "\${BIAWS_TEST_DOCKER_LOG:-}" ]]; then
     printf '%s\\n' "\$*" >> "\${BIAWS_TEST_DOCKER_LOG}"
+  fi
+  if [[ " \$* " == *" mongodump "* ]]; then
+    printf 'fake-mongo-archive'
   fi
   exit 0
 fi
@@ -125,17 +129,38 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
 
   const startScript = path.join(instance, "start.sh");
   const stopScript = path.join(instance, "stop.sh");
-  const [startContents, stopContents, startMetadata, stopMetadata] =
-    await Promise.all([
-      readFile(startScript, "utf8"),
-      readFile(stopScript, "utf8"),
-      stat(startScript),
-      stat(stopScript),
-    ]);
+  const backupScript = path.join(instance, "backup-mongo.sh");
+  const restoreScript = path.join(instance, "restore-mongo.sh");
+  const [
+    startContents,
+    stopContents,
+    backupContents,
+    restoreContents,
+    startMetadata,
+    stopMetadata,
+    backupMetadata,
+    restoreMetadata,
+  ] = await Promise.all([
+    readFile(startScript, "utf8"),
+    readFile(stopScript, "utf8"),
+    readFile(backupScript, "utf8"),
+    readFile(restoreScript, "utf8"),
+    stat(startScript),
+    stat(stopScript),
+    stat(backupScript),
+    stat(restoreScript),
+  ]);
   assert.match(startContents, /up -d --wait "\$@"/u);
   assert.match(stopContents, /stop "\$@"/u);
+  assert.match(backupContents, /exec -T mongo mongodump/u);
+  assert.match(backupContents, /--db="\$\{BIAWS_MONGO_DB\}"/u);
+  assert.match(restoreContents, /exec -T mongo mongorestore/u);
+  assert.match(restoreContents, /--drop/u);
+  assert.match(restoreContents, /use --yes para confirmar/u);
   assert.equal(startMetadata.mode & 0o777, 0o755);
   assert.equal(stopMetadata.mode & 0o777, 0o755);
+  assert.equal(backupMetadata.mode & 0o777, 0o755);
+  assert.equal(restoreMetadata.mode & 0o777, 0o755);
 
   const dockerLog = path.join(temporaryRoot, "docker.log");
   for (const script of [startScript, stopScript]) {
@@ -149,6 +174,50 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
     });
     assert.equal(result.status, 0, result.stderr);
   }
+  const backupDirectory = path.join(temporaryRoot, "backups");
+  const backupResult = spawnSync(backupScript, [backupDirectory], {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      BIAWS_TEST_DOCKER_LOG: dockerLog,
+      PATH: `${bin}:${process.env.PATH}`,
+    },
+  });
+  assert.equal(backupResult.status, 0, backupResult.stderr);
+  const backupFiles = await readdir(backupDirectory);
+  const archiveName = backupFiles.find((file) => file.endsWith(".archive.gz"));
+  assert.ok(archiveName);
+  assert.ok(backupFiles.includes(`${archiveName}.sha256`));
+
+  const unconfirmedRestore = spawnSync(
+    restoreScript,
+    [path.join(backupDirectory, archiveName)],
+    {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        BIAWS_TEST_DOCKER_LOG: dockerLog,
+        PATH: `${bin}:${process.env.PATH}`,
+      },
+    },
+  );
+  assert.equal(unconfirmedRestore.status, 2);
+  assert.match(unconfirmedRestore.stderr, /use --yes para confirmar/u);
+
+  const restoreResult = spawnSync(
+    restoreScript,
+    [path.join(backupDirectory, archiveName), "--yes"],
+    {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        BIAWS_TEST_DOCKER_LOG: dockerLog,
+        PATH: `${bin}:${process.env.PATH}`,
+      },
+    },
+  );
+  assert.equal(restoreResult.status, 0, restoreResult.stderr);
+
   const dockerCommands = await readFile(dockerLog, "utf8");
   assert.match(
     dockerCommands,
@@ -156,6 +225,14 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
       `compose --project-directory ${repositoryRoot} --file ${repositoryRoot}/compose.yaml --env-file ${instance}/\\.env --project-name biaws-storage-test up -d --wait`,
       "u",
     ),
+  );
+  assert.match(
+    dockerCommands,
+    /exec -T mongo mongodump --db=biaws --archive --gzip/u,
+  );
+  assert.match(
+    dockerCommands,
+    /exec -T mongo mongorestore --nsInclude=biaws\.\* --archive --gzip --drop/u,
   );
   assert.match(
     dockerCommands,

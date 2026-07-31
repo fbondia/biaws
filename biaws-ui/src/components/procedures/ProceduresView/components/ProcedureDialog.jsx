@@ -18,6 +18,7 @@ import {
   MarkdownPreview,
 } from "../../../shared/MarkdownEditor/index.jsx";
 import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector.jsx";
+import { filterTaxonomyForApplication } from "../../../taxonomy/scope.js";
 import { normalizeDraft, selectedTaxonomyIds, taxonomyById } from "../model.js";
 
 export function TaxonomySelectionChips({
@@ -263,7 +264,11 @@ export function ProcedureDialog({
     normalizeDraft(draft),
   );
   const selectedIds = selectedTaxonomyIds(draft.classification);
-  const taxonomyNodes = taxonomyPackage?.taxonomy || [];
+  const fullTaxonomyNodes = taxonomyPackage?.taxonomy || [];
+  const taxonomyNodes = filterTaxonomyForApplication(
+    fullTaxonomyNodes,
+    draft.applicationId,
+  );
   const tagGroups = taxonomyPackage?.tagGroups || [];
   const activeTagGroup = tagGroups.find(
     (group) => group.id === activeTagGroupId,
@@ -720,6 +725,7 @@ function ProcedureEditClassification({
           }
         />
         <TaxonomySelector
+          applications={applications}
           multiple
           nodes={taxonomyNodes}
           onChange={updateTaxonomies}

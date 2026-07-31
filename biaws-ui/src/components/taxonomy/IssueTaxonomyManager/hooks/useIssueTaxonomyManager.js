@@ -8,6 +8,7 @@ import {
   editableCatalog,
   EMPTY_CATALOG,
   exportFileName,
+  findTreeNode,
   hasNode,
   removeNode,
   serializeCatalog,
@@ -41,6 +42,7 @@ export function useIssueTaxonomyManager() {
     editableCatalog(cloneCatalog(EMPTY_CATALOG)),
   );
   const [persistedSnapshot, setPersistedSnapshot] = useState("");
+  const [applications, setApplications] = useState([]);
   const [selectedGroupId, setSelectedGroupId] = useState(
     catalog.tagGroups[0]?.id || "",
   );
@@ -79,6 +81,7 @@ export function useIssueTaxonomyManager() {
     try {
       const payload = await fetchIssueTaxonomy();
       const nextCatalog = editableCatalog(payload.taxonomy);
+      setApplications(payload.applications || []);
       applyCatalog(nextCatalog);
       setPersistedSnapshot(serializeCatalog(nextCatalog));
       setMessage("");
@@ -152,7 +155,12 @@ export function useIssueTaxonomyManager() {
     const id = slugify(label);
     if (!id || hasNode(catalog.taxonomy, id)) return null;
 
-    const node = { id, label };
+    const parent = findTreeNode(catalog.taxonomy, parentId);
+    const node = {
+      id,
+      label,
+      applicationIds: [...(parent?.applicationIds || [])],
+    };
     setCatalog((current) => ({
       ...current,
       taxonomy: appendChild(current.taxonomy, parentId, node),
@@ -161,16 +169,27 @@ export function useIssueTaxonomyManager() {
     return node;
   }
 
-  function editNode(nodeId, label) {
-    const trimmedLabel = label.trim();
+  function editNode(nodeId, patch) {
+    const trimmedLabel = String(patch?.label || "").trim();
     if (!trimmedLabel) return null;
+
+    const applicationIds = [
+      ...new Set(
+        (patch?.applicationIds || [])
+          .map((id) => String(id || "").trim())
+          .filter(Boolean),
+      ),
+    ];
 
     setCatalog((current) => ({
       ...current,
-      taxonomy: updateNode(current.taxonomy, nodeId, { label: trimmedLabel }),
+      taxonomy: updateNode(current.taxonomy, nodeId, {
+        label: trimmedLabel,
+        applicationIds,
+      }),
     }));
     setSelectedNodeId(nodeId);
-    return { id: nodeId, label: trimmedLabel };
+    return { id: nodeId, label: trimmedLabel, applicationIds };
   }
 
   function deleteNode(nodeId) {
@@ -247,6 +266,7 @@ export function useIssueTaxonomyManager() {
   return {
     uploadInputRef,
     catalog,
+    applications,
     selectedGroupId,
     setSelectedGroupId,
     selectedNodeId,

@@ -3,7 +3,10 @@ import crypto from "crypto";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getPagination } from "../helpers/query.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
-import { expandTaxonomyIds } from "../helpers/taxonomy.js";
+import {
+  assertTaxonomyIdsApplicable,
+  expandTaxonomyIds,
+} from "../helpers/taxonomy.js";
 import {
   buildKnowledgeContextFilter,
   knowledgeContextWasProvided,
@@ -360,6 +363,15 @@ export async function createProcedure(payload = {}, query = {}) {
     authorizationScope: query.authorizationScope,
     create: true,
   });
+  await assertTaxonomyIdsApplicable(
+    db,
+    [
+      normalized.classification.primaryTaxonomyId,
+      ...normalized.classification.secondaryTaxonomyIds,
+    ],
+    context.workspaceId,
+    context.applicationId,
+  );
   await assertCollectionExists(
     db,
     normalized.collectionId,
@@ -400,6 +412,15 @@ export async function updateProcedure(id, payload = {}, query = {}) {
       }),
     );
   }
+  await assertTaxonomyIdsApplicable(
+    db,
+    [
+      normalized.classification.primaryTaxonomyId,
+      ...normalized.classification.secondaryTaxonomyIds,
+    ],
+    normalized.workspaceId || current.workspaceId,
+    normalized.applicationId ?? current.applicationId,
+  );
   await assertCollectionExists(
     db,
     normalized.collectionId,

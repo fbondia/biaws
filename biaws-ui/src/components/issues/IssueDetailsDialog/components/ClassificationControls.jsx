@@ -289,19 +289,21 @@ export function appendTaxonomyNode(nodes = [], parentId, child) {
   });
 }
 
-export function updateTaxonomyNodeLabel(nodes = [], nodeId, label) {
+export function updateTaxonomyNodeLabel(nodes = [], nodeId, patch) {
+  const normalizedPatch =
+    typeof patch === "string" ? { label: patch } : { ...(patch || {}) };
   return nodes.map((node) => {
     if (node.id === nodeId) {
       return {
         ...node,
-        label,
+        ...normalizedPatch,
       };
     }
 
     return {
       ...node,
       children: node.children?.length
-        ? updateTaxonomyNodeLabel(node.children, nodeId, label)
+        ? updateTaxonomyNodeLabel(node.children, nodeId, normalizedPatch)
         : node.children,
     };
   });

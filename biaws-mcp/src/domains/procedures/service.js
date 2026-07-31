@@ -67,7 +67,10 @@ export async function searchProcedures(args = {}) {
 }
 
 export async function getProcedureClassificationCatalog(args = {}) {
-  const payload = await fetchJson("/api/issues/taxonomy");
+  const payload = await fetchJson(
+    "/api/issues/taxonomy",
+    cleanParams({ applicationId: args.applicationId }),
+  );
   const catalog = payload.taxonomy || {};
   const result = {
     meta: payload.meta,

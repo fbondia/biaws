@@ -11,6 +11,10 @@
     grid-column: span 4;
   }
 
+  .filterDatePeriod {
+    grid-column: span 6;
+  }
+
   .filterDateField,
   .filterFrom,
   .filterTo {
@@ -248,12 +252,33 @@
 
   .filterCode,
   .filterText,
+  .filterDatePeriod,
   .filterDateField,
   .filterFrom,
   .filterTo,
   .filterFooter,
   .aggregateArea {
     grid-column: auto;
+  }
+
+  .datePeriodOptions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .datePeriodOption {
+    min-width: 0;
+    min-height: 38px;
+    border-bottom: 1px solid var(--color-border);
+    padding-inline: 8px;
+  }
+
+  .datePeriodOption:nth-child(4n) {
+    border-right: 0;
+  }
+
+  .datePeriodOption:nth-child(n + 5) {
+    border-bottom: 0;
   }
 
   .filterFooter {

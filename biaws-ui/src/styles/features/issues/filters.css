@@ -136,6 +136,47 @@
   grid-column: span 4;
 }
 
+.filterDatePeriod {
+  grid-column: span 6;
+}
+
+.datePeriodOptions {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.datePeriodOption {
+  min-width: 56px;
+  border: 0;
+  border-right: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.datePeriodOption:last-child {
+  border-right: 0;
+}
+
+.datePeriodOption:hover,
+.activeDatePeriodOption {
+  background: #f0f6ff;
+  color: var(--color-accent-text);
+}
+
+.datePeriodOption:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
 .filterDateField,
 .filterFrom,
 .filterTo {

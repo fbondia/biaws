@@ -7,7 +7,7 @@ import {
   Search,
   Tags,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   DEFAULT_TAG_GROUP_COLOR,
@@ -21,6 +21,9 @@ import { FilterDialogButton } from "../../shared/FilterDialogButton.jsx";
 import { OptionFilterDialog } from "./components/OptionFilterDialog.jsx";
 import {
   countSelectedTags,
+  DATE_PERIOD_PRESETS,
+  datePeriodRange,
+  matchingDatePeriod,
   readSelectedOptions,
   readSelectedTags,
   readSelectedTaxonomies,
@@ -40,6 +43,9 @@ export function IssueFilters({
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [taxonomyDialogOpen, setTaxonomyDialogOpen] = useState(false);
   const [optionDialogOpen, setOptionDialogOpen] = useState("");
+  const [selectedDatePeriod, setSelectedDatePeriod] = useState(() =>
+    matchingDatePeriod(draftFilters),
+  );
   const tagGroups = taxonomyPackage?.tagGroups || [];
   const selectedTagCount = countSelectedTags(draftFilters, tagGroups);
   const selectedTaxonomies = readSelectedTaxonomies(draftFilters);
@@ -55,6 +61,17 @@ export function IssueFilters({
     STATUS_OPTIONS,
     "Todos os status",
   );
+
+  useEffect(() => {
+    if (!draftFilters.from && !draftFilters.to) setSelectedDatePeriod("custom");
+  }, [draftFilters.from, draftFilters.to]);
+
+  function selectDatePeriod(period) {
+    setSelectedDatePeriod(period.value);
+    const range = datePeriodRange(period);
+    onChange("from", range.from);
+    onChange("to", range.to);
+  }
 
   return (
     <section className="issueFiltersPanel contentBand" id={id}>
@@ -81,40 +98,87 @@ export function IssueFilters({
             />
           </label>
 
-          <label className="field filterDateField">
+          <div className="field filterDatePeriod">
             <span>
               <CalendarDays size={14} />
-              Campo de data
+              Período
             </span>
-            <select
-              value={draftFilters.dateField}
-              onChange={(event) => onChange("dateField", event.target.value)}
+            <div
+              aria-label="Período do filtro de data"
+              className="datePeriodOptions"
+              role="group"
             >
-              {DATE_FIELDS.map((field) => (
-                <option key={field.value} value={field.value}>
-                  {field.label}
-                </option>
+              {DATE_PERIOD_PRESETS.map((period) => (
+                <button
+                  aria-label={period.title}
+                  aria-pressed={selectedDatePeriod === period.value}
+                  className={
+                    selectedDatePeriod === period.value
+                      ? "datePeriodOption activeDatePeriodOption"
+                      : "datePeriodOption"
+                  }
+                  key={period.value}
+                  onClick={() => selectDatePeriod(period)}
+                  title={period.title}
+                  type="button"
+                >
+                  {period.label}
+                </button>
               ))}
-            </select>
-          </label>
+              <button
+                aria-label="Selecionar campo de data e período personalizado"
+                aria-pressed={selectedDatePeriod === "custom"}
+                className={
+                  selectedDatePeriod === "custom"
+                    ? "datePeriodOption activeDatePeriodOption"
+                    : "datePeriodOption"
+                }
+                onClick={() => setSelectedDatePeriod("custom")}
+                title="Período personalizado"
+                type="button"
+              >
+                ...
+              </button>
+            </div>
+          </div>
 
-          <label className="field filterFrom">
-            <span>De</span>
-            <input
-              type="date"
-              value={draftFilters.from}
-              onChange={(event) => onChange("from", event.target.value)}
-            />
-          </label>
+          {selectedDatePeriod === "custom" ? (
+            <>
+              <label className="field filterDateField">
+                <span>Campo de data</span>
+                <select
+                  value={draftFilters.dateField}
+                  onChange={(event) =>
+                    onChange("dateField", event.target.value)
+                  }
+                >
+                  {DATE_FIELDS.map((field) => (
+                    <option key={field.value} value={field.value}>
+                      {field.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-          <label className="field filterTo">
-            <span>Até</span>
-            <input
-              type="date"
-              value={draftFilters.to}
-              onChange={(event) => onChange("to", event.target.value)}
-            />
-          </label>
+              <label className="field filterFrom">
+                <span>De</span>
+                <input
+                  type="date"
+                  value={draftFilters.from}
+                  onChange={(event) => onChange("from", event.target.value)}
+                />
+              </label>
+
+              <label className="field filterTo">
+                <span>Até</span>
+                <input
+                  type="date"
+                  value={draftFilters.to}
+                  onChange={(event) => onChange("to", event.target.value)}
+                />
+              </label>
+            </>
+          ) : null}
 
           {applications.length ? (
             <CatalogFilterFields

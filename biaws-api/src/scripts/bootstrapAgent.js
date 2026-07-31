@@ -4,11 +4,13 @@ import { randomBytes } from "node:crypto";
 
 import { getAuth } from "../auth/auth.js";
 import { bootstrapAgent } from "../auth/bootstrapAgent.js";
+import { getServerConfig } from "../config.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
 import { setUserGroups } from "../repositories/accessRepository.js";
 import { ensureDefaultWorkspace } from "../repositories/catalogRepository.js";
 
 async function run() {
+  const serverConfig = getServerConfig();
   const database = await getMongoDatabase();
   const auth = await getAuth();
   const email = String(
@@ -26,6 +28,10 @@ async function run() {
     email,
     password,
     name,
+    existingApiKey: String(
+      process.env.BIAWS_BOOTSTRAP_AGENT_API_KEY || "",
+    ).trim(),
+    rateLimit: serverConfig.rateLimit.apiKey,
     assignAgent: (userId) =>
       setUserGroups(
         userId,

@@ -141,45 +141,31 @@ compose exec -T \
   api npm run bootstrap:admin
 
 agent_api_key="$(read_env_value "ISSUE_API_KEY")"
-agent_workspace_id="$(read_env_value "ISSUE_WORKSPACE_ID")"
-agent_key_valid=0
-if [[ -n "${agent_api_key}" ]]; then
-  auth_headers=(-H "Authorization: Bearer ${agent_api_key}")
-  if [[ -n "${agent_workspace_id}" ]]; then
-    auth_headers+=(-H "X-Biaws-Workspace-Id: ${agent_workspace_id}")
-  fi
-  if curl --fail --silent "${auth_headers[@]}" \
-    "http://127.0.0.1:${api_port}/api/auth/me" >/dev/null; then
-    agent_key_valid=1
-  fi
+agent_output="$(
+  compose exec -T \
+    -e "BIAWS_BOOTSTRAP_AGENT_EMAIL=${BIAWS_BOOTSTRAP_AGENT_EMAIL:-agent@localhost.invalid}" \
+    -e "BIAWS_BOOTSTRAP_AGENT_NAME=${BIAWS_BOOTSTRAP_AGENT_NAME:-Bondia Workspaces Agent}" \
+    -e "BIAWS_BOOTSTRAP_AGENT_API_KEY=${agent_api_key}" \
+    api npm run --silent bootstrap:agent
+)"
+agent_api_key="$(
+  printf '%s\n' "${agent_output}" |
+    awk -F= '$1 == "BIAWS_AGENT_API_KEY" { print substr($0, index($0, "=") + 1) }' |
+    tail -n 1
+)"
+agent_workspace_id="$(
+  printf '%s\n' "${agent_output}" |
+    awk -F= '$1 == "BIAWS_AGENT_WORKSPACE_ID" { print substr($0, index($0, "=") + 1) }' |
+    tail -n 1
+)"
+if [[ -z "${agent_api_key}" || -z "${agent_workspace_id}" ]]; then
+  echo "Não foi possível configurar a credencial técnica do agente." >&2
+  exit 1
 fi
-
-if [[ "${agent_key_valid}" != "1" ]]; then
-  agent_output="$(
-    compose exec -T \
-      -e "BIAWS_BOOTSTRAP_AGENT_EMAIL=${BIAWS_BOOTSTRAP_AGENT_EMAIL:-agent@localhost.invalid}" \
-      -e "BIAWS_BOOTSTRAP_AGENT_NAME=${BIAWS_BOOTSTRAP_AGENT_NAME:-Bondia Workspaces Agent}" \
-      api npm run --silent bootstrap:agent
-  )"
-  agent_api_key="$(
-    printf '%s\n' "${agent_output}" |
-      awk -F= '$1 == "BIAWS_AGENT_API_KEY" { print substr($0, index($0, "=") + 1) }' |
-      tail -n 1
-  )"
-  agent_workspace_id="$(
-    printf '%s\n' "${agent_output}" |
-      awk -F= '$1 == "BIAWS_AGENT_WORKSPACE_ID" { print substr($0, index($0, "=") + 1) }' |
-      tail -n 1
-  )"
-  if [[ -z "${agent_api_key}" || -z "${agent_workspace_id}" ]]; then
-    echo "Não foi possível criar a credencial técnica do agente." >&2
-    exit 1
-  fi
-  replace_env_value "ISSUE_API_KEY" "${agent_api_key}"
-  replace_env_value "ISSUE_WORKSPACE_ID" "${agent_workspace_id}"
-  chmod 600 "${ENV_FILE}"
-  echo "Identidade técnica e chave do agente configuradas no .env local."
-fi
+replace_env_value "ISSUE_API_KEY" "${agent_api_key}"
+replace_env_value "ISSUE_WORKSPACE_ID" "${agent_workspace_id}"
+chmod 600 "${ENV_FILE}"
+echo "Identidade técnica e rate limit da chave do agente reconciliados."
 
 compose exec -T api npm run seed:skills
 

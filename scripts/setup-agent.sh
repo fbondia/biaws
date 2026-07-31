@@ -10,6 +10,13 @@ INSTANCE=""
 MONGO_PORT=""
 API_PORT=""
 UI_PORT=""
+API_RATE_LIMIT_MAX=""
+API_RATE_LIMIT_WINDOW=""
+AUTH_RATE_LIMIT_MAX=""
+AUTH_RATE_LIMIT_WINDOW=""
+API_KEY_RATE_LIMIT_MAX=""
+API_KEY_RATE_LIMIT_WINDOW=""
+DISABLE_RATE_LIMIT=0
 STORAGE_DIR=""
 MONGO_DATA_PATH=""
 ISSUE_FILES_PATH=""
@@ -32,6 +39,13 @@ Opções:
   --mongo-port <porta>       Porta externa do MongoDB; automática para instância nova
   --api-port <porta>         Porta da API; automática para instância nova
   --ui-port <porta>          Porta da UI; automática para instância nova
+  --api-rate-limit-max <n>   Máximo geral por ator na janela
+  --api-rate-limit-window-seconds <n> Janela do limite geral
+  --auth-rate-limit-max <n>  Máximo por IP/rota do Better Auth
+  --auth-rate-limit-window-seconds <n> Janela do Better Auth
+  --api-key-rate-limit-max <n> Máximo persistente por API key
+  --api-key-rate-limit-window-seconds <n> Janela da API key
+  --disable-rate-limit       Desabilita as três camadas de rate limiting
   --storage-dir <diretório>  Raiz para MongoDB e arquivos no host
   --mongo-data-path <dir>    Diretório do MongoDB no host
   --issue-files-path <dir>   Diretório dos anexos de issues no host
@@ -292,6 +306,15 @@ validate_port() {
   fi
 }
 
+validate_positive_integer() {
+  local value="$1"
+  local label="$2"
+  if [[ ! "${value}" =~ ^[0-9]+$ ]] || [[ "${value}" -lt 1 ]]; then
+    echo "${label} deve ser um inteiro positivo: ${value}" >&2
+    exit 2
+  fi
+}
+
 normalize_storage_path() {
   local value="$1"
   local label="$2"
@@ -442,6 +465,34 @@ while [[ "$#" -gt 0 ]]; do
     --ui-port)
       UI_PORT="${2:-}"
       shift 2
+      ;;
+    --api-rate-limit-max)
+      API_RATE_LIMIT_MAX="${2:-}"
+      shift 2
+      ;;
+    --api-rate-limit-window-seconds)
+      API_RATE_LIMIT_WINDOW="${2:-}"
+      shift 2
+      ;;
+    --auth-rate-limit-max)
+      AUTH_RATE_LIMIT_MAX="${2:-}"
+      shift 2
+      ;;
+    --auth-rate-limit-window-seconds)
+      AUTH_RATE_LIMIT_WINDOW="${2:-}"
+      shift 2
+      ;;
+    --api-key-rate-limit-max)
+      API_KEY_RATE_LIMIT_MAX="${2:-}"
+      shift 2
+      ;;
+    --api-key-rate-limit-window-seconds)
+      API_KEY_RATE_LIMIT_WINDOW="${2:-}"
+      shift 2
+      ;;
+    --disable-rate-limit)
+      DISABLE_RATE_LIMIT=1
+      shift
       ;;
     --storage-dir)
       STORAGE_DIR="${2:-}"
@@ -627,6 +678,17 @@ MONGO_PORT="${MONGO_PORT:-27017}"
 validate_port "${MONGO_PORT}" "Porta do MongoDB"
 validate_port "${API_PORT}" "Porta da API"
 validate_port "${UI_PORT}" "Porta da UI"
+for rate_limit_setting in \
+  "${API_RATE_LIMIT_MAX}:Máximo geral" \
+  "${API_RATE_LIMIT_WINDOW}:Janela geral" \
+  "${AUTH_RATE_LIMIT_MAX}:Máximo do Better Auth" \
+  "${AUTH_RATE_LIMIT_WINDOW}:Janela do Better Auth" \
+  "${API_KEY_RATE_LIMIT_MAX}:Máximo da API key" \
+  "${API_KEY_RATE_LIMIT_WINDOW}:Janela da API key"; do
+  value="${rate_limit_setting%%:*}"
+  label="${rate_limit_setting#*:}"
+  [[ -z "${value}" ]] || validate_positive_integer "${value}" "${label}"
+done
 if [[ "${MONGO_PORT}" == "${API_PORT}" ||
   "${MONGO_PORT}" == "${UI_PORT}" ||
   "${API_PORT}" == "${UI_PORT}" ]]; then
@@ -654,6 +716,23 @@ replace_env_value \
   "${ENV_FILE}" \
   "BIAWS_TRUSTED_ORIGINS" \
   "http://localhost:${UI_PORT},http://127.0.0.1:${UI_PORT}"
+if [[ "${DISABLE_RATE_LIMIT}" == "1" ]]; then
+  replace_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_ENABLED" "false"
+  replace_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_ENABLED" "false"
+  replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_ENABLED" "false"
+fi
+[[ -z "${API_RATE_LIMIT_MAX}" ]] || \
+  replace_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_MAX_REQUESTS" "${API_RATE_LIMIT_MAX}"
+[[ -z "${API_RATE_LIMIT_WINDOW}" ]] || \
+  replace_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_WINDOW_SECONDS" "${API_RATE_LIMIT_WINDOW}"
+[[ -z "${AUTH_RATE_LIMIT_MAX}" ]] || \
+  replace_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS" "${AUTH_RATE_LIMIT_MAX}"
+[[ -z "${AUTH_RATE_LIMIT_WINDOW}" ]] || \
+  replace_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS" "${AUTH_RATE_LIMIT_WINDOW}"
+[[ -z "${API_KEY_RATE_LIMIT_MAX}" ]] || \
+  replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS" "${API_KEY_RATE_LIMIT_MAX}"
+[[ -z "${API_KEY_RATE_LIMIT_WINDOW}" ]] || \
+  replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS" "${API_KEY_RATE_LIMIT_WINDOW}"
 chmod 600 "${ENV_FILE}"
 write_instance_control_scripts
 
@@ -664,6 +743,9 @@ if [[ "${SKIP_BOOTSTRAP}" != "1" ]]; then
     "${ROOT_DIR}/scripts/bootstrap.sh" \
       --instance "${INSTANCE}" \
       --instances-dir "${INSTANCES_DIR}"
+elif [[ "${DISABLE_RATE_LIMIT}" == "1" ||
+  -n "${API_RATE_LIMIT_MAX}${API_RATE_LIMIT_WINDOW}${AUTH_RATE_LIMIT_MAX}${AUTH_RATE_LIMIT_WINDOW}${API_KEY_RATE_LIMIT_MAX}${API_KEY_RATE_LIMIT_WINDOW}" ]]; then
+  echo "Aviso: rate limiting atualizado no .env; reinicie a API para aplicar a configuração." >&2
 fi
 
 BIAWS_ENV_FILE="${ENV_FILE}" \
@@ -685,6 +767,11 @@ Configuração concluída:
   MongoDB:   mongodb://127.0.0.1:${MONGO_PORT}/biaws
   API:       http://localhost:${API_PORT}
   UI:        http://localhost:${UI_PORT}
+
+Rate limiting:
+  API protegida: $(read_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_WINDOW_SECONDS")s por ator
+  Autenticação:   $(read_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS")s por IP e rota
+  API key:        $(read_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS")s por chave
 
 Reabra o cliente no projeto e aprove o servidor MCP quando solicitado.
 Operação Docker:

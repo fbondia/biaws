@@ -26,7 +26,8 @@ function validateConfig(config) {
 }
 
 export async function getAuth() {
-  const config = getServerConfig().auth;
+  const serverConfig = getServerConfig();
+  const config = serverConfig.auth;
   validateConfig(config);
 
   if (!authPromise) {
@@ -66,6 +67,11 @@ export async function getAuth() {
         verification: {
           modelName: COLLECTION_NAMES.AUTH_VERIFICATIONS,
         },
+        rateLimit: {
+          enabled: serverConfig.rateLimit.auth.enabled,
+          window: serverConfig.rateLimit.auth.windowSeconds,
+          max: serverConfig.rateLimit.auth.maxRequests,
+        },
         plugins: [
           admin({
             defaultRole: "user",
@@ -91,15 +97,18 @@ export async function getAuth() {
               disableCustomExpiresTime: true,
             },
             rateLimit: {
-              enabled: true,
-              timeWindow: 60 * 60 * 1000,
-              maxRequests: 1_000,
+              enabled: serverConfig.rateLimit.apiKey.enabled,
+              timeWindow: serverConfig.rateLimit.apiKey.windowSeconds * 1_000,
+              maxRequests: serverConfig.rateLimit.apiKey.maxRequests,
             },
           }),
         ],
         advanced: {
           cookiePrefix: "biaws",
           useSecureCookies: config.secureCookies,
+          ipAddress: {
+            trustedProxies: config.trustedProxies,
+          },
         },
       });
     })();

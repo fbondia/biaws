@@ -100,7 +100,22 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
     bin,
     instances,
     project,
-    extraArguments: ["--storage-dir", storage],
+    extraArguments: [
+      "--storage-dir",
+      storage,
+      "--api-rate-limit-max",
+      "450",
+      "--api-rate-limit-window-seconds",
+      "90",
+      "--auth-rate-limit-max",
+      "80",
+      "--auth-rate-limit-window-seconds",
+      "20",
+      "--api-key-rate-limit-max",
+      "2400",
+      "--api-key-rate-limit-window-seconds",
+      "7200",
+    ],
   });
   assert.equal(configured.status, 0, configured.stderr);
 
@@ -110,6 +125,15 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   assert.match(
     configuredEnv,
     new RegExp(`^BIAWS_MONGO_DATA_PATH=${canonicalStorage}/mongo$`, "mu"),
+  );
+  assert.match(configuredEnv, /^ISSUE_API_RATE_LIMIT_MAX_REQUESTS=450$/mu);
+  assert.match(configuredEnv, /^ISSUE_API_RATE_LIMIT_WINDOW_SECONDS=90$/mu);
+  assert.match(configuredEnv, /^BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS=80$/mu);
+  assert.match(configuredEnv, /^BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS=20$/mu);
+  assert.match(configuredEnv, /^ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS=2400$/mu);
+  assert.match(
+    configuredEnv,
+    /^ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS=7200$/mu,
   );
   assert.match(
     configuredEnv,

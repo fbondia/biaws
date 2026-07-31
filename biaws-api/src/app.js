@@ -10,6 +10,7 @@ import {
 import { getIssueBaseDir } from "./helpers/issueStorage.js";
 import { getServerConfig } from "./config.js";
 import { createAttachmentStorage } from "./storage/attachmentStorage.js";
+import { createApiRateLimitMiddleware } from "./rateLimit/apiRateLimitMiddleware.js";
 import { apiLogger } from "./logging/logger.js";
 import {
   createErrorHandler,
@@ -106,6 +107,7 @@ export function createApp({ logger = apiLogger } = {}) {
 
   const protectedRoute = [
     requireAuthentication,
+    createApiRateLimitMiddleware(config.rateLimit.api),
     requireWorkspaceContext,
     rejectDatabaseOverride,
   ];

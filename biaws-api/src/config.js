@@ -49,6 +49,20 @@ function readBooleanEnv(keys, fallback) {
   throw new Error(`Invalid boolean environment value: ${rawValue}`);
 }
 
+function readRateLimitConfig(prefix, defaults) {
+  return {
+    enabled: readBooleanEnv([`${prefix}_ENABLED`], defaults.enabled),
+    windowSeconds: readNumberEnv(
+      [`${prefix}_WINDOW_SECONDS`],
+      defaults.windowSeconds,
+    ),
+    maxRequests: readNumberEnv(
+      [`${prefix}_MAX_REQUESTS`],
+      defaults.maxRequests,
+    ),
+  };
+}
+
 export function getServerConfig() {
   const host = readEnv(["ISSUE_API_HOST", "HOST"], "127.0.0.1");
   const port = readNumberEnv(["ISSUE_API_PORT", "PORT"], 3100);
@@ -68,6 +82,23 @@ export function getServerConfig() {
         false,
       ),
     },
+    rateLimit: {
+      api: readRateLimitConfig("ISSUE_API_RATE_LIMIT", {
+        enabled: true,
+        windowSeconds: 60,
+        maxRequests: 300,
+      }),
+      auth: readRateLimitConfig("BETTER_AUTH_RATE_LIMIT", {
+        enabled: true,
+        windowSeconds: 10,
+        maxRequests: 100,
+      }),
+      apiKey: readRateLimitConfig("ISSUE_API_KEY_RATE_LIMIT", {
+        enabled: true,
+        windowSeconds: 60 * 60,
+        maxRequests: 1_000,
+      }),
+    },
     auth: {
       secret: readEnv(["BETTER_AUTH_SECRET"], undefined),
       baseUrl: readEnv(["BETTER_AUTH_URL"], `http://${host}:${port}`),
@@ -79,6 +110,7 @@ export function getServerConfig() {
         ["BETTER_AUTH_TRUSTED_ORIGINS"],
         ["http://127.0.0.1:4400"],
       ),
+      trustedProxies: readCsvEnv(["BETTER_AUTH_TRUSTED_PROXIES"], []),
     },
   };
 }

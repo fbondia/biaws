@@ -198,6 +198,24 @@ e uma janela de indisponibilidade aprovada.
 - anexo: 50 MiB por padrão;
 - metadata de runtime: 16 KiB, 25 chaves e sem campos com semântica de segredo.
 
+O rate limiting possui três camadas independentes:
+
+- rotas protegidas: 300 requisições por 60 segundos por usuário ou API key,
+  persistidas no MongoDB na coleção `apiRateLimits`;
+- endpoints do Better Auth: 100 requisições por 10 segundos por IP e rota,
+  além das regras mais restritivas do próprio Better Auth para login e troca de
+  senha;
+- API keys: 1.000 requisições por 3.600 segundos por chave, persistidas no
+  documento da própria chave.
+
+Os valores são defaults e podem ser alterados pelas variáveis
+`ISSUE_API_RATE_LIMIT_*`, `BETTER_AUTH_RATE_LIMIT_*` e
+`ISSUE_API_KEY_RATE_LIMIT_*` documentadas no `.env.example`. O setup aceita as
+opções equivalentes `--api-rate-limit-*`, `--auth-rate-limit-*` e
+`--api-key-rate-limit-*`. Ao executar o bootstrap, uma chave técnica válida é
+preservada, sua cota é reconciliada com a configuração atual e a janela de
+consumo é reiniciada.
+
 Demandas, issues, procedimentos e catálogo têm paginação no backend. A UI de
 demandas carrega 25 registros por página. Ajuste os limites de corpo/anexo pelas
 variáveis documentadas em `.env.example`, considerando memória, proxy e storage.
@@ -251,7 +269,7 @@ exportação e requisitos legais antes de uso prolongado.
 
 `agent doctor` informa falha de autenticação
 
-: execute `./scripts/bootstrap.sh` para validar ou rotacionar a chave técnica e
+: execute `./scripts/bootstrap.sh` para validar ou recriar a chave técnica e
 depois repita `node biaws-cli/src/index.js agent doctor codex|claude --project
 <diretório>`. A chave possui validade definida pela política de autenticação e
 é mantida somente no `.env` local.

@@ -32,6 +32,10 @@ Variáveis opcionais:
 - `ISSUE_API_MAX_EML_BYTES`: tamanho máximo de um upload EML, default `26214400` (25 MiB)
 - `ISSUE_API_MAX_ATTACHMENT_BYTES`: tamanho máximo de cada anexo, default `52428800` (50 MiB)
 - `ISSUE_API_MAX_JSON_BYTES`: tamanho máximo de payload JSON, incluindo pacotes de skills, default `4194304` (4 MiB)
+- `ISSUE_API_RATE_LIMIT_ENABLED`, `ISSUE_API_RATE_LIMIT_WINDOW_SECONDS` e `ISSUE_API_RATE_LIMIT_MAX_REQUESTS`: limite geral persistente por ator; defaults `true`, `60` e `300`
+- `BETTER_AUTH_RATE_LIMIT_ENABLED`, `BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS` e `BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS`: limite por IP e rota do Better Auth; defaults `true`, `10` e `100`
+- `ISSUE_API_KEY_RATE_LIMIT_ENABLED`, `ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS` e `ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS`: cota persistida em cada API key; defaults `true`, `3600` e `1000`
+- `BETTER_AUTH_TRUSTED_PROXIES`: IPs ou CIDRs dos proxies confiáveis, separados por vírgula
 - `ISSUE_DIR`: diretório usado para o espelho local e armazenamento dos anexos importados
 - `ATTACHMENT_STORAGE_PROVIDER`: provider de anexos; atualmente `local` (default)
 - `ATTACHMENT_STORAGE_LOCAL_DIR`: raiz opcional dos anexos no provider local; por padrão usa `ISSUE_DIR`. Caminhos relativos partem da raiz de `biaws`

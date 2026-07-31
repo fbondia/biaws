@@ -7,6 +7,16 @@ const MANAGED_KEYS = [
   "NODE_ENV",
   "BETTER_AUTH_SECURE_COOKIES",
   "ISSUE_API_LOG_HEALTH_REQUESTS",
+  "ISSUE_API_RATE_LIMIT_ENABLED",
+  "ISSUE_API_RATE_LIMIT_WINDOW_SECONDS",
+  "ISSUE_API_RATE_LIMIT_MAX_REQUESTS",
+  "BETTER_AUTH_RATE_LIMIT_ENABLED",
+  "BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS",
+  "BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS",
+  "ISSUE_API_KEY_RATE_LIMIT_ENABLED",
+  "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS",
+  "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS",
+  "BETTER_AUTH_TRUSTED_PROXIES",
 ];
 
 function preserveEnvironment() {
@@ -30,10 +40,30 @@ test("production defaults to secure cookies and quiet health checks", () => {
     process.env.NODE_ENV = "production";
     delete process.env.BETTER_AUTH_SECURE_COOKIES;
     delete process.env.ISSUE_API_LOG_HEALTH_REQUESTS;
+    for (const key of MANAGED_KEYS.filter((key) =>
+      key.includes("RATE_LIMIT"),
+    )) {
+      delete process.env[key];
+    }
 
     const config = getServerConfig();
     assert.equal(config.auth.secureCookies, true);
     assert.equal(config.logging.includeHealthChecks, false);
+    assert.deepEqual(config.rateLimit.api, {
+      enabled: true,
+      windowSeconds: 60,
+      maxRequests: 300,
+    });
+    assert.deepEqual(config.rateLimit.auth, {
+      enabled: true,
+      windowSeconds: 10,
+      maxRequests: 100,
+    });
+    assert.deepEqual(config.rateLimit.apiKey, {
+      enabled: true,
+      windowSeconds: 3600,
+      maxRequests: 1000,
+    });
   } finally {
     restore();
   }
@@ -62,6 +92,26 @@ test("invalid boolean settings fail fast", () => {
       () => getServerConfig(),
       /Invalid boolean environment value/u,
     );
+  } finally {
+    restore();
+  }
+});
+
+test("rate limit settings accept explicit overrides", () => {
+  const restore = preserveEnvironment();
+  try {
+    process.env.ISSUE_API_RATE_LIMIT_ENABLED = "false";
+    process.env.ISSUE_API_RATE_LIMIT_WINDOW_SECONDS = "30";
+    process.env.ISSUE_API_RATE_LIMIT_MAX_REQUESTS = "42";
+    process.env.BETTER_AUTH_TRUSTED_PROXIES = "10.0.0.0/8,127.0.0.1";
+
+    const config = getServerConfig();
+    assert.deepEqual(config.rateLimit.api, {
+      enabled: false,
+      windowSeconds: 30,
+      maxRequests: 42,
+    });
+    assert.deepEqual(config.auth.trustedProxies, ["10.0.0.0/8", "127.0.0.1"]);
   } finally {
     restore();
   }

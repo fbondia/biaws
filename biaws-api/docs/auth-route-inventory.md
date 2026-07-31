@@ -31,23 +31,25 @@ identidades também conserva as verificações internas do Better Auth.
 
 ## Issues e taxonomia
 
-| Método   | Rota                                             | Permissão aplicada                                                                                            |
-| -------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `GET`    | `/api/issues`                                    | `issues.read`                                                                                                 |
-| `POST`   | `/api/issues`                                    | `issues.create`                                                                                               |
-| `POST`   | `/api/issues/imports/eml`                        | `issues.import.eml`                                                                                           |
-| `GET`    | `/api/issues/summary`                            | `issues.read`                                                                                                 |
-| `GET`    | `/api/issues/aggregate`                          | `issues.read`                                                                                                 |
-| `GET`    | `/api/issues/taxonomy`                           | `taxonomy.read`                                                                                               |
-| `PUT`    | `/api/issues/taxonomy`                           | `taxonomy.manage`                                                                                             |
-| `GET`    | `/api/issues/by-taxonomy/:taxonomyId`            | `issues.read`                                                                                                 |
-| `PUT`    | `/api/issues/:id/classification`                 | `issues.classification.update`                                                                                |
-| `PATCH`  | `/api/issues/:id`                                | por campo: `issues.update`, `issues.status.update`, `issues.comment.create` ou `issues.classification.update` |
-| `GET`    | `/api/issues/:id`                                | `issues.read`                                                                                                 |
-| `POST`   | `/api/issues/:id/attachments`                    | `issues.attachment.create`                                                                                    |
-| `GET`    | `/api/issues/:id/attachments/:attachmentId`      | `issues.attachment.read`                                                                                      |
-| `PATCH`  | `/api/issues/:id/attachments/:attachmentId/tags` | `issues.attachment.update`                                                                                    |
-| `DELETE` | `/api/issues/:id/attachments/:attachmentId`      | `issues.attachment.delete`                                                                                    |
+| Método   | Rota                                             | Permissão aplicada                                   |
+| -------- | ------------------------------------------------ | ---------------------------------------------------- |
+| `GET`    | `/api/issues`                                    | `issues.read`                                        |
+| `POST`   | `/api/issues`                                    | `issues.create`                                      |
+| `POST`   | `/api/issues/imports/eml`                        | `issues.import.eml`                                  |
+| `GET`    | `/api/issues/summary`                            | `issues.read`                                        |
+| `GET`    | `/api/issues/aggregate`                          | `issues.read`                                        |
+| `GET`    | `/api/issues/taxonomy`                           | `taxonomy.read`                                      |
+| `PUT`    | `/api/issues/taxonomy`                           | `taxonomy.manage`                                    |
+| `GET`    | `/api/issues/by-taxonomy/:taxonomyId`            | `issues.read`                                        |
+| `PUT`    | `/api/issues/:id/classification`                 | `issues.classification.update`                       |
+| `POST`   | `/api/issues/:id/comments`                       | `issues.comment.create`                              |
+| `PUT`    | `/api/issues/:id/comments/:commentId`            | `issues.comment.update`                              |
+| `PATCH`  | `/api/issues/:id`                                | por campo: `issues.update` ou `issues.status.update` |
+| `GET`    | `/api/issues/:id`                                | `issues.read`                                        |
+| `POST`   | `/api/issues/:id/attachments`                    | `issues.attachment.create`                           |
+| `GET`    | `/api/issues/:id/attachments/:attachmentId`      | `issues.attachment.read`                             |
+| `PATCH`  | `/api/issues/:id/attachments/:attachmentId/tags` | `issues.attachment.update`                           |
+| `DELETE` | `/api/issues/:id/attachments/:attachmentId`      | `issues.attachment.delete`                           |
 
 ## Demandas e tarefas
 

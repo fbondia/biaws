@@ -1,10 +1,24 @@
-import { MessageSquare, Save, Tags, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  MessageSquare,
+  Pencil,
+  Plus,
+  Save,
+  Search,
+  Tags,
+  X,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   deleteEntityAttachment,
+  createIssueComment,
   downloadEntityAttachment,
   fetchEntityAttachment,
+  saveIssueComment,
   updateEntityAttachmentTags,
+  updateIssue,
   uploadEntityAttachments,
 } from "../../../api.js";
 import {
@@ -15,6 +29,7 @@ import { formatDate, statusClass } from "../../../utils/issues.js";
 import { CatalogContextFields } from "../../catalog/CatalogContextFields.jsx";
 import { AuditHistory } from "../../shared/AuditHistory.jsx";
 import { FilesPanel } from "../../shared/FilesPanel.jsx";
+import { MarkdownPreview } from "../../shared/MarkdownEditor/index.jsx";
 import { TaxonomySelector } from "../../taxonomy/TaxonomySelector.jsx";
 import { filterTaxonomyForApplication } from "../../taxonomy/scope.js";
 import {
@@ -26,16 +41,21 @@ import {
   TaxonomySelectionChips,
 } from "./components/ClassificationControls.jsx";
 import { useIssueDetailsDialog } from "./hooks/useIssueDetailsDialog.js";
+import { IssueCommentDialog } from "../IssueCommentDialog.jsx";
+import { IssueDescriptionDialog } from "../IssueDescriptionDialog.jsx";
 
 export function IssueDetailsDialog({
   applications = [],
   canEditContext = false,
+  canCreateComment = false,
+  canUpdateComment = false,
   components = [],
   details,
   error,
   loading,
   onClose,
   onIssueUpdated,
+  onIssueDetailsUpdated,
   onUpdateIssueField,
   preview,
   updatingIssueField,
@@ -240,6 +260,8 @@ export function IssueDetailsDialog({
             applications={applications}
             attachments={attachments}
             canEditContext={canEditContext}
+            canCreateComment={canCreateComment}
+            canUpdateComment={canUpdateComment}
             classificationDraft={classificationDraft}
             classificationMessage={classificationMessage}
             comments={comments}
@@ -252,6 +274,7 @@ export function IssueDetailsDialog({
             issue={issue}
             loading={loading}
             onIssueUpdated={onIssueUpdated}
+            onIssueDetailsUpdated={onIssueDetailsUpdated}
             removeGroupTag={removeGroupTag}
             removeTaxonomy={removeTaxonomy}
             saveClassification={saveClassification}
@@ -327,10 +350,58 @@ function IssueDescriptionTab({
   updatePrimaryTaxonomy,
   updateTaxonomies,
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState({ title: "", text: "" });
+  const [saving, setSaving] = useState(false);
+  const [descriptionError, setDescriptionError] = useState("");
+
+  function openEditor() {
+    setDraft({ title: issue.title || "", text: issue.text || "" });
+    setDescriptionError("");
+    setEditing(true);
+  }
+
+  async function saveDescription() {
+    setSaving(true);
+    setDescriptionError("");
+    try {
+      const payload = await updateIssue(issue.id, {
+        title: draft.title.trim(),
+        text: draft.text.trim(),
+      });
+      await onIssueUpdated?.(payload.issue);
+      setEditing(false);
+    } catch (saveError) {
+      setDescriptionError(saveError.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <section className="detailSection">
-      <h3>Descrição</h3>
-      <pre className="detailText">{issue.text || "-"}</pre>
+      <div className="sectionTitleRow">
+        <h3>Descrição</h3>
+        {canEditContext ? (
+          <button
+            className="secondaryButton"
+            onClick={openEditor}
+            type="button"
+          >
+            <Pencil size={15} /> Editar descrição
+          </button>
+        ) : null}
+      </div>
+      <MarkdownPreview value={issue.text || ""} />
+      <IssueDescriptionDialog
+        draft={draft}
+        error={descriptionError}
+        onChange={setDraft}
+        onClose={() => setEditing(false)}
+        onSave={saveDescription}
+        open={editing}
+        saving={saving}
+      />
     </section>
   );
 }
@@ -409,7 +480,9 @@ function IssueCommentsTab({
   addTaxonomyCatalogNode,
   applications,
   attachments,
+  canCreateComment,
   canEditContext,
+  canUpdateComment,
   classificationDraft,
   classificationMessage,
   comments,
@@ -422,6 +495,7 @@ function IssueCommentsTab({
   issue,
   loading,
   onIssueUpdated,
+  onIssueDetailsUpdated,
   persistedClassification,
   removeGroupTag,
   removeTaxonomy,
@@ -442,45 +516,226 @@ function IssueCommentsTab({
   updatePrimaryTaxonomy,
   updateTaxonomies,
 }) {
+  const [dialogMode, setDialogMode] = useState("");
+  const [selectedCommentId, setSelectedCommentId] = useState("");
+  const [draft, setDraft] = useState({ date: "", text: "" });
+  const [saving, setSaving] = useState(false);
+  const [commentError, setCommentError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [expandedCommentIds, setExpandedCommentIds] = useState(new Set());
+  const mostRecentCommentId = String(
+    comments[0]?._id || comments[0]?.hash || "",
+  );
+  const filteredComments = useMemo(() => {
+    const query = normalizedSearchText(searchTerm);
+    if (!query) return comments;
+    return comments.filter((comment) =>
+      normalizedSearchText(
+        [
+          comment.text,
+          comment.from,
+          comment.to,
+          comment.cc,
+          comment.rawDate,
+        ].join(" "),
+      ).includes(query),
+    );
+  }, [comments, searchTerm]);
+
+  useEffect(() => {
+    setExpandedCommentIds(
+      mostRecentCommentId ? new Set([mostRecentCommentId]) : new Set(),
+    );
+  }, [issue.id, mostRecentCommentId]);
+
+  function dateInputValue(value) {
+    const date = value ? new Date(value) : new Date();
+    return Number.isNaN(date.getTime())
+      ? new Date().toISOString().slice(0, 10)
+      : date.toISOString().slice(0, 10);
+  }
+
+  function openCreate() {
+    setSelectedCommentId("");
+    setDraft({ date: dateInputValue(), text: "" });
+    setCommentError("");
+    setDialogMode("create");
+  }
+
+  function openEdit(comment) {
+    setSelectedCommentId(String(comment._id || ""));
+    setDraft({
+      date: dateInputValue(comment.date || comment.createdAt),
+      text: comment.text || "",
+    });
+    setCommentError("");
+    setDialogMode("edit");
+  }
+
+  async function saveComment() {
+    setSaving(true);
+    setCommentError("");
+    try {
+      const payload =
+        dialogMode === "edit"
+          ? await saveIssueComment(issue.id, selectedCommentId, draft)
+          : await createIssueComment(issue.id, draft);
+      await onIssueDetailsUpdated?.(payload);
+      setDialogMode("");
+    } catch (saveError) {
+      setCommentError(saveError.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function toggleComment(commentId) {
+    setExpandedCommentIds((current) => {
+      const next = new Set(current);
+      if (next.has(commentId)) next.delete(commentId);
+      else next.add(commentId);
+      return next;
+    });
+  }
+
   return (
     <section className="detailSection">
-      <div className="sectionTitleRow">
+      <div className="sectionTitleRow issueCommentSectionTitleRow">
         <h3>Comentários</h3>
-        <span>
-          <MessageSquare size={14} />
-          {comments.length}
-        </span>
+        <div className="issueCommentTitleActions">
+          <span>
+            <MessageSquare size={14} />
+            {searchTerm
+              ? `${filteredComments.length} de ${comments.length}`
+              : comments.length}
+          </span>
+          <label className="issueCommentSearch">
+            <Search aria-hidden="true" size={15} />
+            <span className="srOnly">Pesquisar comentários</span>
+            <input
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Pesquisar comentários"
+              type="search"
+              value={searchTerm}
+            />
+          </label>
+          {canCreateComment ? (
+            <button
+              className="primaryButton"
+              onClick={openCreate}
+              type="button"
+            >
+              <Plus size={16} /> Incluir comentário
+            </button>
+          ) : null}
+        </div>
       </div>
-      {comments.length ? (
+      {commentError ? (
+        <div className="errorBox dialogError">{commentError}</div>
+      ) : null}
+      {filteredComments.length ? (
         <div className="commentList">
-          {comments.map((comment) => (
-            <article className="commentItem" key={comment._id || comment.hash}>
-              <header>
-                <strong>{comment.from || "Origem não identificada"}</strong>
-                <span>{formatDate(comment.date || comment.createdAt)}</span>
-              </header>
-              {comment.to || comment.cc || comment.rawDate ? (
-                <div className="commentMeta">
-                  {comment.to ? <span>Para: {comment.to}</span> : null}
-                  {comment.cc ? <span>Cc: {comment.cc}</span> : null}
-                  {comment.rawDate ? (
-                    <span>Data original: {comment.rawDate}</span>
-                  ) : null}
-                </div>
-              ) : null}
-              <pre>{comment.text || "-"}</pre>
-            </article>
-          ))}
+          {filteredComments.map((comment, index) => {
+            const commentId = String(
+              comment._id || comment.hash || `comment-${index}`,
+            );
+            const expanded = expandedCommentIds.has(commentId);
+            return (
+              <article
+                className={
+                  expanded ? "commentItem" : "commentItem collapsedCommentItem"
+                }
+                key={commentId}
+              >
+                <header>
+                  <div>
+                    <strong>{comment.from || "Origem não identificada"}</strong>
+                    <span>{formatDate(comment.date || comment.createdAt)}</span>
+                  </div>
+                  <div className="issueCommentItemActions">
+                    {canUpdateComment && comment._id ? (
+                      <button
+                        className="secondaryButton issueCommentEditButton"
+                        onClick={() => openEdit(comment)}
+                        title="Editar comentário"
+                        type="button"
+                      >
+                        <Pencil size={15} /> Editar
+                      </button>
+                    ) : null}
+                    <button
+                      aria-expanded={expanded}
+                      className="secondaryButton issueCommentToggleButton"
+                      onClick={() => toggleComment(commentId)}
+                      title={
+                        expanded ? "Contrair comentário" : "Expandir comentário"
+                      }
+                      type="button"
+                    >
+                      {expanded ? (
+                        <ChevronUp size={15} />
+                      ) : (
+                        <ChevronDown size={15} />
+                      )}
+                    </button>
+                  </div>
+                </header>
+                {expanded ? (
+                  <>
+                    {comment.to || comment.cc || comment.rawDate ? (
+                      <div className="commentMeta">
+                        {comment.to ? <span>Para: {comment.to}</span> : null}
+                        {comment.cc ? <span>Cc: {comment.cc}</span> : null}
+                        {comment.rawDate ? (
+                          <span>Data original: {comment.rawDate}</span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    <MarkdownPreview value={comment.text || ""} />
+                  </>
+                ) : (
+                  <p className="commentCollapsedPreview">
+                    {commentPreview(comment.text)}
+                  </p>
+                )}
+              </article>
+            );
+          })}
         </div>
       ) : (
         <div className="emptyState compactEmpty">
           {loading
             ? "Carregando comentários..."
-            : "Nenhum comentário registrado."}
+            : searchTerm
+              ? "Nenhum comentário encontrado."
+              : "Nenhum comentário registrado."}
         </div>
       )}
+      <IssueCommentDialog
+        draft={draft}
+        mode={dialogMode}
+        onChange={setDraft}
+        onClose={() => setDialogMode("")}
+        onSave={saveComment}
+        saving={saving}
+      />
     </section>
   );
+}
+
+function normalizedSearchText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/gu, "")
+    .toLocaleLowerCase("pt-BR");
+}
+
+function commentPreview(value) {
+  const text = String(value || "")
+    .replace(/^\s*>\s?/gmu, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+  return text || "Comentário sem conteúdo.";
 }
 
 function IssueFilesTab({

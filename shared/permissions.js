@@ -35,6 +35,7 @@ const definitions = [
   ["issues.update", "Issues", "Alterar dados gerais de issues"],
   ["issues.status.update", "Issues", "Alterar o status de issues"],
   ["issues.comment.create", "Issues", "Adicionar comentários a issues"],
+  ["issues.comment.update", "Issues", "Alterar comentários de issues"],
   [
     "issues.classification.update",
     "Issues",

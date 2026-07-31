@@ -226,6 +226,13 @@ export function useApp(actor) {
     await loadData();
   }
 
+  async function updateIssueDetails(payload) {
+    if (!payload?.issue) return;
+    applyUpdatedIssue(payload.issue);
+    setIssueDetails(payload);
+    await loadData();
+  }
+
   async function updateIssueField(issue, field, value) {
     if (!issue?.id || issue[field] === value) return;
 
@@ -307,6 +314,7 @@ export function useApp(actor) {
     onCloseIssue: closeIssue,
     onFilterChange: updateDraft,
     onIssueUpdated: updateIssueAfterClassification,
+    onIssueDetailsUpdated: updateIssueDetails,
     onImportCompleted: loadData,
     onClearMonthTaxonomy: clearMonthTaxonomy,
     onNextPage: () => setPage((current) => Math.min(totalPages, current + 1)),

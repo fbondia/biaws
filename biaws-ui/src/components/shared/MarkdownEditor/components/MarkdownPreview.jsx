@@ -38,9 +38,18 @@ function MarkdownBlock({ block }) {
   if (block.type === "list") return <MarkdownList list={block.list} />;
   if (block.type === "horizontal-rule") return <hr />;
   if (block.type === "quote")
-    return <blockquote>{renderInlineMarkdown(block.text)}</blockquote>;
+    return <blockquote>{renderMultilineInlineMarkdown(block.text)}</blockquote>;
   if (block.type === "table") return <MarkdownTable lines={block.lines} />;
   return <p>{renderInlineMarkdown(block.text)}</p>;
+}
+
+function renderMultilineInlineMarkdown(text) {
+  return String(text || "")
+    .split("\n")
+    .flatMap((line, index) => [
+      ...(index ? [<br key={`break-${index}`} />] : []),
+      ...renderInlineMarkdown(line),
+    ]);
 }
 
 function MarkdownList({ list }) {

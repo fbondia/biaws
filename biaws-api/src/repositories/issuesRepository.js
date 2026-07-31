@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { ObjectId } from "mongodb";
 
 import {
   DEFAULT_ISSUE_STATUS,
@@ -142,6 +143,15 @@ function normalizeClassificationPayload(payload = {}) {
 function normalizeIssuePatchPayload(payload = {}, issueOptions) {
   const $set = {};
 
+  for (const field of ["title", "text"]) {
+    if (!Object.hasOwn(payload, field)) continue;
+    const value = String(payload[field] || "").trim();
+    if (!value) {
+      throw createHttpError(422, `Invalid issue payload: ${field} is required`);
+    }
+    $set[field] = value;
+  }
+
   if (Object.hasOwn(payload, "type")) {
     const type = String(payload.type || "").trim();
     if (!issueOptions.types.includes(type)) {
@@ -167,7 +177,7 @@ function normalizeIssuePatchPayload(payload = {}, issueOptions) {
   if (!Object.keys($set).length && !knowledgeContextWasProvided(payload)) {
     throw createHttpError(
       422,
-      "Invalid issue payload: type, status or application context is required",
+      "Invalid issue payload: title, text, type, status or application context is required",
     );
   }
 
@@ -276,6 +286,37 @@ function hashComment(issueId, text, date) {
     .createHash("sha256")
     .update(`${issueId}\n${date.toISOString()}\n${text}`)
     .digest("hex");
+}
+
+function normalizeCommentPayload(payload = {}) {
+  const text = String(payload.text || "").trim();
+  if (!text) {
+    throw createHttpError(
+      422,
+      "Invalid issue comment payload: text is required",
+    );
+  }
+
+  return {
+    text,
+    date: parseIssueDate(payload.date),
+  };
+}
+
+function commentObjectId(commentId) {
+  if (!ObjectId.isValid(commentId)) {
+    throw createHttpError(404, `Issue comment not found: ${commentId}`);
+  }
+  return new ObjectId(commentId);
+}
+
+async function ensureIssueExists(db, issueId, query = {}) {
+  const issue = await db.collection(ISSUES_COLLECTION).findOne({
+    id: issueId,
+    ...buildKnowledgeContextFilter(query),
+  });
+  if (!issue) throw createHttpError(404, `Issue not found: ${issueId}`);
+  return issue;
 }
 
 function withDateType(filter, datePath) {
@@ -527,7 +568,7 @@ export async function getIssue(issueId, query = {}) {
     ? await db
         .collection(COMMENTS_COLLECTION)
         .find({ issueId })
-        .sort({ index: 1, date: 1, createdAt: 1, _id: 1 })
+        .sort({ date: -1, createdAt: -1, index: -1, _id: -1 })
         .toArray()
     : [];
 
@@ -613,6 +654,94 @@ export async function createIssue(payload = {}, query = {}) {
     issueId,
     ...(await getIssue(issueId, query)),
   };
+}
+
+export async function createIssueComment(issueId, payload = {}, query = {}) {
+  const db = await getMongoDatabase({ db: query.db, database: query.database });
+  await ensureIndexes(db);
+  await ensureIssueExists(db, issueId, query);
+
+  const comment = normalizeCommentPayload(payload);
+  const now = new Date();
+  const lastComment = await db
+    .collection(COMMENTS_COLLECTION)
+    .find({ issueId })
+    .project({ index: 1 })
+    .sort({ index: -1 })
+    .limit(1)
+    .next();
+
+  const insertResult = await db.collection(COMMENTS_COLLECTION).insertOne({
+    issueId,
+    hash: hashComment(issueId, comment.text, comment.date),
+    text: comment.text,
+    from: payload.createdBy || "biaws-api",
+    to: [],
+    cc: [],
+    date: comment.date,
+    rawDate: comment.date.toISOString(),
+    index: Number(lastComment?.index ?? -1) + 1,
+    source: { kind: "api" },
+    createdAt: now,
+    createdBy: payload.createdBy || "biaws-api",
+    updatedAt: now,
+    updatedBy: payload.createdBy || "biaws-api",
+  });
+  await db.collection(ISSUES_COLLECTION).updateOne(
+    { id: issueId },
+    {
+      $set: {
+        updatedAt: now,
+        updatedBy: payload.createdBy || "biaws-api",
+      },
+    },
+  );
+
+  return {
+    ...(await getIssue(issueId, query)),
+    createdCommentId: insertResult.insertedId.toString(),
+  };
+}
+
+export async function updateIssueComment(
+  issueId,
+  commentId,
+  payload = {},
+  query = {},
+) {
+  const db = await getMongoDatabase({ db: query.db, database: query.database });
+  await ensureIndexes(db);
+  await ensureIssueExists(db, issueId, query);
+
+  const comment = normalizeCommentPayload(payload);
+  const now = new Date();
+  const result = await db.collection(COMMENTS_COLLECTION).updateOne(
+    { _id: commentObjectId(commentId), issueId },
+    {
+      $set: {
+        text: comment.text,
+        date: comment.date,
+        rawDate: comment.date.toISOString(),
+        hash: hashComment(issueId, comment.text, comment.date),
+        updatedAt: now,
+        updatedBy: payload.updatedBy || "biaws-api",
+      },
+    },
+  );
+  if (!result.matchedCount) {
+    throw createHttpError(404, `Issue comment not found: ${commentId}`);
+  }
+  await db.collection(ISSUES_COLLECTION).updateOne(
+    { id: issueId },
+    {
+      $set: {
+        updatedAt: now,
+        updatedBy: payload.updatedBy || "biaws-api",
+      },
+    },
+  );
+
+  return getIssue(issueId, query);
 }
 
 export async function saveIssueClassification(

@@ -1,0 +1,136 @@
+.issueFormDialog {
+  display: flex;
+  width: min(900px, 100%);
+  max-height: min(880px, calc(100dvh - 44px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.issueFormDialogHeader,
+.issueFormDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.issueFormDialogHeader {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.issueFormDialogHeader span {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.issueFormDialogHeader h2 {
+  margin: 3px 0 0;
+  font-size: 20px;
+}
+
+.issueFormDialogBody {
+  display: grid;
+  gap: 18px;
+  overflow: auto;
+  padding: 18px 20px 22px;
+}
+
+.issueFormGrid {
+  display: grid;
+  grid-template-columns: 2fr repeat(3, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.issueFormMarkdownField .markdownEditor > textarea,
+.issueFormMarkdownField .markdownEditor > .markdownPreview {
+  min-height: 150px;
+}
+
+.issueFormDialogFooter {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+.issueFormDialogFooter button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.issueDescriptionDialogBackdrop {
+  z-index: 30;
+}
+
+.issueDescriptionDialog {
+  width: min(800px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.issueDescriptionDialogHeader,
+.issueDescriptionDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.issueDescriptionDialogHeader {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.issueDescriptionDialogHeader span {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.issueDescriptionDialogHeader h3 {
+  margin: 3px 0 0;
+}
+
+.issueDescriptionDialogBody {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px;
+}
+
+.issueDescriptionContentField .markdownEditor > textarea,
+.issueDescriptionContentField .markdownEditor > .markdownPreview {
+  min-height: 300px;
+}
+
+.issueDescriptionDialogFooter {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+.issueDescriptionDialogFooter button,
+.sectionTitleRow > .secondaryButton,
+.issueCommentEditButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+@media (max-width: 760px) {
+  .issueFormGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .issueFormTitleField {
+    grid-column: 1 / -1;
+  }
+}

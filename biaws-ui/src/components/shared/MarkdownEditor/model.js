@@ -68,7 +68,7 @@ function readQuoteBlock(lines, startIndex) {
     index += 1;
   }
   return {
-    value: { type: "quote", text: content.join(" ") },
+    value: { type: "quote", text: content.join("\n") },
     nextIndex: index,
   };
 }
@@ -119,7 +119,10 @@ function markdownBlockToHtml(block) {
   if (block.type === "list") return markdownListToHtml(block.list);
   if (block.type === "horizontal-rule") return "<hr>";
   if (block.type === "quote")
-    return `<blockquote>${renderInlineMarkdownHtml(block.text)}</blockquote>`;
+    return `<blockquote>${block.text
+      .split("\n")
+      .map(renderInlineMarkdownHtml)
+      .join("<br>")}</blockquote>`;
   if (block.type === "table") return markdownTableToHtml(block.lines);
   return `<p>${renderInlineMarkdownHtml(block.text)}</p>`;
 }

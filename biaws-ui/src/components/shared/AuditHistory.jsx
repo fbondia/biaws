@@ -10,6 +10,7 @@ const ACTION_LABELS = {
   reordered: "Reordenou",
   status_changed: "Alterou o status",
   comment_added: "Adicionou comentário",
+  comment_updated: "Alterou comentário",
   note_added: "Adicionou anotação",
   note_updated: "Alterou anotação",
   note_deleted: "Excluiu anotação",

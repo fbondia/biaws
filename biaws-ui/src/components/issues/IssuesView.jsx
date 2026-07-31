@@ -2,6 +2,7 @@ import { BarChart3, Filter, FilterX, RefreshCw, Table2 } from "lucide-react";
 import { useState } from "react";
 
 import { IssueDetailsDialog } from "./IssueDetailsDialog/index.jsx";
+import { CreateIssueDialog } from "./CreateIssueDialog.jsx";
 import { ImportEmlDialog } from "./ImportEmlDialog.jsx";
 import { IssueFilters } from "./IssueFilters/index.jsx";
 import { IssueList } from "./IssueList.jsx";
@@ -83,17 +84,24 @@ function IssuesPanel({ activeTab, listProps, summaryProps }) {
 }
 
 function IssueOverlays({
+  canCreate,
+  canCreateComment,
   canImport,
   canConfigureImport,
+  canUpdateComment,
   canUpdateIssue,
   canUpdateStatus,
   catalog,
+  createOpen,
   detailError,
   detailLoading,
   importOpen,
+  onCloseCreate,
   onCloseImport,
   onCloseIssue,
+  onCreateCompleted,
   onImportCompleted,
+  onIssueDetailsUpdated,
   onIssueUpdated,
   onUpdateIssueField,
   selectedIssue,
@@ -106,15 +114,26 @@ function IssueOverlays({
         <IssueDetailsDialog
           applications={catalog.applications}
           canEditContext={canUpdateIssue}
+          canCreateComment={canCreateComment}
+          canUpdateComment={canUpdateComment}
           components={catalog.components}
           details={selectedIssueDetails}
           error={detailError}
           loading={detailLoading}
           onClose={onCloseIssue}
           onIssueUpdated={onIssueUpdated}
+          onIssueDetailsUpdated={onIssueDetailsUpdated}
           onUpdateIssueField={canUpdateStatus ? onUpdateIssueField : undefined}
           preview={selectedIssue}
           updatingIssueField={updatingIssueField}
+        />
+      ) : null}
+      {canCreate && createOpen ? (
+        <CreateIssueDialog
+          applications={catalog.applications}
+          components={catalog.components}
+          onClose={onCloseCreate}
+          onCreated={onCreateCompleted}
         />
       ) : null}
       {canImport && importOpen ? (
@@ -149,6 +168,7 @@ export function IssuesView({
   onClearFilters,
   onClearMonthTaxonomy,
   onCloseIssue,
+  onIssueDetailsUpdated,
   onFilterChange,
   onIssueUpdated,
   onImportCompleted,
@@ -172,7 +192,11 @@ export function IssuesView({
 }) {
   const [activeTab, setActiveTab] = useState("results");
   const [filtersVisible, setFiltersVisible] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const canCreate = hasPermission(actor, "issues.create");
+  const canCreateComment = hasPermission(actor, "issues.comment.create");
+  const canUpdateComment = hasPermission(actor, "issues.comment.update");
   const canImport = hasPermission(actor, "issues.import.eml");
   const canConfigureImport =
     actor?.permissionScopes?.["issues.import.eml"]?.workspace === true;
@@ -194,6 +218,7 @@ export function IssuesView({
     loading,
     meta,
     onNextPage,
+    onOpenCreate: canCreate ? () => setCreateOpen(true) : undefined,
     onOpenImport: canImport ? () => setImportOpen(true) : undefined,
     onOpenIssue,
     onPreviousPage,
@@ -273,17 +298,24 @@ export function IssuesView({
       </div>
 
       <IssueOverlays
+        canCreate={canCreate}
+        canCreateComment={canCreateComment}
         canConfigureImport={canConfigureImport}
         canImport={canImport}
+        canUpdateComment={canUpdateComment}
         canUpdateIssue={canUpdateIssue}
         canUpdateStatus={canUpdateStatus}
         catalog={catalog}
+        createOpen={createOpen}
         detailError={detailError}
         detailLoading={detailLoading}
         importOpen={importOpen}
+        onCloseCreate={() => setCreateOpen(false)}
         onCloseImport={() => setImportOpen(false)}
         onCloseIssue={onCloseIssue}
+        onCreateCompleted={onImportCompleted}
         onImportCompleted={onImportCompleted}
+        onIssueDetailsUpdated={onIssueDetailsUpdated}
         onIssueUpdated={onIssueUpdated}
         onUpdateIssueField={onUpdateIssueField}
         selectedIssue={selectedIssue}

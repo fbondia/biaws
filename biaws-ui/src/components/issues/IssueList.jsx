@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
+  Plus,
   Upload,
 } from "lucide-react";
 
@@ -129,6 +130,7 @@ export function IssueList({
   loading,
   meta,
   onNextPage,
+  onOpenCreate,
   onOpenImport,
   onOpenIssue,
   onPreviousPage,
@@ -160,6 +162,16 @@ export function IssueList({
           </span>
         </div>
         <div className="pagination">
+          {onOpenCreate ? (
+            <button
+              className="primaryButton"
+              onClick={onOpenCreate}
+              type="button"
+            >
+              <Plus size={16} />
+              Incluir issue
+            </button>
+          ) : null}
           {onOpenImport ? (
             <button
               className="secondaryButton"

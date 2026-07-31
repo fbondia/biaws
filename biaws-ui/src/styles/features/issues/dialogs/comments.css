@@ -1,9 +1,20 @@
-.commentItem header {
+.commentItem header,
+.commentItem header > div,
+.issueCommentTitleActions {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+}
+
+.commentItem header {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
+}
+
+.commentItem header > div {
+  min-width: 0;
+  align-items: baseline;
+  gap: 10px;
 }
 
 .commentItem header strong {
@@ -34,4 +45,177 @@
 .compactEmpty {
   padding: 10px 0 0;
   text-align: left;
+}
+
+.issueCommentTitleActions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.issueCommentTitleActions .primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.issueCommentSearch {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.issueCommentSearch > svg {
+  position: absolute;
+  left: 10px;
+  color: var(--color-text-subtle);
+  pointer-events: none;
+}
+
+.issueCommentSearch input {
+  width: min(260px, 32vw);
+  min-height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 7px 10px 7px 32px;
+}
+
+.issueCommentSearch input:focus {
+  border-color: var(--color-focus);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.issueCommentItemActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.issueCommentToggleButton,
+.issueCommentEditButton {
+  min-height: 32px;
+  padding: 5px 9px;
+}
+
+.commentCollapsedPreview {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.collapsedCommentItem {
+  background: var(--color-surface-subtle);
+  padding-block: 10px;
+}
+
+.collapsedCommentItem header {
+  margin-bottom: 5px;
+}
+
+.commentItem .markdownPreview {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.issueCommentDialogBackdrop {
+  z-index: 30;
+}
+
+.issueCommentDialog {
+  width: min(760px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.issueCommentDialogHeader,
+.issueCommentDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.issueCommentDialogHeader {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.issueCommentDialogHeader span {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.issueCommentDialogHeader h3 {
+  margin: 3px 0 0;
+}
+
+.issueCommentDialogBody {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px;
+}
+
+.issueCommentDateField {
+  max-width: 220px;
+}
+
+.issueCommentContentField .markdownEditor > textarea,
+.issueCommentContentField .markdownEditor > .markdownPreview {
+  min-height: 260px;
+}
+
+.issueCommentDialogFooter {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+.issueCommentDialogFooter button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+@media (max-width: 760px) {
+  .issueCommentSectionTitleRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .issueCommentTitleActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .issueCommentSearch {
+    flex: 1 1 220px;
+  }
+
+  .issueCommentSearch input {
+    width: 100%;
+  }
+
+  .commentItem header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .issueCommentItemActions {
+    width: 100%;
+  }
 }

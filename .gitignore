@@ -11,6 +11,11 @@ biaws-ui/sonar-project.properties
 backups/
 temp/
 instances/
+biaws-data/
 debug-api.sh
 debug-stop.sh
 debug-ui.sh
+.codex/config.toml
+.agents/biaws-skills.lock.json
+.agents/skills/biaws-operate-workspace/SKILL.md
+.agents/skills/biaws-operate-workspace/agents/openai.yaml

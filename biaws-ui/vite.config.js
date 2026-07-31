@@ -8,11 +8,19 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     build: {
-      rollupOptions: {
+      rolldownOptions: {
         output: {
-          manualChunks: {
-            charts: ["recharts"],
-            topology: ["@xyflow/react"],
+          codeSplitting: {
+            groups: [
+              {
+                name: "charts",
+                test: /node_modules[\\/]recharts/,
+              },
+              {
+                name: "topology",
+                test: /node_modules[\\/]@xyflow[\\/]react/,
+              },
+            ],
           },
         },
       },

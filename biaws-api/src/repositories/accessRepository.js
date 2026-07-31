@@ -130,6 +130,7 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
       "tasks.note.delete",
       "tasks.attachment.read",
       "taxonomy.read",
+      "taxonomy.manage",
       "procedures.read",
       "procedures.create",
       "procedures.update",

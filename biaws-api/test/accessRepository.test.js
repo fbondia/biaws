@@ -38,6 +38,7 @@ test("agent operator excludes administrative and catalog publication permissions
   assert.ok(agent.permissions.includes("demands.attachment.read"));
   assert.ok(agent.permissions.includes("tasks.attachment.read"));
   assert.ok(agent.permissions.includes("procedures.attachment.read"));
+  assert.ok(agent.permissions.includes("taxonomy.manage"));
   assert.ok(
     agent.permissions.every(
       (permission) =>

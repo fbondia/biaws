@@ -92,6 +92,10 @@ conhecimento.
   `biaws-api`, inclusive por workspace, aplicação e componente afetado.
 - `issues_get`: obtém uma issue com comentários.
 - `issues_get_classification_catalog`: obtém a árvore taxonômica e os grupos de tags válidos; opcionalmente inclui listas achatadas de IDs e caminhos.
+- `issues_create_taxonomy_item`: inclui um item na raiz ou sob outro item,
+  opcionalmente configurando seu escopo por aplicações.
+- `issues_update_taxonomy_item`: altera o nome ou o escopo por aplicações de
+  um item existente, preservando seu ID e seus descendentes.
 - `issues_summary`: retorna agregados por dia, semana, mês, ano, tipo, status e taxonomia.
 - `issues_aggregate`: retorna uma agregação específica.
 - `issues_create`: cria uma issue manual com origem `mcp`; `applicationId` é

@@ -20,6 +20,84 @@ function flattenTaxonomy(nodes = [], parentPath = []) {
   });
 }
 
+function findTaxonomyNode(nodes = [], taxonomyId) {
+  for (const node of nodes) {
+    if (node.id === taxonomyId) return node;
+    const child = findTaxonomyNode(node.children || [], taxonomyId);
+    if (child) return child;
+  }
+  return null;
+}
+
+function appendTaxonomyNode(nodes = [], parentId, item) {
+  if (!parentId) return [...nodes, item];
+
+  return nodes.map((node) =>
+    node.id === parentId
+      ? { ...node, children: [...(node.children || []), item] }
+      : {
+          ...node,
+          ...(node.children
+            ? {
+                children: appendTaxonomyNode(node.children, parentId, item),
+              }
+            : {}),
+        },
+  );
+}
+
+function updateTaxonomyNode(nodes = [], taxonomyId, patch) {
+  return nodes.map((node) =>
+    node.id === taxonomyId
+      ? { ...node, ...patch }
+      : {
+          ...node,
+          ...(node.children
+            ? {
+                children: updateTaxonomyNode(node.children, taxonomyId, patch),
+              }
+            : {}),
+        },
+  );
+}
+
+function normalizeApplicationIds(value) {
+  return [
+    ...new Set(
+      (value || [])
+        .map((applicationId) => String(applicationId || "").trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
+function writableTaxonomyPackage(taxonomy) {
+  return {
+    schemaVersion: taxonomy.schemaVersion || 1,
+    source: taxonomy.source || null,
+    tagGroups: taxonomy.tagGroups || [],
+    taxonomy: taxonomy.taxonomy || [],
+    updatedBy: "biaws-mcp",
+  };
+}
+
+async function loadWritableTaxonomy(workspaceId) {
+  const payload = await fetchJson(
+    "/api/issues/taxonomy",
+    cleanParams({ workspaceId }),
+  );
+  if (!payload.taxonomy) throw new Error("Issue taxonomy not found");
+  return writableTaxonomyPackage(payload.taxonomy);
+}
+
+async function saveWritableTaxonomy(taxonomy, workspaceId) {
+  return sendJson(
+    "/api/issues/taxonomy",
+    taxonomy,
+    cleanParams({ workspaceId }),
+  );
+}
+
 function tokenize(value) {
   return String(value || "")
     .normalize("NFKD")
@@ -83,6 +161,70 @@ export async function getIssueClassificationCatalog(args = {}) {
   }
 
   return result;
+}
+
+export async function createTaxonomyItem(args = {}) {
+  const id = String(args.id || "").trim();
+  const label = String(args.label || "").trim();
+  const parentId = String(args.parentId || "").trim();
+  if (!id) throw new Error("id is required");
+  if (!label) throw new Error("label is required");
+
+  const taxonomy = await loadWritableTaxonomy(args.workspaceId);
+  if (findTaxonomyNode(taxonomy.taxonomy, id)) {
+    throw new Error(`Taxonomy item already exists: ${id}`);
+  }
+  const parent = parentId
+    ? findTaxonomyNode(taxonomy.taxonomy, parentId)
+    : null;
+  if (parentId && !parent) {
+    throw new Error(`Parent taxonomy item not found: ${parentId}`);
+  }
+
+  const item = {
+    id,
+    label,
+    applicationIds:
+      args.applicationIds === undefined
+        ? normalizeApplicationIds(parent?.applicationIds)
+        : normalizeApplicationIds(args.applicationIds),
+  };
+  taxonomy.taxonomy = appendTaxonomyNode(taxonomy.taxonomy, parentId, item);
+  const result = await saveWritableTaxonomy(taxonomy, args.workspaceId);
+  return {
+    item: findTaxonomyNode(result.taxonomy?.taxonomy || [], id),
+    parentId: parentId || null,
+    taxonomy: result.taxonomy,
+  };
+}
+
+export async function updateTaxonomyItem(args = {}) {
+  const taxonomyId = String(args.taxonomyId || "").trim();
+  if (!taxonomyId) throw new Error("taxonomyId is required");
+  if (args.label === undefined && args.applicationIds === undefined) {
+    throw new Error("label or applicationIds is required");
+  }
+
+  const taxonomy = await loadWritableTaxonomy(args.workspaceId);
+  if (!findTaxonomyNode(taxonomy.taxonomy, taxonomyId)) {
+    throw new Error(`Taxonomy item not found: ${taxonomyId}`);
+  }
+
+  const patch = {};
+  if (args.label !== undefined) {
+    const label = String(args.label || "").trim();
+    if (!label) throw new Error("label must be a non-empty string");
+    patch.label = label;
+  }
+  if (args.applicationIds !== undefined) {
+    patch.applicationIds = normalizeApplicationIds(args.applicationIds);
+  }
+  taxonomy.taxonomy = updateTaxonomyNode(taxonomy.taxonomy, taxonomyId, patch);
+  const result = await saveWritableTaxonomy(taxonomy, args.workspaceId);
+  return {
+    item: findTaxonomyNode(result.taxonomy?.taxonomy || [], taxonomyId),
+    taxonomy: result.taxonomy,
+  };
 }
 
 export async function summarizeIssuesForSupport(args = {}) {

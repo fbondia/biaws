@@ -1,5 +1,6 @@
 import {
   classifyIssue,
+  createTaxonomyItem,
   createIssue,
   importEml,
   findIssuesByTaxonomy,
@@ -9,6 +10,7 @@ import {
   summarizeIssuesForSupport,
   suggestTaxonomy,
   updateIssueState,
+  updateTaxonomyItem,
 } from "./domains/issues/service.js";
 import {
   addDemandNote,
@@ -186,6 +188,64 @@ const tools = [
       },
     },
     handler: getIssueClassificationCatalog,
+  },
+  {
+    name: "issues_create_taxonomy_item",
+    description:
+      "Inclui um item na taxonomia compartilhada de issues e procedimentos, na raiz ou sob um item pai.",
+    inputSchema: {
+      type: "object",
+      required: ["id", "label"],
+      additionalProperties: false,
+      properties: {
+        id: {
+          type: "string",
+          description: "ID único e estável do novo item",
+        },
+        label: { type: "string", description: "Nome exibido do item" },
+        parentId: {
+          type: "string",
+          description: "ID do item pai; quando omitido, inclui na raiz",
+        },
+        applicationIds: {
+          type: "array",
+          maxItems: 100,
+          uniqueItems: true,
+          items: { type: "string" },
+          description:
+            "Aplicações às quais o item se aplica; vazio significa todo o escopo permitido pelo pai. Quando omitido, herda a configuração explícita do pai",
+        },
+        workspaceId: { type: "string", description: "ID do workspace" },
+      },
+    },
+    handler: createTaxonomyItem,
+  },
+  {
+    name: "issues_update_taxonomy_item",
+    description:
+      "Altera ou configura o nome e o escopo por aplicações de um item existente da taxonomia compartilhada.",
+    inputSchema: {
+      type: "object",
+      required: ["taxonomyId"],
+      additionalProperties: false,
+      properties: {
+        taxonomyId: {
+          type: "string",
+          description: "ID estável do item a alterar",
+        },
+        label: { type: "string", description: "Novo nome exibido" },
+        applicationIds: {
+          type: "array",
+          maxItems: 100,
+          uniqueItems: true,
+          items: { type: "string" },
+          description:
+            "Novo escopo por aplicações; vazio significa todo o escopo permitido pelo pai",
+        },
+        workspaceId: { type: "string", description: "ID do workspace" },
+      },
+    },
+    handler: updateTaxonomyItem,
   },
   {
     name: "issues_summary",

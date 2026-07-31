@@ -77,7 +77,8 @@ Crie ou selecione uma instância e configure o projeto consumidor:
 O script:
 
 1. cria `instances/meu-projeto/.env`, se necessário;
-2. cria os comandos `instances/meu-projeto/start.sh` e `stop.sh`;
+2. cria os comandos de start, stop, backup e restore em
+   `instances/meu-projeto`;
 3. seleciona portas livres para o MongoDB, a API e a UI;
 4. gera um `BETTER_AUTH_SECRET` local;
 5. constrói e inicia MongoDB, API e UI;
@@ -106,7 +107,13 @@ Inicie e pare a instância com:
 ```bash
 instances/meu-projeto/start.sh
 instances/meu-projeto/stop.sh
+instances/meu-projeto/backup-mongo.sh
+instances/meu-projeto/restore-mongo.sh backups/biaws-<data>.archive.gz
 ```
+
+O backup lógico do MongoDB recebe timestamp e checksum SHA-256. O restore
+confere o checksum, quando presente, e solicita confirmação explícita antes de
+substituir o banco da instância.
 
 Para informar sua própria credencial:
 

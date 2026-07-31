@@ -80,11 +80,15 @@ replace_env_value() {
 write_instance_control_scripts() {
   local start_file="${INSTANCE_DIR}/start.sh"
   local stop_file="${INSTANCE_DIR}/stop.sh"
+  local backup_file="${INSTANCE_DIR}/backup-mongo.sh"
+  local restore_file="${INSTANCE_DIR}/restore-mongo.sh"
   local quoted_root
   local quoted_env
+  local quoted_instance_dir
   local quoted_project
   printf -v quoted_root '%q' "${ROOT_DIR}"
   printf -v quoted_env '%q' "${ENV_FILE}"
+  printf -v quoted_instance_dir '%q' "${INSTANCE_DIR}"
   printf -v quoted_project '%q' "biaws-${INSTANCE}"
 
   cat > "${start_file}" <<EOF
@@ -121,7 +125,133 @@ exec docker compose \\
   stop "\$@"
 EOF
 
-  chmod 755 "${start_file}" "${stop_file}"
+  cat > "${backup_file}" <<EOF
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BIAWS_ROOT=${quoted_root}
+BIAWS_ENV_FILE=${quoted_env}
+BIAWS_INSTANCE_DIR=${quoted_instance_dir}
+BIAWS_COMPOSE_PROJECT=${quoted_project}
+BIAWS_MONGO_DB="\$(awk -F= '\$1 == "MONGO_DB" { print substr(\$0, index(\$0, "=") + 1) }' "\${BIAWS_ENV_FILE}" | tail -n 1)"
+BIAWS_MONGO_DB="\${BIAWS_MONGO_DB:-biaws}"
+
+if [[ "\$#" -gt 1 ]]; then
+  echo "Uso: \$0 [diretório de destino]" >&2
+  exit 2
+fi
+
+backup_dir="\${1:-\${BIAWS_INSTANCE_DIR}/backups}"
+mkdir -p "\${backup_dir}"
+backup_dir="\$(cd "\${backup_dir}" && pwd -P)"
+timestamp="\$(date -u +%Y%m%dT%H%M%SZ)"
+archive="\${backup_dir}/\${BIAWS_MONGO_DB}-\${timestamp}.archive.gz"
+temporary_archive="\${archive}.tmp"
+trap 'rm -f "\${temporary_archive}"' EXIT
+
+docker compose \\
+  --project-directory "\${BIAWS_ROOT}" \\
+  --file "\${BIAWS_ROOT}/compose.yaml" \\
+  --env-file "\${BIAWS_ENV_FILE}" \\
+  --project-name "\${BIAWS_COMPOSE_PROJECT}" \\
+  exec -T mongo mongodump \\
+    --db="\${BIAWS_MONGO_DB}" \\
+    --archive \\
+    --gzip > "\${temporary_archive}"
+
+mv "\${temporary_archive}" "\${archive}"
+trap - EXIT
+if command -v sha256sum >/dev/null 2>&1; then
+  (cd "\${backup_dir}" && sha256sum "\$(basename "\${archive}")" > "\$(basename "\${archive}").sha256")
+elif command -v shasum >/dev/null 2>&1; then
+  (cd "\${backup_dir}" && shasum -a 256 "\$(basename "\${archive}")" > "\$(basename "\${archive}").sha256")
+else
+  echo "Aviso: sha256sum/shasum não encontrado; checksum não gerado." >&2
+fi
+
+echo "Backup do MongoDB criado: \${archive}"
+EOF
+
+  cat > "${restore_file}" <<EOF
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BIAWS_ROOT=${quoted_root}
+BIAWS_ENV_FILE=${quoted_env}
+BIAWS_COMPOSE_PROJECT=${quoted_project}
+BIAWS_MONGO_DB="\$(awk -F= '\$1 == "MONGO_DB" { print substr(\$0, index(\$0, "=") + 1) }' "\${BIAWS_ENV_FILE}" | tail -n 1)"
+BIAWS_MONGO_DB="\${BIAWS_MONGO_DB:-biaws}"
+
+assume_yes=0
+archive=""
+for argument in "\$@"; do
+  case "\${argument}" in
+    --yes|-y) assume_yes=1 ;;
+    -*)
+      echo "Opção desconhecida: \${argument}" >&2
+      exit 2
+      ;;
+    *)
+      if [[ -n "\${archive}" ]]; then
+        echo "Uso: \$0 <arquivo.archive.gz> [--yes]" >&2
+        exit 2
+      fi
+      archive="\${argument}"
+      ;;
+  esac
+done
+
+if [[ -z "\${archive}" || ! -f "\${archive}" ]]; then
+  echo "Uso: \$0 <arquivo.archive.gz> [--yes]" >&2
+  exit 2
+fi
+archive="\$(cd "\$(dirname "\${archive}")" && pwd -P)/\$(basename "\${archive}")"
+
+checksum_file="\${archive}.sha256"
+if [[ -f "\${checksum_file}" ]]; then
+  checksum_dir="\$(dirname "\${archive}")"
+  checksum_name="\$(basename "\${checksum_file}")"
+  if command -v sha256sum >/dev/null 2>&1; then
+    (cd "\${checksum_dir}" && sha256sum --check "\${checksum_name}")
+  elif command -v shasum >/dev/null 2>&1; then
+    (cd "\${checksum_dir}" && shasum -a 256 --check "\${checksum_name}")
+  else
+    echo "Aviso: sha256sum/shasum não encontrado; checksum não verificado." >&2
+  fi
+else
+  echo "Aviso: checksum não encontrado em \${checksum_file}." >&2
+fi
+
+if [[ "\${assume_yes}" != "1" ]]; then
+  if [[ ! -t 0 ]]; then
+    echo "Restore recusado sem terminal interativo; use --yes para confirmar." >&2
+    exit 2
+  fi
+  echo "Esta operação substituirá os dados do banco \${BIAWS_MONGO_DB} na instância \${BIAWS_COMPOSE_PROJECT}."
+  read -r -p "Digite o nome da instância (\${BIAWS_COMPOSE_PROJECT#biaws-}) para continuar: " confirmation
+  if [[ "\${confirmation}" != "\${BIAWS_COMPOSE_PROJECT#biaws-}" ]]; then
+    echo "Restore cancelado." >&2
+    exit 2
+  fi
+fi
+
+docker compose \\
+  --project-directory "\${BIAWS_ROOT}" \\
+  --file "\${BIAWS_ROOT}/compose.yaml" \\
+  --env-file "\${BIAWS_ENV_FILE}" \\
+  --project-name "\${BIAWS_COMPOSE_PROJECT}" \\
+  exec -T mongo mongorestore \\
+    --nsInclude="\${BIAWS_MONGO_DB}.*" \\
+    --archive \\
+    --gzip \\
+    --drop < "\${archive}"
+
+echo "Restore do MongoDB concluído a partir de: \${archive}"
+EOF
+
+  chmod 755 "${start_file}" "${stop_file}" "${backup_file}" "${restore_file}"
 }
 
 list_instances() {
@@ -560,5 +690,7 @@ Reabra o cliente no projeto e aprove o servidor MCP quando solicitado.
 Operação Docker:
   Iniciar: "${INSTANCE_DIR}/start.sh"
   Parar:   "${INSTANCE_DIR}/stop.sh"
+  Backup:  "${INSTANCE_DIR}/backup-mongo.sh"
+  Restore: "${INSTANCE_DIR}/restore-mongo.sh" <arquivo.archive.gz>
   Status:  docker compose --env-file "${ENV_FILE}" --project-name "biaws-${INSTANCE}" ps
 EOF

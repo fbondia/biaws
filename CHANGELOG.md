@@ -31,7 +31,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
   sobre um único clone do código;
 - configuração por instância de bind mounts para MongoDB e arquivos de issues,
   requests e procedures, mantendo volumes Docker nomeados como padrão;
-- scripts executáveis de início e parada gerados para cada instância;
+- scripts executáveis de início, parada, backup e restore do MongoDB gerados
+  para cada instância;
 - identidade técnica de menor privilégio e chave local criadas pelo bootstrap;
 - catálogo inicial idempotente de skills;
 - licença Apache-2.0;

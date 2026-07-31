@@ -77,7 +77,7 @@ Para Claude Code:
 O setup:
 
 1. cria `instances/meu-projeto/.env`;
-2. cria `instances/meu-projeto/start.sh` e `stop.sh`;
+2. cria scripts de start, stop, backup e restore em `instances/meu-projeto`;
 3. seleciona portas disponíveis;
 4. gera os segredos locais;
 5. constrói e inicia MongoDB, API e UI;
@@ -93,11 +93,19 @@ Depois do setup, a instância pode ser iniciada ou parada de qualquer diretório
 ```bash
 instances/meu-projeto/start.sh
 instances/meu-projeto/stop.sh
+instances/meu-projeto/backup-mongo.sh
+instances/meu-projeto/restore-mongo.sh backups/biaws-<data>.archive.gz
 ```
 
 O `stop.sh` preserva os containers e todos os dados persistentes. Para
 reconstruir as imagens ao iniciar, use
 `instances/meu-projeto/start.sh --build`.
+
+O `backup-mongo.sh` grava por padrão em `instances/meu-projeto/backups` e
+aceita outro diretório como argumento. Ele também gera um checksum SHA-256. O
+`restore-mongo.sh` verifica esse checksum, quando disponível, e exige que o
+nome da instância seja digitado antes de executar `mongorestore --drop`. Use
+`--yes` somente em automações que já tenham confirmação externa.
 
 Para escolher portas específicas:
 

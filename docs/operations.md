@@ -13,11 +13,15 @@ as operações comuns, use os scripts gerados para a instância:
 ```bash
 instances/meu-projeto/start.sh
 instances/meu-projeto/stop.sh
+instances/meu-projeto/backup-mongo.sh
+instances/meu-projeto/restore-mongo.sh backups/biaws-<data>.archive.gz
 ```
 
 O primeiro executa `up -d --wait`; o segundo executa `stop` e preserva
 containers, volumes e bind mounts. Argumentos adicionais são encaminhados ao
 comando Compose, por exemplo `instances/meu-projeto/start.sh --build`.
+Os dois últimos executam o backup lógico e o restore do MongoDB no container da
+instância correta.
 
 Cada instância executa um container MongoDB próprio. `MONGO_PORT`, no `.env`,
 define apenas a porta publicada no host; a comunicação entre API e MongoDB usa
@@ -63,7 +67,21 @@ BIAWS_PROCEDURE_FILES_PATH=/srv/biaws/meu-projeto/procedures
 Use `docker compose config` para confirmar os mounts efetivos antes de iniciar
 uma instância importante. Caminhos vazios selecionam os volumes nomeados.
 
-## Backup
+## Backup do MongoDB
+
+O script gerado cria um arquivo compactado com timestamp e seu checksum
+SHA-256. Sem argumento, o destino é `instances/<nome>/backups`; para usar outro
+diretório, informe-o como primeiro argumento:
+
+```bash
+instances/meu-projeto/backup-mongo.sh
+instances/meu-projeto/backup-mongo.sh /srv/backups/biaws
+```
+
+O container `mongo` precisa estar ativo. Se o dump falhar, o arquivo temporário
+é removido e não é publicado como backup válido.
+
+O equivalente manual é:
 
 Crie um diretório protegido e registre checksums:
 
@@ -101,7 +119,19 @@ mesmo conjunto de recuperação. Nunca versione secrets nem a senha inicial.
 
 ## Restauração ensaiada
 
-Restaure primeiro em um projeto e banco separados:
+Para restaurar na própria instância, use o script gerado:
+
+```bash
+instances/meu-projeto/restore-mongo.sh \
+  instances/meu-projeto/backups/biaws-<data>.archive.gz
+```
+
+Quando o arquivo `.sha256` correspondente existir, o script valida sua
+integridade. Em seguida, solicita o nome da instância antes de executar o
+restore com `--drop`. Em execução não interativa, `--yes` é obrigatório; ele
+deve ser usado apenas quando a automação tiver uma confirmação externa.
+
+Para um ensaio isolado, restaure primeiro em um projeto e banco separados:
 
 ```bash
 COMPOSE_PROJECT_NAME=biaws-restore-test docker compose up -d mongo

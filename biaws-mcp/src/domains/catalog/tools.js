@@ -451,11 +451,9 @@ export const catalogTools = [
   ),
   definition(
     "applications_update",
-    "Atualiza campos mutáveis de uma aplicação.",
+    "Atualiza campos mutáveis de uma aplicação, incluindo seu identificador.",
     updateApplication,
-    schema({ applicationId: ID, ...without(APPLICATION_PROPERTIES, "key") }, [
-      "applicationId",
-    ]),
+    schema({ applicationId: ID, ...APPLICATION_PROPERTIES }, ["applicationId"]),
   ),
   definition(
     "components_create",
@@ -471,9 +469,7 @@ export const catalogTools = [
     "components_update",
     "Atualiza um componente e suas relações validadas.",
     updateComponent,
-    schema({ componentId: ID, ...without(COMPONENT_PROPERTIES, "key") }, [
-      "componentId",
-    ]),
+    schema({ componentId: ID, ...COMPONENT_PROPERTIES }, ["componentId"]),
   ),
   definition(
     "integrations_create",
@@ -488,12 +484,12 @@ export const catalogTools = [
   ),
   definition(
     "integrations_update",
-    "Atualiza nome e descrição de uma integração, preservando origem, chave e destino.",
+    "Atualiza uma integração, preservando sua origem e destino.",
     updateIntegration,
     schema(
       {
         integrationId: ID,
-        ...without(INTEGRATION_PROPERTIES, "key", "targetApplicationId"),
+        ...without(INTEGRATION_PROPERTIES, "targetApplicationId"),
       },
       ["integrationId"],
     ),
@@ -513,9 +509,7 @@ export const catalogTools = [
     "repositories_update",
     "Atualiza um repositório; URLs com credenciais são recusadas pela API.",
     updateRepository,
-    schema({ repositoryId: ID, ...without(REPOSITORY_PROPERTIES, "key") }, [
-      "repositoryId",
-    ]),
+    schema({ repositoryId: ID, ...REPOSITORY_PROPERTIES }, ["repositoryId"]),
   ),
   definition(
     "servers_create",
@@ -531,9 +525,7 @@ export const catalogTools = [
     "servers_update",
     "Atualiza dados operacionais sanitizados de um servidor.",
     updateServer,
-    schema({ serverId: ID, ...without(SERVER_PROPERTIES, "key") }, [
-      "serverId",
-    ]),
+    schema({ serverId: ID, ...SERVER_PROPERTIES }, ["serverId"]),
   ),
   definition(
     "deployments_create",
@@ -553,7 +545,7 @@ export const catalogTools = [
     schema(
       {
         deploymentId: ID,
-        ...without(DEPLOYMENT_PROPERTIES, "key", "componentId"),
+        ...without(DEPLOYMENT_PROPERTIES, "componentId"),
       },
       ["deploymentId"],
     ),
@@ -572,8 +564,6 @@ export const catalogTools = [
     "runtimes_update",
     "Atualiza um runtime; servidor e metadata são revalidados pela API.",
     updateRuntime,
-    schema({ runtimeId: ID, ...without(RUNTIME_PROPERTIES, "key") }, [
-      "runtimeId",
-    ]),
+    schema({ runtimeId: ID, ...RUNTIME_PROPERTIES }, ["runtimeId"]),
   ),
 ];

@@ -4,9 +4,11 @@ import test from "node:test";
 import {
   catalogEntityDraft,
   catalogEntityPayload,
+  monitoringSignalCurl,
+  runtimeMonitoringPath,
 } from "../src/components/catalog/catalogModel.js";
 
-test("catalog payload omits immutable keys on updates", () => {
+test("catalog payload includes editable identifiers on updates", () => {
   const payload = catalogEntityPayload(
     "deployment",
     catalogEntityDraft("deployment", {
@@ -16,7 +18,7 @@ test("catalog payload omits immutable keys on updates", () => {
     }),
     true,
   );
-  assert.equal(Object.hasOwn(payload, "key"), false);
+  assert.equal(payload.key, "prod");
   assert.equal(Object.hasOwn(payload, "componentId"), false);
 });
 
@@ -57,8 +59,26 @@ test("integration payload preserves the target only when creating", () => {
     targetApplicationId: "application-2",
   });
   const update = catalogEntityPayload("integration", draft, true);
-  assert.equal(Object.hasOwn(update, "key"), false);
+  assert.equal(update.key, "customer-api");
   assert.equal(Object.hasOwn(update, "targetApplicationId"), false);
+});
+
+test("runtime monitoring references use contextual identifiers", () => {
+  const runtimeReference = runtimeMonitoringPath({
+    application: { key: "billing" },
+    component: { key: "api" },
+    deployment: { key: "production" },
+    runtime: { key: "primary" },
+  });
+  assert.equal(runtimeReference, "billing.api.production.primary");
+  assert.match(
+    monitoringSignalCurl({
+      apiUrl: `https://biaws.example.test/api/monitoring/runtimes/${runtimeReference}/signals`,
+      runtimeReference,
+      workspaceId: "workspace-1",
+    }),
+    /X-Biaws-Workspace-Id: workspace-1/u,
+  );
 });
 
 test("catalog drafts accept an explicit null when creating", () => {

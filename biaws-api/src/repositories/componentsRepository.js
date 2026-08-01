@@ -332,21 +332,30 @@ export async function updateComponent(componentId, payload = {}, actor = {}) {
   const candidate = { ...current, ...normalized };
   await validateRelationships(application, candidate);
   const { components } = await getTopologyCollections();
-  const result = await components.updateOne(
-    {
-      id: current.id,
-      workspaceId: current.workspaceId,
-      applicationId: current.applicationId,
-      status: "active",
-    },
-    {
-      $set: {
-        ...normalized,
-        updatedAt: new Date(),
-        updatedBy: actorId(actor),
+  let result;
+  try {
+    result = await components.updateOne(
+      {
+        id: current.id,
+        workspaceId: current.workspaceId,
+        applicationId: current.applicationId,
+        status: "active",
       },
-    },
-  );
+      {
+        $set: {
+          ...normalized,
+          updatedAt: new Date(),
+          updatedBy: actorId(actor),
+        },
+      },
+    );
+  } catch (error) {
+    duplicateKeyError(
+      error,
+      "COMPONENT_KEY_CONFLICT",
+      "A component with this key already exists in the application",
+    );
+  }
   if (!result.matchedCount) {
     throw createCatalogError(
       409,

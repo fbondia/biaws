@@ -216,20 +216,29 @@ export async function updateServer(serverId, payload = {}, actor = {}) {
   await requireOperationalWorkspace(current.workspaceId, { active: true });
   const normalized = normalizeServerInput(payload, current);
   const { servers } = await getTopologyCollections();
-  const result = await servers.updateOne(
-    {
-      id: current.id,
-      workspaceId: current.workspaceId,
-      status: { $ne: "archived" },
-    },
-    {
-      $set: {
-        ...normalized,
-        updatedAt: new Date(),
-        updatedBy: actorId(actor),
+  let result;
+  try {
+    result = await servers.updateOne(
+      {
+        id: current.id,
+        workspaceId: current.workspaceId,
+        status: { $ne: "archived" },
       },
-    },
-  );
+      {
+        $set: {
+          ...normalized,
+          updatedAt: new Date(),
+          updatedBy: actorId(actor),
+        },
+      },
+    );
+  } catch (error) {
+    duplicateKeyError(
+      error,
+      "SERVER_KEY_CONFLICT",
+      "A server with this key already exists in the workspace",
+    );
+  }
   if (!result.matchedCount) {
     throw createCatalogError(
       409,

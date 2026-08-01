@@ -10,11 +10,25 @@ na topologia e na área de monitoramento.
 Estados aceitos: `unknown`, `healthy`, `degraded`, `unavailable` e `stopped`.
 
 ```http
-POST /api/monitoring/runtimes/:runtimeId/signals
+POST /api/monitoring/runtimes/:runtimeReference/signals
 Authorization: Bearer <api-key>
 X-Biaws-Workspace-Id: <workspace-id>
 Content-Type: application/json
 ```
+
+`runtimeReference` aceita o UUID público do runtime ou o caminho de
+identificadores
+`<aplicação>.<componente>.<deployment>.<runtime>`. Cada identificador é único
+em seu contexto; o caminho completo resolve esses contextos em sequência dentro
+do workspace autenticado. Exemplo:
+
+```text
+billing.billing-api.production.primary
+```
+
+O UUID permanece estável. O caminho é legível, mas muda quando qualquer um dos
+quatro identificadores é editado; atualize os emissores que usam o caminho após
+essa alteração.
 
 ```json
 {
@@ -44,7 +58,7 @@ materializada quando `observedAt` é igual ou posterior ao último sinal aplicad
 Com `ISSUE_API_URL`, `ISSUE_API_KEY` e `ISSUE_WORKSPACE_ID` configurados:
 
 ```bash
-node biaws-cli/src/index.js monitoring signal <runtime-id> \
+node biaws-cli/src/index.js monitoring signal billing.billing-api.production.primary \
   --status healthy \
   --source synthetic-http \
   --signal-id synthetic-http:2026-07-31T15:00:00Z \
@@ -54,8 +68,8 @@ node biaws-cli/src/index.js monitoring signal <runtime-id> \
 ```
 
 ```bash
-node biaws-cli/src/index.js monitoring signals <runtime-id> --limit 20
-node biaws-cli/src/index.js monitoring signals <runtime-id> --limit 20 --json
+node biaws-cli/src/index.js monitoring signals billing.billing-api.production.primary --limit 20
+node biaws-cli/src/index.js monitoring signals <runtime-uuid> --limit 20 --json
 ```
 
 O emissor precisa de `monitoring.signals.create` no escopo da aplicação do
@@ -78,7 +92,7 @@ do runtime. Retentativas idempotentes não geram outro evento.
 ## Leitura HTTP
 
 ```http
-GET /api/monitoring/runtimes/:runtimeId/signals?page=1&limit=50
+GET /api/monitoring/runtimes/:runtimeReference/signals?page=1&limit=50
 ```
 
 ```http

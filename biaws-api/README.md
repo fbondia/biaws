@@ -118,12 +118,15 @@ O contrato de configuração e extensão está em
 Receber um sinal de monitoramento de runtime:
 
 ```bash
-curl -X POST http://127.0.0.1:3100/api/monitoring/runtimes/<runtime-id>/signals \
+curl -X POST http://127.0.0.1:3100/api/monitoring/runtimes/<runtime-uuid-ou-caminho>/signals \
   -H "Authorization: Bearer $ISSUE_API_KEY" \
   -H "X-Biaws-Workspace-Id: $ISSUE_WORKSPACE_ID" \
   -H 'Content-Type: application/json' \
   -d '{"signalId":"probe:42","status":"healthy","source":"probe-http"}'
 ```
+
+A referência aceita o UUID ou o caminho de identificadores
+`aplicação.componente.deployment.runtime`.
 
 O contrato, idempotência e recomendações para emissores estão em
 [`../docs/monitoring.md`](../docs/monitoring.md).

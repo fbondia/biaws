@@ -244,10 +244,40 @@ export function catalogEntityPayload(kind, draft, editing = false) {
     builder(
       draft,
       {
-        key: editing ? undefined : text(draft.key),
+        key: text(draft.key),
         name: text(draft.name),
       },
       editing,
     ),
   );
+}
+
+export function runtimeMonitoringPath({
+  application,
+  component,
+  deployment,
+  runtime,
+} = {}) {
+  const identifiers = [
+    application?.key,
+    component?.key,
+    deployment?.key,
+    runtime?.key,
+  ].map(text);
+  return identifiers.every(Boolean) ? identifiers.join(".") : "";
+}
+
+export function monitoringSignalCurl({
+  apiUrl,
+  runtimeReference,
+  workspaceId,
+} = {}) {
+  if (!apiUrl || !runtimeReference || !workspaceId) return "";
+  return [
+    `curl --request POST '${apiUrl}' \\`,
+    `  --header 'Authorization: Bearer <api-key>' \\`,
+    `  --header 'X-Biaws-Workspace-Id: ${workspaceId}' \\`,
+    `  --header 'Content-Type: application/json' \\`,
+    `  --data '{"signalId":"example:check:1","status":"healthy","source":"external-monitor"}'`,
+  ].join("\n");
 }

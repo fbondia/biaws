@@ -239,6 +239,7 @@ export function CatalogTopologyTab({
                 active={component.id === selectedComponentId}
                 hasChildren={canReadDeployments}
                 key={component.id}
+                meta={component.key}
                 name={component.name}
                 onSelect={() => selectComponent(component.id)}
               />
@@ -304,6 +305,7 @@ export function CatalogTopologyTab({
                   active={deployment.id === selectedDeploymentId}
                   hasChildren={canReadRuntimes}
                   key={deployment.id}
+                  meta={deployment.key}
                   name={deployment.name}
                   onSelect={() => setSelectedDeploymentId(deployment.id)}
                 />
@@ -375,25 +377,20 @@ export function CatalogTopologyTab({
                   Nenhum runtime cadastrado neste deployment.
                 </EmptyColumn>
               ) : null}
-              {(runtimes || []).map((runtime) => {
-                const server = context.servers.find(
-                  ({ id }) => id === runtime.serverId,
-                );
-                return (
-                  <TopologyRow
-                    actions={entityActions(
-                      "runtime",
-                      "runtimes.update",
-                      "runtimes.archive",
-                    )(runtime)}
-                    key={runtime.id}
-                    meta={server?.hostname || "Hostname não informado"}
-                    name={runtime.name}
-                    onSelect={() => undefined}
-                    status={runtime.status}
-                  />
-                );
-              })}
+              {(runtimes || []).map((runtime) => (
+                <TopologyRow
+                  actions={entityActions(
+                    "runtime",
+                    "runtimes.update",
+                    "runtimes.archive",
+                  )(runtime)}
+                  key={runtime.id}
+                  meta={runtime.key}
+                  name={runtime.name}
+                  onSelect={() => undefined}
+                  status={runtime.status}
+                />
+              ))}
             </div>
           </section>
         ) : null}

@@ -20,7 +20,7 @@ test("integration input normalizes its directional application link", () => {
   );
 });
 
-test("integration key and target are immutable", () => {
+test("integration identifier is mutable while its target remains immutable", () => {
   const current = {
     key: "customer-api",
     name: "Customer API",
@@ -35,12 +35,11 @@ test("integration key and target are immutable", () => {
       ),
     (error) => error.code === "INTEGRATION_TARGET_IMMUTABLE",
   );
-  assert.throws(
-    () =>
-      normalizeIntegrationInput(
-        { key: "new-key", targetApplicationId: "application-2" },
-        current,
-      ),
-    (error) => error.code === "CATALOG_KEY_IMMUTABLE",
+  assert.equal(
+    normalizeIntegrationInput(
+      { key: "new-key", targetApplicationId: "application-2" },
+      current,
+    ).key,
+    "new-key",
   );
 });

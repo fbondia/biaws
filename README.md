@@ -247,7 +247,7 @@ CLI:
 node biaws-cli/src/index.js skills list
 node biaws-cli/src/index.js skills status
 node biaws-cli/src/index.js agent doctor codex --project /caminho/do/projeto
-node biaws-cli/src/index.js monitoring signal <runtime-id> --status healthy --source synthetic-http
+node biaws-cli/src/index.js monitoring signal <aplicação.componente.deployment.runtime> --status healthy --source synthetic-http
 ```
 
 Consulte [biaws-mcp/README.md](biaws-mcp/README.md) e

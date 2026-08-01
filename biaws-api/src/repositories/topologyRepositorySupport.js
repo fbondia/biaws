@@ -101,13 +101,6 @@ export function normalizeKey(value, currentKey) {
       "key must use lowercase letters, numbers and single hyphens",
     );
   }
-  if (currentKey && key !== currentKey) {
-    throw createCatalogError(
-      409,
-      "CATALOG_KEY_IMMUTABLE",
-      "catalog resource key cannot be changed",
-    );
-  }
   return key;
 }
 

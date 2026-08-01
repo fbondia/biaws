@@ -20,13 +20,15 @@ function printSignal(result) {
 }
 
 export async function runMonitoringCommand(api, action, positional, options) {
-  const runtimeId = positional[0];
-  if (!runtimeId) throw new Error("Informe o runtime-id.");
+  const runtimeReference = positional[0];
+  if (!runtimeReference) {
+    throw new Error("Informe o UUID ou caminho do runtime.");
+  }
 
   if (action === "signal") {
     if (!options.status) throw new Error("Informe --status.");
     if (!options.source) throw new Error("Informe --source.");
-    const result = await api.monitoring.signal(runtimeId, {
+    const result = await api.monitoring.signal(runtimeReference, {
       status: options.status,
       source: options.source,
       ...(options["signal-id"] ? { signalId: options["signal-id"] } : {}),
@@ -40,7 +42,7 @@ export async function runMonitoringCommand(api, action, positional, options) {
   }
 
   if (action === "signals") {
-    const result = await api.monitoring.listSignals(runtimeId, options);
+    const result = await api.monitoring.listSignals(runtimeReference, options);
     if (options.json) console.log(JSON.stringify(result, null, 2));
     else if (!result.items.length) console.log("Nenhum sinal recebido.");
     else {

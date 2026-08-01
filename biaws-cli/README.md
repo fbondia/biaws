@@ -24,16 +24,18 @@ node src/index.js skills update
 node src/index.js agent configure codex --project /caminho/do/projeto
 node src/index.js agent configure claude --project /caminho/do/projeto
 node src/index.js agent doctor codex --project /caminho/do/projeto
-node src/index.js monitoring signal <runtime-id> \
+node src/index.js monitoring signal <aplicação.componente.deployment.runtime> \
   --status degraded \
   --source zabbix \
   --signal-id zabbix:event:18492 \
   --message "Latência elevada" \
   --metadata '{"latency_ms":850}'
-node src/index.js monitoring signals <runtime-id> --limit 20
+node src/index.js monitoring signals <runtime-uuid-ou-caminho> --limit 20
 ```
 
-`monitoring signal` envia uma observação passiva para um runtime. Use
+`monitoring signal` envia uma observação passiva para um runtime. A referência
+pode ser o UUID ou o caminho de identificadores
+`<aplicação>.<componente>.<deployment>.<runtime>`. Use
 `--signal-id` para que retries sejam idempotentes e `--observed-at` quando a
 observação ocorreu antes do envio. Estados aceitos: `unknown`, `healthy`,
 `degraded`, `unavailable` e `stopped`. O contrato completo está em

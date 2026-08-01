@@ -81,7 +81,7 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
         catalogTools.find((tool) => tool.name === name).inputSchema.properties,
         "key",
       ),
-      false,
+      true,
       name,
     );
   }

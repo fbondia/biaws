@@ -4,7 +4,7 @@ import {
   actorCanAccessApplication,
   requireAllPermissions,
 } from "../auth/authorizationMiddleware.js";
-import { getRuntime } from "../repositories/deploymentsRepository.js";
+import { getRuntimeByReference } from "../repositories/deploymentsRepository.js";
 import { getApplication } from "../repositories/catalogRepository.js";
 import {
   getApplicationMonitoringHealth,
@@ -26,7 +26,7 @@ function asyncHandler(handler) {
 }
 
 async function scopedRuntime(req, permission) {
-  const runtime = await getRuntime(req.params.runtimeId, {
+  const runtime = await getRuntimeByReference(req.params.runtimeReference, {
     workspaceId: req.actor.workspaceId,
   });
   return runtime &&
@@ -42,7 +42,7 @@ function sendRuntimeNotFound(res) {
 }
 
 monitoringRouter.post(
-  "/runtimes/:runtimeId/signals",
+  "/runtimes/:runtimeReference/signals",
   requireAllPermissions("monitoring.signals.create"),
   asyncHandler(async (req, res) => {
     const runtime = await scopedRuntime(req, "monitoring.signals.create");
@@ -108,7 +108,7 @@ monitoringRouter.get(
 );
 
 monitoringRouter.get(
-  "/runtimes/:runtimeId/signals",
+  "/runtimes/:runtimeReference/signals",
   requireAllPermissions("runtimes.read"),
   asyncHandler(async (req, res) => {
     const runtime = await scopedRuntime(req, "runtimes.read");

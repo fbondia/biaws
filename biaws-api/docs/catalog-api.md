@@ -21,8 +21,8 @@ componentes. A UI e o MCP consomem esses contratos exclusivamente pela API.
 ## Contratos comuns
 
 - `id` é um UUID público opaco; `_id` do MongoDB não faz parte da API.
-- `key` usa letras minúsculas, números e hífens, é única no escopo da entidade
-  e não pode ser alterada.
+- `key` é o identificador editável: usa letras minúsculas, números e hífens e
+  permanece único no escopo de cada entidade.
 - O workspace padrão é criado por upsert idempotente e continua sendo o único
   workspace operacional até a autorização por escopo.
 - Recursos são arquivados, não excluídos fisicamente.
@@ -70,7 +70,7 @@ componentes ou repositórios ativos, deployments ou runtimes não arquivados.
 ```
 
 A integração é direcional e aponta para outra aplicação ativa do mesmo
-workspace. Chave e destino são imutáveis. Uma aplicação pode existir apenas
+workspace. O destino é imutável. Uma aplicação pode existir apenas
 para representar o sistema integrado, sem repositórios, componentes,
 deployments ou runtimes próprios.
 
@@ -288,14 +288,18 @@ aceita até 20.000 caracteres em Markdown.
 
 | Método | Rota                                                 | Permissão                   |
 | ------ | ---------------------------------------------------- | --------------------------- |
-| `POST` | `/api/monitoring/runtimes/:runtimeId/signals`        | `monitoring.signals.create` |
-| `GET`  | `/api/monitoring/runtimes/:runtimeId/signals`        | `runtimes.read`             |
+| `POST` | `/api/monitoring/runtimes/:runtimeReference/signals` | `monitoring.signals.create` |
+| `GET`  | `/api/monitoring/runtimes/:runtimeReference/signals` | `runtimes.read`             |
 | `GET`  | `/api/monitoring/applications/:applicationId/health` | `runtimes.read`             |
 
 Os sinais são persistidos em `runtimeMonitoringSignals`, separados das
 observações manuais limitadas do cadastro. O sinal mais recente por
 `observedAt` materializa `status`, `observedAt` e `monitoring` no runtime.
 `signalId`, quando enviado, torna retries idempotentes no escopo do runtime.
+`runtimeReference` aceita o UUID do runtime ou o caminho de identificadores
+`<aplicação>.<componente>.<deployment>.<runtime>` dentro do workspace do ator.
+O UUID permanece estável; o caminho muda quando um desses identificadores é
+editado.
 O endpoint de aplicação agrega contagens por estado e retorna a pior saúde
 observada entre seus runtimes não arquivados.
 Veja o [guia de monitoramento](../../docs/monitoring.md).

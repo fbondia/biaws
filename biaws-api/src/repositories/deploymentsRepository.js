@@ -30,6 +30,7 @@ import {
   requireOperationalApplication,
 } from "./topologyRepositorySupport.js";
 import { assertNoActiveApplicationIntegrations } from "./integrationsRepository.js";
+import { getApplicationByKey } from "./catalogRepository.js";
 
 const MUTABLE_DEPLOYMENT_STATUSES = DEPLOYMENT_STATUSES.filter(
   (status) => status !== "archived",
@@ -519,21 +520,30 @@ export async function updateDeployment(deploymentId, payload = {}, actor = {}) {
   const normalized = normalizeDeploymentInput(payload, current, actor);
   await validateDeploymentRelationships(application, normalized);
   const { deployments } = await getTopologyCollections();
-  const result = await deployments.updateOne(
-    {
-      id: current.id,
-      workspaceId: current.workspaceId,
-      applicationId: current.applicationId,
-      status: { $ne: "archived" },
-    },
-    {
-      $set: {
-        ...normalized,
-        updatedAt: new Date(),
-        updatedBy: actorId(actor),
+  let result;
+  try {
+    result = await deployments.updateOne(
+      {
+        id: current.id,
+        workspaceId: current.workspaceId,
+        applicationId: current.applicationId,
+        status: { $ne: "archived" },
       },
-    },
-  );
+      {
+        $set: {
+          ...normalized,
+          updatedAt: new Date(),
+          updatedBy: actorId(actor),
+        },
+      },
+    );
+  } catch (error) {
+    duplicateKeyError(
+      error,
+      "DEPLOYMENT_KEY_CONFLICT",
+      "A deployment with this key already exists in the application",
+    );
+  }
   if (!result.matchedCount) {
     throw createCatalogError(
       409,
@@ -766,6 +776,54 @@ export async function getRuntime(
   return runtime;
 }
 
+export async function getRuntimeByReference(
+  runtimeReference,
+  { workspaceId } = {},
+) {
+  const reference = String(runtimeReference || "").trim();
+  const segments = reference.split(".");
+  if (segments.length === 1) return getRuntime(reference, { workspaceId });
+  if (segments.length !== 4 || segments.some((segment) => !segment)) {
+    return null;
+  }
+
+  const [applicationKey, componentKey, deploymentKey, runtimeKey] = segments;
+  const application = await getApplicationByKey(applicationKey, {
+    workspaceId,
+  });
+  if (!application) return null;
+
+  const { components, deployments, runtimes } = await getTopologyCollections();
+  const component = normalizeDocument(
+    await components.findOne({
+      workspaceId: application.workspaceId,
+      applicationId: application.id,
+      key: componentKey,
+    }),
+  );
+  if (!component) return null;
+
+  const deployment = normalizeDocument(
+    await deployments.findOne({
+      workspaceId: application.workspaceId,
+      applicationId: application.id,
+      componentId: component.id,
+      key: deploymentKey,
+    }),
+  );
+  if (!deployment) return null;
+
+  const runtime = normalizeDocument(
+    await runtimes.findOne({
+      workspaceId: application.workspaceId,
+      applicationId: application.id,
+      deploymentId: deployment.id,
+      key: runtimeKey,
+    }),
+  );
+  return runtime ? getRuntime(runtime.id, { workspaceId }) : null;
+}
+
 export async function createRuntime(deploymentId, payload = {}, actor = {}) {
   const deployment = await getDeployment(deploymentId);
   if (!deployment) {
@@ -838,22 +896,31 @@ export async function updateRuntime(runtimeId, payload = {}, actor = {}) {
   const normalized = normalizeRuntimeInput(payload, current, actor);
   await validateRuntimeServer(deployment, normalized);
   const { runtimes } = await getTopologyCollections();
-  const result = await runtimes.updateOne(
-    {
-      id: current.id,
-      workspaceId: current.workspaceId,
-      applicationId: current.applicationId,
-      deploymentId: current.deploymentId,
-      status: { $ne: "archived" },
-    },
-    {
-      $set: {
-        ...normalized,
-        updatedAt: new Date(),
-        updatedBy: actorId(actor),
+  let result;
+  try {
+    result = await runtimes.updateOne(
+      {
+        id: current.id,
+        workspaceId: current.workspaceId,
+        applicationId: current.applicationId,
+        deploymentId: current.deploymentId,
+        status: { $ne: "archived" },
       },
-    },
-  );
+      {
+        $set: {
+          ...normalized,
+          updatedAt: new Date(),
+          updatedBy: actorId(actor),
+        },
+      },
+    );
+  } catch (error) {
+    duplicateKeyError(
+      error,
+      "RUNTIME_KEY_CONFLICT",
+      "A runtime with this key already exists in the deployment",
+    );
+  }
   if (!result.matchedCount) {
     throw createCatalogError(
       409,

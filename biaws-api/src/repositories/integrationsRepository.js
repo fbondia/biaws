@@ -216,18 +216,26 @@ export async function updateIntegration(
   );
   const normalized = normalizeIntegrationInput(payload, current);
   await validateTarget(application, normalized.targetApplicationId);
-  await (
-    await getCollection()
-  ).updateOne(
-    { id: current.id, status: "active" },
-    {
-      $set: {
-        ...normalized,
-        updatedAt: new Date(),
-        updatedBy: actorId(actor),
+  try {
+    await (
+      await getCollection()
+    ).updateOne(
+      { id: current.id, status: "active" },
+      {
+        $set: {
+          ...normalized,
+          updatedAt: new Date(),
+          updatedBy: actorId(actor),
+        },
       },
-    },
-  );
+    );
+  } catch (error) {
+    duplicateKeyError(
+      error,
+      "INTEGRATION_CONFLICT",
+      "An integration with this key or target already exists in the application",
+    );
+  }
   return getIntegration(current.id);
 }
 

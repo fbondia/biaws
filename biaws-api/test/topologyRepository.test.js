@@ -98,7 +98,7 @@ test("repository URL rejects credentials and secret query parameters", () => {
   }
 });
 
-test("repository URL is mutable while its key remains immutable", () => {
+test("repository URL and identifier are mutable", () => {
   const current = normalizeRepositoryInput({
     key: "repository",
     name: "Repository",
@@ -110,10 +110,9 @@ test("repository URL is mutable while its key remains immutable", () => {
       .url,
     "https://example.test/new.git",
   );
-  assert.throws(
-    () => normalizeRepositoryInput({ key: "new-key" }, current),
-    (error) =>
-      error.statusCode === 409 && error.code === "CATALOG_KEY_IMMUTABLE",
+  assert.equal(
+    normalizeRepositoryInput({ key: "new-key" }, current).key,
+    "new-key",
   );
 });
 

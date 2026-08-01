@@ -27,8 +27,8 @@ Uso:
   biaws skills update [skill-id] [--target <diretório>]
   biaws agent configure codex|claude [--project <diretório>]
   biaws agent doctor codex|claude [--project <diretório>]
-  biaws monitoring signal <runtime-id> --status <estado> --source <origem> [opções]
-  biaws monitoring signals <runtime-id> [--limit <n>] [--json]
+  biaws monitoring signal <runtime> --status <estado> --source <origem> [opções]
+  biaws monitoring signals <runtime> [--limit <n>] [--json]
 
 Opções:
   --api-url <url>       URL da biaws-api; default: ISSUE_API_URL ou http://127.0.0.1:3100
@@ -47,6 +47,7 @@ Opções:
   --observed-at <data>  Data ISO-8601 da observação; default: agora
   --message <texto>     Resumo legível do sinal
   --metadata <json>     Metadados escalares, sem segredos
+  <runtime>             UUID ou caminho aplicação.componente.deployment.runtime
   --changelog <texto>   Alterações da versão
   --force               Substitui uma instalação existente, preservando backup
   --json                Produz saída JSON

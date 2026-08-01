@@ -270,13 +270,14 @@ selecionada.
 
 ## 7. Enviar um sinal de monitoramento
 
-Cadastre uma aplicação, componente, deployment e runtime pela UI e copie o ID
-do runtime. Usando a chave técnica criada pelo setup:
+Cadastre uma aplicação, componente, deployment e runtime pela UI. Na aba
+Monitoramento do runtime, copie seu UUID ou caminho de identificadores. Usando
+a chave técnica criada pelo setup:
 
 ```bash
 BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
 node biaws-cli/src/index.js \
-  monitoring signal <runtime-id> \
+  monitoring signal <aplicação.componente.deployment.runtime> \
   --status healthy \
   --source quickstart \
   --signal-id quickstart:1 \

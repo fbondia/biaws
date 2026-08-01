@@ -48,19 +48,19 @@ export function createApiClient(baseUrl, apiKey, workspaceId = "") {
     publish: (payload) =>
       request("", { method: "POST", body: JSON.stringify(payload) }),
     monitoring: {
-      signal: (runtimeId, payload) =>
+      signal: (runtimeReference, payload) =>
         request(
-          `/runtimes/${encodeURIComponent(runtimeId)}/signals`,
+          `/runtimes/${encodeURIComponent(runtimeReference)}/signals`,
           { method: "POST", body: JSON.stringify(payload) },
           `${apiRoot}/monitoring`,
         ),
-      listSignals: (runtimeId, options = {}) => {
+      listSignals: (runtimeReference, options = {}) => {
         const parameters = new URLSearchParams();
         if (options.page) parameters.set("page", options.page);
         if (options.limit) parameters.set("limit", options.limit);
         const query = parameters.size ? `?${parameters}` : "";
         return request(
-          `/runtimes/${encodeURIComponent(runtimeId)}/signals${query}`,
+          `/runtimes/${encodeURIComponent(runtimeReference)}/signals${query}`,
           {},
           `${apiRoot}/monitoring`,
         );

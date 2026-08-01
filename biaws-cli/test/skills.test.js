@@ -100,7 +100,7 @@ test("monitoring command sends an idempotent runtime health signal", async () =>
       },
     },
   };
-  await runMonitoringCommand(api, "signal", ["runtime-1"], {
+  await runMonitoringCommand(api, "signal", ["billing.api.prod.primary"], {
     status: "healthy",
     source: "synthetic-check",
     "signal-id": "check:42",
@@ -110,7 +110,7 @@ test("monitoring command sends an idempotent runtime health signal", async () =>
     json: true,
   });
   assert.deepEqual(received, {
-    runtimeId: "runtime-1",
+    runtimeId: "billing.api.prod.primary",
     payload: {
       status: "healthy",
       source: "synthetic-check",

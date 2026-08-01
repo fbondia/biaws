@@ -226,7 +226,8 @@ na API e no Nginx; mantenha o proxy externo alinhado quando houver outra camada.
 
 Para um smoke test do receptor passivo, envie um sinal com `signalId` exclusivo,
 repita o mesmo envio e confirme respostas `201` e `200` com `created: false`.
-Depois, consulte `monitoring signals <runtime-id>` e a área Monitoramento na UI.
+Depois, consulte `monitoring signals <runtime-uuid-ou-caminho>` e a área
+Monitoramento na UI.
 
 ## Logs e correlação
 

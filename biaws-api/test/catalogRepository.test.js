@@ -43,26 +43,24 @@ test("normalizes an application payload without persisting derived names", () =>
   );
 });
 
-test("rejects invalid or mutable application keys", () => {
+test("rejects invalid application identifiers and accepts identifier changes", () => {
   assert.throws(
     () => normalizeApplicationInput({ key: "Billing API", name: "Billing" }),
     (error) => error.code === "INVALID_CATALOG_KEY" && error.statusCode === 422,
   );
-  assert.throws(
-    () =>
-      normalizeApplicationInput(
-        { key: "new-key" },
-        {
-          key: "old-key",
-          name: "Old",
-          description: "",
-          owner: {},
-          tags: [],
-          links: [],
-        },
-      ),
-    (error) =>
-      error.code === "APPLICATION_KEY_IMMUTABLE" && error.statusCode === 409,
+  assert.equal(
+    normalizeApplicationInput(
+      { key: "new-key" },
+      {
+        key: "old-key",
+        name: "Old",
+        description: "",
+        owner: {},
+        tags: [],
+        links: [],
+      },
+    ).key,
+    "new-key",
   );
 });
 

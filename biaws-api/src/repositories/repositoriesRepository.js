@@ -226,21 +226,30 @@ export async function updateRepository(repositoryId, payload = {}, actor = {}) {
   });
   const normalized = normalizeRepositoryInput(payload, current);
   const { repositories } = await getTopologyCollections();
-  const result = await repositories.updateOne(
-    {
-      id: current.id,
-      workspaceId: current.workspaceId,
-      applicationId: current.applicationId,
-      status: "active",
-    },
-    {
-      $set: {
-        ...normalized,
-        updatedAt: new Date(),
-        updatedBy: actorId(actor),
+  let result;
+  try {
+    result = await repositories.updateOne(
+      {
+        id: current.id,
+        workspaceId: current.workspaceId,
+        applicationId: current.applicationId,
+        status: "active",
       },
-    },
-  );
+      {
+        $set: {
+          ...normalized,
+          updatedAt: new Date(),
+          updatedBy: actorId(actor),
+        },
+      },
+    );
+  } catch (error) {
+    duplicateKeyError(
+      error,
+      "REPOSITORY_KEY_CONFLICT",
+      "A repository with this key already exists in the application",
+    );
+  }
   if (!result.matchedCount) {
     throw createCatalogError(
       409,

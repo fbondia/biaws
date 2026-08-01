@@ -187,6 +187,21 @@ test(
         return response.json();
       }
 
+      async function patch(route, body) {
+        const response = await request(route, {
+          cookie: adminCookie,
+          method: "PATCH",
+          body,
+          origin: true,
+        });
+        if (response.status !== 200) {
+          throw new Error(
+            `Expected 200 from ${route}, received ${response.status}: ${await response.text()}`,
+          );
+        }
+        return response.json();
+      }
+
       const { application } = await mutate(
         `/api/catalog/workspaces/${workspace.id}/applications`,
         { key: "billing-http", name: "Billing HTTP" },
@@ -239,6 +254,26 @@ test(
           status: "healthy",
         },
       );
+      const updatedApplication = (
+        await patch(`/api/catalog/applications/${application.id}`, {
+          key: "billing-service",
+        })
+      ).application;
+      const updatedComponent = (
+        await patch(`/api/catalog/components/${component.id}`, {
+          key: "billing-api",
+        })
+      ).component;
+      const updatedDeployment = (
+        await patch(`/api/catalog/deployments/${deployment.id}`, {
+          key: "production",
+        })
+      ).deployment;
+      const updatedRuntime = (
+        await patch(`/api/catalog/runtimes/${runtime.id}`, {
+          key: "primary",
+        })
+      ).runtime;
       const signalRoute = `/api/monitoring/runtimes/${runtime.id}/signals`;
       const signalResponse = await request(signalRoute, {
         cookie: adminCookie,
@@ -267,7 +302,15 @@ test(
       });
       assert.equal(duplicateSignalResponse.status, 200);
       assert.equal((await duplicateSignalResponse.json()).created, false);
-      const oldSignalResponse = await request(signalRoute, {
+      const runtimePath = [
+        updatedApplication.key,
+        updatedComponent.key,
+        updatedDeployment.key,
+        updatedRuntime.key,
+      ].join(".");
+      const oldSignalResponse = await request(
+        `/api/monitoring/runtimes/${runtimePath}/signals`,
+        {
         cookie: adminCookie,
         method: "POST",
         body: {
@@ -277,7 +320,8 @@ test(
           source: "integration-monitor",
         },
         origin: true,
-      });
+        },
+      );
       assert.equal(oldSignalResponse.status, 201);
       assert.equal((await oldSignalResponse.json()).runtime.status, "degraded");
       const signalsResponse = await request(`${signalRoute}?limit=10`, {
@@ -419,7 +463,7 @@ test(
       });
       assert.equal(auditResponse.status, 200);
       const audit = await auditResponse.json();
-      assert.equal(audit.events.length, 3);
+      assert.equal(audit.events.length, 4);
       assert.equal(audit.events[0].action, "monitoring_signal_received");
       assert.equal(audit.events.at(-1).action, "created");
       assert.equal(audit.events[0].target.id, runtime.id);

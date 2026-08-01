@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 
 import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
 import { fetchRuntimeMonitoringSignals } from "../../api.js";
+import { buildUrl } from "../../api/client.js";
 import {
   CATALOG_ENTITY_LABELS,
   catalogEntityDraft,
   catalogEntityPayload,
+  monitoringSignalCurl,
+  runtimeMonitoringPath,
 } from "./catalogModel.js";
 
 const COMPONENT_TYPES = [
@@ -192,6 +195,28 @@ export function CatalogEntityDialog({
   const [monitoringSignals, setMonitoringSignals] = useState([]);
   const [monitoringError, setMonitoringError] = useState("");
   const label = CATALOG_ENTITY_LABELS[kind];
+  const runtimeDeployment = (options.deployments || []).find(
+    ({ id }) => id === entity?.deploymentId,
+  );
+  const runtimeComponent = (options.components || []).find(
+    ({ id }) => id === (entity?.componentId || runtimeDeployment?.componentId),
+  );
+  const runtimePath = runtimeMonitoringPath({
+    application: options.application,
+    component: runtimeComponent,
+    deployment: runtimeDeployment,
+    runtime: entity,
+  });
+  const monitoringUrl = runtimePath
+    ? buildUrl(
+        `/api/monitoring/runtimes/${encodeURIComponent(runtimePath)}/signals`,
+      ).toString()
+    : "";
+  const curlExample = monitoringSignalCurl({
+    apiUrl: monitoringUrl,
+    runtimeReference: runtimePath,
+    workspaceId: options.workspace?.id,
+  });
   const sections =
     kind === "deployment"
       ? [
@@ -337,9 +362,9 @@ export function CatalogEntityDialog({
             </div>
           ) : null}
           <div className="catalogFormGrid">
-            {!editing && (!sections.length || activeSection === "basic") ? (
+            {!sections.length || activeSection === "basic" ? (
               <TextField
-                label="Chave"
+                label="Identificador"
                 name="key"
                 onChange={update}
                 placeholder="exemplo-estavel"
@@ -765,6 +790,37 @@ export function CatalogEntityDialog({
                   ) : (
                     <small>Nenhum sinal externo recebido.</small>
                   )}
+                </div>
+                <div className="catalogMonitoringInstructions">
+                  <h3>Referência do runtime</h3>
+                  <p>
+                    Envie sinais usando o UUID ou o caminho formado pelos
+                    identificadores da aplicação, componente, deployment e
+                    runtime. O UUID não muda; o caminho acompanha edições nos
+                    identificadores.
+                  </p>
+                  <dl>
+                    <div>
+                      <dt>Workspace</dt>
+                      <dd><code>{options.workspace?.id}</code></dd>
+                    </div>
+                    <div>
+                      <dt>UUID</dt>
+                      <dd><code>{entity?.id}</code></dd>
+                    </div>
+                    <div>
+                      <dt>Caminho</dt>
+                      <dd>
+                        <code>{runtimePath || "Caminho indisponível"}</code>
+                      </dd>
+                    </div>
+                  </dl>
+                  {curlExample ? (
+                    <>
+                      <h3>Exemplo com curl</h3>
+                      <pre><code>{curlExample}</code></pre>
+                    </>
+                  ) : null}
                 </div>
                 {monitoringError ? (
                   <div className="errorBox">{monitoringError}</div>

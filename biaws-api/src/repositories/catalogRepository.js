@@ -193,13 +193,6 @@ export function normalizeApplicationInput(payload = {}, current = null) {
     );
   }
   const key = normalizeKey(payload.key ?? current?.key);
-  if (current && key !== current.key) {
-    throw createHttpError(
-      409,
-      "APPLICATION_KEY_IMMUTABLE",
-      "application key cannot be changed",
-    );
-  }
 
   return {
     key,
@@ -435,6 +428,17 @@ export async function getApplication(applicationId, { workspaceId } = {}) {
   const filter = { id: String(applicationId) };
   if (workspaceId) filter.workspaceId = String(workspaceId);
   return normalizeDocument(await applications.findOne(filter));
+}
+
+export async function getApplicationByKey(key, { workspaceId } = {}) {
+  if (!workspaceId) return null;
+  const { applications } = await getCollections();
+  return normalizeDocument(
+    await applications.findOne({
+      key: String(key),
+      workspaceId: String(workspaceId),
+    }),
+  );
 }
 
 function duplicateApplicationError(error) {

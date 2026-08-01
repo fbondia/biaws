@@ -69,7 +69,7 @@ export function CatalogView({ actor }) {
                 <Search size={15} />
                 <input
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Nome, chave ou descrição"
+                  placeholder="Nome, identificador ou descrição"
                   value={search}
                 />
               </div>
@@ -196,10 +196,13 @@ export function CatalogView({ actor }) {
             dialog.kind === "application" ? persistApplication : persistEntity
           }
           options={{
+            application: context?.application,
             applications: context?.availableApplications || [],
             components: context?.components || [],
+            deployments: context?.deployments || [],
             repositories: context?.repositories || [],
             servers: context?.servers || [],
+            workspace,
           }}
         />
       ) : null}

@@ -21,6 +21,16 @@ const SIGNAL_STATUSES = RUNTIME_STATUSES.filter(
   (status) => status !== "archived",
 );
 const SIGNAL_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/u;
+const PAYLOAD_KEY_PATTERN = /^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/u;
+const PROHIBITED_PAYLOAD_KEY =
+  /(?:password|passwd|pwd|secret|token|credential|authorization|api[-_.]?key|private[-_.]?key|kubeconfig|connection[-_.]?string)/iu;
+const PAYLOAD_LIMITS = Object.freeze({
+  arrayItems: 100,
+  bytes: 65_536,
+  depth: 8,
+  nodes: 1_000,
+  string: 8_000,
+});
 let collectionPromise;
 
 async function monitoringCollection() {
@@ -59,7 +69,15 @@ async function monitoringCollection() {
 export function normalizeMonitoringSignal(payload = {}, actor = {}) {
   assertAllowedFields(
     payload,
-    ["signalId", "status", "observedAt", "source", "message", "metadata"],
+    [
+      "signalId",
+      "status",
+      "observedAt",
+      "source",
+      "message",
+      "metadata",
+      "payload",
+    ],
     "monitoring signal",
   );
   const signalId = optionalText(payload.signalId, "signalId", 128);
@@ -77,8 +95,96 @@ export function normalizeMonitoringSignal(payload = {}, actor = {}) {
     source: requiredText(payload.source, "source", 160),
     message: optionalText(payload.message, "message", 4_000),
     metadata: normalizeMetadata(payload.metadata, {}),
+    payload: normalizeMonitoringPayload(payload.payload),
     recordedBy: actorId(actor),
   };
+}
+
+export function normalizeMonitoringPayload(value) {
+  if (value === undefined) return null;
+  const state = { nodes: 0 };
+
+  function normalize(entry, field, depth) {
+    state.nodes += 1;
+    if (state.nodes > PAYLOAD_LIMITS.nodes) {
+      throw createCatalogError(
+        422,
+        "INVALID_MONITORING_PAYLOAD",
+        `payload must contain at most ${PAYLOAD_LIMITS.nodes} values`,
+      );
+    }
+    if (depth > PAYLOAD_LIMITS.depth) {
+      throw createCatalogError(
+        422,
+        "INVALID_MONITORING_PAYLOAD",
+        `payload must contain at most ${PAYLOAD_LIMITS.depth} nested levels`,
+      );
+    }
+    if (
+      entry === null ||
+      typeof entry === "boolean" ||
+      (typeof entry === "number" && Number.isFinite(entry))
+    ) {
+      return entry;
+    }
+    if (typeof entry === "string") {
+      if (entry.length > PAYLOAD_LIMITS.string) {
+        throw createCatalogError(
+          422,
+          "INVALID_MONITORING_PAYLOAD",
+          `${field} must contain at most ${PAYLOAD_LIMITS.string} characters`,
+        );
+      }
+      return entry;
+    }
+    if (Array.isArray(entry)) {
+      if (entry.length > PAYLOAD_LIMITS.arrayItems) {
+        throw createCatalogError(
+          422,
+          "INVALID_MONITORING_PAYLOAD",
+          `${field} must contain at most ${PAYLOAD_LIMITS.arrayItems} items`,
+        );
+      }
+      return entry.map((item, index) =>
+        normalize(item, `${field}[${index}]`, depth + 1),
+      );
+    }
+    if (entry && typeof entry === "object") {
+      const normalized = {};
+      for (const [key, item] of Object.entries(entry)) {
+        if (
+          !PAYLOAD_KEY_PATTERN.test(key) ||
+          PROHIBITED_PAYLOAD_KEY.test(key) ||
+          ["constructor", "prototype"].includes(key.toLowerCase())
+        ) {
+          throw createCatalogError(
+            422,
+            "INVALID_MONITORING_PAYLOAD",
+            `payload key is invalid or prohibited: ${key}`,
+          );
+        }
+        normalized[key] = normalize(item, `${field}.${key}`, depth + 1);
+      }
+      return normalized;
+    }
+    throw createCatalogError(
+      422,
+      "INVALID_MONITORING_PAYLOAD",
+      `${field} must contain valid JSON values`,
+    );
+  }
+
+  const normalized = normalize(value, "payload", 0);
+  if (
+    Buffer.byteLength(JSON.stringify(normalized), "utf8") > PAYLOAD_LIMITS.bytes
+  ) {
+    throw createCatalogError(
+      422,
+      "INVALID_MONITORING_PAYLOAD",
+      `payload must contain at most ${PAYLOAD_LIMITS.bytes} bytes`,
+    );
+  }
+  return normalized;
 }
 
 export async function recordRuntimeMonitoringSignal(
@@ -181,6 +287,95 @@ export async function listRuntimeMonitoringSignals(runtimeId, query = {}) {
   return {
     meta: { runtimeId: runtime.id, total, page, limit },
     items: items.map(normalizeDocument),
+  };
+}
+
+function timelineEvent(signal) {
+  return {
+    ...normalizeDocument(signal),
+    payload: signal.payload ?? null,
+    origin: "external",
+  };
+}
+
+function manualTimelineEvent(runtime, observation) {
+  return {
+    id: observation.id,
+    workspaceId: runtime.workspaceId,
+    applicationId: runtime.applicationId,
+    deploymentId: runtime.deploymentId,
+    runtimeId: runtime.id,
+    signalId: null,
+    status: observation.healthStatus,
+    observedAt: observation.observedAt,
+    receivedAt: observation.receivedAt,
+    source: observation.source || "Registro manual",
+    message: observation.message || "",
+    metadata: observation.metadata || {},
+    payload: null,
+    recordedBy: observation.recordedBy,
+    origin: "manual",
+  };
+}
+
+function compareTimelineEvents(left, right) {
+  const observed = new Date(right.observedAt) - new Date(left.observedAt);
+  if (observed) return observed;
+  const received = new Date(right.receivedAt) - new Date(left.receivedAt);
+  if (received) return received;
+  return String(right.id).localeCompare(String(left.id));
+}
+
+function matchesTimelineFilter(event, filter) {
+  if (filter.status && event.status !== filter.status) return false;
+  const observedAt = new Date(event.observedAt);
+  if (filter.observedAt?.$gte && observedAt < filter.observedAt.$gte) {
+    return false;
+  }
+  if (filter.observedAt?.$lt && observedAt >= filter.observedAt.$lt) {
+    return false;
+  }
+  if (filter.observedAt?.$lte && observedAt > filter.observedAt.$lte) {
+    return false;
+  }
+  return true;
+}
+
+export async function listRuntimeMonitoringTimeline(runtimeId, query = {}) {
+  const runtime = await getRuntime(runtimeId, {
+    workspaceId: query.workspaceId,
+  });
+  if (!runtime) {
+    throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
+  }
+  const { page, limit, skip } = pagination(query);
+  const filter = buildRuntimeMonitoringSignalFilter(runtime, query);
+  const manualEvents = (runtime.observations || [])
+    .map((observation) => manualTimelineEvent(runtime, observation))
+    .filter((event) => matchesTimelineFilter(event, filter));
+  const externalStart = Math.max(0, skip - manualEvents.length);
+  const collection = await monitoringCollection();
+  const [externalEvents, externalTotal] = await Promise.all([
+    collection
+      .find(filter)
+      .sort({ observedAt: -1, receivedAt: -1, id: -1 })
+      .skip(externalStart)
+      .limit(limit + manualEvents.length)
+      .toArray(),
+    collection.countDocuments(filter),
+  ]);
+  const merged = [...manualEvents, ...externalEvents.map(timelineEvent)].sort(
+    compareTimelineEvents,
+  );
+  const relativeSkip = skip - externalStart;
+  return {
+    meta: {
+      runtimeId: runtime.id,
+      total: externalTotal + manualEvents.length,
+      page,
+      limit,
+    },
+    items: merged.slice(relativeSkip, relativeSkip + limit),
   };
 }
 

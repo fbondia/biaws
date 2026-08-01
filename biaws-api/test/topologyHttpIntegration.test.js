@@ -285,6 +285,10 @@ test(
           source: "integration-monitor",
           message: "Latency threshold exceeded",
           metadata: { latency_ms: 850 },
+          payload: {
+            probe: { statusCode: 503, durationMs: 850 },
+            dependencies: [{ name: "database", healthy: false }],
+          },
         },
         origin: true,
       });
@@ -331,6 +335,7 @@ test(
       const signals = await signalsResponse.json();
       assert.equal(signals.meta.total, 2);
       assert.equal(signals.items[0].signalId, "monitor:event:2");
+      assert.equal(signals.items[0].payload.probe.statusCode, 503);
       const filteredSignalsResponse = await request(
         `${signalRoute}?status=healthy&observedFrom=2026-07-31&observedTo=2026-07-31`,
         { cookie: adminCookie },
@@ -339,6 +344,30 @@ test(
       const filteredSignals = await filteredSignalsResponse.json();
       assert.equal(filteredSignals.meta.total, 1);
       assert.equal(filteredSignals.items[0].signalId, "monitor:event:1");
+      const runtimeWithManualObservation = (
+        await patch(`/api/catalog/runtimes/${runtime.id}`, {
+          observations: [
+            {
+              healthStatus: "unavailable",
+              observedAt: "2026-07-31T16:00:00.000Z",
+              source: "operador",
+              message: "Indisponibilidade confirmada manualmente",
+              metadata: { ticket: "INC-42" },
+            },
+          ],
+        })
+      ).runtime;
+      assert.equal(runtimeWithManualObservation.observations.length, 1);
+      const timelineResponse = await request(
+        `/api/monitoring/runtimes/${runtime.id}/timeline?limit=10`,
+        { cookie: adminCookie },
+      );
+      assert.equal(timelineResponse.status, 200);
+      const timeline = await timelineResponse.json();
+      assert.equal(timeline.meta.total, 3);
+      assert.equal(timeline.items[0].origin, "manual");
+      assert.equal(timeline.items[1].origin, "external");
+      assert.equal(timeline.items[1].payload.probe.durationMs, 850);
       const applicationHealthResponse = await request(
         `/api/monitoring/applications/${application.id}/health`,
         { cookie: adminCookie },

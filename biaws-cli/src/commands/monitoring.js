@@ -12,6 +12,15 @@ function parseMetadata(value) {
   return metadata;
 }
 
+function parsePayload(value) {
+  if (!value) return undefined;
+  try {
+    return JSON.parse(value);
+  } catch {
+    throw new Error("--payload deve conter JSON válido.");
+  }
+}
+
 function printSignal(result) {
   const state = result.created ? "registrado" : "já recebido";
   console.log(
@@ -35,6 +44,7 @@ export async function runMonitoringCommand(api, action, positional, options) {
       ...(options["observed-at"] ? { observedAt: options["observed-at"] } : {}),
       ...(options.message ? { message: options.message } : {}),
       metadata: parseMetadata(options.metadata),
+      ...(options.payload ? { payload: parsePayload(options.payload) } : {}),
     });
     if (options.json) console.log(JSON.stringify(result, null, 2));
     else printSignal(result);

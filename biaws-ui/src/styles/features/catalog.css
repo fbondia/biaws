@@ -1563,6 +1563,81 @@
   white-space: pre-wrap;
 }
 
+.catalogMonitoringEventHeading,
+.homeMonitoringSignalBadges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.monitoringOriginBadge {
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  padding: 2px 7px;
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+.monitoringEventDetails {
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-2);
+}
+
+.monitoringEventDetails summary {
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.monitoringEventDetails dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+
+.monitoringEventDetails dl div {
+  min-width: 0;
+}
+
+.monitoringEventDetails dt {
+  color: var(--color-text-subtle);
+  font-size: 0.66rem;
+}
+
+.monitoringEventDetails dd {
+  overflow-wrap: anywhere;
+  margin: 2px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.74rem;
+}
+
+.monitoringEventJson {
+  margin-top: var(--space-3);
+}
+
+.monitoringEventJson > strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: 0.72rem;
+}
+
+.monitoringEventJson pre {
+  max-height: 300px;
+  overflow: auto;
+  margin: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  padding: var(--space-3);
+  font-size: 0.7rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .catalogHistoryEmpty {
   border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-md);

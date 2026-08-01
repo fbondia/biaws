@@ -1,8 +1,9 @@
 import { Save, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
-import { fetchRuntimeMonitoringSignals } from "../../api.js";
+import { MonitoringEventDetails } from "../shared/MonitoringEventDetails.jsx";
+import { fetchRuntimeMonitoringTimeline } from "../../api.js";
 import { buildUrl } from "../../api/client.js";
 import {
   CATALOG_ENTITY_LABELS,
@@ -192,7 +193,7 @@ export function CatalogEntityDialog({
     source: "",
     message: "",
   });
-  const [monitoringSignals, setMonitoringSignals] = useState([]);
+  const [monitoringEvents, setMonitoringEvents] = useState([]);
   const [monitoringError, setMonitoringError] = useState("");
   const label = CATALOG_ENTITY_LABELS[kind];
   const runtimeDeployment = (options.deployments || []).find(
@@ -235,9 +236,9 @@ export function CatalogEntityDialog({
   useEffect(() => {
     if (kind !== "runtime" || !entity?.id) return;
     let active = true;
-    fetchRuntimeMonitoringSignals(entity.id, { limit: 50 })
+    fetchRuntimeMonitoringTimeline(entity.id, { limit: 100 })
       .then((payload) => {
-        if (active) setMonitoringSignals(payload.items || []);
+        if (active) setMonitoringEvents(payload.items || []);
       })
       .catch((loadError) => {
         if (active) setMonitoringError(loadError.message);
@@ -246,6 +247,21 @@ export function CatalogEntityDialog({
       active = false;
     };
   }, [entity?.id, kind]);
+
+  const monitoringTimeline = useMemo(() => {
+    const pendingManualEvents = (draft.observations || [])
+      .filter(({ id }) => String(id).startsWith("draft-"))
+      .map((observation) => ({
+        ...observation,
+        status: observation.healthStatus,
+        origin: "manual",
+        receivedAt: new Date().toISOString(),
+        payload: null,
+      }));
+    return [...monitoringEvents, ...pendingManualEvents].sort(
+      (left, right) => new Date(right.observedAt) - new Date(left.observedAt),
+    );
+  }, [draft.observations, monitoringEvents]);
 
   function update(field, value) {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -776,14 +792,14 @@ export function CatalogEntityDialog({
             {kind === "runtime" && activeSection === "monitoring" ? (
               <div className="catalogHistorySection catalogWideField">
                 <div className="catalogMonitoringSummary">
-                  <strong>Sinais externos</strong>
+                  <strong>Linha do tempo de monitoramento</strong>
                   <span>
-                    A plataforma recebe e exibe a saúde; o monitoramento é
-                    executado por agentes externos.
+                    Sinais externos e observações manuais aparecem juntos, com a
+                    origem identificada em cada registro.
                   </span>
                   {entity?.monitoring ? (
                     <small>
-                      Último sinal: {entity.monitoring.status} ·{" "}
+                      Último sinal externo: {entity.monitoring.status} ·{" "}
                       {formatDate(entity.monitoring.observedAt)} ·{" "}
                       {entity.monitoring.source}
                     </small>
@@ -802,11 +818,15 @@ export function CatalogEntityDialog({
                   <dl>
                     <div>
                       <dt>Workspace</dt>
-                      <dd><code>{options.workspace?.id}</code></dd>
+                      <dd>
+                        <code>{options.workspace?.id}</code>
+                      </dd>
                     </div>
                     <div>
                       <dt>UUID</dt>
-                      <dd><code>{entity?.id}</code></dd>
+                      <dd>
+                        <code>{entity?.id}</code>
+                      </dd>
                     </div>
                     <div>
                       <dt>Caminho</dt>
@@ -818,28 +838,17 @@ export function CatalogEntityDialog({
                   {curlExample ? (
                     <>
                       <h3>Exemplo com curl</h3>
-                      <pre><code>{curlExample}</code></pre>
+                      <pre>
+                        <code>{curlExample}</code>
+                      </pre>
                     </>
                   ) : null}
                 </div>
                 {monitoringError ? (
                   <div className="errorBox">{monitoringError}</div>
                 ) : null}
-                <HistoryItems
-                  empty="Nenhum sinal externo recebido."
-                  items={monitoringSignals}
-                  renderItem={(signal) => (
-                    <>
-                      <strong>{signal.status}</strong>
-                      <small>
-                        {formatDate(signal.observedAt)} · {signal.source}
-                      </small>
-                      {signal.message ? <p>{signal.message}</p> : null}
-                    </>
-                  )}
-                />
                 <h3 className="catalogMonitoringManualTitle">
-                  Observações manuais
+                  Adicionar observação manual
                 </h3>
                 <div className="catalogHistoryComposer">
                   <SelectField
@@ -901,18 +910,22 @@ export function CatalogEntityDialog({
                   </button>
                 </div>
                 <HistoryItems
-                  empty="Nenhuma observação registrada."
-                  items={[...(draft.observations || [])].reverse()}
-                  renderItem={(observation) => (
+                  empty="Nenhum registro de monitoramento recebido."
+                  items={monitoringTimeline}
+                  renderItem={(event) => (
                     <>
-                      <strong>{observation.healthStatus}</strong>
+                      <div className="catalogMonitoringEventHeading">
+                        <strong>{event.status}</strong>
+                        <span className="monitoringOriginBadge">
+                          {event.origin === "manual" ? "Manual" : "Externo"}
+                        </span>
+                      </div>
                       <small>
-                        {formatDate(observation.observedAt)}
-                        {observation.source ? ` · ${observation.source}` : ""}
+                        {formatDate(event.observedAt)}
+                        {event.source ? ` · ${event.source}` : ""}
                       </small>
-                      {observation.message ? (
-                        <p>{observation.message}</p>
-                      ) : null}
+                      {event.message ? <p>{event.message}</p> : null}
+                      <MonitoringEventDetails event={event} />
                     </>
                   )}
                 />

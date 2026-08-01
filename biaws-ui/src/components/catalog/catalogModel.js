@@ -278,6 +278,6 @@ export function monitoringSignalCurl({
     `  --header 'Authorization: Bearer <api-key>' \\`,
     `  --header 'X-Biaws-Workspace-Id: ${workspaceId}' \\`,
     `  --header 'Content-Type: application/json' \\`,
-    `  --data '{"signalId":"example:check:1","status":"healthy","source":"external-monitor"}'`,
+    `  --data '{"signalId":"example:check:1","status":"healthy","source":"external-monitor","metadata":{"latency_ms":35},"payload":{"probe":{"statusCode":200,"durationMs":35}}}'`,
   ].join("\n");
 }

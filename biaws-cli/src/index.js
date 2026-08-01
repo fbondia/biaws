@@ -47,6 +47,7 @@ Opções:
   --observed-at <data>  Data ISO-8601 da observação; default: agora
   --message <texto>     Resumo legível do sinal
   --metadata <json>     Metadados escalares, sem segredos
+  --payload <json>      Payload JSON aninhado, limitado e sem segredos
   <runtime>             UUID ou caminho aplicação.componente.deployment.runtime
   --changelog <texto>   Alterações da versão
   --force               Substitui uma instalação existente, preservando backup

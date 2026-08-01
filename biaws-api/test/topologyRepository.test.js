@@ -11,6 +11,7 @@ import { normalizeRepositoryInput } from "../src/repositories/repositoriesReposi
 import { normalizeServerInput } from "../src/repositories/serversRepository.js";
 import {
   buildRuntimeMonitoringSignalFilter,
+  normalizeMonitoringPayload,
   normalizeMonitoringSignal,
 } from "../src/repositories/runtimeMonitoringRepository.js";
 import {
@@ -295,12 +296,17 @@ test("monitoring signals validate status, idempotency key and secret-free metada
       source: "zabbix",
       message: "Latência acima do limite",
       metadata: { latency_ms: 850 },
+      payload: {
+        http: { status: 503, timings: [35, 42] },
+        checks: [{ name: "database", healthy: false }],
+      },
     },
     { userId: "monitor-1" },
   );
   assert.equal(signal.signalId, "zabbix:billing-api:42");
   assert.equal(signal.status, "degraded");
   assert.equal(signal.recordedBy, "monitor-1");
+  assert.equal(signal.payload.http.status, 503);
   assert.equal(signal.observedAt.toISOString(), "2026-07-31T15:00:00.000Z");
   assert.throws(
     () =>
@@ -319,6 +325,27 @@ test("monitoring signals validate status, idempotency key and secret-free metada
         source: "agent",
       }),
     (error) => error.code === "INVALID_MONITORING_SIGNAL",
+  );
+});
+
+test("monitoring payload accepts bounded nested JSON and rejects sensitive keys", () => {
+  assert.deepEqual(
+    normalizeMonitoringPayload({
+      response: { status: 200, headers: ["content-type"] },
+    }),
+    { response: { status: 200, headers: ["content-type"] } },
+  );
+  assert.throws(
+    () => normalizeMonitoringPayload({ request: { authorization: "value" } }),
+    (error) => error.code === "INVALID_MONITORING_PAYLOAD",
+  );
+  assert.throws(
+    () => normalizeMonitoringPayload({ constructor: "unexpected" }),
+    (error) => error.code === "INVALID_MONITORING_PAYLOAD",
+  );
+  assert.throws(
+    () => normalizeMonitoringPayload({ values: Array(101).fill(1) }),
+    (error) => error.code === "INVALID_MONITORING_PAYLOAD",
   );
 });
 

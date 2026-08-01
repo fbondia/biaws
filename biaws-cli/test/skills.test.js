@@ -107,6 +107,7 @@ test("monitoring command sends an idempotent runtime health signal", async () =>
     "observed-at": "2026-07-31T15:00:00.000Z",
     message: "HTTP 200",
     metadata: '{"latency_ms":35}',
+    payload: '{"probe":{"status":200}}',
     json: true,
   });
   assert.deepEqual(received, {
@@ -118,6 +119,7 @@ test("monitoring command sends an idempotent runtime health signal", async () =>
       observedAt: "2026-07-31T15:00:00.000Z",
       message: "HTTP 200",
       metadata: { latency_ms: 35 },
+      payload: { probe: { status: 200 } },
     },
   });
 });

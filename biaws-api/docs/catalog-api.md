@@ -286,16 +286,20 @@ aceita até 20.000 caracteres em Markdown.
 
 ## Sinais de monitoramento
 
-| Método | Rota                                                 | Permissão                   |
-| ------ | ---------------------------------------------------- | --------------------------- |
-| `POST` | `/api/monitoring/runtimes/:runtimeReference/signals` | `monitoring.signals.create` |
-| `GET`  | `/api/monitoring/runtimes/:runtimeReference/signals` | `runtimes.read`             |
-| `GET`  | `/api/monitoring/applications/:applicationId/health` | `runtimes.read`             |
+| Método | Rota                                                  | Permissão                   |
+| ------ | ----------------------------------------------------- | --------------------------- |
+| `POST` | `/api/monitoring/runtimes/:runtimeReference/signals`  | `monitoring.signals.create` |
+| `GET`  | `/api/monitoring/runtimes/:runtimeReference/signals`  | `runtimes.read`             |
+| `GET`  | `/api/monitoring/runtimes/:runtimeReference/timeline` | `runtimes.read`             |
+| `GET`  | `/api/monitoring/applications/:applicationId/health`  | `runtimes.read`             |
 
 Os sinais são persistidos em `runtimeMonitoringSignals`, separados das
 observações manuais limitadas do cadastro. O sinal mais recente por
 `observedAt` materializa `status`, `observedAt` e `monitoring` no runtime.
 `signalId`, quando enviado, torna retries idempotentes no escopo do runtime.
+`payload` preserva JSON aninhado de diagnóstico sob os limites e bloqueios de
+segredos documentados. A rota `timeline` combina esses sinais com as observações
+manuais do runtime, mantendo a origem de cada evento.
 `runtimeReference` aceita o UUID do runtime ou o caminho de identificadores
 `<aplicação>.<componente>.<deployment>.<runtime>` dentro do workspace do ator.
 O UUID permanece estável; o caminho muda quando um desses identificadores é

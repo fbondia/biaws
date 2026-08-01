@@ -8,6 +8,7 @@ import { getRuntimeByReference } from "../repositories/deploymentsRepository.js"
 import { getApplication } from "../repositories/catalogRepository.js";
 import {
   getApplicationMonitoringHealth,
+  listRuntimeMonitoringTimeline,
   listRuntimeMonitoringSignals,
   recordRuntimeMonitoringSignal,
 } from "../repositories/runtimeMonitoringRepository.js";
@@ -104,6 +105,21 @@ monitoringRouter.get(
         req.actor.workspaceId,
       ),
     });
+  }),
+);
+
+monitoringRouter.get(
+  "/runtimes/:runtimeReference/timeline",
+  requireAllPermissions("runtimes.read"),
+  asyncHandler(async (req, res) => {
+    const runtime = await scopedRuntime(req, "runtimes.read");
+    if (!runtime) return sendRuntimeNotFound(res);
+    res.json(
+      await listRuntimeMonitoringTimeline(runtime.id, {
+        ...req.query,
+        workspaceId: req.actor.workspaceId,
+      }),
+    );
   }),
 );
 

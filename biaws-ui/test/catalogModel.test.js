@@ -79,6 +79,14 @@ test("runtime monitoring references use contextual identifiers", () => {
     }),
     /X-Biaws-Workspace-Id: workspace-1/u,
   );
+  assert.match(
+    monitoringSignalCurl({
+      apiUrl: `https://biaws.example.test/api/monitoring/runtimes/${runtimeReference}/signals`,
+      runtimeReference,
+      workspaceId: "workspace-1",
+    }),
+    /"payload":\{"probe":\{"statusCode":200/u,
+  );
 });
 
 test("catalog drafts accept an explicit null when creating", () => {

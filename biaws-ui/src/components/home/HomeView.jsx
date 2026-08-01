@@ -20,9 +20,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   fetchHomeDashboard,
-  fetchRuntimeMonitoringSignals,
+  fetchRuntimeMonitoringTimeline,
   updateHomeConfiguration,
 } from "../../api.js";
+import { MonitoringEventDetails } from "../shared/MonitoringEventDetails.jsx";
 import {
   createWidgetInstance,
   HOME_WIDGET_SIZES,
@@ -227,7 +228,7 @@ function RuntimeMonitoringDialog({ runtime, onClose }) {
     let active = true;
     setLoading(true);
     setError("");
-    void fetchRuntimeMonitoringSignals(runtime.id, {
+    void fetchRuntimeMonitoringTimeline(runtime.id, {
       page: 1,
       limit: 20,
       ...filters,
@@ -375,11 +376,16 @@ function RuntimeMonitoringDialog({ runtime, onClose }) {
               {signals.map((signal) => (
                 <article key={signal.id}>
                   <div className="homeMonitoringSignalHeading">
-                    <span
-                      className={`catalogStatus catalogStatus-${signal.status}`}
-                    >
-                      {signal.status}
-                    </span>
+                    <div className="homeMonitoringSignalBadges">
+                      <span
+                        className={`catalogStatus catalogStatus-${signal.status}`}
+                      >
+                        {signal.status}
+                      </span>
+                      <span className="monitoringOriginBadge">
+                        {signal.origin === "manual" ? "Manual" : "Externo"}
+                      </span>
+                    </div>
                     <time dateTime={signal.observedAt}>
                       {formatDate(signal.observedAt)}
                     </time>
@@ -390,6 +396,7 @@ function RuntimeMonitoringDialog({ runtime, onClose }) {
                     Recebido em {formatDate(signal.receivedAt)}
                     {signal.signalId ? ` · Sinal ${signal.signalId}` : ""}
                   </small>
+                  <MonitoringEventDetails event={signal} />
                 </article>
               ))}
             </div>
@@ -397,7 +404,7 @@ function RuntimeMonitoringDialog({ runtime, onClose }) {
         </div>
         {meta?.total ? (
           <footer>
-            Exibindo {signals.length} de {meta.total} sinais, do mais recente
+            Exibindo {signals.length} de {meta.total} eventos, do mais recente
             para o mais antigo.
           </footer>
         ) : null}

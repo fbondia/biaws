@@ -199,6 +199,12 @@ export function fetchRuntimeMonitoringSignals(runtimeId, params) {
     params,
   );
 }
+export function fetchRuntimeMonitoringTimeline(runtimeId, params) {
+  return fetchJson(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/timeline`,
+    params,
+  );
+}
 export function fetchApplicationMonitoringHealth(applicationId) {
   return fetchJson(
     `/api/monitoring/applications/${encodeURIComponent(applicationId)}/health`,

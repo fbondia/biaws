@@ -37,7 +37,11 @@ essa alteração.
   "observedAt": "2026-07-31T15:00:00.000Z",
   "source": "zabbix",
   "message": "Latência acima de 800 ms",
-  "metadata": { "latency_ms": 850, "region": "sa-east-1" }
+  "metadata": { "latency_ms": 850, "region": "sa-east-1" },
+  "payload": {
+    "probe": { "statusCode": 503, "durationMs": 850 },
+    "dependencies": [{ "name": "database", "healthy": false }]
+  }
 }
 ```
 
@@ -49,6 +53,13 @@ workspace, runtime e `signalId` é idempotente. O primeiro recebimento responde
 Metadados seguem as restrições do runtime: até 25 chaves e 16 KiB, somente
 escalares ou arrays de escalares e sem nomes associados a credenciais ou
 segredos. Não envie tokens, cabeçalhos de autorização ou conteúdo de resposta.
+
+Para dados estruturados, `payload` aceita JSON aninhado com até 64 KiB, oito
+níveis, 1.000 valores, arrays de até 100 itens e strings de até 8.000 caracteres.
+Chaves precisam começar por uma letra e usar letras, números, `_`, `.`, `:` ou
+`-`; nomes associados a credenciais e segredos são rejeitados em qualquer
+nível. Use `metadata` para dimensões pequenas e pesquisáveis e `payload` para o
+diagnóstico detalhado. O payload é exibido somente nos detalhes do evento.
 
 Sinais fora de ordem permanecem no histórico, mas só atualizam a saúde
 materializada quando `observedAt` é igual ou posterior ao último sinal aplicado.
@@ -64,7 +75,8 @@ node biaws-cli/src/index.js monitoring signal billing.billing-api.production.pri
   --signal-id synthetic-http:2026-07-31T15:00:00Z \
   --observed-at 2026-07-31T15:00:00Z \
   --message "HTTP 200 em 35 ms" \
-  --metadata '{"latency_ms":35}'
+  --metadata '{"latency_ms":35}' \
+  --payload '{"probe":{"statusCode":200,"durationMs":35}}'
 ```
 
 ```bash
@@ -93,6 +105,12 @@ do runtime. Retentativas idempotentes não geram outro evento.
 
 ```http
 GET /api/monitoring/runtimes/:runtimeReference/signals?page=1&limit=50&status=degraded&observedFrom=2026-07-01&observedTo=2026-07-31
+```
+
+Para uma linha do tempo única com sinais externos e observações manuais:
+
+```http
+GET /api/monitoring/runtimes/:runtimeReference/timeline?page=1&limit=50&status=degraded&observedFrom=2026-07-01&observedTo=2026-07-31
 ```
 
 ```http

@@ -284,6 +284,22 @@ recusados.
 continua materializado com a data da observação mais recente. O procedimento
 aceita até 20.000 caracteres em Markdown.
 
+## Sinais de monitoramento
+
+| Método | Rota                                                 | Permissão                   |
+| ------ | ---------------------------------------------------- | --------------------------- |
+| `POST` | `/api/monitoring/runtimes/:runtimeId/signals`        | `monitoring.signals.create` |
+| `GET`  | `/api/monitoring/runtimes/:runtimeId/signals`        | `runtimes.read`             |
+| `GET`  | `/api/monitoring/applications/:applicationId/health` | `runtimes.read`             |
+
+Os sinais são persistidos em `runtimeMonitoringSignals`, separados das
+observações manuais limitadas do cadastro. O sinal mais recente por
+`observedAt` materializa `status`, `observedAt` e `monitoring` no runtime.
+`signalId`, quando enviado, torna retries idempotentes no escopo do runtime.
+O endpoint de aplicação agrega contagens por estado e retorna a pior saúde
+observada entre seus runtimes não arquivados.
+Veja o [guia de monitoramento](../../docs/monitoring.md).
+
 ## Contexto agregado
 
 `GET /api/catalog/applications/:applicationId/context` retorna a aplicação e

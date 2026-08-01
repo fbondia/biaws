@@ -5,13 +5,13 @@
 O Bondia Workspaces é um monorepositório leve composto por quatro aplicações Node.js e
 um pacote compartilhado.
 
-| Componente | Responsabilidade |
-| --- | --- |
+| Componente  | Responsabilidade                                                   |
+| ----------- | ------------------------------------------------------------------ |
 | `biaws-api` | HTTP, autenticação, autorização, domínio, auditoria e persistência |
-| `biaws-ui` | experiência web React |
-| `biaws-mcp` | ferramentas MCP de domínio sobre a API |
-| `biaws-cli` | publicação e instalação local de skills |
-| `shared` | permissões, constantes e carregamento de ambiente |
+| `biaws-ui`  | experiência web React                                              |
+| `biaws-mcp` | ferramentas MCP de domínio sobre a API                             |
+| `biaws-cli` | publicação e instalação local de skills                            |
+| `shared`    | permissões, constantes e carregamento de ambiente                  |
 
 ## Fluxos
 
@@ -36,10 +36,16 @@ sequenceDiagram
 
 MCP e CLI usam chaves de API e nunca acessam MongoDB diretamente.
 
+Agentes de monitoramento também usam chave de API. Eles fazem as verificações
+fora da plataforma e enviam sinais ao endpoint de monitoramento, diretamente ou
+pelo CLI. A API guarda o histórico em `runtimeMonitoringSignals` e materializa
+no runtime apenas o último estado cronológico; a plataforma permanece passiva.
+
 ## Dados
 
 MongoDB mantém identidades, workspaces, aplicações, topologia, permissões,
-issues, melhorias, procedimentos, taxonomia, skills e auditoria. Anexos ficam
+issues, melhorias, procedimentos, taxonomia, skills, sinais de monitoramento e
+auditoria. Anexos ficam
 fora do documento, referenciados por `provider` e `key`.
 
 Os nomes físicos das coleções são centralizados em

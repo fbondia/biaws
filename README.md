@@ -33,6 +33,7 @@ capacidades versionadas sem oferecer acesso genérico ao banco de dados.
 - workspaces e aplicações como fronteiras de organização e autorização;
 - componentes, repositórios, servidores, deployments e runtimes com consultas
   reversas e contexto agregado;
+- recepção passiva e idempotente de sinais externos de saúde dos runtimes;
 - autenticação, chaves de API, grupos e permissões;
 - trilha de auditoria funcional;
 - servidor MCP com ferramentas de catálogo, topologia, issues, melhorias e
@@ -48,6 +49,7 @@ capacidades versionadas sem oferecer acesso genérico ao banco de dados.
 flowchart LR
     Browser[UI React] --> API[biaws-api / Express]
     Agent[Cliente MCP] --> MCP[biaws-mcp]
+    Monitor[Agente de monitoramento] --> CLI
     CLI[biaws-cli] --> API
     MCP --> API
     API --> Mongo[(MongoDB)]
@@ -244,10 +246,12 @@ CLI:
 node biaws-cli/src/index.js skills list
 node biaws-cli/src/index.js skills status
 node biaws-cli/src/index.js agent doctor codex --project /caminho/do/projeto
+node biaws-cli/src/index.js monitoring signal <runtime-id> --status healthy --source synthetic-http
 ```
 
 Consulte [biaws-mcp/README.md](biaws-mcp/README.md) e
-[biaws-cli/README.md](biaws-cli/README.md) para o catálogo completo.
+[biaws-cli/README.md](biaws-cli/README.md) para o catálogo completo. O contrato
+de ingestão está em [docs/monitoring.md](docs/monitoring.md).
 
 ## Projeto e comunidade
 

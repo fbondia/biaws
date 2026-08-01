@@ -13,6 +13,7 @@ export const COLLECTION_NAMES = Object.freeze({
   APPLICATION_TOPOLOGY_DIAGRAMS: "applicationTopologyDiagrams",
   API_RATE_LIMITS: "apiRateLimits",
   DEPLOYMENT_RUNTIMES: "deploymentRuntimes",
+  RUNTIME_MONITORING_SIGNALS: "runtimeMonitoringSignals",
   EMAIL_SANITIZATION_CONFIGS: "emailSanitizationConfigs",
   ISSUE_COMMENTS: "issueComments",
   ISSUES: "issues",

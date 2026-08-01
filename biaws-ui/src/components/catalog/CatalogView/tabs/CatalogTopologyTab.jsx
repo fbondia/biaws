@@ -38,6 +38,7 @@ function TopologyRow({
   meta,
   name,
   onSelect,
+  status,
 }) {
   return (
     <div
@@ -56,6 +57,11 @@ function TopologyRow({
         <span className="catalogTopologyRowText">
           <strong>{name}</strong>
           {meta ? <small>{meta}</small> : null}
+          {status ? (
+            <span className={`catalogStatus catalogStatus-${status}`}>
+              {status}
+            </span>
+          ) : null}
         </span>
       </button>
       <div className="catalogTopologyRowControls">
@@ -384,6 +390,7 @@ export function CatalogTopologyTab({
                     meta={server?.hostname || "Hostname não informado"}
                     name={runtime.name}
                     onSelect={() => undefined}
+                    status={runtime.status}
                   />
                 );
               })}

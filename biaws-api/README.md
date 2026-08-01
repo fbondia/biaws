@@ -104,6 +104,19 @@ Health check:
 curl http://127.0.0.1:3100/api/health
 ```
 
+Receber um sinal de monitoramento de runtime:
+
+```bash
+curl -X POST http://127.0.0.1:3100/api/monitoring/runtimes/<runtime-id>/signals \
+  -H "Authorization: Bearer $ISSUE_API_KEY" \
+  -H "X-Biaws-Workspace-Id: $ISSUE_WORKSPACE_ID" \
+  -H 'Content-Type: application/json' \
+  -d '{"signalId":"probe:42","status":"healthy","source":"probe-http"}'
+```
+
+O contrato, idempotência e recomendações para emissores estão em
+[`../docs/monitoring.md`](../docs/monitoring.md).
+
 Listar issues com paginação:
 
 ```bash

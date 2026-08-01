@@ -9,6 +9,7 @@ import {
 } from "../src/repositories/deploymentsRepository.js";
 import { normalizeRepositoryInput } from "../src/repositories/repositoriesRepository.js";
 import { normalizeServerInput } from "../src/repositories/serversRepository.js";
+import { normalizeMonitoringSignal } from "../src/repositories/runtimeMonitoringRepository.js";
 import {
   buildScopedListFilter,
   pagination,
@@ -280,6 +281,42 @@ test("runtime observations are append-only and procedure markdown is bounded", (
       ),
     (error) =>
       error.statusCode === 409 && error.code === "CATALOG_HISTORY_IMMUTABLE",
+  );
+});
+
+test("monitoring signals validate status, idempotency key and secret-free metadata", () => {
+  const signal = normalizeMonitoringSignal(
+    {
+      signalId: "zabbix:billing-api:42",
+      status: "degraded",
+      observedAt: "2026-07-31T15:00:00.000Z",
+      source: "zabbix",
+      message: "Latência acima do limite",
+      metadata: { latency_ms: 850 },
+    },
+    { userId: "monitor-1" },
+  );
+  assert.equal(signal.signalId, "zabbix:billing-api:42");
+  assert.equal(signal.status, "degraded");
+  assert.equal(signal.recordedBy, "monitor-1");
+  assert.equal(signal.observedAt.toISOString(), "2026-07-31T15:00:00.000Z");
+  assert.throws(
+    () =>
+      normalizeMonitoringSignal({
+        status: "healthy",
+        source: "agent",
+        metadata: { apiToken: "secret" },
+      }),
+    (error) => error.code === "INVALID_RUNTIME_METADATA",
+  );
+  assert.throws(
+    () =>
+      normalizeMonitoringSignal({
+        signalId: "contains spaces",
+        status: "healthy",
+        source: "agent",
+      }),
+    (error) => error.code === "INVALID_MONITORING_SIGNAL",
   );
 });
 

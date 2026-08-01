@@ -1,9 +1,7 @@
 # Bondia Workspaces CLI
 
-CLI do Bondia Workspaces para configurar capacidades locais.
-
-Neste primeiro recorte, o CLI trata exclusivamente do catálogo de skills exposto pela
-`biaws-api`.
+CLI do Bondia Workspaces para configurar capacidades locais e integrar agentes
+externos aos contratos operacionais da plataforma.
 
 ## Uso
 
@@ -26,7 +24,20 @@ node src/index.js skills update
 node src/index.js agent configure codex --project /caminho/do/projeto
 node src/index.js agent configure claude --project /caminho/do/projeto
 node src/index.js agent doctor codex --project /caminho/do/projeto
+node src/index.js monitoring signal <runtime-id> \
+  --status degraded \
+  --source zabbix \
+  --signal-id zabbix:event:18492 \
+  --message "Latência elevada" \
+  --metadata '{"latency_ms":850}'
+node src/index.js monitoring signals <runtime-id> --limit 20
 ```
+
+`monitoring signal` envia uma observação passiva para um runtime. Use
+`--signal-id` para que retries sejam idempotentes e `--observed-at` quando a
+observação ocorreu antes do envio. Estados aceitos: `unknown`, `healthy`,
+`degraded`, `unavailable` e `stopped`. O contrato completo está em
+[`../docs/monitoring.md`](../docs/monitoring.md).
 
 Por padrão, as skills são instaladas em `.agents/skills`, considerando o diretório
 corrente. Outro destino pode ser informado com `--target`.

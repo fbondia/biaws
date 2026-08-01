@@ -197,6 +197,8 @@ e uma janela de indisponibilidade aprovada.
 - JSON: 4 MiB por padrão;
 - anexo: 50 MiB por padrão;
 - metadata de runtime: 16 KiB, 25 chaves e sem campos com semântica de segredo.
+- sinais de monitoramento: páginas de até 100; sem retenção automática nesta
+  versão, portanto acompanhe o crescimento de `runtimeMonitoringSignals`.
 
 O rate limiting possui três camadas independentes:
 
@@ -221,6 +223,10 @@ melhorias carrega 25 registros por página. Ajuste os limites de corpo/anexo pel
 variáveis documentadas em `.env.example`, considerando memória, proxy e storage.
 No ambiente Docker, `ISSUE_API_MAX_ATTACHMENT_BYTES` configura o mesmo limite
 na API e no Nginx; mantenha o proxy externo alinhado quando houver outra camada.
+
+Para um smoke test do receptor passivo, envie um sinal com `signalId` exclusivo,
+repita o mesmo envio e confirme respostas `201` e `200` com `created: false`.
+Depois, consulte `monitoring signals <runtime-id>` e a área Monitoramento na UI.
 
 ## Logs e correlação
 

@@ -262,6 +262,25 @@ Liste as demandas abertas e identifique suas tarefas pendentes.
 O agente deve usar as ferramentas MCP `biaws` e retornar dados da instância
 selecionada.
 
+## 7. Enviar um sinal de monitoramento
+
+Cadastre uma aplicação, componente, deployment e runtime pela UI e copie o ID
+do runtime. Usando a chave técnica criada pelo setup:
+
+```bash
+BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
+node biaws-cli/src/index.js \
+  monitoring signal <runtime-id> \
+  --status healthy \
+  --source quickstart \
+  --signal-id quickstart:1 \
+  --message "Primeiro sinal externo"
+```
+
+Abra o runtime na aba Topologia. O estado aparece na lista e o histórico fica
+na seção Monitoramento. Repetir o comando com o mesmo `--signal-id` não cria
+outro evento. Veja [docs/monitoring.md](docs/monitoring.md).
+
 ## Diagnóstico
 
 Para Codex:

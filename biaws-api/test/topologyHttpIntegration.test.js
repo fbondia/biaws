@@ -239,6 +239,63 @@ test(
           status: "healthy",
         },
       );
+      const signalRoute = `/api/monitoring/runtimes/${runtime.id}/signals`;
+      const signalResponse = await request(signalRoute, {
+        cookie: adminCookie,
+        method: "POST",
+        body: {
+          signalId: "monitor:event:2",
+          status: "degraded",
+          observedAt: "2026-07-31T15:00:00.000Z",
+          source: "integration-monitor",
+          message: "Latency threshold exceeded",
+          metadata: { latency_ms: 850 },
+        },
+        origin: true,
+      });
+      assert.equal(signalResponse.status, 201);
+      assert.equal((await signalResponse.json()).runtime.status, "degraded");
+      const duplicateSignalResponse = await request(signalRoute, {
+        cookie: adminCookie,
+        method: "POST",
+        body: {
+          signalId: "monitor:event:2",
+          status: "degraded",
+          source: "integration-monitor",
+        },
+        origin: true,
+      });
+      assert.equal(duplicateSignalResponse.status, 200);
+      assert.equal((await duplicateSignalResponse.json()).created, false);
+      const oldSignalResponse = await request(signalRoute, {
+        cookie: adminCookie,
+        method: "POST",
+        body: {
+          signalId: "monitor:event:1",
+          status: "healthy",
+          observedAt: "2026-07-31T14:00:00.000Z",
+          source: "integration-monitor",
+        },
+        origin: true,
+      });
+      assert.equal(oldSignalResponse.status, 201);
+      assert.equal((await oldSignalResponse.json()).runtime.status, "degraded");
+      const signalsResponse = await request(`${signalRoute}?limit=10`, {
+        cookie: adminCookie,
+      });
+      assert.equal(signalsResponse.status, 200);
+      const signals = await signalsResponse.json();
+      assert.equal(signals.meta.total, 2);
+      assert.equal(signals.items[0].signalId, "monitor:event:2");
+      const applicationHealthResponse = await request(
+        `/api/monitoring/applications/${application.id}/health`,
+        { cookie: adminCookie },
+      );
+      assert.equal(applicationHealthResponse.status, 200);
+      const applicationHealth = await applicationHealthResponse.json();
+      assert.equal(applicationHealth.health.status, "degraded");
+      assert.equal(applicationHealth.health.total, 1);
+      assert.equal(applicationHealth.health.observed, 1);
       const { diagram } = await mutate(
         `/api/catalog/applications/${application.id}/topology-diagrams`,
         {
@@ -316,8 +373,9 @@ test(
       });
       assert.equal(auditResponse.status, 200);
       const audit = await auditResponse.json();
-      assert.equal(audit.events.length, 1);
-      assert.equal(audit.events[0].action, "created");
+      assert.equal(audit.events.length, 3);
+      assert.equal(audit.events[0].action, "monitoring_signal_received");
+      assert.equal(audit.events.at(-1).action, "created");
       assert.equal(audit.events[0].target.id, runtime.id);
     } finally {
       await new Promise((resolve, reject) =>

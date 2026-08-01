@@ -33,15 +33,15 @@ Este é um projeto mantido em regime de melhor esforço, sem SLA.
 
 ## Critérios para beta
 
-| Critério | Situação |
-| --- | --- |
-| testes de integração HTTP com MongoDB | concluído para contexto, tenancy e topologia |
-| cobertura das ferramentas MCP | concluído para contratos de catálogo e conhecimento |
-| fluxos principais da UI | validação manual concluída; E2E automatizado pendente |
-| instalação limpa validada em CI | workflow configurado; bootstrap e seed reproduzidos localmente |
-| checksums e rollback defensivo no CLI | concluído |
-| onboarding de agentes | seletor multi-instância, bootstrap técnico, catálogo inicial, Codex e Claude validados em CI |
-| documentação de backup e restauração | concluído, com ensaio ainda obrigatório por release |
+| Critério                              | Situação                                                                                     |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- |
+| testes de integração HTTP com MongoDB | concluído para contexto, tenancy e topologia                                                 |
+| cobertura das ferramentas MCP         | concluído para contratos de catálogo e conhecimento                                          |
+| fluxos principais da UI               | validação manual concluída; E2E automatizado pendente                                        |
+| instalação limpa validada em CI       | workflow configurado; bootstrap e seed reproduzidos localmente                               |
+| checksums e rollback defensivo no CLI | concluído                                                                                    |
+| onboarding de agentes                 | seletor multi-instância, bootstrap técnico, catálogo inicial, Codex e Claude validados em CI |
+| documentação de backup e restauração  | concluído, com ensaio ainda obrigatório por release                                          |
 
 O projeto permanece alpha até existir uma suíte E2E da UI e pelo menos uma
 release pública operada com o runbook atual.
@@ -63,6 +63,7 @@ release pública operada com o runbook atual.
 - caminhos físicos de anexos legados ainda não incluem workspace/tipo;
 - paginação usa `skip/limit`; cursores devem ser considerados para coleções
   muito grandes;
-- não há observabilidade além de health check e logs dos processos;
+- não há coleta ativa de observabilidade; a plataforma recebe sinais externos
+  de saúde dos runtimes, além do health check e dos logs dos próprios processos;
 - índices redundantes podem persistir após upgrade e devem ser revistos em uma
   cópia restaurada.

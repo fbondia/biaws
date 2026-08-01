@@ -8,6 +8,7 @@ import { createApiClient } from "./apiClient.js";
 import { parseArgs } from "./args.js";
 import { runAgentCommand } from "./commands/agent.js";
 import { runSkillsCommand } from "./commands/skills.js";
+import { runMonitoringCommand } from "./commands/monitoring.js";
 
 const TOOL_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -26,6 +27,8 @@ Uso:
   biaws skills update [skill-id] [--target <diretório>]
   biaws agent configure codex|claude [--project <diretório>]
   biaws agent doctor codex|claude [--project <diretório>]
+  biaws monitoring signal <runtime-id> --status <estado> --source <origem> [opções]
+  biaws monitoring signals <runtime-id> [--limit <n>] [--json]
 
 Opções:
   --api-url <url>       URL da biaws-api; default: ISSUE_API_URL ou http://127.0.0.1:3100
@@ -38,6 +41,12 @@ Opções:
   --dir <diretório>     Diretório-fonte usado na publicação
   --name <nome>         Nome de exibição opcional
   --description <texto> Descrição opcional; por padrão usa o frontmatter do SKILL.md
+  --status <estado>     unknown, healthy, degraded, unavailable ou stopped
+  --source <origem>     Identificação do agente ou sistema de monitoramento
+  --signal-id <id>      ID idempotente do aviso na origem
+  --observed-at <data>  Data ISO-8601 da observação; default: agora
+  --message <texto>     Resumo legível do sinal
+  --metadata <json>     Metadados escalares, sem segredos
   --changelog <texto>   Alterações da versão
   --force               Substitui uma instalação existente, preservando backup
   --json                Produz saída JSON
@@ -57,7 +66,7 @@ async function main() {
     printUsage();
     return;
   }
-  if (!["skills", "agent"].includes(domain))
+  if (!["skills", "agent", "monitoring"].includes(domain))
     throw new Error(`Domínio desconhecido: ${domain}`);
   const { positional, options } = parseArgs(rawArgs);
   const apiUrl =
@@ -75,6 +84,10 @@ async function main() {
   const api = createApiClient(apiUrl, apiKey, workspaceId);
   if (domain === "skills") {
     await runSkillsCommand(api, action, positional, options);
+    return;
+  }
+  if (domain === "monitoring") {
+    await runMonitoringCommand(api, action, positional, options);
     return;
   }
   await runAgentCommand(api, action, positional, options, {

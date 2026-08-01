@@ -6,18 +6,19 @@ seus na primeira operação.
 
 ## Índices críticos
 
-| Fluxo | Prefixo do índice |
-| --- | --- |
-| aplicações | `workspaceId, name, id`; status exato usa variante com `status` |
+| Fluxo                      | Prefixo do índice                                                              |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| aplicações                 | `workspaceId, name, id`; status exato usa variante com `status`                |
 | componentes e repositórios | `workspaceId, applicationId, name, id`; status exato usa variante com `status` |
-| servidores | `workspaceId, name, id`; status exato usa variante com `status` |
-| deployments | `workspaceId, applicationId, deployedAt, id` |
-| runtimes no contexto | `workspaceId, applicationId, name, id` |
-| issues recentes | `workspaceId, applicationId, dates.receivedEmailAt, updatedAt, id` |
-| melhorias ordenadas | `workspaceId, applicationId, listRank, updatedAt, createdAt` |
-| procedimentos por título | `workspaceId, applicationId, title, updatedAt` |
-| contexto de conhecimento | `workspaceId, applicationId, updatedAt, id` |
-| auditoria por raiz | `rootType, rootId, occurredAt` |
+| servidores                 | `workspaceId, name, id`; status exato usa variante com `status`                |
+| deployments                | `workspaceId, applicationId, deployedAt, id`                                   |
+| runtimes no contexto       | `workspaceId, applicationId, name, id`                                         |
+| sinais de um runtime       | `workspaceId, applicationId, runtimeId, observedAt, receivedAt`                |
+| issues recentes            | `workspaceId, applicationId, dates.receivedEmailAt, updatedAt, id`             |
+| melhorias ordenadas        | `workspaceId, applicationId, listRank, updatedAt, createdAt`                   |
+| procedimentos por título   | `workspaceId, applicationId, title, updatedAt`                                 |
+| contexto de conhecimento   | `workspaceId, applicationId, updatedAt, id`                                    |
+| auditoria por raiz         | `rootType, rootId, occurredAt`                                                 |
 
 Chaves naturais e IDs têm índices únicos onde o contrato exige unicidade.
 Em particular, `issues.id` é único para impedir duplicação em criações
@@ -75,14 +76,14 @@ foram exercitadas com paginação e os índices de ordenação acima.
 
 No seed final, os planos com `hint()` retornaram `IXSCAN`, sem estágio `SORT`:
 
-| Consulta | retornados | chaves examinadas | documentos examinados |
-| --- | ---: | ---: | ---: |
-| aplicações | 2 | 2 | 2 |
-| componentes | 1 | 1 | 1 |
-| issues | 1 | 1 | 1 |
-| melhorias | 1 | 1 | 1 |
-| procedimentos | 1 | 1 | 1 |
-| deployments e runtimes vazios | 0 | 0 | 0 |
+| Consulta                      | retornados | chaves examinadas | documentos examinados |
+| ----------------------------- | ---------: | ----------------: | --------------------: |
+| aplicações                    |          2 |                 2 |                     2 |
+| componentes                   |          1 |                 1 |                     1 |
+| issues                        |          1 |                 1 |                     1 |
+| melhorias                     |          1 |                 1 |                     1 |
+| procedimentos                 |          1 |                 1 |                     1 |
+| deployments e runtimes vazios |          0 |                 0 |                     0 |
 
 Índices antigos, cujas chaves sejam prefixos de índices novos, podem permanecer
 após atualização de uma base existente. Revise `getIndexes()` e remova somente

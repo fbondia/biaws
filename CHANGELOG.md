@@ -25,6 +25,9 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- recepção passiva de sinais externos de saúde de runtimes, com endpoint
+  autenticado, idempotência, histórico paginado, auditoria, CLI e visualização
+  na UI;
 - onboarding automatizado para Codex e Claude Code, com configuração MCP por
   projeto, instalação de skills e diagnóstico;
 - seletor multi-instância com portas, credenciais, Compose e volumes isolados

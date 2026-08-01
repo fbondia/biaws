@@ -16,6 +16,7 @@ import {
 } from "../src/skillPackage.js";
 import { createApiClient } from "../src/apiClient.js";
 import { runAgentCommand } from "../src/commands/agent.js";
+import { runMonitoringCommand } from "../src/commands/monitoring.js";
 import { loadEnv } from "../../shared/index.js";
 
 test("explicit instance env overrides repository defaults", async () => {
@@ -84,6 +85,41 @@ test("API client distinguishes forbidden responses", async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("monitoring command sends an idempotent runtime health signal", async () => {
+  let received;
+  const api = {
+    monitoring: {
+      signal: async (runtimeId, payload) => {
+        received = { runtimeId, payload };
+        return {
+          created: true,
+          signal: { runtimeId, ...payload },
+        };
+      },
+    },
+  };
+  await runMonitoringCommand(api, "signal", ["runtime-1"], {
+    status: "healthy",
+    source: "synthetic-check",
+    "signal-id": "check:42",
+    "observed-at": "2026-07-31T15:00:00.000Z",
+    message: "HTTP 200",
+    metadata: '{"latency_ms":35}',
+    json: true,
+  });
+  assert.deepEqual(received, {
+    runtimeId: "runtime-1",
+    payload: {
+      status: "healthy",
+      source: "synthetic-check",
+      signalId: "check:42",
+      observedAt: "2026-07-31T15:00:00.000Z",
+      message: "HTTP 200",
+      metadata: { latency_ms: 35 },
+    },
+  });
 });
 
 test("builds a publish payload from a skill directory", async () => {

@@ -26,6 +26,7 @@ import { auditRouter } from "./routes/audit.js";
 import { optionListsRouter } from "./routes/optionLists.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { catalogTopologyRouter } from "./routes/catalogTopology.js";
+import { monitoringRouter } from "./routes/monitoring.js";
 import {
   rejectDatabaseOverride,
   requireIdentityAdminOperation,
@@ -119,6 +120,7 @@ export function createApp({ logger = apiLogger } = {}) {
   app.use("/api/identity", ...protectedRoute, identityRouter);
   app.use("/api/audit", ...protectedRoute, auditRouter);
   app.use("/api/option-lists", ...protectedRoute, optionListsRouter);
+  app.use("/api/monitoring", ...protectedRoute, monitoringRouter);
   app.use(
     "/api/catalog",
     ...protectedRoute,

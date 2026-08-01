@@ -15,6 +15,7 @@ import {
   createRepository,
   createRuntime,
   fetchApplication,
+  fetchApplicationMonitoringHealth,
   fetchApplications,
   fetchComponent,
   fetchComponents,
@@ -180,6 +181,9 @@ export function useCatalogView(actor) {
           ? fetchIntegrations(applicationId, { limit: 100 })
           : null,
         workspace?.id ? fetchApplications(workspace.id, { limit: 100 }) : null,
+        hasPermission(actor, "runtimes.read")
+          ? fetchApplicationMonitoringHealth(applicationId)
+          : null,
       ].map((task) => task || Promise.resolve({ items: [] }));
       const [
         components,
@@ -188,6 +192,7 @@ export function useCatalogView(actor) {
         servers,
         integrations,
         availableApplications,
+        monitoringHealth,
       ] = await Promise.all(tasks);
       setContext({
         application: applicationPayload.application,
@@ -199,6 +204,7 @@ export function useCatalogView(actor) {
         availableApplications: (availableApplications.items || []).filter(
           ({ id }) => id !== applicationId,
         ),
+        monitoringHealth: monitoringHealth.health || null,
       });
       setRuntimeByDeployment({});
       setRuntimeLoadingByDeployment({});

@@ -1,7 +1,8 @@
 import { Save, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
+import { fetchRuntimeMonitoringSignals } from "../../api.js";
 import {
   CATALOG_ENTITY_LABELS,
   catalogEntityDraft,
@@ -188,6 +189,8 @@ export function CatalogEntityDialog({
     source: "",
     message: "",
   });
+  const [monitoringSignals, setMonitoringSignals] = useState([]);
+  const [monitoringError, setMonitoringError] = useState("");
   const label = CATALOG_ENTITY_LABELS[kind];
   const sections =
     kind === "deployment"
@@ -203,6 +206,21 @@ export function CatalogEntityDialog({
             ["procedure", "Procedimento"],
           ]
         : [];
+
+  useEffect(() => {
+    if (kind !== "runtime" || !entity?.id) return;
+    let active = true;
+    fetchRuntimeMonitoringSignals(entity.id, { limit: 50 })
+      .then((payload) => {
+        if (active) setMonitoringSignals(payload.items || []);
+      })
+      .catch((loadError) => {
+        if (active) setMonitoringError(loadError.message);
+      });
+    return () => {
+      active = false;
+    };
+  }, [entity?.id, kind]);
 
   function update(field, value) {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -732,6 +750,41 @@ export function CatalogEntityDialog({
 
             {kind === "runtime" && activeSection === "monitoring" ? (
               <div className="catalogHistorySection catalogWideField">
+                <div className="catalogMonitoringSummary">
+                  <strong>Sinais externos</strong>
+                  <span>
+                    A plataforma recebe e exibe a saúde; o monitoramento é
+                    executado por agentes externos.
+                  </span>
+                  {entity?.monitoring ? (
+                    <small>
+                      Último sinal: {entity.monitoring.status} ·{" "}
+                      {formatDate(entity.monitoring.observedAt)} ·{" "}
+                      {entity.monitoring.source}
+                    </small>
+                  ) : (
+                    <small>Nenhum sinal externo recebido.</small>
+                  )}
+                </div>
+                {monitoringError ? (
+                  <div className="errorBox">{monitoringError}</div>
+                ) : null}
+                <HistoryItems
+                  empty="Nenhum sinal externo recebido."
+                  items={monitoringSignals}
+                  renderItem={(signal) => (
+                    <>
+                      <strong>{signal.status}</strong>
+                      <small>
+                        {formatDate(signal.observedAt)} · {signal.source}
+                      </small>
+                      {signal.message ? <p>{signal.message}</p> : null}
+                    </>
+                  )}
+                />
+                <h3 className="catalogMonitoringManualTitle">
+                  Observações manuais
+                </h3>
                 <div className="catalogHistoryComposer">
                   <SelectField
                     label="Saúde observada"

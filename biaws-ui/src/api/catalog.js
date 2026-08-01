@@ -193,6 +193,17 @@ export const updateRuntime = (runtimeId, runtime) =>
   updateCatalogEntity("runtimes", runtimeId, runtime);
 export const archiveRuntime = (runtimeId) =>
   archiveCatalogEntity("runtimes", runtimeId);
+export function fetchRuntimeMonitoringSignals(runtimeId, params) {
+  return fetchJson(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/signals`,
+    params,
+  );
+}
+export function fetchApplicationMonitoringHealth(applicationId) {
+  return fetchJson(
+    `/api/monitoring/applications/${encodeURIComponent(applicationId)}/health`,
+  );
+}
 
 export const fetchTopologyDiagrams = (applicationId, params) =>
   applicationCollection(applicationId, "topology-diagrams", params);

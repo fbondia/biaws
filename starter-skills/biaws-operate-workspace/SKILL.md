@@ -15,6 +15,15 @@ Usar as ferramentas `biaws` de domínio; nunca acessar o MongoDB diretamente.
 4. Para consultas, responder diretamente com os IDs e estados relevantes.
 5. Para escritas solicitadas, usar somente a ferramenta específica do domínio e reler o registro para verificar o resultado.
 
+## Monitoramento passivo
+
+- A plataforma não executa monitoramentos; agentes externos enviam a saúde de
+  runtimes pelo endpoint ou por `biaws monitoring signal`.
+- Ao emitir um sinal solicitado, confirmar workspace, aplicação e runtime antes
+  do envio, usar `signalId` estável para idempotência e nunca incluir segredos em
+  `metadata`.
+- Não inferir que `GET /api/health` representa a saúde das aplicações.
+
 ## Segurança
 
 - Não solicitar nem registrar senhas, tokens, chaves privadas, connection strings ou kubeconfig.

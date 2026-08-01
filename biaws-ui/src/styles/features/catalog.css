@@ -211,6 +211,27 @@
   font-size: 1.7rem;
 }
 
+.catalogMetricCard small {
+  color: var(--color-text-subtle);
+}
+
+.catalogHealthText {
+  text-transform: capitalize;
+}
+
+.catalogHealthText-healthy {
+  color: #17633d;
+}
+
+.catalogHealthText-degraded,
+.catalogHealthText-stopped {
+  color: #8a5a00;
+}
+
+.catalogHealthText-unavailable {
+  color: #8f1d1d;
+}
+
 .catalogOverviewCard {
   grid-column: 1 / -1;
   padding: var(--space-4);
@@ -303,6 +324,13 @@
   border-color: #9fd5b8;
   background: #edf9f2;
   color: #17633d;
+}
+
+.catalogStatus-degraded,
+.catalogStatus-stopped {
+  border-color: #e6c26f;
+  background: #fff8e6;
+  color: #7a5100;
 }
 
 .catalogStatus-failed,
@@ -432,6 +460,29 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.catalogTopologyRowText .catalogStatus {
+  margin-top: 2px;
+}
+
+.catalogMonitoringSummary {
+  display: grid;
+  gap: var(--space-1);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  padding: var(--space-4);
+}
+
+.catalogMonitoringSummary span,
+.catalogMonitoringSummary small {
+  color: var(--color-text-subtle);
+}
+
+.catalogMonitoringManualTitle {
+  margin: var(--space-4) 0 0;
+  font-size: 0.95rem;
 }
 
 .catalogTopologyRowText strong {

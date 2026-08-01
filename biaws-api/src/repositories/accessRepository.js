@@ -106,6 +106,7 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
       "runtimes.read",
       "runtimes.create",
       "runtimes.update",
+      "monitoring.signals.create",
       "issues.read",
       "issues.create",
       "issues.update",

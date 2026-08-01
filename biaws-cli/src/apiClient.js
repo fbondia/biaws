@@ -3,10 +3,11 @@ function trimTrailingSlash(value) {
 }
 
 export function createApiClient(baseUrl, apiKey, workspaceId = "") {
-  const root = `${trimTrailingSlash(baseUrl)}/api/skills`;
+  const apiRoot = `${trimTrailingSlash(baseUrl)}/api`;
+  const root = `${apiRoot}/skills`;
 
-  async function request(path = "", options = {}) {
-    const response = await fetch(`${root}${path}`, {
+  async function request(path = "", options = {}, requestRoot = root) {
+    const response = await fetch(`${requestRoot}${path}`, {
       ...options,
       headers: {
         Accept: "application/json",
@@ -46,5 +47,24 @@ export function createApiClient(baseUrl, apiKey, workspaceId = "") {
       ),
     publish: (payload) =>
       request("", { method: "POST", body: JSON.stringify(payload) }),
+    monitoring: {
+      signal: (runtimeId, payload) =>
+        request(
+          `/runtimes/${encodeURIComponent(runtimeId)}/signals`,
+          { method: "POST", body: JSON.stringify(payload) },
+          `${apiRoot}/monitoring`,
+        ),
+      listSignals: (runtimeId, options = {}) => {
+        const parameters = new URLSearchParams();
+        if (options.page) parameters.set("page", options.page);
+        if (options.limit) parameters.set("limit", options.limit);
+        const query = parameters.size ? `?${parameters}` : "";
+        return request(
+          `/runtimes/${encodeURIComponent(runtimeId)}/signals${query}`,
+          {},
+          `${apiRoot}/monitoring`,
+        );
+      },
+    },
   };
 }

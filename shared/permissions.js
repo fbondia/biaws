@@ -29,6 +29,11 @@ const definitions = [
   ["runtimes.create", "Catálogo", "Criar runtimes"],
   ["runtimes.update", "Catálogo", "Alterar runtimes"],
   ["runtimes.archive", "Catálogo", "Arquivar runtimes"],
+  [
+    "monitoring.signals.create",
+    "Monitoramento",
+    "Enviar sinais de saúde de runtimes",
+  ],
 
   ["issues.read", "Chamados", "Consultar chamados"],
   ["issues.create", "Chamados", "Criar chamados"],

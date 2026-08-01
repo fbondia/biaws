@@ -11,7 +11,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { hasPermission } from "../../../../permissions.js";
 
 const TopologyDiagramDialog = lazy(() =>
-  import("../components/TopologyDiagramDialog.jsx").then((module) => ({
+  import("../components/TopologyDiagramDialog/index.jsx").then((module) => ({
     default: module.TopologyDiagramDialog,
   })),
 );

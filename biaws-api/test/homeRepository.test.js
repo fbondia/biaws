@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildApplicationHealthItems,
   defaultHomeWidgets,
   HOME_WIDGET_CATALOG,
   normalizeHomeWidgets,
@@ -98,4 +99,49 @@ test("home configuration rejects unauthorized widgets and invalid config", () =>
       ),
     (error) => error.code === "INVALID_HOME_CONFIGURATION",
   );
+});
+
+test("application health groups only monitored runtimes with topology and server", () => {
+  const items = buildApplicationHealthItems({
+    applications: [
+      { id: "application-1", key: "billing", name: "Billing" },
+      { id: "application-2", key: "unused", name: "Sem monitoramento" },
+    ],
+    components: [
+      { id: "component-1", key: "api", name: "API" },
+    ],
+    deployments: [
+      {
+        id: "deployment-1",
+        key: "production",
+        name: "Produção",
+        componentId: "component-1",
+        environment: "production",
+      },
+    ],
+    runtimes: [
+      {
+        id: "runtime-1",
+        key: "primary",
+        name: "Primário",
+        applicationId: "application-1",
+        componentId: "component-1",
+        deploymentId: "deployment-1",
+        serverId: "server-1",
+        status: "degraded",
+        monitoring: {
+          status: "degraded",
+          observedAt: "2026-08-01T12:00:00.000Z",
+          source: "zabbix",
+        },
+      },
+    ],
+    servers: [{ id: "server-1", key: "prod-1", name: "Produção 1" }],
+  });
+
+  assert.equal(items.length, 1);
+  assert.equal(items[0].status, "degraded");
+  const runtime = items[0].components[0].deployments[0].runtimes[0];
+  assert.equal(runtime.key, "primary");
+  assert.equal(runtime.server.name, "Produção 1");
 });

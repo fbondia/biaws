@@ -340,6 +340,12 @@ test(
       assert.equal(applicationHealth.health.status, "degraded");
       assert.equal(applicationHealth.health.total, 1);
       assert.equal(applicationHealth.health.observed, 1);
+      await mutate(`/api/catalog/deployments/${deployment.id}/runtimes`, {
+        key: "without-monitoring",
+        name: "Runtime without monitoring",
+        kind: "container",
+        status: "unknown",
+      });
       const homeResponse = await request("/api/home", {
         cookie: adminCookie,
       });
@@ -382,9 +388,15 @@ test(
       const configuredHome = await configuredHomeResponse.json();
       assert.equal(configuredHome.configuration.customized, true);
       assert.equal(configuredHome.data["billing-health"].nok, 1);
+      assert.equal(configuredHome.data["billing-health"].total, 1);
       assert.equal(
         configuredHome.data["billing-health"].items[0].name,
         application.name,
+      );
+      assert.equal(
+        configuredHome.data["billing-health"].items[0].components[0]
+          .deployments[0].runtimes[0].server.name,
+        topologyServer.name,
       );
       const { diagram } = await mutate(
         `/api/catalog/applications/${application.id}/topology-diagrams`,

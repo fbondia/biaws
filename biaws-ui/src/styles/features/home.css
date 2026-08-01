@@ -237,8 +237,7 @@
   font-size: 1.2rem;
 }
 
-.homeTaskList,
-.homeHealthApplications {
+.homeTaskList {
   display: grid;
   gap: 1px;
   overflow: hidden;
@@ -247,8 +246,7 @@
   background: var(--color-border-subtle);
 }
 
-.homeTaskList article,
-.homeHealthApplications article {
+.homeTaskList article {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -258,24 +256,20 @@
   padding: 9px 11px;
 }
 
-.homeTaskList article > div,
-.homeHealthApplications article > div {
+.homeTaskList article > div {
   display: grid;
   min-width: 0;
   gap: 2px;
 }
 
 .homeTaskList article strong,
-.homeTaskList article small,
-.homeHealthApplications article strong,
-.homeHealthApplications article small {
+.homeTaskList article small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.homeTaskList article small,
-.homeHealthApplications article small {
+.homeTaskList article small {
   color: var(--color-text-subtle);
   font-size: 0.7rem;
 }
@@ -287,6 +281,119 @@
   color: var(--color-text-muted);
   padding: 3px 7px;
   font-size: 0.68rem;
+}
+
+.homeHealthApplications,
+.homeHealthComponents,
+.homeHealthDeployments,
+.homeHealthRuntimes {
+  display: grid;
+}
+
+.homeHealthApplications {
+  max-height: 520px;
+  gap: var(--space-3);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.homeHealthApplication {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.homeHealthApplication > header,
+.homeHealthComponents > section > header,
+.homeHealthDeployments > section > header,
+.homeHealthRuntimes article {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.homeHealthApplication > header {
+  padding: 10px 12px;
+  background: var(--color-surface-muted);
+}
+
+.homeHealthApplication > header > div,
+.homeHealthDeployments > section > header > div,
+.homeHealthRuntimeIdentity {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.homeHealthApplication strong,
+.homeHealthApplication small,
+.homeHealthServer {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeHealthApplication small {
+  color: var(--color-text-subtle);
+  font-size: 0.68rem;
+}
+
+.homeHealthComponents {
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.homeHealthComponents > section > header {
+  justify-content: flex-start;
+  gap: var(--space-2);
+  padding: 0 2px var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+}
+
+.homeHealthDeployments {
+  gap: var(--space-2);
+}
+
+.homeHealthDeployments > section {
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.homeHealthDeployments > section > header {
+  padding: 7px 9px;
+  background: #fbfcfe;
+  font-size: 0.76rem;
+}
+
+.homeHealthRuntimes {
+  gap: 1px;
+  background: var(--color-border-subtle);
+}
+
+.homeHealthRuntimes article {
+  background: var(--color-surface);
+  padding: 8px 9px;
+}
+
+.homeHealthRuntimeIdentity strong {
+  font-size: 0.78rem;
+}
+
+.homeHealthServer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-secondary);
+  font-size: 0.69rem;
+}
+
+.homeHealthServer svg {
+  flex: 0 0 auto;
 }
 
 .homeHealthSummary {

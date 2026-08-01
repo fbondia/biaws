@@ -10,6 +10,7 @@ import {
   Plus,
   RefreshCw,
   Save,
+  Server,
   Settings2,
   Trash2,
   X,
@@ -107,28 +108,70 @@ function WidgetContent({ data }) {
       <div className="homeHealthWidget">
         <div className="homeHealthSummary">
           <span className="homeHealthOk">
-            <CheckCircle2 size={18} /> <strong>{data.ok}</strong> OK
+            <CheckCircle2 size={18} /> <strong>{data.ok}</strong> runtimes OK
           </span>
           <span className="homeHealthNok">
-            <CircleAlert size={18} /> <strong>{data.nok}</strong> NOK
+            <CircleAlert size={18} /> <strong>{data.nok}</strong> runtimes NOK
           </span>
         </div>
         {!data.items?.length ? (
-          <div className="homeWidgetEmpty">Nenhuma aplicação monitorada.</div>
+          <div className="homeWidgetEmpty">
+            Nenhum runtime com sinais de monitoramento.
+          </div>
         ) : (
           <div className="homeHealthApplications">
             {data.items.map((application) => (
-              <article key={application.id}>
-                <div>
-                  <strong>{application.name}</strong>
-                  <small>{formatDate(application.observedAt)}</small>
+              <section className="homeHealthApplication" key={application.id}>
+                <header>
+                  <div>
+                    <strong>{application.name}</strong>
+                  </div>
+                  <span
+                    className={`catalogStatus catalogStatus-${application.status}`}
+                  >
+                    {application.status}
+                  </span>
+                </header>
+                <div className="homeHealthComponents">
+                  {application.components.map((component) => (
+                    <section key={component.id}>
+                      <header>
+                        <strong>{component.name}</strong>
+                      </header>
+                      <div className="homeHealthDeployments">
+                        {component.deployments.map((deployment) => (
+                          <section key={deployment.id}>
+                            <header>
+                              <div>
+                                <strong>{deployment.name}</strong>
+                              </div>
+                            </header>
+                            <div className="homeHealthRuntimes">
+                              {deployment.runtimes.map((runtime) => (
+                                <article key={runtime.id}>
+                                  <div className="homeHealthRuntimeIdentity">
+                                    <strong>{runtime.name}</strong>
+                                    <span className="homeHealthServer">
+                                      <Server size={13} />
+                                      {runtime.server?.name ||
+                                        "Sem servidor associado"}
+                                    </span>
+                                  </div>
+                                  <span
+                                    className={`catalogStatus catalogStatus-${runtime.status}`}
+                                  >
+                                    {runtime.status}
+                                  </span>
+                                </article>
+                              ))}
+                            </div>
+                          </section>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
                 </div>
-                <span
-                  className={`catalogStatus catalogStatus-${application.status}`}
-                >
-                  {application.status}
-                </span>
-              </article>
+              </section>
             ))}
           </div>
         )}

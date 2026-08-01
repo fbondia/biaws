@@ -68,7 +68,8 @@ export const HOME_WIDGET_CATALOG = Object.freeze([
     id: "application-health",
     category: "Monitoramento",
     label: "Saúde das aplicações",
-    description: "Aplicações monitoradas em estado OK e NOK.",
+    description:
+      "Runtimes monitorados agrupados por aplicação, componente e deployment.",
     permission: "runtimes.read",
     defaultSize: "medium",
     configuration: {
@@ -448,6 +449,132 @@ async function pendingTasksMetric(database, actor) {
   };
 }
 
+function incrementHealthCount(counts, status) {
+  counts[status] = (counts[status] || 0) + 1;
+}
+
+function latestDate(current, candidate) {
+  if (!candidate) return current || null;
+  if (!current || new Date(candidate) > new Date(current)) return candidate;
+  return current;
+}
+
+function namedTopologyItem(item, fallbackLabel) {
+  return item || { id: "unknown", key: "unknown", name: fallbackLabel };
+}
+
+export function buildApplicationHealthItems({
+  applications = [],
+  components = [],
+  deployments = [],
+  runtimes = [],
+  servers = [],
+} = {}) {
+  const applicationsById = new Map(
+    applications.map((application) => [application.id, application]),
+  );
+  const componentsById = new Map(
+    components.map((component) => [component.id, component]),
+  );
+  const deploymentsById = new Map(
+    deployments.map((deployment) => [deployment.id, deployment]),
+  );
+  const serversById = new Map(servers.map((server) => [server.id, server]));
+  const grouped = new Map();
+
+  for (const runtime of runtimes) {
+    const application = applicationsById.get(runtime.applicationId);
+    if (!application) continue;
+    const component = namedTopologyItem(
+      componentsById.get(runtime.componentId),
+      "Componente não encontrado",
+    );
+    const deployment = namedTopologyItem(
+      deploymentsById.get(runtime.deploymentId),
+      "Deployment não encontrado",
+    );
+    const status = runtime.monitoring?.status || runtime.status || "unknown";
+    const observedAt =
+      runtime.monitoring?.observedAt || runtime.monitoringObservedAt || null;
+    let applicationGroup = grouped.get(application.id);
+    if (!applicationGroup) {
+      applicationGroup = {
+        ...application,
+        counts: {},
+        observedAt: null,
+        components: new Map(),
+      };
+      grouped.set(application.id, applicationGroup);
+    }
+    incrementHealthCount(applicationGroup.counts, status);
+    applicationGroup.observedAt = latestDate(
+      applicationGroup.observedAt,
+      observedAt,
+    );
+
+    let componentGroup = applicationGroup.components.get(component.id);
+    if (!componentGroup) {
+      componentGroup = {
+        ...component,
+        counts: {},
+        observedAt: null,
+        deployments: new Map(),
+      };
+      applicationGroup.components.set(component.id, componentGroup);
+    }
+    incrementHealthCount(componentGroup.counts, status);
+    componentGroup.observedAt = latestDate(componentGroup.observedAt, observedAt);
+
+    let deploymentGroup = componentGroup.deployments.get(deployment.id);
+    if (!deploymentGroup) {
+      deploymentGroup = {
+        ...deployment,
+        counts: {},
+        observedAt: null,
+        runtimes: [],
+      };
+      componentGroup.deployments.set(deployment.id, deploymentGroup);
+    }
+    incrementHealthCount(deploymentGroup.counts, status);
+    deploymentGroup.observedAt = latestDate(
+      deploymentGroup.observedAt,
+      observedAt,
+    );
+    deploymentGroup.runtimes.push({
+      id: runtime.id,
+      key: runtime.key,
+      name: runtime.name,
+      status,
+      observedAt,
+      source: runtime.monitoring?.source || "",
+      message: runtime.monitoring?.message || "",
+      server: runtime.serverId ? serversById.get(runtime.serverId) || null : null,
+    });
+  }
+
+  return [...grouped.values()]
+    .map((application) => ({
+      ...application,
+      status: healthFromCounts(application.counts),
+      components: [...application.components.values()]
+        .map((component) => ({
+          ...component,
+          status: healthFromCounts(component.counts),
+          deployments: [...component.deployments.values()]
+            .map((deployment) => ({
+              ...deployment,
+              status: healthFromCounts(deployment.counts),
+              runtimes: deployment.runtimes.sort((left, right) =>
+                left.name.localeCompare(right.name, "pt-BR"),
+              ),
+            }))
+            .sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
+        }))
+        .sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
+    }))
+    .sort((left, right) => left.name.localeCompare(right.name, "pt-BR"));
+}
+
 async function applicationHealthMetric(database, actor, config) {
   const applicationIds = applicationScope(actor, "runtimes.read");
   const configuredId = String(config.applicationId || "");
@@ -471,55 +598,91 @@ async function applicationHealthMetric(database, actor, config) {
     .sort({ name: 1 })
     .toArray();
   const ids = applications.map(({ id }) => id);
-  const rows = ids.length
+  const runtimes = ids.length
     ? await database
         .collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES)
-        .aggregate([
-          {
-            $match: {
-              workspaceId: actor.workspaceId,
-              applicationId: { $in: ids },
-              status: { $ne: "archived" },
-            },
-          },
-          {
-            $group: {
-              _id: { applicationId: "$applicationId", status: "$status" },
-              value: { $sum: 1 },
-              observedAt: { $max: "$monitoringObservedAt" },
-            },
-          },
-        ])
+        .find({
+          workspaceId: actor.workspaceId,
+          applicationId: { $in: ids },
+          status: { $ne: "archived" },
+          monitoring: { $exists: true, $ne: null },
+        })
+        .project({
+          _id: 0,
+          id: 1,
+          key: 1,
+          name: 1,
+          applicationId: 1,
+          componentId: 1,
+          deploymentId: 1,
+          serverId: 1,
+          status: 1,
+          monitoring: 1,
+          monitoringObservedAt: 1,
+        })
         .toArray()
     : [];
-  const grouped = new Map();
-  for (const row of rows) {
-    const entry = grouped.get(row._id.applicationId) || {
-      counts: {},
-      observedAt: null,
-    };
-    entry.counts[row._id.status] = row.value;
-    if (
-      row.observedAt &&
-      (!entry.observedAt || row.observedAt > entry.observedAt)
-    )
-      entry.observedAt = row.observedAt;
-    grouped.set(row._id.applicationId, entry);
-  }
-  const items = applications.map((application) => {
-    const entry = grouped.get(application.id) || { counts: {} };
-    const status = healthFromCounts(entry.counts);
-    return {
-      ...application,
-      status,
-      counts: entry.counts,
-      observedAt: entry.observedAt || null,
-    };
+  const componentIds = [...new Set(runtimes.map(({ componentId }) => componentId))];
+  const deploymentIds = [
+    ...new Set(runtimes.map(({ deploymentId }) => deploymentId)),
+  ];
+  const serverIds = [
+    ...new Set(runtimes.map(({ serverId }) => serverId).filter(Boolean)),
+  ];
+  const [components, deployments, servers] = await Promise.all([
+    componentIds.length
+      ? database
+          .collection(COLLECTION_NAMES.APPLICATION_COMPONENTS)
+          .find({
+            workspaceId: actor.workspaceId,
+            applicationId: { $in: ids },
+            id: { $in: componentIds },
+          })
+          .project({ _id: 0, id: 1, key: 1, name: 1 })
+          .toArray()
+      : [],
+    deploymentIds.length
+      ? database
+          .collection(COLLECTION_NAMES.APPLICATION_DEPLOYMENTS)
+          .find({
+            workspaceId: actor.workspaceId,
+            applicationId: { $in: ids },
+            id: { $in: deploymentIds },
+          })
+          .project({
+            _id: 0,
+            id: 1,
+            key: 1,
+            name: 1,
+            componentId: 1,
+            environment: 1,
+          })
+          .toArray()
+      : [],
+    serverIds.length
+      ? database
+          .collection(COLLECTION_NAMES.SERVERS)
+          .find({ workspaceId: actor.workspaceId, id: { $in: serverIds } })
+          .project({ _id: 0, id: 1, key: 1, name: 1 })
+          .toArray()
+      : [],
+  ]);
+  const items = buildApplicationHealthItems({
+    applications,
+    components,
+    deployments,
+    runtimes,
+    servers,
   });
   return {
     kind: "health",
-    ok: items.filter(({ status }) => status === "healthy").length,
-    nok: items.filter(({ status }) => status !== "healthy").length,
+    ok: runtimes.filter(
+      (runtime) => (runtime.monitoring?.status || runtime.status) === "healthy",
+    ).length,
+    nok: runtimes.filter(
+      (runtime) => (runtime.monitoring?.status || runtime.status) !== "healthy",
+    ).length,
+    total: runtimes.length,
     items,
     applicationId: configuredId || null,
   };

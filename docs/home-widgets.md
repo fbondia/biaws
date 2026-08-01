@@ -20,9 +20,11 @@ consultar. O escopo de aplicações de cada permissão também é aplicado às
 métricas. Uma configuração antiga não amplia acesso caso as permissões do
 usuário sejam reduzidas.
 
-O estado `NOK` do widget de monitoramento significa que a aplicação possui
-saúde agregada diferente de `healthy`, incluindo runtimes desconhecidos, parados,
-degradados ou indisponíveis. Aplicações sem runtimes aparecem como `unknown`.
+O widget de monitoramento lista somente runtimes que já receberam ao menos um
+sinal externo. Os totais `OK` e `NOK` são calculados por runtime; qualquer estado
+diferente de `healthy` conta como `NOK`. A apresentação é agrupada por aplicação,
+componente e deployment e identifica o servidor associado a cada runtime.
+Aplicações e runtimes sem sinais não aparecem.
 
 ## Contratos HTTP
 

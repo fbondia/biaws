@@ -24,8 +24,10 @@ import {
 } from "../../../../api.js";
 import { hasPermission } from "../../../../permissions.js";
 import {
+  automaticTopologyHandles,
   buildTopologyGraph,
   filterTopologyGraph,
+  routeTopologyEdges,
   resizeTopologyGroups,
   TOPOLOGY_CONNECTION_DIRECTIONS,
   TOPOLOGY_CONNECTION_LINE_TYPES,
@@ -529,6 +531,11 @@ export function TopologyDiagramDialog({ actor, context, onClose }) {
       addEdge(
         {
           ...connection,
+          ...automaticTopologyHandles(
+            nodes,
+            connection.source,
+            connection.target,
+          ),
           id,
           type: "default",
           ...edgeDirectionMarkers("forward"),
@@ -1069,6 +1076,16 @@ export function TopologyDiagramDialog({ actor, context, onClose }) {
                 );
               }}
               onNodesChange={changeNodes}
+              onNodeDragStop={(_event, draggedNode) => {
+                const positionedNodes = nodes.map((node) =>
+                  node.id === draggedNode.id
+                    ? { ...node, position: draggedNode.position }
+                    : node,
+                );
+                setEdges((current) =>
+                  routeTopologyEdges(positionedNodes, current),
+                );
+              }}
               onPaneClick={() => {
                 setSelectedEdgeId("");
                 setSelectedElementId("");

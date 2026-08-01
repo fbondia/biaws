@@ -2,11 +2,95 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  automaticTopologyHandles,
   buildTopologyGraph,
   filterTopologyGraph,
+  routeTopologyEdges,
   resizeTopologyGroups,
   topologyDiagramPayload,
 } from "../src/components/catalog/CatalogView/topologyDiagramModel.js";
+
+test("automatic topology handles follow the relative node position", () => {
+  const source = {
+    id: "source",
+    position: { x: 400, y: 400 },
+    measured: { width: 100, height: 100 },
+  };
+  const positions = [
+    ["right", { x: 700, y: 400 }, "right", "left"],
+    ["bottom-right", { x: 700, y: 700 }, "bottom-right", "top-left"],
+    ["bottom", { x: 400, y: 700 }, "bottom", "top"],
+    ["bottom-left", { x: 100, y: 700 }, "bottom-left", "top-right"],
+    ["left", { x: 100, y: 400 }, "left", "right"],
+    ["top-left", { x: 100, y: 100 }, "top-left", "bottom-right"],
+    ["top", { x: 400, y: 100 }, "top", "bottom"],
+    ["top-right", { x: 700, y: 100 }, "top-right", "bottom-left"],
+  ];
+
+  for (const [label, position, sourceHandle, targetHandle] of positions) {
+    assert.deepEqual(
+      automaticTopologyHandles(
+        [
+          source,
+          {
+            id: "target",
+            position,
+            measured: { width: 100, height: 100 },
+          },
+        ],
+        "source",
+        "target",
+      ),
+      { sourceHandle, targetHandle },
+      label,
+    );
+  }
+});
+
+test("automatic topology handles use absolute positions for grouped nodes", () => {
+  const nodes = [
+    {
+      id: "group",
+      position: { x: 500, y: 200 },
+      style: { width: 640, height: 380 },
+    },
+    {
+      id: "source",
+      parentId: "group",
+      position: { x: 40, y: 100 },
+      measured: { width: 100, height: 100 },
+    },
+    {
+      id: "target",
+      position: { x: 100, y: 300 },
+      measured: { width: 100, height: 100 },
+    },
+  ];
+
+  assert.deepEqual(automaticTopologyHandles(nodes, "source", "target"), {
+    sourceHandle: "left",
+    targetHandle: "right",
+  });
+});
+
+test("topology edge routing replaces previously selected handles", () => {
+  const nodes = [
+    { id: "source", position: { x: 0, y: 0 } },
+    { id: "target", position: { x: 400, y: 0 } },
+  ];
+  const [edge] = routeTopologyEdges(nodes, [
+    {
+      id: "edge-1",
+      source: "source",
+      target: "target",
+      sourceHandle: "bottom",
+      targetHandle: "top",
+    },
+  ]);
+
+  assert.equal(edge.sourceHandle, "right");
+  assert.equal(edge.targetHandle, "left");
+});
 
 test("topology graph groups components and runtimes by server", () => {
   const graph = buildTopologyGraph({

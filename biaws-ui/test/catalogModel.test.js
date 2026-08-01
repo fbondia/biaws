@@ -112,7 +112,8 @@ test("runtime payload supports clearing server and validates metadata", () => {
   const payload = catalogEntityPayload("runtime", draft, true);
   assert.equal(payload.serverId, null);
   assert.deepEqual(payload.metadata, { image: "biaws:1" });
-  assert.deepEqual(payload.observations, []);
+  assert.equal(payload.monitoringRetentionDays, 10);
+  assert.equal(Object.hasOwn(payload, "observations"), false);
   assert.equal(payload.procedureMarkdown, "");
 
   draft.metadataText = "[1]";

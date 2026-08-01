@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 
-import { RUNTIME_STATUSES } from "../../../shared/index.js";
+import {
+  DEFAULT_MONITORING_RETENTION_DAYS,
+  RUNTIME_STATUSES,
+} from "../../../shared/index.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
 import { getRuntime } from "./deploymentsRepository.js";
@@ -31,6 +34,7 @@ const PAYLOAD_LIMITS = Object.freeze({
   nodes: 1_000,
   string: 8_000,
 });
+const DAY_MS = 86_400_000;
 let collectionPromise;
 
 async function monitoringCollection() {
@@ -42,6 +46,10 @@ async function monitoringCollection() {
       );
       await Promise.all([
         collection.createIndex({ id: 1 }, { unique: true }),
+        collection.createIndex(
+          { expiresAt: 1 },
+          { expireAfterSeconds: 0, name: "monitoring_expiration" },
+        ),
         collection.createIndex(
           { workspaceId: 1, runtimeId: 1, signalId: 1 },
           {
@@ -98,6 +106,30 @@ export function normalizeMonitoringSignal(payload = {}, actor = {}) {
     payload: normalizeMonitoringPayload(payload.payload),
     recordedBy: actorId(actor),
   };
+}
+
+export function monitoringExpirationDate(receivedAt, retentionDays) {
+  const days = Number(retentionDays);
+  if (!Number.isInteger(days) || days <= 0) return null;
+  return new Date(new Date(receivedAt).getTime() + days * DAY_MS);
+}
+
+export function normalizeManualMonitoringObservation(payload = {}, actor = {}) {
+  assertAllowedFields(
+    payload,
+    ["status", "observedAt", "source", "message", "metadata"],
+    "manual monitoring observation",
+  );
+  return normalizeMonitoringSignal(
+    {
+      status: payload.status,
+      observedAt: payload.observedAt,
+      source: optionalText(payload.source, "source", 160) || "Registro manual",
+      message: payload.message,
+      metadata: payload.metadata,
+    },
+    actor,
+  );
 }
 
 export function normalizeMonitoringPayload(value) {
@@ -199,8 +231,42 @@ export async function recordRuntimeMonitoringSignal(
     throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
   }
   const normalized = normalizeMonitoringSignal(payload, actor);
+  return recordMonitoringEvent(runtime, normalized, actor, {
+    materializeHealth: true,
+    origin: "external",
+  });
+}
+
+export async function recordManualRuntimeMonitoringObservation(
+  runtimeId,
+  payload = {},
+  actor = {},
+) {
+  const runtime = await getRuntime(runtimeId, {
+    workspaceId: actor.workspaceId,
+  });
+  if (!runtime || runtime.status === "archived") {
+    throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
+  }
+  const normalized = normalizeManualMonitoringObservation(payload, actor);
+  return recordMonitoringEvent(runtime, normalized, actor, {
+    materializeHealth: false,
+    origin: "manual",
+  });
+}
+
+async function recordMonitoringEvent(
+  runtime,
+  normalized,
+  actor,
+  { materializeHealth, origin },
+) {
   const collection = await monitoringCollection();
   const receivedAt = new Date();
+  const expiresAt = monitoringExpirationDate(
+    receivedAt,
+    runtime.monitoringRetentionDays ?? DEFAULT_MONITORING_RETENTION_DAYS,
+  );
   const signal = {
     id: randomUUID(),
     workspaceId: runtime.workspaceId,
@@ -208,7 +274,9 @@ export async function recordRuntimeMonitoringSignal(
     deploymentId: runtime.deploymentId,
     runtimeId: runtime.id,
     ...normalized,
+    origin,
     receivedAt,
+    ...(expiresAt ? { expiresAt } : {}),
   };
 
   try {
@@ -229,35 +297,37 @@ export async function recordRuntimeMonitoringSignal(
     };
   }
 
-  const database = await getMongoDatabase();
-  await database.collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES).updateOne(
-    {
-      id: runtime.id,
-      workspaceId: runtime.workspaceId,
-      status: { $ne: "archived" },
-      $or: [
-        { monitoringObservedAt: { $exists: false } },
-        { monitoringObservedAt: { $lte: signal.observedAt } },
-      ],
-    },
-    {
-      $set: {
-        status: signal.status,
-        observedAt: signal.observedAt,
-        monitoringObservedAt: signal.observedAt,
-        monitoring: {
-          signalId: signal.signalId,
+  if (materializeHealth) {
+    const database = await getMongoDatabase();
+    await database.collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES).updateOne(
+      {
+        id: runtime.id,
+        workspaceId: runtime.workspaceId,
+        status: { $ne: "archived" },
+        $or: [
+          { monitoringObservedAt: { $exists: false } },
+          { monitoringObservedAt: { $lte: signal.observedAt } },
+        ],
+      },
+      {
+        $set: {
           status: signal.status,
           observedAt: signal.observedAt,
-          receivedAt: signal.receivedAt,
-          source: signal.source,
-          message: signal.message,
+          monitoringObservedAt: signal.observedAt,
+          monitoring: {
+            signalId: signal.signalId,
+            status: signal.status,
+            observedAt: signal.observedAt,
+            receivedAt: signal.receivedAt,
+            source: signal.source,
+            message: signal.message,
+          },
+          updatedAt: receivedAt,
+          updatedBy: actorId(actor),
         },
-        updatedAt: receivedAt,
-        updatedBy: actorId(actor),
       },
-    },
-  );
+    );
+  }
   return {
     created: true,
     runtime: await getRuntime(runtime.id),
@@ -275,6 +345,7 @@ export async function listRuntimeMonitoringSignals(runtimeId, query = {}) {
   const { page, limit, skip } = pagination(query);
   const collection = await monitoringCollection();
   const filter = buildRuntimeMonitoringSignalFilter(runtime, query);
+  filter.$or = [{ origin: "external" }, { origin: { $exists: false } }];
   const [items, total] = await Promise.all([
     collection
       .find(filter)
@@ -294,51 +365,8 @@ function timelineEvent(signal) {
   return {
     ...normalizeDocument(signal),
     payload: signal.payload ?? null,
-    origin: "external",
+    origin: signal.origin || "external",
   };
-}
-
-function manualTimelineEvent(runtime, observation) {
-  return {
-    id: observation.id,
-    workspaceId: runtime.workspaceId,
-    applicationId: runtime.applicationId,
-    deploymentId: runtime.deploymentId,
-    runtimeId: runtime.id,
-    signalId: null,
-    status: observation.healthStatus,
-    observedAt: observation.observedAt,
-    receivedAt: observation.receivedAt,
-    source: observation.source || "Registro manual",
-    message: observation.message || "",
-    metadata: observation.metadata || {},
-    payload: null,
-    recordedBy: observation.recordedBy,
-    origin: "manual",
-  };
-}
-
-function compareTimelineEvents(left, right) {
-  const observed = new Date(right.observedAt) - new Date(left.observedAt);
-  if (observed) return observed;
-  const received = new Date(right.receivedAt) - new Date(left.receivedAt);
-  if (received) return received;
-  return String(right.id).localeCompare(String(left.id));
-}
-
-function matchesTimelineFilter(event, filter) {
-  if (filter.status && event.status !== filter.status) return false;
-  const observedAt = new Date(event.observedAt);
-  if (filter.observedAt?.$gte && observedAt < filter.observedAt.$gte) {
-    return false;
-  }
-  if (filter.observedAt?.$lt && observedAt >= filter.observedAt.$lt) {
-    return false;
-  }
-  if (filter.observedAt?.$lte && observedAt > filter.observedAt.$lte) {
-    return false;
-  }
-  return true;
 }
 
 export async function listRuntimeMonitoringTimeline(runtimeId, query = {}) {
@@ -350,33 +378,48 @@ export async function listRuntimeMonitoringTimeline(runtimeId, query = {}) {
   }
   const { page, limit, skip } = pagination(query);
   const filter = buildRuntimeMonitoringSignalFilter(runtime, query);
-  const manualEvents = (runtime.observations || [])
-    .map((observation) => manualTimelineEvent(runtime, observation))
-    .filter((event) => matchesTimelineFilter(event, filter));
-  const externalStart = Math.max(0, skip - manualEvents.length);
   const collection = await monitoringCollection();
-  const [externalEvents, externalTotal] = await Promise.all([
+  const [events, total] = await Promise.all([
     collection
       .find(filter)
       .sort({ observedAt: -1, receivedAt: -1, id: -1 })
-      .skip(externalStart)
-      .limit(limit + manualEvents.length)
+      .skip(skip)
+      .limit(limit)
       .toArray(),
     collection.countDocuments(filter),
   ]);
-  const merged = [...manualEvents, ...externalEvents.map(timelineEvent)].sort(
-    compareTimelineEvents,
-  );
-  const relativeSkip = skip - externalStart;
   return {
     meta: {
       runtimeId: runtime.id,
-      total: externalTotal + manualEvents.length,
+      total,
       page,
       limit,
     },
-    items: merged.slice(relativeSkip, relativeSkip + limit),
+    items: events.map(timelineEvent),
   };
+}
+
+export async function recalculateRuntimeMonitoringExpiration(
+  runtimeId,
+  retentionDays,
+  { workspaceId } = {},
+) {
+  const runtime = await getRuntime(runtimeId, { workspaceId });
+  if (!runtime) {
+    throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
+  }
+  const collection = await monitoringCollection();
+  const filter = { workspaceId: runtime.workspaceId, runtimeId: runtime.id };
+  if (retentionDays > 0) {
+    return collection.updateMany(filter, [
+      {
+        $set: {
+          expiresAt: { $add: ["$receivedAt", retentionDays * DAY_MS] },
+        },
+      },
+    ]);
+  }
+  return collection.updateMany(filter, { $unset: { expiresAt: "" } });
 }
 
 export function buildRuntimeMonitoringSignalFilter(runtime, query = {}) {

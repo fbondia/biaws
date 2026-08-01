@@ -254,17 +254,7 @@ Filtros adicionais: `serverId` e `kind`.
     "image": "billing:1.0.0",
     "replicas": 2
   },
-  "observations": [
-    {
-      "healthStatus": "healthy",
-      "observedAt": "2026-07-28T15:10:00.000Z",
-      "source": "zabbix",
-      "message": "Serviço disponível",
-      "metadata": {
-        "latency_ms": 35
-      }
-    }
-  ],
+  "monitoringRetentionDays": 10,
   "procedureMarkdown": "# Publicação\n\n1. Atualize a imagem."
 }
 ```
@@ -280,26 +270,27 @@ arrays de até 20 escalares; objetos aninhados e chaves associadas a senhas,
 tokens, credenciais, chaves privadas, kubeconfig ou connection strings são
 recusados.
 
-`observations` também é append-only e limitado a 200 itens. `observedAt`
-continua materializado com a data da observação mais recente. O procedimento
-aceita até 20.000 caracteres em Markdown.
+`monitoringRetentionDays` controla a retenção dos eventos desse runtime, usa 10
+dias por padrão, aceita de 0 a 3.650 e recalcula os eventos existentes quando
+alterado. O valor 0 desativa a expiração. O procedimento aceita até 20.000
+caracteres em Markdown.
 
 ## Sinais de monitoramento
 
-| Método | Rota                                                  | Permissão                   |
-| ------ | ----------------------------------------------------- | --------------------------- |
-| `POST` | `/api/monitoring/runtimes/:runtimeReference/signals`  | `monitoring.signals.create` |
-| `GET`  | `/api/monitoring/runtimes/:runtimeReference/signals`  | `runtimes.read`             |
-| `GET`  | `/api/monitoring/runtimes/:runtimeReference/timeline` | `runtimes.read`             |
-| `GET`  | `/api/monitoring/applications/:applicationId/health`  | `runtimes.read`             |
+| Método | Rota                                                             | Permissão                   |
+| ------ | ---------------------------------------------------------------- | --------------------------- |
+| `POST` | `/api/monitoring/runtimes/:runtimeReference/signals`             | `monitoring.signals.create` |
+| `POST` | `/api/monitoring/runtimes/:runtimeReference/manual-observations` | `runtimes.update`           |
+| `GET`  | `/api/monitoring/runtimes/:runtimeReference/signals`             | `runtimes.read`             |
+| `GET`  | `/api/monitoring/runtimes/:runtimeReference/timeline`            | `runtimes.read`             |
+| `GET`  | `/api/monitoring/applications/:applicationId/health`             | `runtimes.read`             |
 
-Os sinais são persistidos em `runtimeMonitoringSignals`, separados das
-observações manuais limitadas do cadastro. O sinal mais recente por
+Sinais externos e observações manuais são persistidos em
+`runtimeMonitoringSignals`, diferenciados por `origin`. O sinal externo mais recente por
 `observedAt` materializa `status`, `observedAt` e `monitoring` no runtime.
 `signalId`, quando enviado, torna retries idempotentes no escopo do runtime.
 `payload` preserva JSON aninhado de diagnóstico sob os limites e bloqueios de
-segredos documentados. A rota `timeline` combina esses sinais com as observações
-manuais do runtime, mantendo a origem de cada evento.
+segredos documentados. A rota `timeline` retorna ambos na mesma ordenação.
 `runtimeReference` aceita o UUID do runtime ou o caminho de identificadores
 `<aplicação>.<componente>.<deployment>.<runtime>` dentro do workspace do ator.
 O UUID permanece estável; o caminho muda quando um desses identificadores é

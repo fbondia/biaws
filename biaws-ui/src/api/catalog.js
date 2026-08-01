@@ -205,6 +205,17 @@ export function fetchRuntimeMonitoringTimeline(runtimeId, params) {
     params,
   );
 }
+export function createRuntimeManualMonitoringObservation(
+  runtimeId,
+  observation,
+) {
+  return sendJson(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/manual-observations`,
+    observation,
+    undefined,
+    "POST",
+  );
+}
 export function fetchApplicationMonitoringHealth(applicationId) {
   return fetchJson(
     `/api/monitoring/applications/${encodeURIComponent(applicationId)}/health`,

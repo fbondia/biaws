@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import {
   CATALOG_LIMITS,
+  DEFAULT_MONITORING_RETENTION_DAYS,
   DEPLOYMENT_ENVIRONMENTS,
   DEPLOYMENT_STATUSES,
   RUNTIME_KINDS,
@@ -40,6 +41,25 @@ const MUTABLE_RUNTIME_STATUSES = RUNTIME_STATUSES.filter(
 );
 const MAX_HISTORY_ITEMS = 200;
 const MAX_PROCEDURE_LENGTH = 20_000;
+
+function normalizeMonitoringRetentionDays(value, current) {
+  const fallback =
+    current?.monitoringRetentionDays ?? DEFAULT_MONITORING_RETENTION_DAYS;
+  if (value === undefined || value === null || value === "") return fallback;
+  const days = Number(value);
+  if (
+    !Number.isInteger(days) ||
+    days < 0 ||
+    days > CATALOG_LIMITS.monitoringRetentionDays
+  ) {
+    throw createCatalogError(
+      422,
+      "INVALID_MONITORING_RETENTION",
+      `monitoringRetentionDays must be an integer between 0 and ${CATALOG_LIMITS.monitoringRetentionDays}`,
+    );
+  }
+  return days;
+}
 
 function legacyPublications(current) {
   if (Array.isArray(current?.publications)) return current.publications;
@@ -139,57 +159,6 @@ function normalizePublication(item, index, context) {
       CATALOG_LIMITS.description,
     ),
     recordedAt: context.recordedAt,
-    recordedBy: actorId(context.actor),
-  };
-}
-
-function normalizeObservation(item, index, context) {
-  assertAllowedFields(
-    item,
-    [
-      "id",
-      "healthStatus",
-      "observedAt",
-      "source",
-      "message",
-      "metadata",
-      "receivedAt",
-      "recordedBy",
-    ],
-    `observations[${index}]`,
-  );
-  const observedAt = normalizeDate(
-    item.observedAt,
-    `observations[${index}].observedAt`,
-  );
-  if (!observedAt) {
-    throw createCatalogError(
-      422,
-      "INVALID_CATALOG_PAYLOAD",
-      `observations[${index}].observedAt is required`,
-    );
-  }
-  return {
-    id: context.id,
-    healthStatus: normalizeEnum(
-      item.healthStatus,
-      `observations[${index}].healthStatus`,
-      MUTABLE_RUNTIME_STATUSES,
-      "unknown",
-    ),
-    observedAt,
-    source: optionalText(
-      item.source,
-      `observations[${index}].source`,
-      CATALOG_LIMITS.ownerTeam,
-    ),
-    message: optionalText(
-      item.message,
-      `observations[${index}].message`,
-      CATALOG_LIMITS.description,
-    ),
-    metadata: normalizeMetadata(item.metadata, {}),
-    receivedAt: context.recordedAt,
     recordedBy: actorId(context.actor),
   };
 }
@@ -608,7 +577,7 @@ export function normalizeRuntimeInput(
       "runtimeName",
       "status",
       "metadata",
-      "observations",
+      "monitoringRetentionDays",
       "observedAt",
       "procedureMarkdown",
     ],
@@ -620,29 +589,6 @@ export function normalizeRuntimeInput(
     rawServerId === null || rawServerId === ""
       ? null
       : optionalText(rawServerId, "serverId", 100) || null;
-  const currentObservations = Array.isArray(current?.observations)
-    ? current.observations
-    : current?.observedAt
-      ? [
-          {
-            id: `legacy-${current.id || "observation"}`,
-            healthStatus: current.status || "unknown",
-            observedAt: current.observedAt,
-            source: "",
-            message: "",
-            metadata: {},
-            receivedAt: current.updatedAt || current.createdAt,
-            recordedBy: current.updatedBy || current.createdBy || "system",
-          },
-        ]
-      : [];
-  const observations = normalizeAppendOnlyHistory({
-    actor,
-    current: currentObservations,
-    field: "observations",
-    normalizeItem: normalizeObservation,
-    value: payload.observations,
-  });
   return {
     key: normalizeKey(payload.key, current?.key),
     name: requiredText(
@@ -678,10 +624,15 @@ export function normalizeRuntimeInput(
       current?.status || "unknown",
     ),
     metadata: normalizeMetadata(payload.metadata, current?.metadata),
-    observations,
-    observedAt:
-      observations.at(-1)?.observedAt ||
-      normalizeDate(payload.observedAt, "observedAt", current?.observedAt),
+    monitoringRetentionDays: normalizeMonitoringRetentionDays(
+      payload.monitoringRetentionDays,
+      current,
+    ),
+    observedAt: normalizeDate(
+      payload.observedAt,
+      "observedAt",
+      current?.observedAt,
+    ),
     procedureMarkdown: optionalText(
       payload.procedureMarkdown ?? current?.procedureMarkdown,
       "procedureMarkdown",

@@ -101,6 +101,12 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
     ),
     false,
   );
+  const runtimeProperties = catalogTools.find(
+    ({ name }) => name === "runtimes_update",
+  ).inputSchema.properties;
+  assert.equal(runtimeProperties.monitoringRetentionDays.default, undefined);
+  assert.equal(runtimeProperties.monitoringRetentionDays.maximum, 3650);
+  assert.equal(Object.hasOwn(runtimeProperties, "observations"), false);
 });
 
 test("catalog read tools dispatch only to their scoped HTTP endpoints", async () => {

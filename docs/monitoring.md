@@ -113,6 +113,16 @@ Para uma linha do tempo única com sinais externos e observações manuais:
 GET /api/monitoring/runtimes/:runtimeReference/timeline?page=1&limit=50&status=degraded&observedFrom=2026-07-01&observedTo=2026-07-31
 ```
 
+Observações manuais usam o mesmo histórico:
+
+```http
+POST /api/monitoring/runtimes/:runtimeReference/manual-observations
+```
+
+O corpo aceita `status`, `observedAt`, `source`, `message` e `metadata`. A
+permissão necessária é `runtimes.update`; observações manuais não alteram a
+saúde materializada pelo último sinal externo.
+
 ```http
 GET /api/monitoring/applications/:applicationId/health
 ```
@@ -122,5 +132,6 @@ recepção mais recentes. Os filtros opcionais `status`, `observedFrom` e
 `observedTo` são aplicados antes da paginação; datas no formato `YYYY-MM-DD`
 incluem o dia inteiro em UTC. A saúde da aplicação usa `{ "health": {} }`, agrega os runtimes e prioriza
 `unavailable`, `degraded`, `stopped`, `unknown` e `healthy`, nessa ordem. A
-coleção `runtimeMonitoringSignals` não possui retenção automática nesta versão;
-inclua-a no backup do MongoDB e acompanhe seu crescimento.
+retenção usa `monitoringRetentionDays` do runtime, com padrão de 10 dias. Cada
+evento recebe `expiresAt` e um índice TTL o remove automaticamente. Use 0 para
+desativar a expiração de um runtime.

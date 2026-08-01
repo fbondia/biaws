@@ -35,6 +35,7 @@ import {
   listIntegrations,
   updateIntegration,
 } from "../repositories/integrationsRepository.js";
+import { recalculateRuntimeMonitoringExpiration } from "../repositories/runtimeMonitoringRepository.js";
 import {
   archiveRepository,
   createRepository,
@@ -738,6 +739,13 @@ catalogTopologyRouter.patch(
       req.body,
       req.actor,
     );
+    if (before.monitoringRetentionDays !== after.monitoringRetentionDays) {
+      await recalculateRuntimeMonitoringExpiration(
+        after.id,
+        after.monitoringRetentionDays,
+        { workspaceId: req.actor.workspaceId },
+      );
+    }
     await auditMutation({
       req,
       type: "runtime",

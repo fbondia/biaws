@@ -344,20 +344,25 @@ test(
       const filteredSignals = await filteredSignalsResponse.json();
       assert.equal(filteredSignals.meta.total, 1);
       assert.equal(filteredSignals.items[0].signalId, "monitor:event:1");
-      const runtimeWithManualObservation = (
-        await patch(`/api/catalog/runtimes/${runtime.id}`, {
-          observations: [
-            {
-              healthStatus: "unavailable",
-              observedAt: "2026-07-31T16:00:00.000Z",
-              source: "operador",
-              message: "Indisponibilidade confirmada manualmente",
-              metadata: { ticket: "INC-42" },
-            },
-          ],
-        })
-      ).runtime;
-      assert.equal(runtimeWithManualObservation.observations.length, 1);
+      const manualObservationResponse = await request(
+        `/api/monitoring/runtimes/${runtime.id}/manual-observations`,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            status: "unavailable",
+            observedAt: "2026-07-31T16:00:00.000Z",
+            source: "operador",
+            message: "Indisponibilidade confirmada manualmente",
+            metadata: { ticket: "INC-42" },
+          },
+          origin: true,
+        },
+      );
+      assert.equal(manualObservationResponse.status, 201);
+      const manualObservation = await manualObservationResponse.json();
+      assert.equal(manualObservation.signal.origin, "manual");
+      assert.ok(manualObservation.signal.expiresAt);
       const timelineResponse = await request(
         `/api/monitoring/runtimes/${runtime.id}/timeline?limit=10`,
         { cookie: adminCookie },
@@ -368,6 +373,28 @@ test(
       assert.equal(timeline.items[0].origin, "manual");
       assert.equal(timeline.items[1].origin, "external");
       assert.equal(timeline.items[1].payload.probe.durationMs, 850);
+      const retentionUpdate = await patch(
+        `/api/catalog/runtimes/${runtime.id}`,
+        { monitoringRetentionDays: 20 },
+      );
+      assert.equal(retentionUpdate.runtime.monitoringRetentionDays, 20);
+      const retainedTimeline = await (
+        await request(`/api/monitoring/runtimes/${runtime.id}/timeline`, {
+          cookie: adminCookie,
+        })
+      ).json();
+      for (const event of retainedTimeline.items) {
+        assert.equal(
+          new Date(event.expiresAt) - new Date(event.receivedAt),
+          20 * 86_400_000,
+        );
+      }
+      const expirationIndex = (
+        await database
+          .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)
+          .indexes()
+      ).find(({ name }) => name === "monitoring_expiration");
+      assert.equal(expirationIndex.expireAfterSeconds, 0);
       const applicationHealthResponse = await request(
         `/api/monitoring/applications/${application.id}/health`,
         { cookie: adminCookie },
@@ -519,8 +546,12 @@ test(
       });
       assert.equal(auditResponse.status, 200);
       const audit = await auditResponse.json();
-      assert.equal(audit.events.length, 4);
-      assert.equal(audit.events[0].action, "monitoring_signal_received");
+      assert.ok(audit.events.length >= 5);
+      assert.ok(
+        audit.events.some(
+          ({ action }) => action === "monitoring_observation_recorded",
+        ),
+      );
       assert.equal(audit.events.at(-1).action, "created");
       assert.equal(audit.events[0].target.id, runtime.id);
     } finally {

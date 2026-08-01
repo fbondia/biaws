@@ -491,6 +491,19 @@ que ainda usam os nomes padrão antigos. Durante a transição, a API ainda acei
 payloads antigos com `billing` e `billedJourneys`, mas responde e persiste
 somente o modelo novo.
 
+Para migrar observações manuais de runtimes para a coleção unificada e
+recalcular `expiresAt`, primeiro analise e depois aplique:
+
+```bash
+cd biaws-api
+npm run migrate:monitoring
+npm run migrate:monitoring -- --apply
+```
+
+O comando é idempotente, define retenção de 10 dias nos runtimes sem
+configuração e cria o índice TTL. Eventos já vencidos podem ser removidos pelo
+MongoDB após a aplicação.
+
 A criação define a melhoria no topo da lista atualizando `listRank`. Atualizações de conteúdo não alteram `listRank`; depois da criação, a posição só muda pelo reposicionamento manual.
 
 Criar anotação:

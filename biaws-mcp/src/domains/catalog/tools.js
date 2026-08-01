@@ -245,31 +245,7 @@ const RUNTIME_PROPERTIES = {
       ],
     },
   },
-  observations: {
-    type: "array",
-    maxItems: 200,
-    items: {
-      type: "object",
-      additionalProperties: false,
-      required: ["healthStatus", "observedAt"],
-      properties: {
-        id: ID,
-        healthStatus: {
-          type: "string",
-          enum: ["unknown", "healthy", "degraded", "unavailable", "stopped"],
-        },
-        observedAt: { type: "string" },
-        source: STRING,
-        message: STRING,
-        metadata: {
-          type: "object",
-          additionalProperties: true,
-        },
-        receivedAt: { type: ["string", "null"] },
-        recordedBy: STRING,
-      },
-    },
-  },
+  monitoringRetentionDays: { type: "integer", minimum: 0, maximum: 3650 },
   procedureMarkdown: STRING,
   // Campo legado materializado a partir da observação mais recente.
   observedAt: { type: ["string", "null"] },

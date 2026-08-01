@@ -1,4 +1,7 @@
-import { CATALOG_LIMITS } from "../../../shared/index.js";
+import {
+  CATALOG_LIMITS,
+  DEFAULT_MONITORING_RETENTION_DAYS,
+} from "../../../shared/index.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import {
   createCatalogError,
@@ -99,7 +102,8 @@ function runtimeSummary(document) {
     namespace: document.namespace,
     runtimeName: document.runtimeName,
     status: document.status,
-    observations: document.observations || [],
+    monitoringRetentionDays:
+      document.monitoringRetentionDays ?? DEFAULT_MONITORING_RETENTION_DAYS,
     observedAt: document.observedAt,
     procedureMarkdown: document.procedureMarkdown || "",
     updatedAt: document.updatedAt,

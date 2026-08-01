@@ -1,5 +1,6 @@
 export const DEFAULT_WORKSPACE_KEY = "default";
 export const DEFAULT_WORKSPACE_NAME = "Bondia Workspaces";
+export const DEFAULT_MONITORING_RETENTION_DAYS = 10;
 
 export const WORKSPACE_STATUSES = Object.freeze(["active", "archived"]);
 export const APPLICATION_STATUSES = Object.freeze(["active", "archived"]);
@@ -110,6 +111,7 @@ export const CATALOG_LIMITS = Object.freeze({
   metadataArrayItems: 20,
   metadataString: 1_000,
   metadataBytes: 16_384,
+  monitoringRetentionDays: 3_650,
   contextItemsPerCollection: 100,
   pageSize: 100,
 });

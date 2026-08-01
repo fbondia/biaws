@@ -11,6 +11,8 @@ import { normalizeRepositoryInput } from "../src/repositories/repositoriesReposi
 import { normalizeServerInput } from "../src/repositories/serversRepository.js";
 import {
   buildRuntimeMonitoringSignalFilter,
+  monitoringExpirationDate,
+  normalizeManualMonitoringObservation,
   normalizeMonitoringPayload,
   normalizeMonitoringSignal,
 } from "../src/repositories/runtimeMonitoringRepository.js";
@@ -253,28 +255,17 @@ test("runtime metadata is flat, bounded and rejects secret-like keys", () => {
   );
 });
 
-test("runtime observations are append-only and procedure markdown is bounded", () => {
+test("runtime defaults monitoring retention and rejects embedded observations", () => {
   const runtime = normalizeRuntimeInput(
     {
       key: "pod-1",
       name: "Pod 1",
-      observations: [
-        {
-          healthStatus: "healthy",
-          observedAt: "2026-07-30T13:00:00.000Z",
-          source: "zabbix",
-          message: "Respondendo normalmente",
-          metadata: { latency_ms: 35 },
-        },
-      ],
       procedureMarkdown: "# Publicação\n\n1. Atualize a imagem.",
     },
     null,
     { userId: "monitor-1" },
   );
-  assert.equal(runtime.observations[0].healthStatus, "healthy");
-  assert.equal(runtime.observations[0].recordedBy, "monitor-1");
-  assert.equal(runtime.observedAt.toISOString(), "2026-07-30T13:00:00.000Z");
+  assert.equal(runtime.monitoringRetentionDays, 10);
   assert.match(runtime.procedureMarkdown, /Atualize a imagem/u);
   assert.throws(
     () =>
@@ -282,8 +273,16 @@ test("runtime observations are append-only and procedure markdown is bounded", (
         { observations: [] },
         { ...runtime, id: "runtime-1" },
       ),
-    (error) =>
-      error.statusCode === 409 && error.code === "CATALOG_HISTORY_IMMUTABLE",
+    (error) => error.code === "INVALID_CATALOG_PAYLOAD",
+  );
+  assert.throws(
+    () =>
+      normalizeRuntimeInput({
+        key: "pod-2",
+        name: "Pod 2",
+        monitoringRetentionDays: 3651,
+      }),
+    (error) => error.code === "INVALID_MONITORING_RETENTION",
   );
 });
 
@@ -347,6 +346,30 @@ test("monitoring payload accepts bounded nested JSON and rejects sensitive keys"
     () => normalizeMonitoringPayload({ values: Array(101).fill(1) }),
     (error) => error.code === "INVALID_MONITORING_PAYLOAD",
   );
+});
+
+test("monitoring expiration follows runtime retention and supports no expiration", () => {
+  assert.equal(
+    monitoringExpirationDate("2026-08-01T00:00:00.000Z", 10).toISOString(),
+    "2026-08-11T00:00:00.000Z",
+  );
+  assert.equal(monitoringExpirationDate(new Date(), 0), null);
+});
+
+test("manual monitoring observations use the unified event contract", () => {
+  const observation = normalizeManualMonitoringObservation(
+    {
+      status: "degraded",
+      observedAt: "2026-08-01T12:00:00.000Z",
+      message: "Confirmado pelo operador",
+      metadata: { ticket: "INC-42" },
+    },
+    { userId: "operator-1" },
+  );
+  assert.equal(observation.source, "Registro manual");
+  assert.equal(observation.signalId, null);
+  assert.equal(observation.payload, null);
+  assert.equal(observation.recordedBy, "operator-1");
 });
 
 test("monitoring signal history filters status and observed date range", () => {

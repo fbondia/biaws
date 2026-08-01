@@ -74,7 +74,7 @@ const DEFAULTS = {
     runtimeName: "",
     status: "unknown",
     metadataText: "{}",
-    observations: [],
+    monitoringRetentionDays: 10,
     procedureMarkdown: "",
   },
 };
@@ -127,20 +127,7 @@ export function catalogEntityDraft(kind, entity = {}) {
   }
   if (kind === "runtime") {
     draft.metadataText = JSON.stringify(source.metadata || {}, null, 2);
-    draft.observations = Array.isArray(source.observations)
-      ? source.observations
-      : source.observedAt
-        ? [
-            {
-              id: `legacy-${source.id || "observation"}`,
-              healthStatus: source.status || "unknown",
-              observedAt: source.observedAt,
-              source: "",
-              message: "",
-              metadata: {},
-            },
-          ]
-        : [];
+    draft.monitoringRetentionDays = source.monitoringRetentionDays ?? 10;
     draft.port = source.port ?? "";
   }
   return draft;
@@ -231,7 +218,7 @@ const PAYLOAD_BUILDERS = {
       runtimeName: text(draft.runtimeName),
       status: draft.status,
       metadata,
-      observations: draft.observations,
+      monitoringRetentionDays: Number(draft.monitoringRetentionDays),
       procedureMarkdown: text(draft.procedureMarkdown),
     };
   },

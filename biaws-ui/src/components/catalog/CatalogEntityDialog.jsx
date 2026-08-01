@@ -1,9 +1,12 @@
 import { Save, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
 import { MonitoringEventDetails } from "../shared/MonitoringEventDetails.jsx";
-import { fetchRuntimeMonitoringTimeline } from "../../api.js";
+import {
+  createRuntimeManualMonitoringObservation,
+  fetchRuntimeMonitoringTimeline,
+} from "../../api.js";
 import { buildUrl } from "../../api/client.js";
 import {
   CATALOG_ENTITY_LABELS,
@@ -195,6 +198,7 @@ export function CatalogEntityDialog({
   });
   const [monitoringEvents, setMonitoringEvents] = useState([]);
   const [monitoringError, setMonitoringError] = useState("");
+  const [addingObservation, setAddingObservation] = useState(false);
   const label = CATALOG_ENTITY_LABELS[kind];
   const runtimeDeployment = (options.deployments || []).find(
     ({ id }) => id === entity?.deploymentId,
@@ -248,21 +252,6 @@ export function CatalogEntityDialog({
     };
   }, [entity?.id, kind]);
 
-  const monitoringTimeline = useMemo(() => {
-    const pendingManualEvents = (draft.observations || [])
-      .filter(({ id }) => String(id).startsWith("draft-"))
-      .map((observation) => ({
-        ...observation,
-        status: observation.healthStatus,
-        origin: "manual",
-        receivedAt: new Date().toISOString(),
-        payload: null,
-      }));
-    return [...monitoringEvents, ...pendingManualEvents].sort(
-      (left, right) => new Date(right.observedAt) - new Date(left.observedAt),
-    );
-  }, [draft.observations, monitoringEvents]);
-
   function update(field, value) {
     setDraft((current) => ({ ...current, [field]: value }));
   }
@@ -290,25 +279,35 @@ export function CatalogEntityDialog({
     });
   }
 
-  function addObservation() {
-    if (!observationDraft.observedAt) return;
-    update("observations", [
-      ...(draft.observations || []),
-      {
-        id: `draft-${crypto.randomUUID()}`,
-        healthStatus: observationDraft.healthStatus,
+  async function addObservation() {
+    if (!entity?.id || !observationDraft.observedAt) return;
+    setAddingObservation(true);
+    setMonitoringError("");
+    try {
+      const result = await createRuntimeManualMonitoringObservation(entity.id, {
+        status: observationDraft.healthStatus,
         observedAt: new Date(observationDraft.observedAt).toISOString(),
         source: observationDraft.source.trim(),
         message: observationDraft.message.trim(),
         metadata: {},
-      },
-    ]);
-    setObservationDraft({
-      healthStatus: "unknown",
-      observedAt: "",
-      source: "",
-      message: "",
-    });
+      });
+      setMonitoringEvents((current) =>
+        [result.signal, ...current].sort(
+          (left, right) =>
+            new Date(right.observedAt) - new Date(left.observedAt),
+        ),
+      );
+      setObservationDraft({
+        healthStatus: "unknown",
+        observedAt: "",
+        source: "",
+        message: "",
+      });
+    } catch (addError) {
+      setMonitoringError(addError.message);
+    } finally {
+      setAddingObservation(false);
+    }
   }
 
   async function submit(event) {
@@ -847,6 +846,22 @@ export function CatalogEntityDialog({
                 {monitoringError ? (
                   <div className="errorBox">{monitoringError}</div>
                 ) : null}
+                <label className="field catalogMonitoringRetention">
+                  <span>Retenção do histórico (dias)</span>
+                  <input
+                    max="3650"
+                    min="0"
+                    onChange={(event) =>
+                      update("monitoringRetentionDays", event.target.value)
+                    }
+                    type="number"
+                    value={draft.monitoringRetentionDays}
+                  />
+                  <small>
+                    Padrão: 10 dias. Use 0 para manter o histórico sem
+                    expiração.
+                  </small>
+                </label>
                 <h3 className="catalogMonitoringManualTitle">
                   Adicionar observação manual
                 </h3>
@@ -902,16 +917,25 @@ export function CatalogEntityDialog({
                   </label>
                   <button
                     className="secondaryButton"
-                    disabled={!observationDraft.observedAt}
+                    disabled={
+                      !editing ||
+                      !observationDraft.observedAt ||
+                      addingObservation
+                    }
                     onClick={addObservation}
                     type="button"
                   >
-                    Adicionar observação
+                    {addingObservation
+                      ? "Registrando..."
+                      : "Adicionar observação"}
                   </button>
                 </div>
+                {!editing ? (
+                  <small>Salve o runtime antes de registrar observações.</small>
+                ) : null}
                 <HistoryItems
                   empty="Nenhum registro de monitoramento recebido."
-                  items={monitoringTimeline}
+                  items={monitoringEvents}
                   renderItem={(event) => (
                     <>
                       <div className="catalogMonitoringEventHeading">

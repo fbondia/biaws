@@ -197,8 +197,9 @@ e uma janela de indisponibilidade aprovada.
 - JSON: 4 MiB por padrão;
 - anexo: 50 MiB por padrão;
 - metadata de runtime: 16 KiB, 25 chaves e sem campos com semântica de segredo.
-- sinais de monitoramento: páginas de até 100; sem retenção automática nesta
-  versão, portanto acompanhe o crescimento de `runtimeMonitoringSignals`.
+- sinais de monitoramento: páginas de até 100; retenção por runtime com padrão
+  de 10 dias e índice TTL sobre `expiresAt`. Use `monitoringRetentionDays: 0`
+  somente quando houver necessidade explícita de histórico permanente.
 
 O rate limiting possui três camadas independentes:
 

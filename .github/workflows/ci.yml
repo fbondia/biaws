@@ -104,8 +104,10 @@ jobs:
             --env-file instances/ci/.env \
             --project-name biaws-ci \
             exec -T api npm run seed:demo
-          curl --fail --silent --show-error http://127.0.0.1:3100/api/health
-          curl --fail --silent --show-error http://127.0.0.1:4400/ > /dev/null
+          api_port="$(sed -n 's/^ISSUE_API_PORT=//p' instances/ci/.env)"
+          ui_port="$(sed -n 's/^ISSUE_UI_PORT=//p' instances/ci/.env)"
+          curl --fail --silent --show-error "http://127.0.0.1:${api_port}/api/health"
+          curl --fail --silent --show-error "http://127.0.0.1:${ui_port}/" > /dev/null
       - name: Collect service logs
         if: failure()
         run: >-

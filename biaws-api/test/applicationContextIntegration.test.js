@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import { COLLECTION_NAMES } from "../src/database/collectionNames.js";
@@ -9,10 +12,15 @@ test(
   "application context is validated, inherited and filtered",
   { skip: !integrationEnabled },
   async () => {
+    const issueDirectory = await mkdtemp(
+      path.join(tmpdir(), "biaws-application-context-"),
+    );
     process.env.MONGO_URI = process.env.BIAWS_INTEGRATION_MONGO_URI;
     process.env.MONGO_DB =
       process.env.BIAWS_APPLICATION_CONTEXT_INTEGRATION_DB ||
       "biaws_application_context_integration";
+    process.env.ISSUE_DIR = issueDirectory;
+    process.env.ATTACHMENT_STORAGE_LOCAL_DIR = issueDirectory;
 
     const { closeMongoClient, getMongoDatabase } =
       await import("../src/helpers/mongoClient.js");
@@ -145,6 +153,7 @@ test(
     } finally {
       await db.dropDatabase();
       await closeMongoClient();
+      await rm(issueDirectory, { recursive: true, force: true });
     }
   },
 );

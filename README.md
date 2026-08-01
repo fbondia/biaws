@@ -27,6 +27,7 @@ capacidades versionadas sem oferecer acesso genérico ao banco de dados.
 
 ## Recursos
 
+- home pessoal baseada em um catálogo expansível de widgets configuráveis;
 - chamados com importação EML, anexos, filtros, indicadores e taxonomia;
 - melhorias com especificação Markdown, tarefas, checklist, prazos e acompanhamento de jornadas;
 - procedimentos organizados em coleções e classificados pela mesma taxonomia;

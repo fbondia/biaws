@@ -1,0 +1,73 @@
+# Home configurável e catálogo de widgets
+
+A home do Bondia Workspaces é um board pessoal, persistido por usuário e
+workspace. O usuário pode adicionar várias instâncias do mesmo widget,
+reordená-las, escolher seu tamanho e definir configurações próprias para cada
+instância.
+
+## Catálogo inicial
+
+| Widget                         | Permissão dos dados | Configuração                                    |
+| ------------------------------ | ------------------- | ----------------------------------------------- |
+| Chamados na semana ou no mês   | `issues.read`       | período: semana ou mês atual                    |
+| Chamados abertos por aplicação | `issues.read`       | —                                               |
+| Chamados abertos por tipo      | `issues.read`       | —                                               |
+| Tarefas pendentes              | `demands.read`      | —                                               |
+| Saúde das aplicações           | `runtimes.read`     | todas as aplicações ou uma aplicação específica |
+
+O catálogo devolvido pela API contém somente widgets cujos dados o ator pode
+consultar. O escopo de aplicações de cada permissão também é aplicado às
+métricas. Uma configuração antiga não amplia acesso caso as permissões do
+usuário sejam reduzidas.
+
+O estado `NOK` do widget de monitoramento significa que a aplicação possui
+saúde agregada diferente de `healthy`, incluindo runtimes desconhecidos, parados,
+degradados ou indisponíveis. Aplicações sem runtimes aparecem como `unknown`.
+
+## Contratos HTTP
+
+```http
+GET /api/home
+```
+
+Retorna:
+
+- `catalog`: definições disponíveis, configuração e tamanho padrão;
+- `configuration.widgets`: instâncias ordenadas do usuário;
+- `applications`: opções acessíveis para widgets configuráveis;
+- `data`: resultado de cada widget, indexado pelo ID da instância;
+- `generatedAt`: instante da leitura.
+
+```http
+PUT /api/home/configuration
+Content-Type: application/json
+
+{
+  "widgets": [
+    {
+      "id": "billing-health",
+      "widgetId": "application-health",
+      "size": "medium",
+      "config": { "applicationId": "<application-id>" }
+    }
+  ]
+}
+```
+
+São aceitas até 30 instâncias. Tamanhos válidos: `small`, `medium` e `large`.
+O ID da instância é distinto do tipo em `widgetId`; isso permite repetir um
+widget com configurações diferentes.
+
+## Como adicionar um widget ao produto
+
+1. Acrescente a definição declarativa em `HOME_WIDGET_CATALOG`, incluindo
+   permissão, categoria, tamanho e campos de configuração.
+2. Valide a configuração em `normalizeConfiguration`.
+3. Implemente o resolvedor de dados em `resolveWidgetMetric`, sempre aplicando o
+   workspace e o escopo de aplicação da permissão.
+4. Adicione o renderer e o ícone correspondentes na UI.
+5. Cubra normalização, autorização, métricas e apresentação com testes.
+
+Configurações pessoais ficam na coleção `homeConfigurations`, com chave única
+por `workspaceId` e `userId`. Não há migração obrigatória: usuários sem registro
+recebem o layout inicial compatível com suas permissões.

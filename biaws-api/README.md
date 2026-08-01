@@ -104,6 +104,17 @@ Health check:
 curl http://127.0.0.1:3100/api/health
 ```
 
+Carregar a home e seu catálogo de widgets:
+
+```bash
+curl http://127.0.0.1:3100/api/home \
+  -H "Authorization: Bearer $ISSUE_API_KEY" \
+  -H "X-Biaws-Workspace-Id: $ISSUE_WORKSPACE_ID"
+```
+
+O contrato de configuração e extensão está em
+[`../docs/home-widgets.md`](../docs/home-widgets.md).
+
 Receber um sinal de monitoramento de runtime:
 
 ```bash

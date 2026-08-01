@@ -26,8 +26,8 @@ import {
 export function useApp(actor) {
   const [activeView, setActiveView] = useState(
     () =>
-      [...APP_VIEWS, ...SETTINGS_VIEWS].find(({ permission }) =>
-        hasPermission(actor, permission),
+      [...APP_VIEWS, ...SETTINGS_VIEWS].find(
+        ({ permission }) => !permission || hasPermission(actor, permission),
       )?.key || "account",
   );
   const [draftFilters, setDraftFilters] = useState(DEFAULT_FILTERS);
@@ -55,7 +55,9 @@ export function useApp(actor) {
   const settingsMenuRef = useRef(null);
   const availableViews = useMemo(
     () =>
-      APP_VIEWS.filter(({ permission }) => hasPermission(actor, permission)),
+      APP_VIEWS.filter(
+        ({ permission }) => !permission || hasPermission(actor, permission),
+      ),
     [actor],
   );
   const availableSettingsViews = useMemo(

@@ -13,9 +13,16 @@ import {
   Server,
   BookOpen,
   LifeBuoy,
+  House,
 } from "lucide-react";
 
 export const APP_VIEWS = [
+  {
+    key: "home",
+    label: "Início",
+    icon: House,
+    permission: null,
+  },
   {
     key: "issues",
     label: "Chamados",

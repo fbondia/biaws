@@ -6,19 +6,20 @@ seus na primeira operação.
 
 ## Índices críticos
 
-| Fluxo                      | Prefixo do índice                                                              |
-| -------------------------- | ------------------------------------------------------------------------------ |
-| aplicações                 | `workspaceId, name, id`; status exato usa variante com `status`                |
-| componentes e repositórios | `workspaceId, applicationId, name, id`; status exato usa variante com `status` |
-| servidores                 | `workspaceId, name, id`; status exato usa variante com `status`                |
-| deployments                | `workspaceId, applicationId, deployedAt, id`                                   |
-| runtimes no contexto       | `workspaceId, applicationId, name, id`                                         |
-| sinais de um runtime       | `workspaceId, applicationId, runtimeId, observedAt, receivedAt`                |
-| issues recentes            | `workspaceId, applicationId, dates.receivedEmailAt, updatedAt, id`             |
-| melhorias ordenadas        | `workspaceId, applicationId, listRank, updatedAt, createdAt`                   |
-| procedimentos por título   | `workspaceId, applicationId, title, updatedAt`                                 |
-| contexto de conhecimento   | `workspaceId, applicationId, updatedAt, id`                                    |
-| auditoria por raiz         | `rootType, rootId, occurredAt`                                                 |
+| Fluxo                        | Prefixo do índice                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| aplicações                   | `workspaceId, name, id`; status exato usa variante com `status`                |
+| componentes e repositórios   | `workspaceId, applicationId, name, id`; status exato usa variante com `status` |
+| servidores                   | `workspaceId, name, id`; status exato usa variante com `status`                |
+| deployments                  | `workspaceId, applicationId, deployedAt, id`                                   |
+| runtimes no contexto         | `workspaceId, applicationId, name, id`                                         |
+| sinais de um runtime         | `workspaceId, applicationId, runtimeId, observedAt, receivedAt`                |
+| issues recentes              | `workspaceId, applicationId, dates.receivedEmailAt, updatedAt, id`             |
+| melhorias ordenadas          | `workspaceId, applicationId, listRank, updatedAt, createdAt`                   |
+| procedimentos por título     | `workspaceId, applicationId, title, updatedAt`                                 |
+| contexto de conhecimento     | `workspaceId, applicationId, updatedAt, id`                                    |
+| auditoria por raiz           | `rootType, rootId, occurredAt`                                                 |
+| configuração pessoal da home | `workspaceId, userId`                                                          |
 
 Chaves naturais e IDs têm índices únicos onde o contrato exige unicidade.
 Em particular, `issues.id` é único para impedir duplicação em criações

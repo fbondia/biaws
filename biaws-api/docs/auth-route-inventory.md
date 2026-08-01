@@ -14,6 +14,17 @@ validar também os campos enviados.
 
 O cadastro público `POST /api/auth/sign-up/email` está desabilitado.
 
+## Home pessoal
+
+| Método | Rota                      | Autorização aplicada                                                                  |
+| ------ | ------------------------- | ------------------------------------------------------------------------------------- |
+| `GET`  | `/api/home`               | identidade autenticada; catálogo e métricas filtrados pelas permissões de cada widget |
+| `PUT`  | `/api/home/configuration` | identidade autenticada; aceita somente widgets disponíveis ao ator                    |
+
+A configuração pertence ao próprio `userId` dentro do workspace selecionado.
+Widgets de chamados, tarefas e monitoramento respeitam respectivamente
+`issues.read`, `demands.read` e `runtimes.read`, incluindo escopo por aplicação.
+
 ## Grupos e vínculos
 
 | Método  | Rota                                                 | Permissão aplicada              |

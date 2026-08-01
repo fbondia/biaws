@@ -296,6 +296,52 @@ test(
       assert.equal(applicationHealth.health.status, "degraded");
       assert.equal(applicationHealth.health.total, 1);
       assert.equal(applicationHealth.health.observed, 1);
+      const homeResponse = await request("/api/home", {
+        cookie: adminCookie,
+      });
+      assert.equal(homeResponse.status, 200);
+      const home = await homeResponse.json();
+      assert.equal(home.catalog.length, 5);
+      assert.equal(home.configuration.customized, false);
+      const invalidHomeResponse = await request("/api/home/configuration", {
+        cookie: adminCookie,
+        method: "PUT",
+        body: {
+          widgets: [
+            {
+              id: "missing-health",
+              widgetId: "application-health",
+              size: "medium",
+              config: { applicationId: "missing-application" },
+            },
+          ],
+        },
+        origin: true,
+      });
+      assert.equal(invalidHomeResponse.status, 422);
+      const configuredHomeResponse = await request("/api/home/configuration", {
+        cookie: adminCookie,
+        method: "PUT",
+        body: {
+          widgets: [
+            {
+              id: "billing-health",
+              widgetId: "application-health",
+              size: "medium",
+              config: { applicationId: application.id },
+            },
+          ],
+        },
+        origin: true,
+      });
+      assert.equal(configuredHomeResponse.status, 200);
+      const configuredHome = await configuredHomeResponse.json();
+      assert.equal(configuredHome.configuration.customized, true);
+      assert.equal(configuredHome.data["billing-health"].nok, 1);
+      assert.equal(
+        configuredHome.data["billing-health"].items[0].name,
+        application.name,
+      );
       const { diagram } = await mutate(
         `/api/catalog/applications/${application.id}/topology-diagrams`,
         {

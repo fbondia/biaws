@@ -6,6 +6,7 @@
 @import "./styles/features/procedures.css";
 @import "@xyflow/react/dist/style.css";
 @import "./styles/features/catalog.css";
+@import "./styles/features/home.css";
 @import "./styles/shared/catalog-context.css";
 @import "./styles/features/issues/filters.css";
 @import "./styles/shared/controls.css";

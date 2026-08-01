@@ -25,6 +25,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- home configurável por usuário e workspace, com catálogo expansível, múltiplas
+  instâncias por widget, ordenação, tamanhos e filtros por aplicação;
 - recepção passiva de sinais externos de saúde de runtimes, com endpoint
   autenticado, idempotência, histórico paginado, auditoria, CLI e visualização
   na UI;

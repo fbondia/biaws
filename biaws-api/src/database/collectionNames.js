@@ -17,6 +17,7 @@ export const COLLECTION_NAMES = Object.freeze({
   EMAIL_SANITIZATION_CONFIGS: "emailSanitizationConfigs",
   ISSUE_COMMENTS: "issueComments",
   ISSUES: "issues",
+  HOME_CONFIGURATIONS: "homeConfigurations",
   OPTION_LISTS: "optionLists",
   PERMISSION_GROUPS: "permissionGroups",
   PROCEDURE_COLLECTIONS: "procedureCollections",

@@ -215,6 +215,12 @@ instances/meu-projeto/.bootstrap-admin-password
 
 Entre na UI e altere a senha do administrador.
 
+A primeira tela é a home operacional. Ela já vem com indicadores de chamados,
+tarefas pendentes e saúde das aplicações permitidos para o usuário. Use
+**Personalizar** para abrir o catálogo, adicionar ou repetir widgets, alterar o
+tamanho e configurar opções próprias de cada instância, como a aplicação do
+widget de monitoramento. O layout é salvo por usuário e por workspace.
+
 > A chave técnica do agente fica somente em
 > `instances/meu-projeto/.env`. Ela não é exibida no resumo da instalação.
 

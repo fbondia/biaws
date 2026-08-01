@@ -1,0 +1,508 @@
+.homePage {
+  min-height: calc(100dvh - 72px);
+  padding: var(--space-6);
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      rgba(55, 111, 180, 0.09),
+      transparent 28%
+    ),
+    linear-gradient(180deg, #f8fafc 0%, var(--color-background) 360px);
+}
+
+.homeHero {
+  display: flex;
+  max-width: 1480px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin: 0 auto var(--space-6);
+}
+
+.homeHero > div:first-child > span,
+.homeWidgetCatalog > header span,
+.homeConfigurationDialog > header span {
+  color: var(--color-accent-text);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.homeHero h1,
+.homeHero p,
+.homeWidgetCatalog h2,
+.homeConfigurationDialog h2 {
+  margin: 0;
+}
+
+.homeHero h1 {
+  margin-top: var(--space-1);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  letter-spacing: -0.035em;
+}
+
+.homeHero p {
+  margin-top: var(--space-2);
+  color: var(--color-text-subtle);
+}
+
+.homeHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.homeWidgetGrid {
+  display: grid;
+  max-width: 1480px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--space-4);
+  margin: 0 auto;
+}
+
+.homeWidget {
+  grid-column: span 6;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    opacity 140ms ease;
+}
+
+.homeWidget-small {
+  grid-column: span 3;
+}
+
+.homeWidget-large {
+  grid-column: span 12;
+}
+
+.homeWidgetDragging {
+  border-color: var(--color-focus);
+  opacity: 0.55;
+  box-shadow: 0 12px 32px rgba(32, 91, 159, 0.18);
+}
+
+.homeWidget > header {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: var(--space-3) var(--space-4);
+}
+
+.homeWidgetHeading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.homeWidgetHeading > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.homeWidgetHeading h2,
+.homeWidgetHeading small {
+  display: block;
+  margin: 0;
+}
+
+.homeWidgetHeading h2 {
+  overflow: hidden;
+  font-size: 0.93rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeWidgetHeading small {
+  margin-top: 2px;
+  color: var(--color-text-subtle);
+  font-size: 0.7rem;
+}
+
+.homeWidgetGrip {
+  flex: 0 0 auto;
+  color: var(--color-text-subtle);
+  cursor: grab;
+}
+
+.homeWidgetActions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.homeWidgetActions select {
+  width: 90px;
+  min-height: 31px;
+  padding: 3px 7px;
+  font-size: 0.75rem;
+}
+
+.homeWidgetActions .iconButton {
+  width: 31px;
+  min-width: 31px;
+  height: 31px;
+}
+
+.homeWidgetBody {
+  min-height: 164px;
+  padding: var(--space-4);
+}
+
+.homeStatWidget {
+  display: grid;
+  min-height: 130px;
+  place-content: center;
+  justify-items: center;
+}
+
+.homeStatWidget strong {
+  color: var(--color-accent-text);
+  font-size: clamp(2.7rem, 6vw, 4.2rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.homeStatWidget span,
+.homeWidgetEmpty,
+.homeWidgetPending {
+  color: var(--color-text-subtle);
+}
+
+.homeStatWidget span {
+  margin-top: var(--space-2);
+  font-size: 0.84rem;
+}
+
+.homeBreakdown {
+  display: grid;
+  gap: 12px;
+}
+
+.homeBreakdownRow > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: 5px;
+  font-size: 0.8rem;
+}
+
+.homeBreakdownRow > div span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeBreakdownTrack {
+  display: block;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+}
+
+.homeBreakdownTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3c78b7, #79a9d6);
+}
+
+.homeTasksWidget,
+.homeHealthWidget {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.homeTasksTotal {
+  color: var(--color-accent-text);
+  font-size: 1.2rem;
+}
+
+.homeTaskList,
+.homeHealthApplications {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-border-subtle);
+}
+
+.homeTaskList article,
+.homeHealthApplications article {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  padding: 9px 11px;
+}
+
+.homeTaskList article > div,
+.homeHealthApplications article > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.homeTaskList article strong,
+.homeTaskList article small,
+.homeHealthApplications article strong,
+.homeHealthApplications article small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeTaskList article small,
+.homeHealthApplications article small {
+  color: var(--color-text-subtle);
+  font-size: 0.7rem;
+}
+
+.homeTaskList article > span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  padding: 3px 7px;
+  font-size: 0.68rem;
+}
+
+.homeHealthSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.homeHealthSummary > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid;
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 0.78rem;
+}
+
+.homeHealthSummary strong {
+  font-size: 1.4rem;
+}
+
+.homeHealthOk {
+  border-color: #b8e7c8 !important;
+  background: #edf9f2;
+  color: #17633d;
+}
+
+.homeHealthNok {
+  border-color: #efb4b4 !important;
+  background: #fff1f1;
+  color: #8f1d1d;
+}
+
+.homeWidgetEmpty,
+.homeWidgetPending {
+  display: grid;
+  min-height: 110px;
+  place-items: center;
+  text-align: center;
+}
+
+.homeEmptyState {
+  display: grid;
+  max-width: 720px;
+  min-height: 340px;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-2);
+  margin: 20px auto;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--color-text-subtle);
+  text-align: center;
+}
+
+.homeEmptyState h2,
+.homeEmptyState p {
+  margin: 0;
+}
+
+.homeEmptyState .primaryButton {
+  margin-top: var(--space-3);
+}
+
+.homeCatalogBackdrop {
+  position: fixed;
+  z-index: 95;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.homeWidgetCatalog {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  width: min(430px, 100vw);
+  height: 100dvh;
+  flex-direction: column;
+  background: var(--color-surface);
+  box-shadow: -16px 0 48px rgba(15, 23, 42, 0.18);
+}
+
+.homeWidgetCatalog > header,
+.homeConfigurationDialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-5);
+}
+
+.homeWidgetCatalogContent {
+  display: grid;
+  gap: var(--space-5);
+  overflow: auto;
+  padding: var(--space-4);
+}
+
+.homeWidgetCatalogContent section {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.homeWidgetCatalogContent h3 {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.homeCatalogWidget {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 12px;
+  text-align: left;
+}
+
+.homeCatalogWidget:hover {
+  border-color: var(--color-accent-border);
+  background: var(--color-surface-muted);
+}
+
+.homeCatalogWidget > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.homeCatalogWidget > div {
+  display: grid;
+  gap: 3px;
+}
+
+.homeCatalogWidget small {
+  color: var(--color-text-subtle);
+  line-height: 1.35;
+}
+
+.homeDialogBackdrop {
+  z-index: 110;
+}
+
+.homeConfigurationDialog {
+  width: min(520px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24);
+}
+
+.homeConfigurationFields {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.homeConfigurationDialog > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-4) var(--space-5);
+}
+
+@media (max-width: 1100px) {
+  .homeWidget-small {
+    grid-column: span 6;
+  }
+
+  .homeWidget-medium {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 720px) {
+  .homePage {
+    padding: var(--space-4);
+  }
+
+  .homeHero {
+    flex-direction: column;
+  }
+
+  .homeHeroActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .homeWidget-small,
+  .homeWidget-medium,
+  .homeWidget-large {
+    grid-column: span 12;
+  }
+
+  .homeWidget > header {
+    align-items: flex-start;
+  }
+
+  .homeWidgetActions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}

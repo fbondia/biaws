@@ -45,8 +45,10 @@ no runtime apenas o último estado cronológico; a plataforma permanece passiva.
 
 MongoDB mantém identidades, workspaces, aplicações, topologia, permissões,
 issues, melhorias, procedimentos, taxonomia, skills, sinais de monitoramento e
-auditoria. Anexos ficam
-fora do documento, referenciados por `provider` e `key`.
+auditoria. A coleção `homeConfigurations` mantém somente o layout e as
+configurações pessoais dos widgets; as métricas são calculadas a partir dos
+domínios originais. Anexos ficam fora do documento, referenciados por `provider`
+e `key`.
 
 Os nomes físicos das coleções são centralizados em
 `biaws-api/src/database/collectionNames.js` e seguem `lowerCamelCase` plural.
@@ -69,6 +71,12 @@ Grupos são vinculados por workspace e podem ter escopo integral ou uma lista de
 aplicações. O backend deriva o escopo efetivo por permissão e ignora filtros de
 workspace/aplicação enviados pelo cliente quando eles conflitam com a
 autorização. Recursos fora do escopo são apresentados como inexistentes.
+
+A home não introduz uma permissão global própria. Seu catálogo e seus dados são
+reduzidos pelas permissões `issues.read`, `demands.read` e `runtimes.read`, cada
+uma com seu escopo efetivo de aplicações. A preferência de layout, por ser um
+recurso pessoal, pode ser lida e atualizada por qualquer identidade autenticada
+no workspace.
 
 O provider `local` é o único implementado. Em produção distribuída, implemente
 um provider de object storage e uma política de backup antes de escalar

@@ -12,6 +12,8 @@ especialmente valiosas.
 3. Não inclua dados reais de clientes, credenciais, e-mails, dumps ou anexos.
 4. Leia o [Código de Conduta](CODE_OF_CONDUCT.md) e a
    [Política de Segurança](SECURITY.md).
+5. Consulte as [guidelines de desenvolvimento](docs/guidelines/INDEX.md), em
+   especial as fronteiras arquiteturais, testes e o checklist de mudança.
 
 ## Ambiente
 
@@ -39,13 +41,16 @@ Antes de enviar uma contribuição, execute:
 
 ```bash
 cd biaws-api && npm run format:check && npm run check && npm test
-cd biaws-ui && npm run format:check && npm run check:css && npm run build
+cd biaws-ui && npm run format:check && npm run check:css && npm test && npm run build
 cd biaws-mcp && npm run format:check && npm run check && npm test
 cd biaws-cli && npm run format:check && npm run check && npm test
 ```
 
 Novos comportamentos devem incluir testes proporcionais ao risco. Alterações de
 UI devem considerar teclado, foco, contraste e layout móvel.
+
+Use o [checklist de mudança](docs/guidelines/change-checklist.md) para selecionar
+as validações aplicáveis e registrar no pull request o que não foi executado.
 
 ## Pull requests
 

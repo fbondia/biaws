@@ -219,7 +219,7 @@ Validações:
 
 ```bash
 cd biaws-api && npm run check && npm test
-cd biaws-ui && npm run check:css && npm run build
+cd biaws-ui && npm run check:css && npm test && npm run build
 cd biaws-mcp && npm run check && npm test
 cd biaws-cli && npm run check && npm test
 ```
@@ -258,6 +258,7 @@ de ingestão está em [docs/monitoring.md](docs/monitoring.md).
 
 - [Status, releases e suporte](docs/project-status.md)
 - [Arquitetura](docs/architecture.md)
+- [Guidelines de desenvolvimento](docs/guidelines/INDEX.md)
 - [Operação e recuperação](docs/operations.md)
 - [Índices e performance](docs/performance.md)
 - [Como contribuir](CONTRIBUTING.md)

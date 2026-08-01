@@ -92,7 +92,7 @@ do runtime. Retentativas idempotentes não geram outro evento.
 ## Leitura HTTP
 
 ```http
-GET /api/monitoring/runtimes/:runtimeReference/signals?page=1&limit=50
+GET /api/monitoring/runtimes/:runtimeReference/signals?page=1&limit=50&status=degraded&observedFrom=2026-07-01&observedTo=2026-07-31
 ```
 
 ```http
@@ -100,7 +100,9 @@ GET /api/monitoring/applications/:applicationId/health
 ```
 
 O histórico usa `{ "meta": {}, "items": [] }`, ordenado por observação e
-recepção mais recentes. A saúde da aplicação usa `{ "health": {} }`, agrega os runtimes e prioriza
+recepção mais recentes. Os filtros opcionais `status`, `observedFrom` e
+`observedTo` são aplicados antes da paginação; datas no formato `YYYY-MM-DD`
+incluem o dia inteiro em UTC. A saúde da aplicação usa `{ "health": {} }`, agrega os runtimes e prioriza
 `unavailable`, `degraded`, `stopped`, `unknown` e `healthy`, nessa ordem. A
 coleção `runtimeMonitoringSignals` não possui retenção automática nesta versão;
 inclua-a no backup do MongoDB e acompanhe seu crescimento.

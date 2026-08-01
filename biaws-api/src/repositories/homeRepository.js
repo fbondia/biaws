@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { DEPLOYMENT_ENVIRONMENTS } from "../../../shared/index.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
 import { actorCanAccessApplication } from "../auth/authorizationMiddleware.js";
@@ -81,6 +82,20 @@ export const HOME_WIDGET_CATALOG = Object.freeze([
           required: false,
           emptyLabel: "Todas as aplicações",
         },
+        {
+          key: "environment",
+          label: "Ambiente do deployment",
+          type: "select",
+          required: false,
+          emptyLabel: "Todos os ambientes",
+          options: [
+            { value: "development", label: "Desenvolvimento" },
+            { value: "test", label: "Teste" },
+            { value: "staging", label: "Homologação" },
+            { value: "production", label: "Produção" },
+            { value: "other", label: "Outro" },
+          ],
+        },
       ],
     },
   },
@@ -138,7 +153,18 @@ function normalizeConfiguration(widget, value = {}) {
     return { period };
   }
   if (widget.id === "application-health") {
-    return { applicationId: String(value.applicationId || "").trim() };
+    const environment = String(value.environment || "").trim();
+    if (environment && !DEPLOYMENT_ENVIRONMENTS.includes(environment)) {
+      throw homeError(
+        422,
+        "INVALID_HOME_CONFIGURATION",
+        `environment must be one of: ${DEPLOYMENT_ENVIRONMENTS.join(", ")}`,
+      );
+    }
+    return {
+      applicationId: String(value.applicationId || "").trim(),
+      environment,
+    };
   }
   return {};
 }
@@ -204,7 +230,7 @@ export function defaultHomeWidgets(actor = {}) {
     ["open-issues-by-application", {}, "medium"],
     ["open-issues-by-type", {}, "medium"],
     ["pending-tasks", {}, "medium"],
-    ["application-health", { applicationId: "" }, "medium"],
+    ["application-health", { applicationId: "", environment: "" }, "medium"],
   ];
   return defaults
     .filter(([widgetId]) =>
@@ -463,6 +489,20 @@ function namedTopologyItem(item, fallbackLabel) {
   return item || { id: "unknown", key: "unknown", name: fallbackLabel };
 }
 
+export function filterRuntimesByDeploymentEnvironment(
+  runtimes = [],
+  deployments = [],
+  environment = "",
+) {
+  if (!environment) return runtimes;
+  const deploymentIds = new Set(
+    deployments
+      .filter((deployment) => deployment.environment === environment)
+      .map((deployment) => deployment.id),
+  );
+  return runtimes.filter((runtime) => deploymentIds.has(runtime.deploymentId));
+}
+
 export function buildApplicationHealthItems({
   applications = [],
   components = [],
@@ -523,7 +563,10 @@ export function buildApplicationHealthItems({
       applicationGroup.components.set(component.id, componentGroup);
     }
     incrementHealthCount(componentGroup.counts, status);
-    componentGroup.observedAt = latestDate(componentGroup.observedAt, observedAt);
+    componentGroup.observedAt = latestDate(
+      componentGroup.observedAt,
+      observedAt,
+    );
 
     let deploymentGroup = componentGroup.deployments.get(deployment.id);
     if (!deploymentGroup) {
@@ -546,9 +589,12 @@ export function buildApplicationHealthItems({
       name: runtime.name,
       status,
       observedAt,
+      receivedAt: runtime.monitoring?.receivedAt || null,
       source: runtime.monitoring?.source || "",
       message: runtime.monitoring?.message || "",
-      server: runtime.serverId ? serversById.get(runtime.serverId) || null : null,
+      server: runtime.serverId
+        ? serversById.get(runtime.serverId) || null
+        : null,
     });
   }
 
@@ -568,7 +614,9 @@ export function buildApplicationHealthItems({
                 left.name.localeCompare(right.name, "pt-BR"),
               ),
             }))
-            .sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
+            .sort((left, right) =>
+              left.name.localeCompare(right.name, "pt-BR"),
+            ),
         }))
         .sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
     }))
@@ -622,7 +670,9 @@ async function applicationHealthMetric(database, actor, config) {
         })
         .toArray()
     : [];
-  const componentIds = [...new Set(runtimes.map(({ componentId }) => componentId))];
+  const componentIds = [
+    ...new Set(runtimes.map(({ componentId }) => componentId)),
+  ];
   const deploymentIds = [
     ...new Set(runtimes.map(({ deploymentId }) => deploymentId)),
   ];
@@ -667,24 +717,30 @@ async function applicationHealthMetric(database, actor, config) {
           .toArray()
       : [],
   ]);
+  const filteredRuntimes = filterRuntimesByDeploymentEnvironment(
+    runtimes,
+    deployments,
+    config.environment,
+  );
   const items = buildApplicationHealthItems({
     applications,
     components,
     deployments,
-    runtimes,
+    runtimes: filteredRuntimes,
     servers,
   });
   return {
     kind: "health",
-    ok: runtimes.filter(
+    ok: filteredRuntimes.filter(
       (runtime) => (runtime.monitoring?.status || runtime.status) === "healthy",
     ).length,
-    nok: runtimes.filter(
+    nok: filteredRuntimes.filter(
       (runtime) => (runtime.monitoring?.status || runtime.status) !== "healthy",
     ).length,
-    total: runtimes.length,
+    total: filteredRuntimes.length,
     items,
     applicationId: configuredId || null,
+    environment: config.environment || null,
   };
 }
 

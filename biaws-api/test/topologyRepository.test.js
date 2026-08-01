@@ -9,7 +9,10 @@ import {
 } from "../src/repositories/deploymentsRepository.js";
 import { normalizeRepositoryInput } from "../src/repositories/repositoriesRepository.js";
 import { normalizeServerInput } from "../src/repositories/serversRepository.js";
-import { normalizeMonitoringSignal } from "../src/repositories/runtimeMonitoringRepository.js";
+import {
+  buildRuntimeMonitoringSignalFilter,
+  normalizeMonitoringSignal,
+} from "../src/repositories/runtimeMonitoringRepository.js";
 import {
   buildScopedListFilter,
   pagination,
@@ -316,6 +319,39 @@ test("monitoring signals validate status, idempotency key and secret-free metada
         source: "agent",
       }),
     (error) => error.code === "INVALID_MONITORING_SIGNAL",
+  );
+});
+
+test("monitoring signal history filters status and observed date range", () => {
+  const filter = buildRuntimeMonitoringSignalFilter(
+    { id: "runtime-1", workspaceId: "workspace-1" },
+    {
+      status: "degraded",
+      observedFrom: "2026-07-01",
+      observedTo: "2026-07-31",
+    },
+  );
+  assert.equal(filter.status, "degraded");
+  assert.equal(
+    filter.observedAt.$gte.toISOString(),
+    "2026-07-01T00:00:00.000Z",
+  );
+  assert.equal(filter.observedAt.$lt.toISOString(), "2026-08-01T00:00:00.000Z");
+  assert.throws(
+    () =>
+      buildRuntimeMonitoringSignalFilter(
+        { id: "runtime-1", workspaceId: "workspace-1" },
+        { status: "invalid" },
+      ),
+    (error) => error.statusCode === 422,
+  );
+  assert.throws(
+    () =>
+      buildRuntimeMonitoringSignalFilter(
+        { id: "runtime-1", workspaceId: "workspace-1" },
+        { observedFrom: "2026-08-02", observedTo: "2026-08-01" },
+      ),
+    (error) => error.code === "INVALID_MONITORING_FILTER",
   );
 });
 

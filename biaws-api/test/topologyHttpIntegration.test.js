@@ -311,15 +311,15 @@ test(
       const oldSignalResponse = await request(
         `/api/monitoring/runtimes/${runtimePath}/signals`,
         {
-        cookie: adminCookie,
-        method: "POST",
-        body: {
-          signalId: "monitor:event:1",
-          status: "healthy",
-          observedAt: "2026-07-31T14:00:00.000Z",
-          source: "integration-monitor",
-        },
-        origin: true,
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            signalId: "monitor:event:1",
+            status: "healthy",
+            observedAt: "2026-07-31T14:00:00.000Z",
+            source: "integration-monitor",
+          },
+          origin: true,
         },
       );
       assert.equal(oldSignalResponse.status, 201);
@@ -331,6 +331,14 @@ test(
       const signals = await signalsResponse.json();
       assert.equal(signals.meta.total, 2);
       assert.equal(signals.items[0].signalId, "monitor:event:2");
+      const filteredSignalsResponse = await request(
+        `${signalRoute}?status=healthy&observedFrom=2026-07-31&observedTo=2026-07-31`,
+        { cookie: adminCookie },
+      );
+      assert.equal(filteredSignalsResponse.status, 200);
+      const filteredSignals = await filteredSignalsResponse.json();
+      assert.equal(filteredSignals.meta.total, 1);
+      assert.equal(filteredSignals.items[0].signalId, "monitor:event:1");
       const applicationHealthResponse = await request(
         `/api/monitoring/applications/${application.id}/health`,
         { cookie: adminCookie },
@@ -378,7 +386,10 @@ test(
               id: "billing-health",
               widgetId: "application-health",
               size: "medium",
-              config: { applicationId: application.id },
+              config: {
+                applicationId: application.id,
+                environment: "production",
+              },
             },
           ],
         },
@@ -387,6 +398,10 @@ test(
       assert.equal(configuredHomeResponse.status, 200);
       const configuredHome = await configuredHomeResponse.json();
       assert.equal(configuredHome.configuration.customized, true);
+      assert.equal(
+        configuredHome.configuration.widgets[0].config.environment,
+        "production",
+      );
       assert.equal(configuredHome.data["billing-health"].nok, 1);
       assert.equal(configuredHome.data["billing-health"].total, 1);
       assert.equal(

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildApplicationHealthItems,
   defaultHomeWidgets,
+  filterRuntimesByDeploymentEnvironment,
   HOME_WIDGET_CATALOG,
   normalizeHomeWidgets,
 } from "../src/repositories/homeRepository.js";
@@ -27,6 +28,8 @@ test("home catalog starts with extensible configured widget definitions", () => 
     ({ id }) => id === "application-health",
   );
   assert.equal(monitoring.configuration.fields[0].type, "application");
+  assert.equal(monitoring.configuration.fields[1].key, "environment");
+  assert.equal(monitoring.configuration.fields[1].type, "select");
 });
 
 test("default home follows permissions and creates separate period instances", () => {
@@ -61,13 +64,14 @@ test("home configuration accepts repeated widget types with unique instances", (
         id: "health-billing",
         widgetId: "application-health",
         size: "medium",
-        config: { applicationId: "billing" },
+        config: { applicationId: "billing", environment: "production" },
       },
     ],
     actor,
   );
   assert.equal(widgets.length, 3);
   assert.equal(widgets[2].config.applicationId, "billing");
+  assert.equal(widgets[2].config.environment, "production");
 });
 
 test("home configuration rejects unauthorized widgets and invalid config", () => {
@@ -99,6 +103,43 @@ test("home configuration rejects unauthorized widgets and invalid config", () =>
       ),
     (error) => error.code === "INVALID_HOME_CONFIGURATION",
   );
+  assert.throws(
+    () =>
+      normalizeHomeWidgets(
+        [
+          {
+            id: "health",
+            widgetId: "application-health",
+            config: { environment: "local" },
+          },
+        ],
+        actor,
+      ),
+    (error) => error.code === "INVALID_HOME_CONFIGURATION",
+  );
+});
+
+test("application health filters runtimes by deployment environment", () => {
+  const runtimes = [
+    { id: "runtime-production", deploymentId: "deployment-production" },
+    { id: "runtime-test", deploymentId: "deployment-test" },
+  ];
+  const deployments = [
+    { id: "deployment-production", environment: "production" },
+    { id: "deployment-test", environment: "test" },
+  ];
+  assert.deepEqual(
+    filterRuntimesByDeploymentEnvironment(
+      runtimes,
+      deployments,
+      "production",
+    ).map(({ id }) => id),
+    ["runtime-production"],
+  );
+  assert.equal(
+    filterRuntimesByDeploymentEnvironment(runtimes, deployments).length,
+    2,
+  );
 });
 
 test("application health groups only monitored runtimes with topology and server", () => {
@@ -107,9 +148,7 @@ test("application health groups only monitored runtimes with topology and server
       { id: "application-1", key: "billing", name: "Billing" },
       { id: "application-2", key: "unused", name: "Sem monitoramento" },
     ],
-    components: [
-      { id: "component-1", key: "api", name: "API" },
-    ],
+    components: [{ id: "component-1", key: "api", name: "API" }],
     deployments: [
       {
         id: "deployment-1",
@@ -132,7 +171,9 @@ test("application health groups only monitored runtimes with topology and server
         monitoring: {
           status: "degraded",
           observedAt: "2026-08-01T12:00:00.000Z",
+          receivedAt: "2026-08-01T12:00:02.000Z",
           source: "zabbix",
+          message: "Latency above threshold",
         },
       },
     ],
@@ -144,4 +185,6 @@ test("application health groups only monitored runtimes with topology and server
   const runtime = items[0].components[0].deployments[0].runtimes[0];
   assert.equal(runtime.key, "primary");
   assert.equal(runtime.server.name, "Produção 1");
+  assert.equal(runtime.receivedAt, "2026-08-01T12:00:02.000Z");
+  assert.equal(runtime.message, "Latency above threshold");
 });

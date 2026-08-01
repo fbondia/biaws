@@ -4,6 +4,14 @@ export const HOME_WIDGET_SIZES = [
   { value: "large", label: "Grande" },
 ];
 
+const DEPLOYMENT_ENVIRONMENT_LABELS = {
+  development: "Desenvolvimento",
+  test: "Teste",
+  staging: "Homologação",
+  production: "Produção",
+  other: "Outro",
+};
+
 export function createWidgetInstance(definition, config = {}) {
   return {
     id: crypto.randomUUID(),
@@ -36,4 +44,12 @@ export function widgetTitle(definition, instance) {
   return instance.config?.period === "month"
     ? "Chamados no mês"
     : "Chamados na semana";
+}
+
+export function widgetSubtitle(definition, instance) {
+  const environment = instance.config?.environment;
+  if (instance.widgetId !== "application-health" || !environment) {
+    return definition.category;
+  }
+  return `${definition.category} · ${DEPLOYMENT_ENVIRONMENT_LABELS[environment] || environment}`;
 }

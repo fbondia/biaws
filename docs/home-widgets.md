@@ -25,6 +25,9 @@ sinal externo. Os totais `OK` e `NOK` são calculados por runtime; qualquer esta
 diferente de `healthy` conta como `NOK`. A apresentação é agrupada por aplicação,
 componente e deployment e identifica o servidor associado a cada runtime.
 Aplicações e runtimes sem sinais não aparecem.
+Cada linha informa a última entrada consolidada (data, origem e mensagem). Ao
+selecionar um runtime, a Home consulta e apresenta seus 20 sinais mais recentes,
+do mais recente para o mais antigo.
 
 ## Contratos HTTP
 
@@ -50,7 +53,10 @@ Content-Type: application/json
       "id": "billing-health",
       "widgetId": "application-health",
       "size": "medium",
-      "config": { "applicationId": "<application-id>" }
+      "config": {
+        "applicationId": "<application-id>",
+        "environment": "production"
+      }
     }
   ]
 }
@@ -59,6 +65,10 @@ Content-Type: application/json
 São aceitas até 30 instâncias. Tamanhos válidos: `small`, `medium` e `large`.
 O ID da instância é distinto do tipo em `widgetId`; isso permite repetir um
 widget com configurações diferentes.
+O widget `application-health` aceita `applicationId` e `environment` opcionais.
+Os ambientes válidos são `development`, `test`, `staging`, `production` e
+`other`; quando omitido, o widget considera todos os ambientes. Quando definido,
+o ambiente selecionado aparece no subcabeçalho do widget.
 
 ## Como adicionar um widget ao produto
 

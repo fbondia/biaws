@@ -3,6 +3,7 @@ import {
   BarChart3,
   CheckCircle2,
   CircleAlert,
+  Clock3,
   ClipboardList,
   GripVertical,
   LayoutDashboard,
@@ -17,12 +18,17 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchHomeDashboard, updateHomeConfiguration } from "../../api.js";
+import {
+  fetchHomeDashboard,
+  fetchRuntimeMonitoringSignals,
+  updateHomeConfiguration,
+} from "../../api.js";
 import {
   createWidgetInstance,
   HOME_WIDGET_SIZES,
   moveWidget,
   updateWidgetInstance,
+  widgetSubtitle,
   widgetTitle,
 } from "./homeModel.js";
 
@@ -33,6 +39,18 @@ const ICONS = {
   "pending-tasks": ClipboardList,
   "application-health": CheckCircle2,
 };
+const MONITORING_STATUSES = [
+  "unknown",
+  "healthy",
+  "degraded",
+  "unavailable",
+  "stopped",
+];
+const EMPTY_MONITORING_FILTERS = {
+  status: "",
+  observedFrom: "",
+  observedTo: "",
+};
 
 function formatDate(value) {
   if (!value) return "Sem sinal recebido";
@@ -42,7 +60,7 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function WidgetContent({ data }) {
+function WidgetContent({ data, onSelectRuntime }) {
   if (!data) {
     return (
       <div className="homeWidgetPending">
@@ -148,7 +166,12 @@ function WidgetContent({ data }) {
                             </header>
                             <div className="homeHealthRuntimes">
                               {deployment.runtimes.map((runtime) => (
-                                <article key={runtime.id}>
+                                <button
+                                  className="homeHealthRuntime"
+                                  key={runtime.id}
+                                  onClick={() => onSelectRuntime(runtime)}
+                                  type="button"
+                                >
                                   <div className="homeHealthRuntimeIdentity">
                                     <strong>{runtime.name}</strong>
                                     <span className="homeHealthServer">
@@ -156,13 +179,24 @@ function WidgetContent({ data }) {
                                       {runtime.server?.name ||
                                         "Sem servidor associado"}
                                     </span>
+                                    <span className="homeHealthLastSignal">
+                                      <Clock3 size={13} />
+                                      Última entrada:{" "}
+                                      {formatDate(runtime.observedAt)}
+                                      {runtime.source
+                                        ? ` · ${runtime.source}`
+                                        : ""}
+                                      {runtime.message
+                                        ? ` · ${runtime.message}`
+                                        : ""}
+                                    </span>
                                   </div>
                                   <span
                                     className={`catalogStatus catalogStatus-${runtime.status}`}
                                   >
                                     {runtime.status}
                                   </span>
-                                </article>
+                                </button>
                               ))}
                             </div>
                           </section>
@@ -179,6 +213,197 @@ function WidgetContent({ data }) {
     );
   }
   return <div className="homeWidgetEmpty">Widget indisponível.</div>;
+}
+
+function RuntimeMonitoringDialog({ runtime, onClose }) {
+  const [signals, setSignals] = useState([]);
+  const [meta, setMeta] = useState(null);
+  const [draftFilters, setDraftFilters] = useState(EMPTY_MONITORING_FILTERS);
+  const [filters, setFilters] = useState(EMPTY_MONITORING_FILTERS);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError("");
+    void fetchRuntimeMonitoringSignals(runtime.id, {
+      page: 1,
+      limit: 20,
+      ...filters,
+    })
+      .then((payload) => {
+        if (!active) return;
+        setSignals(payload.items || []);
+        setMeta(payload.meta || null);
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [runtime.id, filters]);
+
+  function applyFilters(event) {
+    event.preventDefault();
+    if (
+      draftFilters.observedFrom &&
+      draftFilters.observedTo &&
+      draftFilters.observedFrom > draftFilters.observedTo
+    ) {
+      setError("A data final deve ser igual ou posterior à data inicial.");
+      return;
+    }
+    setFilters({ ...draftFilters });
+  }
+
+  function clearFilters() {
+    setDraftFilters({ ...EMPTY_MONITORING_FILTERS });
+    setFilters({ ...EMPTY_MONITORING_FILTERS });
+  }
+
+  return (
+    <div
+      className="dialogBackdrop homeMonitoringBackdrop"
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+    >
+      <section
+        aria-labelledby="home-monitoring-dialog-title"
+        aria-modal="true"
+        className="homeMonitoringDialog"
+        role="dialog"
+      >
+        <header>
+          <div>
+            <span>Histórico de monitoramento</span>
+            <h2 id="home-monitoring-dialog-title">{runtime.name}</h2>
+            <small>
+              {runtime.server?.name || "Sem servidor associado"} · UUID{" "}
+              {runtime.id}
+            </small>
+          </div>
+          <button
+            aria-label="Fechar histórico"
+            className="iconButton"
+            onClick={onClose}
+            type="button"
+          >
+            <X size={18} />
+          </button>
+        </header>
+        <div className="homeMonitoringDialogBody">
+          <form className="homeMonitoringFilters" onSubmit={applyFilters}>
+            <label className="field">
+              <span>Data inicial</span>
+              <input
+                max={draftFilters.observedTo || undefined}
+                onChange={(event) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    observedFrom: event.target.value,
+                  }))
+                }
+                type="date"
+                value={draftFilters.observedFrom}
+              />
+            </label>
+            <label className="field">
+              <span>Data final</span>
+              <input
+                min={draftFilters.observedFrom || undefined}
+                onChange={(event) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    observedTo: event.target.value,
+                  }))
+                }
+                type="date"
+                value={draftFilters.observedTo}
+              />
+            </label>
+            <label className="field">
+              <span>Status</span>
+              <select
+                onChange={(event) =>
+                  setDraftFilters((current) => ({
+                    ...current,
+                    status: event.target.value,
+                  }))
+                }
+                value={draftFilters.status}
+              >
+                <option value="">Todos</option>
+                {MONITORING_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="homeMonitoringFilterActions">
+              <button
+                className="secondaryButton"
+                disabled={loading}
+                onClick={clearFilters}
+                type="button"
+              >
+                Limpar
+              </button>
+              <button
+                className="primaryButton"
+                disabled={loading}
+                type="submit"
+              >
+                Filtrar
+              </button>
+            </div>
+          </form>
+          {loading ? (
+            <div className="homeWidgetPending">Carregando sinais…</div>
+          ) : error ? (
+            <div className="errorBox">{error}</div>
+          ) : !signals.length ? (
+            <div className="homeWidgetEmpty">
+              Nenhum sinal encontrado para os filtros informados.
+            </div>
+          ) : (
+            <div className="homeMonitoringSignals">
+              {signals.map((signal) => (
+                <article key={signal.id}>
+                  <div className="homeMonitoringSignalHeading">
+                    <span
+                      className={`catalogStatus catalogStatus-${signal.status}`}
+                    >
+                      {signal.status}
+                    </span>
+                    <time dateTime={signal.observedAt}>
+                      {formatDate(signal.observedAt)}
+                    </time>
+                  </div>
+                  <strong>{signal.source}</strong>
+                  {signal.message ? <p>{signal.message}</p> : null}
+                  <small>
+                    Recebido em {formatDate(signal.receivedAt)}
+                    {signal.signalId ? ` · Sinal ${signal.signalId}` : ""}
+                  </small>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+        {meta?.total ? (
+          <footer>
+            Exibindo {signals.length} de {meta.total} sinais, do mais recente
+            para o mais antigo.
+          </footer>
+        ) : null}
+      </section>
+    </div>
+  );
 }
 
 function ConfigurationDialog({
@@ -331,6 +556,7 @@ export function HomeView() {
   const [editing, setEditing] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [configuration, setConfiguration] = useState(null);
+  const [monitoringRuntime, setMonitoringRuntime] = useState(null);
   const [draggingId, setDraggingId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -538,7 +764,7 @@ export function HomeView() {
                     </span>
                     <div>
                       <h2>{widgetTitle(definition, instance)}</h2>
-                      <small>{definition.category}</small>
+                      <small>{widgetSubtitle(definition, instance)}</small>
                     </div>
                   </div>
                   {editing ? (
@@ -592,7 +818,10 @@ export function HomeView() {
                   ) : null}
                 </header>
                 <div className="homeWidgetBody">
-                  <WidgetContent data={dashboard.data[instance.id]} />
+                  <WidgetContent
+                    data={dashboard.data[instance.id]}
+                    onSelectRuntime={setMonitoringRuntime}
+                  />
                 </div>
               </article>
             );
@@ -614,6 +843,12 @@ export function HomeView() {
           instance={configuration.instance}
           onClose={() => setConfiguration(null)}
           onConfirm={applyConfiguration}
+        />
+      ) : null}
+      {monitoringRuntime ? (
+        <RuntimeMonitoringDialog
+          onClose={() => setMonitoringRuntime(null)}
+          runtime={monitoringRuntime}
         />
       ) : null}
     </section>

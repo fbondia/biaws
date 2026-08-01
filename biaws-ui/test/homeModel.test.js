@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   moveWidget,
   updateWidgetInstance,
+  widgetSubtitle,
   widgetTitle,
 } from "../src/components/home/homeModel.js";
 
@@ -40,5 +41,26 @@ test("period widget title reflects each instance configuration", () => {
       config: { period: "month" },
     }),
     "Chamados no mês",
+  );
+});
+
+test("application health subtitle identifies the deployment environment filter", () => {
+  const definition = {
+    category: "Monitoramento",
+    label: "Saúde das aplicações",
+  };
+  assert.equal(
+    widgetSubtitle(definition, {
+      widgetId: "application-health",
+      config: { environment: "production" },
+    }),
+    "Monitoramento · Produção",
+  );
+  assert.equal(
+    widgetSubtitle(definition, {
+      widgetId: "application-health",
+      config: { environment: "" },
+    }),
+    "Monitoramento",
   );
 });

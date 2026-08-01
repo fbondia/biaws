@@ -307,7 +307,7 @@
 .homeHealthApplication > header,
 .homeHealthComponents > section > header,
 .homeHealthDeployments > section > header,
-.homeHealthRuntimes article {
+.homeHealthRuntime {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -375,16 +375,34 @@
   background: var(--color-border-subtle);
 }
 
-.homeHealthRuntimes article {
+.homeHealthRuntime {
+  width: 100%;
+  border: 0;
   background: var(--color-surface);
+  color: inherit;
+  font: inherit;
   padding: 8px 9px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.homeHealthRuntime:hover,
+.homeHealthRuntime:focus-visible {
+  background: var(--color-surface-muted);
+}
+
+.homeHealthRuntime:focus-visible {
+  z-index: 1;
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
 }
 
 .homeHealthRuntimeIdentity strong {
   font-size: 0.78rem;
 }
 
-.homeHealthServer {
+.homeHealthServer,
+.homeHealthLastSignal {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -393,6 +411,15 @@
 }
 
 .homeHealthServer svg {
+  flex: 0 0 auto;
+}
+
+.homeHealthLastSignal {
+  color: var(--color-text-subtle);
+  font-size: 0.67rem;
+}
+
+.homeHealthLastSignal svg {
   flex: 0 0 auto;
 }
 
@@ -551,6 +578,124 @@
   z-index: 110;
 }
 
+.homeMonitoringBackdrop {
+  z-index: 115;
+}
+
+.homeMonitoringDialog {
+  display: flex;
+  width: min(720px, calc(100vw - 32px));
+  max-height: min(760px, calc(100dvh - 44px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24);
+}
+
+.homeMonitoringDialog > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-5);
+}
+
+.homeMonitoringDialog > header > div {
+  min-width: 0;
+}
+
+.homeMonitoringDialog > header span {
+  color: var(--color-accent-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.homeMonitoringDialog h2,
+.homeMonitoringDialog p {
+  margin: 0;
+}
+
+.homeMonitoringDialog h2 {
+  margin: 3px 0;
+  font-size: 1.25rem;
+}
+
+.homeMonitoringDialog > header small,
+.homeMonitoringDialog > footer,
+.homeMonitoringSignals article > small {
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+}
+
+.homeMonitoringDialogBody {
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-5);
+}
+
+.homeMonitoringFilters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--space-4);
+}
+
+.homeMonitoringFilterActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.homeMonitoringFilterActions button {
+  min-height: 38px;
+}
+
+.homeMonitoringSignals {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.homeMonitoringSignals article {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 11px 12px;
+}
+
+.homeMonitoringSignalHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.homeMonitoringSignalHeading time {
+  color: var(--color-text-secondary);
+  font-size: 0.74rem;
+}
+
+.homeMonitoringSignals article > strong {
+  font-size: 0.78rem;
+}
+
+.homeMonitoringSignals article > p {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.homeMonitoringDialog > footer {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-5);
+}
+
 .homeConfigurationDialog {
   width: min(520px, calc(100vw - 32px));
   overflow: hidden;
@@ -610,6 +755,14 @@
 
   .homeWidgetActions {
     flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .homeMonitoringFilters {
+    grid-template-columns: 1fr;
+  }
+
+  .homeMonitoringFilterActions {
     justify-content: flex-end;
   }
 }

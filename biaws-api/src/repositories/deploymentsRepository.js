@@ -41,6 +41,21 @@ const MUTABLE_RUNTIME_STATUSES = RUNTIME_STATUSES.filter(
 );
 const MAX_HISTORY_ITEMS = 200;
 const MAX_PROCEDURE_LENGTH = 20_000;
+const MAX_RUNTIME_PROCEDURES = 100;
+
+function normalizeProcedureIds(value, current = []) {
+  if (value === undefined) return [...(current || [])];
+  if (!Array.isArray(value) || value.length > MAX_RUNTIME_PROCEDURES) {
+    throw createCatalogError(
+      422,
+      "INVALID_RUNTIME_PROCEDURES",
+      `procedureIds must be an array with at most ${MAX_RUNTIME_PROCEDURES} items`,
+    );
+  }
+  return [
+    ...new Set(value.map((id) => String(id || "").trim()).filter(Boolean)),
+  ];
+}
 
 function normalizeMonitoringRetentionDays(value, current) {
   const fallback =
@@ -579,6 +594,7 @@ export function normalizeRuntimeInput(
       "metadata",
       "monitoringRetentionDays",
       "observedAt",
+      "procedureIds",
       "procedureMarkdown",
     ],
     "runtime",
@@ -633,6 +649,10 @@ export function normalizeRuntimeInput(
       "observedAt",
       current?.observedAt,
     ),
+    procedureIds: normalizeProcedureIds(
+      payload.procedureIds,
+      current?.procedureIds,
+    ),
     procedureMarkdown: optionalText(
       payload.procedureMarkdown ?? current?.procedureMarkdown,
       "procedureMarkdown",
@@ -654,6 +674,25 @@ async function validateRuntimeServer(deployment, runtime) {
       422,
       "INVALID_RUNTIME_SERVER",
       "server must be non-archived and belong to the deployment workspace",
+    );
+  }
+}
+
+async function validateRuntimeProcedures(deployment, runtime) {
+  if (!runtime.procedureIds.length) return;
+  const { db } = await getTopologyCollections();
+  const matched = await db
+    .collection(COLLECTION_NAMES.PROCEDURES)
+    .countDocuments({
+      id: { $in: runtime.procedureIds },
+      workspaceId: deployment.workspaceId,
+      applicationId: deployment.applicationId,
+    });
+  if (matched !== runtime.procedureIds.length) {
+    throw createCatalogError(
+      422,
+      "INVALID_RUNTIME_PROCEDURES",
+      "procedures must belong to the runtime application and workspace",
     );
   }
 }
@@ -797,6 +836,7 @@ export async function createRuntime(deploymentId, payload = {}, actor = {}) {
   });
   const normalized = normalizeRuntimeInput(payload, null, actor);
   await validateRuntimeServer(deployment, normalized);
+  await validateRuntimeProcedures(deployment, normalized);
   const document = {
     id: randomUUID(),
     ...createBaseDocument({
@@ -846,6 +886,13 @@ export async function updateRuntime(runtimeId, payload = {}, actor = {}) {
   });
   const normalized = normalizeRuntimeInput(payload, current, actor);
   await validateRuntimeServer(deployment, normalized);
+  if (
+    payload.procedureIds !== undefined &&
+    JSON.stringify(normalized.procedureIds) !==
+      JSON.stringify(current.procedureIds || [])
+  ) {
+    await validateRuntimeProcedures(deployment, normalized);
+  }
   const { runtimes } = await getTopologyCollections();
   let result;
   try {

@@ -662,6 +662,7 @@ function ProcedureClassificationTab(props) {
 
 function ProcedureEditClassification({
   activeTagGroup,
+  applications,
   draft,
   selectedIds,
   setActiveTagGroupId,

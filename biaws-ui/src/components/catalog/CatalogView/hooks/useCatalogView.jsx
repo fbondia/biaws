@@ -401,6 +401,7 @@ export function useCatalogView(actor) {
     persistApplication,
     persistEntity,
     archiveSelectedApplication,
+    editEntity,
     entityActions,
     runtimeByDeployment,
     runtimeLoadingByDeployment,

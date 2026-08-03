@@ -90,6 +90,7 @@ function EmptyColumn({ children }) {
 export function CatalogTopologyTab({
   actor,
   context,
+  editEntity,
   entityActions,
   loadRuntimes,
   runtimeByDeployment,
@@ -387,7 +388,11 @@ export function CatalogTopologyTab({
                   key={runtime.id}
                   meta={runtime.key}
                   name={runtime.name}
-                  onSelect={() => undefined}
+                  onSelect={
+                    hasPermission(actor, "runtimes.update")
+                      ? () => void editEntity("runtime", runtime)
+                      : undefined
+                  }
                   status={runtime.status}
                 />
               ))}

@@ -114,6 +114,7 @@ test("runtime payload supports clearing server and validates metadata", () => {
   assert.deepEqual(payload.metadata, { image: "biaws:1" });
   assert.equal(payload.monitoringRetentionDays, 10);
   assert.equal(Object.hasOwn(payload, "observations"), false);
+  assert.deepEqual(payload.procedureIds, []);
   assert.equal(payload.procedureMarkdown, "");
 
   draft.metadataText = "[1]";

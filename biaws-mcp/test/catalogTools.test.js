@@ -106,6 +106,8 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
   ).inputSchema.properties;
   assert.equal(runtimeProperties.monitoringRetentionDays.default, undefined);
   assert.equal(runtimeProperties.monitoringRetentionDays.maximum, 3650);
+  assert.equal(runtimeProperties.procedureIds.maxItems, 100);
+  assert.equal(runtimeProperties.procedureIds.items.type, "string");
   assert.equal(Object.hasOwn(runtimeProperties, "observations"), false);
 });
 

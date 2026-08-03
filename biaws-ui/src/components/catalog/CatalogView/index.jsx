@@ -28,6 +28,7 @@ export function CatalogView({ actor }) {
     persistApplication,
     persistEntity,
     archiveSelectedApplication,
+    editEntity,
     entityActions,
     runtimeByDeployment,
     runtimeLoadingByDeployment,
@@ -175,6 +176,7 @@ export function CatalogView({ actor }) {
                 activeTab={activeTab}
                 actor={actor}
                 context={context}
+                editEntity={editEntity}
                 entityActions={entityActions}
                 runtimeByDeployment={runtimeByDeployment}
                 runtimeErrorByDeployment={runtimeErrorByDeployment}
@@ -198,6 +200,7 @@ export function CatalogView({ actor }) {
           options={{
             application: context?.application,
             applications: context?.availableApplications || [],
+            canReadProcedures: hasPermission(actor, "procedures.read"),
             components: context?.components || [],
             deployments: context?.deployments || [],
             repositories: context?.repositories || [],

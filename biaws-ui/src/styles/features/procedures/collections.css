@@ -1,8 +1,9 @@
 .procedureWorkspace {
   display: grid;
-  grid-template-columns: minmax(230px, 270px) minmax(0, 1fr);
+  grid-template-columns:
+    var(--procedure-collections-width, 270px) 16px
+    minmax(0, 1fr);
   align-items: start;
-  gap: 16px;
 }
 
 .procedureCollectionsPanel,
@@ -17,6 +18,40 @@
   top: 16px;
   min-width: 0;
   overflow: hidden;
+}
+
+.procedureCollectionsResizeHandle {
+  position: sticky;
+  top: 16px;
+  width: 16px;
+  height: min(560px, calc(100dvh - 190px));
+  align-self: start;
+  border-radius: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.procedureCollectionsResizeHandle::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 7px;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--color-border);
+  content: "";
+  transition:
+    width 120ms ease,
+    left 120ms ease,
+    background-color 120ms ease;
+}
+
+.procedureCollectionsResizeHandle:hover::before,
+.procedureCollectionsResizeHandle:focus-visible::before,
+.procedureCollectionsResizeHandle:active::before {
+  left: 6px;
+  width: 4px;
+  background: var(--color-focus);
 }
 
 .procedureCollectionsPanel > header {

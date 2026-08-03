@@ -261,13 +261,24 @@ test("runtime defaults monitoring retention and rejects embedded observations", 
     {
       key: "pod-1",
       name: "Pod 1",
+      procedureIds: ["procedure-1", "procedure-1", " procedure-2 "],
       procedureMarkdown: "# Publicação\n\n1. Atualize a imagem.",
     },
     null,
     { userId: "monitor-1" },
   );
   assert.equal(runtime.monitoringRetentionDays, 10);
+  assert.deepEqual(runtime.procedureIds, ["procedure-1", "procedure-2"]);
   assert.match(runtime.procedureMarkdown, /Atualize a imagem/u);
+  assert.throws(
+    () =>
+      normalizeRuntimeInput({
+        key: "pod-2",
+        name: "Pod 2",
+        procedureIds: "procedure-1",
+      }),
+    (error) => error.code === "INVALID_RUNTIME_PROCEDURES",
+  );
   assert.throws(
     () =>
       normalizeRuntimeInput(

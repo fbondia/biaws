@@ -105,6 +105,7 @@ function runtimeSummary(document) {
     monitoringRetentionDays:
       document.monitoringRetentionDays ?? DEFAULT_MONITORING_RETENTION_DAYS,
     observedAt: document.observedAt,
+    procedureIds: document.procedureIds || [],
     procedureMarkdown: document.procedureMarkdown || "",
     updatedAt: document.updatedAt,
   };

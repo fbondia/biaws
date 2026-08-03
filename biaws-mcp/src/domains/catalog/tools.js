@@ -246,6 +246,7 @@ const RUNTIME_PROPERTIES = {
     },
   },
   monitoringRetentionDays: { type: "integer", minimum: 0, maximum: 3650 },
+  procedureIds: { ...STRING_ARRAY, maxItems: 100 },
   procedureMarkdown: STRING,
   // Campo legado materializado a partir da observação mais recente.
   observedAt: { type: ["string", "null"] },

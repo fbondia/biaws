@@ -1754,6 +1754,155 @@
   min-height: 360px;
 }
 
+.runtimeProcedureSelectionField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  padding: var(--space-4);
+}
+
+.runtimeProcedureSelectionField > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.runtimeProcedureSelectionField span {
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+}
+
+.runtimeProcedureSelectorBackdrop {
+  z-index: 30;
+}
+
+.runtimeProcedureSelectorDialog {
+  display: flex;
+  width: min(720px, calc(100vw - 40px));
+  max-height: calc(100dvh - 40px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.runtimeProcedureSelectorDialog > header,
+.runtimeProcedureSelectorDialog > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+
+.runtimeProcedureSelectorDialog > header {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.runtimeProcedureSelectorDialog > header span {
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.runtimeProcedureSelectorDialog > header h2 {
+  margin: var(--space-1) 0 0;
+  font-size: 1.2rem;
+}
+
+.runtimeProcedureSelectorDialog > footer {
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+}
+
+.runtimeProcedureSelectorDialog > footer > div {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.runtimeProcedureSelectorBody {
+  display: grid;
+  min-height: 260px;
+  gap: var(--space-3);
+  overflow: auto;
+  padding: var(--space-4) var(--space-5);
+}
+
+.runtimeProcedureSelectorBody > p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.84rem;
+}
+
+.runtimeProcedureTree {
+  display: grid;
+  align-content: start;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+}
+
+.runtimeProcedureTreeBranch,
+.runtimeProcedureTreeChildren {
+  display: grid;
+}
+
+.runtimeProcedureTreeChildren {
+  margin-left: 17px;
+  border-left: 1px solid var(--color-border);
+  padding-left: var(--space-2);
+}
+
+.runtimeProcedureTreeCollection,
+.runtimeProcedureTreeLeaf {
+  display: grid;
+  min-height: 38px;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+}
+
+.runtimeProcedureTreeCollection {
+  grid-template-columns: 16px 18px minmax(0, 1fr);
+}
+
+.runtimeProcedureTreeLeaf {
+  grid-template-columns: 8px 18px minmax(0, 1fr) 22px;
+  cursor: pointer;
+}
+
+.runtimeProcedureTreeCollection:hover,
+.runtimeProcedureTreeLeaf:hover {
+  background: var(--color-surface-muted);
+}
+
+.runtimeProcedureTreeCollection > span:last-child,
+.runtimeProcedureTreeLeaf > span:nth-child(3) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtimeProcedureTreeGuide {
+  width: 8px;
+}
+
+.runtimeProcedureTreeLeaf input {
+  margin: 0;
+}
+
 .catalogFloatingRefresh {
   position: fixed;
   z-index: 10;

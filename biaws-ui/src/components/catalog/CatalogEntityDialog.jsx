@@ -1,4 +1,4 @@
-import { Save, X } from "lucide-react";
+import { FolderTree, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
@@ -15,6 +15,7 @@ import {
   monitoringSignalCurl,
   runtimeMonitoringPath,
 } from "./catalogModel.js";
+import { RuntimeProcedureSelectorDialog } from "./RuntimeProcedureSelectorDialog.jsx";
 
 const COMPONENT_TYPES = [
   "api",
@@ -199,6 +200,7 @@ export function CatalogEntityDialog({
   const [monitoringEvents, setMonitoringEvents] = useState([]);
   const [monitoringError, setMonitoringError] = useState("");
   const [addingObservation, setAddingObservation] = useState(false);
+  const [procedureSelectorOpen, setProcedureSelectorOpen] = useState(false);
   const label = CATALOG_ENTITY_LABELS[kind];
   const runtimeDeployment = (options.deployments || []).find(
     ({ id }) => id === entity?.deploymentId,
@@ -957,13 +959,38 @@ export function CatalogEntityDialog({
             ) : null}
 
             {kind === "runtime" && activeSection === "procedure" ? (
-              <label className="field catalogWideField catalogProcedureField">
-                <span>Procedimento de publicação (Markdown)</span>
-                <MarkdownEditor
-                  onChange={(value) => update("procedureMarkdown", value)}
-                  value={draft.procedureMarkdown || ""}
-                />
-              </label>
+              <>
+                {options.canReadProcedures ? (
+                  <div className="catalogWideField runtimeProcedureSelectionField">
+                    <div>
+                      <strong>Procedimentos relacionados</strong>
+                      <span>
+                        {(draft.procedureIds || []).length
+                          ? `${draft.procedureIds.length} procedimento(s) selecionado(s)`
+                          : "Nenhum procedimento selecionado"}
+                      </span>
+                    </div>
+                    <button
+                      className="secondaryButton"
+                      onClick={() => setProcedureSelectorOpen(true)}
+                      type="button"
+                    >
+                      <FolderTree size={16} /> Selecionar procedimentos
+                    </button>
+                  </div>
+                ) : null}
+                <label className="field catalogWideField catalogProcedureField">
+                  <span>Instruções complementares (Markdown)</span>
+                  <MarkdownEditor
+                    onChange={(value) => update("procedureMarkdown", value)}
+                    value={draft.procedureMarkdown || ""}
+                  />
+                  <small>
+                    Use este campo para instruções específicas deste runtime ou
+                    quando não quiser vincular um procedimento existente.
+                  </small>
+                </label>
+              </>
             ) : null}
 
             {[
@@ -1002,6 +1029,18 @@ export function CatalogEntityDialog({
           </footer>
         </form>
       </section>
+      {procedureSelectorOpen ? (
+        <RuntimeProcedureSelectorDialog
+          applicationId={options.application?.id}
+          componentId={runtimeComponent?.id}
+          onClose={() => setProcedureSelectorOpen(false)}
+          onConfirm={(procedureIds) => {
+            update("procedureIds", procedureIds);
+            setProcedureSelectorOpen(false);
+          }}
+          selectedIds={draft.procedureIds || []}
+        />
+      ) : null}
     </div>
   );
 }

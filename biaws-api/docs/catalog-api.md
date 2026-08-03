@@ -255,7 +255,8 @@ Filtros adicionais: `serverId` e `kind`.
     "replicas": 2
   },
   "monitoringRetentionDays": 10,
-  "procedureMarkdown": "# Publicação\n\n1. Atualize a imagem."
+  "procedureIds": ["procedure-id"],
+  "procedureMarkdown": "# Instruções complementares\n\n1. Atualize a imagem."
 }
 ```
 

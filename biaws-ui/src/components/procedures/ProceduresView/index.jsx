@@ -14,6 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { useRef, useState } from "react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../constants/issues.js";
 import { CatalogFilterFields } from "../../catalog/CatalogContextFields.jsx";
@@ -29,9 +30,40 @@ import {
   ProcedureDialog,
 } from "./components/ProcedureDialog.jsx";
 import { useProceduresView } from "./hooks/useProceduresView.js";
-import { normalizeDraft } from "./model.js";
+import {
+  normalizeDraft,
+  normalizeProcedureCollectionsPanelWidth,
+  PROCEDURE_COLLECTIONS_PANEL_WIDTH,
+} from "./model.js";
+
+const COLLECTIONS_PANEL_WIDTH_KEY = "biaws.procedures.collectionsPanelWidth";
+
+function storedCollectionsPanelWidth() {
+  if (typeof window === "undefined") {
+    return PROCEDURE_COLLECTIONS_PANEL_WIDTH.default;
+  }
+  try {
+    return normalizeProcedureCollectionsPanelWidth(
+      window.sessionStorage.getItem(COLLECTIONS_PANEL_WIDTH_KEY),
+    );
+  } catch {
+    return PROCEDURE_COLLECTIONS_PANEL_WIDTH.default;
+  }
+}
+
+function storeCollectionsPanelWidth(width) {
+  try {
+    window.sessionStorage.setItem(COLLECTIONS_PANEL_WIDTH_KEY, String(width));
+  } catch {
+    // O redimensionamento continua funcionando quando o storage está indisponível.
+  }
+}
 
 export function ProceduresView({ actor }) {
+  const [collectionsPanelWidth, setCollectionsPanelWidth] = useState(
+    storedCollectionsPanelWidth,
+  );
+  const resizeStart = useRef(null);
   const {
     organizationItems,
     collections,
@@ -142,7 +174,12 @@ export function ProceduresView({ actor }) {
 
       <ProcedureError error={error} />
 
-      <div className="procedureWorkspace">
+      <div
+        className="procedureWorkspace"
+        style={{
+          "--procedure-collections-width": `${collectionsPanelWidth}px`,
+        }}
+      >
         <ProcedureCollectionSidebar
           collections={collections}
           draggedItem={draggedItem}
@@ -159,6 +196,68 @@ export function ProceduresView({ actor }) {
           onDrop={moveDraggedItem}
           onSelect={setSelectedCollectionId}
           selectedCollectionId={selectedCollectionId}
+        />
+
+        <div
+          aria-label="Redimensionar árvore de coleções"
+          aria-orientation="vertical"
+          aria-valuemax={PROCEDURE_COLLECTIONS_PANEL_WIDTH.max}
+          aria-valuemin={PROCEDURE_COLLECTIONS_PANEL_WIDTH.min}
+          aria-valuenow={collectionsPanelWidth}
+          className="procedureCollectionsResizeHandle"
+          onDoubleClick={() => {
+            setCollectionsPanelWidth(PROCEDURE_COLLECTIONS_PANEL_WIDTH.default);
+            storeCollectionsPanelWidth(
+              PROCEDURE_COLLECTIONS_PANEL_WIDTH.default,
+            );
+          }}
+          onKeyDown={(event) => {
+            let nextWidth = collectionsPanelWidth;
+            if (event.key === "ArrowLeft") nextWidth -= 10;
+            else if (event.key === "ArrowRight") nextWidth += 10;
+            else if (event.key === "Home") {
+              nextWidth = PROCEDURE_COLLECTIONS_PANEL_WIDTH.min;
+            } else if (event.key === "End") {
+              nextWidth = PROCEDURE_COLLECTIONS_PANEL_WIDTH.max;
+            } else return;
+            event.preventDefault();
+            const normalized =
+              normalizeProcedureCollectionsPanelWidth(nextWidth);
+            setCollectionsPanelWidth(normalized);
+            storeCollectionsPanelWidth(normalized);
+          }}
+          onPointerCancel={(event) => {
+            resizeStart.current = null;
+            event.currentTarget.releasePointerCapture?.(event.pointerId);
+          }}
+          onPointerDown={(event) => {
+            resizeStart.current = {
+              currentWidth: collectionsPanelWidth,
+              pointerX: event.clientX,
+              width: collectionsPanelWidth,
+            };
+            event.currentTarget.setPointerCapture(event.pointerId);
+          }}
+          onPointerMove={(event) => {
+            if (!resizeStart.current) return;
+            const nextWidth = normalizeProcedureCollectionsPanelWidth(
+              resizeStart.current.width +
+                event.clientX -
+                resizeStart.current.pointerX,
+            );
+            resizeStart.current.currentWidth = nextWidth;
+            setCollectionsPanelWidth(nextWidth);
+          }}
+          onPointerUp={(event) => {
+            if (!resizeStart.current) return;
+            const finalWidth = resizeStart.current.currentWidth;
+            resizeStart.current = null;
+            event.currentTarget.releasePointerCapture(event.pointerId);
+            storeCollectionsPanelWidth(finalWidth);
+          }}
+          role="separator"
+          tabIndex={0}
+          title="Arraste para redimensionar; clique duas vezes para restaurar"
         />
 
         <section className="procedureCollectionContent">

@@ -9,6 +9,24 @@ export const EMPTY_DRAFT = {
   classification: { primaryTaxonomyId: "", secondaryTaxonomyIds: [], tags: {} },
 };
 
+export const PROCEDURE_COLLECTIONS_PANEL_WIDTH = {
+  default: 270,
+  min: 230,
+  max: 560,
+};
+
+export function normalizeProcedureCollectionsPanelWidth(value) {
+  if (value === null || value === undefined || value === "") {
+    return PROCEDURE_COLLECTIONS_PANEL_WIDTH.default;
+  }
+  const width = Number(value);
+  if (!Number.isFinite(width)) return PROCEDURE_COLLECTIONS_PANEL_WIDTH.default;
+  return Math.min(
+    PROCEDURE_COLLECTIONS_PANEL_WIDTH.max,
+    Math.max(PROCEDURE_COLLECTIONS_PANEL_WIDTH.min, Math.round(width)),
+  );
+}
+
 export function flattenTaxonomy(nodes = [], path = []) {
   return nodes.flatMap((node) => {
     const nextPath = [...path, node.label];

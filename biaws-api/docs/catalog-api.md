@@ -289,6 +289,9 @@ Sinais externos e observações manuais são persistidos em
 `runtimeMonitoringSignals`, diferenciados por `origin`. O sinal externo mais recente por
 `observedAt` materializa `status`, `observedAt` e `monitoring` no runtime.
 `signalId`, quando enviado, torna retries idempotentes no escopo do runtime.
+`metadataProfile` referencia um contrato versionado conhecido pelo serviço. A
+API valida os metadados pelo perfil, persiste apenas sua identificação e expande
+`metadataPresentation` nas respostas para orientar badges, percentuais e séries.
 `payload` preserva JSON aninhado de diagnóstico sob os limites e bloqueios de
 segredos documentados. A rota `timeline` retorna ambos na mesma ordenação.
 `runtimeReference` aceita o UUID do runtime ou o caminho de identificadores

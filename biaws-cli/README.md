@@ -25,11 +25,12 @@ node src/index.js agent configure codex --project /caminho/do/projeto
 node src/index.js agent configure claude --project /caminho/do/projeto
 node src/index.js agent doctor codex --project /caminho/do/projeto
 node src/index.js monitoring signal <aplicação.componente.deployment.runtime> \
-  --status degraded \
+  --status healthy \
   --source zabbix \
   --signal-id zabbix:event:18492 \
-  --message "Latência elevada" \
-  --metadata '{"latency_ms":850}'
+  --message "Serviço saudável" \
+  --metadata-profile sgmp-health/v1 \
+  --metadata '{"service_up":true,"database_up":true,"disk_usage_percent":73.42}'
 node src/index.js monitoring signals <runtime-uuid-ou-caminho> --limit 20
 ```
 

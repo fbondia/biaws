@@ -46,6 +46,7 @@ Opções:
   --signal-id <id>      ID idempotente do aviso na origem
   --observed-at <data>  Data ISO-8601 da observação; default: agora
   --message <texto>     Resumo legível do sinal
+  --metadata-profile <id> Perfil versionado dos metadados, como sgmp-health/v1
   --metadata <json>     Metadados escalares, sem segredos
   --payload <json>      Payload JSON aninhado, limitado e sem segredos
   <runtime>             UUID ou caminho aplicação.componente.deployment.runtime

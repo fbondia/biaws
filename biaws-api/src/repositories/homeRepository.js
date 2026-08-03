@@ -4,6 +4,7 @@ import { DEPLOYMENT_ENVIRONMENTS } from "../../../shared/index.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
 import { actorCanAccessApplication } from "../auth/authorizationMiddleware.js";
+import { monitoringMetadataPresentation } from "./monitoringMetadataProfiles.js";
 
 const MAX_WIDGETS = 30;
 const WIDGET_SIZES = new Set(["small", "medium", "large"]);
@@ -507,6 +508,7 @@ export function buildApplicationHealthItems({
   applications = [],
   components = [],
   deployments = [],
+  latestSignals = [],
   runtimes = [],
   servers = [],
 } = {}) {
@@ -520,6 +522,9 @@ export function buildApplicationHealthItems({
     deployments.map((deployment) => [deployment.id, deployment]),
   );
   const serversById = new Map(servers.map((server) => [server.id, server]));
+  const latestSignalsByRuntimeId = new Map(
+    latestSignals.map((signal) => [signal.runtimeId, signal]),
+  );
   const grouped = new Map();
 
   for (const runtime of runtimes) {
@@ -583,6 +588,10 @@ export function buildApplicationHealthItems({
       deploymentGroup.observedAt,
       observedAt,
     );
+    const latestSignal = latestSignalsByRuntimeId.get(runtime.id) || null;
+    const metadataPresentation = monitoringMetadataPresentation(
+      latestSignal?.metadataProfile,
+    );
     deploymentGroup.runtimes.push({
       id: runtime.id,
       key: runtime.key,
@@ -592,6 +601,16 @@ export function buildApplicationHealthItems({
       receivedAt: runtime.monitoring?.receivedAt || null,
       source: runtime.monitoring?.source || "",
       message: runtime.monitoring?.message || "",
+      latestSignal: latestSignal
+        ? {
+            id: latestSignal.id,
+            metadata: latestSignal.metadata || {},
+            ...(latestSignal.metadataProfile
+              ? { metadataProfile: latestSignal.metadataProfile }
+              : {}),
+            ...(metadataPresentation ? { metadataPresentation } : {}),
+          }
+        : null,
       server: runtime.serverId
         ? serversById.get(runtime.serverId) || null
         : null,
@@ -621,6 +640,37 @@ export function buildApplicationHealthItems({
         .sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
     }))
     .sort((left, right) => left.name.localeCompare(right.name, "pt-BR"));
+}
+
+async function latestRuntimeMonitoringSignals(
+  database,
+  workspaceId,
+  runtimeIds,
+) {
+  if (!runtimeIds.length) return [];
+  return database
+    .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)
+    .aggregate([
+      {
+        $match: {
+          workspaceId,
+          runtimeId: { $in: runtimeIds },
+          $or: [{ origin: "external" }, { origin: { $exists: false } }],
+        },
+      },
+      { $sort: { observedAt: -1, receivedAt: -1, id: -1 } },
+      { $group: { _id: "$runtimeId", signal: { $first: "$$ROOT" } } },
+      {
+        $project: {
+          _id: 0,
+          id: "$signal.id",
+          runtimeId: "$signal.runtimeId",
+          metadata: "$signal.metadata",
+          metadataProfile: "$signal.metadataProfile",
+        },
+      },
+    ])
+    .toArray();
 }
 
 async function applicationHealthMetric(database, actor, config) {
@@ -722,10 +772,16 @@ async function applicationHealthMetric(database, actor, config) {
     deployments,
     config.environment,
   );
+  const latestSignals = await latestRuntimeMonitoringSignals(
+    database,
+    actor.workspaceId,
+    filteredRuntimes.map(({ id }) => id),
+  );
   const items = buildApplicationHealthItems({
     applications,
     components,
     deployments,
+    latestSignals,
     runtimes: filteredRuntimes,
     servers,
   });

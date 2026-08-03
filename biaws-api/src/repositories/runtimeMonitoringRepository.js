@@ -19,6 +19,10 @@ import {
   pagination,
   requiredText,
 } from "./topologyRepositorySupport.js";
+import {
+  monitoringMetadataPresentation,
+  normalizeMonitoringMetadataProfile,
+} from "./monitoringMetadataProfiles.js";
 
 const SIGNAL_STATUSES = RUNTIME_STATUSES.filter(
   (status) => status !== "archived",
@@ -84,6 +88,7 @@ export function normalizeMonitoringSignal(payload = {}, actor = {}) {
       "source",
       "message",
       "metadata",
+      "metadataProfile",
       "payload",
     ],
     "monitoring signal",
@@ -96,13 +101,19 @@ export function normalizeMonitoringSignal(payload = {}, actor = {}) {
       "signalId must use 1 to 128 letters, numbers, dots, colons, underscores or hyphens",
     );
   }
+  const metadata = normalizeMetadata(payload.metadata, {});
+  const metadataProfile = normalizeMonitoringMetadataProfile(
+    payload.metadataProfile,
+    metadata,
+  );
   return {
     signalId: signalId || null,
     status: normalizeEnum(payload.status, "status", SIGNAL_STATUSES),
     observedAt: normalizeDate(payload.observedAt, "observedAt") || new Date(),
     source: requiredText(payload.source, "source", 160),
     message: optionalText(payload.message, "message", 4_000),
-    metadata: normalizeMetadata(payload.metadata, {}),
+    metadata,
+    ...(metadataProfile ? { metadataProfile } : {}),
     payload: normalizeMonitoringPayload(payload.payload),
     recordedBy: actorId(actor),
   };
@@ -293,7 +304,7 @@ async function recordMonitoringEvent(
     return {
       created: false,
       runtime: await getRuntime(runtime.id),
-      signal: existing,
+      signal: monitoringEventResponse(existing),
     };
   }
 
@@ -331,7 +342,7 @@ async function recordMonitoringEvent(
   return {
     created: true,
     runtime: await getRuntime(runtime.id),
-    signal: normalizeDocument(signal),
+    signal: monitoringEventResponse(signal),
   };
 }
 
@@ -357,13 +368,24 @@ export async function listRuntimeMonitoringSignals(runtimeId, query = {}) {
   ]);
   return {
     meta: { runtimeId: runtime.id, total, page, limit },
-    items: items.map(normalizeDocument),
+    items: items.map(monitoringEventResponse),
+  };
+}
+
+function monitoringEventResponse(signal) {
+  const event = normalizeDocument(signal);
+  const metadataPresentation = monitoringMetadataPresentation(
+    event?.metadataProfile,
+  );
+  return {
+    ...event,
+    ...(metadataPresentation ? { metadataPresentation } : {}),
   };
 }
 
 function timelineEvent(signal) {
   return {
-    ...normalizeDocument(signal),
+    ...monitoringEventResponse(signal),
     payload: signal.payload ?? null,
     origin: signal.origin || "external",
   };

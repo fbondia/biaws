@@ -443,6 +443,127 @@
   font-size: 1.4rem;
 }
 
+.homeHealthToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.homeHealthToolbar .secondaryButton {
+  min-height: 32px;
+  padding: 6px 9px;
+  font-size: 0.72rem;
+}
+
+.homeHealthRuntimeCard {
+  background: var(--color-surface);
+}
+
+.homeHealthMetadataExplorer {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.homeHealthApplicationTabs,
+.homeHealthRuntimeTabs {
+  display: flex;
+  min-width: 0;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.homeHealthApplicationTabs button,
+.homeHealthRuntimeTabs button {
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.homeHealthApplicationTabs button.isActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.homeHealthRuntimeTabs button {
+  display: grid;
+  gap: 1px;
+  text-align: left;
+}
+
+.homeHealthRuntimeTabs button small {
+  color: var(--color-text-subtle);
+  font-size: 0.64rem;
+}
+
+.homeHealthRuntimeTabs button.isActive {
+  border-color: var(--color-accent-border);
+  background: var(--color-surface-muted);
+  color: var(--color-accent-text);
+  font-weight: 700;
+}
+
+.homeHealthMetadataPanel {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-3);
+}
+
+.homeHealthMetadataPanel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.homeHealthMetadataPanel > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.homeHealthMetadataPanel > header small {
+  overflow: hidden;
+  color: var(--color-text-subtle);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeHealthMetadataPanelContext {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  color: var(--color-text-subtle);
+  font-size: 0.7rem;
+}
+
+.homeHealthMetadataPanel .monitoringPresentation,
+.homeHealthMetadataPanel .monitoringEventJson {
+  margin-top: var(--space-3);
+}
+
+.homeHealthRuntimeMetadataEmpty {
+  color: var(--color-text-subtle);
+  padding: var(--space-4) 0;
+  font-size: 0.7rem;
+  text-align: center;
+}
+
 .homeHealthOk {
   border-color: #b8e7c8 !important;
   background: #edf9f2;

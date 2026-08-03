@@ -43,6 +43,9 @@ export async function runMonitoringCommand(api, action, positional, options) {
       ...(options["signal-id"] ? { signalId: options["signal-id"] } : {}),
       ...(options["observed-at"] ? { observedAt: options["observed-at"] } : {}),
       ...(options.message ? { message: options.message } : {}),
+      ...(options["metadata-profile"]
+        ? { metadataProfile: options["metadata-profile"] }
+        : {}),
       metadata: parseMetadata(options.metadata),
       ...(options.payload ? { payload: parsePayload(options.payload) } : {}),
     });

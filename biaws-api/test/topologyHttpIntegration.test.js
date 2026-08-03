@@ -284,7 +284,15 @@ test(
           observedAt: "2026-07-31T15:00:00.000Z",
           source: "integration-monitor",
           message: "Latency threshold exceeded",
-          metadata: { latency_ms: 850 },
+          metadataProfile: "sgmp-health/v1",
+          metadata: {
+            service_up: true,
+            database_up: true,
+            disk_usage_percent: 85,
+            error_history_dates: ["2026-07-30", "2026-07-31"],
+            error_history_values: [420, 850],
+            error_history_unit: "bytes",
+          },
           payload: {
             probe: { statusCode: 503, durationMs: 850 },
             dependencies: [{ name: "database", healthy: false }],
@@ -336,6 +344,15 @@ test(
       assert.equal(signals.meta.total, 2);
       assert.equal(signals.items[0].signalId, "monitor:event:2");
       assert.equal(signals.items[0].payload.probe.statusCode, 503);
+      assert.equal(signals.items[0].metadataProfile, "sgmp-health/v1");
+      assert.equal(
+        signals.items[0].metadataPresentation.fields[2].format,
+        "percent",
+      );
+      assert.equal(
+        signals.items[0].metadataPresentation.series[0].visualization,
+        "line",
+      );
       const filteredSignalsResponse = await request(
         `${signalRoute}?status=healthy&observedFrom=2026-07-31&observedTo=2026-07-31`,
         { cookie: adminCookie },
@@ -417,6 +434,18 @@ test(
       const home = await homeResponse.json();
       assert.equal(home.catalog.length, 5);
       assert.equal(home.configuration.customized, false);
+      const homeMonitoringRuntime =
+        home.data["default-application-health-6"].items[0].components[0]
+          .deployments[0].runtimes[0];
+      assert.equal(
+        homeMonitoringRuntime.latestSignal.metadata.disk_usage_percent,
+        85,
+      );
+      assert.equal(
+        homeMonitoringRuntime.latestSignal.metadataPresentation.series[0]
+          .visualization,
+        "line",
+      );
       const invalidHomeResponse = await request("/api/home/configuration", {
         cookie: adminCookie,
         method: "PUT",

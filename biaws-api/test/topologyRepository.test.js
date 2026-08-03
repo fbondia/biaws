@@ -9,6 +9,7 @@ import {
 } from "../src/repositories/deploymentsRepository.js";
 import { normalizeRepositoryInput } from "../src/repositories/repositoriesRepository.js";
 import { normalizeServerInput } from "../src/repositories/serversRepository.js";
+import { monitoringMetadataPresentation } from "../src/repositories/monitoringMetadataProfiles.js";
 import {
   buildRuntimeMonitoringSignalFilter,
   monitoringExpirationDate,
@@ -324,6 +325,47 @@ test("monitoring signals validate status, idempotency key and secret-free metada
         source: "agent",
       }),
     (error) => error.code === "INVALID_MONITORING_SIGNAL",
+  );
+});
+
+test("monitoring metadata profiles validate their versioned field contract", () => {
+  const signal = normalizeMonitoringSignal({
+    status: "healthy",
+    source: "sgmp-health-monitor",
+    metadataProfile: "sgmp-health/v1",
+    metadata: {
+      service_up: true,
+      database_up: true,
+      disk_usage_percent: 72.35,
+      error_history_dates: ["2026-08-01", "2026-08-02"],
+      error_history_values: [10, 12],
+      error_history_unit: "bytes",
+    },
+  });
+  assert.equal(signal.metadataProfile, "sgmp-health/v1");
+  const presentation = monitoringMetadataPresentation(signal.metadataProfile);
+  assert.equal(presentation.fields[2].format, "percent");
+  assert.equal(presentation.series[0].visualization, "line");
+
+  assert.throws(
+    () =>
+      normalizeMonitoringSignal({
+        status: "healthy",
+        source: "monitor",
+        metadataProfile: "sgmp-health/v1",
+        metadata: { service_up: true, disk_usage_percent: 101 },
+      }),
+    (error) => error.code === "INVALID_MONITORING_METADATA_PROFILE",
+  );
+  assert.throws(
+    () =>
+      normalizeMonitoringSignal({
+        status: "healthy",
+        source: "monitor",
+        metadataProfile: "unknown/v1",
+        metadata: { service_up: true },
+      }),
+    (error) => error.code === "INVALID_MONITORING_METADATA_PROFILE",
   );
 });
 

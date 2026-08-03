@@ -158,6 +158,18 @@ test("application health groups only monitored runtimes with topology and server
         environment: "production",
       },
     ],
+    latestSignals: [
+      {
+        id: "signal-1",
+        runtimeId: "runtime-1",
+        metadataProfile: "sgmp-health/v1",
+        metadata: {
+          service_up: true,
+          database_up: true,
+          disk_usage_percent: 72.5,
+        },
+      },
+    ],
     runtimes: [
       {
         id: "runtime-1",
@@ -187,4 +199,10 @@ test("application health groups only monitored runtimes with topology and server
   assert.equal(runtime.server.name, "Produção 1");
   assert.equal(runtime.receivedAt, "2026-08-01T12:00:02.000Z");
   assert.equal(runtime.message, "Latency above threshold");
+  assert.equal(runtime.latestSignal.metadata.disk_usage_percent, 72.5);
+  assert.equal(runtime.latestSignal.metadataProfile, "sgmp-health/v1");
+  assert.equal(
+    runtime.latestSignal.metadataPresentation.fields[2].format,
+    "percent",
+  );
 });

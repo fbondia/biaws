@@ -5,6 +5,8 @@ import {
   CircleAlert,
   Clock3,
   ClipboardList,
+  Eye,
+  EyeOff,
   GripVertical,
   LayoutDashboard,
   Pencil,
@@ -23,7 +25,10 @@ import {
   fetchRuntimeMonitoringTimeline,
   updateHomeConfiguration,
 } from "../../api.js";
-import { MonitoringEventDetails } from "../shared/MonitoringEventDetails.jsx";
+import {
+  MonitoringEventDetails,
+  MonitoringMetadataPresentation,
+} from "../shared/MonitoringEventDetails.jsx";
 import {
   createWidgetInstance,
   HOME_WIDGET_SIZES,
@@ -61,7 +66,128 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function WidgetContent({ data, onSelectRuntime }) {
+function applicationRuntimes(application) {
+  return (application?.components || []).flatMap((component) =>
+    (component.deployments || []).flatMap((deployment) =>
+      (deployment.runtimes || []).map((runtime) => ({
+        ...runtime,
+        componentName: component.name,
+        deploymentName: deployment.name,
+      })),
+    ),
+  );
+}
+
+function HealthMetadataExplorer({ applications, onSelectRuntime }) {
+  const [applicationId, setApplicationId] = useState(
+    () => applications[0]?.id || "",
+  );
+  const [runtimeId, setRuntimeId] = useState("");
+  const activeApplication =
+    applications.find(({ id }) => id === applicationId) || applications[0];
+  const runtimes = applicationRuntimes(activeApplication);
+  const activeRuntime =
+    runtimes.find(({ id }) => id === runtimeId) || runtimes[0];
+
+  function selectApplication(application) {
+    setApplicationId(application.id);
+    setRuntimeId(applicationRuntimes(application)[0]?.id || "");
+  }
+
+  if (!activeApplication || !activeRuntime) return null;
+  const hasMetadata = Boolean(
+    activeRuntime.latestSignal?.metadata &&
+    Object.keys(activeRuntime.latestSignal.metadata).length,
+  );
+
+  return (
+    <section className="homeHealthMetadataExplorer">
+      <div
+        aria-label="Aplicações monitoradas"
+        className="homeHealthApplicationTabs"
+        role="tablist"
+      >
+        {applications.map((application) => (
+          <button
+            aria-selected={application.id === activeApplication.id}
+            className={
+              application.id === activeApplication.id ? "isActive" : undefined
+            }
+            key={application.id}
+            onClick={() => selectApplication(application)}
+            role="tab"
+            type="button"
+          >
+            {application.name}
+          </button>
+        ))}
+      </div>
+      <div
+        aria-label={`Runtimes de ${activeApplication.name}`}
+        className="homeHealthRuntimeTabs"
+        role="tablist"
+      >
+        {runtimes.map((runtime) => (
+          <button
+            aria-selected={runtime.id === activeRuntime.id}
+            className={runtime.id === activeRuntime.id ? "isActive" : undefined}
+            key={runtime.id}
+            onClick={() => setRuntimeId(runtime.id)}
+            role="tab"
+            type="button"
+          >
+            <span>{runtime.name}</span>
+            <small>{runtime.deploymentName}</small>
+          </button>
+        ))}
+      </div>
+      <div className="homeHealthMetadataPanel" role="tabpanel">
+        <header>
+          <div>
+            <strong>{activeRuntime.name}</strong>
+            <small>
+              {activeRuntime.componentName} · {activeRuntime.deploymentName} ·{" "}
+              {activeRuntime.server?.name || "Sem servidor associado"}
+            </small>
+          </div>
+          <button
+            className="secondaryButton"
+            onClick={() => onSelectRuntime(activeRuntime)}
+            type="button"
+          >
+            Ver histórico
+          </button>
+        </header>
+        <div className="homeHealthMetadataPanelContext">
+          <span
+            className={`catalogStatus catalogStatus-${activeRuntime.status}`}
+          >
+            {activeRuntime.status}
+          </span>
+          <span>Última entrada: {formatDate(activeRuntime.observedAt)}</span>
+        </div>
+        {hasMetadata ? (
+          <MonitoringMetadataPresentation
+            event={activeRuntime.latestSignal}
+            showRawFallback
+          />
+        ) : (
+          <div className="homeHealthRuntimeMetadataEmpty">
+            O último sinal não possui metadados.
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function WidgetContent({
+  data,
+  onRefresh,
+  onSelectRuntime,
+  refreshing = false,
+}) {
+  const [showMetadata, setShowMetadata] = useState(false);
   if (!data) {
     return (
       <div className="homeWidgetPending">
@@ -133,10 +259,38 @@ function WidgetContent({ data, onSelectRuntime }) {
             <CircleAlert size={18} /> <strong>{data.nok}</strong> runtimes NOK
           </span>
         </div>
+        <div className="homeHealthToolbar">
+          <button
+            className="secondaryButton"
+            onClick={() => setShowMetadata((current) => !current)}
+            type="button"
+          >
+            {showMetadata ? <EyeOff size={15} /> : <Eye size={15} />}
+            {showMetadata ? "Ocultar metadados" : "Mostrar metadados"}
+          </button>
+          <button
+            aria-label="Atualizar widget de monitoramento"
+            className="secondaryButton"
+            disabled={refreshing}
+            onClick={() => void onRefresh?.()}
+            type="button"
+          >
+            <RefreshCw
+              className={refreshing ? "spinIcon" : undefined}
+              size={15}
+            />
+            {refreshing ? "Atualizando…" : "Atualizar widget"}
+          </button>
+        </div>
         {!data.items?.length ? (
           <div className="homeWidgetEmpty">
             Nenhum runtime com sinais de monitoramento.
           </div>
+        ) : showMetadata ? (
+          <HealthMetadataExplorer
+            applications={data.items}
+            onSelectRuntime={onSelectRuntime}
+          />
         ) : (
           <div className="homeHealthApplications">
             {data.items.map((application) => (
@@ -167,37 +321,41 @@ function WidgetContent({ data, onSelectRuntime }) {
                             </header>
                             <div className="homeHealthRuntimes">
                               {deployment.runtimes.map((runtime) => (
-                                <button
-                                  className="homeHealthRuntime"
+                                <div
+                                  className="homeHealthRuntimeCard"
                                   key={runtime.id}
-                                  onClick={() => onSelectRuntime(runtime)}
-                                  type="button"
                                 >
-                                  <div className="homeHealthRuntimeIdentity">
-                                    <strong>{runtime.name}</strong>
-                                    <span className="homeHealthServer">
-                                      <Server size={13} />
-                                      {runtime.server?.name ||
-                                        "Sem servidor associado"}
-                                    </span>
-                                    <span className="homeHealthLastSignal">
-                                      <Clock3 size={13} />
-                                      Última entrada:{" "}
-                                      {formatDate(runtime.observedAt)}
-                                      {runtime.source
-                                        ? ` · ${runtime.source}`
-                                        : ""}
-                                      {runtime.message
-                                        ? ` · ${runtime.message}`
-                                        : ""}
-                                    </span>
-                                  </div>
-                                  <span
-                                    className={`catalogStatus catalogStatus-${runtime.status}`}
+                                  <button
+                                    className="homeHealthRuntime"
+                                    onClick={() => onSelectRuntime(runtime)}
+                                    type="button"
                                   >
-                                    {runtime.status}
-                                  </span>
-                                </button>
+                                    <div className="homeHealthRuntimeIdentity">
+                                      <strong>{runtime.name}</strong>
+                                      <span className="homeHealthServer">
+                                        <Server size={13} />
+                                        {runtime.server?.name ||
+                                          "Sem servidor associado"}
+                                      </span>
+                                      <span className="homeHealthLastSignal">
+                                        <Clock3 size={13} />
+                                        Última entrada:{" "}
+                                        {formatDate(runtime.observedAt)}
+                                        {runtime.source
+                                          ? ` · ${runtime.source}`
+                                          : ""}
+                                        {runtime.message
+                                          ? ` · ${runtime.message}`
+                                          : ""}
+                                      </span>
+                                    </div>
+                                    <span
+                                      className={`catalogStatus catalogStatus-${runtime.status}`}
+                                    >
+                                      {runtime.status}
+                                    </span>
+                                  </button>
+                                </div>
                               ))}
                             </div>
                           </section>
@@ -827,7 +985,9 @@ export function HomeView() {
                 <div className="homeWidgetBody">
                   <WidgetContent
                     data={dashboard.data[instance.id]}
+                    onRefresh={load}
                     onSelectRuntime={setMonitoringRuntime}
+                    refreshing={loading}
                   />
                 </div>
               </article>

@@ -106,7 +106,8 @@ test("monitoring command sends an idempotent runtime health signal", async () =>
     "signal-id": "check:42",
     "observed-at": "2026-07-31T15:00:00.000Z",
     message: "HTTP 200",
-    metadata: '{"latency_ms":35}',
+    "metadata-profile": "sgmp-health/v1",
+    metadata: '{"service_up":true,"database_up":true,"disk_usage_percent":35}',
     payload: '{"probe":{"status":200}}',
     json: true,
   });
@@ -118,7 +119,12 @@ test("monitoring command sends an idempotent runtime health signal", async () =>
       signalId: "check:42",
       observedAt: "2026-07-31T15:00:00.000Z",
       message: "HTTP 200",
-      metadata: { latency_ms: 35 },
+      metadataProfile: "sgmp-health/v1",
+      metadata: {
+        service_up: true,
+        database_up: true,
+        disk_usage_percent: 35,
+      },
       payload: { probe: { status: 200 } },
     },
   });

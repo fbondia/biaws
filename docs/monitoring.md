@@ -54,6 +54,27 @@ Metadados seguem as restrições do runtime: até 25 chaves e 16 KiB, somente
 escalares ou arrays de escalares e sem nomes associados a credenciais ou
 segredos. Não envie tokens, cabeçalhos de autorização ou conteúdo de resposta.
 
+`metadataProfile` é opcional e associa os metadados a um contrato versionado de
+validação e apresentação. O perfil integrado `sgmp-health/v1` descreve estados
+de serviço e banco, percentual de disco e uma série histórica de erros. O evento
+persiste somente o identificador; nas respostas de leitura a API acrescenta
+`metadataPresentation` com rótulos, formatos e visualizações declarativas para a
+UI. Perfis desconhecidos ou valores incompatíveis retornam `422`.
+
+```json
+{
+  "metadataProfile": "sgmp-health/v1",
+  "metadata": {
+    "service_up": true,
+    "database_up": true,
+    "disk_usage_percent": 73.42,
+    "error_history_dates": ["2026-08-01", "2026-08-02"],
+    "error_history_values": [12, 18],
+    "error_history_unit": "files"
+  }
+}
+```
+
 Para dados estruturados, `payload` aceita JSON aninhado com até 64 KiB, oito
 níveis, 1.000 valores, arrays de até 100 itens e strings de até 8.000 caracteres.
 Chaves precisam começar por uma letra e usar letras, números, `_`, `.`, `:` ou

@@ -1,64 +1,57 @@
-import {
-  CheckCircle2,
-  LoaderCircle,
-  Mail,
-  Settings2,
-  Upload,
-  X,
-  XCircle,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Settings2, Upload, X } from "lucide-react";
+import { useRef, useState } from "react";
 
 import { importEml } from "../../api.js";
-import { TYPE_OPTIONS } from "../../constants/issues.js";
+import {
+  DEFAULT_TAG_GROUP_COLOR,
+  TYPE_OPTIONS,
+} from "../../constants/issues.js";
 import { CatalogContextFields } from "../catalog/CatalogContextFields.jsx";
+import { TaxonomySelector } from "../taxonomy/TaxonomySelector.jsx";
+import { filterTaxonomyForApplication } from "../taxonomy/scope.js";
 import { EmlSanitizationDialog } from "./EmlSanitizationDialog.jsx";
+import {
+  canClassifyContext,
+  ImportEmlItem,
+  isValidEmlEntry,
+} from "./ImportEmlItem.jsx";
+import {
+  contextFromPreviewIssue,
+  shouldRetryContextDiscovery,
+} from "./emlImportModel.js";
 
-function entryStatus(entry) {
-  if (entry.status === "analyzing") return "Analisando";
-  if (entry.status === "importing") return "Importando";
-  if (entry.status === "done") return "Importado";
-  if (entry.status === "error") return "Erro";
-  return entry.preview?.action === "update" ? "Atualizar issue" : "Nova issue";
-}
-
-function StatusIcon({ status }) {
-  if (status === "analyzing" || status === "importing") {
-    return <LoaderCircle className="spinIcon" size={18} />;
-  }
-  if (status === "done")
-    return <CheckCircle2 className="importSuccessIcon" size={18} />;
-  if (status === "error")
-    return <XCircle className="importErrorIcon" size={18} />;
-  return <Mail size={18} />;
-}
+const EMPTY_CLASSIFICATION = {
+  primaryTaxonomyId: "",
+  secondaryTaxonomyIds: [],
+  summary: "",
+  tags: {},
+};
 
 export function ImportEmlDialog({
   applications = [],
+  canClassify = false,
   canConfigureSanitization = false,
+  classificationScope = null,
   components = [],
   onClose,
   onImported,
+  taxonomyPackage,
   workspace,
 }) {
   const [entries, setEntries] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [sanitizationOpen, setSanitizationOpen] = useState(false);
-  const [context, setContext] = useState({
-    applicationId: applications[0]?.id || "",
+  const [contextEntryKey, setContextEntryKey] = useState("");
+  const [contextDraft, setContextDraft] = useState({
+    applicationId: "",
     affectedComponentIds: [],
   });
+  const [classificationEntryKey, setClassificationEntryKey] = useState("");
+  const [classificationDraft, setClassificationDraft] =
+    useState(EMPTY_CLASSIFICATION);
   const inputRef = useRef(null);
   const typeOptions = TYPE_OPTIONS.filter((option) => option.value);
   const defaultType = typeOptions[0]?.value || "";
-
-  useEffect(() => {
-    if (context.applicationId || !applications[0]?.id) return;
-    setContext((current) => ({
-      ...current,
-      applicationId: applications[0].id,
-    }));
-  }, [applications, context.applicationId]);
 
   function updateEntry(key, patch) {
     setEntries((current) =>
@@ -90,17 +83,43 @@ export function ImportEmlDialog({
     );
   }
 
-  async function analyzeEntry(entry, overrides = null) {
+  async function analyzeEntry(
+    entry,
+    overrides = null,
+    entryContext = entry.context,
+    discoverContext = false,
+  ) {
     updateEntry(entry.key, { status: "analyzing", error: "" });
     try {
-      const preview = await importEml(entry.file, {
-        dryRun: true,
-        workspaceId: workspace?.id,
-        ...context,
-        ...(overrides || {}),
-      });
+      let resolvedContext = entryContext;
+      let preview;
+      try {
+        preview = await requestEntryPreview(
+          entry,
+          overrides,
+          entryContext,
+          discoverContext,
+        );
+      } catch (error) {
+        if (
+          !shouldRetryContextDiscovery(error, discoverContext, entry.context)
+        ) {
+          throw error;
+        }
+        resolvedContext = entry.context;
+        preview = await requestEntryPreview(
+          entry,
+          overrides,
+          resolvedContext,
+          false,
+        );
+      }
+      if (discoverContext && !resolvedContext) {
+        resolvedContext = contextFromPreviewIssue(preview.issue, entry.context);
+      }
       updateEntry(entry.key, {
         preview,
+        context: resolvedContext || entry.context,
         overrides: overrides || {
           id: preview.issue.id || "",
           type: preview.issue.type || defaultType,
@@ -114,6 +133,22 @@ export function ImportEmlDialog({
     }
   }
 
+  function requestEntryPreview(
+    entry,
+    overrides,
+    entryContext,
+    discoverContext,
+  ) {
+    return importEml(entry.file, {
+      dryRun: true,
+      ...(discoverContext
+        ? {}
+        : { workspaceId: workspace?.id, ...(entryContext || {}) }),
+      ...(entry.classification ? { classification: entry.classification } : {}),
+      ...(overrides || {}),
+    });
+  }
+
   async function addFiles(fileList) {
     const files = [...fileList].filter((file) =>
       file.name.toLowerCase().endsWith(".eml"),
@@ -121,13 +156,20 @@ export function ImportEmlDialog({
     const additions = files.map((file) => ({
       key: crypto.randomUUID(),
       file,
+      context: {
+        applicationId: applications[0]?.id || "",
+        affectedComponentIds: [],
+      },
+      classification: null,
       status: "analyzing",
       preview: null,
       overrides: null,
       error: "",
     }));
     setEntries((current) => [...current, ...additions]);
-    for (const entry of additions) await analyzeEntry(entry);
+    for (const entry of additions) {
+      await analyzeEntry(entry, null, null, true);
+    }
   }
 
   async function importEntry(entry) {
@@ -135,7 +177,10 @@ export function ImportEmlDialog({
     try {
       const result = await importEml(entry.file, {
         workspaceId: workspace?.id,
-        ...context,
+        ...entry.context,
+        ...(entry.classification
+          ? { classification: entry.classification }
+          : {}),
         ...(entry.overrides || {}),
       });
       updateEntry(entry.key, { result, status: "done" });
@@ -147,8 +192,7 @@ export function ImportEmlDialog({
 
   async function importReady() {
     for (const entry of entries.filter(
-      (item) =>
-        item.status === "ready" && isValidEntry(item, context.applicationId),
+      (item) => item.status === "ready" && isValidEmlEntry(item),
     )) {
       await importEntry(entry);
     }
@@ -156,7 +200,98 @@ export function ImportEmlDialog({
 
   async function handleSanitizationSaved() {
     for (const entry of entries.filter((item) => item.status !== "done")) {
-      await analyzeEntry(entry);
+      await analyzeEntry(entry, entry.overrides);
+    }
+  }
+
+  function openContextDialog(entry) {
+    setContextEntryKey(entry.key);
+    setContextDraft(entry.context);
+  }
+
+  async function applyContextToEntries(applyToAll) {
+    const targets = entries.filter(
+      (entry) =>
+        entry.status !== "done" &&
+        (applyToAll || entry.key === contextEntryKey),
+    );
+    const nextContext = {
+      applicationId: contextDraft.applicationId,
+      affectedComponentIds: [...contextDraft.affectedComponentIds],
+    };
+    setContextEntryKey("");
+    for (const entry of targets) {
+      const updatedEntry = { ...entry, context: nextContext };
+      updateEntry(entry.key, { context: nextContext });
+      await analyzeEntry(updatedEntry, entry.overrides, nextContext);
+    }
+  }
+
+  function openClassificationDialog(entry) {
+    setClassificationEntryKey(entry.key);
+    setClassificationDraft(
+      cloneClassification(
+        entry.classification || entry.preview?.issue?.classification,
+      ),
+    );
+  }
+
+  function updateTaxonomies(taxonomyIds) {
+    setClassificationDraft((current) => {
+      const primaryTaxonomyId = taxonomyIds.includes(current.primaryTaxonomyId)
+        ? current.primaryTaxonomyId
+        : taxonomyIds[0] || "";
+      return {
+        ...current,
+        primaryTaxonomyId,
+        secondaryTaxonomyIds: taxonomyIds.filter(
+          (taxonomyId) => taxonomyId !== primaryTaxonomyId,
+        ),
+      };
+    });
+  }
+
+  function updatePrimaryTaxonomy(primaryTaxonomyId) {
+    setClassificationDraft((current) => ({
+      ...current,
+      primaryTaxonomyId,
+      secondaryTaxonomyIds: selectedTaxonomyIds(current).filter(
+        (taxonomyId) => taxonomyId !== primaryTaxonomyId,
+      ),
+    }));
+  }
+
+  function toggleTag(groupId, tagId) {
+    setClassificationDraft((current) => {
+      const selectedTags = current.tags[groupId] || [];
+      return {
+        ...current,
+        tags: {
+          ...current.tags,
+          [groupId]: selectedTags.includes(tagId)
+            ? selectedTags.filter((selectedTag) => selectedTag !== tagId)
+            : [...selectedTags, tagId],
+        },
+      };
+    });
+  }
+
+  async function applyClassificationToEntries(applyToAll) {
+    const targets = entries.filter(
+      (entry) =>
+        entry.status !== "done" &&
+        canClassifyContext(entry.context, classificationScope) &&
+        (applyToAll || entry.key === classificationEntryKey),
+    );
+    const nextClassification = cloneClassification(classificationDraft);
+    setClassificationEntryKey("");
+    for (const entry of targets) {
+      const updatedEntry = {
+        ...entry,
+        classification: nextClassification,
+      };
+      updateEntry(entry.key, { classification: nextClassification });
+      await analyzeEntry(updatedEntry, entry.overrides);
     }
   }
 
@@ -164,9 +299,16 @@ export function ImportEmlDialog({
     ["analyzing", "importing"].includes(entry.status),
   );
   const readyCount = entries.filter(
-    (entry) =>
-      entry.status === "ready" && isValidEntry(entry, context.applicationId),
+    (entry) => entry.status === "ready" && isValidEmlEntry(entry),
   ).length;
+  const contextEntry = entries.find((entry) => entry.key === contextEntryKey);
+  const classificationEntry = entries.find(
+    (entry) => entry.key === classificationEntryKey,
+  );
+  const sanitizationApplicationId =
+    entries.find((entry) => entry.status !== "done")?.context.applicationId ||
+    applications[0]?.id ||
+    "";
 
   function removeEntry(entryKey) {
     setEntries((current) => current.filter((item) => item.key !== entryKey));
@@ -217,25 +359,11 @@ export function ImportEmlDialog({
         </header>
 
         <div className="dialogBody importDialogBody">
-          <section className="emlImportContext">
-            <h3>Contexto dos chamados</h3>
-            <p>
-              A aplicação é obrigatória e será usada em todos os arquivos desta
-              importação.
-            </p>
-            <CatalogContextFields
-              affectedComponentIds={context.affectedComponentIds}
-              applicationId={context.applicationId}
-              applications={applications}
-              components={components}
-              onChange={setContext}
-            />
-          </section>
           <button
             className={
               dragging ? "emlDropZone activeEmlDropZone" : "emlDropZone"
             }
-            disabled={!context.applicationId}
+            disabled={!applications.length}
             onClick={() => inputRef.current?.click()}
             onDragEnter={(event) => {
               event.preventDefault();
@@ -270,112 +398,24 @@ export function ImportEmlDialog({
 
           <div className="emlImportList">
             {entries.map((entry) => (
-              <article className="emlImportItem" key={entry.key}>
-                <div className="emlImportStatus">
-                  <StatusIcon status={entry.status} />
-                </div>
-                <div className="emlImportMain">
-                  <div className="emlImportTitle">
-                    <strong>{entry.file.name}</strong>
-                    <span>{entryStatus(entry)}</span>
-                  </div>
-                  {entry.preview ? (
-                    <div className="emlImportPreview">
-                      <div className="emlImportEditableFields">
-                        <label>
-                          <span>Código</span>
-                          <input
-                            disabled={entry.status === "importing"}
-                            onChange={(event) =>
-                              updateOverride(
-                                entry.key,
-                                "id",
-                                event.target.value,
-                              )
-                            }
-                            value={entry.overrides?.id || ""}
-                          />
-                        </label>
-                        <label>
-                          <span>Tipo</span>
-                          <select
-                            disabled={entry.status === "importing"}
-                            onChange={(event) =>
-                              updateOverride(
-                                entry.key,
-                                "type",
-                                event.target.value,
-                              )
-                            }
-                            value={entry.overrides?.type || defaultType}
-                          >
-                            {typeOptions.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="emlImportTitleField">
-                          <span>Título</span>
-                          <input
-                            disabled={entry.status === "importing"}
-                            onChange={(event) =>
-                              updateOverride(
-                                entry.key,
-                                "title",
-                                event.target.value,
-                              )
-                            }
-                            value={entry.overrides?.title || ""}
-                          />
-                        </label>
-                        <button
-                          className="secondaryButton emlRecalculateButton"
-                          onClick={() =>
-                            void analyzeEntry(entry, entry.overrides)
-                          }
-                          type="button"
-                        >
-                          Recalcular prévia
-                        </button>
-                      </div>
-                      <span>
-                        {entry.preview.comments.new} comentário(s) novo(s)
-                      </span>
-                      <span>{entry.preview.attachments.length} anexo(s)</span>
-                      {entry.preview.reopenedIssue ? (
-                        <em>A issue será reaberta.</em>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {entry.error ? (
-                    <div className="emlImportError">{entry.error}</div>
-                  ) : null}
-                </div>
-                <div className="emlImportActions">
-                  {entry.status === "ready" ? (
-                    <button
-                      className="secondaryButton"
-                      disabled={!isValidEntry(entry, context.applicationId)}
-                      onClick={() => void importEntry(entry)}
-                      type="button"
-                    >
-                      Importar
-                    </button>
-                  ) : null}
-                  {!["analyzing", "importing"].includes(entry.status) ? (
-                    <button
-                      className="iconButton"
-                      onClick={() => removeEntry(entry.key)}
-                      title="Remover"
-                      type="button"
-                    >
-                      <X size={16} />
-                    </button>
-                  ) : null}
-                </div>
-              </article>
+              <ImportEmlItem
+                applications={applications}
+                canClassify={canClassify}
+                classificationScope={classificationScope}
+                components={components}
+                defaultType={defaultType}
+                entry={entry}
+                key={entry.key}
+                onImport={() => void importEntry(entry)}
+                onOpenClassification={() => openClassificationDialog(entry)}
+                onOpenContext={() => openContextDialog(entry)}
+                onRecalculate={() => void analyzeEntry(entry, entry.overrides)}
+                onRemove={() => removeEntry(entry.key)}
+                onUpdateOverride={(field, value) =>
+                  updateOverride(entry.key, field, value)
+                }
+                typeOptions={typeOptions}
+              />
             ))}
           </div>
         </div>
@@ -404,9 +444,204 @@ export function ImportEmlDialog({
           </div>
         </footer>
       </section>
+      {contextEntry ? (
+        <div
+          className="tagFilterDialogBackdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setContextEntryKey("");
+          }}
+        >
+          <section
+            aria-label={`Selecionar aplicação e componentes de ${contextEntry.file.name}`}
+            aria-modal="true"
+            className="tagFilterDialog emlContextDialog"
+            role="dialog"
+          >
+            <header>
+              <div>
+                <strong>Aplicação e componentes</strong>
+                <span>{contextEntry.file.name}</span>
+              </div>
+              <button
+                className="iconButton"
+                onClick={() => setContextEntryKey("")}
+                title="Fechar"
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className="catalogFilterDialogContent">
+              <CatalogContextFields
+                affectedComponentIds={contextDraft.affectedComponentIds}
+                applicationId={contextDraft.applicationId}
+                applications={applications}
+                components={components}
+                onChange={setContextDraft}
+              />
+            </div>
+            <footer>
+              <button
+                className="secondaryButton clearDialogSelectionButton"
+                disabled={busy || !contextDraft.applicationId}
+                onClick={() => void applyContextToEntries(true)}
+                type="button"
+              >
+                Aplicar a todos os EML
+              </button>
+              <button
+                className="secondaryButton"
+                disabled={busy}
+                onClick={() => setContextEntryKey("")}
+                type="button"
+              >
+                Cancelar
+              </button>
+              <button
+                className="primaryButton"
+                disabled={busy || !contextDraft.applicationId}
+                onClick={() => void applyContextToEntries(false)}
+                type="button"
+              >
+                Aplicar neste EML
+              </button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
+      {classificationEntry ? (
+        <div
+          className="tagFilterDialogBackdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setClassificationEntryKey("");
+            }
+          }}
+        >
+          <section
+            aria-label={`Selecionar classificação e tags de ${classificationEntry.file.name}`}
+            aria-modal="true"
+            className="tagFilterDialog emlClassificationDialog"
+            role="dialog"
+          >
+            <header>
+              <div>
+                <strong>Classificação e tags</strong>
+                <span>{classificationEntry.file.name}</span>
+              </div>
+              <button
+                className="iconButton"
+                onClick={() => setClassificationEntryKey("")}
+                title="Fechar"
+                type="button"
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className="emlClassificationDialogContent">
+              <section>
+                <div className="emlClassificationSectionTitle">
+                  <strong>Classificação de taxonomia</strong>
+                  <span>
+                    Selecione os assuntos e defina um deles como principal.
+                  </span>
+                </div>
+                <TaxonomySelector
+                  multiple
+                  nodes={filterTaxonomyForApplication(
+                    taxonomyPackage?.taxonomy || [],
+                    classificationEntry.context.applicationId,
+                  )}
+                  onChange={updateTaxonomies}
+                  onPrimaryChange={updatePrimaryTaxonomy}
+                  primaryValue={classificationDraft.primaryTaxonomyId}
+                  value={selectedTaxonomyIds(classificationDraft)}
+                />
+              </section>
+              <section>
+                <div className="emlClassificationSectionTitle">
+                  <strong>Tags</strong>
+                  <span>Selecione as tags que devem ser registradas.</span>
+                </div>
+                <div className="tagFilterGroups emlClassificationTagGroups">
+                  {(taxonomyPackage?.tagGroups || []).map((group) => (
+                    <div className="tagFilterGroup" key={group.id}>
+                      <strong>
+                        <span
+                          className="tagColorSwatch"
+                          style={{
+                            backgroundColor:
+                              group.color || DEFAULT_TAG_GROUP_COLOR,
+                          }}
+                        />
+                        {group.label}
+                      </strong>
+                      <div className="tagFilterOptions">
+                        {(group.tags || []).map((tagId) => {
+                          const checked = (
+                            classificationDraft.tags[group.id] || []
+                          ).includes(tagId);
+                          return (
+                            <label
+                              className={
+                                checked
+                                  ? "tagFilterOption selectedTagFilterOption"
+                                  : "tagFilterOption"
+                              }
+                              key={tagId}
+                              style={{
+                                borderColor: checked
+                                  ? group.color || DEFAULT_TAG_GROUP_COLOR
+                                  : undefined,
+                              }}
+                            >
+                              <input
+                                checked={checked}
+                                onChange={() => toggleTag(group.id, tagId)}
+                                type="checkbox"
+                              />
+                              <span>{tagId}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+            <footer>
+              <button
+                className="secondaryButton clearDialogSelectionButton"
+                disabled={busy}
+                onClick={() => void applyClassificationToEntries(true)}
+                type="button"
+              >
+                Aplicar a todos os EML
+              </button>
+              <button
+                className="secondaryButton"
+                disabled={busy}
+                onClick={() => setClassificationEntryKey("")}
+                type="button"
+              >
+                Cancelar
+              </button>
+              <button
+                className="primaryButton"
+                disabled={busy}
+                onClick={() => void applyClassificationToEntries(false)}
+                type="button"
+              >
+                Aplicar neste EML
+              </button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
       {sanitizationOpen ? (
         <EmlSanitizationDialog
-          applicationId={context.applicationId}
+          applicationId={sanitizationApplicationId}
           onClose={() => setSanitizationOpen(false)}
           onSaved={handleSanitizationSaved}
           sampleFile={entries.find((entry) => entry.status !== "done")?.file}
@@ -417,13 +652,24 @@ export function ImportEmlDialog({
   );
 }
 
-function isValidEntry(entry, applicationId) {
-  return Boolean(
-    applicationId &&
-    entry.overrides?.id?.trim() &&
-    entry.overrides?.title?.trim() &&
-    TYPE_OPTIONS.some(
-      (option) => option.value && option.value === entry.overrides?.type,
+function cloneClassification(classification) {
+  const source = classification || EMPTY_CLASSIFICATION;
+  return {
+    primaryTaxonomyId: source.primaryTaxonomyId || "",
+    secondaryTaxonomyIds: [...(source.secondaryTaxonomyIds || [])],
+    summary: source.summary || "",
+    tags: Object.fromEntries(
+      Object.entries(source.tags || {}).map(([groupId, tagIds]) => [
+        groupId,
+        [...tagIds],
+      ]),
     ),
-  );
+  };
+}
+
+function selectedTaxonomyIds(classification) {
+  return [
+    classification.primaryTaxonomyId,
+    ...classification.secondaryTaxonomyIds,
+  ].filter(Boolean);
 }

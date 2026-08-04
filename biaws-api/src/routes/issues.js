@@ -22,6 +22,7 @@ import {
 import { importEmlBuffer } from "../services/emlImportService.js";
 import { registerAttachmentRoutes } from "./attachmentRoutes.js";
 import {
+  actorCanAccessApplication,
   authorizationQuery,
   requireAllPermissions,
   requireBodyFieldPermissions,
@@ -76,6 +77,43 @@ function parseSanitizationConfig(value) {
     error.statusCode = 422;
     throw error;
   }
+}
+
+function parseClassification(value) {
+  if (value === undefined || value === null || value === "") return undefined;
+  try {
+    const parsed = typeof value === "string" ? JSON.parse(value) : value;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("expected an object");
+    }
+    return parsed;
+  } catch {
+    const error = new Error(
+      "Invalid EML classification: expected a valid JSON object",
+    );
+    error.statusCode = 422;
+    throw error;
+  }
+}
+
+function requireEmlClassificationAccess(req, res, next) {
+  if (
+    req.body?.classification &&
+    !actorCanAccessApplication(
+      req.actor,
+      "issues.classification.update",
+      req.body.applicationId,
+    )
+  ) {
+    res.status(404).json({
+      error: {
+        code: "APPLICATION_NOT_FOUND",
+        message: "Application not found",
+      },
+    });
+    return;
+  }
+  next();
 }
 
 issuesRouter.get(
@@ -164,6 +202,11 @@ issuesRouter.post(
   "/imports/eml",
   requireAllPermissions("issues.import.eml"),
   uploadEml.single("file"),
+  requireBodyFieldPermissions(
+    { classification: "issues.classification.update" },
+    null,
+  ),
+  requireEmlClassificationAccess,
   asyncHandler(async (req, res) => {
     if (!req.file) {
       const error = new Error(
@@ -189,6 +232,7 @@ issuesRouter.post(
       affectedComponentIds: parseAffectedComponentIds(
         req.body.affectedComponentIds,
       ),
+      classification: parseClassification(req.body.classification),
       sanitizationConfig: dryRun
         ? parseSanitizationConfig(req.body.sanitizationConfig)
         : undefined,

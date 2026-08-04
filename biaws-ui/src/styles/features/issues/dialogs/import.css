@@ -34,64 +34,251 @@
 
 .emlImportList {
   display: grid;
-  gap: 10px;
+  gap: 14px;
 }
 
 .emlImportItem {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: start;
+  gap: 14px;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 12px;
+  border-left: 4px solid #98a2b3;
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  padding: 14px 16px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.emlImportItem--ready {
+  border-left-color: #2970ff;
+}
+
+.emlImportItem--analyzing,
+.emlImportItem--importing {
+  border-left-color: #7f56d9;
+}
+
+.emlImportItem--done {
+  border-color: #a6d8bd;
+  border-left-color: #17874f;
+  background: #f7fcf9;
+}
+
+.emlImportItem--error {
+  border-color: #f4b4ad;
+  border-left-color: #d92d20;
+}
+
+.emlImportItemHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
 }
 
 .emlImportStatus {
   display: grid;
-  min-height: 32px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  color: var(--color-text-subtle);
+  border-radius: 10px;
+  background: #f2f4f7;
+  color: #475467;
 }
 
-.emlImportMain,
-.emlImportPreview {
-  display: grid;
-  gap: 6px;
+.emlImportItem--ready .emlImportStatus {
+  background: #eff4ff;
+  color: #175cd3;
+}
+
+.emlImportItem--analyzing .emlImportStatus,
+.emlImportItem--importing .emlImportStatus {
+  background: #f4f3ff;
+  color: #6941c6;
+}
+
+.emlImportItem--done .emlImportStatus {
+  background: #eaf8f0;
+  color: #087443;
+}
+
+.emlImportItem--error .emlImportStatus {
+  background: #fef3f2;
+  color: #b42318;
 }
 
 .emlImportTitle {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 4px;
+}
+
+.emlImportTitle strong {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emlImportStatusBadge {
+  display: inline-flex;
+  min-height: 20px;
   align-items: center;
-  justify-content: space-between;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: #475467;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.emlImportItem--ready .emlImportStatusBadge {
+  background: #eff4ff;
+  color: #175cd3;
+}
+
+.emlImportItem--done .emlImportStatusBadge {
+  background: #dcfae6;
+  color: #087443;
+}
+
+.emlImportItem--error .emlImportStatusBadge {
+  background: #fee4e2;
+  color: #b42318;
+}
+
+.emlRemoveButton {
+  color: #98a2b3;
+}
+
+.emlRemoveButton:hover:not(:disabled) {
+  border-color: #fda29b;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.emlImportAssignmentButtons {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.emlImportTitle span,
-.emlImportPreview span {
+.emlAssignmentButton {
+  display: flex;
+  min-width: min(100%, 250px);
+  min-height: 54px;
+  flex: 1 1 280px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.emlAssignmentButton > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.emlAssignmentButton small,
+.emlAssignmentButton strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emlAssignmentButton small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.emlAssignmentButton strong {
+  font-size: 12px;
+}
+
+.emlApplicationButton {
+  border-color: #b2ccff;
+  background: #f5f8ff;
+  color: #1849a9;
+}
+
+.emlApplicationButton:hover:not(:disabled) {
+  border-color: #528bff;
+  background: #eff4ff;
+}
+
+.emlClassificationButton {
+  border-color: #d9d6fe;
+  background: #f7f5ff;
+  color: #5925dc;
+}
+
+.emlClassificationButton:hover:not(:disabled) {
+  border-color: #9b8afb;
+  background: #f4f3ff;
+}
+
+.emlContextDialog {
+  width: min(760px, calc(100vw - 40px));
+}
+
+.emlContextDialog .catalogContextFields {
+  margin: 0;
+}
+
+.emlClassificationDialog {
+  width: min(1040px, calc(100vw - 40px));
+}
+
+.emlClassificationDialogContent {
+  display: grid;
+  min-height: 0;
+  gap: 20px;
+  overflow: auto;
+  padding: 16px;
+}
+
+.emlClassificationDialogContent > section {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.emlClassificationSectionTitle {
+  display: grid;
+  gap: 3px;
+}
+
+.emlClassificationSectionTitle span {
   color: var(--color-text-subtle);
   font-size: 12px;
 }
 
+.emlClassificationTagGroups {
+  max-height: 260px;
+  padding: 0;
+}
+
 .emlImportPreview {
-  grid-template-columns: repeat(4, auto) minmax(0, 1fr);
-  align-items: center;
-}
-
-.emlImportPreview strong,
-.emlImportPreview em {
-  grid-column: 1 / -1;
-  font-size: 13px;
-}
-
-.emlImportPreview em {
-  color: #8a5700;
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 9px;
+  background: var(--color-surface-muted);
+  padding: 12px;
 }
 
 .emlImportEditableFields {
   display: grid;
-  grid-column: 1 / -1;
   grid-template-columns: minmax(140px, 0.7fr) minmax(130px, 0.5fr) minmax(
       260px,
       2fr
@@ -102,6 +289,12 @@
 .emlImportEditableFields label {
   display: grid;
   gap: 4px;
+}
+
+.emlImportEditableFields label > span {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .emlImportEditableFields input,
@@ -117,12 +310,61 @@
   font-size: 13px;
 }
 
-.emlRecalculateButton {
-  grid-column: 1 / -1;
-  justify-self: start;
+.emlImportEditableFields input:focus,
+.emlImportEditableFields select:focus {
+  border-color: #84adff;
+  box-shadow: 0 0 0 3px rgba(41, 112, 255, 0.1);
 }
 
-.emlImportActions,
+.emlImportPreviewFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.emlImportFacts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.emlImportFacts span,
+.emlImportFacts em {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  border-radius: 999px;
+  background: #eaecf0;
+  color: #475467;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.emlImportFacts em {
+  background: #fef0c7;
+  color: #93370d;
+}
+
+.emlRecalculateButton {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  border-color: #d0d5dd;
+  background: var(--color-surface);
+  color: #344054;
+}
+
+.emlRecalculateButton:hover:not(:disabled) {
+  border-color: #98a2b3;
+  background: #f9fafb;
+}
+
 .importDialogFooter,
 .importDialogFooter > div {
   display: flex;
@@ -130,21 +372,44 @@
   gap: 8px;
 }
 
-.emlImportActions .secondaryButton {
-  min-height: 32px;
-}
-
 .emlImportError {
-  color: #9b1c1c;
-  font-size: 13px;
-}
-
-.importSuccessIcon {
-  color: #246b49;
-}
-
-.importErrorIcon {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  background: #fef3f2;
   color: #b42318;
+  padding: 9px 10px;
+  font-size: 12px;
+}
+
+.emlImportError svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.emlImportItemFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 12px;
+}
+
+.emlImportItemFooter > span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+}
+
+.emlImportButton {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
 }
 
 .spinIcon {
@@ -163,4 +428,47 @@
   padding: 14px 20px;
   color: var(--color-text-subtle);
   font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .emlImportItem {
+    padding: 12px;
+  }
+
+  .emlImportItemHeader {
+    align-items: start;
+  }
+
+  .emlAssignmentButton {
+    min-width: 100%;
+  }
+
+  .emlImportPreviewFooter,
+  .emlImportItemFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .emlRecalculateButton,
+  .emlImportButton {
+    justify-content: center;
+  }
+
+  .emlImportEditableFields {
+    grid-template-columns: 1fr;
+  }
+
+  .emlContextDialog > footer {
+    flex-wrap: wrap;
+  }
+
+  .emlClassificationDialog > footer {
+    flex-wrap: wrap;
+  }
+
+  .emlContextDialog .clearDialogSelectionButton,
+  .emlClassificationDialog .clearDialogSelectionButton {
+    width: 100%;
+    margin-right: 0;
+  }
 }

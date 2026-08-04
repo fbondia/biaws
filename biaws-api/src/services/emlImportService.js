@@ -7,6 +7,8 @@ import {
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { createAttachmentStorage } from "../storage/attachmentStorage.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
+import { normalizeClassificationPayload } from "../helpers/issueClassification.js";
+import { assertTaxonomyIdsApplicable } from "../helpers/taxonomy.js";
 import {
   DEFAULT_ISSUE_STATUS,
   DEFAULT_ISSUE_TYPE,
@@ -352,7 +354,35 @@ async function prepareImport(content, options) {
     },
     options.authorizationScope,
   );
-  return { db, parsedIssue, plan, defaultStatus };
+  const classificationProvided = options.classification !== undefined;
+  if (classificationProvided) {
+    const classification = normalizeClassificationPayload(
+      options.classification,
+    );
+    await assertTaxonomyIdsApplicable(
+      db,
+      [
+        classification.primaryTaxonomyId,
+        ...classification.secondaryTaxonomyIds,
+      ],
+      plan.issue.workspaceId,
+      plan.issue.applicationId,
+    );
+    plan.issue.classification = {
+      ...classification,
+      updatedAt: new Date(),
+      updatedBy: options.actor || "biaws-api",
+    };
+  } else if (plan.existingIssue?.classification) {
+    plan.issue.classification = plan.existingIssue.classification;
+  }
+  return {
+    db,
+    parsedIssue,
+    plan,
+    defaultStatus,
+    classificationProvided,
+  };
 }
 
 async function storeAttachments(options, parsedIssue, plan) {
@@ -407,7 +437,14 @@ async function storeAttachments(options, parsedIssue, plan) {
   };
 }
 
-async function persistImportedIssue(db, plan, issue, defaultStatus, options) {
+async function persistImportedIssue(
+  db,
+  plan,
+  issue,
+  defaultStatus,
+  classificationProvided,
+  options,
+) {
   if (!plan.existingIssue) {
     await db.collection(ISSUES_COLLECTION).insertOne({
       ...issue,
@@ -430,6 +467,9 @@ async function persistImportedIssue(db, plan, issue, defaultStatus, options) {
       $set: {
         type: issue.type,
         ...contextFields,
+        ...(classificationProvided
+          ? { classification: issue.classification }
+          : {}),
         title: issue.title,
         text: issue.text,
         "dates.receivedEmailAt": issue.dates.receivedEmailAt,
@@ -463,10 +503,8 @@ async function importComments(db, parsedIssue, issueId) {
 }
 
 export async function importEmlBuffer(content, options = {}) {
-  const { db, parsedIssue, plan, defaultStatus } = await prepareImport(
-    content,
-    options,
-  );
+  const { db, parsedIssue, plan, defaultStatus, classificationProvided } =
+    await prepareImport(content, options);
   const action = plan.existingIssue ? "update" : "create";
   const reopenedIssue = Boolean(
     plan.existingIssue && plan.existingIssue.status !== defaultStatus,
@@ -488,7 +526,14 @@ export async function importEmlBuffer(content, options = {}) {
     parsedIssue,
     plan,
   );
-  await persistImportedIssue(db, plan, issue, defaultStatus, options);
+  await persistImportedIssue(
+    db,
+    plan,
+    issue,
+    defaultStatus,
+    classificationProvided,
+    options,
+  );
   const { insertedComments, skippedComments } = await importComments(
     db,
     parsedIssue,

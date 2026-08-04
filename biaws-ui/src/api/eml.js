@@ -1,4 +1,10 @@
-import { buildUrl, fetchJson, sendJson, workspaceHeaders } from "./client.js";
+import {
+  buildUrl,
+  fetchJson,
+  readPayload,
+  sendJson,
+  workspaceHeaders,
+} from "./client.js";
 
 export async function importEml(
   file,
@@ -10,6 +16,7 @@ export async function importEml(
     workspaceId,
     applicationId,
     affectedComponentIds = [],
+    classification,
     sanitizationConfig,
   } = {},
 ) {
@@ -22,6 +29,9 @@ export async function importEml(
   if (applicationId) form.append("applicationId", applicationId);
   if (affectedComponentIds.length) {
     form.append("affectedComponentIds", JSON.stringify(affectedComponentIds));
+  }
+  if (classification) {
+    form.append("classification", JSON.stringify(classification));
   }
   if (dryRun && sanitizationConfig) {
     form.append("sanitizationConfig", JSON.stringify(sanitizationConfig));
@@ -36,10 +46,7 @@ export async function importEml(
       body: form,
     },
   );
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok)
-    throw new Error(payload.error?.message || `HTTP ${response.status}`);
-  return payload;
+  return readPayload(response);
 }
 
 export function fetchEmlSanitizationConfiguration() {

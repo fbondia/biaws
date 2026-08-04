@@ -84,6 +84,7 @@ function IssuesPanel({ activeTab, listProps, summaryProps }) {
 }
 
 function IssueOverlays({
+  canClassify,
   canCreate,
   canCreateComment,
   canImport,
@@ -92,6 +93,7 @@ function IssueOverlays({
   canUpdateIssue,
   canUpdateStatus,
   catalog,
+  classificationScope,
   createOpen,
   detailError,
   detailLoading,
@@ -106,6 +108,7 @@ function IssueOverlays({
   onUpdateIssueField,
   selectedIssue,
   selectedIssueDetails,
+  taxonomyPackage,
   updatingIssueField,
 }) {
   return (
@@ -139,8 +142,11 @@ function IssueOverlays({
       {canImport && importOpen ? (
         <ImportEmlDialog
           applications={catalog.applications}
+          canClassify={canClassify}
           canConfigureSanitization={canConfigureImport}
+          classificationScope={classificationScope}
           components={catalog.components}
+          taxonomyPackage={taxonomyPackage}
           workspace={catalog.workspace}
           onClose={onCloseImport}
           onImported={onImportCompleted}
@@ -195,6 +201,9 @@ export function IssuesView({
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const canCreate = hasPermission(actor, "issues.create");
+  const canClassify = hasPermission(actor, "issues.classification.update");
+  const classificationScope =
+    actor?.permissionScopes?.["issues.classification.update"] || null;
   const canCreateComment = hasPermission(actor, "issues.comment.create");
   const canUpdateComment = hasPermission(actor, "issues.comment.update");
   const canImport = hasPermission(actor, "issues.import.eml");
@@ -298,6 +307,7 @@ export function IssuesView({
       </div>
 
       <IssueOverlays
+        canClassify={canClassify}
         canCreate={canCreate}
         canCreateComment={canCreateComment}
         canConfigureImport={canConfigureImport}
@@ -306,6 +316,7 @@ export function IssuesView({
         canUpdateIssue={canUpdateIssue}
         canUpdateStatus={canUpdateStatus}
         catalog={catalog}
+        classificationScope={classificationScope}
         createOpen={createOpen}
         detailError={detailError}
         detailLoading={detailLoading}
@@ -320,6 +331,7 @@ export function IssuesView({
         onUpdateIssueField={onUpdateIssueField}
         selectedIssue={selectedIssue}
         selectedIssueDetails={selectedIssueDetails}
+        taxonomyPackage={taxonomyPackage}
         updatingIssueField={updatingIssueField}
       />
     </>

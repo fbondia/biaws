@@ -160,10 +160,6 @@ export function RequestMainTab({
                   "-"}
               </strong>
             </div>
-            <div className="requestDetailCard requestMetaField">
-              <span>Componentes afetados</span>
-              <strong>{request.affectedComponentIds?.length || 0}</strong>
-            </div>
             <div className="requestDetailCard requestCodeField">
               <span>Código da melhoria</span>
               <strong>{request.clientCode || "-"}</strong>
@@ -171,10 +167,6 @@ export function RequestMainTab({
             <div className="requestDetailCard requestDetailTitle">
               <span>Título</span>
               <strong>{request.title || "-"}</strong>
-            </div>
-            <div className="requestDetailCard requestMetaField">
-              <span>Jornadas estimadas</span>
-              <strong>{Number(request.estimatedJourneys) || 0}</strong>
             </div>
             <div className="requestDetailCard requestStatusField">
               <span>Status</span>
@@ -198,6 +190,10 @@ export function RequestMainTab({
             <div className="requestDetailCard requestMetaField">
               <span>Fim</span>
               <strong>{formatDate(request.endDate)}</strong>
+            </div>
+            <div className="requestDetailCard requestMetaField">
+              <span>Jornadas estimadas</span>
+              <strong>{Number(request.estimatedJourneys) || 0}</strong>
             </div>
           </div>
         )}

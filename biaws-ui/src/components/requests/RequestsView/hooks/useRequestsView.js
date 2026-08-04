@@ -297,7 +297,9 @@ export function useRequestsView(actor) {
     numberDrafts,
     schedulePersistRequest,
     selectedRequest,
+    setChecklistDialogLabel,
     setNumberDrafts,
+    setRequestError,
     updateRequest,
     updateSelectedField,
   });

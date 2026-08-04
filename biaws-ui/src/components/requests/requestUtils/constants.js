@@ -21,14 +21,14 @@ export {
 };
 
 export const REQUEST_DETAIL_TABS = [
-  { key: "main", label: "Dados principais" },
+  { key: "main", label: "Dados Básicos" },
   { key: "specification", label: "Especificação" },
   { key: "tasks", label: "Tarefas" },
   { key: "notes", label: "Anotações" },
   { key: "checklist", label: "Checklist" },
   { key: "files", label: "Arquivos" },
-  { key: "history", label: "Histórico" },
   { key: "journeys", label: "Jornadas" },
+  { key: "history", label: "Histórico" },
 ];
 
 export const REQUEST_OVERVIEW_TABS = [

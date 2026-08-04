@@ -1,6 +1,7 @@
 import {
   createDefaultSpecificationSection,
   createSpecificationSection,
+  normalizeRequest,
   normalizeSpecification,
   normalizeSpecificationSectionTitle,
   REQUEST_SPECIFICATION_SECTION_TITLES,
@@ -10,7 +11,9 @@ export function useRequestDraftActions({
   numberDrafts,
   schedulePersistRequest,
   selectedRequest,
+  setChecklistDialogLabel,
   setNumberDrafts,
+  setRequestError,
   updateRequest,
   updateSelectedField,
 }) {

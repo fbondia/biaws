@@ -1,4 +1,6 @@
-import { Boxes, GitBranch, HeartPulse, Layers3 } from "lucide-react";
+import { Boxes, GitBranch, Layers3 } from "lucide-react";
+
+import { CatalogApplicationMonitoring } from "../../CatalogApplicationMonitoring.jsx";
 
 export function CatalogOverviewTab({ context }) {
   return (
@@ -14,20 +16,6 @@ export function CatalogOverviewTab({ context }) {
           <strong>{value}</strong>
         </article>
       ))}
-      <article className="catalogMetricCard">
-        <HeartPulse size={20} />
-        <span>Saúde da aplicação</span>
-        <strong
-          className={`catalogHealthText catalogHealthText-${context.monitoringHealth?.status || "unknown"}`}
-        >
-          {context.monitoringHealth?.status || "unknown"}
-        </strong>
-        <small>
-          {context.monitoringHealth
-            ? `${context.monitoringHealth.observed}/${context.monitoringHealth.total} runtimes observados`
-            : "Monitoramento indisponível"}
-        </small>
-      </article>
       <article className="catalogOverviewCard">
         <h3>Responsabilidade</h3>
         <dl>
@@ -45,6 +33,9 @@ export function CatalogOverviewTab({ context }) {
           </div>
         </dl>
       </article>
+      <CatalogApplicationMonitoring
+        monitoringHealth={context.monitoringHealth}
+      />
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
   recordRuntimeMonitoringSignal,
 } from "../repositories/runtimeMonitoringRepository.js";
 import { recordAuditEvent } from "../repositories/auditRepository.js";
+import { getApplicationHealthMetric } from "../repositories/homeRepository.js";
 
 export const monitoringRouter = Router();
 
@@ -128,11 +129,14 @@ monitoringRouter.get(
       });
       return;
     }
+    const [health, details] = await Promise.all([
+      getApplicationMonitoringHealth(application.id, req.actor.workspaceId),
+      getApplicationHealthMetric(req.actor, {
+        applicationId: application.id,
+      }),
+    ]);
     res.json({
-      health: await getApplicationMonitoringHealth(
-        application.id,
-        req.actor.workspaceId,
-      ),
+      health: { ...health, details },
     });
   }),
 );

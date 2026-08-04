@@ -4,6 +4,13 @@ export function fetchProcedures(params) {
   return fetchJson("/api/procedures", params);
 }
 
+export function fetchProcedure(procedureId, params) {
+  return fetchJson(
+    `/api/procedures/${encodeURIComponent(procedureId)}`,
+    params,
+  );
+}
+
 export function createProcedure(procedure, params) {
   return sendJson("/api/procedures", procedure, params, "POST");
 }

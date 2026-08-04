@@ -264,6 +264,158 @@
   font-weight: 700;
 }
 
+.catalogApplicationMonitoring {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.catalogApplicationMonitoring > header h3 {
+  margin-bottom: var(--space-1);
+}
+
+.catalogApplicationMonitoring > header p {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+}
+
+.catalogApplicationMonitoringLayout {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.8fr) minmax(360px, 1.2fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.catalogMonitoringTopology {
+  display: grid;
+  max-height: 560px;
+  gap: var(--space-3);
+  overflow-y: auto;
+}
+
+.catalogMonitoringTopology > section {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.catalogMonitoringTopology > section > header {
+  padding: var(--space-3);
+  background: var(--color-surface-muted);
+  font-size: 0.84rem;
+}
+
+.catalogMonitoringDeployment > span {
+  display: block;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  padding: 7px var(--space-3);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.catalogMonitoringDeployment > div {
+  display: grid;
+  gap: 1px;
+  background: var(--color-border-subtle);
+}
+
+.catalogMonitoringDeployment button {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border: 0;
+  background: var(--color-surface);
+  color: inherit;
+  padding: 9px var(--space-3);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.catalogMonitoringDeployment button:hover,
+.catalogMonitoringDeployment button.isActive {
+  background: var(--color-surface-muted);
+}
+
+.catalogMonitoringDeployment button.isActive {
+  box-shadow: inset 3px 0 var(--color-primary);
+}
+
+.catalogMonitoringDeployment button > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.catalogMonitoringDeployment button strong {
+  overflow: hidden;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogMonitoringDeployment button small {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-subtle);
+  font-size: 0.69rem;
+}
+
+.catalogMonitoringMetadataPanel {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  padding: var(--space-4);
+}
+
+.catalogMonitoringMetadataPanel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.catalogMonitoringMetadataPanel > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.catalogMonitoringMetadataPanel > header small {
+  overflow: hidden;
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogMonitoringLastSignal {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--color-text-subtle);
+  font-size: 0.74rem;
+}
+
+.catalogMonitoringLastSignal svg {
+  flex: 0 0 auto;
+}
+
+.catalogMonitoringMetadataPanel .monitoringPresentation,
+.catalogMonitoringMetadataPanel .monitoringEventJson {
+  margin-top: 0;
+}
+
 .catalogSectionHeader {
   margin-bottom: var(--space-4);
 }
@@ -1765,6 +1917,11 @@
   padding: var(--space-4);
 }
 
+.runtimeProcedureSection {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .runtimeProcedureSelectionField > div {
   display: grid;
   gap: var(--space-1);
@@ -1773,6 +1930,150 @@
 .runtimeProcedureSelectionField span {
   color: var(--color-text-subtle);
   font-size: 0.82rem;
+}
+
+.runtimeRelatedProcedureList {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.runtimeRelatedProcedureList article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.runtimeRelatedProcedureList article > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.runtimeRelatedProcedureList article span {
+  overflow: hidden;
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtimeRelatedProcedureList article > button {
+  flex: 0 0 auto;
+}
+
+.runtimeProcedureDetailsBackdrop {
+  z-index: 40;
+}
+
+.runtimeProcedureDetailsDialog {
+  display: flex;
+  width: min(900px, calc(100vw - 40px));
+  max-height: calc(100dvh - 40px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.runtimeProcedureDetailsDialog > header,
+.runtimeProcedureDetailsDialog > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+
+.runtimeProcedureDetailsDialog > header {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.runtimeProcedureDetailsDialog > header span,
+.runtimeProcedureDetailsBody section > span,
+.runtimeProcedureDetailsMetadata span {
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.runtimeProcedureDetailsDialog > header h2 {
+  margin: var(--space-1) 0 0;
+  font-size: 1.2rem;
+}
+
+.runtimeProcedureDetailsDialog > footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+.runtimeProcedureDetailsBody {
+  display: grid;
+  gap: var(--space-4);
+  overflow: auto;
+  padding: var(--space-5);
+}
+
+.runtimeProcedureDetailsSummary,
+.runtimeProcedureDetailsContent {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.runtimeProcedureDetailsSummary p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.runtimeProcedureDetailsMetadata {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.runtimeProcedureDetailsMetadata > div {
+  display: grid;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  padding: var(--space-3);
+}
+
+.runtimeProcedureDetailsMetadata strong {
+  font-size: 0.84rem;
+}
+
+.runtimeProcedureDetailsContent {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  padding: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .runtimeProcedureSelectionField,
+  .runtimeRelatedProcedureList article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .runtimeProcedureSelectionField > button,
+  .runtimeRelatedProcedureList article > button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .runtimeProcedureDetailsMetadata {
+    grid-template-columns: 1fr;
+  }
 }
 
 .runtimeProcedureSelectorBackdrop {
@@ -1940,6 +2241,10 @@
   }
 
   .catalogKnowledgeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogApplicationMonitoringLayout {
     grid-template-columns: 1fr;
   }
 

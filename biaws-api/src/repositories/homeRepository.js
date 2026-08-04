@@ -800,6 +800,11 @@ async function applicationHealthMetric(database, actor, config) {
   };
 }
 
+export async function getApplicationHealthMetric(actor, config = {}) {
+  const database = await getMongoDatabase();
+  return applicationHealthMetric(database, actor, config);
+}
+
 async function resolveWidgetMetric(database, actor, instance, now) {
   if (instance.widgetId === "issues-period")
     return issuePeriodMetric(database, actor, instance.config, now);

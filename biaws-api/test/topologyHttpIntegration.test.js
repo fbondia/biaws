@@ -421,6 +421,13 @@ test(
       assert.equal(applicationHealth.health.status, "degraded");
       assert.equal(applicationHealth.health.total, 1);
       assert.equal(applicationHealth.health.observed, 1);
+      assert.equal(applicationHealth.health.details.kind, "health");
+      assert.equal(applicationHealth.health.details.items.length, 1);
+      assert.equal(
+        applicationHealth.health.details.items[0].components[0].deployments[0]
+          .runtimes[0].latestSignal.metadata.disk_usage_percent,
+        85,
+      );
       await mutate(`/api/catalog/deployments/${deployment.id}/runtimes`, {
         key: "without-monitoring",
         name: "Runtime without monitoring",

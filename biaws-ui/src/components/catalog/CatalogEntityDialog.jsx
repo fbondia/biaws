@@ -1,10 +1,11 @@
-import { FolderTree, Save, X } from "lucide-react";
+import { Eye, FolderTree, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
 import { MonitoringEventDetails } from "../shared/MonitoringEventDetails.jsx";
 import {
   createRuntimeManualMonitoringObservation,
+  fetchProcedure,
   fetchRuntimeMonitoringTimeline,
 } from "../../api.js";
 import { buildUrl } from "../../api/client.js";
@@ -16,6 +17,7 @@ import {
   runtimeMonitoringPath,
 } from "./catalogModel.js";
 import { RuntimeProcedureSelectorDialog } from "./RuntimeProcedureSelectorDialog.jsx";
+import { RuntimeProcedureDetailsDialog } from "./RuntimeProcedureDetailsDialog.jsx";
 
 const COMPONENT_TYPES = [
   "api",
@@ -201,6 +203,10 @@ export function CatalogEntityDialog({
   const [monitoringError, setMonitoringError] = useState("");
   const [addingObservation, setAddingObservation] = useState(false);
   const [procedureSelectorOpen, setProcedureSelectorOpen] = useState(false);
+  const [relatedProcedures, setRelatedProcedures] = useState([]);
+  const [relatedProceduresLoading, setRelatedProceduresLoading] =
+    useState(false);
+  const [selectedProcedure, setSelectedProcedure] = useState(null);
   const label = CATALOG_ENTITY_LABELS[kind];
   const runtimeDeployment = (options.deployments || []).find(
     ({ id }) => id === entity?.deploymentId,
@@ -253,6 +259,40 @@ export function CatalogEntityDialog({
       active = false;
     };
   }, [entity?.id, kind]);
+
+  const relatedProcedureIds = (draft.procedureIds || []).join(",");
+  useEffect(() => {
+    if (kind !== "runtime" || !options.canReadProcedures) return;
+    const procedureIds = relatedProcedureIds.split(",").filter(Boolean);
+    if (!procedureIds.length) {
+      setRelatedProcedures([]);
+      setRelatedProceduresLoading(false);
+      return;
+    }
+    let active = true;
+    setRelatedProceduresLoading(true);
+    Promise.allSettled(procedureIds.map((id) => fetchProcedure(id)))
+      .then((results) => {
+        if (!active) return;
+        setRelatedProcedures(
+          results.map((result, index) =>
+            result.status === "fulfilled"
+              ? result.value.procedure
+              : {
+                  id: procedureIds[index],
+                  title: procedureIds[index],
+                  loadError: result.reason?.message || "Falha ao carregar",
+                },
+          ),
+        );
+      })
+      .finally(() => {
+        if (active) setRelatedProceduresLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [kind, options.canReadProcedures, relatedProcedureIds]);
 
   function update(field, value) {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -961,22 +1001,51 @@ export function CatalogEntityDialog({
             {kind === "runtime" && activeSection === "procedure" ? (
               <>
                 {options.canReadProcedures ? (
-                  <div className="catalogWideField runtimeProcedureSelectionField">
-                    <div>
-                      <strong>Procedimentos relacionados</strong>
-                      <span>
-                        {(draft.procedureIds || []).length
-                          ? `${draft.procedureIds.length} procedimento(s) selecionado(s)`
-                          : "Nenhum procedimento selecionado"}
-                      </span>
+                  <div className="catalogWideField runtimeProcedureSection">
+                    <div className="runtimeProcedureSelectionField">
+                      <div>
+                        <strong>Procedimentos relacionados</strong>
+                        <span>
+                          {(draft.procedureIds || []).length
+                            ? `${draft.procedureIds.length} procedimento(s) selecionado(s)`
+                            : "Nenhum procedimento selecionado"}
+                        </span>
+                      </div>
+                      <button
+                        className="secondaryButton"
+                        onClick={() => setProcedureSelectorOpen(true)}
+                        type="button"
+                      >
+                        <FolderTree size={16} /> Selecionar procedimentos
+                      </button>
                     </div>
-                    <button
-                      className="secondaryButton"
-                      onClick={() => setProcedureSelectorOpen(true)}
-                      type="button"
-                    >
-                      <FolderTree size={16} /> Selecionar procedimentos
-                    </button>
+                    {relatedProceduresLoading ? (
+                      <div className="catalogColumnEmpty">Carregando…</div>
+                    ) : null}
+                    {!relatedProceduresLoading && relatedProcedures.length ? (
+                      <div className="runtimeRelatedProcedureList">
+                        {relatedProcedures.map((procedure) => (
+                          <article key={procedure.id}>
+                            <div>
+                              <strong>{procedure.title}</strong>
+                              <span>
+                                {procedure.loadError
+                                  ? procedure.loadError
+                                  : procedure.summary || "Sem sumário"}
+                              </span>
+                            </div>
+                            <button
+                              className="secondaryButton"
+                              disabled={Boolean(procedure.loadError)}
+                              onClick={() => setSelectedProcedure(procedure)}
+                              type="button"
+                            >
+                              <Eye size={16} /> Abrir dados
+                            </button>
+                          </article>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
                 <label className="field catalogWideField catalogProcedureField">
@@ -1039,6 +1108,15 @@ export function CatalogEntityDialog({
             setProcedureSelectorOpen(false);
           }}
           selectedIds={draft.procedureIds || []}
+        />
+      ) : null}
+      {selectedProcedure ? (
+        <RuntimeProcedureDetailsDialog
+          application={options.application}
+          applications={options.applications}
+          components={options.components}
+          onClose={() => setSelectedProcedure(null)}
+          procedure={selectedProcedure}
         />
       ) : null}
     </div>

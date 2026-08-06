@@ -5,6 +5,7 @@ import {
   CircleUserRound,
   Copy,
   Menu,
+  Settings,
   SlidersHorizontal,
   Terminal,
   X,

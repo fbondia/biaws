@@ -8,6 +8,7 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const isPending = secret.provisioningStatus === "pending";
 
   async function submit(event) {
     event.preventDefault();
@@ -38,7 +39,7 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
       >
         <header className="userCreateDialogHeader">
           <div>
-            <span>Nova versão</span>
+            <span>{isPending ? "Provisionar segredo" : "Nova versão"}</span>
             <h2 id="secret-value-title">{secret.name}</h2>
           </div>
           <button
@@ -55,18 +56,22 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
           {error ? <div className="authError">{error}</div> : null}
           {secret.contentKind === "file" ? (
             <label>
-              Novo arquivo
+              {isPending ? "Arquivo" : "Novo arquivo"}
               <input
                 autoFocus
                 onChange={(event) => setFile(event.target.files?.[0] || null)}
                 required
                 type="file"
               />
-              <small>O arquivo substituirá apenas a versão corrente.</small>
+              <small>
+                {isPending
+                  ? "O conteúdo será criptografado e registrado como versão 1."
+                  : "O arquivo substituirá apenas a versão corrente."}
+              </small>
             </label>
           ) : (
             <label>
-              Novo valor
+              {isPending ? "Valor" : "Novo valor"}
               <textarea
                 autoComplete="off"
                 autoFocus
@@ -87,7 +92,7 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
               Cancelar
             </button>
             <button className="primaryButton" disabled={saving} type="submit">
-              Gravar versão
+              {isPending ? "Provisionar segredo" : "Gravar versão"}
             </button>
           </footer>
         </form>

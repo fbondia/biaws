@@ -28,6 +28,13 @@ normalizado para minúsculas, deve ser único no workspace e não pode ser alter
 Nome, descrição, tipo, ambiente e escopo podem ser editados posteriormente;
 formato, identificação e conteúdo só mudam pelos fluxos específicos de versão.
 
+Um segredo também pode começar como um registro pendente, contendo somente
+metadata e o formato esperado. Nesse estado, `provisioningStatus` é `pending`,
+`currentVersion` é `0`, `versions` permanece vazio e nenhum provider ou arquivo
+criptografado é criado. A primeira gravação humana gera a versão `1` e altera
+`provisioningStatus` para `ready`. Segredos legados com versões são apresentados
+como `ready` mesmo que não possuam o campo materializado.
+
 Arquivos secretos têm limite padrão de 5 MiB, configurável por
 `BIAWS_SECRETS_MAX_FILE_BYTES`. Nome, MIME type e tamanho são armazenados como
 metadata no MongoDB; os bytes permanecem somente no envelope criptografado.
@@ -41,19 +48,20 @@ chmod 600 .secrets-master-key
 
 ## Rotas
 
-| Método  | Rota                        | Permissão                                  |
-| ------- | --------------------------- | ------------------------------------------ |
-| `GET`   | `/api/secrets`              | `secrets.metadata.read`                    |
-| `POST`  | `/api/secrets`              | `secrets.create`, `secrets.value.write`    |
-| `POST`  | `/api/secrets/files`        | `secrets.create`, `secrets.value.write`    |
-| `GET`   | `/api/secrets/:id`          | `secrets.metadata.read`                    |
-| `PATCH` | `/api/secrets/:id`          | `secrets.metadata.read`, `secrets.update`  |
-| `PUT`   | `/api/secrets/:id/value`    | `secrets.value.write`                      |
-| `PUT`   | `/api/secrets/:id/file`     | `secrets.value.write`                      |
-| `POST`  | `/api/secrets/:id/copy`     | `secrets.value.reveal`                     |
-| `POST`  | `/api/secrets/:id/reveal`   | `secrets.value.reveal`                     |
-| `POST`  | `/api/secrets/:id/download` | `secrets.value.reveal`                     |
-| `POST`  | `/api/secrets/:id/archive`  | `secrets.metadata.read`, `secrets.archive` |
+| Método  | Rota                         | Permissão                                  |
+| ------- | ---------------------------- | ------------------------------------------ |
+| `GET`   | `/api/secrets`               | `secrets.metadata.read`                    |
+| `POST`  | `/api/secrets/registrations` | `secrets.metadata.create`                  |
+| `POST`  | `/api/secrets`               | `secrets.create`, `secrets.value.write`    |
+| `POST`  | `/api/secrets/files`         | `secrets.create`, `secrets.value.write`    |
+| `GET`   | `/api/secrets/:id`           | `secrets.metadata.read`                    |
+| `PATCH` | `/api/secrets/:id`           | `secrets.metadata.read`, `secrets.update`  |
+| `PUT`   | `/api/secrets/:id/value`     | `secrets.value.write`                      |
+| `PUT`   | `/api/secrets/:id/file`      | `secrets.value.write`                      |
+| `POST`  | `/api/secrets/:id/copy`      | `secrets.value.reveal`                     |
+| `POST`  | `/api/secrets/:id/reveal`    | `secrets.value.reveal`                     |
+| `POST`  | `/api/secrets/:id/download`  | `secrets.value.reveal`                     |
+| `POST`  | `/api/secrets/:id/archive`   | `secrets.metadata.read`, `secrets.archive` |
 
 Criação recebe metadata e `value` no corpo. O valor nunca aparece em listagens,
 consultas de metadata ou auditoria. `reveal` aceita somente sessão de usuário;
@@ -69,6 +77,48 @@ responde como attachment e usa `Cache-Control: no-store` e
 
 Segredos sem `applicationId` exigem escopo de workspace. Segredos associados a
 uma aplicação também respeitam o escopo por aplicação de cada permissão.
+
+## Registro antecipado pelo MCP
+
+O MCP pode preparar a matriz de segredos necessária para uma aplicação ou
+ambiente sem receber o material sensível. A ferramenta `secrets_register`
+aceita somente `identifier`, `name`, `description`, `type`, `environment`,
+`applicationId`, `collectionId` e `contentKind`. Campos de valor, arquivo ou
+conteúdo codificado não fazem parte do schema e são rejeitados pela API.
+
+Exemplo de argumentos:
+
+```json
+{
+  "identifier": "github-token-production",
+  "name": "Token GitHub de produção",
+  "description": "Credencial usada pelo pipeline de publicação",
+  "type": "token",
+  "environment": "production",
+  "applicationId": "application-id",
+  "contentKind": "text"
+}
+```
+
+Fluxo recomendado:
+
+1. o agente consulta aplicações, deployments e `secrets_list`;
+2. para cada necessidade ausente, chama `secrets_register` com o formato
+   esperado (`text` ou `file`);
+3. a UI mostra o item com o estado **Aguardando valor**;
+4. um usuário com `secrets.metadata.read` e `secrets.value.write` seleciona
+   **Cadastrar valor** ou **Enviar arquivo**;
+5. a API criptografa o conteúdo como versão `1` e marca o registro como
+   `ready`.
+
+A identidade técnica precisa apenas de `secrets.metadata.read` e
+`secrets.metadata.create`. Ela não deve receber `secrets.value.write` nem
+`secrets.value.reveal`. As ferramentas MCP não expõem operações de conteúdo,
+mesmo que uma chave mais privilegiada seja configurada por engano.
+
+`GET /api/secrets` aceita os filtros `applicationId`, `environment`,
+`provisioningStatus` (`pending` ou `ready`) e `status`. O retorno é sempre
+metadata pública, sem locators, ciphertext ou versões internas.
 
 ## Recuperação
 

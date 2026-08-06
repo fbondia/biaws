@@ -76,7 +76,9 @@ export function SecretsView({ actor }) {
       <header className="securityHeader">
         <div>
           <h2>Segredos</h2>
-          <p>Credenciais externas armazenadas no cofre criptografado.</p>
+          <p>
+            Credenciais armazenadas e necessidades aguardando provisionamento.
+          </p>
         </div>
         {permissions.create ? (
           <button
@@ -171,7 +173,9 @@ export function SecretsView({ actor }) {
                 permissions.archive && allowed("secrets.archive", secret)
               }
               canReveal={
-                permissions.reveal && allowed("secrets.value.reveal", secret)
+                secret.provisioningStatus === "ready" &&
+                permissions.reveal &&
+                allowed("secrets.value.reveal", secret)
               }
               canUpdate={
                 permissions.update && allowed("secrets.update", secret)

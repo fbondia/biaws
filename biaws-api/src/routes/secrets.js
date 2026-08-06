@@ -12,6 +12,7 @@ import {
   getAccessibleSecret,
   listAccessibleSecrets,
   moveSecretToCollection,
+  registerSecretMetadata,
   revealSecret,
   updateSecret,
   writeSecretFile,
@@ -55,6 +56,23 @@ secretsRouter.get(
   requireAllPermissions("secrets.metadata.read"),
   asyncHandler(async (req, res) => {
     res.json(await listAccessibleSecrets(req.query, req.actor));
+  }),
+);
+
+secretsRouter.post(
+  "/registrations",
+  requireAllPermissions("secrets.metadata.create"),
+  asyncHandler(async (req, res) => {
+    const secret = await registerSecretMetadata(req.body, req.actor);
+    await recordAuditEvent({
+      actor: req.actor,
+      action: "registered",
+      target: auditTarget(secret),
+      after: secret,
+      metadata: auditMetadata(secret),
+      summary: `Necessidade de segredo registrada: ${secret.name}`,
+    });
+    res.status(201).json({ secret });
   }),
 );
 

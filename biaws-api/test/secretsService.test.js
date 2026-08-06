@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   createSecret,
   normalizeSecretFile,
+  registerSecretMetadata,
   updateSecret,
 } from "../src/services/secretsService.js";
 
@@ -11,6 +12,7 @@ const actor = {
   workspaceId: "workspace-a",
   permissionScopes: {
     "secrets.create": { workspace: true, applicationIds: [] },
+    "secrets.metadata.create": { workspace: true, applicationIds: [] },
     "secrets.value.write": { workspace: true, applicationIds: [] },
   },
 };
@@ -33,6 +35,37 @@ test("metadata updates cannot smuggle a new secret value", async () => {
   await assert.rejects(
     updateSecret("secret-a", { value: "private-value" }, actor),
     { code: "INVALID_SECRET" },
+  );
+});
+
+test("pending registrations cannot smuggle a secret value", async () => {
+  await assert.rejects(
+    registerSecretMetadata(
+      {
+        identifier: "example-secret",
+        name: "Example",
+        type: "generic",
+        contentKind: "text",
+        value: "private-value",
+      },
+      actor,
+    ),
+    { code: "INVALID_SECRET" },
+  );
+});
+
+test("pending registrations require the immutable content format", async () => {
+  await assert.rejects(
+    registerSecretMetadata(
+      {
+        identifier: "example-secret",
+        name: "Example",
+        type: "generic",
+        contentKind: "stream",
+      },
+      actor,
+    ),
+    { code: "INVALID_SECRET_CONTENT_KIND" },
   );
 });
 

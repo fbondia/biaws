@@ -37,6 +37,8 @@ import {
   updateProcedure,
 } from "./domains/procedures/service.js";
 import { catalogTools } from "./domains/catalog/tools.js";
+import { collectionTools } from "./domains/collections/tools.js";
+import { secretTools } from "./domains/secrets/tools.js";
 
 const DEMAND_TASK_STATUS_SCHEMA = {
   type: "string",
@@ -142,6 +144,8 @@ const PROCEDURE_CLASSIFICATION_PROPERTIES = {
 
 const tools = [
   ...catalogTools,
+  ...collectionTools,
+  ...secretTools,
   {
     name: "issues_search",
     description:

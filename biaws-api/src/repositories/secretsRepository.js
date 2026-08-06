@@ -96,6 +96,9 @@ export function publicSecret(document) {
   if (!document) return null;
   const currentVersion = currentSecretVersion(document);
   const contentKind = document.contentKind || currentVersion?.kind || "text";
+  const provisioningStatus =
+    document.provisioningStatus ||
+    ((document.versions?.length || 0) > 0 ? "ready" : "pending");
   return {
     id: String(document.id),
     workspaceId: String(document.workspaceId),
@@ -108,13 +111,14 @@ export function publicSecret(document) {
     description: document.description || "",
     type: document.type,
     environment: document.environment || "",
-    provider: document.provider,
+    provider: document.provider || null,
     status: document.status,
-    currentVersion: document.currentVersion,
+    provisioningStatus,
+    currentVersion: Number(document.currentVersion) || 0,
     versionCount: document.versions?.length || 0,
     contentKind,
     file:
-      contentKind === "file"
+      contentKind === "file" && currentVersion
         ? {
             name: currentVersion?.fileName || "secret-file",
             mediaType: currentVersion?.mediaType || "application/octet-stream",
@@ -219,6 +223,25 @@ export async function listSecrets(query = {}) {
   if (query.applicationId) {
     filter.applicationId = String(query.applicationId);
   }
+  if (query.environment !== undefined) {
+    const environment = String(query.environment || "").trim();
+    if (!SECRET_ENVIRONMENTS.has(environment)) {
+      throw secretError(422, "INVALID_SECRET_FILTER", "environment is invalid");
+    }
+    filter.environment = environment;
+  }
+  if (query.provisioningStatus) {
+    const provisioningStatus = String(query.provisioningStatus).trim();
+    if (!["pending", "ready"].includes(provisioningStatus)) {
+      throw secretError(
+        422,
+        "INVALID_SECRET_FILTER",
+        "provisioningStatus is invalid",
+      );
+    }
+    filter.provisioningStatus =
+      provisioningStatus === "ready" ? { $in: ["ready", null] } : "pending";
+  }
   if (query.collectionId !== undefined) {
     const collectionId = String(query.collectionId || "").trim();
     filter.collectionId = collectionId || { $in: ["", null] };
@@ -271,6 +294,7 @@ export async function createSecretDocument(
     provider,
     contentKind: content?.kind || "text",
     status: "active",
+    provisioningStatus: "ready",
     currentVersion: version,
     versions: [
       {
@@ -288,6 +312,48 @@ export async function createSecretDocument(
         createdBy: actor.userId,
       },
     ],
+    createdAt: now,
+    createdBy: actor.userId,
+    updatedAt: now,
+    updatedBy: actor.userId,
+  };
+  try {
+    await secrets.insertOne(document);
+  } catch (error) {
+    duplicateSecretError(error);
+  }
+  return publicSecret(document);
+}
+
+export async function createPendingSecretDocument(payload, actor) {
+  const { secrets } = await getCollections();
+  const workspaceId = String(actor.workspaceId);
+  const applicationId = payload.applicationId
+    ? String(payload.applicationId)
+    : null;
+  await assertApplication(applicationId, workspaceId);
+  const metadata = normalizeSecretPayload(payload);
+  const contentKind = String(payload.contentKind || "").trim();
+  if (!["text", "file"].includes(contentKind)) {
+    throw secretError(
+      422,
+      "INVALID_SECRET_CONTENT_KIND",
+      "contentKind must be text or file",
+    );
+  }
+  const now = new Date();
+  const document = {
+    id: String(payload.id || randomUUID()),
+    workspaceId,
+    applicationId,
+    collectionId: String(payload.collectionId || ""),
+    ...metadata,
+    provider: null,
+    contentKind,
+    status: "active",
+    provisioningStatus: "pending",
+    currentVersion: 0,
+    versions: [],
     createdAt: now,
     createdBy: actor.userId,
     updatedAt: now,
@@ -347,7 +413,7 @@ export async function addSecretVersion(
   authorizationScope,
 ) {
   const { secrets } = await getCollections();
-  const version = current.currentVersion + 1;
+  const version = (Number(current.currentVersion) || 0) + 1;
   const now = new Date();
   const document = await secrets.findOneAndUpdate(
     {
@@ -359,6 +425,8 @@ export async function addSecretVersion(
     {
       $set: {
         currentVersion: version,
+        provider: current.provider || "local",
+        provisioningStatus: "ready",
         updatedAt: now,
         updatedBy: actor.userId,
       },

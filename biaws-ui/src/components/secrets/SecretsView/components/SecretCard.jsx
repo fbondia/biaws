@@ -35,6 +35,7 @@ export function SecretCard({
   showValue,
 }) {
   const isFile = secret.contentKind === "file";
+  const isPending = secret.provisioningStatus === "pending";
   return (
     <article
       className="securityPanel secretCard"
@@ -50,6 +51,9 @@ export function SecretCard({
           <strong>{secret.name}</strong>
         </div>
         <div className="secretCardBadges">
+          {isPending ? (
+            <span className="secretPendingBadge">Aguardando valor</span>
+          ) : null}
           <span className="typeBadge">{secret.type}</span>
           <span className="secretFormatBadge">
             {isFile ? "Arquivo" : "Texto"}
@@ -82,10 +86,10 @@ export function SecretCard({
         </div>
         <div>
           <dt>Versão</dt>
-          <dd>{secret.currentVersion}</dd>
+          <dd>{isPending ? "Não provisionado" : secret.currentVersion}</dd>
         </div>
       </dl>
-      {isFile ? (
+      {isFile && !isPending ? (
         <div className="secretFileMetadata">
           <File size={17} />
           <div>
@@ -172,7 +176,12 @@ export function SecretCard({
               onClick={onVersion}
               type="button"
             >
-              <RotateCw size={15} /> Nova versão
+              <RotateCw size={15} />
+              {isPending
+                ? isFile
+                  ? "Enviar arquivo"
+                  : "Cadastrar valor"
+                : "Nova versão"}
             </button>
           ) : null}
           {canArchive ? (

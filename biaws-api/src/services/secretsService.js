@@ -4,6 +4,7 @@ import { actorPermissionScope } from "../auth/authorizationMiddleware.js";
 import {
   addSecretVersion,
   archiveSecretDocument,
+  createPendingSecretDocument,
   createSecretDocument,
   currentSecretVersion,
   getSecretDocument,
@@ -186,6 +187,37 @@ export async function createSecret(payload, actor) {
   }
 }
 
+export async function registerSecretMetadata(payload, actor) {
+  assertAllowedFields(
+    payload,
+    new Set([
+      "name",
+      "identifier",
+      "description",
+      "type",
+      "environment",
+      "applicationId",
+      "collectionId",
+      "contentKind",
+    ]),
+  );
+  assertScope(actor, "secrets.metadata.create", payload.applicationId || null);
+  normalizeSecretPayload(payload);
+  if (!["text", "file"].includes(String(payload.contentKind || "").trim())) {
+    throw secretError(
+      422,
+      "INVALID_SECRET_CONTENT_KIND",
+      "contentKind must be text or file",
+    );
+  }
+  const collectionId = await assertResourceCollection(
+    "secrets",
+    payload.collectionId,
+    actor.workspaceId,
+  );
+  return createPendingSecretDocument({ ...payload, collectionId }, actor);
+}
+
 export async function createFileSecret(payload, file, actor) {
   assertAllowedFields(
     payload,
@@ -279,7 +311,7 @@ export async function writeSecretValue(secretId, value, actor) {
       "File secrets require a file version",
     );
   }
-  const version = document.currentVersion + 1;
+  const version = (Number(document.currentVersion) || 0) + 1;
   const provider = getSecretProvider();
   const stored = await provider.putValue(
     providerContext(document, version),
@@ -321,7 +353,7 @@ export async function writeSecretFile(secretId, file, actor) {
     );
   }
   const content = normalizeSecretFile(file);
-  const version = document.currentVersion + 1;
+  const version = (Number(document.currentVersion) || 0) + 1;
   const provider = getSecretProvider();
   const stored = await provider.putContent(
     providerContext(document, version),
@@ -348,6 +380,13 @@ export async function revealSecret(secretId, actor) {
   );
   if (document.status !== "active") {
     throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
+  }
+  if (document.provisioningStatus === "pending") {
+    throw secretError(
+      409,
+      "SECRET_VALUE_PENDING",
+      "Secret content has not been provisioned yet",
+    );
   }
   if ((document.contentKind || "text") !== "text") {
     throw secretError(
@@ -383,6 +422,13 @@ export async function downloadSecretFile(secretId, actor) {
   );
   if (document.status !== "active") {
     throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
+  }
+  if (document.provisioningStatus === "pending") {
+    throw secretError(
+      409,
+      "SECRET_VALUE_PENDING",
+      "Secret content has not been provisioned yet",
+    );
   }
   if ((document.contentKind || "text") !== "file") {
     throw secretError(

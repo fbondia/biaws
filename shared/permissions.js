@@ -127,6 +127,11 @@ const definitions = [
   ["option_lists.manage", "Configurações", "Administrar listas de opções"],
 
   ["secrets.metadata.read", "Segredos", "Consultar metadados de segredos"],
+  [
+    "secrets.metadata.create",
+    "Segredos",
+    "Registrar metadados de segredos pendentes",
+  ],
   ["secrets.create", "Segredos", "Criar segredos"],
   ["secrets.update", "Segredos", "Alterar metadados de segredos"],
   ["secrets.value.write", "Segredos", "Gravar novas versões de segredos"],

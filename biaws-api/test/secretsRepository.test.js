@@ -88,4 +88,27 @@ test("legacy secrets are exposed as text content", () => {
 
   assert.equal(result.contentKind, "text");
   assert.equal(result.file, null);
+  assert.equal(result.provisioningStatus, "ready");
+});
+
+test("pending secret metadata exposes no provider or version", () => {
+  const result = publicSecret({
+    id: "secret-pending",
+    workspaceId: "workspace-a",
+    identifier: "pending-secret",
+    name: "Pending",
+    type: "token",
+    provider: null,
+    status: "active",
+    provisioningStatus: "pending",
+    currentVersion: 0,
+    contentKind: "file",
+    versions: [],
+  });
+
+  assert.equal(result.provisioningStatus, "pending");
+  assert.equal(result.currentVersion, 0);
+  assert.equal(result.versionCount, 0);
+  assert.equal(result.provider, null);
+  assert.equal(result.file, null);
 });

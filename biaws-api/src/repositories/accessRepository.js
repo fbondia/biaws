@@ -137,6 +137,8 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
       "procedures.update",
       "procedures.attachment.read",
       "skills.read",
+      "secrets.metadata.read",
+      "secrets.metadata.create",
     ],
   },
 ]);

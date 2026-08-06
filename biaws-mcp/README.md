@@ -10,6 +10,7 @@ O servidor separa os domínios:
 - `issues_*`: chamados, incidentes, requisições operacionais, taxonomia e classificação.
 - `demands_*`: melhorias, especificações, jornadas, prazos e contexto para desenvolvimento.
 - `procedures_*`: procedimentos operacionais em Markdown, com tags e classificação taxonômica compartilhadas com issues.
+- `secrets_*`: consulta e registro de metadados de segredos, sem acesso aos valores.
 
 O carregamento de ambiente usa o `shared/loadEnv.js` do próprio repositório. O MCP conversa com a `biaws-api` por HTTP e não acessa diretamente o mecanismo de armazenamento.
 
@@ -147,6 +148,23 @@ conhecimento.
 - `procedures_update`: atualiza parcialmente título, sumário, conteúdo,
   classificação ou contexto.
 
+### Metadados de segredos
+
+- `secrets_list`: lista metadados, com filtros por aplicação, ambiente, estado
+  de provisionamento e estado de arquivamento;
+- `secrets_get`: consulta os metadados de um registro;
+- `secrets_register`: registra uma necessidade de segredo com identificação,
+  descrição, tipo, formato esperado, aplicação, ambiente e coleção opcionais.
+
+`secrets_register` cria um item com `provisioningStatus: pending`, sem provider,
+versão ou conteúdo. Um usuário autorizado deve completar o registro pela UI,
+usando **Cadastrar valor** ou **Enviar arquivo**. A primeira gravação cria a
+versão 1 e altera o estado para `ready`.
+
+O grupo padrão `agent-operator` recebe `secrets.metadata.read` e
+`secrets.metadata.create`, mas não recebe `secrets.value.write` ou
+`secrets.value.reveal`.
+
 Issues e melhorias criadas pelo MCP sempre pertencem a uma aplicação e podem
 informar `affectedComponentIds`. Procedimentos podem permanecer gerais ao
 workspace ou ser vinculados opcionalmente a uma aplicação e seus componentes.
@@ -155,11 +173,11 @@ Nas ferramentas de consulta, os filtros comuns são `workspaceId`,
 
 ## Segurança operacional
 
-Este MCP não expõe uma ferramenta genérica de armazenamento. As escritas disponíveis são intencionais, estruturadas, limitadas ao domínio e passam pela `biaws-api`.
+Este MCP não expõe uma ferramenta genérica de armazenamento. As escritas disponíveis são intencionais, estruturadas, limitadas ao domínio e passam pela `biaws-api`. As ferramentas `secrets_*` não possuem campos para valor, arquivo ou conteúdo codificado.
 
 O MCP não acessa MongoDB, não executa shell, SSH, deploy ou sincronização Git e
-não recebe senhas, tokens, chaves privadas, kubeconfig ou connection strings
-nos schemas do catálogo. A `ISSUE_API_KEY` é a única credencial do processo e
+não recebe valores de senhas, tokens, chaves privadas, kubeconfig ou connection
+strings. A `ISSUE_API_KEY` é a única credencial do processo e
 é usada exclusivamente no cabeçalho HTTP.
 
 Erros da API mantêm o status e o código funcional para que o agente diferencie

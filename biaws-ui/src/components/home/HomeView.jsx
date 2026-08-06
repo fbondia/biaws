@@ -10,11 +10,11 @@ import {
   EyeOff,
   GripVertical,
   LayoutDashboard,
-  Pencil,
   Plus,
   RefreshCw,
   Save,
   Server,
+  Settings,
   Settings2,
   Trash2,
   X,
@@ -970,7 +970,7 @@ export function HomeView() {
                           }
                           type="button"
                         >
-                          <Pencil size={15} />
+                          <Settings size={15} />
                         </button>
                       ) : null}
                       <button

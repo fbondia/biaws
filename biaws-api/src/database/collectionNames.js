@@ -29,6 +29,7 @@ export const COLLECTION_NAMES = Object.freeze({
   REQUEST_TASKS: "requestTasks",
   REQUESTS: "requests",
   SERVERS: "servers",
+  SECRETS: "secrets",
   SKILLS: "skills",
   TAXONOMIES: "taxonomies",
   WORKSPACE_MEMBERSHIPS: "workspaceMemberships",

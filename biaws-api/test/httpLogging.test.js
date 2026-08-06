@@ -195,10 +195,10 @@ test("error serialization preserves bounded causes for server-side diagnosis", (
 
 test("common credentials are redacted before error details reach logs", () => {
   const text = redactLogText(
-    'Bearer abc.def password="hunter2" API_KEY=abc123 biaws_private-key',
+    'Bearer abc.def password="hunter2" clientSecret="oauth-value" API_KEY=abc123 biaws_private-key',
   );
   assert.equal(
     text,
-    'Bearer [REDACTED] password="[REDACTED]" API_KEY=[REDACTED] biaws_[REDACTED]',
+    'Bearer [REDACTED] password="[REDACTED]" clientSecret="[REDACTED]" API_KEY=[REDACTED] biaws_[REDACTED]',
   );
 });

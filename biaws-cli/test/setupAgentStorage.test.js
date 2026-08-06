@@ -164,6 +164,23 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
       "mu",
     ),
   );
+  assert.match(
+    configuredEnv,
+    new RegExp(`^BIAWS_SECRET_FILES_PATH=${canonicalStorage}/secrets$`, "mu"),
+  );
+  assert.match(
+    configuredEnv,
+    new RegExp(`^BIAWS_SECRETS_DIR=${canonicalStorage}/secrets$`, "mu"),
+  );
+  const expectedSecretsKey = path.join(instance, ".secrets-master-key");
+  assert.match(
+    configuredEnv,
+    new RegExp(`^BIAWS_SECRETS_KEY_PATH=${expectedSecretsKey}$`, "mu"),
+  );
+  assert.match(
+    configuredEnv,
+    new RegExp(`^BIAWS_SECRETS_KEY_FILE=${expectedSecretsKey}$`, "mu"),
+  );
 
   const startScript = path.join(instance, "start.sh");
   const stopScript = path.join(instance, "stop.sh");
@@ -328,6 +345,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   assert.match(resetEnv, /^BIAWS_ISSUE_FILES_PATH=$/mu);
   assert.match(resetEnv, /^BIAWS_REQUEST_FILES_PATH=$/mu);
   assert.match(resetEnv, /^BIAWS_PROCEDURE_FILES_PATH=$/mu);
+  assert.match(resetEnv, /^BIAWS_SECRET_FILES_PATH=$/mu);
 
   const overlapping = runSetup({
     bin,

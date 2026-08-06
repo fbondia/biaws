@@ -14,6 +14,8 @@ const IGNORED_FIELDS = new Set([
   "password",
   "token",
 ]);
+const SECRET_FIELD_PATTERN =
+  /(?:password|passwd|pwd|secret(?:value)?|token|credential|authorization|api[-_.]?key|private[-_.]?key|connection[-_.]?string|ciphertext|auth[-_.]?tag|encrypted[-_.]?data[-_.]?key)/iu;
 
 function normalizeScalar(value) {
   if (value instanceof Date) return value.toISOString();
@@ -45,7 +47,9 @@ export function sanitizeAuditValue(value, depth = 0) {
   }
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([key]) => !IGNORED_FIELDS.has(key))
+      .filter(
+        ([key]) => !IGNORED_FIELDS.has(key) && !SECRET_FIELD_PATTERN.test(key),
+      )
       .map(([key, entry]) => [key, sanitizeAuditValue(entry, depth + 1)]),
   );
 }

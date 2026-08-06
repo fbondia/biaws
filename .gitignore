@@ -7,6 +7,8 @@ biaws-mcp/sonar-project.properties
 biaws-ui/sonar-project.properties
 .env
 .bootstrap-admin-password
+.secrets-master-key
+secrets-data/
 .DS_Store
 backups/
 temp/

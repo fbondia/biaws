@@ -160,9 +160,11 @@ BIAWS_SKIP_DEMO_SEED=1 \
 
 ### Escolher onde os dados serão armazenados
 
-Sem opções adicionais, cada instância usa quatro volumes nomeados gerenciados
-pelo Docker: MongoDB, anexos de issues, arquivos de requests e arquivos de
-procedures. O nome efetivo recebe o prefixo do projeto Compose da instância.
+Sem opções adicionais, cada instância usa cinco volumes nomeados gerenciados
+pelo Docker: MongoDB, anexos de issues, arquivos de requests, arquivos de
+procedures e o cofre criptografado de segredos. A chave mestra do cofre fica
+fora desses volumes, no diretório da instância. O nome efetivo recebe o prefixo
+do projeto Compose da instância.
 
 Para armazenar tudo em diretórios visíveis no host, informe uma raiz absoluta
 ao criar a instância:
@@ -182,7 +184,8 @@ O setup cria:
 ├── mongo/
 ├── issues/
 ├── requests/
-└── procedures/
+├── procedures/
+└── secrets/
 ```
 
 Para escolher cada caminho separadamente:
@@ -194,6 +197,7 @@ Para escolher cada caminho separadamente:
   --issue-files-path "$HOME/biaws-data/issues" \
   --request-files-path "$HOME/biaws-data/requests" \
   --procedure-files-path "$HOME/biaws-data/procedures" \
+  --secret-files-path "$HOME/biaws-data/secrets" \
   --client codex \
   --project "$HOME/Source/meu-projeto"
 ```

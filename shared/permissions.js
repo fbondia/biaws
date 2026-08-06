@@ -126,6 +126,14 @@ const definitions = [
   ["option_lists.read", "Configurações", "Consultar listas de opções"],
   ["option_lists.manage", "Configurações", "Administrar listas de opções"],
 
+  ["secrets.metadata.read", "Segredos", "Consultar metadados de segredos"],
+  ["secrets.create", "Segredos", "Criar segredos"],
+  ["secrets.update", "Segredos", "Alterar metadados de segredos"],
+  ["secrets.value.write", "Segredos", "Gravar novas versões de segredos"],
+  ["secrets.value.reveal", "Segredos", "Revelar valores de segredos"],
+  ["secrets.use", "Segredos", "Consumir segredos em integrações"],
+  ["secrets.archive", "Segredos", "Arquivar segredos"],
+
   ["users.read", "Administração", "Consultar usuários"],
   ["users.create", "Administração", "Criar usuários"],
   ["users.update", "Administração", "Alterar usuários"],
@@ -164,7 +172,8 @@ const workspacePermissionPrefixes = [
 ];
 
 function permissionScope(id) {
-  if (id.startsWith("procedures.")) return "hybrid";
+  if (id.startsWith("procedures.") || id.startsWith("secrets."))
+    return "hybrid";
   if (
     workspacePermissionIds.has(id) ||
     workspacePermissionPrefixes.some((prefix) => id.startsWith(prefix))

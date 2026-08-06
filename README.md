@@ -36,6 +36,8 @@ capacidades versionadas sem oferecer acesso genérico ao banco de dados.
   reversas e contexto agregado;
 - recepção passiva e idempotente de sinais externos de saúde dos runtimes;
 - autenticação, chaves de API, grupos e permissões;
+- cofre local para segredos reversíveis, com versões criptografadas e chave
+  mestra separada;
 - trilha de auditoria funcional;
 - servidor MCP com ferramentas de catálogo, topologia, issues, melhorias e
   procedimentos;

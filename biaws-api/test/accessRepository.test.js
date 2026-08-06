@@ -40,6 +40,9 @@ test("agent operator excludes administrative and catalog publication permissions
   assert.ok(agent.permissions.includes("procedures.attachment.read"));
   assert.ok(agent.permissions.includes("taxonomy.manage"));
   assert.ok(
+    !agent.permissions.some((permission) => permission.startsWith("secrets.")),
+  );
+  assert.ok(
     agent.permissions.every(
       (permission) =>
         !["users.", "roles.", "api_keys.", "audit."].some((prefix) =>
@@ -100,6 +103,18 @@ test("application scope accepts domain permissions and rejects workspace permiss
       }),
     /Workspace permissions cannot be application-scoped/u,
   );
+});
+
+test("secret permissions support workspace or application scope", () => {
+  const group = normalizeGroupInput({
+    name: "Segredos de billing",
+    permissions: ["secrets.metadata.read", "secrets.value.write"],
+    scope: { type: "applications", applicationIds: ["billing"] },
+  });
+  assert.deepEqual(group.scope, {
+    type: "applications",
+    applicationIds: ["billing"],
+  });
 });
 
 test("permission scopes preserve independent application grants", () => {

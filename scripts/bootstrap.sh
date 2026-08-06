@@ -109,6 +109,37 @@ if [[ -z "${current_secret}" ]]; then
   echo "BETTER_AUTH_SECRET gerado e gravado no .env local."
 fi
 
+secrets_key_path="$(read_env_value "BIAWS_SECRETS_KEY_PATH")"
+if [[ -z "${secrets_key_path}" ]]; then
+  configured_key_file="$(read_env_value "BIAWS_SECRETS_KEY_FILE")"
+  if [[ "${configured_key_file}" == /* ]]; then
+    secrets_key_path="${configured_key_file}"
+  else
+    secrets_key_path="${INSTANCE_DIR}/.secrets-master-key"
+  fi
+fi
+if [[ "${secrets_key_path}" != /* ]]; then
+  secrets_key_path="${ROOT_DIR}/${secrets_key_path}"
+fi
+mkdir -p "$(dirname "${secrets_key_path}")"
+if [[ ! -f "${secrets_key_path}" ]]; then
+  openssl rand 32 > "${secrets_key_path}"
+  chmod 600 "${secrets_key_path}"
+  echo "Chave mestra do cofre local gerada fora do volume de segredos."
+fi
+if [[ "$(wc -c < "${secrets_key_path}" | tr -d ' ')" != "32" ]]; then
+  echo "BIAWS_SECRETS_KEY_PATH deve apontar para um arquivo binário de 32 bytes." >&2
+  exit 1
+fi
+chmod 600 "${secrets_key_path}"
+replace_env_value "BIAWS_SECRETS_KEY_PATH" "${secrets_key_path}"
+replace_env_value "BIAWS_SECRETS_KEY_FILE" "${secrets_key_path}"
+
+secret_files_path="$(read_env_value "BIAWS_SECRET_FILES_PATH")"
+if [[ -n "${secret_files_path}" ]]; then
+  replace_env_value "BIAWS_SECRETS_DIR" "${secret_files_path}"
+fi
+
 admin_email="${BIAWS_BOOTSTRAP_ADMIN_EMAIL:-admin@example.com}"
 admin_name="${BIAWS_BOOTSTRAP_ADMIN_NAME:-Administrador}"
 
@@ -142,11 +173,19 @@ for attempt in $(seq 1 60); do
   sleep 2
 done
 
-compose exec -T \
-  -e "BIAWS_BOOTSTRAP_ADMIN_EMAIL=${admin_email}" \
-  -e "BIAWS_BOOTSTRAP_ADMIN_NAME=${admin_name}" \
-  -e "BIAWS_BOOTSTRAP_ADMIN_PASSWORD=${admin_password}" \
-  api npm run bootstrap:admin
+admin_output="$(
+  compose exec -T \
+    -e "BIAWS_BOOTSTRAP_ADMIN_EMAIL=${admin_email}" \
+    -e "BIAWS_BOOTSTRAP_ADMIN_NAME=${admin_name}" \
+    -e "BIAWS_BOOTSTRAP_ADMIN_PASSWORD=${admin_password}" \
+    api npm run bootstrap:admin
+)"
+printf '%s\n' "${admin_output}"
+admin_created="$(
+  printf '%s\n' "${admin_output}" |
+    awk -F= '$1 == "BIAWS_BOOTSTRAP_ADMIN_CREATED" { print $2 }' |
+    tail -n 1
+)"
 
 agent_api_key="$(read_env_value "ISSUE_API_KEY")"
 agent_output="$(
@@ -187,6 +226,17 @@ else
   setup_hint="Modo legado ativo. Prefira ./scripts/setup-agent.sh --instance <nome> em novas instalações."
 fi
 
+if [[ "${admin_created}" == "true" ]]; then
+  admin_summary="Administrador inicial:
+  E-mail: ${admin_email}
+  Senha:  ${admin_password}
+
+A senha inicial foi preservada em ${PASSWORD_FILE}, fora do Git.
+Troque-a pela UI após o primeiro acesso."
+else
+  admin_summary="Administrador ativo já existente; a senha não foi exibida."
+fi
+
 cat <<EOF
 
 Bondia Workspaces está disponível:
@@ -194,12 +244,7 @@ Bondia Workspaces está disponível:
   UI:  http://localhost:${ui_port}
   API: http://localhost:${api_port}
 
-Administrador inicial:
-  E-mail: ${admin_email}
-  Senha:  ${admin_password}
-
-A senha inicial foi preservada em ${PASSWORD_FILE}, fora do Git.
-Troque-a pela UI após o primeiro acesso.
+${admin_summary}
 
 A credencial técnica do MCP e do CLI foi gravada somente em ${ENV_FILE}.
 Workspace inicial da identidade técnica: ${agent_workspace_id}

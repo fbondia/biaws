@@ -23,6 +23,7 @@ MONGO_DATA_PATH=""
 ISSUE_FILES_PATH=""
 REQUEST_FILES_PATH=""
 PROCEDURE_FILES_PATH=""
+SECRET_FILES_PATH=""
 USE_DOCKER_VOLUMES=0
 SKIP_BOOTSTRAP=0
 LIST_INSTANCES=0
@@ -53,6 +54,7 @@ Opções:
   --issue-files-path <dir>   Diretório dos anexos de issues no host
   --request-files-path <dir> Diretório dos arquivos de requests no host
   --procedure-files-path <dir> Diretório dos arquivos de procedures no host
+  --secret-files-path <dir>  Diretório do cofre criptografado no host
   --use-docker-volumes       Usa volumes nomeados gerenciados pelo Docker
   --instances-dir <diretório> Diretório de dados; default: ./instances
   --skip-bootstrap           Configura apenas o cliente
@@ -354,6 +356,7 @@ validate_distinct_storage_paths() {
     "${ISSUE_FILES_PATH}"
     "${REQUEST_FILES_PATH}"
     "${PROCEDURE_FILES_PATH}"
+    "${SECRET_FILES_PATH}"
   )
   local first
   local second
@@ -529,6 +532,10 @@ while [[ "$#" -gt 0 ]]; do
       PROCEDURE_FILES_PATH="${2:-}"
       shift 2
       ;;
+    --secret-files-path)
+      SECRET_FILES_PATH="${2:-}"
+      shift 2
+      ;;
     --use-docker-volumes)
       USE_DOCKER_VOLUMES=1
       shift
@@ -625,9 +632,12 @@ existing_mongo_data_path="$(read_env_value "${ENV_FILE}" "BIAWS_MONGO_DATA_PATH"
 existing_issue_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_ISSUE_FILES_PATH")"
 existing_request_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_REQUEST_FILES_PATH")"
 existing_procedure_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_PROCEDURE_FILES_PATH")"
+existing_secret_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_SECRET_FILES_PATH")"
+existing_secrets_key_path="$(read_env_value "${ENV_FILE}" "BIAWS_SECRETS_KEY_PATH")"
+existing_secrets_key_file="$(read_env_value "${ENV_FILE}" "BIAWS_SECRETS_KEY_FILE")"
 
 if [[ "${USE_DOCKER_VOLUMES}" == "1" ]] &&
-  [[ -n "${STORAGE_DIR}${MONGO_DATA_PATH}${ISSUE_FILES_PATH}${REQUEST_FILES_PATH}${PROCEDURE_FILES_PATH}" ]]; then
+  [[ -n "${STORAGE_DIR}${MONGO_DATA_PATH}${ISSUE_FILES_PATH}${REQUEST_FILES_PATH}${PROCEDURE_FILES_PATH}${SECRET_FILES_PATH}" ]]; then
   echo "--use-docker-volumes não pode ser combinado com opções de diretório." >&2
   exit 2
 fi
@@ -637,6 +647,7 @@ if [[ "${USE_DOCKER_VOLUMES}" == "1" ]]; then
   ISSUE_FILES_PATH=""
   REQUEST_FILES_PATH=""
   PROCEDURE_FILES_PATH=""
+  SECRET_FILES_PATH=""
 else
   if [[ -n "${STORAGE_DIR}" ]]; then
     STORAGE_DIR="$(normalize_storage_path "${STORAGE_DIR}" "Diretório de armazenamento")"
@@ -644,12 +655,14 @@ else
     ISSUE_FILES_PATH="${ISSUE_FILES_PATH:-${STORAGE_DIR}/issues}"
     REQUEST_FILES_PATH="${REQUEST_FILES_PATH:-${STORAGE_DIR}/requests}"
     PROCEDURE_FILES_PATH="${PROCEDURE_FILES_PATH:-${STORAGE_DIR}/procedures}"
+    SECRET_FILES_PATH="${SECRET_FILES_PATH:-${STORAGE_DIR}/secrets}"
   fi
 
   MONGO_DATA_PATH="${MONGO_DATA_PATH:-${existing_mongo_data_path}}"
   ISSUE_FILES_PATH="${ISSUE_FILES_PATH:-${existing_issue_files_path}}"
   REQUEST_FILES_PATH="${REQUEST_FILES_PATH:-${existing_request_files_path}}"
   PROCEDURE_FILES_PATH="${PROCEDURE_FILES_PATH:-${existing_procedure_files_path}}"
+  SECRET_FILES_PATH="${SECRET_FILES_PATH:-${existing_secret_files_path}}"
 
   [[ -z "${MONGO_DATA_PATH}" ]] ||
     MONGO_DATA_PATH="$(normalize_storage_path "${MONGO_DATA_PATH}" "Diretório do MongoDB")"
@@ -659,6 +672,8 @@ else
     REQUEST_FILES_PATH="$(normalize_storage_path "${REQUEST_FILES_PATH}" "Diretório de requests")"
   [[ -z "${PROCEDURE_FILES_PATH}" ]] ||
     PROCEDURE_FILES_PATH="$(normalize_storage_path "${PROCEDURE_FILES_PATH}" "Diretório de procedures")"
+  [[ -z "${SECRET_FILES_PATH}" ]] ||
+    SECRET_FILES_PATH="$(normalize_storage_path "${SECRET_FILES_PATH}" "Diretório do cofre de segredos")"
 fi
 validate_distinct_storage_paths
 
@@ -666,11 +681,12 @@ if [[ "${new_instance}" != "1" ]] &&
   [[ "${MONGO_DATA_PATH}" != "${existing_mongo_data_path}" ||
     "${ISSUE_FILES_PATH}" != "${existing_issue_files_path}" ||
     "${REQUEST_FILES_PATH}" != "${existing_request_files_path}" ||
-    "${PROCEDURE_FILES_PATH}" != "${existing_procedure_files_path}" ]]; then
+    "${PROCEDURE_FILES_PATH}" != "${existing_procedure_files_path}" ||
+    "${SECRET_FILES_PATH}" != "${existing_secret_files_path}" ]]; then
   echo "Aviso: os destinos de armazenamento mudaram; dados existentes não são movidos automaticamente." >&2
 fi
 
-if [[ -z "${MONGO_DATA_PATH}${ISSUE_FILES_PATH}${REQUEST_FILES_PATH}${PROCEDURE_FILES_PATH}" ]]; then
+if [[ -z "${MONGO_DATA_PATH}${ISSUE_FILES_PATH}${REQUEST_FILES_PATH}${PROCEDURE_FILES_PATH}${SECRET_FILES_PATH}" ]]; then
   STORAGE_DESCRIPTION="volumes Docker gerenciados"
 else
   STORAGE_DESCRIPTION="bind mounts configurados no host"
@@ -731,6 +747,19 @@ replace_env_value "${ENV_FILE}" "BIAWS_MONGO_DATA_PATH" "${MONGO_DATA_PATH}"
 replace_env_value "${ENV_FILE}" "BIAWS_ISSUE_FILES_PATH" "${ISSUE_FILES_PATH}"
 replace_env_value "${ENV_FILE}" "BIAWS_REQUEST_FILES_PATH" "${REQUEST_FILES_PATH}"
 replace_env_value "${ENV_FILE}" "BIAWS_PROCEDURE_FILES_PATH" "${PROCEDURE_FILES_PATH}"
+replace_env_value "${ENV_FILE}" "BIAWS_SECRET_FILES_PATH" "${SECRET_FILES_PATH}"
+if [[ -n "${SECRET_FILES_PATH}" ]]; then
+  replace_env_value "${ENV_FILE}" "BIAWS_SECRETS_DIR" "${SECRET_FILES_PATH}"
+fi
+if [[ -n "${existing_secrets_key_path}" ]]; then
+  secrets_key_path="${existing_secrets_key_path}"
+elif [[ "${existing_secrets_key_file}" == /* ]]; then
+  secrets_key_path="${existing_secrets_key_file}"
+else
+  secrets_key_path="${INSTANCE_DIR}/.secrets-master-key"
+fi
+replace_env_value "${ENV_FILE}" "BIAWS_SECRETS_KEY_PATH" "${secrets_key_path}"
+replace_env_value "${ENV_FILE}" "BIAWS_SECRETS_KEY_FILE" "${secrets_key_path}"
 replace_env_value "${ENV_FILE}" "BIAWS_PUBLIC_URL" "http://localhost:${UI_PORT}"
 replace_env_value \
   "${ENV_FILE}" \

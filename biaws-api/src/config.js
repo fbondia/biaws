@@ -112,5 +112,22 @@ export function getServerConfig() {
       ),
       trustedProxies: readCsvEnv(["BETTER_AUTH_TRUSTED_PROXIES"], []),
     },
+    secrets: {
+      provider: readEnv(["BIAWS_SECRETS_PROVIDER"], "local"),
+      local: {
+        directory: path.resolve(
+          readEnv(
+            ["BIAWS_SECRET_FILES_PATH", "BIAWS_SECRETS_DIR"],
+            path.resolve(TOOL_DIR, "../secrets-data"),
+          ),
+        ),
+        keyFile: path.resolve(
+          readEnv(
+            ["BIAWS_SECRETS_KEY_PATH", "BIAWS_SECRETS_KEY_FILE"],
+            path.resolve(TOOL_DIR, "../.secrets-master-key"),
+          ),
+        ),
+      },
+    },
   };
 }

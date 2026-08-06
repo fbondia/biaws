@@ -9,6 +9,10 @@ import { fileURLToPath } from "node:url";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
 import {
+  collectTaxonomyIds,
+  filterTaxonomyForApplication,
+} from "../helpers/taxonomy.js";
+import {
   createIssue,
   saveIssueClassification,
 } from "../repositories/issuesRepository.js";
@@ -38,6 +42,16 @@ const DEMO_PROCEDURE_TITLE = "Primeiros passos no workspace";
 const DEMO_COLLECTION_NAME = "Demonstração";
 const DEMO_APPLICATION_KEY = "bondia-workspaces-demo";
 const DEMO_COMPONENT_KEY = "workspace-platform";
+
+export function demoCatalogSkipReason(application, component) {
+  if (application?.status && application.status !== "active") {
+    return "demo-application-archived";
+  }
+  if (component?.status && component.status !== "active") {
+    return "demo-component-archived";
+  }
+  return null;
+}
 
 function dateLabel(offsetDays = 0) {
   const date = new Date();
@@ -122,6 +136,15 @@ async function ensureCatalog(db) {
       actor,
     );
   }
+  const applicationSkipReason = demoCatalogSkipReason(application);
+  if (applicationSkipReason) {
+    return {
+      workspace,
+      application,
+      component: null,
+      skipped: applicationSkipReason,
+    };
+  }
   let component = await db
     .collection(COLLECTION_NAMES.APPLICATION_COMPONENTS)
     .findOne({
@@ -141,10 +164,71 @@ async function ensureCatalog(db) {
       actor,
     );
   }
-  return { workspace, application, component };
+  return {
+    workspace,
+    application,
+    component,
+    skipped: demoCatalogSkipReason(application, component),
+  };
 }
 
-async function ensureIssue(db, context, query) {
+function availableTags(taxonomyPackage, requested) {
+  const groups = new Map(
+    (taxonomyPackage?.tagGroups || []).map((group) => [
+      String(group.id),
+      new Set((group.tags || []).map(String)),
+    ]),
+  );
+  return Object.fromEntries(
+    Object.entries(requested).flatMap(([groupId, tagIds]) => {
+      const available = groups.get(groupId);
+      if (!available) return [];
+      const tags = tagIds.filter((tagId) => available.has(tagId));
+      return tags.length ? [[groupId, tags]] : [];
+    }),
+  );
+}
+
+export function buildDemoClassifications(taxonomyPackage, applicationId) {
+  const availableIds = new Set(
+    collectTaxonomyIds(
+      filterTaxonomyForApplication(
+        taxonomyPackage?.taxonomy || [],
+        applicationId,
+      ),
+    ),
+  );
+  const tags = availableTags(taxonomyPackage, {
+    ambiente: ["local"],
+    tratamento: ["analise"],
+  });
+  const procedureTags = availableTags(taxonomyPackage, {
+    ambiente: ["local"],
+    tratamento: ["documentacao"],
+  });
+  return {
+    issue: availableIds.has("integracao")
+      ? {
+          primaryTaxonomyId: "integracao",
+          secondaryTaxonomyIds: availableIds.has("automacao")
+            ? ["automacao"]
+            : [],
+          summary: "Exemplo de issue classificada para a experiência inicial.",
+          tags,
+          updatedBy: SEED_ACTOR,
+        }
+      : null,
+    procedure: availableIds.has("operacao")
+      ? {
+          primaryTaxonomyId: "operacao",
+          secondaryTaxonomyIds: availableIds.has("acesso") ? ["acesso"] : [],
+          tags: procedureTags,
+        }
+      : {},
+  };
+}
+
+async function ensureIssue(db, context, query, classification) {
   const existing = await db.collection(COLLECTION_NAMES.ISSUES).findOne({
     id: DEMO_ISSUE_ID,
     workspaceId: context.workspaceId,
@@ -178,22 +262,15 @@ async function ensureIssue(db, context, query) {
       );
   }
 
-  await saveIssueClassification(
-    DEMO_ISSUE_ID,
-    {
-      primaryTaxonomyId: "integracao",
-      secondaryTaxonomyIds: ["automacao"],
-      summary: "Exemplo de issue classificada para a experiência inicial.",
-      tags: {
-        ambiente: ["local"],
-        tratamento: ["analise"],
-      },
-      updatedBy: SEED_ACTOR,
-    },
-    query,
-  );
+  if (classification) {
+    await saveIssueClassification(DEMO_ISSUE_ID, classification, query);
+  }
 
-  return { created, id: DEMO_ISSUE_ID };
+  return {
+    created,
+    classificationApplied: Boolean(classification),
+    id: DEMO_ISSUE_ID,
+  };
 }
 
 async function ensureRequest(db, context, query) {
@@ -311,7 +388,7 @@ async function ensureRequest(db, context, query) {
   return { created, taskCreated: !task, id: requestId };
 }
 
-async function ensureProcedure(db, context, query) {
+async function ensureProcedure(db, context, query, classification) {
   let collection = await db
     .collection(COLLECTION_NAMES.PROCEDURE_COLLECTIONS)
     .findOne({
@@ -360,14 +437,7 @@ async function ensureProcedure(db, context, query) {
         "> Todos os registros deste seed são fictícios e podem ser removidos.",
       ].join("\n"),
       collectionId: collection.id,
-      classification: {
-        primaryTaxonomyId: "operacao",
-        secondaryTaxonomyIds: ["acesso"],
-        tags: {
-          ambiente: ["local"],
-          tratamento: ["documentacao"],
-        },
-      },
+      classification,
       createdBy: SEED_ACTOR,
       ...context,
     },
@@ -380,6 +450,17 @@ async function ensureProcedure(db, context, query) {
 export async function seedDemoData() {
   const db = await getMongoDatabase();
   const catalog = await ensureCatalog(db);
+  if (catalog.skipped) {
+    return {
+      database: db.databaseName,
+      skipped: catalog.skipped,
+      catalog: {
+        workspaceId: catalog.workspace.id,
+        applicationId: catalog.application.id,
+        componentId: catalog.component?.id || null,
+      },
+    };
+  }
   const query = { workspaceId: catalog.workspace.id };
   const optionLists = await listOptionLists(query);
   const taxonomy = await ensureTaxonomy(query);
@@ -388,10 +469,14 @@ export async function seedDemoData() {
     applicationId: catalog.application.id,
     affectedComponentIds: [catalog.component.id],
   };
+  const classifications = buildDemoClassifications(
+    taxonomy.taxonomy,
+    catalog.application.id,
+  );
   const [issue, request, procedure] = await Promise.all([
-    ensureIssue(db, context, query),
+    ensureIssue(db, context, query, classifications.issue),
     ensureRequest(db, context, query),
-    ensureProcedure(db, context, query),
+    ensureProcedure(db, context, query, classifications.procedure),
   ]);
 
   return {

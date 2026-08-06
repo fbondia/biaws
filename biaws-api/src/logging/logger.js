@@ -9,10 +9,13 @@ export function redactLogText(value) {
     .replace(/\b(Bearer\s+)[A-Za-z0-9._~+/=-]+/giu, "$1[REDACTED]")
     .replace(/\b(biaws_)[A-Za-z0-9_-]+/gu, "$1[REDACTED]")
     .replace(
-      /(["']?(?:password|secret|token|api[_-]?key)["']?\s*[:=]\s*["'])[^"']*(["'])/giu,
+      /(["']?(?:password|passwd|pwd|secret(?:value)?|client[_-]?secret|token|credential|authorization|api[_-]?key|private[_-]?key|connection[_-]?string)["']?\s*[:=]\s*["'])[^"']*(["'])/giu,
       "$1[REDACTED]$2",
     )
-    .replace(/\b(PASSWORD|SECRET|TOKEN|API_KEY)=([^\s,;]+)/gu, "$1=[REDACTED]");
+    .replace(
+      /\b(PASSWORD|SECRET|CLIENT_SECRET|TOKEN|CREDENTIAL|AUTHORIZATION|API_KEY|PRIVATE_KEY|CONNECTION_STRING)=([^\s,;]+)/gu,
+      "$1=[REDACTED]",
+    );
 }
 
 function serializeCause(cause, depth) {

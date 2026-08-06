@@ -48,10 +48,14 @@ Uma recuperação completa depende de dois conjuntos de dados:
 
 - MongoDB: identidades, sessões, autorizações, catálogo, conhecimento e
   auditoria;
-- volumes de anexos: `issue-files`, `request-files` e `procedure-files`.
+- volumes de anexos: `issue-files`, `request-files` e `procedure-files`;
+- cofre local: `secret-files`, contendo apenas versões criptografadas;
+- chave mestra do cofre: `.secrets-master-key`, mantida fora do volume.
 
 O backup do banco sem os volumes, ou dos volumes sem o banco, é incompleto.
 Pause escritas durante a cópia para manter referências e arquivos consistentes.
+O cofre sem sua chave mestra é irrecuperável; cofre e chave devem ser copiados
+para destinos protegidos diferentes.
 
 Por padrão, o Compose cria volumes nomeados gerenciados pelo Docker. Instâncias
 configuradas com `--storage-dir` ou com as opções específicas do setup usam bind
@@ -62,6 +66,8 @@ BIAWS_MONGO_DATA_PATH=/srv/biaws/meu-projeto/mongo
 BIAWS_ISSUE_FILES_PATH=/srv/biaws/meu-projeto/issues
 BIAWS_REQUEST_FILES_PATH=/srv/biaws/meu-projeto/requests
 BIAWS_PROCEDURE_FILES_PATH=/srv/biaws/meu-projeto/procedures
+BIAWS_SECRET_FILES_PATH=/srv/biaws/meu-projeto/secrets
+BIAWS_SECRETS_KEY_PATH=/srv/keys/biaws-meu-projeto.key
 ```
 
 Use `docker compose config` para confirmar os mounts efetivos antes de iniciar
@@ -104,18 +110,21 @@ docker run --rm \
   alpine tar -C /source -czf /backup/issue-files.tar.gz .
 ```
 
-Repita para `biaws_request-files` e `biaws_procedure-files`. O prefixo dos
+Repita para `biaws_request-files`, `biaws_procedure-files` e
+`biaws_secret-files`. O prefixo dos
 volumes acompanha `COMPOSE_PROJECT_NAME`; confirme os nomes com
 `docker volume ls` antes de executar.
 
-Quando a instância usa bind mounts, copie ou tire snapshot dos quatro diretórios
+Quando a instância usa bind mounts, copie ou tire snapshot dos cinco diretórios
 informados no `.env`, preservando permissões, timestamps e checksums. O
 `mongodump` continua recomendado para uma cópia lógica e portável do banco;
 copiar apenas o diretório físico do MongoDB enquanto ele está ativo não produz
 um backup consistente.
 
 Guarde banco, volumes, checksums, versão da aplicação e `.env` sanitizado no
-mesmo conjunto de recuperação. Nunca versione secrets nem a senha inicial.
+mesmo conjunto de recuperação. Preserve a chave do cofre em outro sistema de
+backup, com controle de acesso próprio. Nunca versione segredos, a chave mestra
+ou a senha inicial.
 
 ## Restauração ensaiada
 
@@ -141,7 +150,8 @@ docker compose exec -T mongo mongorestore \
   --drop < backups/biaws.archive.gz
 ```
 
-Restaure os três volumes correspondentes, suba API e UI e valide:
+Restaure os quatro volumes correspondentes, disponibilize separadamente a
+chave mestra correta do cofre, suba API e UI e valide:
 
 1. `GET /api/health`;
 2. login de um administrador;
@@ -149,6 +159,8 @@ Restaure os três volumes correspondentes, suba API e UI e valide:
 4. download de pelo menos um anexo de cada domínio utilizado;
 5. isolamento por workspace e aplicação;
 6. totais e registros recentes de auditoria.
+7. leitura de metadata e reveal controlado de um segredo de teste, quando o
+   cofre estiver em uso.
 
 Só substitua o ambiente original após essa validação. Um backup não ensaiado
 não deve ser tratado como recuperação garantida.

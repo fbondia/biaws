@@ -45,6 +45,9 @@ services:
       ISSUE_DIR: /data/issues
       REQUEST_DIR: /data/requests
       PROCEDURE_DIR: /data/procedures
+      BIAWS_SECRETS_PROVIDER: local
+      BIAWS_SECRETS_DIR: /data/secrets
+      BIAWS_SECRETS_KEY_FILE: /run/secrets/biaws-master-key
       ATTACHMENT_STORAGE_PROVIDER: local
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Execute ./scripts/bootstrap.sh para configurar o ambiente}
       BETTER_AUTH_URL: ${BIAWS_PUBLIC_URL:-http://localhost:4400}
@@ -58,6 +61,10 @@ services:
       - ${BIAWS_ISSUE_FILES_PATH:-issue-files}:/data/issues
       - ${BIAWS_REQUEST_FILES_PATH:-request-files}:/data/requests
       - ${BIAWS_PROCEDURE_FILES_PATH:-procedure-files}:/data/procedures
+      - ${BIAWS_SECRET_FILES_PATH:-secret-files}:/data/secrets
+    secrets:
+      - source: biaws_master_key
+        target: biaws-master-key
     healthcheck:
       test:
         [
@@ -94,3 +101,8 @@ volumes:
   issue-files:
   request-files:
   procedure-files:
+  secret-files:
+
+secrets:
+  biaws_master_key:
+    file: ${BIAWS_SECRETS_KEY_PATH:-.secrets-master-key}

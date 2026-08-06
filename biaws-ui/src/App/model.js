@@ -12,6 +12,7 @@ import {
   BookOpen,
   House,
   Settings,
+  KeyRound,
 } from "lucide-react";
 
 export const APP_VIEWS = [
@@ -112,6 +113,12 @@ export const NAVIGATION_GROUPS = [
         key: "access",
         label: "Acesso",
         views: [
+          {
+            key: "secrets",
+            label: "Segredos",
+            icon: KeyRound,
+            permission: "secrets.metadata.read",
+          },
           {
             key: "users",
             label: "Usuários",

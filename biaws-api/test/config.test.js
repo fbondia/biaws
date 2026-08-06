@@ -17,6 +17,10 @@ const MANAGED_KEYS = [
   "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS",
   "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS",
   "BETTER_AUTH_TRUSTED_PROXIES",
+  "BIAWS_SECRETS_DIR",
+  "BIAWS_SECRET_FILES_PATH",
+  "BIAWS_SECRETS_KEY_FILE",
+  "BIAWS_SECRETS_KEY_PATH",
 ];
 
 function preserveEnvironment() {
@@ -112,6 +116,22 @@ test("rate limit settings accept explicit overrides", () => {
       maxRequests: 42,
     });
     assert.deepEqual(config.auth.trustedProxies, ["10.0.0.0/8", "127.0.0.1"]);
+  } finally {
+    restore();
+  }
+});
+
+test("instance host paths take precedence for local secret access", () => {
+  const restore = preserveEnvironment();
+  try {
+    process.env.BIAWS_SECRETS_DIR = "/fallback/secrets";
+    process.env.BIAWS_SECRET_FILES_PATH = "/instance/secrets";
+    process.env.BIAWS_SECRETS_KEY_FILE = "/fallback/master.key";
+    process.env.BIAWS_SECRETS_KEY_PATH = "/instance/master.key";
+
+    const config = getServerConfig();
+    assert.equal(config.secrets.local.directory, "/instance/secrets");
+    assert.equal(config.secrets.local.keyFile, "/instance/master.key");
   } finally {
     restore();
   }

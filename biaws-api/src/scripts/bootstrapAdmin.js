@@ -32,6 +32,7 @@ async function run() {
     userId: result.user._id?.toString?.() || result.user.id,
     email: result.user.email,
   });
+  console.log(`BIAWS_BOOTSTRAP_ADMIN_CREATED=${result.created}`);
   console.log(`Default workspace ready: ${workspace.name} (${workspace.id})`);
 }
 

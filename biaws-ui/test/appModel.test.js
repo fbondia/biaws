@@ -38,7 +38,7 @@ test("navigation groups operational and administrative destinations", () => {
     ]),
     [
       ["Classificação", ["option-lists", "taxonomy"]],
-      ["Acesso", ["users", "groups"]],
+      ["Acesso", ["secrets", "users", "groups"]],
     ],
   );
   assert.equal(

@@ -1,0 +1,179 @@
+import {
+  Archive,
+  Check,
+  Copy,
+  Download,
+  Eye,
+  EyeOff,
+  File,
+  KeyRound,
+  Pencil,
+  RotateCw,
+} from "lucide-react";
+
+import { formatSecretBytes } from "../model.js";
+
+export function SecretCard({
+  applicationName,
+  canArchive,
+  canReveal,
+  canUpdate,
+  canWrite,
+  copied,
+  onArchive,
+  onCopyValue,
+  onDownload,
+  onEdit,
+  onReveal,
+  onToggleValue,
+  onVersion,
+  revealed,
+  secret,
+  showValue,
+}) {
+  const isFile = secret.contentKind === "file";
+  return (
+    <article className="securityPanel secretCard">
+      <header className="secretCardHeader">
+        <span className="secretKindIcon" aria-hidden="true">
+          {isFile ? <File size={20} /> : <KeyRound size={20} />}
+        </span>
+        <div className="secretCardIdentity">
+          <strong>{secret.name}</strong>
+        </div>
+        <div className="secretCardBadges">
+          <span className="typeBadge">{secret.type}</span>
+          <span className="secretFormatBadge">
+            {isFile ? "Arquivo" : "Texto"}
+          </span>
+        </div>
+      </header>
+      {secret.description ? (
+        <p className="secretDescription">{secret.description}</p>
+      ) : null}
+      <div className="secretIdentifier">
+        <span>Identificação técnica</span>
+        <code title={secret.identifier}>{secret.identifier}</code>
+        <button
+          aria-label={`Copiar identificação ${secret.identifier}`}
+          className="iconButton"
+          onClick={() => navigator.clipboard.writeText(secret.identifier)}
+          type="button"
+        >
+          <Copy size={14} />
+        </button>
+      </div>
+      <dl className="secretMetadataGrid">
+        <div>
+          <dt>Ambiente</dt>
+          <dd>{secret.environment || "Não informado"}</dd>
+        </div>
+        <div>
+          <dt>Escopo</dt>
+          <dd>{applicationName || "Workspace inteiro"}</dd>
+        </div>
+        <div>
+          <dt>Versão</dt>
+          <dd>{secret.currentVersion}</dd>
+        </div>
+      </dl>
+      {isFile ? (
+        <div className="secretFileMetadata">
+          <File size={17} />
+          <div>
+            <strong>{secret.file?.name || "Arquivo secreto"}</strong>
+            <small>
+              {formatSecretBytes(secret.file?.size)} ·{" "}
+              {secret.file?.mediaType || "application/octet-stream"}
+            </small>
+          </div>
+        </div>
+      ) : null}
+      {revealed ? (
+        <div className="secretNotice secretRevealedValue">
+          <div>
+            <strong>Valor carregado</strong>
+            <span>Permanece mascarado até você selecionar “Mostrar”.</span>
+          </div>
+          <code
+            aria-label={showValue ? "Valor visível" : "Valor oculto"}
+            className={!showValue ? "isMasked" : undefined}
+          >
+            {showValue ? revealed.value : "••••••••••••"}
+          </code>
+          <div className="securityActions">
+            <button
+              className="secondaryButton"
+              onClick={onToggleValue}
+              type="button"
+            >
+              {showValue ? <EyeOff size={15} /> : <Eye size={15} />}
+              {showValue ? "Ocultar" : "Mostrar"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+      <footer className="secretCardActions">
+        <div
+          aria-label="Ações do conteúdo"
+          className="securityActions secretContentActions"
+          role="group"
+        >
+          {canReveal && isFile ? (
+            <button
+              className="primaryButton"
+              onClick={onDownload}
+              type="button"
+            >
+              <Download size={15} /> Baixar
+            </button>
+          ) : null}
+          {canReveal && !isFile ? (
+            <>
+              <button
+                className="primaryButton"
+                onClick={onCopyValue}
+                type="button"
+              >
+                {copied ? <Check size={15} /> : <Copy size={15} />}
+                {copied ? "Copiado" : "Copiar"}
+              </button>
+              <button
+                className="secondaryButton"
+                onClick={onReveal}
+                type="button"
+              >
+                <Eye size={15} /> Revelar
+              </button>
+            </>
+          ) : null}
+        </div>
+        <div
+          aria-label="Ações de gestão"
+          className="securityActions secretManagementActions"
+          role="group"
+        >
+          {canUpdate ? (
+            <button className="secondaryButton" onClick={onEdit} type="button">
+              <Pencil size={15} /> Editar
+            </button>
+          ) : null}
+          {canWrite ? (
+            <button
+              className="secondaryButton"
+              onClick={onVersion}
+              type="button"
+            >
+              <RotateCw size={15} /> Nova versão
+            </button>
+          ) : null}
+          {canArchive ? (
+            <button className="dangerButton" onClick={onArchive} type="button">
+              <Archive size={15} /> Arquivar
+            </button>
+          ) : null}
+        </div>
+      </footer>
+    </article>
+  );
+}

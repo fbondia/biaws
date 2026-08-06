@@ -70,10 +70,18 @@ export function writeSecretFile(secretId, file) {
 }
 
 export function revealSecretValue(secretId) {
+  return retrieveSecretValue(secretId, "reveal", "Carregando segredo…");
+}
+
+export function copySecretValue(secretId) {
+  return retrieveSecretValue(secretId, "copy", "Copiando segredo…");
+}
+
+function retrieveSecretValue(secretId, action, loadingLabel) {
   return runWithGlobalLoading(
     async () => {
       const response = await fetch(
-        buildUrl(`/api/secrets/${encodeURIComponent(secretId)}/reveal`),
+        buildUrl(`/api/secrets/${encodeURIComponent(secretId)}/${action}`),
         {
           method: "POST",
           cache: "no-store",
@@ -84,7 +92,7 @@ export function revealSecretValue(secretId) {
       );
       return readPayload(response);
     },
-    "Revelando segredo…",
+    loadingLabel,
     { priority: 0 },
   );
 }

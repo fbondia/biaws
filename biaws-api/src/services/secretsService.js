@@ -142,6 +142,7 @@ export async function createSecret(payload, actor) {
     payload,
     new Set([
       "name",
+      "identifier",
       "description",
       "type",
       "environment",
@@ -186,7 +187,14 @@ export async function createSecret(payload, actor) {
 export async function createFileSecret(payload, file, actor) {
   assertAllowedFields(
     payload,
-    new Set(["name", "description", "type", "environment", "applicationId"]),
+    new Set([
+      "name",
+      "identifier",
+      "description",
+      "type",
+      "environment",
+      "applicationId",
+    ]),
   );
   assertScope(actor, "secrets.create", payload.applicationId || null);
   assertScope(actor, "secrets.value.write", payload.applicationId || null);
@@ -219,7 +227,7 @@ export async function createFileSecret(payload, file, actor) {
 export async function updateSecret(secretId, payload, actor) {
   assertAllowedFields(
     payload,
-    new Set(["name", "description", "type", "environment"]),
+    new Set(["name", "description", "type", "environment", "applicationId"]),
   );
   const { document, scope } = await requiredSecret(
     secretId,
@@ -227,6 +235,10 @@ export async function updateSecret(secretId, payload, actor) {
     "secrets.update",
   );
   assertScope(actor, "secrets.update", document.applicationId);
+  const targetApplicationId = Object.hasOwn(payload, "applicationId")
+    ? payload.applicationId || null
+    : document.applicationId;
+  assertScope(actor, "secrets.update", targetApplicationId);
   return updateSecretDocument(document, payload, actor, scope);
 }
 

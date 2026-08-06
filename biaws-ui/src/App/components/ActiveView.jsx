@@ -11,7 +11,7 @@ import { SkillsView } from "../../components/skills/SkillsView/index.jsx";
 import { IssueTaxonomyManager } from "../../components/taxonomy/IssueTaxonomyManager/index.jsx";
 import { HomeView } from "../../components/home/HomeView.jsx";
 import { WorkspaceAdminView } from "../../components/platform/WorkspaceAdminView.jsx";
-import { SecretsView } from "../../components/secrets/SecretsView.jsx";
+import { SecretsView } from "../../components/secrets/SecretsView/index.jsx";
 
 export function ActiveView({
   activeView,

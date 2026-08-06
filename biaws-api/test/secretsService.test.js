@@ -36,6 +36,13 @@ test("metadata updates cannot smuggle a new secret value", async () => {
   );
 });
 
+test("secret identifiers cannot be changed after creation", async () => {
+  await assert.rejects(
+    updateSecret("secret-a", { identifier: "replacement" }, actor),
+    { code: "INVALID_SECRET" },
+  );
+});
+
 test("secret file metadata is normalized without exposing its content", () => {
   assert.deepEqual(
     normalizeSecretFile({

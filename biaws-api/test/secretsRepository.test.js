@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  normalizeSecretIdentifier,
   normalizeSecretPayload,
   publicSecret,
 } from "../src/repositories/secretsRepository.js";
@@ -9,12 +10,14 @@ import {
 test("secret metadata validation accepts supported values", () => {
   assert.deepEqual(
     normalizeSecretPayload({
+      identifier: " GitHub.Token-Production ",
       name: " GitHub Produção ",
       description: "Token do deploy",
       type: "token",
       environment: "production",
     }),
     {
+      identifier: "github.token-production",
       name: "GitHub Produção",
       normalizedName: "github produção",
       description: "Token do deploy",
@@ -22,6 +25,16 @@ test("secret metadata validation accepts supported values", () => {
       environment: "production",
     },
   );
+});
+
+test("secret identifiers are normalized and reject ambiguous values", () => {
+  assert.equal(normalizeSecretIdentifier(" Deploy_Key.01 "), "deploy_key.01");
+  assert.throws(() => normalizeSecretIdentifier("a"), {
+    code: "INVALID_SECRET_IDENTIFIER",
+  });
+  assert.throws(() => normalizeSecretIdentifier("deploy key"), {
+    code: "INVALID_SECRET_IDENTIFIER",
+  });
 });
 
 test("public secret never exposes locators or encrypted version data", () => {
@@ -50,6 +63,7 @@ test("public secret never exposes locators or encrypted version data", () => {
   });
 
   assert.equal(result.versionCount, 1);
+  assert.equal(result.identifier, "secret-a");
   assert.equal(result.contentKind, "file");
   assert.deepEqual(result.file, {
     name: "production.env",

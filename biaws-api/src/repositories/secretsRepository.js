@@ -12,6 +12,7 @@ const SECRET_TYPES = new Set([
   "generic",
 ]);
 const SECRET_ENVIRONMENTS = new Set([...DEPLOYMENT_ENVIRONMENTS, ""]);
+const SECRET_IDENTIFIER_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{0,98}[a-z0-9])$/u;
 let collectionPromise;
 
 function secretError(statusCode, code, message) {
@@ -23,6 +24,20 @@ function secretError(statusCode, code, message) {
 
 function normalizedName(value) {
   return value.trim().toLocaleLowerCase("pt-BR");
+}
+
+export function normalizeSecretIdentifier(value) {
+  const identifier = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (!SECRET_IDENTIFIER_PATTERN.test(identifier)) {
+    throw secretError(
+      422,
+      "INVALID_SECRET_IDENTIFIER",
+      "identifier must contain 2 to 100 lowercase letters, numbers, dots, underscores or hyphens, starting and ending with a letter or number",
+    );
+  }
+  return identifier;
 }
 
 function requiredText(value, field, maxLength) {
@@ -62,6 +77,9 @@ export function normalizeSecretPayload(payload = {}, current = null) {
     throw secretError(422, "INVALID_SECRET", "environment is invalid");
   }
   return {
+    identifier: normalizeSecretIdentifier(
+      payload.identifier ?? current?.identifier ?? current?.id,
+    ),
     name,
     normalizedName: normalizedName(name),
     description: optionalText(
@@ -84,6 +102,7 @@ export function publicSecret(document) {
     applicationId: document.applicationId
       ? String(document.applicationId)
       : null,
+    identifier: document.identifier || String(document.id),
     name: document.name,
     description: document.description || "",
     type: document.type,
@@ -119,6 +138,13 @@ async function getCollections() {
           { workspaceId: 1, applicationId: 1, normalizedName: 1 },
           { unique: true },
         ),
+        secrets.createIndex(
+          { workspaceId: 1, identifier: 1 },
+          {
+            unique: true,
+            partialFilterExpression: { identifier: { $type: "string" } },
+          },
+        ),
         secrets.createIndex({ workspaceId: 1, status: 1, name: 1, id: 1 }),
       ]);
       return {
@@ -148,6 +174,22 @@ async function assertApplication(applicationId, workspaceId) {
       "applicationId must reference an active application in the workspace",
     );
   }
+}
+
+function duplicateSecretError(error) {
+  if (error?.code !== 11000) throw error;
+  if (error?.keyPattern?.identifier) {
+    throw secretError(
+      409,
+      "SECRET_IDENTIFIER_CONFLICT",
+      "A secret with this identifier already exists in the workspace",
+    );
+  }
+  throw secretError(
+    409,
+    "SECRET_NAME_CONFLICT",
+    "A secret with this name already exists in the selected scope",
+  );
 }
 
 function accessFilter({ workspaceId, workspace, applicationIds }) {
@@ -248,14 +290,7 @@ export async function createSecretDocument(
   try {
     await secrets.insertOne(document);
   } catch (error) {
-    if (error?.code === 11000) {
-      throw secretError(
-        409,
-        "SECRET_NAME_CONFLICT",
-        "A secret with this name already exists in the selected scope",
-      );
-    }
-    throw error;
+    duplicateSecretError(error);
   }
   return publicSecret(document);
 }
@@ -268,6 +303,12 @@ export async function updateSecretDocument(
 ) {
   const { secrets } = await getCollections();
   const metadata = normalizeSecretPayload(payload, current);
+  const applicationId = Object.hasOwn(payload, "applicationId")
+    ? payload.applicationId
+      ? String(payload.applicationId)
+      : null
+    : current.applicationId || null;
+  await assertApplication(applicationId, current.workspaceId);
   try {
     const document = await secrets.findOneAndUpdate(
       {
@@ -278,6 +319,7 @@ export async function updateSecretDocument(
       {
         $set: {
           ...metadata,
+          applicationId,
           updatedAt: new Date(),
           updatedBy: actor.userId,
         },
@@ -289,14 +331,7 @@ export async function updateSecretDocument(
     }
     return publicSecret(document);
   } catch (error) {
-    if (error?.code === 11000) {
-      throw secretError(
-        409,
-        "SECRET_NAME_CONFLICT",
-        "A secret with this name already exists in the selected scope",
-      );
-    }
-    throw error;
+    duplicateSecretError(error);
   }
 }
 

@@ -11,6 +11,8 @@ O servidor separa os domínios:
 - `demands_*`: melhorias, especificações, jornadas, prazos e contexto para desenvolvimento.
 - `procedures_*`: procedimentos operacionais em Markdown, com tags e classificação taxonômica compartilhadas com issues.
 - `secrets_*`: consulta e registro de metadados de segredos, sem acesso aos valores.
+- `resource_collections_*` e `*_move_to_collection`: organização hierárquica
+  de aplicações, procedimentos, segredos, skills e servidores.
 
 O carregamento de ambiente usa o `shared/loadEnv.js` do próprio repositório. O MCP conversa com a `biaws-api` por HTTP e não acessa diretamente o mecanismo de armazenamento.
 
@@ -88,6 +90,24 @@ suas validações de escopo, relações, permissões e auditoria. Integrações
 apontam para outra aplicação ativa do mesmo workspace e preservam o destino
 imutável. Arquivamento não
 é exposto pelo MCP nesta fase.
+
+### Coleções de recursos
+
+- `resource_collections_list`: lista a árvore de um tipo de recurso;
+- `resource_collections_create`: cria uma coleção na raiz ou sob outra coleção;
+- `resource_collections_update`: renomeia ou reparenta uma coleção;
+- `resource_collections_delete`: exclui somente uma coleção vazia, sem
+  subcoleções nem itens vinculados;
+- `applications_move_to_collection`, `servers_move_to_collection`,
+  `secrets_move_to_collection`, `skills_move_to_collection` e
+  `procedures_move_to_collection`: movem um item para uma coleção validada ou
+  para a raiz quando `collectionId` é vazio.
+
+As quatro ferramentas `resource_collections_*` aceitam `resourceType` com os
+valores `applications`, `procedures`, `secrets`, `skills` ou `servers`.
+Procedimentos usam sua árvore própria na API; os demais recursos usam a árvore
+compartilhada por tipo. Todas as mutações mantêm as validações contra ciclos,
+escopo do workspace, permissões e auditoria da API.
 
 `applications_get_context` entrega, em uma única consulta, a aplicação,
 integrações, componentes, repositórios, deployments, runtimes, servidores referenciados e

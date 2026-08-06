@@ -7,7 +7,12 @@ test("secret MCP schemas never accept secret contents", () => {
   const tools = listTools().filter(({ name }) => name.startsWith("secrets_"));
   assert.deepEqual(
     tools.map(({ name }) => name),
-    ["secrets_list", "secrets_get", "secrets_register"],
+    [
+      "secrets_move_to_collection",
+      "secrets_list",
+      "secrets_get",
+      "secrets_register",
+    ],
   );
   function propertyNames(schema) {
     return [

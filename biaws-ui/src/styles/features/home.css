@@ -470,39 +470,6 @@
   flex: 0 0 auto;
 }
 
-.homeHealthSummary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-
-.homeHealthSummary > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid;
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
-  font-size: 0.78rem;
-}
-
-.homeHealthSummary strong {
-  font-size: 1.4rem;
-}
-
-.homeHealthToolbar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}
-
-.homeHealthToolbar .secondaryButton {
-  min-height: 32px;
-  padding: 6px 9px;
-  font-size: 0.72rem;
-}
-
 .homeHealthRuntimeCard {
   background: var(--color-surface);
 }
@@ -551,6 +518,24 @@
 .homeHealthRuntimeTabs button small {
   color: var(--color-text-subtle);
   font-size: 0.64rem;
+}
+
+.homeHealthRuntimeTabHeading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.homeHealthRuntimeAlertBadge {
+  border-radius: 999px;
+  background: #fff1f1;
+  color: #8f1d1d;
+  padding: 2px 5px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .homeHealthRuntimeTabs button.isActive {
@@ -609,18 +594,6 @@
   padding: var(--space-4) 0;
   font-size: 0.7rem;
   text-align: center;
-}
-
-.homeHealthOk {
-  border-color: #b8e7c8 !important;
-  background: #edf9f2;
-  color: #17633d;
-}
-
-.homeHealthNok {
-  border-color: #efb4b4 !important;
-  background: #fff1f1;
-  color: #8f1d1d;
 }
 
 .homeWidgetEmpty,
@@ -877,6 +850,12 @@
   display: grid;
   gap: var(--space-4);
   padding: var(--space-5);
+}
+
+.homeConfigurationHint {
+  color: var(--color-text-subtle);
+  font-size: 0.7rem;
+  line-height: 1.35;
 }
 
 .homeConfigurationDialog > footer {

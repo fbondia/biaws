@@ -2,12 +2,9 @@ import {
   Activity,
   BarChart3,
   CheckCircle2,
-  CircleAlert,
   ChevronDown,
   Clock3,
   ClipboardList,
-  Eye,
-  EyeOff,
   GripVertical,
   LayoutDashboard,
   Plus,
@@ -79,16 +76,26 @@ function applicationRuntimes(application) {
   );
 }
 
-function HealthMetadataExplorer({ applications, onSelectRuntime }) {
+function HealthMetadataExplorer({
+  applications,
+  hideTabs,
+  onSelectRuntime,
+  selectedApplicationId,
+  selectedRuntimeId,
+}) {
   const [applicationId, setApplicationId] = useState(
     () => applications[0]?.id || "",
   );
   const [runtimeId, setRuntimeId] = useState("");
   const activeApplication =
-    applications.find(({ id }) => id === applicationId) || applications[0];
+    applications.find(({ id }) => id === selectedApplicationId) ||
+    applications.find(({ id }) => id === applicationId) ||
+    applications[0];
   const runtimes = applicationRuntimes(activeApplication);
   const activeRuntime =
-    runtimes.find(({ id }) => id === runtimeId) || runtimes[0];
+    runtimes.find(({ id }) => id === selectedRuntimeId) ||
+    runtimes.find(({ id }) => id === runtimeId) ||
+    runtimes[0];
 
   function selectApplication(application) {
     setApplicationId(application.id);
@@ -103,45 +110,58 @@ function HealthMetadataExplorer({ applications, onSelectRuntime }) {
 
   return (
     <section className="homeHealthMetadataExplorer">
-      <div
-        aria-label="Aplicações monitoradas"
-        className="homeHealthApplicationTabs"
-        role="tablist"
-      >
-        {applications.map((application) => (
-          <button
-            aria-selected={application.id === activeApplication.id}
-            className={
-              application.id === activeApplication.id ? "isActive" : undefined
-            }
-            key={application.id}
-            onClick={() => selectApplication(application)}
-            role="tab"
-            type="button"
+      {!hideTabs ? (
+        <>
+          <div
+            aria-label="Aplicações monitoradas"
+            className="homeHealthApplicationTabs"
+            role="tablist"
           >
-            {application.name}
-          </button>
-        ))}
-      </div>
-      <div
-        aria-label={`Runtimes de ${activeApplication.name}`}
-        className="homeHealthRuntimeTabs"
-        role="tablist"
-      >
-        {runtimes.map((runtime) => (
-          <button
-            aria-selected={runtime.id === activeRuntime.id}
-            className={runtime.id === activeRuntime.id ? "isActive" : undefined}
-            key={runtime.id}
-            onClick={() => setRuntimeId(runtime.id)}
-            role="tab"
-            type="button"
+            {applications.map((application) => (
+              <button
+                aria-selected={application.id === activeApplication.id}
+                className={
+                  application.id === activeApplication.id
+                    ? "isActive"
+                    : undefined
+                }
+                key={application.id}
+                onClick={() => selectApplication(application)}
+                role="tab"
+                type="button"
+              >
+                {application.name}
+              </button>
+            ))}
+          </div>
+          <div
+            aria-label={`Runtimes de ${activeApplication.name}`}
+            className="homeHealthRuntimeTabs"
+            role="tablist"
           >
-            <span>{runtime.name}</span>
-            <small>{runtime.deploymentName}</small>
-          </button>
-        ))}
-      </div>
+            {runtimes.map((runtime) => (
+              <button
+                aria-selected={runtime.id === activeRuntime.id}
+                className={
+                  runtime.id === activeRuntime.id ? "isActive" : undefined
+                }
+                key={runtime.id}
+                onClick={() => setRuntimeId(runtime.id)}
+                role="tab"
+                type="button"
+              >
+                <span className="homeHealthRuntimeTabHeading">
+                  <span>{runtime.name}</span>
+                  {runtime.status !== "healthy" ? (
+                    <span className="homeHealthRuntimeAlertBadge">Não OK</span>
+                  ) : null}
+                </span>
+                <small>{runtime.deploymentName}</small>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
       <div className="homeHealthMetadataPanel" role="tabpanel">
         <header>
           <div>
@@ -182,13 +202,7 @@ function HealthMetadataExplorer({ applications, onSelectRuntime }) {
   );
 }
 
-function WidgetContent({
-  data,
-  onRefresh,
-  onSelectRuntime,
-  refreshing = false,
-}) {
-  const [showMetadata, setShowMetadata] = useState(false);
+function WidgetContent({ config, data, onSelectRuntime }) {
   if (!data) {
     return (
       <div className="homeWidgetPending">
@@ -250,47 +264,21 @@ function WidgetContent({
     );
   }
   if (data.kind === "health") {
+    const presentation =
+      config?.runtimeId || config?.presentation === "tabs" ? "tabs" : "list";
     return (
       <div className="homeHealthWidget">
-        <div className="homeHealthSummary">
-          <span className="homeHealthOk">
-            <CheckCircle2 size={18} /> <strong>{data.ok}</strong> runtimes OK
-          </span>
-          <span className="homeHealthNok">
-            <CircleAlert size={18} /> <strong>{data.nok}</strong> runtimes NOK
-          </span>
-        </div>
-        <div className="homeHealthToolbar">
-          <button
-            className="secondaryButton"
-            onClick={() => setShowMetadata((current) => !current)}
-            type="button"
-          >
-            {showMetadata ? <EyeOff size={15} /> : <Eye size={15} />}
-            {showMetadata ? "Ocultar metadados" : "Mostrar metadados"}
-          </button>
-          <button
-            aria-label="Atualizar widget de monitoramento"
-            className="secondaryButton"
-            disabled={refreshing}
-            onClick={() => void onRefresh?.()}
-            type="button"
-          >
-            <RefreshCw
-              className={refreshing ? "spinIcon" : undefined}
-              size={15}
-            />
-            {refreshing ? "Atualizando…" : "Atualizar widget"}
-          </button>
-        </div>
         {!data.items?.length ? (
           <div className="homeWidgetEmpty">
             Nenhum runtime com sinais de monitoramento.
           </div>
-        ) : showMetadata ? (
+        ) : presentation === "tabs" ? (
           <HealthMetadataExplorer
             applications={data.items}
+            hideTabs={Boolean(config?.runtimeId)}
             onSelectRuntime={onSelectRuntime}
+            selectedApplicationId={config?.applicationId}
+            selectedRuntimeId={config?.runtimeId}
           />
         ) : (
           <div className="homeHealthApplications">
@@ -582,6 +570,51 @@ function ConfigurationDialog({
   const [config, setConfig] = useState(() => ({
     ...(instance?.config || {}),
   }));
+  const selectedApplication = applications.find(
+    ({ id }) => id === config.applicationId,
+  );
+  const selectedComponent = selectedApplication?.components?.find(
+    ({ id }) => id === config.componentId,
+  );
+  const selectedDeployment = selectedComponent?.deployments?.find(
+    ({ id }) => id === config.deploymentId,
+  );
+
+  function fieldOptions(field) {
+    if (field.type === "application") return applications;
+    if (field.type === "component")
+      return selectedApplication?.components || [];
+    if (field.type === "deployment")
+      return selectedComponent?.deployments || [];
+    if (field.type === "runtime") return selectedDeployment?.runtimes || [];
+    return field.options || [];
+  }
+
+  function fieldIsVisible(field) {
+    if (field.type === "component") return Boolean(selectedApplication);
+    if (field.type === "deployment") return Boolean(selectedComponent);
+    if (field.type === "runtime") return Boolean(selectedDeployment);
+    return true;
+  }
+
+  function updateConfigurationField(field, value) {
+    setConfig((current) => {
+      const next = { ...current, [field.key]: value };
+      if (field.type === "application") {
+        next.componentId = "";
+        next.deploymentId = "";
+        next.runtimeId = "";
+      } else if (field.type === "component") {
+        next.deploymentId = "";
+        next.runtimeId = "";
+      } else if (field.type === "deployment") {
+        next.runtimeId = "";
+      } else if (field.type === "runtime" && value) {
+        next.presentation = "tabs";
+      }
+      return next;
+    });
+  }
   return (
     <div className="dialogBackdrop homeDialogBackdrop">
       <section
@@ -604,37 +637,40 @@ function ConfigurationDialog({
           </button>
         </header>
         <div className="homeConfigurationFields">
-          {(definition.configuration?.fields || []).map((field) => (
-            <label className="field" key={field.key}>
-              <span>{field.label}</span>
-              <select
-                onChange={(event) =>
-                  setConfig((current) => ({
-                    ...current,
-                    [field.key]: event.target.value,
-                  }))
-                }
-                value={config[field.key] || ""}
-              >
-                {!field.required ? (
-                  <option value="">
-                    {field.emptyLabel || "Não informado"}
-                  </option>
+          {(definition.configuration?.fields || [])
+            .filter(fieldIsVisible)
+            .map((field) => (
+              <label className="field" key={field.key}>
+                <span>{field.label}</span>
+                <select
+                  disabled={field.key === "presentation" && config.runtimeId}
+                  onChange={(event) =>
+                    updateConfigurationField(field, event.target.value)
+                  }
+                  value={config[field.key] || ""}
+                >
+                  {!field.required ? (
+                    <option value="">
+                      {field.emptyLabel || "Não informado"}
+                    </option>
+                  ) : null}
+                  {fieldOptions(field).map((option) => (
+                    <option
+                      key={option.value || option.id}
+                      value={option.value || option.id}
+                    >
+                      {option.label || option.name}
+                    </option>
+                  ))}
+                </select>
+                {field.key === "presentation" && config.runtimeId ? (
+                  <small className="homeConfigurationHint">
+                    Um runtime específico é apresentado diretamente com seus
+                    metadados.
+                  </small>
                 ) : null}
-                {field.type === "application"
-                  ? applications.map((application) => (
-                      <option key={application.id} value={application.id}>
-                        {application.name}
-                      </option>
-                    ))
-                  : (field.options || []).map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-              </select>
-            </label>
-          ))}
+              </label>
+            ))}
         </div>
         <footer>
           <button className="secondaryButton" onClick={onClose} type="button">
@@ -990,10 +1026,9 @@ export function HomeView() {
                 </header>
                 <div className="homeWidgetBody">
                   <WidgetContent
+                    config={instance.config}
                     data={dashboard.data[instance.id]}
-                    onRefresh={load}
                     onSelectRuntime={setMonitoringRuntime}
-                    refreshing={loading}
                   />
                 </div>
               </article>

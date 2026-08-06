@@ -30,6 +30,13 @@ test("home catalog starts with extensible configured widget definitions", () => 
   assert.equal(monitoring.configuration.fields[0].type, "application");
   assert.equal(monitoring.configuration.fields[1].key, "environment");
   assert.equal(monitoring.configuration.fields[1].type, "select");
+  const presentationField = monitoring.configuration.fields.find(
+    ({ key }) => key === "presentation",
+  );
+  assert.deepEqual(
+    presentationField.options.map(({ value }) => value),
+    ["list", "tabs"],
+  );
 });
 
 test("default home follows permissions and creates separate period instances", () => {
@@ -72,6 +79,7 @@ test("home configuration accepts repeated widget types with unique instances", (
   assert.equal(widgets.length, 3);
   assert.equal(widgets[2].config.applicationId, "billing");
   assert.equal(widgets[2].config.environment, "production");
+  assert.equal(widgets[2].config.presentation, "list");
   assert.equal(widgets[2].size, "medium-2");
 });
 
@@ -89,6 +97,41 @@ test("home configuration accepts every grid size and migrates legacy medium", ()
   assert.deepEqual(
     widgets.map(({ size }) => size),
     ["small", "medium-1", "medium-2", "large", "medium-2"],
+  );
+});
+
+test("runtime health filter follows its hierarchy and forces tabs", () => {
+  const [widget] = normalizeHomeWidgets(
+    [
+      {
+        id: "runtime-health",
+        widgetId: "application-health",
+        config: {
+          applicationId: "application-1",
+          componentId: "component-1",
+          deploymentId: "deployment-1",
+          runtimeId: "runtime-1",
+          presentation: "list",
+        },
+      },
+    ],
+    actor,
+  );
+  assert.equal(widget.config.runtimeId, "runtime-1");
+  assert.equal(widget.config.presentation, "tabs");
+  assert.throws(
+    () =>
+      normalizeHomeWidgets(
+        [
+          {
+            id: "invalid-runtime-health",
+            widgetId: "application-health",
+            config: { applicationId: "application-1", runtimeId: "runtime-1" },
+          },
+        ],
+        actor,
+      ),
+    (error) => error.code === "INVALID_HOME_CONFIGURATION",
   );
 });
 
@@ -115,6 +158,20 @@ test("home configuration rejects unauthorized widgets and invalid config", () =>
             id: "period",
             widgetId: "issues-period",
             config: { period: "year" },
+          },
+        ],
+        actor,
+      ),
+    (error) => error.code === "INVALID_HOME_CONFIGURATION",
+  );
+  assert.throws(
+    () =>
+      normalizeHomeWidgets(
+        [
+          {
+            id: "health",
+            widgetId: "application-health",
+            config: { presentation: "cards" },
           },
         ],
         actor,

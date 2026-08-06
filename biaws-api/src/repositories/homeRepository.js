@@ -97,6 +97,37 @@ export const HOME_WIDGET_CATALOG = Object.freeze([
             { value: "other", label: "Outro" },
           ],
         },
+        {
+          key: "componentId",
+          label: "Componente",
+          type: "component",
+          required: false,
+          emptyLabel: "Todos os componentes",
+        },
+        {
+          key: "deploymentId",
+          label: "Deployment",
+          type: "deployment",
+          required: false,
+          emptyLabel: "Todos os deployments",
+        },
+        {
+          key: "runtimeId",
+          label: "Runtime",
+          type: "runtime",
+          required: false,
+          emptyLabel: "Todos os runtimes",
+        },
+        {
+          key: "presentation",
+          label: "Apresentação",
+          type: "select",
+          required: true,
+          options: [
+            { value: "list", label: "Lista" },
+            { value: "tabs", label: "Abas" },
+          ],
+        },
       ],
     },
   },
@@ -155,6 +186,11 @@ function normalizeConfiguration(widget, value = {}) {
   }
   if (widget.id === "application-health") {
     const environment = String(value.environment || "").trim();
+    const applicationId = String(value.applicationId || "").trim();
+    const componentId = String(value.componentId || "").trim();
+    const deploymentId = String(value.deploymentId || "").trim();
+    const runtimeId = String(value.runtimeId || "").trim();
+    const requestedPresentation = String(value.presentation || "list").trim();
     if (environment && !DEPLOYMENT_ENVIRONMENTS.includes(environment)) {
       throw homeError(
         422,
@@ -162,9 +198,31 @@ function normalizeConfiguration(widget, value = {}) {
         `environment must be one of: ${DEPLOYMENT_ENVIRONMENTS.join(", ")}`,
       );
     }
+    if (!["list", "tabs"].includes(requestedPresentation)) {
+      throw homeError(
+        422,
+        "INVALID_HOME_CONFIGURATION",
+        "presentation must be list or tabs",
+      );
+    }
+    if (
+      (componentId && !applicationId) ||
+      (deploymentId && !componentId) ||
+      (runtimeId && !deploymentId)
+    ) {
+      throw homeError(
+        422,
+        "INVALID_HOME_CONFIGURATION",
+        "application health filters must follow application, component, deployment and runtime hierarchy",
+      );
+    }
     return {
-      applicationId: String(value.applicationId || "").trim(),
+      applicationId,
+      componentId,
+      deploymentId,
       environment,
+      presentation: runtimeId ? "tabs" : requestedPresentation,
+      runtimeId,
     };
   }
   return {};
@@ -232,7 +290,18 @@ export function defaultHomeWidgets(actor = {}) {
     ["open-issues-by-application", {}, "medium-2"],
     ["open-issues-by-type", {}, "medium-2"],
     ["pending-tasks", {}, "medium-2"],
-    ["application-health", { applicationId: "", environment: "" }, "medium-2"],
+    [
+      "application-health",
+      {
+        applicationId: "",
+        componentId: "",
+        deploymentId: "",
+        environment: "",
+        presentation: "list",
+        runtimeId: "",
+      },
+      "medium-2",
+    ],
   ];
   return defaults
     .filter(([widgetId]) =>
@@ -333,6 +402,53 @@ export async function saveHomeConfiguration(payload = {}, actor) {
         "INVALID_HOME_CONFIGURATION",
         "configured application is unavailable",
       );
+    }
+    for (const instance of widgets) {
+      if (instance.widgetId !== "application-health") continue;
+      const { applicationId, componentId, deploymentId, runtimeId } =
+        instance.config;
+      const targets = [
+        componentId
+          ? {
+              collection: COLLECTION_NAMES.APPLICATION_COMPONENTS,
+              filter: { applicationId, id: componentId },
+            }
+          : null,
+        deploymentId
+          ? {
+              collection: COLLECTION_NAMES.APPLICATION_DEPLOYMENTS,
+              filter: { applicationId, componentId, id: deploymentId },
+            }
+          : null,
+        runtimeId
+          ? {
+              collection: COLLECTION_NAMES.DEPLOYMENT_RUNTIMES,
+              filter: {
+                applicationId,
+                componentId,
+                deploymentId,
+                id: runtimeId,
+                monitoring: { $exists: true, $ne: null },
+              },
+            }
+          : null,
+      ].filter(Boolean);
+      for (const target of targets) {
+        const available = await database
+          .collection(target.collection)
+          .countDocuments({
+            workspaceId: actor.workspaceId,
+            status: { $ne: "archived" },
+            ...target.filter,
+          });
+        if (available !== 1) {
+          throw homeError(
+            422,
+            "INVALID_HOME_CONFIGURATION",
+            "configured monitoring target is unavailable",
+          );
+        }
+      }
     }
   }
   const collection = await homeCollection();
@@ -703,6 +819,9 @@ async function applicationHealthMetric(database, actor, config) {
         .find({
           workspaceId: actor.workspaceId,
           applicationId: { $in: ids },
+          ...(config.componentId ? { componentId: config.componentId } : {}),
+          ...(config.deploymentId ? { deploymentId: config.deploymentId } : {}),
+          ...(config.runtimeId ? { id: config.runtimeId } : {}),
           status: { $ne: "archived" },
           monitoring: { $exists: true, $ne: null },
         })
@@ -788,13 +907,6 @@ async function applicationHealthMetric(database, actor, config) {
   });
   return {
     kind: "health",
-    ok: filteredRuntimes.filter(
-      (runtime) => (runtime.monitoring?.status || runtime.status) === "healthy",
-    ).length,
-    nok: filteredRuntimes.filter(
-      (runtime) => (runtime.monitoring?.status || runtime.status) !== "healthy",
-    ).length,
-    total: filteredRuntimes.length,
     items,
     applicationId: configuredId || null,
     environment: config.environment || null,
@@ -820,6 +932,106 @@ async function resolveWidgetMetric(database, actor, instance, now) {
   return { kind: "unknown" };
 }
 
+async function homeMonitoringApplications(database, actor) {
+  if (!hasPermission(actor, "runtimes.read")) return [];
+  const monitoringScope = applicationScope(actor, "runtimes.read");
+  const applications = await database
+    .collection(COLLECTION_NAMES.APPLICATIONS)
+    .find({
+      workspaceId: actor.workspaceId,
+      status: { $ne: "archived" },
+      ...(monitoringScope ? { id: { $in: monitoringScope } } : {}),
+    })
+    .project({ _id: 0, id: 1, name: 1 })
+    .sort({ name: 1 })
+    .toArray();
+  const applicationIds = applications.map(({ id }) => id);
+  if (!applicationIds.length) return applications;
+  const runtimes = await database
+    .collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES)
+    .find({
+      workspaceId: actor.workspaceId,
+      applicationId: { $in: applicationIds },
+      status: { $ne: "archived" },
+      monitoring: { $exists: true, $ne: null },
+    })
+    .project({
+      _id: 0,
+      id: 1,
+      name: 1,
+      applicationId: 1,
+      componentId: 1,
+      deploymentId: 1,
+    })
+    .sort({ name: 1 })
+    .toArray();
+  const componentIds = [
+    ...new Set(runtimes.map(({ componentId }) => componentId)),
+  ];
+  const deploymentIds = [
+    ...new Set(runtimes.map(({ deploymentId }) => deploymentId)),
+  ];
+  const [components, deployments] = await Promise.all([
+    componentIds.length
+      ? database
+          .collection(COLLECTION_NAMES.APPLICATION_COMPONENTS)
+          .find({
+            workspaceId: actor.workspaceId,
+            id: { $in: componentIds },
+            status: { $ne: "archived" },
+          })
+          .project({ _id: 0, id: 1, name: 1, applicationId: 1 })
+          .sort({ name: 1 })
+          .toArray()
+      : [],
+    deploymentIds.length
+      ? database
+          .collection(COLLECTION_NAMES.APPLICATION_DEPLOYMENTS)
+          .find({
+            workspaceId: actor.workspaceId,
+            id: { $in: deploymentIds },
+            status: { $ne: "archived" },
+          })
+          .project({
+            _id: 0,
+            id: 1,
+            name: 1,
+            applicationId: 1,
+            componentId: 1,
+          })
+          .sort({ name: 1 })
+          .toArray()
+      : [],
+  ]);
+  return applications.map((application) => ({
+    ...application,
+    components: components
+      .filter(({ applicationId }) => applicationId === application.id)
+      .map((component) => ({
+        id: component.id,
+        name: component.name,
+        deployments: deployments
+          .filter(
+            (deployment) =>
+              deployment.applicationId === application.id &&
+              deployment.componentId === component.id,
+          )
+          .map((deployment) => ({
+            id: deployment.id,
+            name: deployment.name,
+            runtimes: runtimes
+              .filter(
+                (runtime) =>
+                  runtime.applicationId === application.id &&
+                  runtime.componentId === component.id &&
+                  runtime.deploymentId === deployment.id,
+              )
+              .map(({ id, name }) => ({ id, name })),
+          })),
+      })),
+  }));
+}
+
 export async function getHomeDashboard(actor, { now = new Date() } = {}) {
   const database = await getMongoDatabase();
   const configuration = await getHomeConfiguration(actor);
@@ -832,19 +1044,7 @@ export async function getHomeDashboard(actor, { now = new Date() } = {}) {
       await resolveWidgetMetric(database, actor, instance, now),
     ]),
   );
-  const monitoringScope = applicationScope(actor, "runtimes.read");
-  const applications = hasPermission(actor, "runtimes.read")
-    ? await database
-        .collection(COLLECTION_NAMES.APPLICATIONS)
-        .find({
-          workspaceId: actor.workspaceId,
-          status: { $ne: "archived" },
-          ...(monitoringScope ? { id: { $in: monitoringScope } } : {}),
-        })
-        .project({ _id: 0, id: 1, name: 1 })
-        .sort({ name: 1 })
-        .toArray()
-    : [];
+  const applications = await homeMonitoringApplications(database, actor);
   return {
     catalog,
     configuration,

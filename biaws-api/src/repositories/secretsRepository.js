@@ -102,6 +102,7 @@ export function publicSecret(document) {
     applicationId: document.applicationId
       ? String(document.applicationId)
       : null,
+    collectionId: document.collectionId ? String(document.collectionId) : "",
     identifier: document.identifier || String(document.id),
     name: document.name,
     description: document.description || "",
@@ -146,6 +147,7 @@ async function getCollections() {
           },
         ),
         secrets.createIndex({ workspaceId: 1, status: 1, name: 1, id: 1 }),
+        secrets.createIndex({ workspaceId: 1, collectionId: 1 }),
       ]);
       return {
         db,
@@ -216,6 +218,10 @@ export async function listSecrets(query = {}) {
   };
   if (query.applicationId) {
     filter.applicationId = String(query.applicationId);
+  }
+  if (query.collectionId !== undefined) {
+    const collectionId = String(query.collectionId || "").trim();
+    filter.collectionId = collectionId || { $in: ["", null] };
   }
   const [documents, total] = await Promise.all([
     secrets
@@ -400,6 +406,34 @@ export async function archiveSecretDocument(
     {
       $set: {
         status: "archived",
+        updatedAt: new Date(),
+        updatedBy: actor.userId,
+      },
+    },
+    { returnDocument: "after" },
+  );
+  if (!document) {
+    throw secretError(404, "SECRET_NOT_FOUND", "Secret not found");
+  }
+  return publicSecret(document);
+}
+
+export async function moveSecretDocumentToCollection(
+  current,
+  collectionId,
+  actor,
+  authorizationScope,
+) {
+  const { secrets } = await getCollections();
+  const document = await secrets.findOneAndUpdate(
+    {
+      id: current.id,
+      ...accessFilter(authorizationScope),
+      status: "active",
+    },
+    {
+      $set: {
+        collectionId: String(collectionId || ""),
         updatedAt: new Date(),
         updatedBy: actor.userId,
       },

@@ -9,6 +9,7 @@ import {
 } from "../../../shared/index.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
+import { assertResourceCollection } from "./resourceCollectionsRepository.js";
 
 export const WORKSPACES_COLLECTION = COLLECTION_NAMES.WORKSPACES;
 export const APPLICATIONS_COLLECTION = COLLECTION_NAMES.APPLICATIONS;
@@ -218,6 +219,10 @@ function escapeRegex(value) {
 
 export function buildApplicationFilter(workspaceId, query = {}) {
   const filter = { workspaceId: String(workspaceId) };
+  if (query.collectionId !== undefined) {
+    const collectionId = String(query.collectionId || "").trim();
+    filter.collectionId = collectionId || { $in: ["", null] };
+  }
   if (query.status) {
     if (!APPLICATION_STATUSES.includes(query.status)) {
       throw createHttpError(
@@ -270,6 +275,13 @@ async function getCollections() {
           id: 1,
         }),
         applications.createIndex({ workspaceId: 1, name: 1, id: 1 }),
+        applications.createIndex({
+          workspaceId: 1,
+          collectionId: 1,
+          status: 1,
+          name: 1,
+          id: 1,
+        }),
       ]);
       return { db, workspaces, applications };
     })().catch((error) => {
@@ -652,6 +664,38 @@ export async function archiveApplication(applicationId, actor = {}) {
         status: "archived",
         archivedAt: new Date(),
         archivedBy: actorId(actor),
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+    },
+  );
+  return getApplication(current.id);
+}
+
+export async function moveApplicationToCollection(
+  applicationId,
+  collectionId,
+  actor = {},
+) {
+  const { applications } = await getCollections();
+  const current = await getApplication(applicationId);
+  if (!current) {
+    throw createHttpError(
+      404,
+      "APPLICATION_NOT_FOUND",
+      "Application not found",
+    );
+  }
+  const normalizedCollectionId = await assertResourceCollection(
+    "applications",
+    collectionId,
+    current.workspaceId,
+  );
+  await applications.updateOne(
+    { id: current.id, workspaceId: current.workspaceId },
+    {
+      $set: {
+        collectionId: normalizedCollectionId,
         updatedAt: new Date(),
         updatedBy: actorId(actor),
       },

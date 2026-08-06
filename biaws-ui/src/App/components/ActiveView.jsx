@@ -37,7 +37,7 @@ export function ActiveView({
     );
   if (activeView === "procedures") return <ProceduresView actor={actor} />;
   if (activeView === "taxonomy") return <IssueTaxonomyManager />;
-  if (activeView === "skills") return <SkillsView />;
+  if (activeView === "skills") return <SkillsView actor={actor} />;
   if (activeView === "users") return <UsersView actor={actor} />;
   if (activeView === "groups") return <GroupsView actor={actor} />;
   if (activeView === "secrets") return <SecretsView actor={actor} />;

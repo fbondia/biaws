@@ -1,13 +1,4 @@
-.procedureWorkspace {
-  display: grid;
-  grid-template-columns:
-    var(--procedure-collections-width, 270px) 16px
-    minmax(0, 1fr);
-  align-items: start;
-}
-
-.procedureCollectionsPanel,
-.procedureCollectionContentHeader {
+.procedureCollectionsPanel {
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: var(--color-surface);
@@ -18,40 +9,6 @@
   top: 16px;
   min-width: 0;
   overflow: hidden;
-}
-
-.procedureCollectionsResizeHandle {
-  position: sticky;
-  top: 16px;
-  width: 16px;
-  height: min(560px, calc(100dvh - 190px));
-  align-self: start;
-  border-radius: 8px;
-  cursor: col-resize;
-  touch-action: none;
-}
-
-.procedureCollectionsResizeHandle::before {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 7px;
-  width: 2px;
-  border-radius: 999px;
-  background: var(--color-border);
-  content: "";
-  transition:
-    width 120ms ease,
-    left 120ms ease,
-    background-color 120ms ease;
-}
-
-.procedureCollectionsResizeHandle:hover::before,
-.procedureCollectionsResizeHandle:focus-visible::before,
-.procedureCollectionsResizeHandle:active::before {
-  left: 6px;
-  width: 4px;
-  background: var(--color-focus);
 }
 
 .procedureCollectionsPanel > header {
@@ -229,51 +186,4 @@
   display: grid;
   min-width: 0;
   gap: 14px;
-}
-
-.procedureCollectionContentHeader {
-  padding: 14px 16px;
-}
-
-.procedureCollectionContentHeader > div {
-  display: grid;
-  gap: 3px;
-}
-
-.procedureCollectionTitleRow {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.procedureCollectionTitleRow h2 {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.procedureCollectionRenameButton {
-  min-height: 32px;
-  flex: 0 0 auto;
-  padding: 5px 9px;
-  font-size: 12px;
-}
-
-.procedureCollectionContentHeader span {
-  color: var(--color-text-subtle);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.procedureCollectionContentHeader h2 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.procedureCollectionContentHeader p {
-  margin: 0;
-  color: var(--color-text-subtle);
-  font-size: 12px;
 }

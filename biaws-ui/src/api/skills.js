@@ -21,6 +21,15 @@ export function publishSkill(skill, params) {
   return sendJson("/api/skills", skill, params, "POST");
 }
 
+export function moveSkillToCollection(skillId, collectionId) {
+  return sendJson(
+    `/api/skills/${encodeURIComponent(skillId)}/collection`,
+    { collectionId },
+    undefined,
+    "PATCH",
+  );
+}
+
 export function deprecateSkill(skillId, version, params) {
   return sendJson(
     `/api/skills/${encodeURIComponent(skillId)}/${encodeURIComponent(version)}/deprecate`,

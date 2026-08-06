@@ -260,14 +260,6 @@
     width: 100%;
   }
 
-  .procedureWorkspace {
-    grid-template-columns: 1fr;
-  }
-
-  .procedureCollectionsResizeHandle {
-    display: none;
-  }
-
   .procedureCollectionsPanel {
     position: static;
   }

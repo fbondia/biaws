@@ -423,6 +423,13 @@ export async function getTopologyCollections() {
         servers.createIndex({ workspaceId: 1, key: 1 }, { unique: true }),
         servers.createIndex({ workspaceId: 1, status: 1, name: 1, id: 1 }),
         servers.createIndex({ workspaceId: 1, name: 1, id: 1 }),
+        servers.createIndex({
+          workspaceId: 1,
+          collectionId: 1,
+          status: 1,
+          name: 1,
+          id: 1,
+        }),
         deployments.createIndex({ id: 1 }, { unique: true }),
         deployments.createIndex(
           { workspaceId: 1, applicationId: 1, key: 1 },

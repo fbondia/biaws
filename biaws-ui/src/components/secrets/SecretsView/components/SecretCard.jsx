@@ -20,10 +20,13 @@ export function SecretCard({
   canUpdate,
   canWrite,
   copied,
+  draggable,
   onArchive,
   onCopyValue,
   onDownload,
   onEdit,
+  onDragEnd,
+  onDragStart,
   onReveal,
   onToggleValue,
   onVersion,
@@ -33,7 +36,12 @@ export function SecretCard({
 }) {
   const isFile = secret.contentKind === "file";
   return (
-    <article className="securityPanel secretCard">
+    <article
+      className="securityPanel secretCard"
+      draggable={draggable}
+      onDragEnd={onDragEnd}
+      onDragStart={onDragStart}
+    >
       <header className="secretCardHeader">
         <span className="secretKindIcon" aria-hidden="true">
           {isFile ? <File size={20} /> : <KeyRound size={20} />}

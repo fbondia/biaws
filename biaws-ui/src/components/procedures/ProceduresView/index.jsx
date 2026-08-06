@@ -4,17 +4,13 @@ import {
   Filter,
   FilterX,
   Folder,
-  FolderPlus,
   FolderTree,
   GripVertical,
-  Pencil,
   Plus,
-  Search,
   Tags,
   Trash2,
   X,
 } from "lucide-react";
-import { useRef, useState } from "react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../constants/issues.js";
 import { CatalogFilterFields } from "../../catalog/CatalogContextFields.jsx";
@@ -22,51 +18,24 @@ import { FilterDialogButton } from "../../shared/FilterDialogButton.jsx";
 import { TaxonomySelector } from "../../taxonomy/TaxonomySelector.jsx";
 import {
   collectionPathLabel,
-  ProcedureCollectionDialog,
-  ProcedureCollectionSidebar,
-} from "../ProcedureCollections.jsx";
+  ResourceCollectionDialog,
+  ResourceCollectionSearch,
+  ResourceCollectionSidebar,
+  ResourceCollectionsShell,
+} from "../../shared/ResourceCollections.jsx";
 import {
   ProcedureClassificationSummary,
   ProcedureDialog,
 } from "./components/ProcedureDialog.jsx";
 import { useProceduresView } from "./hooks/useProceduresView.js";
-import {
-  normalizeDraft,
-  normalizeProcedureCollectionsPanelWidth,
-  PROCEDURE_COLLECTIONS_PANEL_WIDTH,
-} from "./model.js";
-
-const COLLECTIONS_PANEL_WIDTH_KEY = "biaws.procedures.collectionsPanelWidth";
-
-function storedCollectionsPanelWidth() {
-  if (typeof window === "undefined") {
-    return PROCEDURE_COLLECTIONS_PANEL_WIDTH.default;
-  }
-  try {
-    return normalizeProcedureCollectionsPanelWidth(
-      window.sessionStorage.getItem(COLLECTIONS_PANEL_WIDTH_KEY),
-    );
-  } catch {
-    return PROCEDURE_COLLECTIONS_PANEL_WIDTH.default;
-  }
-}
-
-function storeCollectionsPanelWidth(width) {
-  try {
-    window.sessionStorage.setItem(COLLECTIONS_PANEL_WIDTH_KEY, String(width));
-  } catch {
-    // O redimensionamento continua funcionando quando o storage está indisponível.
-  }
-}
+import { normalizeDraft } from "./model.js";
 
 export function ProceduresView({ actor }) {
-  const [collectionsPanelWidth, setCollectionsPanelWidth] = useState(
-    storedCollectionsPanelWidth,
-  );
-  const resizeStart = useRef(null);
   const {
     organizationItems,
     collections,
+    collectionsVisible,
+    setCollectionsVisible,
     search,
     setSearch,
     taxonomyFilters,
@@ -132,13 +101,6 @@ export function ProceduresView({ actor }) {
         </button>
         <div className="procedureToolbarActions">
           <button
-            className="secondaryButton"
-            onClick={() => setCollectionDialogOpen(true)}
-            type="button"
-          >
-            <FolderPlus size={16} /> Nova coleção
-          </button>
-          <button
             className="primaryButton"
             onClick={() =>
               setDraft(
@@ -165,7 +127,6 @@ export function ProceduresView({ actor }) {
         selectedTagCount={selectedTagCount}
         setApplicationFilter={setApplicationFilter}
         setComponentFilter={setComponentFilter}
-        setSearch={setSearch}
         setTagsDialogOpen={setTagsDialogOpen}
         setTaxonomyDialogOpen={setTaxonomyDialogOpen}
         taxonomyFilters={taxonomyFilters}
@@ -174,129 +135,47 @@ export function ProceduresView({ actor }) {
 
       <ProcedureError error={error} />
 
-      <div
-        className="procedureWorkspace"
-        style={{
-          "--procedure-collections-width": `${collectionsPanelWidth}px`,
-        }}
+      <ResourceCollectionsShell
+        collections={collections}
+        collectionsVisible={collectionsVisible}
+        onShowCollections={() => setCollectionsVisible(true)}
+        pathLabel={searchActive ? "Resultados da busca" : undefined}
+        selectedCollectionId={selectedCollectionId}
+        sidebar={
+          <ResourceCollectionSidebar
+            collections={collections}
+            draggedItem={draggedItem}
+            itemLabel="procedimentos"
+            items={organizationItems}
+            onClose={() => setCollectionsVisible(false)}
+            onCreate={() => setCollectionDialogOpen(true)}
+            onDelete={removeCollection}
+            onDragCollection={(collection) =>
+              setDraggedItem({
+                type: "collection",
+                id: collection.id,
+                parentId: collection.parentId || "",
+              })
+            }
+            onDragEnd={() => setDraggedItem(null)}
+            onDrop={moveDraggedItem}
+            onRename={() => setRenamingCollection(selectedCollection)}
+            onSelect={setSelectedCollectionId}
+            selectedCollectionId={selectedCollectionId}
+          />
+        }
+        toolbar={
+          <ResourceCollectionSearch
+            loading={loading}
+            onRefresh={() => load()}
+            onSearch={() => load()}
+            onSearchChange={setSearch}
+            placeholder="Buscar procedimentos"
+            search={search}
+          />
+        }
       >
-        <ProcedureCollectionSidebar
-          collections={collections}
-          draggedItem={draggedItem}
-          items={organizationItems}
-          onDragCollection={(collection) =>
-            setDraggedItem({
-              type: "collection",
-              id: collection.id,
-              parentId: collection.parentId || "",
-            })
-          }
-          onDragEnd={() => setDraggedItem(null)}
-          onDelete={removeCollection}
-          onDrop={moveDraggedItem}
-          onSelect={setSelectedCollectionId}
-          selectedCollectionId={selectedCollectionId}
-        />
-
-        <div
-          aria-label="Redimensionar árvore de coleções"
-          aria-orientation="vertical"
-          aria-valuemax={PROCEDURE_COLLECTIONS_PANEL_WIDTH.max}
-          aria-valuemin={PROCEDURE_COLLECTIONS_PANEL_WIDTH.min}
-          aria-valuenow={collectionsPanelWidth}
-          className="procedureCollectionsResizeHandle"
-          onDoubleClick={() => {
-            setCollectionsPanelWidth(PROCEDURE_COLLECTIONS_PANEL_WIDTH.default);
-            storeCollectionsPanelWidth(
-              PROCEDURE_COLLECTIONS_PANEL_WIDTH.default,
-            );
-          }}
-          onKeyDown={(event) => {
-            let nextWidth = collectionsPanelWidth;
-            if (event.key === "ArrowLeft") nextWidth -= 10;
-            else if (event.key === "ArrowRight") nextWidth += 10;
-            else if (event.key === "Home") {
-              nextWidth = PROCEDURE_COLLECTIONS_PANEL_WIDTH.min;
-            } else if (event.key === "End") {
-              nextWidth = PROCEDURE_COLLECTIONS_PANEL_WIDTH.max;
-            } else return;
-            event.preventDefault();
-            const normalized =
-              normalizeProcedureCollectionsPanelWidth(nextWidth);
-            setCollectionsPanelWidth(normalized);
-            storeCollectionsPanelWidth(normalized);
-          }}
-          onPointerCancel={(event) => {
-            resizeStart.current = null;
-            event.currentTarget.releasePointerCapture?.(event.pointerId);
-          }}
-          onPointerDown={(event) => {
-            resizeStart.current = {
-              currentWidth: collectionsPanelWidth,
-              pointerX: event.clientX,
-              width: collectionsPanelWidth,
-            };
-            event.currentTarget.setPointerCapture(event.pointerId);
-          }}
-          onPointerMove={(event) => {
-            if (!resizeStart.current) return;
-            const nextWidth = normalizeProcedureCollectionsPanelWidth(
-              resizeStart.current.width +
-                event.clientX -
-                resizeStart.current.pointerX,
-            );
-            resizeStart.current.currentWidth = nextWidth;
-            setCollectionsPanelWidth(nextWidth);
-          }}
-          onPointerUp={(event) => {
-            if (!resizeStart.current) return;
-            const finalWidth = resizeStart.current.currentWidth;
-            resizeStart.current = null;
-            event.currentTarget.releasePointerCapture(event.pointerId);
-            storeCollectionsPanelWidth(finalWidth);
-          }}
-          role="separator"
-          tabIndex={0}
-          title="Arraste para redimensionar; clique duas vezes para restaurar"
-        />
-
         <section className="procedureCollectionContent">
-          <header className="procedureCollectionContentHeader">
-            <div>
-              <span>
-                {searchActive ? "Busca em todas as coleções" : "Local atual"}
-              </span>
-              <div className="procedureCollectionTitleRow">
-                <h2>
-                  {searchActive
-                    ? "Resultados da busca"
-                    : selectedCollectionLabel}
-                </h2>
-                {!searchActive && selectedCollection ? (
-                  <button
-                    className="secondaryButton procedureCollectionRenameButton"
-                    onClick={() => setRenamingCollection(selectedCollection)}
-                    type="button"
-                  >
-                    <Pencil size={14} /> Renomear
-                  </button>
-                ) : null}
-              </div>
-              {searchActive ? (
-                <p>
-                  A organização por coleções não restringe os resultados
-                  encontrados.
-                </p>
-              ) : selectedCollection ? (
-                <p>
-                  Exibindo apenas os procedimentos diretamente nesta coleção.
-                </p>
-              ) : (
-                <p>Procedimentos que não pertencem a uma coleção.</p>
-              )}
-            </div>
-          </header>
-
           {loading ? (
             <div className="loadingLine">Carregando procedimentos...</div>
           ) : null}
@@ -383,7 +262,7 @@ export function ProceduresView({ actor }) {
             ))}
           </div>
         </section>
-      </div>
+      </ResourceCollectionsShell>
       <ProcedureDialogs
         applyPersistedProcedure={applyPersistedProcedure}
         catalog={catalog}
@@ -430,7 +309,6 @@ function ProcedureFilters({
   selectedTagCount,
   setApplicationFilter,
   setComponentFilter,
-  setSearch,
   setTagsDialogOpen,
   setTaxonomyDialogOpen,
   taxonomyFilters,
@@ -440,10 +318,6 @@ function ProcedureFilters({
   function changeCatalogFilter(field, value) {
     if (field === "applicationId") setApplicationFilter(value);
     if (field === "componentId") setComponentFilter(value);
-  }
-  function submit(event) {
-    event.preventDefault();
-    load();
   }
   const hasFilters =
     search ||
@@ -460,15 +334,6 @@ function ProcedureFilters({
           load();
         }}
       >
-        <label className="procedureSearchInput">
-          <Search size={17} />
-          <input
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar em título, sumário ou conteúdo"
-            value={search}
-          />
-        </label>
-
         {catalog.applications.length ? (
           <CatalogFilterFields
             applicationId={applicationFilter}
@@ -722,14 +587,14 @@ function ProcedureEntityDialogs({
   return (
     <>
       {collectionDialogOpen ? (
-        <ProcedureCollectionDialog
+        <ResourceCollectionDialog
           onClose={() => setCollectionDialogOpen(false)}
           onSave={createCollection}
           parentLabel={selectedCollectionLabel}
         />
       ) : null}
       {renamingCollection ? (
-        <ProcedureCollectionDialog
+        <ResourceCollectionDialog
           collection={renamingCollection}
           onClose={() => setRenamingCollection(null)}
           onSave={renameCollection}

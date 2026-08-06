@@ -65,32 +65,8 @@
   background: var(--color-surface-muted);
 }
 
-.catalogSearch {
-  display: grid;
-  gap: var(--space-3);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-4);
-}
-
-.catalogSearch .field > div {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  padding: 0 var(--space-3);
-}
-
-.catalogSearch .field > div:focus-within {
-  border-color: var(--color-focus);
-}
-
-.catalogSearch .field > div input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  padding-inline: 0;
+.catalogBackButton {
+  display: none;
 }
 
 .catalogApplicationList {
@@ -2204,14 +2180,6 @@
   margin: 0;
 }
 
-.catalogFloatingRefresh {
-  position: fixed;
-  z-index: 10;
-  right: var(--space-5);
-  bottom: var(--space-5);
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.15);
-}
-
 @media (max-width: 1120px) {
   .catalogOverviewGrid {
     grid-template-columns: repeat(2, minmax(130px, 1fr));
@@ -2219,6 +2187,82 @@
 
   .catalogKnowledgeGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1120px) {
+  .resourceCollectionsLayout.applicationsCollectionsLayout,
+  .resourceCollectionsLayout.serversCollectionsLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .applicationsCollectionsLayout .procedureCollectionsPanel,
+  .serversCollectionsLayout .procedureCollectionsPanel {
+    position: static;
+  }
+
+  .applicationsCollectionsLayout .procedureCollectionTree,
+  .serversCollectionsLayout .procedureCollectionTree {
+    max-height: 280px;
+  }
+
+  .applicationsCollectionsLayout .catalogLayout,
+  .serversCollectionsLayout .catalogLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .applicationsCollectionsLayout .resourceCollectionBar,
+  .serversCollectionsLayout .resourceCollectionBar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .applicationsCollectionsLayout .resourceCollectionSearch,
+  .serversCollectionsLayout .resourceCollectionSearch {
+    justify-content: stretch;
+  }
+
+  .applicationsCollectionsLayout .resourceCollectionSearchInput,
+  .serversCollectionsLayout .resourceCollectionSearchInput {
+    width: auto;
+    flex: 1 1 auto;
+  }
+
+  .applicationsCollectionsLayout .catalogBackButton,
+  .serversCollectionsLayout .catalogBackButton {
+    display: inline-flex;
+  }
+
+  .catalogResourceSelected > .procedureCollectionsPanel,
+  .catalogResourceSelected
+    > .resourceCollectionContent
+    > .resourceCollectionBar,
+  .applicationsCollectionsLayout
+    .catalogLayout:not(.catalogDetailSelected)
+    > .catalogContent,
+  .serversCollectionsLayout
+    .catalogLayout:not(.catalogDetailSelected)
+    > .catalogContent,
+  .applicationsCollectionsLayout
+    .catalogLayout.catalogDetailSelected
+    > .catalogSidebar,
+  .serversCollectionsLayout
+    .catalogLayout.catalogDetailSelected
+    > .catalogSidebar {
+    display: none;
+  }
+
+  .applicationsCollectionsLayout .catalogLayout.catalogDetailSelected,
+  .serversCollectionsLayout .catalogLayout.catalogDetailSelected {
+    min-height: 0;
+  }
+
+  .applicationsCollectionsLayout
+    .catalogLayout.catalogDetailSelected
+    > .catalogContent,
+  .serversCollectionsLayout
+    .catalogLayout.catalogDetailSelected
+    > .catalogContent {
+    min-height: 520px;
   }
 }
 

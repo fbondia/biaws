@@ -6,6 +6,8 @@ import {
   FolderPlus,
   GripVertical,
   Pencil,
+  RefreshCw,
+  Search,
   Trash2,
   X,
 } from "lucide-react";
@@ -55,6 +57,99 @@ export function collectionPathLabel(collections = [], collectionId = "") {
   }
 
   return path.length ? path.join(" / ") : "Raiz";
+}
+
+export function ResourceCollectionsShell({
+  children,
+  className = "",
+  collections,
+  collectionsVisible = true,
+  onShowCollections,
+  pathLabel,
+  selectedCollectionId,
+  sidebar,
+  toolbar,
+}) {
+  return (
+    <div
+      className={[
+        "resourceCollectionsLayout",
+        className,
+        !collectionsVisible ? "resourceCollectionsCollapsed" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {sidebar}
+      <div className="resourceCollectionContent">
+        <div className="resourceCollectionBar">
+          <button
+            aria-expanded={collectionsVisible}
+            className="resourceCollectionPath"
+            onClick={onShowCollections}
+            title="Mostrar coleções"
+            type="button"
+          >
+            {pathLabel ||
+              collectionPathLabel(collections, selectedCollectionId)}
+          </button>
+          {toolbar}
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function ResourceCollectionSearch({
+  additionalFilters,
+  loading = false,
+  onRefresh,
+  onSearch,
+  onSearchChange,
+  placeholder = "Pesquisar...",
+  search,
+}) {
+  return (
+    <form
+      className="resourceCollectionSearch"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSearch?.();
+      }}
+    >
+      <label className="resourceCollectionSearchInput">
+        <Search aria-hidden="true" size={15} />
+        <span className="srOnly">Pesquisar</span>
+        <input
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder={placeholder}
+          type="search"
+          value={search}
+        />
+      </label>
+      {additionalFilters}
+      <button
+        aria-label="Pesquisar"
+        className="iconButton"
+        disabled={loading}
+        title="Pesquisar"
+        type="submit"
+      >
+        <Search size={16} />
+      </button>
+      <button
+        aria-label="Atualizar"
+        className="iconButton"
+        disabled={loading}
+        onClick={onRefresh}
+        title="Atualizar"
+        type="button"
+      >
+        <RefreshCw className={loading ? "spinIcon" : undefined} size={16} />
+      </button>
+    </form>
+  );
 }
 
 function descendantCollectionIds(childrenByParent, collectionId) {
@@ -113,9 +208,13 @@ function CollectionTreeNode({
         ]
           .filter(Boolean)
           .join(" ")}
-        draggable
+        draggable={Boolean(onDragCollection)}
         onDragEnd={onDragEnd}
         onDragStart={(event) => {
+          if (!onDragCollection) {
+            event.preventDefault();
+            return;
+          }
           event.dataTransfer.effectAllowed = "move";
           event.dataTransfer.setData(
             "text/plain",
@@ -176,15 +275,17 @@ function CollectionTreeNode({
           <span>{collection.name}</span>
           <small>{procedureCounts[collection.id] || 0}</small>
         </button>
-        <button
-          aria-label={`Excluir coleção ${collection.name}`}
-          className="procedureCollectionDeleteButton"
-          onClick={() => onDelete(collection)}
-          title="Excluir coleção vazia"
-          type="button"
-        >
-          <Trash2 size={14} />
-        </button>
+        {onDelete ? (
+          <button
+            aria-label={`Excluir coleção ${collection.name}`}
+            className="procedureCollectionDeleteButton"
+            onClick={() => onDelete(collection)}
+            title="Excluir coleção vazia"
+            type="button"
+          >
+            <Trash2 size={14} />
+          </button>
+        ) : null}
       </div>
 
       {expanded && children.length ? (
@@ -215,7 +316,7 @@ function CollectionTreeNode({
   );
 }
 
-export function ProcedureCollectionSidebar({
+export function ResourceCollectionSidebar({
   collections,
   draggedItem,
   items,
@@ -225,6 +326,10 @@ export function ProcedureCollectionSidebar({
   onDrop,
   onSelect,
   selectedCollectionId,
+  itemLabel = "procedimentos",
+  onCreate,
+  onClose,
+  onRename,
 }) {
   const [collapsedIds, setCollapsedIds] = useState(() => new Set());
   const [dropTargetId, setDropTargetId] = useState(null);
@@ -252,8 +357,41 @@ export function ProcedureCollectionSidebar({
       <header>
         <div>
           <strong>Coleções</strong>
-          <span>Arraste procedimentos e coleções para organizar.</span>
+          <span>Arraste {itemLabel} e coleções para organizar.</span>
         </div>
+        {onCreate ? (
+          <div className="resourceCollectionHeaderActions">
+            {selectedCollectionId && onRename ? (
+              <button
+                className="iconButton"
+                onClick={onRename}
+                title="Renomear coleção"
+                type="button"
+              >
+                <Pencil size={14} />
+              </button>
+            ) : null}
+            <button
+              className="iconButton"
+              onClick={onCreate}
+              title="Nova coleção"
+              type="button"
+            >
+              <FolderPlus size={15} />
+            </button>
+          </div>
+        ) : null}
+        {onClose ? (
+          <button
+            aria-label="Ocultar coleções"
+            className="iconButton resourceCollectionCloseButton"
+            onClick={onClose}
+            title="Ocultar coleções"
+            type="button"
+          >
+            <X size={16} />
+          </button>
+        ) : null}
       </header>
 
       <div className="procedureCollectionTree">
@@ -308,7 +446,7 @@ export function ProcedureCollectionSidebar({
               onDragEnd();
             }}
             onDragOverCollection={setDropTargetId}
-            onDelete={onDelete}
+            onDelete={onCreate ? onDelete : undefined}
             onDrop={dropAt}
             onSelect={onSelect}
             onToggle={(collectionId) =>
@@ -329,11 +467,12 @@ export function ProcedureCollectionSidebar({
   );
 }
 
-export function ProcedureCollectionDialog({
+export function ResourceCollectionDialog({
   collection,
   parentLabel,
   onClose,
   onSave,
+  resourceLabel = "procedimentos",
 }) {
   const editing = Boolean(collection);
   const [name, setName] = useState(collection?.name || "");
@@ -369,7 +508,7 @@ export function ProcedureCollectionDialog({
       >
         <header className="procedureCollectionDialogHeader">
           <div>
-            <span>Organização de procedimentos</span>
+            <span>Organização de {resourceLabel}</span>
             <h2 id="procedureCollectionDialogTitle">
               {editing ? "Renomear coleção" : "Nova coleção"}
             </h2>

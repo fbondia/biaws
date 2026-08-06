@@ -123,11 +123,11 @@ export function useCatalogView(actor) {
     [actor],
   );
 
-  async function loadApplications(nextWorkspace = workspace) {
+  async function loadApplications(nextWorkspace = workspace, filters = {}) {
     if (!nextWorkspace?.id) return;
     const payload = await fetchApplications(nextWorkspace.id, {
-      q: search,
-      includeArchived,
+      q: filters.search ?? search,
+      includeArchived: filters.includeArchived ?? includeArchived,
       limit: 100,
     });
     setApplications(payload.items || []);
@@ -225,18 +225,21 @@ export function useCatalogView(actor) {
     void loadContext();
   }, [selectedId]);
 
-  async function applySearch(event) {
-    event.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      await loadApplications();
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    if (!workspace?.id) return undefined;
+    const timer = window.setTimeout(async () => {
+      setLoading(true);
+      setError("");
+      try {
+        await loadApplications(workspace, { search, includeArchived });
+      } catch (loadError) {
+        setError(loadError.message);
+      } finally {
+        setLoading(false);
+      }
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [workspace?.id, search, includeArchived]);
 
   async function persistApplication(payload) {
     if (dialog?.entity?.id) {
@@ -397,7 +400,6 @@ export function useCatalogView(actor) {
     dialog,
     setDialog,
     visibleTabs,
-    applySearch,
     persistApplication,
     persistEntity,
     archiveSelectedApplication,
@@ -408,6 +410,8 @@ export function useCatalogView(actor) {
     runtimeErrorByDeployment,
     loadRuntimes,
     loadContext,
+    loadApplications,
     loadWorkspaceAndApplications,
+    setError,
   };
 }

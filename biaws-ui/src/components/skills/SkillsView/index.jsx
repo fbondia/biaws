@@ -4,17 +4,25 @@ import {
   CheckCircle2,
   Package,
   Plus,
-  RefreshCw,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchSkills } from "../../../api.js";
+import { fetchSkills, moveSkillToCollection } from "../../../api.js";
+import { hasPermission } from "../../../permissions.js";
+import {
+  collectionPathLabel,
+  ResourceCollectionDialog,
+  ResourceCollectionSearch,
+  ResourceCollectionSidebar,
+  ResourceCollectionsShell,
+} from "../../shared/ResourceCollections.jsx";
 import { useLoading } from "../../shared/LoadingProvider.jsx";
+import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { PublishSkillDialog } from "./components/PublishSkillDialog.jsx";
 import { SkillDetailsDialog } from "./components/SkillDetailsDialog.jsx";
 import { formatDate } from "./utils.js";
 
-export function SkillsView() {
+export function SkillsView({ actor }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -22,6 +30,10 @@ export function SkillsView() {
   const [publishing, setPublishing] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const { runWithLoading } = useLoading();
+  const collectionState = useResourceCollections("skills", {
+    onError: setError,
+    onMoved: loadSkills,
+  });
 
   async function loadSkills() {
     setLoading(true);
@@ -46,14 +58,22 @@ export function SkillsView() {
 
   const items = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
-    if (!term) return result?.items || [];
-    return (result?.items || []).filter(
+    const collectionItems = (result?.items || []).filter(
+      ({ collectionId }) =>
+        String(collectionId || "") === collectionState.selectedCollectionId,
+    );
+    if (!term) return collectionItems;
+    return collectionItems.filter(
       (item) =>
         item.skillId.toLocaleLowerCase("pt-BR").includes(term) ||
         item.name.toLocaleLowerCase("pt-BR").includes(term) ||
         item.description.toLocaleLowerCase("pt-BR").includes(term),
     );
-  }, [result, search]);
+  }, [result, search, collectionState.selectedCollectionId]);
+  const selectedCollection = collectionState.collections.find(
+    ({ id }) => id === collectionState.selectedCollectionId,
+  );
+  const canManageCollections = hasPermission(actor, "skills.publish");
 
   return (
     <section className="skillsView">
@@ -66,23 +86,6 @@ export function SkillsView() {
           </p>
         </div>
         <div className="skillsToolbarActions">
-          <label className="skillsSearch">
-            <Package size={16} />
-            <input
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar skill..."
-              value={search}
-            />
-          </label>
-          <button
-            className="iconButton"
-            disabled={loading}
-            onClick={loadSkills}
-            title="Atualizar catálogo"
-            type="button"
-          >
-            <RefreshCw size={17} />
-          </button>
           <button
             className="primaryButton"
             onClick={() => setPublishing(true)}
@@ -101,69 +104,151 @@ export function SkillsView() {
       {loading && !result ? (
         <div className="emptyState">Carregando catálogo...</div>
       ) : null}
-      {!loading && !items.length ? (
-        <div className="skillsEmptyState">
-          <Package size={34} />
-          <strong>Nenhuma skill encontrada</strong>
-          <span>
-            Publique uma versão pela interface ou pelo Bondia Workspaces CLI.
-          </span>
-        </div>
-      ) : (
-        <div className="skillCards">
-          {items.map((skill) => (
-            <article className="skillCard" key={skill.skillId}>
-              <header>
-                <div className="skillCardIcon">
-                  <Package size={20} />
-                </div>
-                <div>
-                  <h3>{skill.name}</h3>
-                  <code>{skill.skillId}</code>
-                </div>
-              </header>
-              <p>{skill.description}</p>
-              <dl>
-                <div>
-                  <dt>Versão atual</dt>
-                  <dd>{skill.latestVersion}</dd>
-                </div>
-                <div>
-                  <dt>Versões</dt>
-                  <dd>{skill.versions.length}</dd>
-                </div>
-                <div>
-                  <dt>Atualizada</dt>
-                  <dd>{formatDate(skill.updatedAt)}</dd>
-                </div>
-              </dl>
-              <footer>
-                <span
-                  className={
-                    skill.status === "published"
-                      ? "skillStatus published"
-                      : "skillStatus deprecated"
-                  }
-                >
-                  {skill.status === "published" ? (
-                    <CheckCircle2 size={13} />
-                  ) : (
-                    <Archive size={13} />
-                  )}
-                  {skill.status}
+      {!loading || result ? (
+        <ResourceCollectionsShell
+          collections={collectionState.collections}
+          collectionsVisible={collectionState.collectionsVisible}
+          onShowCollections={() => collectionState.setCollectionsVisible(true)}
+          selectedCollectionId={collectionState.selectedCollectionId}
+          sidebar={
+            <ResourceCollectionSidebar
+              collections={collectionState.collections}
+              draggedItem={collectionState.draggedItem}
+              itemLabel="skills"
+              items={result?.items || []}
+              onCreate={
+                canManageCollections
+                  ? () => collectionState.setCollectionDialog({})
+                  : undefined
+              }
+              onDelete={collectionState.removeCollection}
+              onClose={() => collectionState.setCollectionsVisible(false)}
+              onDragCollection={
+                canManageCollections
+                  ? (collection) =>
+                      collectionState.setDraggedItem({
+                        type: "collection",
+                        id: collection.id,
+                      })
+                  : undefined
+              }
+              onDragEnd={() => collectionState.setDraggedItem(null)}
+              onDrop={(collectionId) =>
+                collectionState.dropItem(collectionId, moveSkillToCollection)
+              }
+              onRename={() =>
+                collectionState.setCollectionDialog(selectedCollection)
+              }
+              onSelect={collectionState.setSelectedCollectionId}
+              selectedCollectionId={collectionState.selectedCollectionId}
+            />
+          }
+          toolbar={
+            <ResourceCollectionSearch
+              loading={loading}
+              onRefresh={loadSkills}
+              onSearch={loadSkills}
+              onSearchChange={setSearch}
+              placeholder="Buscar skills"
+              search={search}
+            />
+          }
+        >
+          <div className="skillCards">
+            {!loading && !(result?.items || []).length ? (
+              <div className="skillsEmptyState">
+                <Package size={34} />
+                <strong>Nenhuma skill encontrada</strong>
+                <span>
+                  Publique uma versão pela interface ou pelo Bondia Workspaces
+                  CLI.
                 </span>
-                <button
-                  className="secondaryButton"
-                  onClick={() => setSelectedSkill(skill)}
-                  type="button"
-                >
-                  Administrar
-                </button>
-              </footer>
-            </article>
-          ))}
-        </div>
-      )}
+              </div>
+            ) : null}
+            {items.map((skill) => (
+              <article
+                className="skillCard"
+                draggable={canManageCollections}
+                key={skill.skillId}
+                onDragEnd={() => collectionState.setDraggedItem(null)}
+                onDragStart={() =>
+                  collectionState.setDraggedItem({
+                    type: "item",
+                    id: skill.skillId,
+                  })
+                }
+              >
+                <header>
+                  <div className="skillCardIcon">
+                    <Package size={20} />
+                  </div>
+                  <div>
+                    <h3>{skill.name}</h3>
+                    <code>{skill.skillId}</code>
+                  </div>
+                </header>
+                <p>{skill.description}</p>
+                <dl>
+                  <div>
+                    <dt>Versão atual</dt>
+                    <dd>{skill.latestVersion}</dd>
+                  </div>
+                  <div>
+                    <dt>Versões</dt>
+                    <dd>{skill.versions.length}</dd>
+                  </div>
+                  <div>
+                    <dt>Atualizada</dt>
+                    <dd>{formatDate(skill.updatedAt)}</dd>
+                  </div>
+                </dl>
+                <footer>
+                  <span
+                    className={
+                      skill.status === "published"
+                        ? "skillStatus published"
+                        : "skillStatus deprecated"
+                    }
+                  >
+                    {skill.status === "published" ? (
+                      <CheckCircle2 size={13} />
+                    ) : (
+                      <Archive size={13} />
+                    )}
+                    {skill.status}
+                  </span>
+                  <button
+                    className="secondaryButton"
+                    onClick={() => setSelectedSkill(skill)}
+                    type="button"
+                  >
+                    Administrar
+                  </button>
+                </footer>
+              </article>
+            ))}
+            {!loading && (result?.items || []).length && !items.length ? (
+              <div className="emptyState">Nenhuma skill nesta coleção.</div>
+            ) : null}
+          </div>
+        </ResourceCollectionsShell>
+      ) : null}
+      {collectionState.collectionDialog ? (
+        <ResourceCollectionDialog
+          collection={
+            collectionState.collectionDialog.id
+              ? collectionState.collectionDialog
+              : null
+          }
+          onClose={() => collectionState.setCollectionDialog(null)}
+          onSave={collectionState.saveCollection}
+          parentLabel={collectionPathLabel(
+            collectionState.collections,
+            collectionState.selectedCollectionId,
+          )}
+          resourceLabel="skills"
+        />
+      ) : null}
       {publishing ? (
         <PublishSkillDialog
           onClose={() => setPublishing(false)}

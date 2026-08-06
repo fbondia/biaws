@@ -48,6 +48,15 @@ export function updateApplication(applicationId, application) {
   );
 }
 
+export function moveApplicationToCollection(applicationId, collectionId) {
+  return sendJson(
+    `/api/catalog/applications/${encodeURIComponent(applicationId)}/collection`,
+    { collectionId },
+    undefined,
+    "PATCH",
+  );
+}
+
 export function archiveApplication(applicationId) {
   return sendJson(
     `/api/catalog/applications/${encodeURIComponent(applicationId)}/archive`,
@@ -148,6 +157,13 @@ export function createServer(workspaceId, server) {
 
 export const updateServer = (serverId, server) =>
   updateCatalogEntity("servers", serverId, server);
+export const moveServerToCollection = (serverId, collectionId) =>
+  sendJson(
+    `/api/catalog/servers/${encodeURIComponent(serverId)}/collection`,
+    { collectionId },
+    undefined,
+    "PATCH",
+  );
 export const archiveServer = (serverId) =>
   archiveCatalogEntity("servers", serverId);
 export function fetchServerRuntimes(serverId, params) {

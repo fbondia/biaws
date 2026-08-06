@@ -1,4 +1,4 @@
-import { Archive, Pencil, Plus, RefreshCw, Search, Server } from "lucide-react";
+import { Archive, ArrowLeft, Pencil, Plus, Server } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
@@ -11,10 +11,19 @@ import {
   fetchServerRuntimes,
   fetchServers,
   fetchWorkspaces,
+  moveServerToCollection,
   updateServer,
 } from "../../api.js";
 import { hasPermission } from "../../permissions.js";
 import { AuditHistory } from "../shared/AuditHistory.jsx";
+import { useResourceCollections } from "../shared/useResourceCollections.js";
+import {
+  collectionPathLabel,
+  ResourceCollectionDialog,
+  ResourceCollectionSearch,
+  ResourceCollectionSidebar,
+  ResourceCollectionsShell,
+} from "../shared/ResourceCollections.jsx";
 import { CatalogEntityDialog } from "./CatalogEntityDialog.jsx";
 import { buildServerApplicationGroups } from "./serverApplicationModel.js";
 
@@ -29,12 +38,16 @@ export function ServersView({ actor }) {
   const [dialog, setDialog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const collectionState = useResourceCollections("servers", {
+    onError: setError,
+    onMoved: () => loadList(),
+  });
 
-  async function loadList(nextWorkspace = workspace) {
+  async function loadList(nextWorkspace = workspace, filters = {}) {
     if (!nextWorkspace?.id) return;
     const payload = await fetchServers(nextWorkspace.id, {
-      q: search,
-      includeArchived,
+      q: filters.search ?? search,
+      includeArchived: filters.includeArchived ?? includeArchived,
       limit: 100,
     });
     setServers(payload.items || []);
@@ -116,17 +129,21 @@ export function ServersView({ actor }) {
     void initialize();
   }, [actor.workspaceId]);
 
-  async function submitSearch(event) {
-    event.preventDefault();
-    setLoading(true);
-    try {
-      await loadList();
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    if (!workspace?.id) return undefined;
+    const timer = window.setTimeout(async () => {
+      setLoading(true);
+      setError("");
+      try {
+        await loadList(workspace, { search, includeArchived });
+      } catch (loadError) {
+        setError(loadError.message);
+      } finally {
+        setLoading(false);
+      }
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [workspace?.id, search, includeArchived]);
 
   async function persist(payload) {
     const result = dialog?.id
@@ -147,6 +164,15 @@ export function ServersView({ actor }) {
     }
   }
 
+  const visibleServers = servers.filter(
+    ({ collectionId }) =>
+      String(collectionId || "") === collectionState.selectedCollectionId,
+  );
+  const selectedCollection = collectionState.collections.find(
+    ({ id }) => id === collectionState.selectedCollectionId,
+  );
+  const canManageCollections = hasPermission(actor, "servers.update");
+
   return (
     <section className="catalogPage serversPage">
       <ServerHeader
@@ -155,28 +181,118 @@ export function ServersView({ actor }) {
         workspace={workspace}
       />
       {error ? <div className="errorBox">{error}</div> : null}
-      <div className="catalogLayout">
-        <ServerSidebar
-          includeArchived={includeArchived}
-          loading={loading}
-          onIncludeArchivedChange={setIncludeArchived}
-          onOpen={openServer}
-          onSearchChange={setSearch}
-          onSubmit={submitSearch}
-          search={search}
-          selectedId={selected?.id}
-          servers={servers}
+      <ResourceCollectionsShell
+        className={[
+          "serversCollectionsLayout",
+          selected ? "catalogResourceSelected" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        collections={collectionState.collections}
+        collectionsVisible={collectionState.collectionsVisible}
+        onShowCollections={() => collectionState.setCollectionsVisible(true)}
+        selectedCollectionId={collectionState.selectedCollectionId}
+        sidebar={
+          <ResourceCollectionSidebar
+            collections={collectionState.collections}
+            draggedItem={collectionState.draggedItem}
+            itemLabel="servidores"
+            items={servers}
+            onCreate={
+              canManageCollections
+                ? () => collectionState.setCollectionDialog({})
+                : undefined
+            }
+            onDelete={collectionState.removeCollection}
+            onClose={() => collectionState.setCollectionsVisible(false)}
+            onDragCollection={
+              canManageCollections
+                ? (collection) =>
+                    collectionState.setDraggedItem({
+                      type: "collection",
+                      id: collection.id,
+                    })
+                : undefined
+            }
+            onDragEnd={() => collectionState.setDraggedItem(null)}
+            onDrop={(collectionId) =>
+              collectionState.dropItem(collectionId, moveServerToCollection)
+            }
+            onRename={() =>
+              collectionState.setCollectionDialog(selectedCollection)
+            }
+            onSelect={(collectionId) => {
+              collectionState.setSelectedCollectionId(collectionId);
+              setSelected(null);
+            }}
+            selectedCollectionId={collectionState.selectedCollectionId}
+          />
+        }
+        toolbar={
+          <ResourceCollectionSearch
+            additionalFilters={
+              <label className="checkItem compactCheckItem">
+                <input
+                  checked={includeArchived}
+                  onChange={(event) => setIncludeArchived(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>Arquivados</span>
+              </label>
+            }
+            loading={loading}
+            onRefresh={() => loadList()}
+            onSearch={() => loadList()}
+            onSearchChange={setSearch}
+            placeholder="Buscar servidores"
+            search={search}
+          />
+        }
+      >
+        <div
+          className={["catalogLayout", selected ? "catalogDetailSelected" : ""]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          <ServerSidebar
+            canMove={canManageCollections}
+            loading={loading}
+            onOpen={openServer}
+            selectedId={selected?.id}
+            onDragEnd={() => collectionState.setDraggedItem(null)}
+            onDragStart={(server) =>
+              collectionState.setDraggedItem({ type: "item", id: server.id })
+            }
+            servers={visibleServers}
+          />
+          <ServerContent
+            activeTab={activeTab}
+            actor={actor}
+            onArchive={archiveSelected}
+            onBack={() => setSelected(null)}
+            onEdit={setDialog}
+            onSelectTab={setActiveTab}
+            serverApplications={serverApplications}
+            selected={selected}
+          />
+        </div>
+      </ResourceCollectionsShell>
+      {collectionState.collectionDialog ? (
+        <ResourceCollectionDialog
+          collection={
+            collectionState.collectionDialog.id
+              ? collectionState.collectionDialog
+              : null
+          }
+          onClose={() => collectionState.setCollectionDialog(null)}
+          onSave={collectionState.saveCollection}
+          parentLabel={collectionPathLabel(
+            collectionState.collections,
+            collectionState.selectedCollectionId,
+          )}
+          resourceLabel="servidores"
         />
-        <ServerContent
-          activeTab={activeTab}
-          actor={actor}
-          onArchive={archiveSelected}
-          onEdit={setDialog}
-          onSelectTab={setActiveTab}
-          serverApplications={serverApplications}
-          selected={selected}
-        />
-      </div>
+      ) : null}
       {dialog ? (
         <CatalogEntityDialog
           entity={dialog.id ? dialog : null}
@@ -185,17 +301,6 @@ export function ServersView({ actor }) {
           onSave={persist}
         />
       ) : null}
-      <button
-        className="catalogFloatingRefresh iconButton"
-        disabled={loading}
-        onClick={() =>
-          selected ? void openServer(selected) : void initialize()
-        }
-        title="Atualizar servidores"
-        type="button"
-      >
-        <RefreshCw className={loading ? "spinIcon" : undefined} size={18} />
-      </button>
     </section>
   );
 }
@@ -218,42 +323,16 @@ function ServerHeader({ actor, onCreate, workspace }) {
 }
 
 function ServerSidebar({
-  includeArchived,
+  canMove,
   loading,
-  onIncludeArchivedChange,
   onOpen,
-  onSearchChange,
-  onSubmit,
-  search,
+  onDragEnd,
+  onDragStart,
   selectedId,
   servers,
 }) {
   return (
     <aside className="catalogSidebar">
-      <form className="catalogSearch" onSubmit={onSubmit}>
-        <label className="field">
-          <span>Buscar servidores</span>
-          <div>
-            <Search size={15} />
-            <input
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Nome, hostname ou endereço"
-              value={search}
-            />
-          </div>
-        </label>
-        <label className="checkItem compactCheckItem">
-          <input
-            checked={includeArchived}
-            onChange={(event) => onIncludeArchivedChange(event.target.checked)}
-            type="checkbox"
-          />
-          <span>Incluir arquivados</span>
-        </label>
-        <button className="secondaryButton" type="submit">
-          Aplicar
-        </button>
-      </form>
       <div className="catalogApplicationList">
         {servers.map((server) => (
           <button
@@ -263,6 +342,9 @@ function ServerSidebar({
                 : "catalogApplicationItem"
             }
             key={server.id}
+            draggable={canMove}
+            onDragEnd={onDragEnd}
+            onDragStart={() => onDragStart(server)}
             onClick={() => onOpen(server)}
             type="button"
           >
@@ -304,6 +386,7 @@ function ServerDetails({
   activeTab,
   actor,
   onArchive,
+  onBack,
   onEdit,
   onSelectTab,
   serverApplications,
@@ -328,6 +411,13 @@ function ServerDetails({
           <p>{selected.description || selected.purpose || "Sem descrição."}</p>
         </div>
         <div className="catalogHeaderActions">
+          <button
+            className="secondaryButton catalogBackButton"
+            onClick={onBack}
+            type="button"
+          >
+            <ArrowLeft size={16} /> Voltar
+          </button>
           {hasPermission(actor, "servers.update") ? (
             <button
               className="secondaryButton"

@@ -100,6 +100,18 @@ test("application filters are workspace-bound and escape search expressions", ()
   );
 });
 
+test("application filters support assigned and root collections", () => {
+  assert.equal(
+    buildApplicationFilter("workspace-1", { collectionId: "collection-1" })
+      .collectionId,
+    "collection-1",
+  );
+  assert.deepEqual(
+    buildApplicationFilter("workspace-1", { collectionId: "" }).collectionId,
+    { $in: ["", null] },
+  );
+});
+
 test("workspace filters use the explicit workspace boundary", () => {
   assert.deepEqual(buildOperationalWorkspaceFilter("workspace-1"), {
     id: "workspace-1",

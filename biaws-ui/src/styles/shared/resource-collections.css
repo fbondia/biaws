@@ -1,0 +1,168 @@
+.resourceCollectionsLayout {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.resourceCollectionContent {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.resourceCollectionBar {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(140px, 1fr) minmax(280px, auto);
+  align-items: center;
+  gap: 10px;
+}
+
+.resourceCollectionsLayout.resourceCollectionsCollapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.resourceCollectionsCollapsed > .procedureCollectionsPanel {
+  display: none;
+}
+
+.resourceCollectionPath {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+
+.resourceCollectionSearch {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.resourceCollectionSearchInput {
+  display: flex;
+  width: min(340px, 36vw);
+  height: 38px;
+  min-width: 180px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  padding: 0 9px;
+}
+
+.resourceCollectionSearchInput:focus-within {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgba(45, 108, 223, 0.13);
+}
+
+.resourceCollectionSearchInput input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding-inline: 0;
+}
+
+.resourceCollectionSearch .compactCheckItem {
+  flex: 0 0 auto;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.resourceCollectionPath:hover,
+.resourceCollectionPath:focus-visible {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.procedureCollectionsPanel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.resourceCollectionHeaderActions {
+  display: flex !important;
+  flex: 0 0 auto;
+  grid-auto-flow: column;
+  gap: 4px !important;
+}
+
+.resourceCollectionHeaderActions .iconButton {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+}
+
+.resourceCollectionCloseButton {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  flex: 0 0 auto;
+}
+
+.resourceCollectionContent .secretsGrid,
+.resourceCollectionContent .skillCards {
+  margin: 0;
+}
+
+.serversCollectionsLayout > .resourceCollectionContent {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .resourceCollectionsLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .resourceCollectionsLayout .procedureCollectionsPanel {
+    position: static;
+  }
+
+  .resourceCollectionsLayout .procedureCollectionTree {
+    max-height: 280px;
+  }
+
+  .resourceCollectionBar {
+    grid-template-columns: 1fr;
+  }
+
+  .resourceCollectionSearch {
+    justify-content: stretch;
+  }
+
+  .resourceCollectionSearchInput {
+    width: auto;
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .resourceCollectionSearch {
+    flex-wrap: wrap;
+  }
+
+  .resourceCollectionSearchInput {
+    width: 100%;
+    min-width: 0;
+    flex-basis: 100%;
+  }
+}

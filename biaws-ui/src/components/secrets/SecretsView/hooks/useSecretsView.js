@@ -39,7 +39,7 @@ export function useSecretsView(actor) {
     setError("");
     try {
       const [secretsPayload, applicationsPayload] = await Promise.all([
-        fetchSecrets(),
+        fetchSecrets({ limit: 100 }),
         hasPermission(actor, "applications.read")
           ? fetchApplications(actor.workspaceId, { limit: 100 })
           : Promise.resolve({ items: [] }),
@@ -161,12 +161,14 @@ export function useSecretsView(actor) {
     finishEditing,
     finishVersioning,
     loading,
+    load,
     permissions,
     reveal,
     revealed,
     secrets,
     setCreating,
     setEditing,
+    setError,
     setShowValue,
     setVersioning,
     showValue,

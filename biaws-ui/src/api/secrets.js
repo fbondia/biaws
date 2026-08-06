@@ -54,6 +54,15 @@ export function updateSecretMetadata(secretId, secret) {
   );
 }
 
+export function moveSecretToCollection(secretId, collectionId) {
+  return sendJson(
+    `/api/secrets/${encodeURIComponent(secretId)}/collection`,
+    { collectionId },
+    undefined,
+    "PATCH",
+  );
+}
+
 export function writeSecretValue(secretId, value) {
   return sendJson(`/api/secrets/${encodeURIComponent(secretId)}/value`, {
     value,

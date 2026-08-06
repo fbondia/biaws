@@ -4,6 +4,7 @@ import {
   deprecateSkill,
   getSkill,
   listSkills,
+  moveSkillToCollection,
   publishSkill,
 } from "../repositories/skillsRepository.js";
 import {
@@ -11,6 +12,7 @@ import {
   requireAllPermissions,
 } from "../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../repositories/auditRepository.js";
+import { assertResourceCollection } from "../repositories/resourceCollectionsRepository.js";
 
 export const skillsRouter = Router();
 
@@ -40,6 +42,35 @@ skillsRouter.get(
     res.json(
       await listSkills(authorizationQuery(req.actor, "skills.read", req.query)),
     );
+  }),
+);
+
+skillsRouter.patch(
+  "/:skillId/collection",
+  requireAllPermissions("skills.publish"),
+  asyncHandler(async (req, res) => {
+    const query = authorizationQuery(req.actor, "skills.publish", req.query);
+    const before = (await getSkill(req.params.skillId, undefined, query)).skill;
+    if (!before) return sendNotFound(res, req.params.skillId);
+    const collectionId = await assertResourceCollection(
+      "skills",
+      req.body?.collectionId,
+      req.actor.workspaceId,
+    );
+    const result = await moveSkillToCollection(
+      req.params.skillId,
+      collectionId,
+      query,
+    );
+    await recordAuditEvent({
+      actor: req.actor,
+      action: "updated",
+      target: { type: "skill", id: req.params.skillId, label: before.name },
+      before,
+      after: result.skill,
+      summary: `Skill movida entre coleções: ${before.name}`,
+    });
+    res.json(result);
   }),
 );
 

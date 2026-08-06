@@ -12,3 +12,4 @@ export * from "./api/skills.js";
 export * from "./api/home.js";
 export * from "./api/platform.js";
 export * from "./api/secrets.js";
+export * from "./api/resourceCollections.js";

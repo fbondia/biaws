@@ -28,6 +28,7 @@ export const COLLECTION_NAMES = Object.freeze({
   REQUEST_TASK_NOTES: "requestTaskNotes",
   REQUEST_TASKS: "requestTasks",
   REQUESTS: "requests",
+  RESOURCE_COLLECTIONS: "resourceCollections",
   SERVERS: "servers",
   SECRETS: "secrets",
   SKILLS: "skills",

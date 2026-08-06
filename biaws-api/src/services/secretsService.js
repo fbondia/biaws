@@ -8,10 +8,12 @@ import {
   currentSecretVersion,
   getSecretDocument,
   listSecrets,
+  moveSecretDocumentToCollection,
   normalizeSecretPayload,
   publicSecret,
   updateSecretDocument,
 } from "../repositories/secretsRepository.js";
+import { assertResourceCollection } from "../repositories/resourceCollectionsRepository.js";
 import { getSecretProvider } from "../secrets/secretProvider.js";
 import { normalizeUploadFilename } from "./attachmentService.js";
 
@@ -240,6 +242,25 @@ export async function updateSecret(secretId, payload, actor) {
     : document.applicationId;
   assertScope(actor, "secrets.update", targetApplicationId);
   return updateSecretDocument(document, payload, actor, scope);
+}
+
+export async function moveSecretToCollection(secretId, collectionId, actor) {
+  const { document, scope } = await requiredSecret(
+    secretId,
+    actor,
+    "secrets.update",
+  );
+  const normalizedCollectionId = await assertResourceCollection(
+    "secrets",
+    collectionId,
+    document.workspaceId,
+  );
+  return moveSecretDocumentToCollection(
+    document,
+    normalizedCollectionId,
+    actor,
+    scope,
+  );
 }
 
 export async function writeSecretValue(secretId, value, actor) {

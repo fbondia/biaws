@@ -7,6 +7,7 @@ import {
   SERVER_STATUSES,
 } from "../../../shared/index.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
+import { assertResourceCollection } from "./resourceCollectionsRepository.js";
 import {
   actorId,
   archiveFields,
@@ -146,6 +147,10 @@ export async function listServers(workspaceId, query = {}) {
       "location",
     ],
   });
+  if (query.collectionId !== undefined) {
+    const collectionId = String(query.collectionId || "").trim();
+    filter.collectionId = collectionId || { $in: ["", null] };
+  }
   const { page, limit, skip } = pagination(query);
   const [documents, total] = await Promise.all([
     servers
@@ -275,6 +280,34 @@ export async function archiveServer(serverId, actor = {}) {
       status: { $ne: "archived" },
     },
     { $set: archiveFields(actor) },
+  );
+  return getServer(current.id);
+}
+
+export async function moveServerToCollection(
+  serverId,
+  collectionId,
+  actor = {},
+) {
+  const current = await getServer(serverId);
+  if (!current) {
+    throw createCatalogError(404, "SERVER_NOT_FOUND", "Server not found");
+  }
+  const normalizedCollectionId = await assertResourceCollection(
+    "servers",
+    collectionId,
+    current.workspaceId,
+  );
+  const { servers } = await getTopologyCollections();
+  await servers.updateOne(
+    { id: current.id, workspaceId: current.workspaceId },
+    {
+      $set: {
+        collectionId: normalizedCollectionId,
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+    },
   );
   return getServer(current.id);
 }

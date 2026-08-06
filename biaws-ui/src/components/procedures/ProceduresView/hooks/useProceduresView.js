@@ -14,13 +14,14 @@ import {
 } from "../../../../api.js";
 import { hasPermission } from "../../../../permissions.js";
 import { useCatalogOptions } from "../../../catalog/CatalogContextFields.jsx";
-import { collectionPathLabel } from "../../ProcedureCollections.jsx";
+import { collectionPathLabel } from "../../../shared/ResourceCollections.jsx";
 import { normalizeDraft } from "../model.js";
 
 export function useProceduresView(actor) {
   const [items, setItems] = useState([]);
   const [organizationItems, setOrganizationItems] = useState([]);
   const [collections, setCollections] = useState([]);
+  const [collectionsVisible, setCollectionsVisible] = useState(true);
   const [search, setSearch] = useState("");
   const [taxonomyFilters, setTaxonomyFilters] = useState([]);
   const [tagFilters, setTagFilters] = useState({});
@@ -254,6 +255,8 @@ export function useProceduresView(actor) {
   );
   const selectedCollectionLabel = collectionPathLabel(
     collections,
+    collectionsVisible,
+    setCollectionsVisible,
     selectedCollectionId,
   );
   const visibleItems = searchActive

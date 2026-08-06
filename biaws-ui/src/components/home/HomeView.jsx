@@ -3,6 +3,7 @@ import {
   BarChart3,
   CheckCircle2,
   CircleAlert,
+  ChevronDown,
   Clock3,
   ClipboardList,
   Eye,
@@ -934,23 +935,28 @@ export function HomeView() {
                   </div>
                   {editing ? (
                     <div className="homeWidgetActions">
-                      <select
-                        aria-label={`Tamanho de ${definition.label}`}
-                        onChange={(event) =>
-                          setDraftWidgets((current) =>
-                            updateWidgetInstance(current, instance.id, {
-                              size: event.target.value,
-                            }),
-                          )
-                        }
-                        value={instance.size}
-                      >
-                        {HOME_WIDGET_SIZES.map((size) => (
-                          <option key={size.value} value={size.value}>
-                            {size.label}
-                          </option>
-                        ))}
-                      </select>
+                      <label className="homeWidgetSizeChip">
+                        <span className="srOnly">
+                          Tamanho de {definition.label}
+                        </span>
+                        <select
+                          onChange={(event) =>
+                            setDraftWidgets((current) =>
+                              updateWidgetInstance(current, instance.id, {
+                                size: event.target.value,
+                              }),
+                            )
+                          }
+                          value={instance.size}
+                        >
+                          {HOME_WIDGET_SIZES.map((size) => (
+                            <option key={size.value} value={size.value}>
+                              {size.shortLabel}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown aria-hidden="true" size={13} />
+                      </label>
                       {definition.configuration?.fields?.length ? (
                         <button
                           aria-label={`Configurar ${definition.label}`}

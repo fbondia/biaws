@@ -52,7 +52,7 @@ Content-Type: application/json
     {
       "id": "billing-health",
       "widgetId": "application-health",
-      "size": "medium",
+      "size": "medium-2",
       "config": {
         "applicationId": "<application-id>",
         "environment": "production"
@@ -62,7 +62,10 @@ Content-Type: application/json
 }
 ```
 
-São aceitas até 30 instâncias. Tamanhos válidos: `small`, `medium` e `large`.
+São aceitas até 30 instâncias. Os tamanhos seguem uma grade de 12 colunas:
+`small` ocupa 3 colunas, `medium-1` ocupa 4, `medium-2` ocupa 6 e `large`
+ocupa 12. Configurações antigas com `medium` são convertidas automaticamente
+para `medium-2`, preservando a largura original.
 O ID da instância é distinto do tipo em `widgetId`; isso permite repetir um
 widget com configurações diferentes.
 O widget `application-health` aceita `applicationId` e `environment` opcionais.

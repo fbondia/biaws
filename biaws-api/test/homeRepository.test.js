@@ -72,6 +72,24 @@ test("home configuration accepts repeated widget types with unique instances", (
   assert.equal(widgets.length, 3);
   assert.equal(widgets[2].config.applicationId, "billing");
   assert.equal(widgets[2].config.environment, "production");
+  assert.equal(widgets[2].size, "medium-2");
+});
+
+test("home configuration accepts every grid size and migrates legacy medium", () => {
+  const sizes = ["small", "medium-1", "medium-2", "large", "medium"];
+  const widgets = normalizeHomeWidgets(
+    sizes.map((size, index) => ({
+      id: `period-${index}`,
+      widgetId: "issues-period",
+      size,
+      config: { period: "week" },
+    })),
+    actor,
+  );
+  assert.deepEqual(
+    widgets.map(({ size }) => size),
+    ["small", "medium-1", "medium-2", "large", "medium-2"],
+  );
 });
 
 test("home configuration rejects unauthorized widgets and invalid config", () => {

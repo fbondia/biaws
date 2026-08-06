@@ -1,7 +1,8 @@
 export const HOME_WIDGET_SIZES = [
-  { value: "small", label: "Pequeno" },
-  { value: "medium", label: "Médio" },
-  { value: "large", label: "Grande" },
+  { value: "small", label: "Pequeno", shortLabel: "P", columns: 3 },
+  { value: "medium-1", label: "Médio 1", shortLabel: "M1", columns: 4 },
+  { value: "medium-2", label: "Médio 2", shortLabel: "M2", columns: 6 },
+  { value: "large", label: "Grande", shortLabel: "G", columns: 12 },
 ];
 
 const DEPLOYMENT_ENVIRONMENT_LABELS = {
@@ -16,7 +17,10 @@ export function createWidgetInstance(definition, config = {}) {
   return {
     id: crypto.randomUUID(),
     widgetId: definition.id,
-    size: definition.defaultSize || "medium",
+    size:
+      definition.defaultSize === "medium"
+        ? "medium-2"
+        : definition.defaultSize || "medium-2",
     config: { ...config },
   };
 }

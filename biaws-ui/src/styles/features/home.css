@@ -80,6 +80,15 @@
   grid-column: span 3;
 }
 
+.homeWidget-medium-1 {
+  grid-column: span 4;
+}
+
+.homeWidget-medium,
+.homeWidget-medium-2 {
+  grid-column: span 6;
+}
+
 .homeWidget-large {
   grid-column: span 12;
 }
@@ -149,11 +158,49 @@
   gap: 5px;
 }
 
-.homeWidgetActions select {
-  width: 90px;
-  min-height: 31px;
-  padding: 3px 7px;
+.homeWidgetSizeChip {
+  position: relative;
+  display: inline-flex;
+  height: 31px;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.homeWidgetSizeChip:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+}
+
+.homeWidgetSizeChip:focus-within {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 18%, transparent);
+}
+
+.homeWidgetSizeChip select {
+  width: 79px;
+  height: 100%;
+  appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0 25px 0 11px;
   font-size: 0.75rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.homeWidgetSizeChip > svg {
+  position: absolute;
+  right: 9px;
+  pointer-events: none;
 }
 
 .homeWidgetActions .iconButton {
@@ -841,11 +888,13 @@
 }
 
 @media (max-width: 1100px) {
-  .homeWidget-small {
+  .homeWidget-small,
+  .homeWidget-medium-1 {
     grid-column: span 6;
   }
 
-  .homeWidget-medium {
+  .homeWidget-medium,
+  .homeWidget-medium-2 {
     grid-column: span 12;
   }
 }
@@ -866,6 +915,8 @@
 
   .homeWidget-small,
   .homeWidget-medium,
+  .homeWidget-medium-1,
+  .homeWidget-medium-2,
   .homeWidget-large {
     grid-column: span 12;
   }

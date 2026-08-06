@@ -7,7 +7,7 @@ import { actorCanAccessApplication } from "../auth/authorizationMiddleware.js";
 import { monitoringMetadataPresentation } from "./monitoringMetadataProfiles.js";
 
 const MAX_WIDGETS = 30;
-const WIDGET_SIZES = new Set(["small", "medium", "large"]);
+const WIDGET_SIZES = new Set(["small", "medium-1", "medium-2", "large"]);
 const COMPLETED_TASK_STATUSES = [
   "Concluído",
   "Concluido",
@@ -45,7 +45,7 @@ export const HOME_WIDGET_CATALOG = Object.freeze([
     label: "Chamados abertos por aplicação",
     description: "Distribuição dos chamados em aberto pelos sistemas.",
     permission: "issues.read",
-    defaultSize: "medium",
+    defaultSize: "medium-2",
     configuration: { fields: [] },
   },
   {
@@ -54,7 +54,7 @@ export const HOME_WIDGET_CATALOG = Object.freeze([
     label: "Chamados abertos por tipo",
     description: "Distribuição dos chamados em aberto por tipo.",
     permission: "issues.read",
-    defaultSize: "medium",
+    defaultSize: "medium-2",
     configuration: { fields: [] },
   },
   {
@@ -63,7 +63,7 @@ export const HOME_WIDGET_CATALOG = Object.freeze([
     label: "Tarefas pendentes",
     description: "Tarefas ainda não concluídas nas melhorias acessíveis.",
     permission: "demands.read",
-    defaultSize: "medium",
+    defaultSize: "medium-2",
     configuration: { fields: [] },
   },
   {
@@ -73,7 +73,7 @@ export const HOME_WIDGET_CATALOG = Object.freeze([
     description:
       "Runtimes monitorados agrupados por aplicação, componente e deployment.",
     permission: "runtimes.read",
-    defaultSize: "medium",
+    defaultSize: "medium-2",
     configuration: {
       fields: [
         {
@@ -204,7 +204,8 @@ export function normalizeHomeWidgets(value, actor = {}) {
       );
     }
     ids.add(id);
-    const size = String(item.size || widget.defaultSize);
+    const requestedSize = String(item.size || widget.defaultSize);
+    const size = requestedSize === "medium" ? "medium-2" : requestedSize;
     if (!WIDGET_SIZES.has(size)) {
       throw homeError(
         422,
@@ -228,10 +229,10 @@ export function defaultHomeWidgets(actor = {}) {
   const defaults = [
     ["issues-period", { period: "week" }, "small"],
     ["issues-period", { period: "month" }, "small"],
-    ["open-issues-by-application", {}, "medium"],
-    ["open-issues-by-type", {}, "medium"],
-    ["pending-tasks", {}, "medium"],
-    ["application-health", { applicationId: "", environment: "" }, "medium"],
+    ["open-issues-by-application", {}, "medium-2"],
+    ["open-issues-by-type", {}, "medium-2"],
+    ["pending-tasks", {}, "medium-2"],
+    ["application-health", { applicationId: "", environment: "" }, "medium-2"],
   ];
   return defaults
     .filter(([widgetId]) =>

@@ -2,11 +2,24 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  HOME_WIDGET_SIZES,
   moveWidget,
   updateWidgetInstance,
   widgetSubtitle,
   widgetTitle,
 } from "../src/components/home/homeModel.js";
+
+test("home widget sizes describe their twelve-column spans", () => {
+  assert.deepEqual(
+    HOME_WIDGET_SIZES.map(({ value, columns }) => [value, columns]),
+    [
+      ["small", 3],
+      ["medium-1", 4],
+      ["medium-2", 6],
+      ["large", 12],
+    ],
+  );
+});
 
 const widgets = [
   { id: "a", widgetId: "issues-period", config: { period: "week" } },

@@ -1,8 +1,6 @@
 import {
-  ClipboardList,
+  Activity,
   ListChecks,
-  CheckSquare,
-  FileText,
   BriefcaseBusiness,
   List,
   Tags,
@@ -12,8 +10,8 @@ import {
   ShieldCheck,
   Server,
   BookOpen,
-  LifeBuoy,
   House,
+  Settings,
 } from "lucide-react";
 
 export const APP_VIEWS = [
@@ -23,60 +21,118 @@ export const APP_VIEWS = [
     icon: House,
     permission: null,
   },
+];
+
+export const NAVIGATION_GROUPS = [
   {
-    key: "issues",
-    label: "Chamados",
-    icon: ListChecks,
-    permission: "issues.read",
+    key: "operation",
+    label: "Operação",
+    icon: Activity,
+    sections: [
+      {
+        key: "work",
+        label: "Trabalho",
+        views: [
+          {
+            key: "issues",
+            label: "Chamados",
+            icon: ListChecks,
+            permission: "issues.read",
+          },
+          {
+            key: "requests",
+            label: "Melhorias",
+            icon: BriefcaseBusiness,
+            permission: "demands.read",
+          },
+        ],
+      },
+      {
+        key: "environment",
+        label: "Ambiente",
+        views: [
+          {
+            key: "catalog",
+            label: "Aplicações",
+            icon: Layers3,
+            permission: "applications.read",
+          },
+          {
+            key: "servers",
+            label: "Servidores",
+            icon: Server,
+            permission: "servers.read",
+          },
+        ],
+      },
+      {
+        key: "knowledge",
+        label: "Conhecimento",
+        views: [
+          {
+            key: "procedures",
+            label: "Procedimentos",
+            icon: BookOpen,
+            permission: "procedures.read",
+          },
+          {
+            key: "skills",
+            label: "Skills",
+            icon: Package,
+            permission: "skills.read",
+          },
+        ],
+      },
+    ],
   },
   {
-    key: "requests",
-    label: "Melhorias",
-    icon: BriefcaseBusiness,
-    permission: "demands.read",
-  },
-  {
-    key: "procedures",
-    label: "Procedimentos",
-    icon: BookOpen,
-    permission: "procedures.read",
+    key: "administration",
+    label: "Administração",
+    icon: Settings,
+    sections: [
+      {
+        key: "classification",
+        label: "Classificação",
+        views: [
+          {
+            key: "option-lists",
+            label: "Listas",
+            icon: List,
+            permission: "option_lists.read",
+          },
+          {
+            key: "taxonomy",
+            label: "Taxonomia",
+            icon: Tags,
+            permission: "taxonomy.read",
+          },
+        ],
+      },
+      {
+        key: "access",
+        label: "Acesso",
+        views: [
+          {
+            key: "users",
+            label: "Usuários",
+            icon: Users,
+            permission: "users.read",
+          },
+          {
+            key: "groups",
+            label: "Grupos",
+            icon: ShieldCheck,
+            permission: "roles.read",
+          },
+        ],
+      },
+    ],
   },
 ];
 
-export const SETTINGS_VIEWS = [
-  {
-    key: "catalog",
-    label: "Aplicações",
-    icon: Layers3,
-    permission: "applications.read",
-  },
-  {
-    key: "servers",
-    label: "Servidores",
-    icon: Server,
-    permission: "servers.read",
-  },
-  {
-    key: "option-lists",
-    label: "Listas de Opções",
-    icon: List,
-    permission: "option_lists.read",
-  },
-  {
-    key: "taxonomy",
-    label: "Taxonomia",
-    icon: Tags,
-    permission: "taxonomy.read",
-  },
-  { key: "skills", label: "Skills", icon: Package, permission: "skills.read" },
-  { key: "users", label: "Usuários", icon: Users, permission: "users.read" },
-  {
-    key: "groups",
-    label: "Grupos",
-    icon: ShieldCheck,
-    permission: "roles.read",
-  },
-];
+export const GROUPED_VIEWS = NAVIGATION_GROUPS.flatMap(({ sections }) =>
+  sections.flatMap(({ views }) => views),
+);
 
 export const ISSUES_PER_PAGE = 25;
 export const DEFAULT_ISSUE_SORT = "-date";

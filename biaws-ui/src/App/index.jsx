@@ -6,11 +6,10 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
   const {
     activeView,
     setActiveView,
-    availableSettingsViews,
+    availableNavigationGroups,
     availableViews,
     mobileMenuOpen,
     setMobileMenuOpen,
-    settingsMenuRef,
     issuesProps,
     loadRuntimeOptionLists,
     runtimeOptionsVersion,
@@ -20,13 +19,12 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
       <AppHeader
         activeView={activeView}
         actor={actor}
-        availableSettingsViews={availableSettingsViews}
+        availableNavigationGroups={availableNavigationGroups}
         availableViews={availableViews}
         mobileMenuOpen={mobileMenuOpen}
         onMobileMenuChange={setMobileMenuOpen}
         onViewChange={setActiveView}
         onWorkspaceChange={onWorkspaceChange}
-        settingsMenuRef={settingsMenuRef}
       />
       <ActiveView
         activeView={activeView}

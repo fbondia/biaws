@@ -5,12 +5,11 @@ import {
   CircleUserRound,
   Copy,
   Menu,
-  Settings,
   SlidersHorizontal,
   Terminal,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import companyLogo from "../../../assets/logo-company.png";
 import {
@@ -29,13 +28,12 @@ const LOCAL_SETUP_TABS = [
 export function AppHeader({
   activeView,
   actor,
-  availableSettingsViews,
+  availableNavigationGroups,
   availableViews,
   mobileMenuOpen,
   onMobileMenuChange,
   onViewChange,
   onWorkspaceChange,
-  settingsMenuRef,
 }) {
   const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(false);
   const [localSetupOpen, setLocalSetupOpen] = useState(false);
@@ -44,6 +42,7 @@ export function AppHeader({
   const [localInstance, setLocalInstance] = useState("");
   const [localProject, setLocalProject] = useState("");
   const [copyStatus, setCopyStatus] = useState("idle");
+  const navigationMenuRefs = useRef({});
   const canManageWorkspaces = actor.platformPermissions?.includes(
     "platform.workspaces.manage",
   );
@@ -59,9 +58,16 @@ export function AppHeader({
     workspaceId: actor.workspaceId,
   });
   const showWorkspaceControl = canOpenWorkspaceSwitcher(actor);
-  const settingsViewActive = availableSettingsViews.some(
-    ({ key }) => key === activeView,
-  );
+  function groupIsActive(group) {
+    return group.sections.some(({ views }) =>
+      views.some(({ key }) => key === activeView),
+    );
+  }
+  function closeNavigationMenus(exceptKey) {
+    Object.entries(navigationMenuRefs.current).forEach(([key, menu]) => {
+      if (key !== exceptKey) menu?.removeAttribute("open");
+    });
+  }
   function selectView(view) {
     onViewChange(view);
     onMobileMenuChange(false);
@@ -164,35 +170,62 @@ export function AppHeader({
                 view={view}
               />
             ))}
-            {availableSettingsViews.length ? (
-              <details className="settingsMenu" ref={settingsMenuRef}>
-                <summary
-                  aria-current={settingsViewActive ? "page" : undefined}
-                  className={
-                    settingsViewActive ? "viewTab activeViewTab" : "viewTab"
-                  }
+            {availableNavigationGroups.map((group) => {
+              const GroupIcon = group.icon;
+              const active = groupIsActive(group);
+              return (
+                <details
+                  className="navigationMenu"
+                  key={group.key}
+                  onToggle={(event) => {
+                    if (event.currentTarget.open) {
+                      closeNavigationMenus(group.key);
+                    }
+                  }}
+                  ref={(menu) => {
+                    navigationMenuRefs.current[group.key] = menu;
+                  }}
                 >
-                  <Settings size={16} /> Configurações
-                  <ChevronDown className="settingsMenuChevron" size={14} />
-                </summary>
-                <div className="settingsSubmenu">
-                  {availableSettingsViews.map((view) => (
-                    <NavigationButton
-                      active={activeView === view.key}
-                      key={view.key}
-                      menu
-                      onClick={() => {
-                        selectView(view.key);
-                        settingsMenuRef.current?.removeAttribute("open");
-                      }}
-                      view={view}
-                    />
-                  ))}
-                </div>
-              </details>
-            ) : null}
+                  <summary
+                    aria-current={active ? "page" : undefined}
+                    className={active ? "viewTab activeViewTab" : "viewTab"}
+                  >
+                    <GroupIcon size={16} /> {group.label}
+                    <ChevronDown className="navigationMenuChevron" size={14} />
+                  </summary>
+                  <div className="navigationSubmenu">
+                    {group.sections.map((section) => (
+                      <section
+                        aria-label={section.label}
+                        className="navigationSubmenuSection"
+                        key={section.key}
+                      >
+                        <span className="navigationSubmenuLabel">
+                          {section.label}
+                        </span>
+                        {section.views.map((view) => (
+                          <NavigationButton
+                            active={activeView === view.key}
+                            key={view.key}
+                            menu
+                            onClick={() => {
+                              selectView(view.key);
+                              navigationMenuRefs.current[
+                                group.key
+                              ]?.removeAttribute("open");
+                            }}
+                            view={view}
+                          />
+                        ))}
+                      </section>
+                    ))}
+                  </div>
+                </details>
+              );
+            })}
             <NavigationButton
               active={activeView === "account"}
+              iconOnly
               onClick={() => selectView("account")}
               view={{ icon: CircleUserRound, label: "Conta" }}
             />
@@ -537,18 +570,28 @@ async function copyPlainText(value) {
   textarea.remove();
 }
 
-function NavigationButton({ active, menu = false, onClick, view }) {
+function NavigationButton({
+  active,
+  iconOnly = false,
+  menu = false,
+  onClick,
+  view,
+}) {
   const Icon = view.icon;
-  const baseClass = menu ? "settingsSubmenuItem" : "viewTab";
-  const activeClass = menu ? "activeSettingsSubmenuItem" : "activeViewTab";
+  const baseClass = menu ? "navigationSubmenuItem" : "viewTab";
+  const activeClass = menu ? "activeNavigationSubmenuItem" : "activeViewTab";
   return (
     <button
       aria-current={active ? "page" : undefined}
-      className={active ? `${baseClass} ${activeClass}` : baseClass}
+      aria-label={iconOnly ? view.label : undefined}
+      className={`${active ? `${baseClass} ${activeClass}` : baseClass}${
+        iconOnly ? " accountNavigationButton" : ""
+      }`}
       onClick={onClick}
+      title={iconOnly ? view.label : undefined}
       type="button"
     >
-      <Icon size={16} /> {view.label}
+      <Icon size={16} /> {iconOnly ? null : view.label}
     </button>
   );
 }

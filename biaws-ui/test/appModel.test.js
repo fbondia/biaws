@@ -7,21 +7,43 @@ import {
   buildLocalWorkspaceSetupCommand,
   canOpenWorkspaceSwitcher,
   currentWorkspaceName,
-  SETTINGS_VIEWS,
+  GROUPED_VIEWS,
+  NAVIGATION_GROUPS,
 } from "../src/App/model.js";
 
-test("applications and servers are grouped under settings", () => {
-  assert.equal(
-    APP_VIEWS.some(({ key }) => key === "catalog"),
-    false,
-  );
-  assert.equal(
-    APP_VIEWS.some(({ key }) => key === "servers"),
-    false,
+test("navigation groups operational and administrative destinations", () => {
+  assert.deepEqual(
+    APP_VIEWS.map(({ key }) => key),
+    ["home"],
   );
   assert.deepEqual(
-    SETTINGS_VIEWS.slice(0, 2).map(({ key }) => key),
-    ["catalog", "servers"],
+    NAVIGATION_GROUPS.map(({ key }) => key),
+    ["operation", "administration"],
+  );
+  assert.deepEqual(
+    NAVIGATION_GROUPS[0].sections.map(({ label, views }) => [
+      label,
+      views.map(({ key }) => key),
+    ]),
+    [
+      ["Trabalho", ["issues", "requests"]],
+      ["Ambiente", ["catalog", "servers"]],
+      ["Conhecimento", ["procedures", "skills"]],
+    ],
+  );
+  assert.deepEqual(
+    NAVIGATION_GROUPS[1].sections.map(({ label, views }) => [
+      label,
+      views.map(({ key }) => key),
+    ]),
+    [
+      ["Classificação", ["option-lists", "taxonomy"]],
+      ["Acesso", ["users", "groups"]],
+    ],
+  );
+  assert.equal(
+    GROUPED_VIEWS.find(({ key }) => key === "option-lists")?.label,
+    "Listas",
   );
 });
 

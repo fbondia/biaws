@@ -177,11 +177,11 @@
     justify-content: flex-start;
   }
 
-  .settingsMenu {
+  .navigationMenu {
     width: 100%;
   }
 
-  .settingsSubmenu {
+  .navigationSubmenu {
     position: static;
     min-width: 0;
     margin-top: 4px;

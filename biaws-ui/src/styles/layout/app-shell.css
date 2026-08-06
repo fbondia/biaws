@@ -505,35 +505,35 @@
   color: var(--color-accent-text);
 }
 
-.settingsMenu {
+.navigationMenu {
   position: relative;
 }
 
-.settingsMenu > summary {
+.navigationMenu > summary {
   list-style: none;
   user-select: none;
 }
 
-.settingsMenu > summary::-webkit-details-marker {
+.navigationMenu > summary::-webkit-details-marker {
   display: none;
 }
 
-.settingsMenuChevron {
+.navigationMenuChevron {
   transition: transform 150ms ease;
 }
 
-.settingsMenu[open] .settingsMenuChevron {
+.navigationMenu[open] .navigationMenuChevron {
   transform: rotate(180deg);
 }
 
-.settingsSubmenu {
+.navigationSubmenu {
   position: absolute;
   z-index: 20;
   top: calc(100% + 8px);
-  right: 0;
+  left: 0;
   display: grid;
-  min-width: 190px;
-  gap: 3px;
+  min-width: 230px;
+  gap: 5px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
@@ -541,7 +541,26 @@
   padding: 5px;
 }
 
-.settingsSubmenuItem {
+.navigationSubmenuSection {
+  display: grid;
+  gap: 3px;
+}
+
+.navigationSubmenuSection + .navigationSubmenuSection {
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 5px;
+}
+
+.navigationSubmenuLabel {
+  padding: 5px 10px 2px;
+  color: var(--color-text-subtle);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.navigationSubmenuItem {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -556,10 +575,16 @@
   font-weight: 650;
 }
 
-.settingsSubmenuItem:hover,
-.activeSettingsSubmenuItem {
+.navigationSubmenuItem:hover,
+.activeNavigationSubmenuItem {
   background: #eef4ff;
   color: var(--color-accent-text);
+}
+
+.accountNavigationButton {
+  width: 36px;
+  justify-content: center;
+  padding: 0;
 }
 
 @media (max-width: 920px) {
@@ -614,7 +639,7 @@
   }
 
   .viewTab,
-  .settingsMenu {
+  .navigationMenu {
     width: 100%;
   }
 
@@ -622,7 +647,7 @@
     justify-content: flex-start;
   }
 
-  .settingsSubmenu {
+  .navigationSubmenu {
     position: static;
     min-width: 0;
     margin-top: 4px;

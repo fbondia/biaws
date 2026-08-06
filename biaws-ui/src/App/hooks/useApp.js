@@ -19,8 +19,9 @@ import {
   APP_VIEWS,
   buildMonthSummaryParams,
   DEFAULT_ISSUE_SORT,
+  GROUPED_VIEWS,
   ISSUES_PER_PAGE,
-  SETTINGS_VIEWS,
+  NAVIGATION_GROUPS,
 } from "../model.js";
 
 export function useApp(actor) {
@@ -32,7 +33,7 @@ export function useApp(actor) {
       return "workspace-admin";
     }
     return (
-      [...APP_VIEWS, ...SETTINGS_VIEWS].find(
+      [...APP_VIEWS, ...GROUPED_VIEWS].find(
         ({ permission, platformPermission }) =>
           !platformPermission &&
           (!permission || hasPermission(actor, permission)),
@@ -61,7 +62,6 @@ export function useApp(actor) {
   const [runtimeOptionsVersion, setRuntimeOptionsVersion] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const monthTaxonomyRequestId = useRef(0);
-  const settingsMenuRef = useRef(null);
   const availableViews = useMemo(
     () =>
       APP_VIEWS.filter(
@@ -73,15 +73,20 @@ export function useApp(actor) {
       ),
     [actor],
   );
-  const availableSettingsViews = useMemo(
-    () =>
-      actor.workspaceId
-        ? SETTINGS_VIEWS.filter(({ permission }) =>
-            hasPermission(actor, permission),
-          )
-        : [],
-    [actor],
-  );
+  const availableNavigationGroups = useMemo(() => {
+    if (!actor.workspaceId) return [];
+    return NAVIGATION_GROUPS.map((group) => ({
+      ...group,
+      sections: group.sections
+        .map((section) => ({
+          ...section,
+          views: section.views.filter(
+            ({ permission }) => !permission || hasPermission(actor, permission),
+          ),
+        }))
+        .filter(({ views }) => views.length),
+    })).filter(({ sections }) => sections.length);
+  }, [actor]);
   const params = useMemo(
     () =>
       compactParams(
@@ -359,11 +364,10 @@ export function useApp(actor) {
   return {
     activeView,
     setActiveView,
-    availableSettingsViews,
+    availableNavigationGroups,
     availableViews,
     mobileMenuOpen,
     setMobileMenuOpen,
-    settingsMenuRef,
     issuesProps,
     loadRuntimeOptionLists,
     runtimeOptionsVersion,

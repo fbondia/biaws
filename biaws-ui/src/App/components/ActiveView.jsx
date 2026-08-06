@@ -10,6 +10,7 @@ import { OptionListsView } from "../../components/settings/OptionListsView/index
 import { SkillsView } from "../../components/skills/SkillsView/index.jsx";
 import { IssueTaxonomyManager } from "../../components/taxonomy/IssueTaxonomyManager/index.jsx";
 import { HomeView } from "../../components/home/HomeView.jsx";
+import { WorkspaceAdminView } from "../../components/platform/WorkspaceAdminView.jsx";
 
 export function ActiveView({
   activeView,
@@ -20,6 +21,9 @@ export function ActiveView({
   runtimeOptionsVersion,
 }) {
   if (activeView === "home") return <HomeView />;
+  if (activeView === "workspace-admin") {
+    return <WorkspaceAdminView actor={actor} />;
+  }
   if (activeView === "catalog") return <CatalogView actor={actor} />;
   if (activeView === "servers") return <ServersView actor={actor} />;
   if (activeView === "issues")

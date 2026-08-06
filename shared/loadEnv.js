@@ -55,10 +55,16 @@ function applyEnvFile(envPath, override) {
  * @param {string} [opts.envName]  - Nome do arquivo .env (default: ".env")
  * @param {string} [opts.envPath]  - Arquivo explícito da instância
  * @param {boolean} [opts.quiet]   - Suprime logs de carregamento (default: true)
+ * @param {string[]} [opts.preserve] - Variáveis já definidas que não podem ser sobrescritas
  * @returns {{ loaded: string[] }} - Lista de caminhos carregados
  */
 export function loadEnv(toolDir, opts = {}) {
   const { envName = ".env", quiet = true } = opts;
+  const preserved = new Map(
+    (opts.preserve || [])
+      .filter((key) => process.env[key] !== undefined)
+      .map((key) => [key, process.env[key]]),
+  );
   const issuesRoot = path.resolve(toolDir, "..");
   const explicitEnvPath = String(
     opts.envPath || process.env.BIAWS_ENV_FILE || "",
@@ -80,6 +86,8 @@ export function loadEnv(toolDir, opts = {}) {
     applyEnvFile(envPath, override);
     loaded.push(envPath);
   }
+
+  for (const [key, value] of preserved) process.env[key] = value;
 
   if (!quiet && loaded.length > 0) {
     console.log("Env carregado:", loaded);

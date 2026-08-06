@@ -24,12 +24,21 @@ import {
 } from "../model.js";
 
 export function useApp(actor) {
-  const [activeView, setActiveView] = useState(
-    () =>
+  const [activeView, setActiveView] = useState(() => {
+    if (
+      !actor.workspaceId &&
+      actor.platformPermissions?.includes("platform.workspaces.manage")
+    ) {
+      return "workspace-admin";
+    }
+    return (
       [...APP_VIEWS, ...SETTINGS_VIEWS].find(
-        ({ permission }) => !permission || hasPermission(actor, permission),
-      )?.key || "account",
-  );
+        ({ permission, platformPermission }) =>
+          !platformPermission &&
+          (!permission || hasPermission(actor, permission)),
+      )?.key || "account"
+    );
+  });
   const [draftFilters, setDraftFilters] = useState(DEFAULT_FILTERS);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
@@ -56,15 +65,21 @@ export function useApp(actor) {
   const availableViews = useMemo(
     () =>
       APP_VIEWS.filter(
-        ({ permission }) => !permission || hasPermission(actor, permission),
+        ({ permission, platformPermission }) =>
+          Boolean(actor.workspaceId) &&
+          (!permission || hasPermission(actor, permission)) &&
+          (!platformPermission ||
+            actor.platformPermissions?.includes(platformPermission)),
       ),
     [actor],
   );
   const availableSettingsViews = useMemo(
     () =>
-      SETTINGS_VIEWS.filter(({ permission }) =>
-        hasPermission(actor, permission),
-      ),
+      actor.workspaceId
+        ? SETTINGS_VIEWS.filter(({ permission }) =>
+            hasPermission(actor, permission),
+          )
+        : [],
     [actor],
   );
   const params = useMemo(

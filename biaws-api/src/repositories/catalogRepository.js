@@ -328,6 +328,53 @@ export async function listWorkspaces({ workspaceIds = null } = {}) {
   };
 }
 
+export async function listAllWorkspaces(query = {}) {
+  const { workspaces } = await getCollections();
+  await ensureDefaultWorkspace();
+  const page = Math.max(1, Number(query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(query.limit) || 25));
+  const status = String(query.status || "").trim();
+  const q = String(query.q || "").trim();
+  const filter = {};
+  if (status) {
+    if (!["active", "archived"].includes(status)) {
+      throw createHttpError(
+        422,
+        "INVALID_WORKSPACE_STATUS",
+        "Invalid workspace status",
+      );
+    }
+    filter.status = status;
+  }
+  if (q) {
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+    const expression = new RegExp(escaped, "iu");
+    filter.$or = [
+      { key: expression },
+      { name: expression },
+      { description: expression },
+    ];
+  }
+  const [items, total] = await Promise.all([
+    workspaces
+      .find(filter)
+      .sort({ name: 1, id: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .toArray(),
+    workspaces.countDocuments(filter),
+  ]);
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    },
+    items: items.map(normalizeDocument),
+  };
+}
+
 export async function createWorkspace(payload = {}, actor = {}) {
   const { workspaces } = await getCollections();
   const key = normalizeKey(payload.key);
@@ -372,6 +419,80 @@ export async function getWorkspace(workspaceId) {
   return normalizeDocument(
     await workspaces.findOne(buildOperationalWorkspaceFilter(workspaceId)),
   );
+}
+
+export async function updateWorkspace(workspaceId, payload = {}, actor = {}) {
+  const allowed = new Set(["name", "description"]);
+  const unknown = Object.keys(payload).filter((field) => !allowed.has(field));
+  if (unknown.length) {
+    throw createHttpError(
+      422,
+      "INVALID_CATALOG_PAYLOAD",
+      `Unknown workspace fields: ${unknown.join(", ")}`,
+    );
+  }
+  const current = await getWorkspace(workspaceId);
+  if (!current) {
+    throw createHttpError(404, "WORKSPACE_NOT_FOUND", "Workspace not found");
+  }
+  const changes = {};
+  if (Object.hasOwn(payload, "name")) {
+    changes.name = requiredText(payload.name, "name", CATALOG_LIMITS.name);
+  }
+  if (Object.hasOwn(payload, "description")) {
+    changes.description = optionalText(
+      payload.description,
+      "description",
+      CATALOG_LIMITS.description,
+    );
+  }
+  const { workspaces } = await getCollections();
+  const result = await workspaces.findOneAndUpdate(
+    { id: current.id },
+    {
+      $set: {
+        ...changes,
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+    },
+    { returnDocument: "after" },
+  );
+  return normalizeDocument(result);
+}
+
+export async function setWorkspaceStatus(workspaceId, status, actor = {}) {
+  if (!["active", "archived"].includes(status)) {
+    throw createHttpError(
+      422,
+      "INVALID_WORKSPACE_STATUS",
+      "Invalid workspace status",
+    );
+  }
+  const current = await getWorkspace(workspaceId);
+  if (!current) {
+    throw createHttpError(404, "WORKSPACE_NOT_FOUND", "Workspace not found");
+  }
+  if (current.default && status === "archived") {
+    throw createHttpError(
+      409,
+      "DEFAULT_WORKSPACE_REQUIRED",
+      "The default workspace cannot be archived",
+    );
+  }
+  const { workspaces } = await getCollections();
+  const result = await workspaces.findOneAndUpdate(
+    { id: current.id },
+    {
+      $set: {
+        status,
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+    },
+    { returnDocument: "after" },
+  );
+  return normalizeDocument(result);
 }
 
 async function requireWorkspace(workspaceId, { active = false } = {}) {

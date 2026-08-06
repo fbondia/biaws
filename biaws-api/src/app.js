@@ -28,6 +28,7 @@ import { catalogRouter } from "./routes/catalog.js";
 import { catalogTopologyRouter } from "./routes/catalogTopology.js";
 import { monitoringRouter } from "./routes/monitoring.js";
 import { homeRouter } from "./routes/home.js";
+import { platformRouter } from "./routes/platform.js";
 import {
   rejectDatabaseOverride,
   requireIdentityAdminOperation,
@@ -113,6 +114,12 @@ export function createApp({ logger = apiLogger } = {}) {
     requireWorkspaceContext,
     rejectDatabaseOverride,
   ];
+  const platformRoute = [
+    requireAuthentication,
+    createApiRateLimitMiddleware(config.rateLimit.api),
+    rejectDatabaseOverride,
+  ];
+  app.use("/api/platform", ...platformRoute, platformRouter);
   app.use("/api/issues", ...protectedRoute, issuesRouter);
   app.use("/api/home", ...protectedRoute, homeRouter);
   app.use("/api/requests", ...protectedRoute, requestsRouter);

@@ -285,12 +285,22 @@ depois repita `node biaws-cli/src/index.js agent doctor codex|claude --project
 `WORKSPACE_REQUIRED`
 
 : envie `X-Biaws-Workspace-Id` quando a identidade tiver acesso a mais de um
-workspace. MCP e CLI aceitam `ISSUE_WORKSPACE_ID`.
+workspace. No MCP, execute novamente `./scripts/setup-agent.sh --workspace
+id-do-workspace` (com instância, cliente e projeto) para gravar a seleção na
+configuração local do projeto. Em
+execuções diretas do CLI, use `--workspace` ou `ISSUE_WORKSPACE_ID`.
 
 `WORKSPACE_FORBIDDEN` ou recurso não encontrado
 
 : confirme o workspace selecionado, os grupos ativos e o escopo de aplicações.
 Recursos fora do escopo retornam `404` para evitar enumeração.
+
+`agent doctor` informa falha em `configuration`
+
+: reaplique `setup-agent.sh --instance <nome> --client codex|claude --project
+<diretório> --workspace id-do-workspace --skip-bootstrap`. Instalações antigas
+podem conter `ISSUE_WORKSPACE_ID` no `.env` da instância; o setup migra essa
+seleção para a configuração MCP do projeto e remove a variável legada.
 
 Login funciona, mas a UI perde a sessão
 

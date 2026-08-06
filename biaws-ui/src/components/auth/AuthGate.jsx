@@ -119,7 +119,11 @@ export function AuthGate({ children }) {
     );
   }
 
-  if (!actor.workspaceId && actor.workspaces?.length > 1) {
+  if (
+    !actor.workspaceId &&
+    actor.workspaces?.length > 1 &&
+    !actor.platformPermissions?.includes("platform.workspaces.manage")
+  ) {
     return (
       <main className="loginPage">
         <section className="loginCard">

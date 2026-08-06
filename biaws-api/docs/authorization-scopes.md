@@ -59,3 +59,16 @@ retornam `404`, evitando enumeração por ID.
 - configurações de workspace — taxonomia, listas de opções, coleções de
   procedimentos e skills — possuem chave composta por workspace;
 - a API é a autoridade; controles da UI servem apenas para apresentação.
+
+## Administração global
+
+A role técnica `admin` recebe capacidades de plataforma separadas das permissões
+de negócio: `platform.workspaces.manage` e `platform.audit.read`. Elas autorizam
+somente as rotas `/api/platform/*`, que não exigem um workspace corrente. Ser
+administrador global não concede acesso automático a chamados, melhorias ou
+outros dados operacionais dos workspaces.
+
+A criação global provisiona os grupos de sistema do novo workspace e associa um
+administrador inicial. Grupos recebem identidades próprias por workspace. O
+workspace padrão não pode ser arquivado e o último administrador local não pode
+ser removido nem perder o grupo de Administração.

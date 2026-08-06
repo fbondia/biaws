@@ -9,7 +9,9 @@ const TOOL_DIR = path.resolve(
   "..",
 );
 
-loadEnv(TOOL_DIR);
+// O workspace pertence à configuração do projeto/cliente MCP. O arquivo da
+// instância fornece URL e credencial, mas não pode mudar esse escopo.
+loadEnv(TOOL_DIR, { preserve: ["ISSUE_WORKSPACE_ID"] });
 
 function writeMessage(message) {
   process.stdout.write(`${JSON.stringify(message)}\n`);

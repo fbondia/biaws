@@ -109,6 +109,26 @@ As rotas atuais não oferecem anexos diretamente em subtarefas; as permissões
 | `POST`  | `/api/skills`                                                                   | `skills.publish`   |
 | `PATCH` | `/api/skills/:skillId/:version/deprecate`                                       | `skills.deprecate` |
 
+## Administração global de workspaces
+
+As rotas `/api/platform/*` exigem autenticação e capacidades da role técnica
+`admin`, mas não exigem `X-Biaws-Workspace-Id`.
+
+| Método   | Rota                                                    | Capacidade                      |
+| -------- | ------------------------------------------------------- | ------------------------------- |
+| `GET`    | `/api/platform/workspaces`                              | `platform.workspaces.manage`    |
+| `POST`   | `/api/platform/workspaces`                              | `platform.workspaces.manage`    |
+| `GET`    | `/api/platform/workspaces/:workspaceId`                 | `platform.workspaces.manage`    |
+| `PATCH`  | `/api/platform/workspaces/:workspaceId`                 | `platform.workspaces.manage`    |
+| `POST`   | `/api/platform/workspaces/:workspaceId/archive`         | `platform.workspaces.manage`    |
+| `POST`   | `/api/platform/workspaces/:workspaceId/reactivate`      | `platform.workspaces.manage`    |
+| `GET`    | `/api/platform/workspaces/:workspaceId/summary`         | `platform.workspaces.manage`    |
+| `GET`    | `/api/platform/workspaces/:workspaceId/groups`          | `platform.workspaces.manage`    |
+| `GET`    | `/api/platform/workspaces/:workspaceId/members`         | `platform.workspaces.manage`    |
+| `PUT`    | `/api/platform/workspaces/:workspaceId/members/:userId` | `platform.workspaces.manage`    |
+| `DELETE` | `/api/platform/workspaces/:workspaceId/members/:userId` | `platform.workspaces.manage`    |
+| `GET`    | `/api/platform/workspaces/:workspaceId/audit`           | `platform.audit.read` adicional |
+
 ## Administração de identidade
 
 A administração técnica de identidades e das próprias chaves usa as APIs do

@@ -5,8 +5,10 @@ import {
   actorCanAccessApplication,
   actorHasPermission,
   authorizationQuery,
+  platformPermissionsForTechnicalRole,
   rejectDatabaseOverride,
   requireAllPermissions,
+  requirePlatformPermissions,
   requireBodyFieldPermissions,
 } from "../src/auth/authorizationMiddleware.js";
 
@@ -72,6 +74,31 @@ test("required permission returns a structured 403", () => {
   );
   assert.equal(res.statusCode, 403);
   assert.equal(res.payload.error.code, "FORBIDDEN");
+});
+
+test("technical admin receives platform permissions without workspace permissions", () => {
+  assert.deepEqual(platformPermissionsForTechnicalRole("admin"), [
+    "platform.workspaces.manage",
+    "platform.audit.read",
+  ]);
+  assert.deepEqual(platformPermissionsForTechnicalRole("user"), []);
+
+  const res = responseRecorder();
+  let allowed = false;
+  requirePlatformPermissions("platform.workspaces.manage")(
+    {
+      actor: {
+        permissions: [],
+        platformPermissions: ["platform.workspaces.manage"],
+      },
+    },
+    res,
+    () => {
+      allowed = true;
+    },
+  );
+  assert.equal(allowed, true);
+  assert.equal(res.statusCode, 200);
 });
 
 test("field authorization requires every permission represented in the patch", () => {

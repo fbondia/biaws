@@ -6,6 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTANCES_DIR="${BIAWS_INSTANCES_DIR:-${ROOT_DIR}/instances}"
 PROJECT_DIR="${PWD}"
 CLIENT=""
+WORKSPACE_ID=""
 INSTANCE=""
 MONGO_PORT=""
 API_PORT=""
@@ -36,6 +37,7 @@ Opções:
   --instance <nome>          Instância a criar ou selecionar
   --client codex|claude      Cliente que receberá MCP e skills
   --project <diretório>      Projeto consumidor; default: diretório atual
+  --workspace <id>           Workspace associado a este projeto
   --mongo-port <porta>       Porta externa do MongoDB; automática para instância nova
   --api-port <porta>         Porta da API; automática para instância nova
   --ui-port <porta>          Porta da UI; automática para instância nova
@@ -88,6 +90,15 @@ replace_env_value() {
       if (!replaced) print key "=" value
     }
   ' "${env_file}" > "${temporary_file}"
+  mv "${temporary_file}" "${env_file}"
+}
+
+remove_env_value() {
+  local env_file="$1"
+  local key="$2"
+  local temporary_file
+  temporary_file="$(mktemp)"
+  awk -v key="${key}" 'index($0, key "=") != 1 { print }' "${env_file}" > "${temporary_file}"
   mv "${temporary_file}" "${env_file}"
 }
 
@@ -454,6 +465,10 @@ while [[ "$#" -gt 0 ]]; do
       PROJECT_DIR="${2:-}"
       shift 2
       ;;
+    --workspace)
+      WORKSPACE_ID="${2:-}"
+      shift 2
+      ;;
     --mongo-port)
       MONGO_PORT="${2:-}"
       shift 2
@@ -601,6 +616,11 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   new_instance=1
 fi
 
+# Migração: versões anteriores armazenavam o workspace no arquivo da instância.
+# Ele agora pertence à configuração MCP de cada projeto consumidor.
+legacy_workspace_id="$(read_env_value "${ENV_FILE}" "ISSUE_WORKSPACE_ID")"
+WORKSPACE_ID="${WORKSPACE_ID:-${legacy_workspace_id}}"
+
 existing_mongo_data_path="$(read_env_value "${ENV_FILE}" "BIAWS_MONGO_DATA_PATH")"
 existing_issue_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_ISSUE_FILES_PATH")"
 existing_request_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_REQUEST_FILES_PATH")"
@@ -733,6 +753,7 @@ fi
   replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS" "${API_KEY_RATE_LIMIT_MAX}"
 [[ -z "${API_KEY_RATE_LIMIT_WINDOW}" ]] || \
   replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS" "${API_KEY_RATE_LIMIT_WINDOW}"
+remove_env_value "${ENV_FILE}" "ISSUE_WORKSPACE_ID"
 chmod 600 "${ENV_FILE}"
 write_instance_control_scripts
 
@@ -748,14 +769,27 @@ elif [[ "${DISABLE_RATE_LIMIT}" == "1" ||
   echo "Aviso: rate limiting atualizado no .env; reinicie a API para aplicar a configuração." >&2
 fi
 
-BIAWS_ENV_FILE="${ENV_FILE}" \
-  node "${ROOT_DIR}/biaws-cli/src/index.js" \
-    agent configure "${CLIENT}" \
-    --project "${PROJECT_DIR}"
-BIAWS_ENV_FILE="${ENV_FILE}" \
-  node "${ROOT_DIR}/biaws-cli/src/index.js" \
-    agent doctor "${CLIENT}" \
-    --project "${PROJECT_DIR}"
+if [[ -n "${WORKSPACE_ID}" ]]; then
+  BIAWS_ENV_FILE="${ENV_FILE}" \
+    node "${ROOT_DIR}/biaws-cli/src/index.js" \
+      agent configure "${CLIENT}" \
+      --project "${PROJECT_DIR}" \
+      --workspace "${WORKSPACE_ID}"
+  BIAWS_ENV_FILE="${ENV_FILE}" \
+    node "${ROOT_DIR}/biaws-cli/src/index.js" \
+      agent doctor "${CLIENT}" \
+      --project "${PROJECT_DIR}" \
+      --workspace "${WORKSPACE_ID}"
+else
+  BIAWS_ENV_FILE="${ENV_FILE}" \
+    node "${ROOT_DIR}/biaws-cli/src/index.js" \
+      agent configure "${CLIENT}" \
+      --project "${PROJECT_DIR}"
+  BIAWS_ENV_FILE="${ENV_FILE}" \
+    node "${ROOT_DIR}/biaws-cli/src/index.js" \
+      agent doctor "${CLIENT}" \
+      --project "${PROJECT_DIR}"
+fi
 
 cat <<EOF
 
@@ -764,6 +798,7 @@ Configuração concluída:
   Dados:     ${INSTANCE_DIR}
   Storage:   ${STORAGE_DESCRIPTION}
   Projeto:   ${PROJECT_DIR}
+  Workspace: ${WORKSPACE_ID:-detectado automaticamente pela identidade}
   MongoDB:   mongodb://127.0.0.1:${MONGO_PORT}/biaws
   API:       http://localhost:${API_PORT}
   UI:        http://localhost:${UI_PORT}

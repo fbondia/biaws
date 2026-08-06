@@ -32,6 +32,9 @@ async function createFakeRuntime(root) {
 if [[ "\${1:-}" == "-p" ]]; then
   echo 22
 fi
+if [[ -n "\${BIAWS_TEST_NODE_LOG:-}" ]]; then
+  printf '%s\\n' "\$*" >> "\${BIAWS_TEST_NODE_LOG}"
+fi
 exit 0
 `,
   );
@@ -75,6 +78,7 @@ function runSetup({ bin, instances, project, extraArguments = [] }) {
       env: {
         ...process.env,
         PATH: `${bin}:${process.env.PATH}`,
+        BIAWS_TEST_NODE_LOG: path.join(path.dirname(instances), "node.log"),
       },
     },
   );
@@ -93,6 +97,10 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   await copyFile(
     path.join(repositoryRoot, ".env.example"),
     path.join(instance, ".env"),
+  );
+  await writeFile(
+    path.join(instance, ".env"),
+    `${await readFile(path.join(instance, ".env"), "utf8")}\nISSUE_WORKSPACE_ID=legacy-workspace\n`,
   );
   const bin = await createFakeRuntime(temporaryRoot);
 
@@ -120,6 +128,12 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   assert.equal(configured.status, 0, configured.stderr);
 
   const configuredEnv = await readFile(path.join(instance, ".env"), "utf8");
+  assert.doesNotMatch(configuredEnv, /^ISSUE_WORKSPACE_ID=/mu);
+  const nodeLog = await readFile(path.join(temporaryRoot, "node.log"), "utf8");
+  assert.match(
+    nodeLog,
+    /agent configure codex .*--workspace legacy-workspace/u,
+  );
   const canonicalStorage = await realpath(storage);
   assert.match(configuredEnv, /^MONGO_PORT=27017$/mu);
   assert.match(

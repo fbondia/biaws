@@ -33,6 +33,7 @@ async function writeCodexConfiguration(
   projectDirectory,
   entrypoint,
   envFile,
+  workspaceId,
   force,
 ) {
   const configPath = path.join(projectDirectory, ".codex", "config.toml");
@@ -58,7 +59,8 @@ async function writeCodexConfiguration(
 [mcp_servers.biaws]
 command = "node"
 args = [${JSON.stringify(entrypoint)}]
-${envFile ? `env = { BIAWS_ENV_FILE = ${JSON.stringify(envFile)} }\n` : ""}${CODEX_END}
+env = {${envFile ? ` BIAWS_ENV_FILE = ${JSON.stringify(envFile)},` : ""} ISSUE_WORKSPACE_ID = ${JSON.stringify(workspaceId)} }
+${CODEX_END}
 `;
   const output = current ? `${current}\n\n${managed}` : managed;
   await writeFile(configPath, output, "utf8");
@@ -69,6 +71,7 @@ async function writeClaudeConfiguration(
   projectDirectory,
   entrypoint,
   envFile,
+  workspaceId,
   force,
 ) {
   const configPath = path.join(projectDirectory, ".mcp.json");
@@ -95,10 +98,39 @@ async function writeClaudeConfiguration(
     type: "stdio",
     command: "node",
     args: [entrypoint],
-    ...(envFile ? { env: { BIAWS_ENV_FILE: envFile } } : {}),
+    env: {
+      ...(envFile ? { BIAWS_ENV_FILE: envFile } : {}),
+      ISSUE_WORKSPACE_ID: workspaceId,
+    },
   };
   await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
   return configPath;
+}
+
+async function resolveWorkspaceId(api, requestedWorkspaceId = "") {
+  let identity;
+  try {
+    identity = await api.identity();
+  } catch (error) {
+    if (!requestedWorkspaceId && error.statusCode === 400) {
+      throw new Error(
+        "A identidade acessa mais de um workspace. Informe --workspace <id> para selecionar o workspace deste projeto.",
+      );
+    }
+    throw error;
+  }
+  const workspaceId = requestedWorkspaceId || identity?.actor?.workspaceId;
+  if (!workspaceId) {
+    if ((identity?.actor?.workspaces?.length || 0) > 1) {
+      throw new Error(
+        "A identidade acessa mais de um workspace. Informe --workspace <id> para selecionar o workspace deste projeto.",
+      );
+    }
+    throw new Error(
+      "Não foi possível determinar o workspace. Informe --workspace <id> e confirme que a identidade técnica é membro dele.",
+    );
+  }
+  return { workspaceId, identity };
 }
 
 async function configure(api, client, options, context) {
@@ -106,6 +138,7 @@ async function configure(api, client, options, context) {
     throw new Error("Informe o cliente: biaws agent configure codex|claude");
   }
   const projectDirectory = path.resolve(options.project || process.cwd());
+  const { workspaceId } = await resolveWorkspaceId(api, context.workspaceId);
   const target = skillTarget(client, projectDirectory);
   const entrypoint = mcpEntrypoint(context.toolDirectory);
   const configPath =
@@ -114,12 +147,14 @@ async function configure(api, client, options, context) {
           projectDirectory,
           entrypoint,
           context.envFile,
+          workspaceId,
           options.force,
         )
       : await writeClaudeConfiguration(
           projectDirectory,
           entrypoint,
           context.envFile,
+          workspaceId,
           options.force,
         );
   const installation = await runSkillsCommand(api, "install-all", [], {
@@ -134,6 +169,7 @@ async function configure(api, client, options, context) {
     configPath,
     skillTarget: target,
     installation,
+    workspaceId,
   };
   if (options.json) console.log(JSON.stringify(result, null, 2));
   else {
@@ -157,13 +193,14 @@ async function requestStatus(url, headers = {}) {
   }
 }
 
-async function mcpStatus(entrypoint, envFile) {
+async function mcpStatus(entrypoint, envFile, workspaceId) {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [entrypoint], {
       stdio: ["pipe", "pipe", "pipe"],
       env: {
         ...process.env,
         ...(envFile ? { BIAWS_ENV_FILE: envFile } : {}),
+        ISSUE_WORKSPACE_ID: workspaceId,
       },
     });
     let output = "";
@@ -228,7 +265,13 @@ async function mcpStatus(entrypoint, envFile) {
   });
 }
 
-function configurationStatus(client, contents, entrypoint, envFile) {
+function configurationStatus(
+  client,
+  contents,
+  entrypoint,
+  envFile,
+  workspaceId,
+) {
   if (typeof contents !== "string") {
     return { ok: false, detail: "Configuração MCP não encontrada" };
   }
@@ -236,7 +279,8 @@ function configurationStatus(client, contents, entrypoint, envFile) {
     const ok =
       contents.includes("[mcp_servers.biaws]") &&
       contents.includes(JSON.stringify(entrypoint)) &&
-      (!envFile || contents.includes(JSON.stringify(envFile)));
+      (!envFile || contents.includes(JSON.stringify(envFile))) &&
+      contents.includes(`ISSUE_WORKSPACE_ID = ${JSON.stringify(workspaceId)}`);
     return {
       ok,
       detail: ok
@@ -249,7 +293,8 @@ function configurationStatus(client, contents, entrypoint, envFile) {
     const ok =
       server?.command === "node" &&
       JSON.stringify(server.args || []) === JSON.stringify([entrypoint]) &&
-      (!envFile || server.env?.BIAWS_ENV_FILE === envFile);
+      (!envFile || server.env?.BIAWS_ENV_FILE === envFile) &&
+      server.env?.ISSUE_WORKSPACE_ID === workspaceId;
     return {
       ok,
       detail: ok
@@ -261,7 +306,7 @@ function configurationStatus(client, contents, entrypoint, envFile) {
   }
 }
 
-async function doctor(client, options, context) {
+async function doctor(api, client, options, context) {
   if (!["codex", "claude"].includes(client)) {
     throw new Error("Informe o cliente: biaws agent doctor codex|claude");
   }
@@ -272,22 +317,18 @@ async function doctor(client, options, context) {
       ? path.join(projectDirectory, ".codex", "config.toml")
       : path.join(projectDirectory, ".mcp.json");
   const entrypoint = mcpEntrypoint(context.toolDirectory);
-  const [health, identity, mcp, configContents, lock] = await Promise.all([
+  const resolved = await resolveWorkspaceId(api, context.workspaceId);
+  const [health, mcp, configContents, lock] = await Promise.all([
     requestStatus(`${context.apiUrl}/api/health`),
-    requestStatus(`${context.apiUrl}/api/auth/me`, {
-      Authorization: `Bearer ${context.apiKey}`,
-      ...(context.workspaceId
-        ? { "X-Biaws-Workspace-Id": context.workspaceId }
-        : {}),
-    }),
-    mcpStatus(entrypoint, context.envFile),
+    mcpStatus(entrypoint, context.envFile, resolved.workspaceId),
     readOptional(configPath, null),
     readLock(target),
   ]);
   const checks = {
     node: { ok: Number(process.versions.node.split(".")[0]) >= 20 },
     api: health,
-    authentication: identity,
+    authentication: { ok: true },
+    workspace: { ok: true, id: resolved.workspaceId },
     mcp,
     configuration: {
       ...configurationStatus(
@@ -295,6 +336,7 @@ async function doctor(client, options, context) {
         configContents,
         entrypoint,
         context.envFile,
+        resolved.workspaceId,
       ),
       path: configPath,
     },
@@ -326,6 +368,6 @@ export async function runAgentCommand(
 ) {
   const client = positional[0];
   if (action === "configure") return configure(api, client, options, context);
-  if (action === "doctor") return doctor(client, options, context);
+  if (action === "doctor") return doctor(api, client, options, context);
   throw new Error(`Ação de agente desconhecida: ${action || "(ausente)"}`);
 }

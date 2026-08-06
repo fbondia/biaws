@@ -87,10 +87,12 @@ materializada quando `observedAt` é igual ou posterior ao último sinal aplicad
 
 ## CLI
 
-Com `ISSUE_API_URL`, `ISSUE_API_KEY` e `ISSUE_WORKSPACE_ID` configurados:
+Com `ISSUE_API_URL` e `ISSUE_API_KEY` configurados, selecione o workspace com
+`--workspace` (ou `ISSUE_WORKSPACE_ID` em uma execução direta do CLI):
 
 ```bash
 node biaws-cli/src/index.js monitoring signal billing.billing-api.production.primary \
+  --workspace id-do-workspace \
   --status healthy \
   --source synthetic-http \
   --signal-id synthetic-http:2026-07-31T15:00:00Z \
@@ -101,8 +103,8 @@ node biaws-cli/src/index.js monitoring signal billing.billing-api.production.pri
 ```
 
 ```bash
-node biaws-cli/src/index.js monitoring signals billing.billing-api.production.primary --limit 20
-node biaws-cli/src/index.js monitoring signals <runtime-uuid> --limit 20 --json
+node biaws-cli/src/index.js monitoring signals billing.billing-api.production.primary --workspace id-do-workspace --limit 20
+node biaws-cli/src/index.js monitoring signals <runtime-uuid> --workspace id-do-workspace --limit 20 --json
 ```
 
 O emissor precisa de `monitoring.signals.create` no escopo da aplicação do

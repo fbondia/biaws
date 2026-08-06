@@ -8,6 +8,36 @@ function forbidden(res, requiredPermissions) {
   });
 }
 
+export function actorHasPlatformPermission(actor, permission) {
+  return (
+    Array.isArray(actor?.platformPermissions) &&
+    actor.platformPermissions.includes(permission)
+  );
+}
+
+export function platformPermissionsForTechnicalRole(role) {
+  const roles = String(role || "user")
+    .split(",")
+    .map((entry) => entry.trim());
+  return roles.includes("admin")
+    ? ["platform.workspaces.manage", "platform.audit.read"]
+    : [];
+}
+
+export function requirePlatformPermissions(...requiredPermissions) {
+  return function platformAuthorizationMiddleware(req, res, next) {
+    if (
+      !requiredPermissions.every((permission) =>
+        actorHasPlatformPermission(req.actor, permission),
+      )
+    ) {
+      forbidden(res, requiredPermissions);
+      return;
+    }
+    next();
+  };
+}
+
 export function actorHasPermission(actor, permission) {
   return (
     Array.isArray(actor?.permissions) && actor.permissions.includes(permission)

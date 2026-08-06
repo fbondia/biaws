@@ -44,6 +44,28 @@ test("explicit instance env overrides repository defaults", async () => {
   }
 });
 
+test("preserved project environment overrides the instance workspace", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "biaws-env-workspace-"));
+  const tool = path.join(root, "biaws-mcp");
+  const instanceEnv = path.join(root, "instances", "client-a", ".env");
+  await mkdir(tool, { recursive: true });
+  await mkdir(path.dirname(instanceEnv), { recursive: true });
+  await writeFile(instanceEnv, "ISSUE_WORKSPACE_ID=workspace-antigo\n");
+  const previousWorkspace = process.env.ISSUE_WORKSPACE_ID;
+  process.env.ISSUE_WORKSPACE_ID = "workspace-do-projeto";
+
+  try {
+    loadEnv(tool, {
+      envPath: instanceEnv,
+      preserve: ["ISSUE_WORKSPACE_ID"],
+    });
+    assert.equal(process.env.ISSUE_WORKSPACE_ID, "workspace-do-projeto");
+  } finally {
+    if (previousWorkspace === undefined) delete process.env.ISSUE_WORKSPACE_ID;
+    else process.env.ISSUE_WORKSPACE_ID = previousWorkspace;
+  }
+});
+
 test("API client sends the configured Bearer key", async () => {
   const originalFetch = globalThis.fetch;
   let receivedAuthorization;
@@ -236,6 +258,7 @@ test("agent configure writes Codex MCP config and installs catalog skills", asyn
   ];
   const packageSha256 = checksumPackageFiles(files);
   const api = {
+    identity: async () => ({ actor: { workspaceId: "workspace-a" } }),
     list: async () => ({
       items: [
         {
@@ -280,6 +303,7 @@ test("agent configure writes Codex MCP config and installs catalog skills", asyn
   assert.match(config, /\[mcp_servers\.biaws\]/u);
   assert.match(config, /biaws-mcp\/src\/index\.js/u);
   assert.match(config, /BIAWS_ENV_FILE = "\/tmp\/client-a\.env"/u);
+  assert.match(config, /ISSUE_WORKSPACE_ID = "workspace-a"/u);
   assert.equal(
     await readFile(
       path.join(project, ".agents", "skills", "biaws-example", "SKILL.md"),
@@ -298,7 +322,10 @@ test("agent configure merges Claude MCP config without removing other servers", 
       mcpServers: { existing: { command: "existing", args: [] } },
     }),
   );
-  const api = { list: async () => ({ items: [] }) };
+  const api = {
+    identity: async () => ({ actor: { workspaceId: "workspace-b" } }),
+    list: async () => ({ items: [] }),
+  };
 
   await runAgentCommand(
     api,
@@ -320,6 +347,37 @@ test("agent configure merges Claude MCP config without removing other servers", 
   assert.equal(config.mcpServers.existing.command, "existing");
   assert.equal(config.mcpServers.biaws.command, "node");
   assert.equal(config.mcpServers.biaws.env.BIAWS_ENV_FILE, "/tmp/client-b.env");
+  assert.equal(config.mcpServers.biaws.env.ISSUE_WORKSPACE_ID, "workspace-b");
+});
+
+test("agent configure requires a project workspace for multi-workspace identities", async () => {
+  const project = await mkdtemp(path.join(os.tmpdir(), "biaws-agent-scope-"));
+  const api = {
+    identity: async () => ({
+      actor: {
+        workspaceId: null,
+        workspaces: [{ id: "workspace-a" }, { id: "workspace-b" }],
+      },
+    }),
+  };
+
+  await assert.rejects(
+    () =>
+      runAgentCommand(
+        api,
+        "configure",
+        ["codex"],
+        { project },
+        {
+          toolDirectory: path.resolve("."),
+          apiUrl: "http://127.0.0.1:3100",
+          apiKey: "biaws_test",
+          workspaceId: "",
+          envFile: "/tmp/client.env",
+        },
+      ),
+    /Informe --workspace <id>/u,
+  );
 });
 
 test("agent doctor performs a real MCP handshake", async () => {
@@ -329,7 +387,7 @@ test("agent doctor performs a real MCP handshake", async () => {
   await mkdir(path.join(project, ".agents"), { recursive: true });
   await writeFile(
     path.join(project, ".codex", "config.toml"),
-    `[mcp_servers.biaws]\ncommand = "node"\nargs = [${JSON.stringify(entrypoint)}]\n`,
+    `[mcp_servers.biaws]\ncommand = "node"\nargs = [${JSON.stringify(entrypoint)}]\nenv = { ISSUE_WORKSPACE_ID = "workspace-a" }\n`,
   );
   await writeFile(
     path.join(project, ".agents", "biaws-skills.lock.json"),
@@ -352,7 +410,7 @@ test("agent doctor performs a real MCP handshake", async () => {
 
   try {
     const result = await runAgentCommand(
-      {},
+      { identity: async () => ({ actor: { workspaceId: "workspace-a" } }) },
       "doctor",
       ["codex"],
       { project, json: true },

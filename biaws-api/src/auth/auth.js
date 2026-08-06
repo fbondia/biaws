@@ -8,6 +8,7 @@ import { getServerConfig } from "../config.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoClient, resolveDatabaseName } from "../helpers/mongoClient.js";
 import { resolveUserAuthorization } from "../repositories/accessRepository.js";
+import { platformPermissionsForTechnicalRole } from "./authorizationMiddleware.js";
 import { ensureAuthIndexes } from "./authIndexes.js";
 import { hashPassword, verifyPassword } from "./password.js";
 
@@ -143,6 +144,10 @@ export async function getAuthenticatedActor(req) {
     requestedWorkspaceId,
   );
 
+  const technicalRole = result.user.role || "user";
+  const platformPermissions =
+    platformPermissionsForTechnicalRole(technicalRole);
+
   return {
     userId: result.user.id,
     email: result.user.email,
@@ -150,7 +155,8 @@ export async function getAuthenticatedActor(req) {
     authenticationMethod: usesApiKey ? "api-key" : "session",
     sessionId: usesApiKey ? null : result.session.id,
     apiKeyId: usesApiKey ? result.session.id : null,
-    technicalRole: result.user.role || "user",
+    technicalRole,
+    platformPermissions,
     groups: workspaceAuthorization.groups,
     permissions: workspaceAuthorization.permissions,
     workspaceId: workspaceAuthorization.workspaceId,

@@ -89,6 +89,14 @@ replace_env_value() {
   mv "${temporary_file}" "${ENV_FILE}"
 }
 
+remove_env_value() {
+  local key="$1"
+  local temporary_file
+  temporary_file="$(mktemp)"
+  awk -v key="${key}" 'index($0, key "=") != 1 { print }' "${ENV_FILE}" > "${temporary_file}"
+  mv "${temporary_file}" "${ENV_FILE}"
+}
+
 if [[ ! -f "${ENV_FILE}" ]]; then
   cp .env.example "${ENV_FILE}"
   chmod 600 "${ENV_FILE}"
@@ -163,7 +171,7 @@ if [[ -z "${agent_api_key}" || -z "${agent_workspace_id}" ]]; then
   exit 1
 fi
 replace_env_value "ISSUE_API_KEY" "${agent_api_key}"
-replace_env_value "ISSUE_WORKSPACE_ID" "${agent_workspace_id}"
+remove_env_value "ISSUE_WORKSPACE_ID"
 chmod 600 "${ENV_FILE}"
 echo "Identidade técnica e rate limit da chave do agente reconciliados."
 
@@ -194,5 +202,7 @@ A senha inicial foi preservada em ${PASSWORD_FILE}, fora do Git.
 Troque-a pela UI após o primeiro acesso.
 
 A credencial técnica do MCP e do CLI foi gravada somente em ${ENV_FILE}.
+Workspace inicial da identidade técnica: ${agent_workspace_id}
+O workspace de cada projeto é gravado na configuração MCP pelo setup-agent.
 ${setup_hint}
 EOF

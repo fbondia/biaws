@@ -105,6 +105,21 @@ pela UI no primeiro acesso.
 A chave técnica fica somente no `.env` da instância, também ignorado pelo Git.
 Ela não é exibida no resumo do bootstrap.
 
+O workspace é uma escolha do projeto consumidor, não da instância. Quando a
+identidade técnica tiver acesso a mais de um, informe-o ao setup:
+
+```bash
+./scripts/setup-agent.sh \
+  --instance meu-projeto \
+  --client codex \
+  --project /caminho/do/projeto \
+  --workspace id-do-workspace
+```
+
+Sem `--workspace`, o setup seleciona automaticamente quando a chave acessa um
+único workspace. A opção não concede acesso: a identidade técnica precisa ser
+membro ativo do workspace selecionado.
+
 Inicie e pare a instância com:
 
 ```bash
@@ -184,10 +199,12 @@ Para repetir somente a configuração do cliente:
   --skip-bootstrap
 ```
 
-O MCP recebe `BIAWS_ENV_FILE` na configuração do cliente e, por isso, carrega
-sempre as credenciais e a URL da instância selecionada. Configurações globais do
-cliente não são alteradas. Codex usa `.codex/config.toml`; Claude Code usa
-`.mcp.json`.
+O MCP recebe `BIAWS_ENV_FILE` e `ISSUE_WORKSPACE_ID` na configuração local do
+projeto. O primeiro aponta para as credenciais e a URL da instância; o segundo
+fixa a fronteira de workspace daquele projeto. Assim, projetos diferentes podem
+usar workspaces diferentes da mesma instância e chave técnica. Configurações
+globais do cliente não são alteradas. Codex usa `.codex/config.toml`; Claude
+Code usa `.mcp.json`.
 
 O cliente pode solicitar aprovação para usar um servidor MCP definido pelo
 projeto. Revise o caminho apresentado antes de aprovar.
@@ -226,14 +243,18 @@ cd biaws-cli && npm run check && npm test
 
 ## MCP e CLI
 
-O bootstrap preenche estas variáveis no `.env`. Para uma configuração manual,
-crie uma chave na área da conta e defina:
+O bootstrap preenche URL e chave no `.env` da instância. Para uma configuração
+manual do CLI, crie uma chave na área da conta e defina:
 
 ```bash
 export ISSUE_API_URL=http://127.0.0.1:3100
 export ISSUE_API_KEY=biaws_sua_chave
 export ISSUE_WORKSPACE_ID=id-do-workspace
 ```
+
+Na configuração MCP, mantenha `BIAWS_ENV_FILE` apontando para o `.env` da
+instância e grave `ISSUE_WORKSPACE_ID` no bloco `env` do servidor `biaws`. O
+`setup-agent.sh` faz isso automaticamente.
 
 Servidor MCP:
 
@@ -246,7 +267,7 @@ CLI:
 ```bash
 node biaws-cli/src/index.js skills list
 node biaws-cli/src/index.js skills status
-node biaws-cli/src/index.js agent doctor codex --project /caminho/do/projeto
+node biaws-cli/src/index.js agent doctor codex --project /caminho/do/projeto --workspace id-do-workspace
 node biaws-cli/src/index.js monitoring signal <aplicação.componente.deployment.runtime> --status healthy --source synthetic-http
 ```
 

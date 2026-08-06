@@ -35,6 +35,7 @@ export function createApiClient(baseUrl, apiKey, workspaceId = "") {
   }
 
   return {
+    identity: () => request("/auth/me", {}, apiRoot),
     list: (options = {}) =>
       request(options.includeDeprecated ? "?includeDeprecated=true" : ""),
     get: (skillId, version) =>

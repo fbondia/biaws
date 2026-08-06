@@ -10,3 +10,4 @@ export * from "./api/audit.js";
 export * from "./api/catalog.js";
 export * from "./api/skills.js";
 export * from "./api/home.js";
+export * from "./api/platform.js";

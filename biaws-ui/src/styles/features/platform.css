@@ -1,0 +1,243 @@
+.platformAdminView {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.platformAdminHeader,
+.platformHeaderActions,
+.platformDetailHeader,
+.platformFormActions,
+.platformDialogActions,
+.platformMemberActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.platformEyebrow {
+  color: var(--color-accent-text);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.platformAdminLayout {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.platformWorkspaceList,
+.platformWorkspaceDetail,
+.platformWorkspaceItems,
+.platformGeneralForm,
+.platformMembers,
+.platformMemberList,
+.platformGroupList,
+.platformAuditList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.platformFilters {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.platformFilters input {
+  grid-column: 1 / -1;
+}
+
+.platformFilters input,
+.platformFilters select,
+.platformGeneralForm input,
+.platformGeneralForm textarea,
+.platformAddMember select,
+.platformDialogBody input,
+.platformDialogBody select,
+.platformDialogBody textarea {
+  border: 1px solid var(--color-border-strong);
+  border-radius: 7px;
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  padding: 0.6rem 0.7rem;
+}
+
+.platformWorkspaceItem {
+  display: grid;
+  gap: 0.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface);
+  color: inherit;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.platformWorkspaceItem.selected {
+  border-color: var(--color-focus);
+  background: #eef4ff;
+}
+
+.platformWorkspaceItem span {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 700;
+}
+
+.platformWorkspaceItem small,
+.platformDetailHeader p,
+.platformGroupList span,
+.platformGroupList small,
+.platformAuditList span,
+.platformMemberCard small,
+.platformHint {
+  color: var(--color-text-subtle);
+}
+
+.platformDetailHeader h3,
+.platformDetailHeader p {
+  margin: 0;
+}
+
+.platformStatus {
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.platformStatus.active {
+  background: #e5f6ec;
+  color: #17663b;
+}
+
+.platformStatus.archived {
+  background: #f1f2f4;
+  color: var(--color-text-muted);
+}
+
+.platformTabs {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+
+.platformTabs .tab {
+  background: transparent;
+  color: var(--color-text-secondary);
+  padding: 0 0.75rem;
+}
+
+.platformTabs .tab.active {
+  background: #eef4ff;
+  color: var(--color-accent-text);
+}
+
+.platformGeneralForm > label,
+.platformDialogBody label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 700;
+}
+
+.platformMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+
+.platformMetrics article,
+.platformGroupList article,
+.platformAuditList article,
+.platformMemberCard,
+.platformAddMember {
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  padding: 0.8rem;
+}
+
+.platformMetrics article {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.platformMetrics strong {
+  font-size: 1.5rem;
+}
+
+.platformGroupList article,
+.platformAuditList article,
+.platformMemberCard > div:first-child {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.platformMemberCard,
+.platformAddMember {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.platformGroupChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+}
+
+.platformGroupChecks label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.platformDialog {
+  display: grid;
+  width: min(620px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+}
+
+.platformDialogBody {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.platformDialogActions {
+  border-top: 1px solid var(--color-border);
+  padding: 1rem 1.25rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .platformAdminLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .platformAdminView {
+    padding: 0.75rem;
+  }
+
+  .platformHeaderActions,
+  .platformHeaderActions button {
+    width: 100%;
+  }
+}

@@ -15,7 +15,8 @@ O carregamento de ambiente usa o `shared/loadEnv.js` do próprio repositório. O
 
 Em instalações multi-instância, `BIAWS_ENV_FILE` aponta para
 `instances/<nome>/.env`. Esse arquivo tem precedência sobre o `.env` da raiz e
-permite que várias instâncias compartilhem o mesmo clone do código.
+permite que várias instâncias compartilhem o mesmo clone do código. Ele contém
+a URL e a credencial da instância, mas não seleciona o workspace.
 
 Por padrão, a API é buscada em `http://127.0.0.1:3100`. Para apontar para outro endereço, use uma das variáveis:
 
@@ -27,9 +28,10 @@ Defina obrigatoriamente `ISSUE_API_KEY`. O bootstrap open source cria uma
 identidade técnica e grava sua chave no `.env` local; uma chave também pode ser
 criada manualmente pela UI. O MCP a envia como `Authorization: Bearer`.
 
-Quando a identidade da chave acessar mais de um workspace, defina também
-`ISSUE_WORKSPACE_ID`. O MCP envia o valor como
-`X-Biaws-Workspace-Id`; argumentos das tools não ampliam esse escopo.
+Defina `ISSUE_WORKSPACE_ID` no bloco `env` do servidor MCP local ao projeto. O
+MCP preserva esse valor mesmo ao carregar `BIAWS_ENV_FILE` e o envia como
+`X-Biaws-Workspace-Id`; argumentos das tools não ampliam esse escopo. A chave
+precisa pertencer ao workspace — selecionar o ID não concede permissões.
 
 ## Execução
 
@@ -44,6 +46,14 @@ Em um cliente MCP, configure o comando:
 
 ```bash
 node /caminho/para/biaws/biaws-mcp/src/index.js
+```
+
+O fluxo recomendado é gerar a configuração completa com:
+
+```bash
+BIAWS_ENV_FILE=/caminho/para/instances/minha-instancia/.env \
+node /caminho/para/biaws/biaws-cli/src/index.js \
+  agent configure codex --project /caminho/do/projeto --workspace id-do-workspace
 ```
 
 ## Ferramentas

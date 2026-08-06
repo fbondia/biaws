@@ -33,7 +33,7 @@ Uso:
 Opções:
   --api-url <url>       URL da biaws-api; default: ISSUE_API_URL ou http://127.0.0.1:3100
   --api-key <chave>     Chave da API; prefira a variável ISSUE_API_KEY
-  --workspace <id>      Workspace; default: ISSUE_WORKSPACE_ID
+  --workspace <id>      Workspace do projeto; obrigatório se a chave acessar vários
   --target <diretório>  Diretório de instalação; default: .agents/skills
   --project <diretório> Projeto no qual configurar o cliente; default: diretório atual
   --version <semver>    Versão a publicar ou instalar

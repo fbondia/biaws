@@ -162,6 +162,12 @@ function identityIdCandidates(userId) {
   return candidates;
 }
 
+function groupIdCandidates(groupIds) {
+  return [...new Set(groupIds.map(String))].flatMap((groupId) =>
+    ObjectId.isValid(groupId) ? [groupId, new ObjectId(groupId)] : [groupId],
+  );
+}
+
 function normalizePermissions(permissions) {
   if (!Array.isArray(permissions)) {
     throw createHttpError(422, "INVALID_GROUP", "permissions must be an array");
@@ -280,9 +286,45 @@ function normalizeGroup(document) {
     },
     active: document.active !== false,
     system: document.system === true,
+    systemKey: document.systemKey || "",
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
   };
+}
+
+function systemGroupId(workspace, groupId) {
+  return workspace.default ? groupId : `${workspace.id}:${groupId}`;
+}
+
+async function upsertInitialPermissionGroups(groups, workspace, actor = {}) {
+  const now = new Date();
+  await Promise.all(
+    INITIAL_PERMISSION_GROUPS.map((group) =>
+      groups.updateOne(
+        { _id: systemGroupId(workspace, group.id) },
+        {
+          $set: {
+            name: group.name,
+            normalizedName: normalizedName(group.name),
+            description: group.description,
+            permissions: [...group.permissions].sort(compareStrings),
+            workspaceId: workspace.id,
+            scope: { type: "workspace", applicationIds: [] },
+            active: true,
+            system: true,
+            systemKey: group.id,
+            updatedAt: now,
+            updatedBy: actor.userId || "system",
+          },
+          $setOnInsert: {
+            createdAt: now,
+            createdBy: actor.userId || "system",
+          },
+        },
+        { upsert: true },
+      ),
+    ),
+  );
 }
 
 async function getCollections() {
@@ -317,31 +359,7 @@ async function getCollections() {
     userAccess.createIndex({ workspaceId: 1, groupIds: 1 }),
   ]);
 
-  const now = new Date();
-  await Promise.all(
-    INITIAL_PERMISSION_GROUPS.map((group) =>
-      groups.updateOne(
-        { _id: group.id },
-        {
-          $set: {
-            name: group.name,
-            normalizedName: normalizedName(group.name),
-            description: group.description,
-            permissions: [...group.permissions].sort(compareStrings),
-            workspaceId: workspace.id,
-            scope: { type: "workspace", applicationIds: [] },
-            active: true,
-            system: true,
-            updatedAt: now,
-          },
-          $setOnInsert: {
-            createdAt: now,
-          },
-        },
-        { upsert: true },
-      ),
-    ),
-  );
+  await upsertInitialPermissionGroups(groups, workspace);
 
   return { db, groups, userAccess, users, defaultWorkspace: workspace };
 }
@@ -366,10 +384,23 @@ export async function getPermissionGroup(groupId, { workspaceId } = {}) {
   const { groups, defaultWorkspace } = await getCollections();
   return normalizeGroup(
     await groups.findOne({
-      _id: groupId,
+      _id: { $in: groupIdCandidates([groupId]) },
       workspaceId: String(workspaceId || defaultWorkspace.id),
     }),
   );
+}
+
+export async function ensureWorkspacePermissionGroups(workspaceId, actor = {}) {
+  const { db, groups } = await getCollections();
+  const workspace = await db.collection(COLLECTION_NAMES.WORKSPACES).findOne({
+    id: String(workspaceId),
+    status: "active",
+  });
+  if (!workspace) {
+    throw createHttpError(404, "WORKSPACE_NOT_FOUND", "Workspace not found");
+  }
+  await upsertInitialPermissionGroups(groups, workspace, actor);
+  return listPermissionGroups({ workspaceId: workspace.id });
 }
 
 export async function createPermissionGroup(payload, actor) {
@@ -434,7 +465,10 @@ export async function updatePermissionGroup(groupId, payload, actor) {
   const workspaceId = String(
     payload.workspaceId || actor?.workspaceId || defaultWorkspace.id,
   );
-  const current = await groups.findOne({ _id: groupId, workspaceId });
+  const current = await groups.findOne({
+    _id: { $in: groupIdCandidates([groupId]) },
+    workspaceId,
+  });
   if (!current) {
     throw createHttpError(
       404,
@@ -461,7 +495,7 @@ export async function updatePermissionGroup(groupId, payload, actor) {
   }
   try {
     const result = await groups.findOneAndUpdate(
-      { _id: groupId, workspaceId },
+      { _id: current._id, workspaceId },
       {
         $set: {
           ...group,
@@ -498,7 +532,7 @@ export async function setPermissionGroupActive(groupId, active, actor) {
   const { groups, defaultWorkspace } = await getCollections();
   const workspaceId = String(actor?.workspaceId || defaultWorkspace.id);
   const result = await groups.findOneAndUpdate(
-    { _id: groupId, workspaceId },
+    { _id: { $in: groupIdCandidates([groupId]) }, workspaceId },
     {
       $set: {
         active,
@@ -588,7 +622,7 @@ export async function setUserGroups(
   }
   const validGroups = await groups
     .find({
-      _id: { $in: normalizedGroupIds },
+      _id: { $in: groupIdCandidates(normalizedGroupIds) },
       workspaceId: effectiveWorkspaceId,
       active: true,
     })
@@ -600,6 +634,37 @@ export async function setUserGroups(
       "INVALID_USER_GROUPS",
       "All associated groups must exist and be active",
     );
+  }
+
+  const currentAccess = await userAccess.findOne({
+    userId: String(userId),
+    workspaceId: effectiveWorkspaceId,
+  });
+  const administrationGroup = await groups.findOne({
+    workspaceId: effectiveWorkspaceId,
+    system: true,
+    $or: [{ systemKey: "administration" }, { _id: "administration" }],
+    active: true,
+  });
+  const administrationGroupId = administrationGroup
+    ? String(administrationGroup._id)
+    : "";
+  if (
+    administrationGroupId &&
+    currentAccess?.groupIds?.includes(administrationGroupId) &&
+    !normalizedGroupIds.includes(administrationGroupId)
+  ) {
+    const administratorCount = await userAccess.countDocuments({
+      workspaceId: effectiveWorkspaceId,
+      groupIds: administrationGroupId,
+    });
+    if (administratorCount <= 1) {
+      throw createHttpError(
+        409,
+        "LAST_WORKSPACE_ADMIN",
+        "The last workspace administrator cannot be removed",
+      );
+    }
   }
 
   const now = new Date();
@@ -617,6 +682,44 @@ export async function setUserGroups(
     { upsert: true },
   );
   return getUserAccess(userId, { workspaceId: effectiveWorkspaceId });
+}
+
+export async function removeUserAccess(userId, workspaceId) {
+  const { groups, userAccess, defaultWorkspace } = await getCollections();
+  const effectiveWorkspaceId = String(workspaceId || defaultWorkspace.id);
+  const access = await userAccess.findOne({
+    userId: String(userId),
+    workspaceId: effectiveWorkspaceId,
+  });
+  if (!access) return false;
+
+  const administrationGroup = await groups.findOne({
+    workspaceId: effectiveWorkspaceId,
+    system: true,
+    $or: [{ systemKey: "administration" }, { _id: "administration" }],
+    active: true,
+  });
+  if (
+    administrationGroup &&
+    access.groupIds?.includes(String(administrationGroup._id))
+  ) {
+    const administratorCount = await userAccess.countDocuments({
+      workspaceId: effectiveWorkspaceId,
+      groupIds: String(administrationGroup._id),
+    });
+    if (administratorCount <= 1) {
+      throw createHttpError(
+        409,
+        "LAST_WORKSPACE_ADMIN",
+        "The last workspace administrator cannot be removed",
+      );
+    }
+  }
+  const result = await userAccess.deleteOne({
+    userId: String(userId),
+    workspaceId: effectiveWorkspaceId,
+  });
+  return result.deletedCount === 1;
 }
 
 export function calculatePermissionScopes(groups) {
@@ -681,7 +784,7 @@ export async function resolveUserAuthorization(
   const groupDocuments = selectedWorkspaceId
     ? await groups
         .find({
-          _id: { $in: groupIds },
+          _id: { $in: groupIdCandidates(groupIds) },
           workspaceId: selectedWorkspaceId,
           active: true,
         })

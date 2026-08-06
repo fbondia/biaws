@@ -88,6 +88,35 @@ O setup:
 10. configura o servidor MCP;
 11. executa o diagnóstico e o handshake MCP.
 
+O `.env` da instância guarda a URL e a chave técnica. O workspace fica na
+configuração MCP do projeto consumidor, permitindo conectar projetos diferentes
+a workspaces diferentes da mesma instância. Se a chave acessar mais de um,
+selecione-o explicitamente:
+
+```bash
+./scripts/setup-agent.sh \
+  --instance meu-projeto \
+  --client codex \
+  --project "$HOME/Source/meu-projeto" \
+  --workspace id-do-workspace
+```
+
+Sem `--workspace`, a seleção é automática somente quando a identidade acessa um
+único workspace. O ID não concede acesso; primeiro inclua a identidade técnica
+como membro ativo do workspace e atribua seus grupos.
+
+Para Codex, o trecho gerado em `.codex/config.toml` contém:
+
+```toml
+[mcp_servers.biaws]
+command = "node"
+args = ["/caminho/para/biaws/biaws-mcp/src/index.js"]
+env = { BIAWS_ENV_FILE = "/caminho/para/biaws/instances/meu-projeto/.env", ISSUE_WORKSPACE_ID = "id-do-workspace" }
+```
+
+Para Claude Code, `.mcp.json` recebe as mesmas duas variáveis em
+`mcpServers.biaws.env`.
+
 Depois do setup, a instância pode ser iniciada ou parada de qualquer diretório:
 
 ```bash
@@ -278,6 +307,7 @@ a chave técnica criada pelo setup:
 BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
 node biaws-cli/src/index.js \
   monitoring signal <aplicação.componente.deployment.runtime> \
+  --workspace id-do-workspace \
   --status healthy \
   --source quickstart \
   --signal-id quickstart:1 \
@@ -296,7 +326,8 @@ Para Codex:
 BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
 node biaws-cli/src/index.js \
   agent doctor codex \
-  --project "$HOME/Source/meu-projeto"
+  --project "$HOME/Source/meu-projeto" \
+  --workspace id-do-workspace
 ```
 
 Para Claude Code:
@@ -305,7 +336,8 @@ Para Claude Code:
 BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
 node biaws-cli/src/index.js \
   agent doctor claude \
-  --project "$HOME/Source/meu-projeto"
+  --project "$HOME/Source/meu-projeto" \
+  --workspace id-do-workspace
 ```
 
 Resultado esperado:
@@ -314,6 +346,7 @@ Resultado esperado:
 OK  node
 OK  api
 OK  authentication
+OK  workspace
 OK  mcp
 OK  configuration
 OK  skills
@@ -385,6 +418,7 @@ bootstrap:
   --instance meu-projeto \
   --client codex \
   --project "$HOME/Source/meu-projeto" \
+  --workspace id-do-workspace \
   --skip-bootstrap
 ```
 
@@ -394,6 +428,7 @@ Para atualizar as skills já instaladas:
 BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
 node biaws-cli/src/index.js \
   skills update \
+  --workspace id-do-workspace \
   --target "$HOME/Source/meu-projeto/.agents/skills"
 ```
 
@@ -457,9 +492,10 @@ Claude Code:
 .claude/biaws-skills.lock.json
 ```
 
-As configurações MCP contêm caminhos absolutos da máquina. Evite versioná-las
-quando o projeto não possuir um caminho de instalação padronizado para toda a
-equipe.
+As configurações MCP contêm caminhos absolutos da máquina e o ID do workspace,
+mas não a chave técnica. Evite versioná-las quando o projeto não possuir um
+caminho de instalação padronizado para toda a equipe. O segredo permanece
+somente no `.env` da instância.
 
 ## Próximos passos
 

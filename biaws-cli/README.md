@@ -21,9 +21,9 @@ node src/index.js skills install biaws-example
 node src/index.js skills install-all
 node src/index.js skills status
 node src/index.js skills update
-node src/index.js agent configure codex --project /caminho/do/projeto
-node src/index.js agent configure claude --project /caminho/do/projeto
-node src/index.js agent doctor codex --project /caminho/do/projeto
+node src/index.js agent configure codex --project /caminho/do/projeto --workspace id-do-workspace
+node src/index.js agent configure claude --project /caminho/do/projeto --workspace id-do-workspace
+node src/index.js agent doctor codex --project /caminho/do/projeto --workspace id-do-workspace
 node src/index.js monitoring signal <aplicação.componente.deployment.runtime> \
   --status healthy \
   --source zabbix \
@@ -58,21 +58,25 @@ zero.
 `agent configure` registra o `biaws-mcp` e instala todas as skills do catálogo.
 Para Codex, usa `.codex/config.toml` e `.agents/skills`. Para Claude Code, usa
 `.mcp.json` e `.claude/skills`. O comando preserva outros servidores MCP e não
-altera configuração global. Use `agent doctor` para verificar Node.js, API,
-autenticação, configuração e skills.
+altera configuração global. Ele grava `ISSUE_WORKSPACE_ID` na configuração MCP
+do projeto; informe `--workspace` quando a chave acessar mais de um workspace.
+Use `agent doctor` para verificar Node.js, API, autenticação, workspace,
+configuração e skills.
 
 ## Configuração
 
 - `ISSUE_API_URL` ou `ISSUE_API_BASE_URL`: endereço da API.
 - `ISSUE_API_KEY`: chave enviada como `Authorization: Bearer`.
-- `ISSUE_WORKSPACE_ID`: workspace enviado como
-  `X-Biaws-Workspace-Id` quando a identidade acessar mais de um.
+- `ISSUE_WORKSPACE_ID`: workspace usado em execuções diretas do CLI. Para MCP,
+  o `agent configure` grava esse valor na configuração local do projeto.
 - `BIAWS_ENV_FILE`: caminho absoluto para o `.env` da instância selecionada;
-  o setup o grava também na configuração MCP do cliente.
+  contém URL e chave, e o setup o grava na configuração MCP do cliente.
 - `--api-url`: sobrescreve o endereço apenas para a execução atual.
 - `--api-key`: sobrescreve a chave apenas para a execução atual; evite porque o
   valor pode ficar visível na lista de processos ou no histórico do shell.
-- `--workspace`: sobrescreve o workspace apenas para a execução atual.
+- `--workspace`: seleciona o workspace e, em `agent configure`, persiste a
+  seleção na configuração MCP do projeto. A seleção não amplia as permissões da
+  identidade técnica.
 
 O valor padrão é `http://127.0.0.1:3100`.
 

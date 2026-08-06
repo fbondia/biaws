@@ -23,4 +23,5 @@
 @import "./styles/features/requests/responsive.css";
 @import "./styles/shared/audit-history.css";
 @import "./styles/features/settings.css";
+@import "./styles/features/platform.css";
 @import "./styles/foundations/accessibility.css";

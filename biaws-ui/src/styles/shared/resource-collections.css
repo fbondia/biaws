@@ -1,9 +1,40 @@
 .resourceCollectionsLayout {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+  grid-template-columns:
+    var(--resource-collections-sidebar-width, 270px) 8px
+    minmax(0, 1fr);
   align-items: start;
-  gap: 16px;
+  gap: 4px;
+}
+
+.resourceCollectionsResizer {
+  position: relative;
+  width: 8px;
+  min-height: 80px;
+  align-self: stretch;
+  border-radius: 999px;
+  cursor: col-resize;
+  outline: 0;
+  touch-action: none;
+}
+
+.resourceCollectionsResizer::before {
+  position: absolute;
+  inset: 0 3px;
+  border-radius: inherit;
+  background: var(--color-border);
+  content: "";
+  transition:
+    inset 120ms ease,
+    background-color 120ms ease;
+}
+
+.resourceCollectionsResizer:hover::before,
+.resourceCollectionsResizer:focus-visible::before,
+.resourceCollectionsResizing::before {
+  inset-inline: 2px;
+  background: var(--color-focus);
 }
 
 .resourceCollectionContent {
@@ -135,6 +166,10 @@
 
   .resourceCollectionsLayout .procedureCollectionsPanel {
     position: static;
+  }
+
+  .resourceCollectionsResizer {
+    display: none;
   }
 
   .resourceCollectionsLayout .procedureCollectionTree {

@@ -2201,6 +2201,11 @@
     position: static;
   }
 
+  .applicationsCollectionsLayout .resourceCollectionsResizer,
+  .serversCollectionsLayout .resourceCollectionsResizer {
+    display: none;
+  }
+
   .applicationsCollectionsLayout .procedureCollectionTree,
   .serversCollectionsLayout .procedureCollectionTree {
     max-height: 280px;

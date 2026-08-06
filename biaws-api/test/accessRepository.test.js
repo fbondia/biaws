@@ -2,12 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildSystemGroupSeedPipeline,
   calculateEffectivePermissions,
   calculatePermissionScopes,
   INITIAL_PERMISSION_GROUPS,
   normalizeGroupInput,
 } from "../src/repositories/accessRepository.js";
 import { PERMISSION_CATALOG } from "../../shared/index.js";
+
+function seededField(pipeline, field) {
+  return pipeline[0].$set[field];
+}
 
 test("initial groups use only canonical permissions", () => {
   const known = new Set(PERMISSION_CATALOG.map(({ id }) => id));
@@ -25,6 +30,41 @@ test("administration initial group contains every permission", () => {
   assert.deepEqual(
     [...administration.permissions].sort(),
     PERMISSION_CATALOG.map(({ id }) => id).sort(),
+  );
+});
+
+test("system group provisioning preserves an edited permission matrix", () => {
+  const group = INITIAL_PERMISSION_GROUPS.find(({ id }) => id === "support");
+  const pipeline = buildSystemGroupSeedPipeline(
+    group,
+    { id: "default", default: true },
+    { userId: "system" },
+    new Date("2026-08-06T12:00:00.000Z"),
+  );
+
+  assert.deepEqual(seededField(pipeline, "permissions"), {
+    $ifNull: ["$permissions", group.permissions.toSorted()],
+  });
+  assert.deepEqual(seededField(pipeline, "active"), {
+    $ifNull: ["$active", true],
+  });
+  assert.deepEqual(seededField(pipeline, "scope"), {
+    $ifNull: ["$scope", { type: "workspace", applicationIds: [] }],
+  });
+});
+
+test("administration provisioning still follows the canonical catalog", () => {
+  const group = INITIAL_PERMISSION_GROUPS.find(
+    ({ id }) => id === "administration",
+  );
+  const pipeline = buildSystemGroupSeedPipeline(group, {
+    id: "workspace-a",
+    default: false,
+  });
+
+  assert.deepEqual(
+    seededField(pipeline, "permissions"),
+    [...group.permissions].sort(),
   );
 });
 

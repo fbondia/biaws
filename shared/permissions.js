@@ -159,6 +159,53 @@ const definitions = [
   ["audit.read", "Administração", "Consultar a trilha de auditoria"],
 ];
 
+const permissionSectionRules = [
+  ["monitoring.signals", "Sinais"],
+  ["issues.classification", "Fluxo e classificação"],
+  ["issues.attachment", "Anexos"],
+  ["issues.comment", "Comentários"],
+  ["issues.import", "Importação"],
+  ["issues.status", "Fluxo e classificação"],
+  ["demands.specification", "Especificações"],
+  ["demands.attachment", "Anexos"],
+  ["demands.note", "Anotações"],
+  ["tasks.attachment", "Anexos"],
+  ["tasks.note", "Anotações"],
+  ["tasks.status", "Status"],
+  ["procedures.attachment", "Anexos"],
+  ["secrets.metadata", "Metadados"],
+  ["secrets.value", "Valores"],
+  ["workspaces", "Workspaces"],
+  ["applications", "Aplicações"],
+  ["integrations", "Integrações"],
+  ["components", "Componentes"],
+  ["repositories", "Repositórios"],
+  ["servers", "Servidores"],
+  ["deployments", "Deployments"],
+  ["runtimes", "Runtimes"],
+  ["issues", "Geral"],
+  ["demands", "Geral"],
+  ["tasks", "Geral"],
+  ["taxonomy", "Taxonomia"],
+  ["procedures", "Geral"],
+  ["skills", "Skills"],
+  ["option_lists", "Listas de opções"],
+  ["secrets.use", "Uso"],
+  ["secrets", "Gestão"],
+  ["users", "Usuários"],
+  ["roles", "Grupos de permissões"],
+  ["api_keys", "Chaves de API"],
+  ["audit", "Auditoria"],
+];
+
+function permissionSection(id) {
+  const rule = permissionSectionRules.find(
+    ([prefix]) => id === prefix || id.startsWith(`${prefix}.`),
+  );
+  if (!rule) throw new Error(`Permission section is not configured: ${id}`);
+  return rule[1];
+}
+
 const workspacePermissionIds = new Set([
   "workspaces.read",
   "workspaces.manage",
@@ -193,6 +240,7 @@ export const PERMISSION_CATALOG = Object.freeze(
     Object.freeze({
       id,
       domain,
+      section: permissionSection(id),
       label: description,
       description,
       scope: permissionScope(id),

@@ -11,7 +11,11 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+
+const COLLECTION_SIDEBAR_MIN_WIDTH = 220;
+const COLLECTION_SIDEBAR_MAX_WIDTH = 640;
+const COLLECTION_CONTENT_MIN_WIDTH = 320;
 
 function sortCollections(items) {
   return [...items].sort((first, second) =>
@@ -70,6 +74,31 @@ export function ResourceCollectionsShell({
   sidebar,
   toolbar,
 }) {
+  const layoutRef = useRef(null);
+  const [sidebarWidth, setSidebarWidth] = useState(270);
+  const [resizingSidebar, setResizingSidebar] = useState(false);
+
+  function clampSidebarWidth(width) {
+    const layoutWidth = layoutRef.current?.getBoundingClientRect().width;
+    const availableWidth = layoutWidth
+      ? layoutWidth - COLLECTION_CONTENT_MIN_WIDTH
+      : COLLECTION_SIDEBAR_MAX_WIDTH;
+    const maximumWidth = Math.max(
+      COLLECTION_SIDEBAR_MIN_WIDTH,
+      Math.min(COLLECTION_SIDEBAR_MAX_WIDTH, availableWidth),
+    );
+    return Math.min(
+      maximumWidth,
+      Math.max(COLLECTION_SIDEBAR_MIN_WIDTH, width),
+    );
+  }
+
+  function resizeSidebar(clientX) {
+    const layoutLeft = layoutRef.current?.getBoundingClientRect().left;
+    if (layoutLeft === undefined) return;
+    setSidebarWidth(clampSidebarWidth(clientX - layoutLeft));
+  }
+
   return (
     <div
       className={[
@@ -79,8 +108,53 @@ export function ResourceCollectionsShell({
       ]
         .filter(Boolean)
         .join(" ")}
+      ref={layoutRef}
+      style={{
+        "--resource-collections-sidebar-width": `${sidebarWidth}px`,
+      }}
     >
       {sidebar}
+      {collectionsVisible && sidebar ? (
+        <div
+          aria-label="Redimensionar coluna de coleções"
+          aria-orientation="vertical"
+          aria-valuemax={COLLECTION_SIDEBAR_MAX_WIDTH}
+          aria-valuemin={COLLECTION_SIDEBAR_MIN_WIDTH}
+          aria-valuenow={sidebarWidth}
+          className={[
+            "resourceCollectionsResizer",
+            resizingSidebar ? "resourceCollectionsResizing" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          onKeyDown={(event) => {
+            let nextWidth;
+            if (event.key === "ArrowLeft") nextWidth = sidebarWidth - 20;
+            if (event.key === "ArrowRight") nextWidth = sidebarWidth + 20;
+            if (event.key === "Home") nextWidth = COLLECTION_SIDEBAR_MIN_WIDTH;
+            if (event.key === "End") nextWidth = COLLECTION_SIDEBAR_MAX_WIDTH;
+            if (nextWidth === undefined) return;
+            event.preventDefault();
+            setSidebarWidth(clampSidebarWidth(nextWidth));
+          }}
+          onLostPointerCapture={() => setResizingSidebar(false)}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            setResizingSidebar(true);
+          }}
+          onPointerMove={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            resizeSidebar(event.clientX);
+          }}
+          onPointerUp={(event) => {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+            setResizingSidebar(false);
+          }}
+          role="separator"
+          tabIndex={0}
+          title="Arraste para redimensionar a coluna de coleções"
+        />
+      ) : null}
       <div className="resourceCollectionContent">
         <div className="resourceCollectionBar">
           <button
@@ -395,73 +469,75 @@ export function ResourceCollectionSidebar({
       </header>
 
       <div className="procedureCollectionTree">
-        <div
-          className={[
-            "procedureCollectionTreeRow",
-            "procedureCollectionRootRow",
-            !selectedCollectionId ? "selectedProcedureCollection" : "",
-            dropTargetId === "" ? "procedureCollectionDropTarget" : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          onDragLeave={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget))
-              setDropTargetId(null);
-          }}
-          onDragOver={(event) => {
-            if (!draggedItem) return;
-            event.preventDefault();
-            event.dataTransfer.dropEffect = "move";
-            setDropTargetId("");
-          }}
-          onDrop={(event) => {
-            if (!draggedItem) return;
-            event.preventDefault();
-            dropAt("");
-          }}
-        >
-          <span className="procedureCollectionRootSpacer" />
-          <button
-            className="procedureCollectionSelectButton"
-            onClick={() => onSelect("")}
-            type="button"
-          >
-            <FolderOpen size={16} />
-            <span>Raiz</span>
-            <small>{procedureCounts[""] || 0}</small>
-          </button>
-        </div>
-
-        {(childrenByParent.get("") || []).map((collection) => (
-          <CollectionTreeNode
-            childrenByParent={childrenByParent}
-            collapsedIds={collapsedIds}
-            collection={collection}
-            draggedItem={draggedItem}
-            dropTargetId={dropTargetId}
-            key={collection.id}
-            onDragCollection={onDragCollection}
-            onDragEnd={() => {
-              setDropTargetId(null);
-              onDragEnd();
+        <div className="procedureCollectionTreeInner">
+          <div
+            className={[
+              "procedureCollectionTreeRow",
+              "procedureCollectionRootRow",
+              !selectedCollectionId ? "selectedProcedureCollection" : "",
+              dropTargetId === "" ? "procedureCollectionDropTarget" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget))
+                setDropTargetId(null);
             }}
-            onDragOverCollection={setDropTargetId}
-            onDelete={onCreate ? onDelete : undefined}
-            onDrop={dropAt}
-            onSelect={onSelect}
-            onToggle={(collectionId) =>
-              setCollapsedIds((current) => {
-                const next = new Set(current);
-                if (next.has(collectionId)) next.delete(collectionId);
-                else next.add(collectionId);
-                return next;
-              })
-            }
-            procedureCounts={procedureCounts}
-            selectedCollectionId={selectedCollectionId}
-            visited={new Set()}
-          />
-        ))}
+            onDragOver={(event) => {
+              if (!draggedItem) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              setDropTargetId("");
+            }}
+            onDrop={(event) => {
+              if (!draggedItem) return;
+              event.preventDefault();
+              dropAt("");
+            }}
+          >
+            <span className="procedureCollectionRootSpacer" />
+            <button
+              className="procedureCollectionSelectButton"
+              onClick={() => onSelect("")}
+              type="button"
+            >
+              <FolderOpen size={16} />
+              <span>Raiz</span>
+              <small>{procedureCounts[""] || 0}</small>
+            </button>
+          </div>
+
+          {(childrenByParent.get("") || []).map((collection) => (
+            <CollectionTreeNode
+              childrenByParent={childrenByParent}
+              collapsedIds={collapsedIds}
+              collection={collection}
+              draggedItem={draggedItem}
+              dropTargetId={dropTargetId}
+              key={collection.id}
+              onDragCollection={onDragCollection}
+              onDragEnd={() => {
+                setDropTargetId(null);
+                onDragEnd();
+              }}
+              onDragOverCollection={setDropTargetId}
+              onDelete={onCreate ? onDelete : undefined}
+              onDrop={dropAt}
+              onSelect={onSelect}
+              onToggle={(collectionId) =>
+                setCollapsedIds((current) => {
+                  const next = new Set(current);
+                  if (next.has(collectionId)) next.delete(collectionId);
+                  else next.add(collectionId);
+                  return next;
+                })
+              }
+              procedureCounts={procedureCounts}
+              selectedCollectionId={selectedCollectionId}
+              visited={new Set()}
+            />
+          ))}
+        </div>
       </div>
     </aside>
   );

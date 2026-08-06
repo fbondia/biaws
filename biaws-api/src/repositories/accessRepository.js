@@ -298,31 +298,54 @@ function systemGroupId(workspace, groupId) {
   return workspace.default ? groupId : `${workspace.id}:${groupId}`;
 }
 
+export function buildSystemGroupSeedPipeline(
+  group,
+  workspace,
+  actor = {},
+  now = new Date(),
+) {
+  const initialPermissions = [...group.permissions].sort(compareStrings);
+  const preserveOrInitialize = (field, initialValue) => ({
+    $ifNull: [`$${field}`, initialValue],
+  });
+
+  return [
+    {
+      $set: {
+        name: preserveOrInitialize("name", group.name),
+        normalizedName: preserveOrInitialize(
+          "normalizedName",
+          normalizedName(group.name),
+        ),
+        description: preserveOrInitialize("description", group.description),
+        permissions:
+          group.id === "administration"
+            ? initialPermissions
+            : preserveOrInitialize("permissions", initialPermissions),
+        workspaceId: workspace.id,
+        scope: preserveOrInitialize("scope", {
+          type: "workspace",
+          applicationIds: [],
+        }),
+        active: preserveOrInitialize("active", true),
+        system: true,
+        systemKey: group.id,
+        createdAt: preserveOrInitialize("createdAt", now),
+        createdBy: preserveOrInitialize("createdBy", actor.userId || "system"),
+        updatedAt: preserveOrInitialize("updatedAt", now),
+        updatedBy: preserveOrInitialize("updatedBy", actor.userId || "system"),
+      },
+    },
+  ];
+}
+
 async function upsertInitialPermissionGroups(groups, workspace, actor = {}) {
   const now = new Date();
   await Promise.all(
     INITIAL_PERMISSION_GROUPS.map((group) =>
       groups.updateOne(
         { _id: systemGroupId(workspace, group.id) },
-        {
-          $set: {
-            name: group.name,
-            normalizedName: normalizedName(group.name),
-            description: group.description,
-            permissions: [...group.permissions].sort(compareStrings),
-            workspaceId: workspace.id,
-            scope: { type: "workspace", applicationIds: [] },
-            active: true,
-            system: true,
-            systemKey: group.id,
-            updatedAt: now,
-            updatedBy: actor.userId || "system",
-          },
-          $setOnInsert: {
-            createdAt: now,
-            createdBy: actor.userId || "system",
-          },
-        },
+        buildSystemGroupSeedPipeline(group, workspace, actor, now),
         { upsert: true },
       ),
     ),

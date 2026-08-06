@@ -6,8 +6,7 @@
 }
 
 .groupList,
-.groupEditor,
-.permissionDomains {
+.groupEditor {
   display: grid;
   gap: 0.75rem;
 }
@@ -52,10 +51,6 @@
   font: inherit;
 }
 
-.permissionDomains {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
 .permissionDomain {
   display: grid;
   align-content: start;
@@ -80,6 +75,85 @@
 .permissionOption small {
   display: block;
   font-family: monospace;
+}
+
+.permissionTabsSection {
+  min-width: 0;
+}
+
+.permissionTabs {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+
+.permissionTabs .tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-secondary);
+  padding: 0 0.75rem;
+}
+
+.permissionTabs .activeTab {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+  color: var(--color-accent-text);
+}
+
+.permissionTabBadge {
+  display: inline-flex;
+  min-width: 1.45rem;
+  height: 1.45rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-subtle);
+  padding: 0 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.permissionTabs .activeTab .permissionTabBadge {
+  background: var(--color-surface);
+  color: var(--color-accent-text);
+}
+
+.permissionTabPanel {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1rem 0.25rem 0.25rem;
+}
+
+.permissionSection {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.permissionSection + .permissionSection {
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 1rem;
+}
+
+.permissionSection h3 {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.permissionSectionOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem 1.25rem;
 }
 
 .securityActions {

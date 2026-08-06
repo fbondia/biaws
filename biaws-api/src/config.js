@@ -114,6 +114,10 @@ export function getServerConfig() {
     },
     secrets: {
       provider: readEnv(["BIAWS_SECRETS_PROVIDER"], "local"),
+      maxFileBytes: readNumberEnv(
+        ["BIAWS_SECRETS_MAX_FILE_BYTES"],
+        5 * 1024 * 1024,
+      ),
       local: {
         directory: path.resolve(
           readEnv(
@@ -126,6 +130,10 @@ export function getServerConfig() {
             ["BIAWS_SECRETS_KEY_PATH", "BIAWS_SECRETS_KEY_FILE"],
             path.resolve(TOOL_DIR, "../.secrets-master-key"),
           ),
+        ),
+        maxBytes: readNumberEnv(
+          ["BIAWS_SECRETS_MAX_FILE_BYTES"],
+          5 * 1024 * 1024,
         ),
       },
     },

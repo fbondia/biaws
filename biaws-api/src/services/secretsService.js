@@ -13,6 +13,7 @@ import {
   updateSecretDocument,
 } from "../repositories/secretsRepository.js";
 import { getSecretProvider } from "../secrets/secretProvider.js";
+import { normalizeUploadFilename } from "./attachmentService.js";
 
 function secretError(statusCode, code, message) {
   const error = new Error(message);
@@ -74,6 +75,49 @@ function providerContext(document, version) {
   };
 }
 
+function requireSession(actor) {
+  if (actor.authenticationMethod !== "session") {
+    throw secretError(
+      403,
+      "SECRET_REVEAL_REQUIRES_SESSION",
+      "Secret contents can only be retrieved from an authenticated user session",
+    );
+  }
+}
+
+export function normalizeSecretFile(file) {
+  if (!file?.buffer || !Buffer.isBuffer(file.buffer) || !file.buffer.length) {
+    throw secretError(
+      422,
+      "INVALID_SECRET_FILE",
+      "multipart field 'file' must contain a non-empty file",
+    );
+  }
+  const decodedName = normalizeUploadFilename(file.originalname || "");
+  const fileName = decodedName.replaceAll("\\", "/").split("/").at(-1)?.trim();
+  if (
+    !fileName ||
+    fileName.length > 255 ||
+    /[\u0000-\u001f\u007f]/u.test(fileName)
+  ) {
+    throw secretError(
+      422,
+      "INVALID_SECRET_FILE",
+      "file name must contain between 1 and 255 characters",
+    );
+  }
+  const mediaType = String(file.mimetype || "application/octet-stream").trim();
+  if (!mediaType || mediaType.length > 200 || /[\r\n]/u.test(mediaType)) {
+    throw secretError(422, "INVALID_SECRET_FILE", "file media type is invalid");
+  }
+  return {
+    kind: "file",
+    fileName,
+    mediaType,
+    size: file.buffer.length,
+  };
+}
+
 export async function listAccessibleSecrets(query = {}, actor) {
   if (query.applicationId) {
     assertScope(actor, "secrets.metadata.read", query.applicationId);
@@ -118,6 +162,10 @@ export async function createSecret(payload, actor) {
     { workspaceId: actor.workspaceId, secretId: id, version },
     payload.value,
   );
+  const content = {
+    kind: "text",
+    size: Buffer.byteLength(payload.value, "utf8"),
+  };
   try {
     return await createSecretDocument(
       { ...payload, id },
@@ -126,6 +174,40 @@ export async function createSecret(payload, actor) {
         version,
         provider: "local",
         locator: stored.locator,
+        content,
+      },
+    );
+  } catch (error) {
+    await provider.deleteValue(stored.locator).catch(() => {});
+    throw error;
+  }
+}
+
+export async function createFileSecret(payload, file, actor) {
+  assertAllowedFields(
+    payload,
+    new Set(["name", "description", "type", "environment", "applicationId"]),
+  );
+  assertScope(actor, "secrets.create", payload.applicationId || null);
+  assertScope(actor, "secrets.value.write", payload.applicationId || null);
+  normalizeSecretPayload(payload);
+  const content = normalizeSecretFile(file);
+  const id = randomUUID();
+  const version = 1;
+  const provider = getSecretProvider();
+  const stored = await provider.putContent(
+    { workspaceId: actor.workspaceId, secretId: id, version },
+    file.buffer,
+  );
+  try {
+    return await createSecretDocument(
+      { ...payload, applicationId: payload.applicationId || null, id },
+      {
+        actor,
+        version,
+        provider: "local",
+        locator: stored.locator,
+        content,
       },
     );
   } catch (error) {
@@ -157,6 +239,13 @@ export async function writeSecretValue(secretId, value, actor) {
   if (document.status !== "active") {
     throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
   }
+  if ((document.contentKind || "text") !== "text") {
+    throw secretError(
+      409,
+      "SECRET_CONTENT_KIND_MISMATCH",
+      "File secrets require a file version",
+    );
+  }
   const version = document.currentVersion + 1;
   const provider = getSecretProvider();
   const stored = await provider.putValue(
@@ -166,7 +255,49 @@ export async function writeSecretValue(secretId, value, actor) {
   try {
     return await addSecretVersion(
       document,
-      { locator: stored.locator, actor },
+      {
+        locator: stored.locator,
+        actor,
+        content: {
+          kind: "text",
+          size: Buffer.byteLength(value, "utf8"),
+        },
+      },
+      scope,
+    );
+  } catch (error) {
+    await provider.deleteValue(stored.locator).catch(() => {});
+    throw error;
+  }
+}
+
+export async function writeSecretFile(secretId, file, actor) {
+  const { document, scope } = await requiredSecret(
+    secretId,
+    actor,
+    "secrets.value.write",
+  );
+  if (document.status !== "active") {
+    throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
+  }
+  if ((document.contentKind || "text") !== "file") {
+    throw secretError(
+      409,
+      "SECRET_CONTENT_KIND_MISMATCH",
+      "Text secrets require a text value version",
+    );
+  }
+  const content = normalizeSecretFile(file);
+  const version = document.currentVersion + 1;
+  const provider = getSecretProvider();
+  const stored = await provider.putContent(
+    providerContext(document, version),
+    file.buffer,
+  );
+  try {
+    return await addSecretVersion(
+      document,
+      { locator: stored.locator, actor, content },
       scope,
     );
   } catch (error) {
@@ -176,13 +307,7 @@ export async function writeSecretValue(secretId, value, actor) {
 }
 
 export async function revealSecret(secretId, actor) {
-  if (actor.authenticationMethod !== "session") {
-    throw secretError(
-      403,
-      "SECRET_REVEAL_REQUIRES_SESSION",
-      "Secret values can only be revealed from an authenticated user session",
-    );
-  }
+  requireSession(actor);
   const { document } = await requiredSecret(
     secretId,
     actor,
@@ -190,6 +315,13 @@ export async function revealSecret(secretId, actor) {
   );
   if (document.status !== "active") {
     throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
+  }
+  if ((document.contentKind || "text") !== "text") {
+    throw secretError(
+      409,
+      "SECRET_CONTENT_KIND_MISMATCH",
+      "File secrets must be downloaded",
+    );
   }
   const version = currentSecretVersion(document);
   if (!version) {
@@ -204,6 +336,43 @@ export async function revealSecret(secretId, actor) {
       providerContext(document, version.version),
       version.locator,
     ),
+    version: version.version,
+    secret: publicSecret(document),
+  };
+}
+
+export async function downloadSecretFile(secretId, actor) {
+  requireSession(actor);
+  const { document } = await requiredSecret(
+    secretId,
+    actor,
+    "secrets.value.reveal",
+  );
+  if (document.status !== "active") {
+    throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
+  }
+  if ((document.contentKind || "text") !== "file") {
+    throw secretError(
+      409,
+      "SECRET_CONTENT_KIND_MISMATCH",
+      "Text secrets must be revealed",
+    );
+  }
+  const version = currentSecretVersion(document);
+  if (!version) {
+    throw secretError(
+      500,
+      "SECRET_VERSION_MISSING",
+      "The current secret version is unavailable",
+    );
+  }
+  return {
+    content: await getSecretProvider().getContent(
+      providerContext(document, version.version),
+      version.locator,
+    ),
+    fileName: version.fileName || "secret-file",
+    mediaType: version.mediaType || "application/octet-stream",
     version: version.version,
     secret: publicSecret(document),
   };

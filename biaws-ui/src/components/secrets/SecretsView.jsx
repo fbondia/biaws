@@ -1,8 +1,10 @@
 import {
   Archive,
   Copy,
+  Download,
   Eye,
   EyeOff,
+  File,
   KeyRound,
   Plus,
   RotateCw,
@@ -13,9 +15,12 @@ import { useEffect, useMemo, useState } from "react";
 import {
   archiveSecret,
   createSecret,
+  createSecretFile,
+  downloadSecretFile,
   fetchApplications,
   fetchSecrets,
   revealSecretValue,
+  writeSecretFile,
   writeSecretValue,
 } from "../../api.js";
 import { hasEveryPermission, hasPermission } from "../../permissions.js";
@@ -26,8 +31,17 @@ const EMPTY_FORM = {
   type: "generic",
   environment: "",
   applicationId: "",
+  contentKind: "text",
   value: "",
+  file: null,
 };
+
+function formatBytes(value) {
+  const bytes = Number(value) || 0;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;
+}
 
 function permissionApplicationIds(actor, ...permissions) {
   return [
@@ -42,6 +56,7 @@ function permissionApplicationIds(actor, ...permissions) {
 
 function SecretValueDialog({ secret, onClose, onSaved }) {
   const [value, setValue] = useState("");
+  const [file, setFile] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -50,8 +65,12 @@ function SecretValueDialog({ secret, onClose, onSaved }) {
     setError("");
     setSaving(true);
     try {
-      const payload = await writeSecretValue(secret.id, value);
+      const payload =
+        secret.contentKind === "file"
+          ? await writeSecretFile(secret.id, file)
+          : await writeSecretValue(secret.id, value);
       setValue("");
+      setFile(null);
       onSaved(payload.secret);
     } catch (saveError) {
       setError(saveError.message);
@@ -85,17 +104,30 @@ function SecretValueDialog({ secret, onClose, onSaved }) {
         </header>
         <form className="userCreateDialogForm" onSubmit={submit}>
           {error ? <div className="authError">{error}</div> : null}
-          <label>
-            Novo valor
-            <textarea
-              autoComplete="off"
-              autoFocus
-              onChange={(event) => setValue(event.target.value)}
-              required
-              rows="5"
-              value={value}
-            />
-          </label>
+          {secret.contentKind === "file" ? (
+            <label>
+              Novo arquivo
+              <input
+                autoFocus
+                onChange={(event) => setFile(event.target.files?.[0] || null)}
+                required
+                type="file"
+              />
+              <small>O arquivo substituirá apenas a versão corrente.</small>
+            </label>
+          ) : (
+            <label>
+              Novo valor
+              <textarea
+                autoComplete="off"
+                autoFocus
+                onChange={(event) => setValue(event.target.value)}
+                required
+                rows="5"
+                value={value}
+              />
+            </label>
+          )}
           <footer className="userCreateDialogFooter secretDialogFooter">
             <button
               className="secondaryButton"
@@ -143,10 +175,17 @@ function CreateSecretDialog({ actor, applications, onClose, onCreated }) {
     setError("");
     setSaving(true);
     try {
-      const payload = await createSecret({
-        ...form,
+      const metadata = {
+        name: form.name,
+        description: form.description,
+        type: form.type,
+        environment: form.environment,
         applicationId: form.applicationId || null,
-      });
+      };
+      const payload =
+        form.contentKind === "file"
+          ? await createSecretFile(metadata, form.file)
+          : await createSecret({ ...metadata, value: form.value });
       setForm(EMPTY_FORM);
       onCreated(payload.secret);
     } catch (createError) {
@@ -271,18 +310,51 @@ function CreateSecretDialog({ actor, applications, onClose, onCreated }) {
             </select>
           </label>
           <label>
-            Valor
-            <textarea
-              autoComplete="off"
+            Formato do conteúdo
+            <select
               onChange={(event) =>
-                setForm({ ...form, value: event.target.value })
+                setForm({
+                  ...form,
+                  contentKind: event.target.value,
+                  value: "",
+                  file: null,
+                })
               }
-              required
-              rows="5"
-              value={form.value}
-            />
-            <small>O valor será criptografado antes de ser persistido.</small>
+              value={form.contentKind}
+            >
+              <option value="text">Texto</option>
+              <option value="file">Arquivo</option>
+            </select>
           </label>
+          {form.contentKind === "file" ? (
+            <label>
+              Arquivo
+              <input
+                onChange={(event) =>
+                  setForm({ ...form, file: event.target.files?.[0] || null })
+                }
+                required
+                type="file"
+              />
+              <small>
+                Até 5 MiB. Chaves, certificados e arquivos .env são aceitos.
+              </small>
+            </label>
+          ) : (
+            <label>
+              Valor
+              <textarea
+                autoComplete="off"
+                onChange={(event) =>
+                  setForm({ ...form, value: event.target.value })
+                }
+                required
+                rows="5"
+                value={form.value}
+              />
+              <small>O valor será criptografado antes de ser persistido.</small>
+            </label>
+          )}
           <footer className="userCreateDialogFooter secretDialogFooter">
             <button
               className="secondaryButton"
@@ -377,6 +449,25 @@ export function SecretsView({ actor }) {
     }
   }
 
+  async function download(secret) {
+    setError("");
+    try {
+      const payload = await downloadSecretFile(secret.id);
+      const url = window.URL.createObjectURL(payload.blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = payload.fileName
+        ? decodeURIComponent(payload.fileName)
+        : secret.file?.name || "secret-file";
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (downloadError) {
+      setError(downloadError.message);
+    }
+  }
+
   async function archive(secret) {
     if (!window.confirm(`Arquivar o segredo “${secret.name}”?`)) return;
     setError("");
@@ -429,6 +520,18 @@ export function SecretsView({ actor }) {
               <span className="typeBadge">{secret.type}</span>
             </header>
             {secret.description ? <p>{secret.description}</p> : null}
+            {secret.contentKind === "file" ? (
+              <div className="secretFileMetadata">
+                <File size={17} />
+                <div>
+                  <strong>{secret.file?.name || "Arquivo secreto"}</strong>
+                  <small>
+                    {formatBytes(secret.file?.size)} ·{" "}
+                    {secret.file?.mediaType || "application/octet-stream"}
+                  </small>
+                </div>
+              </div>
+            ) : null}
             <small>
               {secret.applicationId
                 ? applicationNames[secret.applicationId] || secret.applicationId
@@ -463,7 +566,20 @@ export function SecretsView({ actor }) {
               </div>
             ) : null}
             <footer className="securityActions secretCardActions">
-              {canReveal && canActOnSecret("secrets.value.reveal", secret) ? (
+              {canReveal &&
+              canActOnSecret("secrets.value.reveal", secret) &&
+              secret.contentKind === "file" ? (
+                <button
+                  className="secondaryButton"
+                  onClick={() => download(secret)}
+                  type="button"
+                >
+                  <Download size={15} /> Baixar
+                </button>
+              ) : null}
+              {canReveal &&
+              canActOnSecret("secrets.value.reveal", secret) &&
+              secret.contentKind !== "file" ? (
                 <button
                   className="secondaryButton"
                   onClick={() => reveal(secret)}

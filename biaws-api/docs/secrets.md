@@ -6,7 +6,8 @@ pelo próprio BIAWS continuam armazenadas como hash e não usam este cofre.
 
 ## Armazenamento
 
-O provider `local` grava um arquivo por versão em `BIAWS_SECRETS_DIR`. O valor é
+O provider `local` grava um envelope criptografado por versão em
+`BIAWS_SECRETS_DIR`. O conteúdo pode ser texto ou um arquivo binário e é
 criptografado com AES-256-GCM, nonce aleatório e dados autenticados contendo os
 IDs de workspace, segredo e versão. O arquivo contém somente ciphertext, nonce,
 tag de autenticação e metadata do formato.
@@ -22,6 +23,10 @@ host. O Compose substitui `BIAWS_SECRETS_KEY_FILE` por
 diretamente no host com `BIAWS_ENV_FILE=instances/<nome>/.env`, ela usa os
 caminhos absolutos da instância para a chave e para o cofre.
 
+Arquivos secretos têm limite padrão de 5 MiB, configurável por
+`BIAWS_SECRETS_MAX_FILE_BYTES`. Nome, MIME type e tamanho são armazenados como
+metadata no MongoDB; os bytes permanecem somente no envelope criptografado.
+
 Para execução local sem Docker:
 
 ```bash
@@ -31,19 +36,28 @@ chmod 600 .secrets-master-key
 
 ## Rotas
 
-| Método  | Rota                       | Permissão                                  |
-| ------- | -------------------------- | ------------------------------------------ |
-| `GET`   | `/api/secrets`             | `secrets.metadata.read`                    |
-| `POST`  | `/api/secrets`             | `secrets.create`, `secrets.value.write`    |
-| `GET`   | `/api/secrets/:id`         | `secrets.metadata.read`                    |
-| `PATCH` | `/api/secrets/:id`         | `secrets.metadata.read`, `secrets.update`  |
-| `PUT`   | `/api/secrets/:id/value`   | `secrets.value.write`                      |
-| `POST`  | `/api/secrets/:id/reveal`  | `secrets.value.reveal`                     |
-| `POST`  | `/api/secrets/:id/archive` | `secrets.metadata.read`, `secrets.archive` |
+| Método  | Rota                        | Permissão                                  |
+| ------- | --------------------------- | ------------------------------------------ |
+| `GET`   | `/api/secrets`              | `secrets.metadata.read`                    |
+| `POST`  | `/api/secrets`              | `secrets.create`, `secrets.value.write`    |
+| `POST`  | `/api/secrets/files`        | `secrets.create`, `secrets.value.write`    |
+| `GET`   | `/api/secrets/:id`          | `secrets.metadata.read`                    |
+| `PATCH` | `/api/secrets/:id`          | `secrets.metadata.read`, `secrets.update`  |
+| `PUT`   | `/api/secrets/:id/value`    | `secrets.value.write`                      |
+| `PUT`   | `/api/secrets/:id/file`     | `secrets.value.write`                      |
+| `POST`  | `/api/secrets/:id/reveal`   | `secrets.value.reveal`                     |
+| `POST`  | `/api/secrets/:id/download` | `secrets.value.reveal`                     |
+| `POST`  | `/api/secrets/:id/archive`  | `secrets.metadata.read`, `secrets.archive` |
 
 Criação recebe metadata e `value` no corpo. O valor nunca aparece em listagens,
 consultas de metadata ou auditoria. `reveal` aceita somente sessão de usuário;
 API keys e clientes MCP são recusados. A resposta usa `Cache-Control: no-store`.
+
+Criação e novas versões de arquivo usam `multipart/form-data`, campo `file`.
+Metadata de criação é enviada nos campos `name`, `description`, `type`,
+`environment` e `applicationId`. O download também exige sessão de usuário,
+responde como attachment e usa `Cache-Control: no-store` e
+`X-Content-Type-Options: nosniff`.
 
 Segredos sem `applicationId` exigem escopo de workspace. Segredos associados a
 uma aplicação também respeitam o escopo por aplicação de cada permissão.

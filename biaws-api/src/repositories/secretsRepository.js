@@ -76,6 +76,8 @@ export function normalizeSecretPayload(payload = {}, current = null) {
 
 export function publicSecret(document) {
   if (!document) return null;
+  const currentVersion = currentSecretVersion(document);
+  const contentKind = document.contentKind || currentVersion?.kind || "text";
   return {
     id: String(document.id),
     workspaceId: String(document.workspaceId),
@@ -90,6 +92,15 @@ export function publicSecret(document) {
     status: document.status,
     currentVersion: document.currentVersion,
     versionCount: document.versions?.length || 0,
+    contentKind,
+    file:
+      contentKind === "file"
+        ? {
+            name: currentVersion?.fileName || "secret-file",
+            mediaType: currentVersion?.mediaType || "application/octet-stream",
+            size: Number(currentVersion?.size) || 0,
+          }
+        : null,
     createdAt: document.createdAt,
     createdBy: document.createdBy,
     updatedAt: document.updatedAt,
@@ -194,7 +205,7 @@ export async function getSecretDocument(secretId, authorizationScope) {
 
 export async function createSecretDocument(
   payload,
-  { actor, version, provider, locator },
+  { actor, version, provider, locator, content },
 ) {
   const { secrets } = await getCollections();
   const workspaceId = String(actor.workspaceId);
@@ -210,12 +221,21 @@ export async function createSecretDocument(
     applicationId,
     ...metadata,
     provider,
+    contentKind: content?.kind || "text",
     status: "active",
     currentVersion: version,
     versions: [
       {
         version,
         locator,
+        kind: content?.kind || "text",
+        ...(content?.kind === "file"
+          ? {
+              fileName: content.fileName,
+              mediaType: content.mediaType,
+              size: content.size,
+            }
+          : { size: content?.size }),
         createdAt: now,
         createdBy: actor.userId,
       },
@@ -282,7 +302,7 @@ export async function updateSecretDocument(
 
 export async function addSecretVersion(
   current,
-  { locator, actor },
+  { locator, actor, content },
   authorizationScope,
 ) {
   const { secrets } = await getCollections();
@@ -305,6 +325,14 @@ export async function addSecretVersion(
         versions: {
           version,
           locator,
+          kind: content?.kind || current.contentKind || "text",
+          ...(content?.kind === "file"
+            ? {
+                fileName: content.fileName,
+                mediaType: content.mediaType,
+                size: content.size,
+              }
+            : { size: content?.size }),
           createdAt: now,
           createdBy: actor.userId,
         },

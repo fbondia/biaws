@@ -21,6 +21,7 @@ const MANAGED_KEYS = [
   "BIAWS_SECRET_FILES_PATH",
   "BIAWS_SECRETS_KEY_FILE",
   "BIAWS_SECRETS_KEY_PATH",
+  "BIAWS_SECRETS_MAX_FILE_BYTES",
 ];
 
 function preserveEnvironment() {
@@ -128,10 +129,13 @@ test("instance host paths take precedence for local secret access", () => {
     process.env.BIAWS_SECRET_FILES_PATH = "/instance/secrets";
     process.env.BIAWS_SECRETS_KEY_FILE = "/fallback/master.key";
     process.env.BIAWS_SECRETS_KEY_PATH = "/instance/master.key";
+    process.env.BIAWS_SECRETS_MAX_FILE_BYTES = "1048576";
 
     const config = getServerConfig();
     assert.equal(config.secrets.local.directory, "/instance/secrets");
     assert.equal(config.secrets.local.keyFile, "/instance/master.key");
+    assert.equal(config.secrets.maxFileBytes, 1048576);
+    assert.equal(config.secrets.local.maxBytes, 1048576);
   } finally {
     restore();
   }

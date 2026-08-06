@@ -15,6 +15,36 @@ export function createSecret(secret) {
   return sendJson("/api/secrets", secret, undefined, "POST");
 }
 
+function secretFileForm(metadata, file) {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(metadata || {})) {
+    if (value === undefined || value === null || value === "") continue;
+    form.append(key, value);
+  }
+  form.append("file", file);
+  return form;
+}
+
+async function sendSecretFile(path, method, metadata, file) {
+  return runWithGlobalLoading(
+    async () => {
+      const response = await fetch(buildUrl(path), {
+        method,
+        credentials: "include",
+        headers: workspaceHeaders(),
+        body: secretFileForm(metadata, file),
+      });
+      return readPayload(response);
+    },
+    "Criptografando arquivo…",
+    { priority: 0 },
+  );
+}
+
+export function createSecretFile(secret, file) {
+  return sendSecretFile("/api/secrets/files", "POST", secret, file);
+}
+
 export function updateSecretMetadata(secretId, secret) {
   return sendJson(
     `/api/secrets/${encodeURIComponent(secretId)}`,
@@ -28,6 +58,15 @@ export function writeSecretValue(secretId, value) {
   return sendJson(`/api/secrets/${encodeURIComponent(secretId)}/value`, {
     value,
   });
+}
+
+export function writeSecretFile(secretId, file) {
+  return sendSecretFile(
+    `/api/secrets/${encodeURIComponent(secretId)}/file`,
+    "PUT",
+    {},
+    file,
+  );
 }
 
 export function revealSecretValue(secretId) {
@@ -46,6 +85,31 @@ export function revealSecretValue(secretId) {
       return readPayload(response);
     },
     "Revelando segredo…",
+    { priority: 0 },
+  );
+}
+
+export function downloadSecretFile(secretId) {
+  return runWithGlobalLoading(
+    async () => {
+      const response = await fetch(
+        buildUrl(`/api/secrets/${encodeURIComponent(secretId)}/download`),
+        {
+          method: "POST",
+          cache: "no-store",
+          credentials: "include",
+          headers: workspaceHeaders(),
+        },
+      );
+      if (!response.ok) await readPayload(response);
+      return {
+        blob: await response.blob(),
+        fileName: response.headers
+          .get("Content-Disposition")
+          ?.match(/filename\*=UTF-8''([^;]+)/iu)?.[1],
+      };
+    },
+    "Baixando arquivo secreto…",
     { priority: 0 },
   );
 }

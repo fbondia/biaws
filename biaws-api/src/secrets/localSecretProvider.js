@@ -12,6 +12,7 @@ const ALGORITHM = "aes-256-gcm";
 const KEY_BYTES = 32;
 const NONCE_BYTES = 12;
 const MAX_SECRET_BYTES = 64 * 1024;
+const DEFAULT_MAX_CONTENT_BYTES = 5 * 1024 * 1024;
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/u;
 
 function providerError(code, message, cause) {
@@ -75,9 +76,10 @@ function validateEnvelope(envelope) {
 }
 
 export class LocalSecretProvider {
-  constructor({ directory, keyFile }) {
+  constructor({ directory, keyFile, maxBytes = DEFAULT_MAX_CONTENT_BYTES }) {
     this.directory = path.resolve(directory);
     this.keyFile = path.resolve(keyFile);
+    this.maxBytes = maxBytes;
     this.keyPromise = null;
   }
 
@@ -135,16 +137,46 @@ export class LocalSecretProvider {
       throw error;
     }
 
+    try {
+      return await this.putContent(context, plaintext, {
+        maxBytes: MAX_SECRET_BYTES,
+      });
+    } finally {
+      plaintext.fill(0);
+    }
+  }
+
+  async putContent(context, content, { maxBytes = this.maxBytes } = {}) {
+    if (!Buffer.isBuffer(content) && !(content instanceof Uint8Array)) {
+      const error = new Error("Secret content must be binary data");
+      error.code = "INVALID_SECRET_VALUE";
+      error.statusCode = 422;
+      throw error;
+    }
+    const plaintext = Buffer.from(content);
+    if (!plaintext.length || plaintext.length > maxBytes) {
+      plaintext.fill(0);
+      const error = new Error(
+        `Secret content must contain between 1 and ${maxBytes} bytes`,
+      );
+      error.code = "INVALID_SECRET_VALUE";
+      error.statusCode = 422;
+      throw error;
+    }
+
     const version = versionNumber(context.version);
     const locator = locatorFor(context.secretId, version);
     const destination = this.resolveLocator(locator);
     const directory = path.dirname(destination);
     const temporary = path.join(directory, `.${randomUUID()}.tmp`);
     const nonce = randomBytes(NONCE_BYTES);
-    const key = await this.encryptionKey();
 
     try {
-      const cipher = createCipheriv(ALGORITHM, key, nonce);
+      const cipher = createCipheriv(
+        ALGORITHM,
+        await this.encryptionKey(),
+        nonce,
+      );
       cipher.setAAD(associatedData(context));
       const ciphertext = Buffer.concat([
         cipher.update(plaintext),
@@ -184,6 +216,15 @@ export class LocalSecretProvider {
   }
 
   async getValue(context, locator) {
+    const plaintext = await this.getContent(context, locator);
+    try {
+      return plaintext.toString("utf8");
+    } finally {
+      plaintext.fill(0);
+    }
+  }
+
+  async getContent(context, locator) {
     const filePath = this.resolveLocator(locator);
     let envelope;
     try {
@@ -219,11 +260,7 @@ export class LocalSecretProvider {
         decipher.update(Buffer.from(envelope.ciphertext, "base64")),
         decipher.final(),
       ]);
-      try {
-        return plaintext.toString("utf8");
-      } finally {
-        plaintext.fill(0);
-      }
+      return plaintext;
     } catch (error) {
       throw providerError(
         "SECRET_DECRYPTION_FAILED",

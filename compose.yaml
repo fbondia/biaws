@@ -48,6 +48,7 @@ services:
       BIAWS_SECRETS_PROVIDER: local
       BIAWS_SECRETS_DIR: /data/secrets
       BIAWS_SECRETS_KEY_FILE: /run/secrets/biaws-master-key
+      BIAWS_SECRETS_MAX_FILE_BYTES: ${BIAWS_SECRETS_MAX_FILE_BYTES:-5242880}
       ATTACHMENT_STORAGE_PROVIDER: local
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Execute ./scripts/bootstrap.sh para configurar o ambiente}
       BETTER_AUTH_URL: ${BIAWS_PUBLIC_URL:-http://localhost:4400}

@@ -36,10 +36,42 @@ test("public secret never exposes locators or encrypted version data", () => {
     provider: "local",
     status: "active",
     currentVersion: 1,
-    versions: [{ version: 1, locator: "secret-a/version-1.enc" }],
+    contentKind: "file",
+    versions: [
+      {
+        version: 1,
+        locator: "secret-a/version-1.enc",
+        kind: "file",
+        fileName: "production.env",
+        mediaType: "text/plain",
+        size: 42,
+      },
+    ],
   });
 
   assert.equal(result.versionCount, 1);
+  assert.equal(result.contentKind, "file");
+  assert.deepEqual(result.file, {
+    name: "production.env",
+    mediaType: "text/plain",
+    size: 42,
+  });
   assert.equal(Object.hasOwn(result, "versions"), false);
   assert.equal(Object.hasOwn(result, "locator"), false);
+});
+
+test("legacy secrets are exposed as text content", () => {
+  const result = publicSecret({
+    id: "secret-a",
+    workspaceId: "workspace-a",
+    name: "Legacy",
+    type: "generic",
+    provider: "local",
+    status: "active",
+    currentVersion: 1,
+    versions: [{ version: 1, locator: "secret-a/version-1.enc" }],
+  });
+
+  assert.equal(result.contentKind, "text");
+  assert.equal(result.file, null);
 });

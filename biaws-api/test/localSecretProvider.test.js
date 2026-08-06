@@ -44,6 +44,31 @@ test("local provider encrypts one file per version and recovers the value", asyn
   );
 });
 
+test("local provider preserves arbitrary encrypted binary content", async (t) => {
+  const { provider, vaultDirectory } = await fixture(t);
+  const content = Buffer.from([0x00, 0xff, 0x10, 0x80, 0x0a]);
+  const stored = await provider.putContent(context, content);
+
+  const encrypted = await readFile(path.join(vaultDirectory, stored.locator));
+  assert.equal(encrypted.includes(content), false);
+  assert.deepEqual(await provider.getContent(context, stored.locator), content);
+});
+
+test("local provider enforces the configured binary content limit", async (t) => {
+  const { vaultDirectory } = await fixture(t);
+  const directory = path.dirname(vaultDirectory);
+  const provider = new LocalSecretProvider({
+    directory: vaultDirectory,
+    keyFile: path.join(directory, "master.key"),
+    maxBytes: 4,
+  });
+
+  await assert.rejects(
+    provider.putContent(context, Buffer.from([1, 2, 3, 4, 5])),
+    { code: "INVALID_SECRET_VALUE", statusCode: 422 },
+  );
+});
+
 test("authenticated context prevents moving a secret between workspaces", async (t) => {
   const { provider } = await fixture(t);
   const stored = await provider.putValue(context, "private-value");

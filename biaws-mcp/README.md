@@ -10,9 +10,13 @@ O servidor separa os domínios:
 - `issues_*`: chamados, incidentes, requisições operacionais, taxonomia e classificação.
 - `demands_*`: melhorias, especificações, jornadas, prazos e contexto para desenvolvimento.
 - `procedures_*`: procedimentos operacionais em Markdown, com tags e classificação taxonômica compartilhadas com issues.
+- `business_rules_*` e `architecture_decisions_*`: conhecimento normativo
+  relacionado a aplicações e componentes.
+- `knowledge_context_load`: regras ativas e decisões aceitas para o contexto
+  solicitado.
 - `secrets_*`: consulta e registro de metadados de segredos, sem acesso aos valores.
 - `resource_collections_*` e `*_move_to_collection`: organização hierárquica
-  de aplicações, procedimentos, segredos, skills e servidores.
+  de aplicações, regras, decisões, procedimentos, segredos, skills e servidores.
 
 O carregamento de ambiente usa o `shared/loadEnv.js` do próprio repositório. O MCP conversa com a `biaws-api` por HTTP e não acessa diretamente o mecanismo de armazenamento.
 

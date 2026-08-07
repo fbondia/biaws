@@ -3,6 +3,8 @@ import {
   deleteResourceCollection,
   listResourceCollections,
   moveApplicationToCollection,
+  moveArchitectureDecisionToCollection,
+  moveBusinessRuleToCollection,
   moveProcedureToCollection,
   moveSecretToCollection,
   moveServerToCollection,
@@ -17,7 +19,15 @@ const COLLECTION_ID = {
 };
 const RESOURCE_TYPE = {
   type: "string",
-  enum: ["applications", "procedures", "secrets", "skills", "servers"],
+  enum: [
+    "applications",
+    "architecture-decisions",
+    "business-rules",
+    "procedures",
+    "secrets",
+    "skills",
+    "servers",
+  ],
 };
 
 function schema(properties, required = []) {
@@ -89,4 +99,14 @@ export const collectionTools = [
   moveDefinition("secrets", "secretId", moveSecretToCollection),
   moveDefinition("skills", "skillId", moveSkillToCollection),
   moveDefinition("procedures", "procedureId", moveProcedureToCollection),
+  moveDefinition(
+    "business_rules",
+    "businessRuleId",
+    moveBusinessRuleToCollection,
+  ),
+  moveDefinition(
+    "architecture_decisions",
+    "architectureDecisionId",
+    moveArchitectureDecisionToCollection,
+  ),
 ];

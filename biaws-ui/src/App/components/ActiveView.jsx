@@ -12,6 +12,7 @@ import { IssueTaxonomyManager } from "../../components/taxonomy/IssueTaxonomyMan
 import { HomeView } from "../../components/home/HomeView.jsx";
 import { WorkspaceAdminView } from "../../components/platform/WorkspaceAdminView.jsx";
 import { SecretsView } from "../../components/secrets/SecretsView/index.jsx";
+import { KnowledgeRecordsView } from "../../components/knowledge/KnowledgeRecordsView.jsx";
 
 export function ActiveView({
   activeView,
@@ -36,6 +37,9 @@ export function ActiveView({
       <RequestsView actor={actor} key={`requests-${runtimeOptionsVersion}`} />
     );
   if (activeView === "procedures") return <ProceduresView actor={actor} />;
+  if (["business-rules", "architecture-decisions"].includes(activeView)) {
+    return <KnowledgeRecordsView actor={actor} type={activeView} />;
+  }
   if (activeView === "taxonomy") return <IssueTaxonomyManager />;
   if (activeView === "skills") return <SkillsView actor={actor} />;
   if (activeView === "users") return <UsersView actor={actor} />;

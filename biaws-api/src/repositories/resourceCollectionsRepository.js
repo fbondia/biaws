@@ -5,6 +5,8 @@ import { getMongoDatabase } from "../helpers/mongoClient.js";
 
 export const RESOURCE_COLLECTION_TYPES = Object.freeze([
   "applications",
+  "architecture-decisions",
+  "business-rules",
   "secrets",
   "skills",
   "servers",
@@ -15,10 +17,23 @@ const RESOURCE_CONFIG = Object.freeze({
     collection: COLLECTION_NAMES.APPLICATIONS,
     label: "aplicações",
   },
+  "architecture-decisions": {
+    collection: COLLECTION_NAMES.ARCHITECTURE_DECISIONS,
+    label: "decisões arquiteturais",
+  },
+  "business-rules": {
+    collection: COLLECTION_NAMES.BUSINESS_RULES,
+    label: "regras de negócio",
+  },
   secrets: { collection: COLLECTION_NAMES.SECRETS, label: "segredos" },
   skills: { collection: COLLECTION_NAMES.SKILLS, label: "skills" },
   servers: { collection: COLLECTION_NAMES.SERVERS, label: "servidores" },
 });
+
+const APPLICATION_SCOPED_COLLECTION_TYPES = new Set([
+  "architecture-decisions",
+  "business-rules",
+]);
 
 function httpError(statusCode, code, message) {
   const error = new Error(message);
@@ -135,10 +150,35 @@ function duplicateError(error) {
 export async function listResourceCollections(resourceType, query = {}) {
   const type = assertResourceCollectionType(resourceType);
   const { db, collection } = await collections(query);
-  const items = await collection
+  let items = await collection
     .find({ workspaceId: workspaceId(query), resourceType: type })
     .sort({ nameKey: 1, id: 1 })
     .toArray();
+  const authorizationScope = query.authorizationScope;
+  if (
+    APPLICATION_SCOPED_COLLECTION_TYPES.has(type) &&
+    authorizationScope &&
+    authorizationScope.workspace !== true
+  ) {
+    const collectionIds = await db
+      .collection(RESOURCE_CONFIG[type].collection)
+      .distinct("collectionId", {
+        workspaceId: workspaceId(query),
+        applicationId: {
+          $in: (authorizationScope.applicationIds || []).map(String),
+        },
+      });
+    const byId = new Map(items.map((item) => [item.id, item]));
+    const visibleIds = new Set();
+    for (const collectionId of collectionIds.filter(Boolean)) {
+      let currentId = collectionId;
+      while (currentId && !visibleIds.has(currentId)) {
+        visibleIds.add(currentId);
+        currentId = String(byId.get(currentId)?.parentId || "");
+      }
+    }
+    items = items.filter((item) => visibleIds.has(item.id));
+  }
   return {
     meta: {
       database: db.databaseName,

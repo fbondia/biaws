@@ -27,6 +27,7 @@ const ACTION_LABELS = {
   imported: "Importou",
   published: "Publicou",
   deprecated: "Descontinuou",
+  archived: "Arquivou",
 };
 
 function formatValue(value) {

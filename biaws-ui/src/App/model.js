@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   Server,
   BookOpen,
+  GitBranch,
+  Scale,
   House,
   Settings,
   KeyRound,
@@ -75,6 +77,18 @@ export const NAVIGATION_GROUPS = [
             label: "Procedimentos",
             icon: BookOpen,
             permission: "procedures.read",
+          },
+          {
+            key: "business-rules",
+            label: "Regras de negócio",
+            icon: Scale,
+            permission: "business_rules.read",
+          },
+          {
+            key: "architecture-decisions",
+            label: "Decisões arquiteturais",
+            icon: GitBranch,
+            permission: "architecture_decisions.read",
           },
           {
             key: "skills",

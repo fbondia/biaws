@@ -161,6 +161,20 @@ function procedureSummary(document) {
   };
 }
 
+function knowledgeRecordSummary(document) {
+  return {
+    id: document.id,
+    title: document.title,
+    status: document.status,
+    affectedComponentIds: document.affectedComponentIds || [],
+    references: document.references || [],
+    definedAt: document.definedAt || "",
+    lastReviewedAt: document.lastReviewedAt || "",
+    nextReviewAt: document.nextReviewAt || "",
+    updatedAt: document.updatedAt,
+  };
+}
+
 export async function getApplicationContext(applicationId, query = {}) {
   const application = await requireOperationalApplication(applicationId);
   const limit = readContextLimit(query);
@@ -179,6 +193,20 @@ export async function getApplicationContext(applicationId, query = {}) {
   const issues = db.collection(COLLECTION_NAMES.ISSUES);
   const demands = db.collection(COLLECTION_NAMES.REQUESTS);
   const procedures = db.collection(COLLECTION_NAMES.PROCEDURES);
+  const businessRules = db.collection(COLLECTION_NAMES.BUSINESS_RULES);
+  const architectureDecisions = db.collection(
+    COLLECTION_NAMES.ARCHITECTURE_DECISIONS,
+  );
+  const includeHistoricalKnowledge =
+    String(query.includeArchived || "").toLowerCase() === "true";
+  const businessRuleScope = {
+    ...knowledgeScope,
+    ...(includeHistoricalKnowledge ? {} : { status: "active" }),
+  };
+  const architectureDecisionScope = {
+    ...knowledgeScope,
+    ...(includeHistoricalKnowledge ? {} : { status: "accepted" }),
+  };
 
   const [
     componentDocuments,
@@ -195,6 +223,10 @@ export async function getApplicationContext(applicationId, query = {}) {
     issueTotal,
     demandTotal,
     procedureTotal,
+    businessRuleDocuments,
+    architectureDecisionDocuments,
+    businessRuleTotal,
+    architectureDecisionTotal,
     integrationResult,
   ] = await Promise.all([
     components.find(scope).sort({ name: 1, id: 1 }).limit(limit).toArray(),
@@ -227,6 +259,20 @@ export async function getApplicationContext(applicationId, query = {}) {
     issues.countDocuments(knowledgeScope),
     demands.countDocuments(knowledgeScope),
     procedures.countDocuments(knowledgeScope),
+    businessRules
+      .find(businessRuleScope)
+      .project({ markdown: 0 })
+      .sort({ updatedAt: -1, id: 1 })
+      .limit(limit)
+      .toArray(),
+    architectureDecisions
+      .find(architectureDecisionScope)
+      .project({ markdown: 0 })
+      .sort({ updatedAt: -1, id: 1 })
+      .limit(limit)
+      .toArray(),
+    businessRules.countDocuments(businessRuleScope),
+    architectureDecisions.countDocuments(architectureDecisionScope),
     listIntegrations(application.id, {
       includeArchived: query.includeArchived,
       limit,
@@ -270,6 +316,8 @@ export async function getApplicationContext(applicationId, query = {}) {
         issues: issueTotal,
         demands: demandTotal,
         procedures: procedureTotal,
+        businessRules: businessRuleTotal,
+        architectureDecisions: architectureDecisionTotal,
         integrations: integrationResult.meta.total,
       },
       truncated: {
@@ -281,6 +329,9 @@ export async function getApplicationContext(applicationId, query = {}) {
         issues: issueTotal > issueDocuments.length,
         demands: demandTotal > demandDocuments.length,
         procedures: procedureTotal > procedureDocuments.length,
+        businessRules: businessRuleTotal > businessRuleDocuments.length,
+        architectureDecisions:
+          architectureDecisionTotal > architectureDecisionDocuments.length,
         integrations:
           integrationResult.meta.total > integrationResult.items.length,
       },
@@ -294,5 +345,9 @@ export async function getApplicationContext(applicationId, query = {}) {
     issues: issueDocuments.map(issueSummary),
     demands: demandDocuments.map(demandSummary),
     procedures: procedureDocuments.map(procedureSummary),
+    businessRules: businessRuleDocuments.map(knowledgeRecordSummary),
+    architectureDecisions: architectureDecisionDocuments.map(
+      knowledgeRecordSummary,
+    ),
   };
 }

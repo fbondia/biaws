@@ -13,3 +13,4 @@ export * from "./api/home.js";
 export * from "./api/platform.js";
 export * from "./api/secrets.js";
 export * from "./api/resourceCollections.js";
+export * from "./api/knowledge.js";

@@ -24,6 +24,8 @@ test("collection tools expose bounded resource types and explicit destination id
       "secrets_move_to_collection",
       "skills_move_to_collection",
       "procedures_move_to_collection",
+      "business_rules_move_to_collection",
+      "architecture_decisions_move_to_collection",
     ],
   );
   const registered = new Map(listTools().map((tool) => [tool.name, tool]));
@@ -34,7 +36,15 @@ test("collection tools expose bounded resource types and explicit destination id
   assert.deepEqual(
     registered.get("resource_collections_list").inputSchema.properties
       .resourceType.enum,
-    ["applications", "procedures", "secrets", "skills", "servers"],
+    [
+      "applications",
+      "architecture-decisions",
+      "business-rules",
+      "procedures",
+      "secrets",
+      "skills",
+      "servers",
+    ],
   );
   for (const name of [
     "applications_move_to_collection",
@@ -42,6 +52,8 @@ test("collection tools expose bounded resource types and explicit destination id
     "secrets_move_to_collection",
     "skills_move_to_collection",
     "procedures_move_to_collection",
+    "business_rules_move_to_collection",
+    "architecture_decisions_move_to_collection",
   ]) {
     assert.equal(
       registered.get(name).inputSchema.required.includes("collectionId"),
@@ -165,6 +177,18 @@ test("move tools use audited API routes and support moving to root", async () =>
       { procedureId: "procedure-1", collectionId: "runbooks" },
       "/api/procedures/procedure-1/collection",
       "runbooks",
+    ],
+    [
+      "business_rules_move_to_collection",
+      { businessRuleId: "rule-1", collectionId: "commercial" },
+      "/api/knowledge/business-rules/rule-1/collection",
+      "commercial",
+    ],
+    [
+      "architecture_decisions_move_to_collection",
+      { architectureDecisionId: "decision-1", collectionId: "platform" },
+      "/api/knowledge/architecture-decisions/decision-1/collection",
+      "platform",
     ],
   ];
 

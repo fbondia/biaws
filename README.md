@@ -31,6 +31,8 @@ capacidades versionadas sem oferecer acesso genérico ao banco de dados.
 - chamados com importação EML, anexos, filtros, indicadores e taxonomia;
 - melhorias com especificação Markdown, tarefas, checklist, prazos e acompanhamento de jornadas;
 - procedimentos organizados em coleções e classificados pela mesma taxonomia;
+- regras de negócio e decisões arquiteturais em Markdown, com coleções,
+  contexto de aplicação, componentes, revisões e referências estruturadas;
 - workspaces e aplicações como fronteiras de organização e autorização;
 - componentes, repositórios, servidores, deployments e runtimes com consultas
   reversas e contexto agregado;
@@ -281,6 +283,7 @@ de ingestão está em [docs/monitoring.md](docs/monitoring.md).
 
 - [Status, releases e suporte](docs/project-status.md)
 - [Arquitetura](docs/architecture.md)
+- [Regras de negócio e decisões arquiteturais](docs/knowledge.md)
 - [Guidelines de desenvolvimento](docs/guidelines/INDEX.md)
 - [Operação e recuperação](docs/operations.md)
 - [Índices e performance](docs/performance.md)

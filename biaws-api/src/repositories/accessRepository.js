@@ -48,8 +48,15 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
   {
     id: "knowledge-management",
     name: "Gestão de conhecimento",
-    description: "Gerenciamento de taxonomia, procedimentos e skills.",
-    permissions: permissionsStartingWith("taxonomy.", "procedures.", "skills."),
+    description:
+      "Gerenciamento de taxonomia, procedimentos, regras, decisões e skills.",
+    permissions: permissionsStartingWith(
+      "taxonomy.",
+      "procedures.",
+      "business_rules.",
+      "architecture_decisions.",
+      "skills.",
+    ).concat("applications.read", "components.read"),
   },
   {
     id: "support",
@@ -136,6 +143,12 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
       "procedures.create",
       "procedures.update",
       "procedures.attachment.read",
+      "business_rules.read",
+      "business_rules.create",
+      "business_rules.update",
+      "architecture_decisions.read",
+      "architecture_decisions.create",
+      "architecture_decisions.update",
       "skills.read",
       "secrets.metadata.read",
       "secrets.metadata.create",

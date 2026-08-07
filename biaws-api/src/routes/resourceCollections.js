@@ -18,6 +18,14 @@ export const resourceCollectionsRouter = Router();
 
 const PERMISSIONS = Object.freeze({
   applications: { read: "applications.read", manage: "applications.update" },
+  "architecture-decisions": {
+    read: "architecture_decisions.read",
+    manage: "architecture_decisions.update",
+  },
+  "business-rules": {
+    read: "business_rules.read",
+    manage: "business_rules.update",
+  },
   secrets: { read: "secrets.metadata.read", manage: "secrets.update" },
   skills: { read: "skills.read", manage: "skills.publish" },
   servers: { read: "servers.read", manage: "servers.update" },

@@ -2,6 +2,8 @@ import { deleteJson, fetchJson, sendJson } from "../../httpClient.js";
 
 const RESOURCE_TYPES = new Set([
   "applications",
+  "architecture-decisions",
+  "business-rules",
   "procedures",
   "secrets",
   "skills",
@@ -129,6 +131,22 @@ export async function moveProcedureToCollection(args = {}) {
   const id = requiredId(args, "procedureId");
   return move(
     `/api/procedures/${encodeURIComponent(id)}/collection`,
+    destinationCollectionId(args),
+  );
+}
+
+export async function moveBusinessRuleToCollection(args = {}) {
+  const id = requiredId(args, "businessRuleId");
+  return move(
+    `/api/knowledge/business-rules/${encodeURIComponent(id)}/collection`,
+    destinationCollectionId(args),
+  );
+}
+
+export async function moveArchitectureDecisionToCollection(args = {}) {
+  const id = requiredId(args, "architectureDecisionId");
+  return move(
+    `/api/knowledge/architecture-decisions/${encodeURIComponent(id)}/collection`,
     destinationCollectionId(args),
   );
 }

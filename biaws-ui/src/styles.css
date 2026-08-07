@@ -4,6 +4,7 @@
 @import "./styles/foundations/base.css";
 @import "./styles/layout/app-shell.css";
 @import "./styles/features/procedures.css";
+@import "./styles/features/knowledge.css";
 @import "@xyflow/react/dist/style.css";
 @import "./styles/features/catalog.css";
 @import "./styles/features/home.css";

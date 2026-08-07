@@ -494,12 +494,12 @@ function KnowledgeRecordDetail({
 
   return (
     <section className="resourceCollectionContent knowledgeRecordDetail">
-      <header className="dialogHeader">
-        <div>
+      <header className="knowledgeRecordHeader">
+        <div className="knowledgeRecordTitle">
           <BookMarked size={20} />
           <h2>{draft.title || config.label}</h2>
         </div>
-        <div>
+        <div className="knowledgeRecordActions">
           {draft.id && canArchive ? (
             <button
               className="secondaryButton"
@@ -521,13 +521,16 @@ function KnowledgeRecordDetail({
           ) : null}
         </div>
       </header>
-      <nav className="dialogTabs" aria-label={`Detalhes de ${config.label}`}>
+      <nav
+        className="detailTabs knowledgeRecordTabs"
+        aria-label={`Detalhes de ${config.label}`}
+      >
         {TABS.filter(
           ([key]) =>
             draft.id || !["observations", "revisions", "history"].includes(key),
         ).map(([key, label]) => (
           <button
-            className={tab === key ? "activeDialogTab" : ""}
+            className={tab === key ? "detailTab activeDetailTab" : "detailTab"}
             key={key}
             onClick={() => setTab(key)}
             type="button"
@@ -537,7 +540,7 @@ function KnowledgeRecordDetail({
         ))}
       </nav>
       {tab === "content" ? (
-        <div className="dialogForm">
+        <div className="dialogForm knowledgeRecordPanel">
           <label className="field">
             <span>Título</span>
             <input
@@ -575,7 +578,7 @@ function KnowledgeRecordDetail({
         </div>
       ) : null}
       {tab === "context" ? (
-        <div className="dialogForm">
+        <div className="dialogForm knowledgeRecordPanel">
           <CatalogContextFields
             affectedComponentIds={draft.affectedComponentIds}
             applicationId={draft.applicationId}
@@ -645,7 +648,7 @@ function KnowledgeRecordDetail({
         />
       ) : null}
       {tab === "observations" ? (
-        <div className="dialogForm">
+        <div className="dialogForm knowledgeRecordPanel">
           {canUpdate ? (
             <>
               <div className="field">
@@ -685,7 +688,7 @@ function KnowledgeRecordDetail({
         </div>
       ) : null}
       {tab === "revisions" ? (
-        <div className="dialogForm">
+        <div className="dialogForm knowledgeRecordPanel">
           {revisions.map((revision) => (
             <article className="auditEventContent" key={revision.id}>
               <strong>Revisão {revision.revision}</strong>
@@ -699,11 +702,13 @@ function KnowledgeRecordDetail({
         </div>
       ) : null}
       {tab === "history" ? (
-        <AuditHistory
-          entityId={draft.id}
-          entityType={config.entityType}
-          refreshKey={refreshKey}
-        />
+        <div className="knowledgeRecordHistory">
+          <AuditHistory
+            entityId={draft.id}
+            entityType={config.entityType}
+            refreshKey={refreshKey}
+          />
+        </div>
       ) : null}
     </section>
   );
@@ -719,7 +724,7 @@ function ReferencesEditor({ disabled, draft, onChange, options }) {
     });
   }
   return (
-    <div className="dialogForm">
+    <div className="dialogForm knowledgeRecordPanel">
       {draft.references.map((reference, index) => (
         <div className="formGrid" key={index}>
           <label className="field">

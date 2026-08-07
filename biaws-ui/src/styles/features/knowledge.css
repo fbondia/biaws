@@ -1,0 +1,111 @@
+.knowledgeRecordDetail {
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.knowledgeRecordHeader,
+.knowledgeRecordTitle,
+.knowledgeRecordActions {
+  display: flex;
+  align-items: center;
+}
+
+.knowledgeRecordHeader {
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 20px;
+}
+
+.knowledgeRecordTitle {
+  min-width: 0;
+  gap: 10px;
+}
+
+.knowledgeRecordTitle svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+}
+
+.knowledgeRecordTitle h2 {
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-text);
+  font-size: 19px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knowledgeRecordActions {
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.knowledgeRecordTabs {
+  margin: 0;
+  padding: 0 12px;
+}
+
+.knowledgeRecordPanel {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+}
+
+.knowledgeRecordPanel .formGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.knowledgeRecordPanel > .primaryButton,
+.knowledgeRecordPanel > .secondaryButton {
+  justify-self: start;
+}
+
+.knowledgeRecordPanel > .field .markdownEditor textarea,
+.knowledgeRecordPanel > .field .markdownPreview {
+  min-height: 260px;
+}
+
+.knowledgeRecordPanel .auditEventContent {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 14px;
+}
+
+.knowledgeRecordPanel .auditEventContent > strong,
+.knowledgeRecordPanel .auditEventContent > p,
+.knowledgeRecordPanel .auditEventContent > small {
+  margin: 0;
+}
+
+.knowledgeRecordPanel .auditEventContent > small {
+  color: var(--color-text-subtle);
+}
+
+.knowledgeRecordHistory {
+  padding: 20px;
+}
+
+@media (max-width: 760px) {
+  .knowledgeRecordHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .knowledgeRecordActions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .knowledgeRecordPanel .formGrid {
+    grid-template-columns: 1fr;
+  }
+}

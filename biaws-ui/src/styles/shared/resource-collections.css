@@ -18,8 +18,37 @@
 .resourceCollectionsBody {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  grid-template-columns:
+    minmax(260px, var(--resource-collections-navigation-width, 340px)) 8px
+    minmax(0, 1fr);
   align-items: start;
+}
+
+.resourceCollectionsResizer {
+  position: relative;
+  width: 8px;
+  min-height: 80px;
+  align-self: stretch;
+  cursor: col-resize;
+  outline: 0;
+  touch-action: none;
+}
+
+.resourceCollectionsResizer::before {
+  position: absolute;
+  inset: 0 3px;
+  background: var(--color-border);
+  content: "";
+  transition:
+    inset 120ms ease,
+    background-color 120ms ease;
+}
+
+.resourceCollectionsResizer:hover::before,
+.resourceCollectionsResizer:focus-visible::before,
+.resourceCollectionsResizing::before {
+  inset-inline: 2px;
+  background: var(--color-focus);
 }
 
 .resourceCollectionBar {
@@ -158,6 +187,10 @@
 @media (max-width: 900px) {
   .resourceCollectionsBody {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resourceCollectionsResizer {
+    display: none;
   }
 
   .resourceCollectionsLayout

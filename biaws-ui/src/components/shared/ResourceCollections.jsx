@@ -17,6 +17,10 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+const COLLECTION_NAVIGATION_MIN_WIDTH = 260;
+const COLLECTION_NAVIGATION_MAX_WIDTH = 600;
+const COLLECTION_DETAIL_MIN_WIDTH = 420;
+
 function sortCollections(items) {
   return [...items].sort((first, second) =>
     first.name.localeCompare(second.name, "pt-BR", { sensitivity: "base" }),
@@ -85,8 +89,32 @@ export function ResourceCollectionsShell({
   navigator,
   toolbar,
 }) {
+  const bodyRef = useRef(null);
+  const [navigationWidth, setNavigationWidth] = useState(340);
+  const [resizingNavigation, setResizingNavigation] = useState(false);
   const [rootDropActive, setRootDropActive] = useState(false);
   const canNavigateBack = Boolean(detailVisible || selectedCollectionId);
+
+  function clampNavigationWidth(width) {
+    const bodyWidth = bodyRef.current?.getBoundingClientRect().width;
+    const availableWidth = bodyWidth
+      ? bodyWidth - COLLECTION_DETAIL_MIN_WIDTH - 8
+      : COLLECTION_NAVIGATION_MAX_WIDTH;
+    const maximumWidth = Math.max(
+      COLLECTION_NAVIGATION_MIN_WIDTH,
+      Math.min(COLLECTION_NAVIGATION_MAX_WIDTH, availableWidth),
+    );
+    return Math.min(
+      maximumWidth,
+      Math.max(COLLECTION_NAVIGATION_MIN_WIDTH, width),
+    );
+  }
+
+  function resizeNavigation(clientX) {
+    const bodyLeft = bodyRef.current?.getBoundingClientRect().left;
+    if (bodyLeft === undefined) return;
+    setNavigationWidth(clampNavigationWidth(clientX - bodyLeft));
+  }
 
   useEffect(() => {
     if (!draggedItem) setRootDropActive(false);
@@ -151,8 +179,57 @@ export function ResourceCollectionsShell({
         </button>
         {toolbar}
       </div>
-      <div className="resourceCollectionsBody">
+      <div
+        className="resourceCollectionsBody"
+        ref={bodyRef}
+        style={{
+          "--resource-collections-navigation-width": `${navigationWidth}px`,
+        }}
+      >
         {navigator}
+        <div
+          aria-label="Redimensionar área de navegação"
+          aria-orientation="vertical"
+          aria-valuemax={COLLECTION_NAVIGATION_MAX_WIDTH}
+          aria-valuemin={COLLECTION_NAVIGATION_MIN_WIDTH}
+          aria-valuenow={navigationWidth}
+          className={[
+            "resourceCollectionsResizer",
+            resizingNavigation ? "resourceCollectionsResizing" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          onKeyDown={(event) => {
+            let nextWidth;
+            if (event.key === "ArrowLeft") nextWidth = navigationWidth - 20;
+            if (event.key === "ArrowRight") nextWidth = navigationWidth + 20;
+            if (event.key === "Home") {
+              nextWidth = COLLECTION_NAVIGATION_MIN_WIDTH;
+            }
+            if (event.key === "End") {
+              nextWidth = COLLECTION_NAVIGATION_MAX_WIDTH;
+            }
+            if (nextWidth === undefined) return;
+            event.preventDefault();
+            setNavigationWidth(clampNavigationWidth(nextWidth));
+          }}
+          onLostPointerCapture={() => setResizingNavigation(false)}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            setResizingNavigation(true);
+          }}
+          onPointerMove={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            resizeNavigation(event.clientX);
+          }}
+          onPointerUp={(event) => {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+            setResizingNavigation(false);
+          }}
+          role="separator"
+          tabIndex={0}
+          title="Arraste para redimensionar a área de navegação"
+        />
         <div className="resourceCollectionContent">{children}</div>
       </div>
     </div>

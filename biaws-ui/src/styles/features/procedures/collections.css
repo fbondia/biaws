@@ -227,6 +227,7 @@
   display: grid;
   gap: 4px;
   border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   background: var(--color-surface-subtle);
   padding: 6px;
 }

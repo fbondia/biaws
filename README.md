@@ -54,6 +54,30 @@ O projeto não orquestra modelos nem executa agentes. Ele fornece a camada de
 contexto e controle que clientes como Codex, Claude e outros agentes compatíveis
 podem usar para trabalhar sobre sistemas reais.
 
+## Use o agente que você já assina
+
+O BIAWS não chama diretamente a API de um provedor de modelos e não exige uma
+`OPENAI_API_KEY` ou `ANTHROPIC_API_KEY`. Ele executa um servidor MCP que oferece
+contexto e ferramentas ao cliente escolhido pelo usuário. Não há, portanto, um
+token de modelo entregue à plataforma para ficar disponível a automações em
+segundo plano ou fluxos desconhecidos.
+
+Quem já usa o Codex com um plano ChatGPT elegível ou o Claude Code autenticado
+por uma assinatura Pro ou Max pode conectar o MCP do BIAWS e operar dentro do
+uso incluído no próprio plano, sem contratar cobrança de API separada apenas
+para acessar a plataforma. O Codex e o Claude Code documentam oficialmente o
+uso por assinatura e a conexão com servidores MCP:
+
+- [Codex com um plano ChatGPT](https://help.openai.com/pt-br/articles/11369540-using-codex-with-your-chatgpt-plan)
+  e [configuração MCP no Codex](https://developers.openai.com/codex/mcp/);
+- [Claude Code com Pro ou Max](https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan)
+  e [configuração MCP no Claude Code](https://docs.anthropic.com/en/docs/claude-code/mcp).
+
+O uso continua sujeito aos limites da assinatura escolhida. Créditos extras,
+pay-as-you-go ou upgrades só entram em cena quando o próprio usuário decide
+ultrapassar esses limites. A chave técnica criada pelo setup autentica o MCP no
+BIAWS local; ela não é um token faturável do provedor do modelo.
+
 ## Como o harness se organiza
 
 | Camada | O que o BIAWS oferece |

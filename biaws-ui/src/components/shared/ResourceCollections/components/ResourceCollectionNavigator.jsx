@@ -14,6 +14,7 @@ export function ResourceCollectionNavigator({
   onDragEnd,
   onDragItem,
   onDelete,
+  onDeleteItem,
   onDrop,
   onSelect,
   onSelectItem,
@@ -39,6 +40,7 @@ export function ResourceCollectionNavigator({
     getItemId,
     onCreate,
     onDelete,
+    onDeleteItem,
     onDragCollection,
     onDragEnd,
     onDragItem,
@@ -51,7 +53,7 @@ export function ResourceCollectionNavigator({
   };
 
   return (
-    <aside className="procedureCollectionsPanel">
+    <aside className="resourceCollectionsPanel">
       <header>
         <div>
           <strong>Coleções</strong>

@@ -241,7 +241,7 @@ export function ServersView({ actor }) {
               <>
                 <Server size={13} />
                 <span>{server.name}</span>
-                <small>{server.hostname || server.key}</small>
+                {/*<small>{server.hostname || server.key}</small>*/}
               </>
             )}
             selectedCollectionId={collectionState.selectedCollectionId}

@@ -158,6 +158,7 @@ export function ProceduresView({ actor }) {
             items={organizationItems}
             onCreate={createCollection}
             onDelete={removeCollection}
+            onDeleteItem={remove}
             onDragCollection={(collection) =>
               setDraggedItem({
                 type: "collection",
@@ -215,13 +216,14 @@ export function ProceduresView({ actor }) {
             embedded
             onChange={setDraft}
             onClose={() => setDraft(null)}
+            onDelete={() => remove(draft)}
             onPersistedChange={applyPersistedProcedure}
             onSave={persist}
             saving={saving}
             taxonomyPackage={taxonomyPackage}
           />
         ) : (
-          <section className="procedureCollectionContent">
+          <section className="resourceCollectionContent">
             {loading ? (
               <div className="loadingLine">Carregando procedimentos...</div>
             ) : null}

@@ -1,4 +1,13 @@
-import { ArrowLeft, Crown, Eye, Pencil, Save, Tags, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Crown,
+  Eye,
+  Pencil,
+  Save,
+  Tags,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -251,6 +260,7 @@ export function ProcedureDialog({
   draft,
   onChange,
   onClose,
+  onDelete,
   onPersistedChange,
   onSave,
   saving,
@@ -387,6 +397,7 @@ export function ProcedureDialog({
         embedded={embedded}
         mode={mode}
         onClose={onClose}
+        onDelete={onDelete}
         onSave={onSave}
         saving={saving}
       />
@@ -778,12 +789,18 @@ function ProcedureDialogFooter({
   embedded,
   mode,
   onClose,
+  onDelete,
   onSave,
   saving,
 }) {
   if (mode !== "edit")
     return (
       <footer className="procedureDialogFooter">
+        {draft.id && onDelete ? (
+          <button className="dangerButton" onClick={onDelete} type="button">
+            <Trash2 size={16} /> Excluir procedimento
+          </button>
+        ) : null}
         <button className="secondaryButton" onClick={onClose} type="button">
           {embedded ? "Voltar para a coleção" : "Fechar"}
         </button>
@@ -791,6 +808,11 @@ function ProcedureDialogFooter({
     );
   return (
     <footer className="procedureDialogFooter">
+      {draft.id && onDelete ? (
+        <button className="dangerButton" onClick={onDelete} type="button">
+          <Trash2 size={16} /> Excluir procedimento
+        </button>
+      ) : null}
       <button
         className="secondaryButton"
         onClick={draft.id ? cancelEditing : onClose}

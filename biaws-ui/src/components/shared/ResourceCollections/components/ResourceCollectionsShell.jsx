@@ -66,7 +66,7 @@ export function ResourceCollectionsShell({
         <button
           className={[
             "resourceCollectionPath",
-            rootDropActive ? "procedureCollectionDropTarget" : "",
+            rootDropActive ? "resourceCollectionDropTarget" : "",
           ]
             .filter(Boolean)
             .join(" ")}

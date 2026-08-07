@@ -127,14 +127,14 @@
   color: var(--color-accent-text);
 }
 
-.procedureCollectionsPanel > header {
+.resourceCollectionsPanel > header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 }
 
-.resourceCollectionsBody > .procedureCollectionsPanel {
+.resourceCollectionsBody > .resourceCollectionsPanel {
   position: static;
   border: 0;
   border-right: 1px solid var(--color-border);
@@ -167,7 +167,7 @@
   outline-offset: 2px;
 }
 
-.selectedResourceCollectionItem .procedureCollectionItemContent {
+.selectedResourceCollectionItem .resourceCollectionItemContent {
   background: var(--color-accent-soft);
   color: var(--color-accent-text);
   font-weight: 700;
@@ -195,7 +195,7 @@
 
   .resourceCollectionsLayout
     > .resourceCollectionsBody
-    > .procedureCollectionsPanel {
+    > .resourceCollectionsPanel {
     position: static;
     border-right: 0;
     border-bottom: 1px solid var(--color-border);
@@ -203,21 +203,21 @@
 
   .resourceCollectionsDetailVisible
     > .resourceCollectionsBody
-    > .procedureCollectionsPanel {
+    > .resourceCollectionsPanel {
     display: none;
   }
 
-  .resourceCollectionsLayout .procedureCollectionTree {
+  .resourceCollectionsLayout .resourceCollectionTree {
     max-height: 280px;
   }
 
-  .resourceCollectionsLayout .procedureCollectionColumns {
+  .resourceCollectionsLayout .resourceCollectionColumns {
     height: 280px;
     min-height: 0;
     max-height: 280px;
   }
 
-  .resourceCollectionsLayout .procedureCollectionColumn {
+  .resourceCollectionsLayout .resourceCollectionColumn {
     min-width: min(82vw, 320px);
     flex-basis: min(82vw, 320px);
   }

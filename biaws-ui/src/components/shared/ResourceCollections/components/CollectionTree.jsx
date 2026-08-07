@@ -5,16 +5,24 @@ import {
   FolderOpen,
   GripVertical,
   Pencil,
+  FolderPlus,
+  Plus,
   Trash2,
 } from "lucide-react";
+import { useState } from "react";
 
 import { descendantCollectionIds } from "../model.js";
 import { CollectionAddForm } from "./CollectionAddForm.jsx";
 import { CollectionItemNode } from "./CollectionItemNode.jsx";
 
 function CollectionTreeNode({
+  addingParentId,
   canDragItem,
   collection,
+  collectionDrafts,
+  createAt,
+  creatingParentId,
+  creationError,
   childrenByParent,
   collapsedIds,
   draggedItem,
@@ -26,6 +34,7 @@ function CollectionTreeNode({
   onDragItem,
   onDragOverCollection,
   onDelete,
+  onDeleteItem,
   onDrop,
   onRename,
   onSelect,
@@ -33,8 +42,10 @@ function CollectionTreeNode({
   onToggle,
   itemCounts,
   renderItem,
+  setAddingParentId,
   selectedCollectionId,
   selectedItemId,
+  updateCollectionDraft,
   visited,
 }) {
   if (visited.has(collection.id)) return null;
@@ -51,16 +62,29 @@ function CollectionTreeNode({
         collection.id,
       ));
   const canDrop = Boolean(draggedItem) && !invalidCollectionDrop;
+  const addingSubcollection = addingParentId === collection.id;
+
+  function toggleSubcollectionForm() {
+    setAddingParentId((current) =>
+      current === collection.id ? null : collection.id,
+    );
+    if (!expanded) onToggle(collection.id);
+  }
+
+  async function createSubcollection(event) {
+    const created = await createAt(event, collection.id);
+    if (created) setAddingParentId(null);
+  }
 
   return (
-    <div className="procedureCollectionTreeBranch">
+    <div className="resourceCollectionTreeBranch">
       <div
         className={[
-          "procedureCollectionTreeRow",
+          "resourceCollectionTreeRow",
           selectedCollectionId === collection.id
-            ? "selectedProcedureCollection"
+            ? "selectedResourceCollection"
             : "",
-          dropTargetId === collection.id ? "procedureCollectionDropTarget" : "",
+          dropTargetId === collection.id ? "resourceCollectionDropTarget" : "",
         ]
           .filter(Boolean)
           .join(" ")}
@@ -93,7 +117,7 @@ function CollectionTreeNode({
       >
         <GripVertical
           aria-hidden="true"
-          className="procedureCollectionDragHandle"
+          className="resourceCollectionDragHandle"
           size={14}
         />
         <button
@@ -102,7 +126,7 @@ function CollectionTreeNode({
               ? `Recolher ${collection.name}`
               : `Expandir ${collection.name}`
           }
-          className="procedureCollectionExpandButton"
+          className="resourceCollectionExpandButton"
           disabled={!hasContents}
           onClick={() => onToggle(collection.id)}
           type="button"
@@ -118,7 +142,7 @@ function CollectionTreeNode({
           )}
         </button>
         <button
-          className="procedureCollectionSelectButton"
+          className="resourceCollectionSelectButton"
           onClick={() => onSelect(collection.id)}
           title={collection.name}
           type="button"
@@ -129,48 +153,90 @@ function CollectionTreeNode({
             <Folder size={16} />
           )}
           <span>{collection.name}</span>
-          <small>{itemCounts[collection.id] || 0}</small>
+          {/*<small>{itemCounts[collection.id] || 0}</small>*/}
         </button>
-        <div className="procedureCollectionRowActions">
-          {selectedCollectionId === collection.id && onRename ? (
-            <button
-              aria-label={`Editar coleção ${collection.name}`}
-              className="procedureCollectionEditButton"
-              onClick={() => onRename(collection)}
-              title="Editar coleção"
-              type="button"
-            >
-              <Pencil size={13} />
-            </button>
-          ) : null}
-          {onDelete ? (
-            <button
-              aria-label={`Excluir coleção ${collection.name}`}
-              className="procedureCollectionDeleteButton"
-              onClick={() => onDelete(collection)}
-              title="Excluir coleção vazia"
-              type="button"
-            >
-              <Trash2 size={13} />
-            </button>
-          ) : null}
-        </div>
+
+        {selectedCollectionId === collection.id && 
+          <div className="resourceCollectionRowActions">
+            {createAt ? (
+              <button
+                aria-expanded={addingSubcollection}
+                aria-label={`Criar subcoleção em ${collection.name}`}
+                className={
+                  addingSubcollection
+                    ? "resourceCollectionActionButton activeCollectionAction"
+                    : "resourceCollectionActionButton"
+                }
+                onClick={toggleSubcollectionForm}
+                title="Criar subcoleção"
+                type="button"
+              >
+                <FolderPlus size={13} />
+              </button>
+            ) : null}
+            {onRename ? (
+              <button
+                aria-label={`Editar coleção ${collection.name}`}
+                className="resourceCollectionActionButton"
+                onClick={() => onRename(collection)}
+                title="Editar coleção"
+                type="button"
+              >
+                <Pencil size={13} />
+              </button>
+            ) : null}
+            {onDelete ? (
+              <button
+                aria-label={`Excluir coleção ${collection.name}`}
+                className="resourceCollectionActionButton"
+                onClick={() => onDelete(collection)}
+                title="Excluir coleção vazia"
+                type="button"
+              >
+                <Trash2 size={13} />
+              </button>
+            ) : null}
+          </div>
+        }
       </div>
 
+      {addingSubcollection ? (
+        <div className="resourceCollectionTreeChildAdd">
+          <CollectionAddForm
+            autoFocus
+            disabled={creatingParentId === collection.id}
+            error={
+              creationError?.parentId === collection.id
+                ? creationError.message
+                : ""
+            }
+            name={collectionDrafts[collection.id] || ""}
+            onChange={(name) => updateCollectionDraft(collection.id, name)}
+            onSubmit={createSubcollection}
+          />
+        </div>
+      ) : null}
+
       {expanded && (children.length || collectionItems.length) ? (
-        <div className="procedureCollectionTreeChildren">
+        <div className="resourceCollectionTreeChildren">
           {children.map((child) => (
             <CollectionTreeNode
+              addingParentId={addingParentId}
               canDragItem={canDragItem}
               childrenByParent={childrenByParent}
               collapsedIds={collapsedIds}
               collection={child}
+              collectionDrafts={collectionDrafts}
+              createAt={createAt}
+              creatingParentId={creatingParentId}
+              creationError={creationError}
               draggedItem={draggedItem}
               dropTargetId={dropTargetId}
               getItemId={getItemId}
               itemsByCollection={itemsByCollection}
               key={child.id}
               onDelete={onDelete}
+              onDeleteItem={onDeleteItem}
               onDragCollection={onDragCollection}
               onDragEnd={onDragEnd}
               onDragItem={onDragItem}
@@ -182,8 +248,10 @@ function CollectionTreeNode({
               onToggle={onToggle}
               itemCounts={itemCounts}
               renderItem={renderItem}
+              setAddingParentId={setAddingParentId}
               selectedCollectionId={selectedCollectionId}
               selectedItemId={selectedItemId}
+              updateCollectionDraft={updateCollectionDraft}
               visited={nextVisited}
             />
           ))}
@@ -196,6 +264,7 @@ function CollectionTreeNode({
               key={getItemId(item)}
               onDragEnd={onDragEnd}
               onDragItem={onDragItem}
+              onDeleteItem={onDeleteItem}
               onSelectItem={onSelectItem}
               renderItem={renderItem}
               viewMode="tree"
@@ -224,6 +293,7 @@ export function CollectionTree({
   itemsByCollection,
   onCreate,
   onDelete,
+  onDeleteItem,
   onDragCollection,
   onDragEnd,
   onDragItem,
@@ -237,22 +307,30 @@ export function CollectionTree({
   toggleCollection,
   updateCollectionDraft,
 }) {
+  const [addingParentId, setAddingParentId] = useState(null);
+
   return (
-    <div className="procedureCollectionTree">
-      <div className="procedureCollectionTreeScroll">
-        <div className="procedureCollectionTreeInner">
+    <div className="resourceCollectionTree">
+      <div className="resourceCollectionTreeScroll">
+        <div className="resourceCollectionTreeInner">
           {(childrenByParent.get("") || []).map((collection) => (
             <CollectionTreeNode
+              addingParentId={addingParentId}
               canDragItem={canDragItem}
               childrenByParent={childrenByParent}
               collapsedIds={collapsedIds}
               collection={collection}
+              collectionDrafts={collectionDrafts}
+              createAt={onCreate ? createAt : undefined}
+              creatingParentId={creatingParentId}
+              creationError={creationError}
               draggedItem={draggedItem}
               dropTargetId={dropTargetId}
               getItemId={getItemId}
               itemsByCollection={itemsByCollection}
               key={collection.id}
               onDelete={onCreate ? onDelete : undefined}
+              onDeleteItem={onDeleteItem}
               onDragCollection={onDragCollection}
               onDragEnd={() => finishDrag(onDragEnd)}
               onDragItem={onDragItem}
@@ -264,8 +342,10 @@ export function CollectionTree({
               onToggle={toggleCollection}
               itemCounts={itemCounts}
               renderItem={renderItem}
+              setAddingParentId={setAddingParentId}
               selectedCollectionId={selectedCollectionId}
               selectedItemId={selectedItemId}
+              updateCollectionDraft={updateCollectionDraft}
               visited={new Set()}
             />
           ))}
@@ -278,6 +358,7 @@ export function CollectionTree({
               key={getItemId(item)}
               onDragEnd={onDragEnd}
               onDragItem={onDragItem}
+              onDeleteItem={onDeleteItem}
               onSelectItem={onSelectItem}
               renderItem={renderItem}
               viewMode="tree"
@@ -287,15 +368,11 @@ export function CollectionTree({
       </div>
       {onCreate ? (
         <CollectionAddForm
-          disabled={creatingParentId === selectedCollectionId}
-          error={
-            creationError?.parentId === selectedCollectionId
-              ? creationError.message
-              : ""
-          }
-          name={collectionDrafts[selectedCollectionId] || ""}
-          onChange={(name) => updateCollectionDraft(selectedCollectionId, name)}
-          onSubmit={(event) => createAt(event, selectedCollectionId)}
+          disabled={creatingParentId === ""}
+          error={creationError?.parentId === "" ? creationError.message : ""}
+          name={collectionDrafts[""] || ""}
+          onChange={(name) => updateCollectionDraft("", name)}
+          onSubmit={(event) => createAt(event, "")}
         />
       ) : null}
     </div>

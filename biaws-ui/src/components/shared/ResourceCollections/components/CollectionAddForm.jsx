@@ -1,6 +1,8 @@
 import { Plus } from "lucide-react";
 
 export function CollectionAddForm({
+  autoFocus = false,
+  className = "",
   disabled,
   error,
   name,
@@ -8,11 +10,17 @@ export function CollectionAddForm({
   onSubmit,
 }) {
   return (
-    <form className="procedureCollectionAdd" onSubmit={onSubmit}>
+    <form
+      className={["resourceCollectionAdd", className]
+        .filter(Boolean)
+        .join(" ")}
+      onSubmit={onSubmit}
+    >
       {error ? <small role="alert">{error}</small> : null}
       <div>
         <input
           aria-label="Nome da nova coleção"
+          autoFocus={autoFocus}
           disabled={disabled}
           maxLength={120}
           onChange={(event) => onChange(event.target.value)}

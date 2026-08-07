@@ -260,11 +260,11 @@
     width: 100%;
   }
 
-  .procedureCollectionsPanel {
+  .resourceCollectionsPanel {
     position: static;
   }
 
-  .procedureCollectionTree {
+  .resourceCollectionTree {
     max-height: 280px;
   }
 

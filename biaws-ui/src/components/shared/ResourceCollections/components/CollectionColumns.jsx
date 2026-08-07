@@ -39,9 +39,9 @@ function CollectionColumnRow({
     <div
       aria-selected={active}
       className={[
-        "procedureCollectionColumnRow",
-        active ? "selectedProcedureCollection" : "",
-        dropTargetId === collection.id ? "procedureCollectionDropTarget" : "",
+        "resourceCollectionColumnRow",
+        active ? "selectedResourceCollection" : "",
+        dropTargetId === collection.id ? "resourceCollectionDropTarget" : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -72,11 +72,11 @@ function CollectionColumnRow({
     >
       <GripVertical
         aria-hidden="true"
-        className="procedureCollectionDragHandle"
+        className="resourceCollectionDragHandle"
         size={14}
       />
       <button
-        className="procedureCollectionColumnSelectButton"
+        className="resourceCollectionColumnSelectButton"
         onClick={() => onSelect(collection.id)}
         title={collection.name}
         type="button"
@@ -87,22 +87,22 @@ function CollectionColumnRow({
           <Folder size={16} />
         )}
         <span>{collection.name}</span>
-        <small>{itemCounts[collection.id] || 0}</small>
+        {/*<small>{itemCounts[collection.id] || 0}</small>*/}
       </button>
-      {children.length ? (
+      {/*children.length ? (
         <ChevronRight
           aria-label={`${children.length} ${children.length === 1 ? "subcoleção" : "subcoleções"}`}
-          className="procedureCollectionColumnChevron"
+          className="resourceCollectionColumnChevron"
           size={15}
         />
       ) : (
         <span />
-      )}
-      <div className="procedureCollectionRowActions">
+      )*/}
+      <div className="resourceCollectionRowActions">
         {active && onRename ? (
           <button
             aria-label={`Editar coleção ${collection.name}`}
-            className="procedureCollectionEditButton"
+            className="resourceCollectionEditButton"
             onClick={() => onRename(collection)}
             title="Editar coleção"
             type="button"
@@ -113,7 +113,7 @@ function CollectionColumnRow({
         {onDelete ? (
           <button
             aria-label={`Excluir coleção ${collection.name}`}
-            className="procedureCollectionDeleteButton"
+            className="resourceCollectionActionButton"
             onClick={() => onDelete(collection)}
             title="Excluir coleção vazia"
             type="button"
@@ -144,6 +144,7 @@ export function CollectionColumns({
   itemsByCollection,
   onCreate,
   onDelete,
+  onDeleteItem,
   onDragCollection,
   onDragEnd,
   onDragItem,
@@ -157,14 +158,14 @@ export function CollectionColumns({
   updateCollectionDraft,
 }) {
   return (
-    <div className="procedureCollectionColumns" ref={columnsRef} role="tree">
+    <div className="resourceCollectionColumns" ref={columnsRef} role="tree">
       {columnNavigation.columns.map((column, columnIndex) => (
         <div
-          className="procedureCollectionColumn"
+          className="resourceCollectionColumn"
           key={`${column.parentId || "root"}-${columnIndex}`}
           role="group"
         >
-          <div className="procedureCollectionColumnList">
+          <div className="resourceCollectionColumnList">
             {column.collections.map((collection) => (
               <CollectionColumnRow
                 active={
@@ -197,6 +198,7 @@ export function CollectionColumns({
                 key={getItemId(item)}
                 onDragEnd={onDragEnd}
                 onDragItem={onDragItem}
+                onDeleteItem={onDeleteItem}
                 onSelectItem={onSelectItem}
                 renderItem={renderItem}
                 viewMode="columns"
@@ -206,7 +208,7 @@ export function CollectionColumns({
             {!column.collections.length &&
             !(itemsByCollection.get(column.parentId) || []).length &&
             columnIndex > 0 ? (
-              <p className="procedureCollectionColumnEmpty">
+              <p className="resourceCollectionColumnEmpty">
                 Nenhuma subcoleção
               </p>
             ) : null}

@@ -1,4 +1,4 @@
-import { GripVertical } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 
 export function CollectionItemNode({
   active,
@@ -7,6 +7,7 @@ export function CollectionItemNode({
   item,
   onDragEnd,
   onDragItem,
+  onDeleteItem,
   onSelectItem,
   renderItem,
   viewMode,
@@ -19,8 +20,8 @@ export function CollectionItemNode({
   return (
     <div
       className={[
-        "procedureCollectionItemRow",
-        viewMode === "columns" ? "procedureCollectionColumnItemRow" : "",
+        "resourceCollectionItemRow",
+        viewMode === "columns" ? "resourceCollectionColumnItemRow" : "",
         active ? "selectedResourceCollectionItem" : "",
       ]
         .filter(Boolean)
@@ -41,23 +42,34 @@ export function CollectionItemNode({
       {canDrag ? (
         <GripVertical
           aria-hidden="true"
-          className="procedureCollectionDragHandle"
+          className="resourceCollectionDragHandle"
           size={12}
         />
       ) : (
-        <span className="procedureCollectionItemSpacer" />
+        <span className="resourceCollectionItemSpacer" />
       )}
       {onSelectItem ? (
         <button
-          className="procedureCollectionItemContent"
+          className="resourceCollectionItemContent"
           onClick={() => onSelectItem(item)}
           type="button"
         >
           {content}
         </button>
       ) : (
-        <div className="procedureCollectionItemContent">{content}</div>
+        <div className="resourceCollectionItemContent">{content}</div>
       )}
+      {onDeleteItem ? (
+        <button
+          aria-label={`Excluir ${item.name || item.title || itemId}`}
+          className="resourceCollectionActionButton"
+          onClick={() => onDeleteItem(item)}
+          title="Excluir"
+          type="button"
+        >
+          <Trash2 size={13} />
+        </button>
+      ) : null}
     </div>
   );
 }

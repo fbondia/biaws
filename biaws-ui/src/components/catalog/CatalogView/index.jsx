@@ -158,7 +158,7 @@ export function CatalogView({ actor }) {
               <>
                 <Layers3 size={13} />
                 <span>{application.name}</span>
-                <small>{application.key}</small>
+                {/*<small>{application.key}</small>*/}
               </>
             )}
             selectedCollectionId={collectionState.selectedCollectionId}

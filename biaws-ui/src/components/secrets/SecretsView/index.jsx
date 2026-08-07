@@ -202,7 +202,7 @@ export function SecretsView({ actor }) {
               <>
                 <KeyRound size={13} />
                 <span>{secret.name}</span>
-                <small>{secret.environment || secret.type}</small>
+                {/*<small>{secret.environment || secret.type}</small>*/}
               </>
             )}
             selectedCollectionId={collectionState.selectedCollectionId}

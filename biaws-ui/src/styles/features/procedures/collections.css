@@ -1,69 +1,69 @@
-.procedureCollectionsPanel {
+.resourceCollectionsPanel {
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: var(--color-surface);
 }
 
-.procedureCollectionsPanel {
+.resourceCollectionsPanel {
   position: sticky;
   top: 16px;
   min-width: 0;
   overflow: hidden;
 }
 
-.procedureCollectionsPanel > header {
+.resourceCollectionsPanel > header {
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface-subtle);
   padding: 14px;
 }
 
-.procedureCollectionsPanel > header > div {
+.resourceCollectionsPanel > header > div {
   display: grid;
   gap: 3px;
 }
 
-.procedureCollectionsPanel > header strong {
+.resourceCollectionsPanel > header strong {
   font-size: 15px;
 }
 
-.procedureCollectionsPanel > header span {
+.resourceCollectionsPanel > header span {
   color: var(--color-text-subtle);
   font-size: 12px;
   line-height: 1.4;
 }
 
-.procedureCollectionTree {
+.resourceCollectionTree {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   max-height: calc(100dvh - 220px);
   overflow: hidden;
 }
 
-.procedureCollectionTreeScroll {
+.resourceCollectionTreeScroll {
   min-height: 0;
   overflow: auto;
   padding: 8px;
 }
 
-.procedureCollectionTreeInner {
+.resourceCollectionTreeInner {
   display: grid;
   width: max-content;
   min-width: 100%;
 }
 
-.procedureCollectionTreeBranch {
+.resourceCollectionTreeBranch {
   display: grid;
   min-width: 240px;
 }
 
-.procedureCollectionTreeChildren {
+.resourceCollectionTreeChildren {
   display: grid;
   margin-left: 18px;
   border-left: 1px solid var(--color-border);
   padding-left: 4px;
 }
 
-.procedureCollectionTreeRow {
+.resourceCollectionTreeRow {
   display: grid;
   grid-template-columns: 14px 24px minmax(0, 1fr) auto;
   width: 100%;
@@ -71,6 +71,7 @@
   align-items: center;
   border: 1px solid transparent;
   border-radius: 7px;
+  font-weight: 800;
   color: var(--color-text-secondary);
   padding: 3px 4px;
   transition:
@@ -78,15 +79,15 @@
     background-color 120ms ease;
 }
 
-.procedureCollectionTreeRow[draggable="true"] {
+.resourceCollectionTreeRow[draggable="true"] {
   cursor: grab;
 }
 
-.procedureCollectionTreeRow[draggable="true"]:active {
+.resourceCollectionTreeRow[draggable="true"]:active {
   cursor: grabbing;
 }
 
-.procedureCollectionColumns {
+.resourceCollectionColumns {
   display: flex;
   height: calc(100dvh - 284px);
   min-height: 240px;
@@ -97,7 +98,7 @@
   scrollbar-gutter: stable;
 }
 
-.procedureCollectionColumn {
+.resourceCollectionColumn {
   display: grid;
   flex: 0 0 210px;
   min-width: 210px;
@@ -107,22 +108,23 @@
   background: var(--color-surface);
 }
 
-.procedureCollectionColumn:last-child {
+.resourceCollectionColumn:last-child {
   border-right: 0;
 }
 
-.procedureCollectionColumnList {
+.resourceCollectionColumnList {
   min-height: 0;
   overflow-y: auto;
   padding: 5px;
 }
 
-.procedureCollectionColumnRow {
+.resourceCollectionColumnRow {
   display: grid;
   grid-template-columns: 12px minmax(0, 1fr) 15px auto;
   align-items: center;
   border: 1px solid transparent;
   border-radius: 7px;
+  font-weight: 600;
   color: var(--color-text-secondary);
   padding: 3px 4px;
   transition:
@@ -130,19 +132,19 @@
     background-color 120ms ease;
 }
 
-.procedureCollectionColumnRow[draggable="true"] {
+.resourceCollectionColumnRow[draggable="true"] {
   cursor: grab;
 }
 
-.procedureCollectionColumnRow[draggable="true"]:active {
+.resourceCollectionColumnRow[draggable="true"]:active {
   cursor: grabbing;
 }
 
-.procedureCollectionColumnRow:hover {
+.resourceCollectionColumnRow:hover {
   background: var(--color-surface-subtle);
 }
 
-.procedureCollectionColumnSelectButton {
+.resourceCollectionColumnSelectButton {
   display: flex;
   min-width: 0;
   min-height: 32px;
@@ -155,11 +157,11 @@
   text-align: left;
 }
 
-.procedureCollectionColumnSelectButton > svg {
+.resourceCollectionColumnSelectButton > svg {
   flex: 0 0 auto;
 }
 
-.procedureCollectionColumnSelectButton > span {
+.resourceCollectionColumnSelectButton > span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -167,7 +169,7 @@
   font-size: 11px;
 }
 
-.procedureCollectionColumnSelectButton > small {
+.resourceCollectionColumnSelectButton > small {
   min-width: 20px;
   margin-left: auto;
   border-radius: 999px;
@@ -178,35 +180,37 @@
   text-align: center;
 }
 
-.procedureCollectionColumnChevron {
+.resourceCollectionColumnChevron {
   color: var(--color-text-subtle);
 }
 
-.procedureCollectionColumnRow:hover .procedureCollectionDeleteButton {
+.resourceCollectionColumnRow:hover .resourceCollectionActionButton {
   opacity: 1;
 }
 
-.procedureCollectionSelectButton > span {
+.resourceCollectionSelectButton > span {
   font-size: 12px;
 }
 
-.procedureCollectionSelectButton > small {
+.resourceCollectionSelectButton > small {
   font-size: 10px;
 }
 
-.procedureCollectionRowActions {
+.resourceCollectionRowActions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
 }
 
-.procedureCollectionEditButton,
-.procedureCollectionRowActions .procedureCollectionDeleteButton {
+.resourceCollectionEditButton,
+.resourceCollectionCreateButton,
+.resourceCollectionRowActions .resourceCollectionActionButton {
   width: 24px;
   height: 26px;
 }
 
-.procedureCollectionEditButton {
+.resourceCollectionEditButton,
+.resourceCollectionCreateButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -217,13 +221,26 @@
   padding: 0;
 }
 
-.procedureCollectionEditButton:hover,
-.procedureCollectionEditButton:focus-visible {
+.resourceCollectionEditButton:hover,
+.resourceCollectionEditButton:focus-visible,
+.resourceCollectionCreateButton:hover,
+.resourceCollectionCreateButton:focus-visible,
+.resourceCollectionCreateButton.activeCollectionAction {
   background: var(--color-accent-soft);
   color: var(--color-accent-text);
 }
 
-.procedureCollectionAdd {
+.resourceCollectionTreeChildAdd {
+  margin-left: 42px;
+  border-left: 1px solid var(--color-border);
+  padding-left: 4px;
+}
+
+.resourceCollectionTreeChildAdd .resourceCollectionAdd {
+  border-top: 0;
+}
+
+.resourceCollectionAdd {
   display: grid;
   gap: 4px;
   border-top: 1px solid var(--color-border);
@@ -232,13 +249,13 @@
   padding: 6px;
 }
 
-.procedureCollectionAdd > div {
+.resourceCollectionAdd > div {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 28px;
   gap: 4px;
 }
 
-.procedureCollectionAdd input {
+.resourceCollectionAdd input {
   width: 100%;
   min-width: 0;
   height: 28px;
@@ -249,7 +266,7 @@
   font-size: 11px;
 }
 
-.procedureCollectionAdd button {
+.resourceCollectionAdd button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -260,12 +277,12 @@
   padding: 0;
 }
 
-.procedureCollectionAdd button:hover:not(:disabled) {
+.resourceCollectionAdd button:hover:not(:disabled) {
   border-color: var(--color-accent-border);
   color: var(--color-accent-text);
 }
 
-.procedureCollectionAdd > small {
+.resourceCollectionAdd > small {
   overflow: hidden;
   color: #9b1c1c;
   font-size: 10px;
@@ -273,16 +290,16 @@
   white-space: nowrap;
 }
 
-.procedureCollectionColumnEmpty {
+.resourceCollectionColumnEmpty {
   margin: 0;
   color: var(--color-text-subtle);
   padding: 12px 8px;
   font-size: 12px;
 }
 
-.procedureCollectionItemRow {
+.resourceCollectionItemRow {
   display: grid;
-  grid-template-columns: 14px minmax(0, 1fr);
+  grid-template-columns: 14px minmax(0, 1fr) auto;
   min-width: 0;
   align-items: center;
   border: 1px solid transparent;
@@ -291,24 +308,24 @@
   padding: 2px 4px;
 }
 
-.procedureCollectionItemRow[draggable="true"] {
+.resourceCollectionItemRow[draggable="true"] {
   cursor: grab;
 }
 
-.procedureCollectionItemRow[draggable="true"]:active {
+.resourceCollectionItemRow[draggable="true"]:active {
   cursor: grabbing;
 }
 
-.procedureCollectionItemRow:hover {
+.resourceCollectionItemRow:hover {
   border-color: var(--color-border);
   background: var(--color-surface-subtle);
 }
 
-.procedureCollectionColumnItemRow {
-  grid-template-columns: 12px minmax(0, 1fr);
+.resourceCollectionColumnItemRow {
+  grid-template-columns: 12px minmax(0, 1fr) auto;
 }
 
-.procedureCollectionItemContent {
+.resourceCollectionItemContent {
   display: flex;
   min-width: 0;
   min-height: 27px;
@@ -322,24 +339,24 @@
   text-align: left;
 }
 
-button.procedureCollectionItemContent {
+button.resourceCollectionItemContent {
   cursor: pointer;
 }
 
-.procedureCollectionItemContent > svg {
+.resourceCollectionItemContent > svg {
   flex: 0 0 auto;
   color: var(--color-text-subtle);
 }
 
-.procedureCollectionItemContent > span {
+.resourceCollectionItemContent > span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.procedureCollectionItemContent > small,
-.procedureCollectionItemContent > code {
+.resourceCollectionItemContent > small,
+.resourceCollectionItemContent > code {
   flex: 0 0 auto;
   margin-left: auto;
   overflow: hidden;
@@ -350,11 +367,11 @@ button.procedureCollectionItemContent {
   white-space: nowrap;
 }
 
-.procedureCollectionDragHandle {
+.resourceCollectionDragHandle {
   color: var(--color-text-subtle);
 }
 
-.procedureCollectionExpandButton {
+.resourceCollectionExpandButton {
   display: inline-flex;
   width: 24px;
   height: 28px;
@@ -366,16 +383,16 @@ button.procedureCollectionItemContent {
   padding: 0;
 }
 
-.procedureCollectionExpandButton:disabled {
+.resourceCollectionExpandButton:disabled {
   cursor: default;
   opacity: 0;
 }
 
-.procedureCollectionExpandButton > span {
+.resourceCollectionExpandButton > span {
   width: 14px;
 }
 
-.procedureCollectionSelectButton {
+.resourceCollectionSelectButton {
   display: flex;
   min-width: 0;
   min-height: 32px;
@@ -388,18 +405,18 @@ button.procedureCollectionItemContent {
   text-align: left;
 }
 
-.procedureCollectionSelectButton > svg {
+.resourceCollectionSelectButton > svg {
   flex: 0 0 auto;
 }
 
-.procedureCollectionSelectButton > span {
+.resourceCollectionSelectButton > span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.procedureCollectionSelectButton > small {
+.resourceCollectionSelectButton > small {
   min-width: 20px;
   margin-left: auto;
   border-radius: 999px;
@@ -409,7 +426,7 @@ button.procedureCollectionItemContent {
   text-align: center;
 }
 
-.procedureCollectionDeleteButton {
+.resourceCollectionActionButton {
   display: inline-flex;
   width: 28px;
   height: 28px;
@@ -423,37 +440,38 @@ button.procedureCollectionItemContent {
   padding: 0;
 }
 
-.procedureCollectionTreeRow:hover .procedureCollectionDeleteButton,
-.procedureCollectionColumnRow:hover .procedureCollectionDeleteButton,
-.procedureCollectionDeleteButton:focus-visible {
+.resourceCollectionTreeRow:hover .resourceCollectionActionButton,
+.resourceCollectionColumnRow:hover .resourceCollectionActionButton,
+.resourceCollectionItemRow:hover .resourceCollectionActionButton,
+.resourceCollectionActionButton:focus-visible {
   opacity: 1;
 }
 
-.procedureCollectionDeleteButton:hover {
+.resourceCollectionActionButton:hover {
   background: #fff1f1;
   color: #9b1c1c;
 }
 
 @media (pointer: coarse) {
-  .procedureCollectionDeleteButton {
+  .resourceCollectionActionButton {
     opacity: 1;
   }
 }
 
-.selectedProcedureCollection {
+.selectedResourceCollection {
   border-color: var(--color-accent-border);
   background: #f0f6ff;
   color: var(--color-accent-text);
 }
 
-.procedureCollectionDropTarget {
+.resourceCollectionDropTarget {
   border-color: #246b49;
   background: #edf7f2;
   box-shadow: inset 0 0 0 1px #246b49;
   color: #185c3c;
 }
 
-.procedureCollectionContent {
+.resourceCollectionContent {
   display: grid;
   min-width: 0;
   gap: 14px;

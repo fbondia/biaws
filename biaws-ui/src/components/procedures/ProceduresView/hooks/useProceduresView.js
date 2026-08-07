@@ -135,15 +135,19 @@ export function useProceduresView(actor) {
   }
 
   async function remove(procedure) {
-    if (!window.confirm(`Excluir o procedimento “${procedure.title}”?`)) return;
+    if (!window.confirm(`Excluir o procedimento “${procedure.title}”?`))
+      return false;
     try {
       await deleteProcedure(procedure.id);
       setOrganizationItems((current) =>
         current.filter(({ id }) => id !== procedure.id),
       );
+      setDraft((current) => (current?.id === procedure.id ? null : current));
       await load();
+      return true;
     } catch (deleteError) {
       setError(deleteError.message);
+      return false;
     }
   }
 

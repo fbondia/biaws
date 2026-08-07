@@ -81,8 +81,10 @@ export function useResourceCollectionNavigator({
       const collection = await onCreate(parentId, name);
       setCollectionDrafts((current) => ({ ...current, [parentId]: "" }));
       if (collection?.id) onSelect(collection.id);
+      return collection;
     } catch (error) {
       setCreationError({ parentId, message: error.message });
+      return null;
     } finally {
       setCreatingParentId(null);
     }

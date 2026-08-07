@@ -1,7 +1,11 @@
 # Bondia Workspaces
 
-Workspace operacional open source para organizar chamados, melhorias, procedimentos
-e capacidades de agentes em uma única aplicação.
+**A camada operacional do harness para pessoas e agentes operarem e evoluírem software.**
+
+O Bondia Workspaces (`biaws`) é uma plataforma open source e agent-native que
+conecta trabalho, conhecimento, topologia e sinais operacionais. Pessoas usam a
+interface web; agentes autorizados acessam o mesmo contexto por ferramentas de
+domínio, com identidade, escopo e auditoria.
 
 > **Status:** alpha (`0.x`). O projeto é adequado para avaliação, demonstração e
 > desenvolvimento local. Ainda não há garantia de compatibilidade entre versões
@@ -13,36 +17,74 @@ sigla curta `biaws`.
 
 Para começar pela instalação guiada, consulte o [QUICKSTART](QUICKSTART.md).
 
-![Tela de acesso do Bondia Workspaces](docs/screenshots/login.png)
+![Dashboard operacional do workspace fictício Athena Tek](docs/screenshots/athena-operations-dashboard.jpg)
 
-## Por que este projeto existe
+<table>
+  <tr>
+    <td><img src="docs/screenshots/athena-application-topology.jpg" alt="Topologia da aplicação Helix Desk"></td>
+    <td><img src="docs/screenshots/athena-monitoring-details.jpg" alt="Detalhes de monitoramento de um runtime degradado"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/athena-business-rules.jpg" alt="Regra de negócio ativa do MailPilot"></td>
+    <td><img src="docs/screenshots/athena-improvement-tracking.jpg" alt="Acompanhamento de melhoria e tarefas do FlowForge"></td>
+  </tr>
+</table>
 
-Ferramentas tradicionais separam o histórico de chamados, a especificação de
-melhorias, a base de procedimentos e o contexto consumido por agentes. O Bondia
-Workspaces conecta esses elementos e os expõe por interfaces humanas e programáticas.
+As telas usam o workspace fictício **Athena Tek**, uma pequena software house
+operando três aplicações de clientes. Nenhum endereço, cliente ou dado exibido
+representa um ambiente real.
 
-O principal diferencial é ser **agent-native**: o MCP oferece ferramentas
-estruturadas de domínio, e o catálogo de skills permite publicar e instalar
-capacidades versionadas sem oferecer acesso genérico ao banco de dados.
+## Por que uma camada de harness operacional?
 
-## Recursos
+Um agente é tão útil quanto o contexto, as ferramentas e os limites oferecidos
+ao seu redor. Na prática, essas informações costumam ficar separadas entre
+chamados, documentos, inventários, dashboards e o conhecimento tácito da equipe.
+
+O BIAWS transforma esse material em uma camada operacional compartilhada:
+
+- **contexto:** chamados, melhorias, tarefas, procedimentos, regras e decisões;
+- **mapa:** aplicações, componentes, repositórios, integrações, servidores,
+  deployments e runtimes;
+- **sinais:** histórico passivo e idempotente da saúde dos runtimes;
+- **guardrails:** workspaces, identidades, grupos, permissões, escopo por
+  aplicação, cofre criptografado e auditoria;
+- **ferramentas:** operações estruturadas via MCP, CLI e skills versionadas.
+
+O projeto não orquestra modelos nem executa agentes. Ele fornece a camada de
+contexto e controle que clientes como Codex, Claude e outros agentes compatíveis
+podem usar para trabalhar sobre sistemas reais.
+
+## Como o harness se organiza
+
+| Camada | O que o BIAWS oferece |
+| --- | --- |
+| Trabalho | Chamados, melhorias, tarefas, prazos, checklists, anexos e jornadas |
+| Conhecimento | Procedimentos, regras de negócio e decisões arquiteturais em Markdown |
+| Topologia | Aplicações, componentes, repositórios, integrações, servidores, deployments e runtimes |
+| Observação | Sinais externos de saúde, metadados operacionais e relação com procedimentos |
+| Controle | Tenancy, permissões, escopo por aplicação, segredos e trilha de auditoria |
+| Interface para agentes | MCP com ferramentas de domínio, CLI e catálogo de skills |
+
+## Destaques
 
 - home pessoal baseada em um catálogo expansível de widgets configuráveis;
 - chamados com importação EML, anexos, filtros, indicadores e taxonomia;
 - melhorias com especificação Markdown, tarefas, checklist, prazos e acompanhamento de jornadas;
-- procedimentos organizados em coleções e classificados pela mesma taxonomia;
+- procedimentos organizados em coleções, classificados pela mesma taxonomia e
+  associáveis a runtimes;
 - regras de negócio e decisões arquiteturais em Markdown, com coleções,
   contexto de aplicação, componentes, revisões e referências estruturadas;
 - workspaces e aplicações como fronteiras de organização e autorização;
 - componentes, repositórios, servidores, deployments e runtimes com consultas
   reversas e contexto agregado;
-- recepção passiva e idempotente de sinais externos de saúde dos runtimes;
+- recepção passiva e idempotente de sinais externos de saúde dos runtimes, com
+  apresentação estruturada dos metadados;
 - autenticação, chaves de API, grupos e permissões;
 - cofre local para textos e arquivos secretos reversíveis, com versões criptografadas e chave
   mestra separada;
 - trilha de auditoria funcional;
-- servidor MCP com ferramentas de catálogo, topologia, issues, melhorias e
-  procedimentos;
+- servidor MCP com ferramentas de catálogo, topologia, issues, melhorias,
+  procedimentos, conhecimento, coleções e metadados de segredos;
 - CLI para publicar, instalar e atualizar skills;
 - UI React responsiva e acessível;
 - MongoDB e armazenamento local de anexos, com contrato preparado para outros

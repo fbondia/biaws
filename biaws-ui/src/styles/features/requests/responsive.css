@@ -71,6 +71,10 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .requestListResizer {
+    display: none;
+  }
+
   .requestsLayout.mobileRequestsList:not(.requestDetailSelected)
     > .requestWorkArea,
   .requestsLayout.mobileRequestsOverview:not(.requestDetailSelected)

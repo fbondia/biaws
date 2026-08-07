@@ -33,8 +33,10 @@
 
 .requestsLayout {
   display: grid;
-  grid-template-columns: minmax(280px, 0.78fr) minmax(0, 2fr);
-  gap: 14px;
+  grid-template-columns:
+    minmax(280px, var(--request-list-width, 360px)) 8px
+    minmax(0, 1fr);
+  column-gap: 0;
   align-items: start;
 }
 
@@ -54,6 +56,34 @@
 .requestListPanel {
   position: sticky;
   top: 14px;
+}
+
+.requestListResizer {
+  position: relative;
+  width: 8px;
+  min-height: 120px;
+  align-self: stretch;
+  cursor: col-resize;
+  outline: 0;
+  touch-action: none;
+}
+
+.requestListResizer::before {
+  position: absolute;
+  inset: 0 3px;
+  border-radius: 999px;
+  background: var(--color-border);
+  content: "";
+  transition:
+    inset 120ms ease,
+    background-color 120ms ease;
+}
+
+.requestListResizer:hover::before,
+.requestListResizer:focus-visible::before,
+.requestListResizing::before {
+  inset-inline: 2px;
+  background: var(--color-focus);
 }
 
 .requestList {

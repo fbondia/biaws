@@ -462,6 +462,10 @@ export function useRequestsView(actor) {
     setActiveDetailTab("main");
   }
 
+  function closeChecklistDialog() {
+    setChecklistDialogLabel("");
+  }
+
   function toggleSelectedEditMode() {
     if (!selectedRequest) return;
 
@@ -508,6 +512,7 @@ export function useRequestsView(actor) {
     addSpecificationSection,
     addMissingSpecificationSections,
     clearNumberDraft,
+    closeChecklistDialog,
     closeSelectedRequest,
     commitEstimatedJourneys,
     removeSelectedRequest,

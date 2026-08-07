@@ -1,3 +1,5 @@
+import { useRef, useState } from "react";
+
 import {
   formatDate,
   formatMonth,
@@ -8,10 +10,22 @@ import {
 } from "./requestUtils.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const GANTT_DEMAND_MIN_WIDTH = 180;
+const GANTT_DEMAND_MAX_WIDTH = 520;
 
 export function RequestSchedule({ requests, onSelectRequest }) {
+  const resizeStartRef = useRef(null);
+  const [demandWidth, setDemandWidth] = useState(240);
+  const [resizingDemand, setResizingDemand] = useState(false);
   const ganttItems = requests.map(toGanttItem).filter(Boolean);
   const timeline = buildGanttTimeline(ganttItems);
+
+  function clampDemandWidth(width) {
+    return Math.min(
+      GANTT_DEMAND_MAX_WIDTH,
+      Math.max(GANTT_DEMAND_MIN_WIDTH, width),
+    );
+  }
 
   return (
     <div className="requestScheduleBlock">
@@ -25,11 +39,76 @@ export function RequestSchedule({ requests, onSelectRequest }) {
           <div
             className="requestGantt"
             style={{
-              "--gantt-min-width": `${Math.max(760, timeline.months.length * 112 + 240)}px`,
+              "--gantt-demand-width": `${demandWidth}px`,
+              "--gantt-min-width": `${Math.max(760, timeline.months.length * 112 + demandWidth)}px`,
             }}
           >
             <div className="requestGanttHeader">
-              <div className="requestGanttDemandHeader">Melhoria</div>
+              <div className="requestGanttDemandHeader">
+                Melhoria
+                <div
+                  aria-label="Redimensionar nome da melhoria"
+                  aria-orientation="vertical"
+                  aria-valuemax={GANTT_DEMAND_MAX_WIDTH}
+                  aria-valuemin={GANTT_DEMAND_MIN_WIDTH}
+                  aria-valuenow={demandWidth}
+                  className={[
+                    "requestGanttDemandResizer",
+                    resizingDemand ? "requestGanttDemandResizing" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  onKeyDown={(event) => {
+                    let nextWidth;
+                    if (event.key === "ArrowLeft") nextWidth = demandWidth - 20;
+                    if (event.key === "ArrowRight")
+                      nextWidth = demandWidth + 20;
+                    if (event.key === "Home") {
+                      nextWidth = GANTT_DEMAND_MIN_WIDTH;
+                    }
+                    if (event.key === "End") {
+                      nextWidth = GANTT_DEMAND_MAX_WIDTH;
+                    }
+                    if (nextWidth === undefined) return;
+                    event.preventDefault();
+                    setDemandWidth(clampDemandWidth(nextWidth));
+                  }}
+                  onLostPointerCapture={() => {
+                    resizeStartRef.current = null;
+                    setResizingDemand(false);
+                  }}
+                  onPointerDown={(event) => {
+                    resizeStartRef.current = {
+                      clientX: event.clientX,
+                      width: demandWidth,
+                    };
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    setResizingDemand(true);
+                  }}
+                  onPointerMove={(event) => {
+                    if (
+                      !event.currentTarget.hasPointerCapture(event.pointerId) ||
+                      !resizeStartRef.current
+                    )
+                      return;
+                    setDemandWidth(
+                      clampDemandWidth(
+                        resizeStartRef.current.width +
+                          event.clientX -
+                          resizeStartRef.current.clientX,
+                      ),
+                    );
+                  }}
+                  onPointerUp={(event) => {
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                    resizeStartRef.current = null;
+                    setResizingDemand(false);
+                  }}
+                  role="separator"
+                  tabIndex={0}
+                  title="Arraste para redimensionar o nome da melhoria"
+                />
+              </div>
               <div className="requestGanttTimelineHeader">
                 {timeline.months.map((month) => (
                   <span

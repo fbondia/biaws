@@ -1,5 +1,5 @@
 import { CalendarDays, ClipboardList, ListChecks, Plus } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import {
   CatalogContextFields,
@@ -16,7 +16,14 @@ import {
 import { RequestsOverview } from "./components/RequestsOverview.jsx";
 import { useRequestsView } from "./hooks/useRequestsView.js";
 
+const REQUEST_LIST_MIN_WIDTH = 280;
+const REQUEST_LIST_MAX_WIDTH = 720;
+const REQUEST_CONTENT_MIN_WIDTH = 480;
+
 export function RequestsView({ actor }) {
+  const layoutRef = useRef(null);
+  const [requestListWidth, setRequestListWidth] = useState(360);
+  const [resizingRequestList, setResizingRequestList] = useState(false);
   const {
     catalog,
     savingRequestId,
@@ -54,6 +61,7 @@ export function RequestsView({ actor }) {
     addSpecificationSection,
     addMissingSpecificationSections,
     clearNumberDraft,
+    closeChecklistDialog,
     closeSelectedRequest,
     commitEstimatedJourneys,
     removeSelectedRequest,
@@ -85,6 +93,26 @@ export function RequestsView({ actor }) {
     newContext,
     setNewContext,
   } = useRequestsView(actor);
+
+  function clampRequestListWidth(width) {
+    const layoutWidth = layoutRef.current?.getBoundingClientRect().width;
+    const availableWidth = layoutWidth
+      ? layoutWidth - REQUEST_CONTENT_MIN_WIDTH - 8
+      : REQUEST_LIST_MAX_WIDTH;
+    const maximumWidth = Math.max(
+      REQUEST_LIST_MIN_WIDTH,
+      Math.min(REQUEST_LIST_MAX_WIDTH, availableWidth),
+    );
+
+    return Math.min(maximumWidth, Math.max(REQUEST_LIST_MIN_WIDTH, width));
+  }
+
+  function resizeRequestList(clientX) {
+    const layoutLeft = layoutRef.current?.getBoundingClientRect().left;
+    if (layoutLeft === undefined) return;
+    setRequestListWidth(clampRequestListWidth(clientX - layoutLeft));
+  }
+
   return (
     <section className="requestsPage">
       <header className="requestsHero">
@@ -178,6 +206,8 @@ export function RequestsView({ actor }) {
         ]
           .filter(Boolean)
           .join(" ")}
+        ref={layoutRef}
+        style={{ "--request-list-width": `${requestListWidth}px` }}
       >
         <RequestList
           allowManualOrder={!statusFilters.length}
@@ -201,6 +231,46 @@ export function RequestsView({ actor }) {
           selectedRequestId={selectedRequestId}
         />
 
+        <div
+          aria-label="Redimensionar lista de melhorias"
+          aria-orientation="vertical"
+          aria-valuemax={REQUEST_LIST_MAX_WIDTH}
+          aria-valuemin={REQUEST_LIST_MIN_WIDTH}
+          aria-valuenow={requestListWidth}
+          className={[
+            "requestListResizer",
+            resizingRequestList ? "requestListResizing" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          onKeyDown={(event) => {
+            let nextWidth;
+            if (event.key === "ArrowLeft") nextWidth = requestListWidth - 20;
+            if (event.key === "ArrowRight") nextWidth = requestListWidth + 20;
+            if (event.key === "Home") nextWidth = REQUEST_LIST_MIN_WIDTH;
+            if (event.key === "End") nextWidth = REQUEST_LIST_MAX_WIDTH;
+            if (nextWidth === undefined) return;
+            event.preventDefault();
+            setRequestListWidth(clampRequestListWidth(nextWidth));
+          }}
+          onLostPointerCapture={() => setResizingRequestList(false)}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            setResizingRequestList(true);
+          }}
+          onPointerMove={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+            resizeRequestList(event.clientX);
+          }}
+          onPointerUp={(event) => {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+            setResizingRequestList(false);
+          }}
+          role="separator"
+          tabIndex={0}
+          title="Arraste para redimensionar a lista de melhorias"
+        />
+
         {selectedRequest ? (
           <RequestDetails
             activeTab={activeDetailTab}
@@ -221,7 +291,7 @@ export function RequestsView({ actor }) {
             onAddMissingSpecificationSections={addMissingSpecificationSections}
             onClearNumberDraft={clearNumberDraft}
             onClose={closeSelectedRequest}
-            onCloseChecklistDialog={() => setChecklistDialogLabel("")}
+            onCloseChecklistDialog={closeChecklistDialog}
             onCommitEstimatedJourneys={commitEstimatedJourneys}
             onDelete={removeSelectedRequest}
             onDeleteNote={removeRequestNote}

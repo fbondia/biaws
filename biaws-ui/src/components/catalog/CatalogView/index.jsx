@@ -99,6 +99,7 @@ export function CatalogView({ actor }) {
         selectedCollectionId={collectionState.selectedCollectionId}
         sidebar={
           <ResourceCollectionSidebar
+            canDragItem={canMoveApplication}
             collections={collectionState.collections}
             draggedItem={collectionState.draggedItem}
             itemLabel="aplicações"
@@ -120,6 +121,12 @@ export function CatalogView({ actor }) {
                 : undefined
             }
             onDragEnd={() => collectionState.setDraggedItem(null)}
+            onDragItem={(application) =>
+              collectionState.setDraggedItem({
+                type: "item",
+                id: application.id,
+              })
+            }
             onDrop={(collectionId) =>
               collectionState.dropItem(
                 collectionId,
@@ -133,6 +140,17 @@ export function CatalogView({ actor }) {
               collectionState.setSelectedCollectionId(collectionId);
               setSelectedId("");
             }}
+            onSelectItem={(application) => {
+              setSelectedId(application.id);
+              setActiveTab("overview");
+            }}
+            renderItem={(application) => (
+              <>
+                <Layers3 size={13} />
+                <span>{application.name}</span>
+                <small>{application.key}</small>
+              </>
+            )}
             selectedCollectionId={collectionState.selectedCollectionId}
           />
         }

@@ -21,6 +21,7 @@ export function SecretCard({
   canWrite,
   copied,
   draggable,
+  focused,
   onArchive,
   onCopyValue,
   onDownload,
@@ -38,7 +39,14 @@ export function SecretCard({
   const isPending = secret.provisioningStatus === "pending";
   return (
     <article
-      className="securityPanel secretCard"
+      className={[
+        "securityPanel",
+        "secretCard",
+        focused ? "resourceCollectionFocusedItem" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      data-collection-browser-item-id={secret.id}
       draggable={draggable}
       onDragEnd={onDragEnd}
       onDragStart={onDragStart}

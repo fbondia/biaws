@@ -11,6 +11,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../constants/issues.js";
 import { CatalogFilterFields } from "../../catalog/CatalogContextFields.jsx";
@@ -31,6 +32,7 @@ import { useProceduresView } from "./hooks/useProceduresView.js";
 import { normalizeDraft } from "./model.js";
 
 export function ProceduresView({ actor }) {
+  const [focusedProcedureId, setFocusedProcedureId] = useState("");
   const {
     organizationItems,
     collections,
@@ -78,6 +80,19 @@ export function ProceduresView({ actor }) {
     moveDraggedItem,
     visibleItems,
   } = useProceduresView(actor);
+
+  useEffect(() => {
+    if (!focusedProcedureId) return;
+    const frame = requestAnimationFrame(() => {
+      [...document.querySelectorAll("[data-collection-browser-item-id]")]
+        .find(
+          (element) =>
+            element.dataset.collectionBrowserItemId === focusedProcedureId,
+        )
+        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusedProcedureId, visibleItems]);
   return (
     <section className="proceduresView contentBand">
       <div className="proceduresToolbar">
@@ -139,6 +154,7 @@ export function ProceduresView({ actor }) {
         selectedCollectionId={selectedCollectionId}
         sidebar={
           <ResourceCollectionSidebar
+            canDragItem={() => true}
             collections={collections}
             draggedItem={draggedItem}
             itemLabel="procedimentos"
@@ -154,9 +170,30 @@ export function ProceduresView({ actor }) {
               })
             }
             onDragEnd={() => setDraggedItem(null)}
+            onDragItem={(procedure) =>
+              setDraggedItem({
+                type: "procedure",
+                id: procedure.id,
+                collectionId: procedure.collectionId || "",
+              })
+            }
             onDrop={moveDraggedItem}
             onRename={setRenamingCollection}
-            onSelect={setSelectedCollectionId}
+            onSelect={(collectionId) => {
+              setFocusedProcedureId("");
+              setSelectedCollectionId(collectionId);
+            }}
+            onSelectItem={(procedure) => {
+              clearFilters();
+              setFocusedProcedureId(procedure.id);
+              setSelectedCollectionId(procedure.collectionId || "");
+            }}
+            renderItem={(procedure) => (
+              <>
+                <BookOpen size={13} />
+                <span>{procedure.title}</span>
+              </>
+            )}
             selectedCollectionId={selectedCollectionId}
           />
         }
@@ -185,7 +222,16 @@ export function ProceduresView({ actor }) {
           <div className="procedureCards">
             {visibleItems.map((procedure) => (
               <article
-                className="procedureCard draggableProcedureCard"
+                className={[
+                  "procedureCard",
+                  "draggableProcedureCard",
+                  focusedProcedureId === procedure.id
+                    ? "resourceCollectionFocusedItem"
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                data-collection-browser-item-id={procedure.id}
                 draggable
                 key={procedure.id}
                 onDragEnd={() => setDraggedItem(null)}

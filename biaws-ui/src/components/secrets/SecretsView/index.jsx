@@ -1,5 +1,5 @@
 import { KeyRound, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { moveSecretToCollection } from "../../../api.js";
 import {
@@ -18,6 +18,7 @@ import { useSecretsView } from "./hooks/useSecretsView.js";
 
 export function SecretsView({ actor }) {
   const [search, setSearch] = useState("");
+  const [focusedSecretId, setFocusedSecretId] = useState("");
   const {
     allowed,
     applicationNames,
@@ -67,6 +68,19 @@ export function SecretsView({ actor }) {
         );
     });
   }, [secrets, search, collectionState.selectedCollectionId]);
+
+  useEffect(() => {
+    if (!focusedSecretId) return;
+    const frame = requestAnimationFrame(() => {
+      [...document.querySelectorAll("[data-collection-browser-item-id]")]
+        .find(
+          (element) =>
+            element.dataset.collectionBrowserItemId === focusedSecretId,
+        )
+        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusedSecretId, visibleSecrets]);
   return (
     <section className="securityView secretsView">
       <header className="securityHeader">
@@ -102,6 +116,9 @@ export function SecretsView({ actor }) {
         selectedCollectionId={collectionState.selectedCollectionId}
         sidebar={
           <ResourceCollectionSidebar
+            canDragItem={(secret) =>
+              permissions.update && allowed("secrets.update", secret)
+            }
             collections={collectionState.collections}
             draggedItem={collectionState.draggedItem}
             itemLabel="segredos"
@@ -121,13 +138,33 @@ export function SecretsView({ actor }) {
                 : undefined
             }
             onDragEnd={() => collectionState.setDraggedItem(null)}
+            onDragItem={(secret) =>
+              collectionState.setDraggedItem({ type: "item", id: secret.id })
+            }
             onDrop={(collectionId) =>
               collectionState.dropItem(collectionId, moveSecretToCollection)
             }
             onRename={(collection) =>
               collectionState.setCollectionDialog(collection)
             }
-            onSelect={collectionState.setSelectedCollectionId}
+            onSelect={(collectionId) => {
+              setFocusedSecretId("");
+              collectionState.setSelectedCollectionId(collectionId);
+            }}
+            onSelectItem={(secret) => {
+              setSearch("");
+              setFocusedSecretId(secret.id);
+              collectionState.setSelectedCollectionId(
+                secret.collectionId || "",
+              );
+            }}
+            renderItem={(secret) => (
+              <>
+                <KeyRound size={13} />
+                <span>{secret.name}</span>
+                <small>{secret.environment || secret.type}</small>
+              </>
+            )}
             selectedCollectionId={collectionState.selectedCollectionId}
           />
         }
@@ -178,6 +215,7 @@ export function SecretsView({ actor }) {
                 permissions.write && allowed("secrets.value.write", secret)
               }
               copied={copiedSecretId === secret.id}
+              focused={focusedSecretId === secret.id}
               onCopyValue={() => copyValue(secret)}
               onDownload={() => download(secret)}
               onEdit={() => setEditing(secret)}

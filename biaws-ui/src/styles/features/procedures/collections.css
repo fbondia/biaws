@@ -285,6 +285,76 @@
   font-size: 12px;
 }
 
+.procedureCollectionItemRow {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  min-width: 0;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  padding: 2px 4px;
+}
+
+.procedureCollectionItemRow[draggable="true"] {
+  cursor: grab;
+}
+
+.procedureCollectionItemRow[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.procedureCollectionItemRow:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface-subtle);
+}
+
+.procedureCollectionColumnItemRow {
+  grid-template-columns: 12px minmax(0, 1fr);
+}
+
+.procedureCollectionItemContent {
+  display: flex;
+  min-width: 0;
+  min-height: 27px;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0 4px;
+  font-size: 11px;
+  text-align: left;
+}
+
+button.procedureCollectionItemContent {
+  cursor: pointer;
+}
+
+.procedureCollectionItemContent > svg {
+  flex: 0 0 auto;
+  color: var(--color-text-subtle);
+}
+
+.procedureCollectionItemContent > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.procedureCollectionItemContent > small,
+.procedureCollectionItemContent > code {
+  flex: 0 0 auto;
+  margin-left: auto;
+  overflow: hidden;
+  max-width: 72px;
+  color: var(--color-text-subtle);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .procedureCollectionDragHandle {
   color: var(--color-text-subtle);
 }

@@ -150,6 +150,11 @@
   margin: 0;
 }
 
+.resourceCollectionFocusedItem {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .serversCollectionsLayout > .resourceCollectionContent {
   min-width: 0;
 }

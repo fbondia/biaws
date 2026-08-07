@@ -29,6 +29,7 @@ export function SkillsView({ actor }) {
   const [search, setSearch] = useState("");
   const [publishing, setPublishing] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
+  const [focusedSkillId, setFocusedSkillId] = useState("");
   const { runWithLoading } = useLoading();
   const collectionState = useResourceCollections("skills", {
     onError: setError,
@@ -72,6 +73,19 @@ export function SkillsView({ actor }) {
   }, [result, search, collectionState.selectedCollectionId]);
   const canManageCollections = hasPermission(actor, "skills.publish");
 
+  useEffect(() => {
+    if (!focusedSkillId) return;
+    const frame = requestAnimationFrame(() => {
+      [...document.querySelectorAll("[data-collection-browser-item-id]")]
+        .find(
+          (element) =>
+            element.dataset.collectionBrowserItemId === focusedSkillId,
+        )
+        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusedSkillId, items]);
+
   return (
     <section className="skillsView">
       <header className="skillsToolbar">
@@ -109,8 +123,10 @@ export function SkillsView({ actor }) {
           selectedCollectionId={collectionState.selectedCollectionId}
           sidebar={
             <ResourceCollectionSidebar
+              canDragItem={() => canManageCollections}
               collections={collectionState.collections}
               draggedItem={collectionState.draggedItem}
+              getItemId={(skill) => skill.skillId}
               itemLabel="skills"
               items={result?.items || []}
               onCreate={
@@ -130,13 +146,36 @@ export function SkillsView({ actor }) {
                   : undefined
               }
               onDragEnd={() => collectionState.setDraggedItem(null)}
+              onDragItem={(skill) =>
+                collectionState.setDraggedItem({
+                  type: "item",
+                  id: skill.skillId,
+                })
+              }
               onDrop={(collectionId) =>
                 collectionState.dropItem(collectionId, moveSkillToCollection)
               }
               onRename={(collection) =>
                 collectionState.setCollectionDialog(collection)
               }
-              onSelect={collectionState.setSelectedCollectionId}
+              onSelect={(collectionId) => {
+                setFocusedSkillId("");
+                collectionState.setSelectedCollectionId(collectionId);
+              }}
+              onSelectItem={(skill) => {
+                setSearch("");
+                setFocusedSkillId(skill.skillId);
+                collectionState.setSelectedCollectionId(
+                  skill.collectionId || "",
+                );
+              }}
+              renderItem={(skill) => (
+                <>
+                  <Package size={13} />
+                  <span>{skill.name}</span>
+                  <small>{skill.latestVersion}</small>
+                </>
+              )}
               selectedCollectionId={collectionState.selectedCollectionId}
             />
           }
@@ -164,7 +203,15 @@ export function SkillsView({ actor }) {
             ) : null}
             {items.map((skill) => (
               <article
-                className="skillCard"
+                className={[
+                  "skillCard",
+                  focusedSkillId === skill.skillId
+                    ? "resourceCollectionFocusedItem"
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                data-collection-browser-item-id={skill.skillId}
                 draggable={canManageCollections}
                 key={skill.skillId}
                 onDragEnd={() => collectionState.setDraggedItem(null)}

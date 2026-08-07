@@ -279,21 +279,87 @@ function buildCollectionColumns(collections, childrenByParent, collectionId) {
   return { activePath, columns };
 }
 
+function CollectionItemNode({
+  canDrag,
+  getItemId,
+  item,
+  onDragEnd,
+  onDragItem,
+  onSelectItem,
+  renderItem,
+  viewMode,
+}) {
+  const itemId = getItemId(item);
+  const content = renderItem
+    ? renderItem(item, { viewMode })
+    : item.name || item.title || itemId;
+
+  return (
+    <div
+      className={[
+        "procedureCollectionItemRow",
+        viewMode === "columns" ? "procedureCollectionColumnItemRow" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      draggable={canDrag}
+      onDragEnd={onDragEnd}
+      onDragStart={(event) => {
+        if (!canDrag || !onDragItem) {
+          event.preventDefault();
+          return;
+        }
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", `item:${itemId}`);
+        onDragItem(item);
+      }}
+      role="treeitem"
+    >
+      {canDrag ? (
+        <GripVertical
+          aria-hidden="true"
+          className="procedureCollectionDragHandle"
+          size={12}
+        />
+      ) : (
+        <span className="procedureCollectionItemSpacer" />
+      )}
+      {onSelectItem ? (
+        <button
+          className="procedureCollectionItemContent"
+          onClick={() => onSelectItem(item)}
+          type="button"
+        >
+          {content}
+        </button>
+      ) : (
+        <div className="procedureCollectionItemContent">{content}</div>
+      )}
+    </div>
+  );
+}
+
 function CollectionTreeNode({
+  canDragItem,
   collection,
   childrenByParent,
   collapsedIds,
   draggedItem,
   dropTargetId,
+  getItemId,
+  itemsByCollection,
   onDragCollection,
   onDragEnd,
+  onDragItem,
   onDragOverCollection,
   onDelete,
   onDrop,
   onRename,
   onSelect,
+  onSelectItem,
   onToggle,
   procedureCounts,
+  renderItem,
   selectedCollectionId,
   visited,
 }) {
@@ -301,6 +367,8 @@ function CollectionTreeNode({
   const nextVisited = new Set(visited);
   nextVisited.add(collection.id);
   const children = childrenByParent.get(collection.id) || [];
+  const collectionItems = itemsByCollection.get(collection.id) || [];
+  const hasContents = Boolean(children.length || collectionItems.length);
   const expanded = !collapsedIds.has(collection.id);
   const invalidCollectionDrop =
     draggedItem?.type === "collection" &&
@@ -361,11 +429,11 @@ function CollectionTreeNode({
               : `Expandir ${collection.name}`
           }
           className="procedureCollectionExpandButton"
-          disabled={!children.length}
+          disabled={!hasContents}
           onClick={() => onToggle(collection.id)}
           type="button"
         >
-          {children.length ? (
+          {hasContents ? (
             expanded ? (
               <ChevronDown size={14} />
             ) : (
@@ -381,7 +449,7 @@ function CollectionTreeNode({
           title={collection.name}
           type="button"
         >
-          {expanded && children.length ? (
+          {expanded && hasContents ? (
             <FolderOpen size={16} />
           ) : (
             <Folder size={16} />
@@ -415,27 +483,46 @@ function CollectionTreeNode({
         </div>
       </div>
 
-      {expanded && children.length ? (
+      {expanded && (children.length || collectionItems.length) ? (
         <div className="procedureCollectionTreeChildren">
           {children.map((child) => (
             <CollectionTreeNode
               childrenByParent={childrenByParent}
+              canDragItem={canDragItem}
               collapsedIds={collapsedIds}
               collection={child}
               draggedItem={draggedItem}
               dropTargetId={dropTargetId}
+              getItemId={getItemId}
+              itemsByCollection={itemsByCollection}
               key={child.id}
               onDragCollection={onDragCollection}
               onDragEnd={onDragEnd}
+              onDragItem={onDragItem}
               onDragOverCollection={onDragOverCollection}
               onDelete={onDelete}
               onDrop={onDrop}
               onRename={onRename}
               onSelect={onSelect}
+              onSelectItem={onSelectItem}
               onToggle={onToggle}
               procedureCounts={procedureCounts}
+              renderItem={renderItem}
               selectedCollectionId={selectedCollectionId}
               visited={nextVisited}
+            />
+          ))}
+          {collectionItems.map((item) => (
+            <CollectionItemNode
+              canDrag={Boolean(onDragItem) && canDragItem(item)}
+              getItemId={getItemId}
+              item={item}
+              key={getItemId(item)}
+              onDragEnd={onDragEnd}
+              onDragItem={onDragItem}
+              onSelectItem={onSelectItem}
+              renderItem={renderItem}
+              viewMode="tree"
             />
           ))}
         </div>
@@ -586,19 +673,24 @@ function CollectionAddForm({ disabled, error, name, onChange, onSubmit }) {
 }
 
 export function ResourceCollectionSidebar({
+  canDragItem = () => true,
   collections,
   draggedItem,
+  getItemId = (item) => item.id,
   items,
   onDragCollection,
   onDragEnd,
+  onDragItem,
   onDelete,
   onDrop,
   onSelect,
+  onSelectItem,
   selectedCollectionId,
   itemLabel = "procedimentos",
   onCreate,
   onClose,
   onRename,
+  renderItem,
 }) {
   const [collapsedIds, setCollapsedIds] = useState(() => new Set());
   const [dropTargetId, setDropTargetId] = useState(null);
@@ -620,6 +712,21 @@ export function ResourceCollectionSidebar({
       }, {}),
     [items],
   );
+  const itemsByCollection = useMemo(() => {
+    const knownCollectionIds = new Set(
+      collections.map((collection) => collection.id),
+    );
+    return items.reduce((groups, item) => {
+      const requestedCollectionId = item.collectionId || "";
+      const collectionId = knownCollectionIds.has(requestedCollectionId)
+        ? requestedCollectionId
+        : "";
+      const groupedItems = groups.get(collectionId) || [];
+      groupedItems.push(item);
+      groups.set(collectionId, groupedItems);
+      return groups;
+    }, new Map());
+  }, [collections, items]);
   const columnNavigation = useMemo(
     () =>
       buildCollectionColumns(
@@ -754,22 +861,27 @@ export function ResourceCollectionSidebar({
 
               {(childrenByParent.get("") || []).map((collection) => (
                 <CollectionTreeNode
+                  canDragItem={canDragItem}
                   childrenByParent={childrenByParent}
                   collapsedIds={collapsedIds}
                   collection={collection}
                   draggedItem={draggedItem}
                   dropTargetId={dropTargetId}
+                  getItemId={getItemId}
+                  itemsByCollection={itemsByCollection}
                   key={collection.id}
                   onDragCollection={onDragCollection}
                   onDragEnd={() => {
                     setDropTargetId(null);
                     onDragEnd();
                   }}
+                  onDragItem={onDragItem}
                   onDragOverCollection={setDropTargetId}
                   onDelete={onCreate ? onDelete : undefined}
                   onDrop={dropAt}
                   onRename={onRename}
                   onSelect={onSelect}
+                  onSelectItem={onSelectItem}
                   onToggle={(collectionId) =>
                     setCollapsedIds((current) => {
                       const next = new Set(current);
@@ -779,8 +891,22 @@ export function ResourceCollectionSidebar({
                     })
                   }
                   procedureCounts={procedureCounts}
+                  renderItem={renderItem}
                   selectedCollectionId={selectedCollectionId}
                   visited={new Set()}
+                />
+              ))}
+              {(itemsByCollection.get("") || []).map((item) => (
+                <CollectionItemNode
+                  canDrag={Boolean(onDragItem) && canDragItem(item)}
+                  getItemId={getItemId}
+                  item={item}
+                  key={getItemId(item)}
+                  onDragEnd={onDragEnd}
+                  onDragItem={onDragItem}
+                  onSelectItem={onSelectItem}
+                  renderItem={renderItem}
+                  viewMode="tree"
                 />
               ))}
             </div>
@@ -882,7 +1008,23 @@ export function ResourceCollectionSidebar({
                   />
                 ))}
 
-                {!column.collections.length && columnIndex > 0 ? (
+                {(itemsByCollection.get(column.parentId) || []).map((item) => (
+                  <CollectionItemNode
+                    canDrag={Boolean(onDragItem) && canDragItem(item)}
+                    getItemId={getItemId}
+                    item={item}
+                    key={getItemId(item)}
+                    onDragEnd={onDragEnd}
+                    onDragItem={onDragItem}
+                    onSelectItem={onSelectItem}
+                    renderItem={renderItem}
+                    viewMode="columns"
+                  />
+                ))}
+
+                {!column.collections.length &&
+                !(itemsByCollection.get(column.parentId) || []).length &&
+                columnIndex > 0 ? (
                   <p className="procedureCollectionColumnEmpty">
                     Nenhuma subcoleção
                   </p>

@@ -191,6 +191,7 @@ export function ServersView({ actor }) {
         selectedCollectionId={collectionState.selectedCollectionId}
         sidebar={
           <ResourceCollectionSidebar
+            canDragItem={() => canManageCollections}
             collections={collectionState.collections}
             draggedItem={collectionState.draggedItem}
             itemLabel="servidores"
@@ -212,6 +213,9 @@ export function ServersView({ actor }) {
                 : undefined
             }
             onDragEnd={() => collectionState.setDraggedItem(null)}
+            onDragItem={(server) =>
+              collectionState.setDraggedItem({ type: "item", id: server.id })
+            }
             onDrop={(collectionId) =>
               collectionState.dropItem(collectionId, moveServerToCollection)
             }
@@ -222,6 +226,14 @@ export function ServersView({ actor }) {
               collectionState.setSelectedCollectionId(collectionId);
               setSelected(null);
             }}
+            onSelectItem={openServer}
+            renderItem={(server) => (
+              <>
+                <Server size={13} />
+                <span>{server.name}</span>
+                <small>{server.hostname || server.key}</small>
+              </>
+            )}
             selectedCollectionId={collectionState.selectedCollectionId}
           />
         }

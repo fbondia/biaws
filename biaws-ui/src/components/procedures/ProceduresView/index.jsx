@@ -46,8 +46,6 @@ export function ProceduresView({ actor }) {
     searchActive,
     filtersVisible,
     setFiltersVisible,
-    collectionDialogOpen,
-    setCollectionDialogOpen,
     renamingCollection,
     setRenamingCollection,
     tagsDialogOpen,
@@ -78,8 +76,6 @@ export function ProceduresView({ actor }) {
     renameCollection,
     removeCollection,
     moveDraggedItem,
-    selectedCollection,
-    selectedCollectionLabel,
     visibleItems,
   } = useProceduresView(actor);
   return (
@@ -148,7 +144,7 @@ export function ProceduresView({ actor }) {
             itemLabel="procedimentos"
             items={organizationItems}
             onClose={() => setCollectionsVisible(false)}
-            onCreate={() => setCollectionDialogOpen(true)}
+            onCreate={createCollection}
             onDelete={removeCollection}
             onDragCollection={(collection) =>
               setDraggedItem({
@@ -159,7 +155,7 @@ export function ProceduresView({ actor }) {
             }
             onDragEnd={() => setDraggedItem(null)}
             onDrop={moveDraggedItem}
-            onRename={() => setRenamingCollection(selectedCollection)}
+            onRename={setRenamingCollection}
             onSelect={setSelectedCollectionId}
             selectedCollectionId={selectedCollectionId}
           />
@@ -266,17 +262,13 @@ export function ProceduresView({ actor }) {
       <ProcedureDialogs
         applyPersistedProcedure={applyPersistedProcedure}
         catalog={catalog}
-        collectionDialogOpen={collectionDialogOpen}
         collections={collections}
-        createCollection={createCollection}
         draft={draft}
         persist={persist}
         renameCollection={renameCollection}
         renamingCollection={renamingCollection}
         saving={saving}
-        selectedCollectionLabel={selectedCollectionLabel}
         selectedTagCount={selectedTagCount}
-        setCollectionDialogOpen={setCollectionDialogOpen}
         setDraft={setDraft}
         setRenamingCollection={setRenamingCollection}
         setTagsDialogOpen={setTagsDialogOpen}
@@ -570,29 +562,18 @@ function ProcedureTaxonomyDialog({
 function ProcedureEntityDialogs({
   applyPersistedProcedure,
   catalog,
-  collectionDialogOpen,
   collections,
-  createCollection,
   draft,
   persist,
   renameCollection,
   renamingCollection,
   saving,
-  selectedCollectionLabel,
-  setCollectionDialogOpen,
   setDraft,
   setRenamingCollection,
   taxonomyPackage,
 }) {
   return (
     <>
-      {collectionDialogOpen ? (
-        <ResourceCollectionDialog
-          onClose={() => setCollectionDialogOpen(false)}
-          onSave={createCollection}
-          parentLabel={selectedCollectionLabel}
-        />
-      ) : null}
       {renamingCollection ? (
         <ResourceCollectionDialog
           collection={renamingCollection}

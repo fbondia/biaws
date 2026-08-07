@@ -130,17 +130,12 @@
   gap: 8px;
 }
 
-.resourceCollectionHeaderActions {
-  display: flex !important;
-  flex: 0 0 auto;
-  grid-auto-flow: column;
-  gap: 4px !important;
-}
-
-.resourceCollectionHeaderActions .iconButton {
+.resourceCollectionViewModeToggle {
   width: 30px;
   height: 30px;
   min-height: 30px;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .resourceCollectionCloseButton {
@@ -173,6 +168,12 @@
   }
 
   .resourceCollectionsLayout .procedureCollectionTree {
+    max-height: 280px;
+  }
+
+  .resourceCollectionsLayout .procedureCollectionColumns {
+    height: 280px;
+    min-height: 0;
     max-height: 280px;
   }
 

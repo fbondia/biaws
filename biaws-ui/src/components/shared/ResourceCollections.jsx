@@ -1,17 +1,20 @@
 import {
   ChevronDown,
   ChevronRight,
+  Columns3,
   Folder,
   FolderOpen,
   FolderPlus,
   GripVertical,
+  ListTree,
   Pencil,
+  Plus,
   RefreshCw,
   Search,
   Trash2,
   X,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const COLLECTION_SIDEBAR_MIN_WIDTH = 220;
 const COLLECTION_SIDEBAR_MAX_WIDTH = 640;
@@ -240,6 +243,42 @@ function descendantCollectionIds(childrenByParent, collectionId) {
   return descendants;
 }
 
+function collectionIdPath(collections, collectionId) {
+  if (!collectionId) return [];
+  const byId = new Map(
+    collections.map((collection) => [collection.id, collection]),
+  );
+  const path = [];
+  const visited = new Set();
+  let currentId = collectionId;
+
+  while (currentId && !visited.has(currentId)) {
+    visited.add(currentId);
+    const collection = byId.get(currentId);
+    if (!collection) break;
+    path.unshift(currentId);
+    currentId = collection.parentId;
+  }
+
+  return path;
+}
+
+function buildCollectionColumns(collections, childrenByParent, collectionId) {
+  const activePath = collectionIdPath(collections, collectionId);
+  const columns = [
+    { parentId: "", collections: childrenByParent.get("") || [] },
+  ];
+
+  for (const activeCollectionId of activePath) {
+    columns.push({
+      parentId: activeCollectionId,
+      collections: childrenByParent.get(activeCollectionId) || [],
+    });
+  }
+
+  return { activePath, columns };
+}
+
 function CollectionTreeNode({
   collection,
   childrenByParent,
@@ -251,6 +290,7 @@ function CollectionTreeNode({
   onDragOverCollection,
   onDelete,
   onDrop,
+  onRename,
   onSelect,
   onToggle,
   procedureCounts,
@@ -349,17 +389,30 @@ function CollectionTreeNode({
           <span>{collection.name}</span>
           <small>{procedureCounts[collection.id] || 0}</small>
         </button>
-        {onDelete ? (
-          <button
-            aria-label={`Excluir coleção ${collection.name}`}
-            className="procedureCollectionDeleteButton"
-            onClick={() => onDelete(collection)}
-            title="Excluir coleção vazia"
-            type="button"
-          >
-            <Trash2 size={14} />
-          </button>
-        ) : null}
+        <div className="procedureCollectionRowActions">
+          {selectedCollectionId === collection.id && onRename ? (
+            <button
+              aria-label={`Editar coleção ${collection.name}`}
+              className="procedureCollectionEditButton"
+              onClick={() => onRename(collection)}
+              title="Editar coleção"
+              type="button"
+            >
+              <Pencil size={13} />
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              aria-label={`Excluir coleção ${collection.name}`}
+              className="procedureCollectionDeleteButton"
+              onClick={() => onDelete(collection)}
+              title="Excluir coleção vazia"
+              type="button"
+            >
+              <Trash2 size={13} />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {expanded && children.length ? (
@@ -377,6 +430,7 @@ function CollectionTreeNode({
               onDragOverCollection={onDragOverCollection}
               onDelete={onDelete}
               onDrop={onDrop}
+              onRename={onRename}
               onSelect={onSelect}
               onToggle={onToggle}
               procedureCounts={procedureCounts}
@@ -387,6 +441,147 @@ function CollectionTreeNode({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function CollectionColumnRow({
+  active,
+  collection,
+  childrenByParent,
+  draggedItem,
+  dropTargetId,
+  onDelete,
+  onDragCollection,
+  onDragEnd,
+  onDragOverCollection,
+  onDrop,
+  onRename,
+  onSelect,
+  procedureCounts,
+}) {
+  const children = childrenByParent.get(collection.id) || [];
+  const invalidCollectionDrop =
+    draggedItem?.type === "collection" &&
+    (draggedItem.id === collection.id ||
+      descendantCollectionIds(childrenByParent, draggedItem.id).has(
+        collection.id,
+      ));
+  const canDrop = Boolean(draggedItem) && !invalidCollectionDrop;
+
+  return (
+    <div
+      aria-selected={active}
+      className={[
+        "procedureCollectionColumnRow",
+        active ? "selectedProcedureCollection" : "",
+        dropTargetId === collection.id ? "procedureCollectionDropTarget" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      draggable={Boolean(onDragCollection)}
+      onDragEnd={onDragEnd}
+      onDragStart={(event) => {
+        if (!onDragCollection) {
+          event.preventDefault();
+          return;
+        }
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", `collection:${collection.id}`);
+        onDragCollection(collection);
+      }}
+      onDragOver={(event) => {
+        if (!canDrop) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        onDragOverCollection(collection.id);
+      }}
+      onDrop={(event) => {
+        if (!canDrop) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onDrop(collection.id);
+      }}
+      role="treeitem"
+    >
+      <GripVertical
+        aria-hidden="true"
+        className="procedureCollectionDragHandle"
+        size={14}
+      />
+      <button
+        className="procedureCollectionColumnSelectButton"
+        onClick={() => onSelect(collection.id)}
+        title={collection.name}
+        type="button"
+      >
+        {active && children.length ? (
+          <FolderOpen size={16} />
+        ) : (
+          <Folder size={16} />
+        )}
+        <span>{collection.name}</span>
+        <small>{procedureCounts[collection.id] || 0}</small>
+      </button>
+      {children.length ? (
+        <ChevronRight
+          aria-label={`${children.length} ${children.length === 1 ? "subcoleção" : "subcoleções"}`}
+          className="procedureCollectionColumnChevron"
+          size={15}
+        />
+      ) : (
+        <span />
+      )}
+      <div className="procedureCollectionRowActions">
+        {active && onRename ? (
+          <button
+            aria-label={`Editar coleção ${collection.name}`}
+            className="procedureCollectionEditButton"
+            onClick={() => onRename(collection)}
+            title="Editar coleção"
+            type="button"
+          >
+            <Pencil size={13} />
+          </button>
+        ) : null}
+        {onDelete ? (
+          <button
+            aria-label={`Excluir coleção ${collection.name}`}
+            className="procedureCollectionDeleteButton"
+            onClick={() => onDelete(collection)}
+            title="Excluir coleção vazia"
+            type="button"
+          >
+            <Trash2 size={13} />
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function CollectionAddForm({ disabled, error, name, onChange, onSubmit }) {
+  return (
+    <form className="procedureCollectionAdd" onSubmit={onSubmit}>
+      {error ? <small role="alert">{error}</small> : null}
+      <div>
+        <input
+          aria-label="Nome da nova coleção"
+          disabled={disabled}
+          maxLength={120}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="Nova coleção"
+          value={name}
+        />
+        <button
+          aria-label="Criar coleção"
+          disabled={disabled || !name.trim()}
+          title="Criar coleção"
+          type="submit"
+        >
+          <Plus size={13} />
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -407,6 +602,11 @@ export function ResourceCollectionSidebar({
 }) {
   const [collapsedIds, setCollapsedIds] = useState(() => new Set());
   const [dropTargetId, setDropTargetId] = useState(null);
+  const [viewMode, setViewMode] = useState("tree");
+  const [collectionDrafts, setCollectionDrafts] = useState({});
+  const [creatingParentId, setCreatingParentId] = useState(null);
+  const [creationError, setCreationError] = useState(null);
+  const columnsRef = useRef(null);
   const childrenByParent = useMemo(
     () => buildCollectionTree(collections),
     [collections],
@@ -420,10 +620,53 @@ export function ResourceCollectionSidebar({
       }, {}),
     [items],
   );
+  const columnNavigation = useMemo(
+    () =>
+      buildCollectionColumns(
+        collections,
+        childrenByParent,
+        selectedCollectionId,
+      ),
+    [childrenByParent, collections, selectedCollectionId],
+  );
+
+  useEffect(() => {
+    if (viewMode !== "columns") return;
+    const frame = requestAnimationFrame(() => {
+      columnsRef.current?.scrollTo({
+        behavior: "smooth",
+        left: columnsRef.current.scrollWidth,
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [columnNavigation.columns.length, selectedCollectionId, viewMode]);
 
   function dropAt(collectionId) {
     setDropTargetId(null);
     onDrop(collectionId);
+  }
+
+  async function createAt(event, parentId) {
+    event.preventDefault();
+    const name = (collectionDrafts[parentId] || "").trim();
+    if (!name || !onCreate) return;
+
+    setCreatingParentId(parentId);
+    setCreationError(null);
+    try {
+      const collection = await onCreate(parentId, name);
+      setCollectionDrafts((current) => ({ ...current, [parentId]: "" }));
+      if (collection?.id) onSelect(collection.id);
+    } catch (error) {
+      setCreationError({ parentId, message: error.message });
+    } finally {
+      setCreatingParentId(null);
+    }
+  }
+
+  function updateCollectionDraft(parentId, name) {
+    setCollectionDrafts((current) => ({ ...current, [parentId]: name }));
+    if (creationError?.parentId === parentId) setCreationError(null);
   }
 
   return (
@@ -433,28 +676,28 @@ export function ResourceCollectionSidebar({
           <strong>Coleções</strong>
           <span>Arraste {itemLabel} e coleções para organizar.</span>
         </div>
-        {onCreate ? (
-          <div className="resourceCollectionHeaderActions">
-            {selectedCollectionId && onRename ? (
-              <button
-                className="iconButton"
-                onClick={onRename}
-                title="Renomear coleção"
-                type="button"
-              >
-                <Pencil size={14} />
-              </button>
-            ) : null}
-            <button
-              className="iconButton"
-              onClick={onCreate}
-              title="Nova coleção"
-              type="button"
-            >
-              <FolderPlus size={15} />
-            </button>
-          </div>
-        ) : null}
+        <button
+          aria-label={
+            viewMode === "tree"
+              ? "Usar navegação em colunas"
+              : "Usar navegação em árvore"
+          }
+          aria-pressed={viewMode === "columns"}
+          className="iconButton resourceCollectionViewModeToggle"
+          onClick={() =>
+            setViewMode((current) => (current === "tree" ? "columns" : "tree"))
+          }
+          title={
+            viewMode === "tree" ? "Visualizar em colunas" : "Visualizar árvore"
+          }
+          type="button"
+        >
+          {viewMode === "tree" ? (
+            <Columns3 aria-hidden="true" size={15} />
+          ) : (
+            <ListTree aria-hidden="true" size={15} />
+          )}
+        </button>
         {onClose ? (
           <button
             aria-label="Ocultar coleções"
@@ -468,77 +711,202 @@ export function ResourceCollectionSidebar({
         ) : null}
       </header>
 
-      <div className="procedureCollectionTree">
-        <div className="procedureCollectionTreeInner">
-          <div
-            className={[
-              "procedureCollectionTreeRow",
-              "procedureCollectionRootRow",
-              !selectedCollectionId ? "selectedProcedureCollection" : "",
-              dropTargetId === "" ? "procedureCollectionDropTarget" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            onDragLeave={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget))
-                setDropTargetId(null);
-            }}
-            onDragOver={(event) => {
-              if (!draggedItem) return;
-              event.preventDefault();
-              event.dataTransfer.dropEffect = "move";
-              setDropTargetId("");
-            }}
-            onDrop={(event) => {
-              if (!draggedItem) return;
-              event.preventDefault();
-              dropAt("");
-            }}
-          >
-            <span className="procedureCollectionRootSpacer" />
-            <button
-              className="procedureCollectionSelectButton"
-              onClick={() => onSelect("")}
-              type="button"
-            >
-              <FolderOpen size={16} />
-              <span>Raiz</span>
-              <small>{procedureCounts[""] || 0}</small>
-            </button>
-          </div>
+      {viewMode === "tree" ? (
+        <div className="procedureCollectionTree">
+          <div className="procedureCollectionTreeScroll">
+            <div className="procedureCollectionTreeInner">
+              <div
+                className={[
+                  "procedureCollectionTreeRow",
+                  "procedureCollectionRootRow",
+                  !selectedCollectionId ? "selectedProcedureCollection" : "",
+                  dropTargetId === "" ? "procedureCollectionDropTarget" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onDragLeave={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget))
+                    setDropTargetId(null);
+                }}
+                onDragOver={(event) => {
+                  if (!draggedItem) return;
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                  setDropTargetId("");
+                }}
+                onDrop={(event) => {
+                  if (!draggedItem) return;
+                  event.preventDefault();
+                  dropAt("");
+                }}
+              >
+                <span className="procedureCollectionRootSpacer" />
+                <button
+                  className="procedureCollectionSelectButton"
+                  onClick={() => onSelect("")}
+                  type="button"
+                >
+                  <FolderOpen size={16} />
+                  <span>Raiz</span>
+                  <small>{procedureCounts[""] || 0}</small>
+                </button>
+              </div>
 
-          {(childrenByParent.get("") || []).map((collection) => (
-            <CollectionTreeNode
-              childrenByParent={childrenByParent}
-              collapsedIds={collapsedIds}
-              collection={collection}
-              draggedItem={draggedItem}
-              dropTargetId={dropTargetId}
-              key={collection.id}
-              onDragCollection={onDragCollection}
-              onDragEnd={() => {
-                setDropTargetId(null);
-                onDragEnd();
-              }}
-              onDragOverCollection={setDropTargetId}
-              onDelete={onCreate ? onDelete : undefined}
-              onDrop={dropAt}
-              onSelect={onSelect}
-              onToggle={(collectionId) =>
-                setCollapsedIds((current) => {
-                  const next = new Set(current);
-                  if (next.has(collectionId)) next.delete(collectionId);
-                  else next.add(collectionId);
-                  return next;
-                })
+              {(childrenByParent.get("") || []).map((collection) => (
+                <CollectionTreeNode
+                  childrenByParent={childrenByParent}
+                  collapsedIds={collapsedIds}
+                  collection={collection}
+                  draggedItem={draggedItem}
+                  dropTargetId={dropTargetId}
+                  key={collection.id}
+                  onDragCollection={onDragCollection}
+                  onDragEnd={() => {
+                    setDropTargetId(null);
+                    onDragEnd();
+                  }}
+                  onDragOverCollection={setDropTargetId}
+                  onDelete={onCreate ? onDelete : undefined}
+                  onDrop={dropAt}
+                  onRename={onRename}
+                  onSelect={onSelect}
+                  onToggle={(collectionId) =>
+                    setCollapsedIds((current) => {
+                      const next = new Set(current);
+                      if (next.has(collectionId)) next.delete(collectionId);
+                      else next.add(collectionId);
+                      return next;
+                    })
+                  }
+                  procedureCounts={procedureCounts}
+                  selectedCollectionId={selectedCollectionId}
+                  visited={new Set()}
+                />
+              ))}
+            </div>
+          </div>
+          {onCreate ? (
+            <CollectionAddForm
+              disabled={creatingParentId === selectedCollectionId}
+              error={
+                creationError?.parentId === selectedCollectionId
+                  ? creationError.message
+                  : ""
               }
-              procedureCounts={procedureCounts}
-              selectedCollectionId={selectedCollectionId}
-              visited={new Set()}
+              name={collectionDrafts[selectedCollectionId] || ""}
+              onChange={(name) =>
+                updateCollectionDraft(selectedCollectionId, name)
+              }
+              onSubmit={(event) => createAt(event, selectedCollectionId)}
             />
+          ) : null}
+        </div>
+      ) : (
+        <div
+          className="procedureCollectionColumns"
+          ref={columnsRef}
+          role="tree"
+        >
+          {columnNavigation.columns.map((column, columnIndex) => (
+            <div
+              className="procedureCollectionColumn"
+              key={`${column.parentId || "root"}-${columnIndex}`}
+              role="group"
+            >
+              <div className="procedureCollectionColumnList">
+                {columnIndex === 0 ? (
+                  <div
+                    aria-selected={!selectedCollectionId}
+                    className={[
+                      "procedureCollectionColumnRow",
+                      "procedureCollectionColumnRootRow",
+                      !selectedCollectionId
+                        ? "selectedProcedureCollection"
+                        : "",
+                      dropTargetId === ""
+                        ? "procedureCollectionDropTarget"
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onDragOver={(event) => {
+                      if (!draggedItem) return;
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
+                      setDropTargetId("");
+                    }}
+                    onDrop={(event) => {
+                      if (!draggedItem) return;
+                      event.preventDefault();
+                      dropAt("");
+                    }}
+                    role="treeitem"
+                  >
+                    <button
+                      className="procedureCollectionColumnSelectButton"
+                      onClick={() => onSelect("")}
+                      type="button"
+                    >
+                      <FolderOpen size={16} />
+                      <span>Raiz</span>
+                      <small>{procedureCounts[""] || 0}</small>
+                    </button>
+                  </div>
+                ) : null}
+
+                {column.collections.map((collection) => (
+                  <CollectionColumnRow
+                    active={
+                      columnNavigation.activePath[columnIndex] === collection.id
+                    }
+                    childrenByParent={childrenByParent}
+                    collection={collection}
+                    draggedItem={draggedItem}
+                    dropTargetId={dropTargetId}
+                    key={collection.id}
+                    onDelete={onCreate ? onDelete : undefined}
+                    onDragCollection={onDragCollection}
+                    onDragEnd={() => {
+                      setDropTargetId(null);
+                      onDragEnd();
+                    }}
+                    onDragOverCollection={setDropTargetId}
+                    onDrop={dropAt}
+                    onRename={
+                      selectedCollectionId === collection.id
+                        ? onRename
+                        : undefined
+                    }
+                    onSelect={onSelect}
+                    procedureCounts={procedureCounts}
+                  />
+                ))}
+
+                {!column.collections.length && columnIndex > 0 ? (
+                  <p className="procedureCollectionColumnEmpty">
+                    Nenhuma subcoleção
+                  </p>
+                ) : null}
+              </div>
+              {onCreate ? (
+                <CollectionAddForm
+                  disabled={creatingParentId === column.parentId}
+                  error={
+                    creationError?.parentId === column.parentId
+                      ? creationError.message
+                      : ""
+                  }
+                  name={collectionDrafts[column.parentId] || ""}
+                  onChange={(name) =>
+                    updateCollectionDraft(column.parentId, name)
+                  }
+                  onSubmit={(event) => createAt(event, column.parentId)}
+                />
+              ) : null}
+            </div>
           ))}
         </div>
-      </div>
+      )}
     </aside>
   );
 }

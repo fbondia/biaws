@@ -44,6 +44,20 @@ export function useResourceCollections(
     await loadCollections();
   }
 
+  async function createCollection(parentId, name) {
+    try {
+      const payload = await createResourceCollection(resourceType, {
+        name,
+        parentId,
+      });
+      await loadCollections();
+      return payload.collection;
+    } catch (error) {
+      onError?.(error.message);
+      throw error;
+    }
+  }
+
   async function removeCollection(collection) {
     if (!window.confirm(`Excluir a coleção “${collection.name}”?`)) return;
     try {
@@ -78,6 +92,7 @@ export function useResourceCollections(
     collectionDialog,
     collections,
     collectionsVisible,
+    createCollection,
     draggedItem,
     dropItem,
     loadCollections,

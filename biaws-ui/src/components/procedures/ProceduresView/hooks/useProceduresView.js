@@ -14,7 +14,6 @@ import {
 } from "../../../../api.js";
 import { hasPermission } from "../../../../permissions.js";
 import { useCatalogOptions } from "../../../catalog/CatalogContextFields.jsx";
-import { collectionPathLabel } from "../../../shared/ResourceCollections.jsx";
 import { normalizeDraft } from "../model.js";
 
 export function useProceduresView(actor) {
@@ -28,7 +27,6 @@ export function useProceduresView(actor) {
   const [selectedCollectionId, setSelectedCollectionId] = useState("");
   const [searchActive, setSearchActive] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
-  const [collectionDialogOpen, setCollectionDialogOpen] = useState(false);
   const [renamingCollection, setRenamingCollection] = useState(null);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [taxonomyDialogOpen, setTaxonomyDialogOpen] = useState(false);
@@ -171,13 +169,14 @@ export function useProceduresView(actor) {
     });
   }
 
-  async function createCollection(name) {
+  async function createCollection(parentId, name) {
     const payload = await createProcedureCollection({
       name,
-      parentId: selectedCollectionId,
+      parentId,
     });
     setCollections((current) => [...current, payload.collection]);
     setSelectedCollectionId(payload.collection.id);
+    return payload.collection;
   }
 
   async function renameCollection(name) {
@@ -250,15 +249,6 @@ export function useProceduresView(actor) {
     }
   }
 
-  const selectedCollection = collections.find(
-    ({ id }) => id === selectedCollectionId,
-  );
-  const selectedCollectionLabel = collectionPathLabel(
-    collections,
-    collectionsVisible,
-    setCollectionsVisible,
-    selectedCollectionId,
-  );
   const visibleItems = searchActive
     ? items
     : items.filter(
@@ -278,8 +268,6 @@ export function useProceduresView(actor) {
     searchActive,
     filtersVisible,
     setFiltersVisible,
-    collectionDialogOpen,
-    setCollectionDialogOpen,
     renamingCollection,
     setRenamingCollection,
     tagsDialogOpen,
@@ -310,8 +298,6 @@ export function useProceduresView(actor) {
     renameCollection,
     removeCollection,
     moveDraggedItem,
-    selectedCollection,
-    selectedCollectionLabel,
     visibleItems,
   };
 }

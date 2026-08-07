@@ -56,9 +56,6 @@ export function CatalogView({ actor }) {
     ({ collectionId }) =>
       String(collectionId || "") === collectionState.selectedCollectionId,
   );
-  const selectedCollection = collectionState.collections.find(
-    ({ id }) => id === collectionState.selectedCollectionId,
-  );
   const updateScope = actor.permissionScopes?.["applications.update"] || {};
   const canMoveApplication = (application) =>
     hasPermission(actor, "applications.update") &&
@@ -108,7 +105,7 @@ export function CatalogView({ actor }) {
             items={applications}
             onCreate={
               canManageCollections
-                ? () => collectionState.setCollectionDialog({})
+                ? collectionState.createCollection
                 : undefined
             }
             onDelete={collectionState.removeCollection}
@@ -129,8 +126,8 @@ export function CatalogView({ actor }) {
                 moveApplicationToCollection,
               )
             }
-            onRename={() =>
-              collectionState.setCollectionDialog(selectedCollection)
+            onRename={(collection) =>
+              collectionState.setCollectionDialog(collection)
             }
             onSelect={(collectionId) => {
               collectionState.setSelectedCollectionId(collectionId);

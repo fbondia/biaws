@@ -33,7 +33,14 @@
 }
 
 .procedureCollectionTree {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   max-height: calc(100dvh - 220px);
+  overflow: hidden;
+}
+
+.procedureCollectionTreeScroll {
+  min-height: 0;
   overflow: auto;
   padding: 8px;
 }
@@ -58,7 +65,7 @@
 
 .procedureCollectionTreeRow {
   display: grid;
-  grid-template-columns: 14px 24px minmax(0, 1fr) 28px;
+  grid-template-columns: 14px 24px minmax(0, 1fr) auto;
   width: 100%;
   min-width: 240px;
   align-items: center;
@@ -77,6 +84,205 @@
 
 .procedureCollectionTreeRow[draggable="true"]:active {
   cursor: grabbing;
+}
+
+.procedureCollectionColumns {
+  display: flex;
+  height: calc(100dvh - 284px);
+  min-height: 240px;
+  max-height: 520px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--color-surface-subtle);
+  scrollbar-gutter: stable;
+}
+
+.procedureCollectionColumn {
+  display: grid;
+  flex: 0 0 210px;
+  min-width: 210px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.procedureCollectionColumn:last-child {
+  border-right: 0;
+}
+
+.procedureCollectionColumnList {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 5px;
+}
+
+.procedureCollectionColumnRow {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) 15px auto;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--color-text-secondary);
+  padding: 3px 4px;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.procedureCollectionColumnRow[draggable="true"] {
+  cursor: grab;
+}
+
+.procedureCollectionColumnRow[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.procedureCollectionColumnRow:hover {
+  background: var(--color-surface-subtle);
+}
+
+.procedureCollectionColumnSelectButton {
+  display: flex;
+  min-width: 0;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0 5px;
+  text-align: left;
+}
+
+.procedureCollectionColumnSelectButton > svg {
+  flex: 0 0 auto;
+}
+
+.procedureCollectionColumnSelectButton > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.procedureCollectionColumnSelectButton > small {
+  min-width: 20px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-subtle);
+  padding: 2px 6px;
+  font-size: 10px;
+  text-align: center;
+}
+
+.procedureCollectionColumnChevron {
+  color: var(--color-text-subtle);
+}
+
+.procedureCollectionColumnRow:hover .procedureCollectionDeleteButton {
+  opacity: 1;
+}
+
+.procedureCollectionColumnRootRow {
+  grid-template-columns: minmax(0, 1fr);
+  margin-bottom: 4px;
+  border-bottom-color: var(--color-border);
+}
+
+.procedureCollectionSelectButton > span {
+  font-size: 12px;
+}
+
+.procedureCollectionSelectButton > small {
+  font-size: 10px;
+}
+
+.procedureCollectionRowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.procedureCollectionEditButton,
+.procedureCollectionRowActions .procedureCollectionDeleteButton {
+  width: 24px;
+  height: 26px;
+}
+
+.procedureCollectionEditButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  padding: 0;
+}
+
+.procedureCollectionEditButton:hover,
+.procedureCollectionEditButton:focus-visible {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.procedureCollectionAdd {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+  padding: 6px;
+}
+
+.procedureCollectionAdd > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  gap: 4px;
+}
+
+.procedureCollectionAdd input {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 5px;
+  background: var(--color-surface);
+  padding: 0 7px;
+  font-size: 11px;
+}
+
+.procedureCollectionAdd button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 5px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 0;
+}
+
+.procedureCollectionAdd button:hover:not(:disabled) {
+  border-color: var(--color-accent-border);
+  color: var(--color-accent-text);
+}
+
+.procedureCollectionAdd > small {
+  overflow: hidden;
+  color: #9b1c1c;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.procedureCollectionColumnEmpty {
+  margin: 0;
+  color: var(--color-text-subtle);
+  padding: 12px 8px;
+  font-size: 12px;
 }
 
 .procedureCollectionDragHandle {
@@ -153,6 +359,7 @@
 }
 
 .procedureCollectionTreeRow:hover .procedureCollectionDeleteButton,
+.procedureCollectionColumnRow:hover .procedureCollectionDeleteButton,
 .procedureCollectionDeleteButton:focus-visible {
   opacity: 1;
 }

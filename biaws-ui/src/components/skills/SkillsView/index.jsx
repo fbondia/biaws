@@ -70,9 +70,6 @@ export function SkillsView({ actor }) {
         item.description.toLocaleLowerCase("pt-BR").includes(term),
     );
   }, [result, search, collectionState.selectedCollectionId]);
-  const selectedCollection = collectionState.collections.find(
-    ({ id }) => id === collectionState.selectedCollectionId,
-  );
   const canManageCollections = hasPermission(actor, "skills.publish");
 
   return (
@@ -118,7 +115,7 @@ export function SkillsView({ actor }) {
               items={result?.items || []}
               onCreate={
                 canManageCollections
-                  ? () => collectionState.setCollectionDialog({})
+                  ? collectionState.createCollection
                   : undefined
               }
               onDelete={collectionState.removeCollection}
@@ -136,8 +133,8 @@ export function SkillsView({ actor }) {
               onDrop={(collectionId) =>
                 collectionState.dropItem(collectionId, moveSkillToCollection)
               }
-              onRename={() =>
-                collectionState.setCollectionDialog(selectedCollection)
+              onRename={(collection) =>
+                collectionState.setCollectionDialog(collection)
               }
               onSelect={collectionState.setSelectedCollectionId}
               selectedCollectionId={collectionState.selectedCollectionId}

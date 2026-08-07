@@ -67,10 +67,6 @@ export function SecretsView({ actor }) {
         );
     });
   }, [secrets, search, collectionState.selectedCollectionId]);
-  const selectedCollection = collectionState.collections.find(
-    ({ id }) => id === collectionState.selectedCollectionId,
-  );
-
   return (
     <section className="securityView secretsView">
       <header className="securityHeader">
@@ -111,9 +107,7 @@ export function SecretsView({ actor }) {
             itemLabel="segredos"
             items={secrets}
             onCreate={
-              permissions.update
-                ? () => collectionState.setCollectionDialog({})
-                : undefined
+              permissions.update ? collectionState.createCollection : undefined
             }
             onDelete={collectionState.removeCollection}
             onClose={() => collectionState.setCollectionsVisible(false)}
@@ -130,8 +124,8 @@ export function SecretsView({ actor }) {
             onDrop={(collectionId) =>
               collectionState.dropItem(collectionId, moveSecretToCollection)
             }
-            onRename={() =>
-              collectionState.setCollectionDialog(selectedCollection)
+            onRename={(collection) =>
+              collectionState.setCollectionDialog(collection)
             }
             onSelect={collectionState.setSelectedCollectionId}
             selectedCollectionId={collectionState.selectedCollectionId}

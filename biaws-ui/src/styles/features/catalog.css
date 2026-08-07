@@ -2211,6 +2211,13 @@
     max-height: 280px;
   }
 
+  .applicationsCollectionsLayout .procedureCollectionColumns,
+  .serversCollectionsLayout .procedureCollectionColumns {
+    height: 280px;
+    min-height: 0;
+    max-height: 280px;
+  }
+
   .applicationsCollectionsLayout .catalogLayout,
   .serversCollectionsLayout .catalogLayout {
     grid-template-columns: 1fr;

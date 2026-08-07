@@ -168,9 +168,6 @@ export function ServersView({ actor }) {
     ({ collectionId }) =>
       String(collectionId || "") === collectionState.selectedCollectionId,
   );
-  const selectedCollection = collectionState.collections.find(
-    ({ id }) => id === collectionState.selectedCollectionId,
-  );
   const canManageCollections = hasPermission(actor, "servers.update");
 
   return (
@@ -200,7 +197,7 @@ export function ServersView({ actor }) {
             items={servers}
             onCreate={
               canManageCollections
-                ? () => collectionState.setCollectionDialog({})
+                ? collectionState.createCollection
                 : undefined
             }
             onDelete={collectionState.removeCollection}
@@ -218,8 +215,8 @@ export function ServersView({ actor }) {
             onDrop={(collectionId) =>
               collectionState.dropItem(collectionId, moveServerToCollection)
             }
-            onRename={() =>
-              collectionState.setCollectionDialog(selectedCollection)
+            onRename={(collection) =>
+              collectionState.setCollectionDialog(collection)
             }
             onSelect={(collectionId) => {
               collectionState.setSelectedCollectionId(collectionId);

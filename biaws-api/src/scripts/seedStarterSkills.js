@@ -6,7 +6,10 @@ import { fileURLToPath } from "node:url";
 
 import { buildSkillPayload } from "../../../biaws-cli/src/skillPackage.js";
 import { closeMongoClient } from "../helpers/mongoClient.js";
-import { ensureDefaultWorkspace } from "../repositories/catalogRepository.js";
+import {
+  ensureDefaultWorkspace,
+  getWorkspace,
+} from "../repositories/catalogRepository.js";
 import { publishSkill } from "../repositories/skillsRepository.js";
 
 const ROOT_DIR = path.resolve(
@@ -22,9 +25,22 @@ async function run() {
       path.join(ROOT_DIR, "starter-skills"),
   );
   const version = String(process.env.BIAWS_STARTER_SKILLS_VERSION || "1.0.0");
-  const workspace = await ensureDefaultWorkspace({
-    userId: "starter-skills-seed",
-  });
+  const requestedWorkspaceId = String(
+    process.env.BIAWS_STARTER_SKILLS_WORKSPACE_ID || "",
+  ).trim();
+  const workspace = requestedWorkspaceId
+    ? await getWorkspace(requestedWorkspaceId)
+    : await ensureDefaultWorkspace({ userId: "starter-skills-seed" });
+  if (!workspace) {
+    throw new Error(
+      `Workspace não encontrado para starter skills: ${requestedWorkspaceId}`,
+    );
+  }
+  if (workspace.status !== "active") {
+    throw new Error(
+      `Workspace inativo para starter skills: ${requestedWorkspaceId}`,
+    );
+  }
   const entries = await readdir(skillsDirectory, { withFileTypes: true });
   const result = { published: [], skipped: [] };
 
@@ -47,7 +63,7 @@ async function run() {
   }
 
   console.log(
-    `Starter skills: ${result.published.length} publicada(s), ${result.skipped.length} já existente(s).`,
+    `Starter skills no workspace ${workspace.id}: ${result.published.length} publicada(s), ${result.skipped.length} já existente(s).`,
   );
 }
 

@@ -87,6 +87,18 @@ test("local development commands share instance, client and workspace context", 
     /--target '\/Users\/example\/project\/\.agents\/skills'/u,
   );
   assert.match(commands.updateSkills, /skills update/u);
+  assert.match(commands.publishSkill, /skills publish/u);
+  assert.match(
+    commands.publishSkill,
+    /--dir '\/Users\/example\/project\/\.agents\/skills\/minha-skill'/u,
+  );
+  assert.match(commands.publishSkill, /--version 1\.0\.0/u);
+  assert.match(commands.publishAllSkills, /skills publish-all/u);
+  assert.match(
+    commands.publishAllSkills,
+    /--dir '\/Users\/example\/project\/\.agents\/skills'/u,
+  );
+  assert.match(commands.publishAllSkills, /--initial-version 1\.0\.0/u);
   assert.match(commands.doctor, /agent doctor codex/u);
   for (const command of Object.values(commands)) {
     assert.match(command, /--workspace 'workspace-a'/u);

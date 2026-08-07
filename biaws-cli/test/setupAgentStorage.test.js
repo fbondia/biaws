@@ -78,6 +78,7 @@ function runSetup({ bin, instances, project, extraArguments = [] }) {
       env: {
         ...process.env,
         PATH: `${bin}:${process.env.PATH}`,
+        BIAWS_TEST_DOCKER_LOG: path.join(path.dirname(instances), "docker.log"),
         BIAWS_TEST_NODE_LOG: path.join(path.dirname(instances), "node.log"),
       },
     },
@@ -126,6 +127,30 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
     ],
   });
   assert.equal(configured.status, 0, configured.stderr);
+
+  const publishedStarterSkills = runSetup({
+    bin,
+    instances,
+    project,
+    extraArguments: ["--workspace", "workspace-a", "--publish-starter-skills"],
+  });
+  assert.equal(publishedStarterSkills.status, 0, publishedStarterSkills.stderr);
+  assert.match(
+    await readFile(path.join(temporaryRoot, "docker.log"), "utf8"),
+    /exec -T -e BIAWS_STARTER_SKILLS_WORKSPACE_ID=workspace-a api npm run seed:skills/u,
+  );
+
+  const missingStarterSkillsWorkspace = runSetup({
+    bin,
+    instances,
+    project,
+    extraArguments: ["--publish-starter-skills"],
+  });
+  assert.equal(missingStarterSkillsWorkspace.status, 2);
+  assert.match(
+    missingStarterSkillsWorkspace.stderr,
+    /Informe --workspace <id> ao usar --publish-starter-skills/u,
+  );
 
   const configuredEnv = await readFile(path.join(instance, ".env"), "utf8");
   assert.doesNotMatch(configuredEnv, /^ISSUE_WORKSPACE_ID=/mu);

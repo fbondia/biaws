@@ -26,6 +26,7 @@ PROCEDURE_FILES_PATH=""
 SECRET_FILES_PATH=""
 USE_DOCKER_VOLUMES=0
 SKIP_BOOTSTRAP=0
+PUBLISH_STARTER_SKILLS=0
 LIST_INSTANCES=0
 
 usage() {
@@ -58,6 +59,7 @@ Opções:
   --use-docker-volumes       Usa volumes nomeados gerenciados pelo Docker
   --instances-dir <diretório> Diretório de dados; default: ./instances
   --skip-bootstrap           Configura apenas o cliente
+  --publish-starter-skills   Publica as starter skills no --workspace informado
   --list-instances           Lista instâncias sem mostrar credenciais
 
 Sem --instance, um seletor interativo é exibido quando o terminal permitir.
@@ -548,6 +550,10 @@ while [[ "$#" -gt 0 ]]; do
       SKIP_BOOTSTRAP=1
       shift
       ;;
+    --publish-starter-skills)
+      PUBLISH_STARTER_SKILLS=1
+      shift
+      ;;
     --list-instances)
       LIST_INSTANCES=1
       shift
@@ -627,6 +633,10 @@ fi
 # Ele agora pertence à configuração MCP de cada projeto consumidor.
 legacy_workspace_id="$(read_env_value "${ENV_FILE}" "ISSUE_WORKSPACE_ID")"
 WORKSPACE_ID="${WORKSPACE_ID:-${legacy_workspace_id}}"
+if [[ "${PUBLISH_STARTER_SKILLS}" == "1" && -z "${WORKSPACE_ID}" ]]; then
+  echo "Informe --workspace <id> ao usar --publish-starter-skills." >&2
+  exit 2
+fi
 
 existing_mongo_data_path="$(read_env_value "${ENV_FILE}" "BIAWS_MONGO_DATA_PATH")"
 existing_issue_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_ISSUE_FILES_PATH")"
@@ -796,6 +806,17 @@ if [[ "${SKIP_BOOTSTRAP}" != "1" ]]; then
 elif [[ "${DISABLE_RATE_LIMIT}" == "1" ||
   -n "${API_RATE_LIMIT_MAX}${API_RATE_LIMIT_WINDOW}${AUTH_RATE_LIMIT_MAX}${AUTH_RATE_LIMIT_WINDOW}${API_KEY_RATE_LIMIT_MAX}${API_KEY_RATE_LIMIT_WINDOW}" ]]; then
   echo "Aviso: rate limiting atualizado no .env; reinicie a API para aplicar a configuração." >&2
+fi
+
+if [[ "${PUBLISH_STARTER_SKILLS}" == "1" ]]; then
+  docker compose \
+    --project-directory "${ROOT_DIR}" \
+    --file "${ROOT_DIR}/compose.yaml" \
+    --env-file "${ENV_FILE}" \
+    --project-name "biaws-${INSTANCE}" \
+    exec -T \
+      -e "BIAWS_STARTER_SKILLS_WORKSPACE_ID=${WORKSPACE_ID}" \
+      api npm run seed:skills
 fi
 
 if [[ -n "${WORKSPACE_ID}" ]]; then

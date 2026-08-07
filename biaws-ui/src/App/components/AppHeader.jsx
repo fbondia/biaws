@@ -406,6 +406,26 @@ export function AppHeader({
                         title="Atualizar skills"
                         workspaceId={actor.workspaceId}
                       />
+                      <LocalCommandCard
+                        command={localCommands.publishSkill}
+                        commandKey="publish-skill"
+                        copyStatus={copyStatus}
+                        description="Publica uma nova versão de uma skill local no catálogo do workspace. Ajuste o diretório, a versão e, se necessário, acrescente --changelog. Requer a permissão skills.publish."
+                        disabled={!localInstance.trim() || !localProject.trim()}
+                        onCopy={copyLocalCommand}
+                        title="Publicar uma skill"
+                        workspaceId={actor.workspaceId}
+                      />
+                      <LocalCommandCard
+                        command={localCommands.publishAllSkills}
+                        commandKey="publish-all-skills"
+                        copyStatus={copyStatus}
+                        description="Publica as skills locais que possuem SKILL.md e ignora versões que já existem no catálogo. Ajuste a versão inicial antes de executar. Requer a permissão skills.publish."
+                        disabled={!localInstance.trim() || !localProject.trim()}
+                        onCopy={copyLocalCommand}
+                        title="Publicar todas as skills"
+                        workspaceId={actor.workspaceId}
+                      />
                     </div>
                   ) : null}
                   {localSetupTab === "doctor" ? (

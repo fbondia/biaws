@@ -222,6 +222,9 @@ export function buildLocalDevelopmentCommands({
   const target = shellQuote(
     localSkillTarget(normalizedClient, projectDirectory),
   );
+  const skillDirectory = shellQuote(
+    `${localSkillTarget(normalizedClient, projectDirectory)}/minha-skill`,
+  );
 
   return {
     setup: buildLocalWorkspaceSetupCommand({
@@ -241,6 +244,16 @@ export function buildLocalDevelopmentCommands({
     updateSkills: `${prefix} \\
   skills update \\
   --target ${target} \\
+  --workspace ${workspace}`,
+    publishSkill: `${prefix} \\
+  skills publish \\
+  --dir ${skillDirectory} \\
+  --version 1.0.0 \\
+  --workspace ${workspace}`,
+    publishAllSkills: `${prefix} \\
+  skills publish-all \\
+  --dir ${target} \\
+  --initial-version 1.0.0 \\
   --workspace ${workspace}`,
     doctor: `${prefix} \\
   agent doctor ${normalizedClient} \\

@@ -215,6 +215,22 @@ Sem `--workspace`, o setup seleciona automaticamente quando a chave acessa um
 único workspace. A opção não concede acesso: a identidade técnica precisa ser
 membro ativo do workspace selecionado.
 
+Para publicar também as starter skills no workspace selecionado, execute o setup
+com `--publish-starter-skills`:
+
+```bash
+./scripts/setup-agent.sh \
+  --instance meu-projeto \
+  --client codex \
+  --project /caminho/do/projeto \
+  --workspace id-do-workspace \
+  --publish-starter-skills
+```
+
+O workspace informado deve existir e estar ativo. O comando publica as skills
+ausentes e ignora versões que já existem. Versões publicadas são imutáveis; para
+distribuir conteúdo alterado, publique uma nova versão.
+
 Inicie e pare a instância com:
 
 ```bash

@@ -65,6 +65,31 @@ podem usar para trabalhar sobre sistemas reais.
 | Controle | Tenancy, permissões, escopo por aplicação, segredos e trilha de auditoria |
 | Interface para agentes | MCP com ferramentas de domínio, CLI e catálogo de skills |
 
+## Comece pelo contexto que já existe
+
+O primeiro inventário não precisa começar em um formulário. O catálogo inicial
+inclui skills de descoberta que ajudam o modelo a ler evidências já presentes no
+projeto, comparar o resultado com o BIAWS e propor um mapa para revisão:
+
+| Skill | O que descobre | Fontes típicas |
+| --- | --- | --- |
+| `$biaws-discover-application` | Aplicações, componentes, repositórios e integrações | Código, manifests de pacotes, contratos e documentação |
+| `$biaws-discover-infrastructure` | Servidores, deployments, runtimes e relações de topologia | Docker, Kubernetes, IaC, CI/CD e runbooks |
+| `$biaws-discover-secret-inventory` | Nomes, escopos, consumidores e referências de segredos | Templates de ambiente, schemas, manifests e workflows |
+
+As descobertas são baseadas em evidências e funcionam em modo de proposta por
+padrão. O agente mostra fontes, confiança, correspondências e lacunas; a equipe
+revisa as diferenças antes de autorizar o registro via MCP. No inventário de
+segredos, valores reais nunca são lidos nem enviados ao BIAWS — somente
+metadados e referências seguras.
+
+Depois do setup, por exemplo, peça ao agente:
+
+```text
+Use $biaws-discover-application para mapear este repositório no workspace,
+mas apresente a proposta e as evidências antes de registrar qualquer mudança.
+```
+
 ## Destaques
 
 - home pessoal baseada em um catálogo expansível de widgets configuráveis;

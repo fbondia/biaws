@@ -1,0 +1,4 @@
+interface:
+  display_name: "Descobrir inventário de segredos"
+  short_description: "Mapeie referências de segredos sem ler valores"
+  default_prompt: "Use $biaws-discover-secret-inventory para localizar referências de segredos e propor um inventário seguro de metadados, sem ler valores."

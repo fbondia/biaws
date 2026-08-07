@@ -1,0 +1,4 @@
+interface:
+  display_name: "Descobrir contexto de infraestrutura"
+  short_description: "Mapeie servidores e runtimes a partir de manifests"
+  default_prompt: "Use $biaws-discover-infrastructure para inspecionar os manifests deste projeto e propor um inventário de infraestrutura baseado em evidências."

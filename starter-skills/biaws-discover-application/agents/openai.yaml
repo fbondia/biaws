@@ -1,0 +1,4 @@
+interface:
+  display_name: "Descobrir contexto da aplicação"
+  short_description: "Mapeie sistemas e componentes a partir do projeto"
+  default_prompt: "Use $biaws-discover-application para inspecionar este projeto e propor um inventário de aplicações e componentes baseado em evidências."

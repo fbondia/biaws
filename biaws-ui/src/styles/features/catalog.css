@@ -50,63 +50,68 @@
   color: var(--color-text-subtle);
 }
 
-.catalogLayout {
-  display: grid;
-  min-height: 620px;
-  grid-template-columns: minmax(245px, 300px) minmax(0, 1fr);
+.catalogBackButton {
+  display: inline-flex;
+}
+
+.catalogCollectionPanel {
+  min-height: 520px;
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
 
-.catalogSidebar {
-  border-right: 1px solid var(--color-border);
-  background: var(--color-surface-muted);
-}
-
-.catalogBackButton {
-  display: none;
-}
-
-.catalogApplicationList {
+.catalogCollectionItems {
   display: grid;
-  max-height: 520px;
-  gap: var(--space-1);
-  overflow: auto;
-  padding: var(--space-2);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-3);
 }
 
-.catalogApplicationItem {
+.catalogCollectionItem {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-1) var(--space-2);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  background: transparent;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
   color: var(--color-text-secondary);
-  padding: var(--space-3);
+  padding: var(--space-4);
   text-align: left;
 }
 
-.catalogApplicationItem:hover,
-.activeCatalogApplication {
+.catalogCollectionItem:hover,
+.catalogCollectionItem:focus-visible {
   border-color: var(--color-accent-border);
-  background: var(--color-surface);
+  background: var(--color-accent-soft);
 }
 
-.catalogApplicationItem > span:first-child {
-  display: flex;
+.catalogCollectionItemIcon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.catalogCollectionItem > span:nth-child(2) {
+  display: grid;
   min-width: 0;
-  align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
+}
+
+.catalogCollectionItem strong,
+.catalogCollectionItem small {
   overflow: hidden;
-  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.catalogApplicationItem > small {
+.catalogCollectionItem small {
   color: var(--color-text-subtle);
 }
 
@@ -2218,11 +2223,6 @@
     max-height: 280px;
   }
 
-  .applicationsCollectionsLayout .catalogLayout,
-  .serversCollectionsLayout .catalogLayout {
-    grid-template-columns: 1fr;
-  }
-
   .applicationsCollectionsLayout .resourceCollectionBar,
   .serversCollectionsLayout .resourceCollectionBar {
     grid-template-columns: minmax(0, 1fr);
@@ -2239,61 +2239,17 @@
     flex: 1 1 auto;
   }
 
-  .applicationsCollectionsLayout .catalogBackButton,
-  .serversCollectionsLayout .catalogBackButton {
-    display: inline-flex;
-  }
-
   .catalogResourceSelected > .procedureCollectionsPanel,
   .catalogResourceSelected
     > .resourceCollectionContent
-    > .resourceCollectionBar,
-  .applicationsCollectionsLayout
-    .catalogLayout:not(.catalogDetailSelected)
-    > .catalogContent,
-  .serversCollectionsLayout
-    .catalogLayout:not(.catalogDetailSelected)
-    > .catalogContent,
-  .applicationsCollectionsLayout
-    .catalogLayout.catalogDetailSelected
-    > .catalogSidebar,
-  .serversCollectionsLayout
-    .catalogLayout.catalogDetailSelected
-    > .catalogSidebar {
+    > .resourceCollectionBar {
     display: none;
-  }
-
-  .applicationsCollectionsLayout .catalogLayout.catalogDetailSelected,
-  .serversCollectionsLayout .catalogLayout.catalogDetailSelected {
-    min-height: 0;
-  }
-
-  .applicationsCollectionsLayout
-    .catalogLayout.catalogDetailSelected
-    > .catalogContent,
-  .serversCollectionsLayout
-    .catalogLayout.catalogDetailSelected
-    > .catalogContent {
-    min-height: 520px;
   }
 }
 
 @media (max-width: 900px) {
   .catalogPage {
     padding: var(--space-4);
-  }
-
-  .catalogLayout {
-    grid-template-columns: 1fr;
-  }
-
-  .catalogSidebar {
-    border-right: 0;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .catalogApplicationList {
-    max-height: 250px;
   }
 
   .catalogKnowledgeGrid {
@@ -2328,6 +2284,20 @@
 
   .topologyDiagramCreateNodes {
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 620px) {
+  .catalogCollectionItems {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogCollectionItem {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .catalogCollectionItem > :last-child:not(:nth-child(2)) {
+    grid-column: 2;
   }
 }
 

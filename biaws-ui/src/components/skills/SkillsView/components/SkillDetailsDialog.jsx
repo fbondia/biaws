@@ -1,4 +1,12 @@
-import { AlertTriangle, Archive, Code2, Download, File, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Archive,
+  ArrowLeft,
+  Code2,
+  Download,
+  File,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -9,7 +17,12 @@ import {
 import { useLoading } from "../../../shared/LoadingProvider.jsx";
 import { decodePreview, formatBytes, formatDate } from "../utils.js";
 
-export function SkillDetailsDialog({ skill, onClose, onChanged }) {
+export function SkillDetailsDialog({
+  embedded = false,
+  skill,
+  onClose,
+  onChanged,
+}) {
   const [selectedVersion, setSelectedVersion] = useState(skill.latestVersion);
   const [skillPackage, setSkillPackage] = useState(null);
   const [selectedFile, setSelectedFile] = useState("SKILL.md");
@@ -68,138 +81,151 @@ export function SkillDetailsDialog({ skill, onClose, onChanged }) {
     }
   }
 
+  const details = (
+    <section
+      aria-label={embedded ? `Detalhes da skill ${skill.name}` : undefined}
+      aria-modal={embedded ? undefined : "true"}
+      className={[
+        "skillDialog",
+        "skillDetailsDialog",
+        embedded ? "embeddedCollectionItemDetail" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      role={embedded ? "region" : "dialog"}
+    >
+      <header className="skillDialogHeader">
+        <div>
+          <span>{skill.skillId}</span>
+          <h2>{skill.name}</h2>
+        </div>
+        <button
+          className="iconButton"
+          onClick={onClose}
+          title={embedded ? "Voltar para a coleção" : "Fechar"}
+          type="button"
+        >
+          {embedded ? <ArrowLeft size={18} /> : <X size={18} />}
+        </button>
+      </header>
+      <div className="skillDetailsBody">
+        <aside className="skillVersionsPanel">
+          <strong>Versões</strong>
+          {skill.versions.map((item) => (
+            <button
+              className={
+                selectedVersion === item.version
+                  ? "skillVersionButton activeSkillVersion"
+                  : "skillVersionButton"
+              }
+              key={item.version}
+              onClick={() => setSelectedVersion(item.version)}
+              type="button"
+            >
+              <span>{item.version}</span>
+              <small
+                className={
+                  item.status === "deprecated" ? "skillDeprecatedText" : ""
+                }
+              >
+                {item.status}
+              </small>
+            </button>
+          ))}
+        </aside>
+        <div className="skillPackagePanel">
+          <div className="skillPackageToolbar">
+            <div>
+              <strong>Versão {selectedVersion}</strong>
+              <span>{formatDate(version?.createdAt)}</span>
+            </div>
+            <div>
+              <button
+                className="secondaryButton"
+                onClick={async () => {
+                  setError("");
+                  try {
+                    await runWithLoading(
+                      () =>
+                        downloadSkillPackage(skill.skillId, selectedVersion),
+                      "Preparando download da skill…",
+                    );
+                  } catch (downloadError) {
+                    setError(downloadError.message);
+                  }
+                }}
+                type="button"
+              >
+                <Download size={15} /> Baixar
+              </button>
+              {version?.status !== "deprecated" ? (
+                <button
+                  className="dangerButton"
+                  disabled={actionLoading === "deprecate"}
+                  onClick={deprecate}
+                  type="button"
+                >
+                  <Archive size={15} /> Descontinuar
+                </button>
+              ) : null}
+            </div>
+          </div>
+          {error ? (
+            <div className="skillInlineError">
+              <AlertTriangle size={17} />
+              {error}
+            </div>
+          ) : null}
+          {loading ? (
+            <div className="emptyState">Carregando pacote...</div>
+          ) : skillPackage ? (
+            <div className="skillFileBrowser">
+              <nav aria-label="Arquivos da skill" className="skillFileList">
+                {skillPackage.skill.files.map((file) => (
+                  <button
+                    className={
+                      selectedFile === file.path
+                        ? "skillFileButton activeSkillFile"
+                        : "skillFileButton"
+                    }
+                    key={file.path}
+                    onClick={() => setSelectedFile(file.path)}
+                    type="button"
+                  >
+                    <File size={14} />
+                    <span>{file.path}</span>
+                    <small>{formatBytes(file.size)}</small>
+                  </button>
+                ))}
+              </nav>
+              <section className="skillFilePreview">
+                <header>
+                  <Code2 size={15} />
+                  <strong>{selectedFile}</strong>
+                </header>
+                {preview === null ? (
+                  <div className="emptyState">
+                    Arquivo binário — utilize o download do pacote.
+                  </div>
+                ) : (
+                  <pre>{preview}</pre>
+                )}
+              </section>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+
+  if (embedded) return details;
+
   return (
     <div
       className="dialogBackdrop"
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
     >
-      <section
-        aria-modal="true"
-        className="skillDialog skillDetailsDialog"
-        role="dialog"
-      >
-        <header className="skillDialogHeader">
-          <div>
-            <span>{skill.skillId}</span>
-            <h2>{skill.name}</h2>
-          </div>
-          <button
-            className="iconButton"
-            onClick={onClose}
-            title="Fechar"
-            type="button"
-          >
-            <X size={18} />
-          </button>
-        </header>
-        <div className="skillDetailsBody">
-          <aside className="skillVersionsPanel">
-            <strong>Versões</strong>
-            {skill.versions.map((item) => (
-              <button
-                className={
-                  selectedVersion === item.version
-                    ? "skillVersionButton activeSkillVersion"
-                    : "skillVersionButton"
-                }
-                key={item.version}
-                onClick={() => setSelectedVersion(item.version)}
-                type="button"
-              >
-                <span>{item.version}</span>
-                <small
-                  className={
-                    item.status === "deprecated" ? "skillDeprecatedText" : ""
-                  }
-                >
-                  {item.status}
-                </small>
-              </button>
-            ))}
-          </aside>
-          <div className="skillPackagePanel">
-            <div className="skillPackageToolbar">
-              <div>
-                <strong>Versão {selectedVersion}</strong>
-                <span>{formatDate(version?.createdAt)}</span>
-              </div>
-              <div>
-                <button
-                  className="secondaryButton"
-                  onClick={async () => {
-                    setError("");
-                    try {
-                      await runWithLoading(
-                        () =>
-                          downloadSkillPackage(skill.skillId, selectedVersion),
-                        "Preparando download da skill…",
-                      );
-                    } catch (downloadError) {
-                      setError(downloadError.message);
-                    }
-                  }}
-                  type="button"
-                >
-                  <Download size={15} /> Baixar
-                </button>
-                {version?.status !== "deprecated" ? (
-                  <button
-                    className="dangerButton"
-                    disabled={actionLoading === "deprecate"}
-                    onClick={deprecate}
-                    type="button"
-                  >
-                    <Archive size={15} /> Descontinuar
-                  </button>
-                ) : null}
-              </div>
-            </div>
-            {error ? (
-              <div className="skillInlineError">
-                <AlertTriangle size={17} />
-                {error}
-              </div>
-            ) : null}
-            {loading ? (
-              <div className="emptyState">Carregando pacote...</div>
-            ) : skillPackage ? (
-              <div className="skillFileBrowser">
-                <nav aria-label="Arquivos da skill" className="skillFileList">
-                  {skillPackage.skill.files.map((file) => (
-                    <button
-                      className={
-                        selectedFile === file.path
-                          ? "skillFileButton activeSkillFile"
-                          : "skillFileButton"
-                      }
-                      key={file.path}
-                      onClick={() => setSelectedFile(file.path)}
-                      type="button"
-                    >
-                      <File size={14} />
-                      <span>{file.path}</span>
-                      <small>{formatBytes(file.size)}</small>
-                    </button>
-                  ))}
-                </nav>
-                <section className="skillFilePreview">
-                  <header>
-                    <Code2 size={15} />
-                    <strong>{selectedFile}</strong>
-                  </header>
-                  {preview === null ? (
-                    <div className="emptyState">
-                      Arquivo binário — utilize o download do pacote.
-                    </div>
-                  ) : (
-                    <pre>{preview}</pre>
-                  )}
-                </section>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </section>
+      {details}
     </div>
   );
 }

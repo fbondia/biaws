@@ -155,6 +155,19 @@
   outline-offset: 2px;
 }
 
+.selectedResourceCollectionItem .procedureCollectionItemContent {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+  font-weight: 700;
+}
+
+.embeddedCollectionItemDetail {
+  width: 100%;
+  max-height: none;
+  min-height: 0;
+  box-shadow: none;
+}
+
 .serversCollectionsLayout > .resourceCollectionContent {
   min-width: 0;
 }

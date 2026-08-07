@@ -115,15 +115,22 @@ export function useSecretsView(actor) {
   }
 
   async function archive(secret) {
-    if (!window.confirm(`Arquivar o segredo “${secret.name}”?`)) return;
+    if (!window.confirm(`Arquivar o segredo “${secret.name}”?`)) return false;
     setError("");
     try {
       await archiveSecret(secret.id);
       setRevealed(null);
       await load();
+      return true;
     } catch (archiveError) {
       setError(archiveError.message);
+      return false;
     }
+  }
+
+  function clearRevealed() {
+    setRevealed(null);
+    setShowValue(false);
   }
 
   function allowed(permission, secret) {
@@ -151,6 +158,7 @@ export function useSecretsView(actor) {
     applicationNames,
     applications,
     archive,
+    clearRevealed,
     copiedSecretId,
     copyValue,
     creating,

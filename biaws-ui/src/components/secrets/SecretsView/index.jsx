@@ -1,5 +1,5 @@
 import { KeyRound, Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { moveSecretToCollection } from "../../../api.js";
 import {
@@ -18,12 +18,13 @@ import { useSecretsView } from "./hooks/useSecretsView.js";
 
 export function SecretsView({ actor }) {
   const [search, setSearch] = useState("");
-  const [focusedSecretId, setFocusedSecretId] = useState("");
+  const [selectedSecretId, setSelectedSecretId] = useState("");
   const {
     allowed,
     applicationNames,
     applications,
     archive,
+    clearRevealed,
     copiedSecretId,
     copyValue,
     creating,
@@ -49,8 +50,16 @@ export function SecretsView({ actor }) {
   } = useSecretsView(actor);
   const collectionState = useResourceCollections("secrets", {
     onError: setError,
-    onMoved: load,
+    onMoved: async () => {
+      setSelectedSecretId("");
+      clearRevealed();
+      await load();
+    },
   });
+  const selectedSecret = useMemo(
+    () => secrets.find(({ id }) => id === selectedSecretId) || null,
+    [secrets, selectedSecretId],
+  );
   const visibleSecrets = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
     return secrets.filter((secret) => {
@@ -69,18 +78,45 @@ export function SecretsView({ actor }) {
     });
   }, [secrets, search, collectionState.selectedCollectionId]);
 
-  useEffect(() => {
-    if (!focusedSecretId) return;
-    const frame = requestAnimationFrame(() => {
-      [...document.querySelectorAll("[data-collection-browser-item-id]")]
-        .find(
-          (element) =>
-            element.dataset.collectionBrowserItemId === focusedSecretId,
-        )
-        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [focusedSecretId, visibleSecrets]);
+  function closeSecret() {
+    setSelectedSecretId("");
+    clearRevealed();
+  }
+
+  function openSecret(secret) {
+    setSearch("");
+    clearRevealed();
+    setSelectedSecretId(secret.id);
+    collectionState.setSelectedCollectionId(secret.collectionId || "");
+  }
+
+  function secretCardProps(secret) {
+    return {
+      applicationName: secret.applicationId
+        ? applicationNames[secret.applicationId] || secret.applicationId
+        : "",
+      canArchive: permissions.archive && allowed("secrets.archive", secret),
+      canReveal:
+        secret.provisioningStatus === "ready" &&
+        permissions.reveal &&
+        allowed("secrets.value.reveal", secret),
+      canUpdate: permissions.update && allowed("secrets.update", secret),
+      canWrite: permissions.write && allowed("secrets.value.write", secret),
+      copied: copiedSecretId === secret.id,
+      onArchive: async () => {
+        if (await archive(secret)) closeSecret();
+      },
+      onCopyValue: () => copyValue(secret),
+      onDownload: () => download(secret),
+      onEdit: () => setEditing(secret),
+      onReveal: () => reveal(secret),
+      onToggleValue: () => setShowValue((current) => !current),
+      onVersion: () => setVersioning(secret),
+      revealed: revealed?.secretId === secret.id ? revealed : null,
+      secret,
+      showValue,
+    };
+  }
   return (
     <section className="securityView secretsView">
       <header className="securityHeader">
@@ -113,6 +149,14 @@ export function SecretsView({ actor }) {
         collections={collectionState.collections}
         collectionsVisible={collectionState.collectionsVisible}
         onShowCollections={() => collectionState.setCollectionsVisible(true)}
+        pathLabel={
+          selectedSecret
+            ? `${collectionPathLabel(
+                collectionState.collections,
+                selectedSecret.collectionId || "",
+              )} / ${selectedSecret.name}`
+            : undefined
+        }
         selectedCollectionId={collectionState.selectedCollectionId}
         sidebar={
           <ResourceCollectionSidebar
@@ -148,16 +192,10 @@ export function SecretsView({ actor }) {
               collectionState.setCollectionDialog(collection)
             }
             onSelect={(collectionId) => {
-              setFocusedSecretId("");
+              closeSecret();
               collectionState.setSelectedCollectionId(collectionId);
             }}
-            onSelectItem={(secret) => {
-              setSearch("");
-              setFocusedSecretId(secret.id);
-              collectionState.setSelectedCollectionId(
-                secret.collectionId || "",
-              );
-            }}
+            onSelectItem={openSecret}
             renderItem={(secret) => (
               <>
                 <KeyRound size={13} />
@@ -166,71 +204,52 @@ export function SecretsView({ actor }) {
               </>
             )}
             selectedCollectionId={collectionState.selectedCollectionId}
+            selectedItemId={selectedSecretId}
           />
         }
         toolbar={
-          <ResourceCollectionSearch
-            loading={loading}
-            onRefresh={load}
-            onSearch={load}
-            onSearchChange={setSearch}
-            placeholder="Buscar segredos"
-            search={search}
-          />
+          selectedSecret ? null : (
+            <ResourceCollectionSearch
+              loading={loading}
+              onRefresh={load}
+              onSearch={load}
+              onSearchChange={setSearch}
+              placeholder="Buscar segredos"
+              search={search}
+            />
+          )
         }
       >
-        <div className="secretsGrid">
-          {visibleSecrets.map((secret) => (
-            <SecretCard
-              applicationName={
-                secret.applicationId
-                  ? applicationNames[secret.applicationId] ||
-                    secret.applicationId
-                  : ""
-              }
-              draggable={
-                permissions.update && allowed("secrets.update", secret)
-              }
-              key={secret.id}
-              onDragEnd={() => collectionState.setDraggedItem(null)}
-              onDragStart={() =>
-                collectionState.setDraggedItem({
-                  type: "item",
-                  id: secret.id,
-                })
-              }
-              onArchive={() => archive(secret)}
-              canArchive={
-                permissions.archive && allowed("secrets.archive", secret)
-              }
-              canReveal={
-                secret.provisioningStatus === "ready" &&
-                permissions.reveal &&
-                allowed("secrets.value.reveal", secret)
-              }
-              canUpdate={
-                permissions.update && allowed("secrets.update", secret)
-              }
-              canWrite={
-                permissions.write && allowed("secrets.value.write", secret)
-              }
-              copied={copiedSecretId === secret.id}
-              focused={focusedSecretId === secret.id}
-              onCopyValue={() => copyValue(secret)}
-              onDownload={() => download(secret)}
-              onEdit={() => setEditing(secret)}
-              onReveal={() => reveal(secret)}
-              onToggleValue={() => setShowValue((current) => !current)}
-              onVersion={() => setVersioning(secret)}
-              revealed={revealed?.secretId === secret.id ? revealed : null}
-              secret={secret}
-              showValue={showValue}
-            />
-          ))}
-          {!loading && secrets.length && !visibleSecrets.length ? (
-            <div className="emptyState">Nenhum segredo nesta coleção.</div>
-          ) : null}
-        </div>
+        {selectedSecret ? (
+          <SecretCard
+            {...secretCardProps(selectedSecret)}
+            detail
+            onBack={closeSecret}
+          />
+        ) : (
+          <div className="secretsGrid">
+            {visibleSecrets.map((secret) => (
+              <SecretCard
+                {...secretCardProps(secret)}
+                draggable={
+                  permissions.update && allowed("secrets.update", secret)
+                }
+                key={secret.id}
+                onDragEnd={() => collectionState.setDraggedItem(null)}
+                onDragStart={() =>
+                  collectionState.setDraggedItem({
+                    type: "item",
+                    id: secret.id,
+                  })
+                }
+                onOpen={() => openSecret(secret)}
+              />
+            ))}
+            {!loading && secrets.length && !visibleSecrets.length ? (
+              <div className="emptyState">Nenhum segredo nesta coleção.</div>
+            ) : null}
+          </div>
+        )}
       </ResourceCollectionsShell>
       {collectionState.collectionDialog ? (
         <ResourceCollectionDialog

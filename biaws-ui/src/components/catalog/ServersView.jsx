@@ -188,6 +188,14 @@ export function ServersView({ actor }) {
         collections={collectionState.collections}
         collectionsVisible={collectionState.collectionsVisible}
         onShowCollections={() => collectionState.setCollectionsVisible(true)}
+        pathLabel={
+          selected
+            ? `${collectionPathLabel(
+                collectionState.collections,
+                selected.collectionId || "",
+              )} / ${selected.name}`
+            : undefined
+        }
         selectedCollectionId={collectionState.selectedCollectionId}
         sidebar={
           <ResourceCollectionSidebar
@@ -226,7 +234,12 @@ export function ServersView({ actor }) {
               collectionState.setSelectedCollectionId(collectionId);
               setSelected(null);
             }}
-            onSelectItem={openServer}
+            onSelectItem={(server) => {
+              collectionState.setSelectedCollectionId(
+                server.collectionId || "",
+              );
+              void openServer(server);
+            }}
             renderItem={(server) => (
               <>
                 <Server size={13} />
@@ -235,45 +248,35 @@ export function ServersView({ actor }) {
               </>
             )}
             selectedCollectionId={collectionState.selectedCollectionId}
+            selectedItemId={selected?.id}
           />
         }
         toolbar={
-          <ResourceCollectionSearch
-            additionalFilters={
-              <label className="checkItem compactCheckItem">
-                <input
-                  checked={includeArchived}
-                  onChange={(event) => setIncludeArchived(event.target.checked)}
-                  type="checkbox"
-                />
-                <span>Arquivados</span>
-              </label>
-            }
-            loading={loading}
-            onRefresh={() => loadList()}
-            onSearch={() => loadList()}
-            onSearchChange={setSearch}
-            placeholder="Buscar servidores"
-            search={search}
-          />
+          selected ? null : (
+            <ResourceCollectionSearch
+              additionalFilters={
+                <label className="checkItem compactCheckItem">
+                  <input
+                    checked={includeArchived}
+                    onChange={(event) =>
+                      setIncludeArchived(event.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  <span>Arquivados</span>
+                </label>
+              }
+              loading={loading}
+              onRefresh={() => loadList()}
+              onSearch={() => loadList()}
+              onSearchChange={setSearch}
+              placeholder="Buscar servidores"
+              search={search}
+            />
+          )
         }
       >
-        <div
-          className={["catalogLayout", selected ? "catalogDetailSelected" : ""]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          <ServerSidebar
-            canMove={canManageCollections}
-            loading={loading}
-            onOpen={openServer}
-            selectedId={selected?.id}
-            onDragEnd={() => collectionState.setDraggedItem(null)}
-            onDragStart={(server) =>
-              collectionState.setDraggedItem({ type: "item", id: server.id })
-            }
-            servers={visibleServers}
-          />
+        {selected ? (
           <ServerContent
             activeTab={activeTab}
             actor={actor}
@@ -284,7 +287,44 @@ export function ServersView({ actor }) {
             serverApplications={serverApplications}
             selected={selected}
           />
-        </div>
+        ) : (
+          <div className="catalogCollectionItems">
+            {visibleServers.map((server) => (
+              <button
+                className="catalogCollectionItem"
+                key={server.id}
+                draggable={canManageCollections}
+                onDragEnd={() => collectionState.setDraggedItem(null)}
+                onDragStart={() =>
+                  collectionState.setDraggedItem({
+                    type: "item",
+                    id: server.id,
+                  })
+                }
+                onClick={() => void openServer(server)}
+                type="button"
+              >
+                <span className="catalogCollectionItemIcon">
+                  <Server size={18} />
+                </span>
+                <span>
+                  <strong>{server.name}</strong>
+                  <small>{server.hostname || server.key}</small>
+                </span>
+                <span
+                  className={`catalogStatus catalogStatus-${server.status}`}
+                >
+                  {server.status}
+                </span>
+              </button>
+            ))}
+            {!visibleServers.length && !loading ? (
+              <div className="emptyState compactEmpty">
+                Nenhum servidor encontrado.
+              </div>
+            ) : null}
+          </div>
+        )}
       </ResourceCollectionsShell>
       {collectionState.collectionDialog ? (
         <ResourceCollectionDialog
@@ -331,52 +371,6 @@ function ServerHeader({ actor, onCreate, workspace }) {
   );
 }
 
-function ServerSidebar({
-  canMove,
-  loading,
-  onOpen,
-  onDragEnd,
-  onDragStart,
-  selectedId,
-  servers,
-}) {
-  return (
-    <aside className="catalogSidebar">
-      <div className="catalogApplicationList">
-        {servers.map((server) => (
-          <button
-            className={
-              selectedId === server.id
-                ? "catalogApplicationItem activeCatalogApplication"
-                : "catalogApplicationItem"
-            }
-            key={server.id}
-            draggable={canMove}
-            onDragEnd={onDragEnd}
-            onDragStart={() => onDragStart(server)}
-            onClick={() => onOpen(server)}
-            type="button"
-          >
-            <span>
-              <Server size={16} />
-              {server.name}
-            </span>
-            <small>{server.hostname || server.key}</small>
-            <span className={`catalogStatus catalogStatus-${server.status}`}>
-              {server.status}
-            </span>
-          </button>
-        ))}
-        {!servers.length && !loading ? (
-          <div className="emptyState compactEmpty">
-            Nenhum servidor encontrado.
-          </div>
-        ) : null}
-      </div>
-    </aside>
-  );
-}
-
 function ServerContent(props) {
   if (!props.selected)
     return (
@@ -412,7 +406,7 @@ function ServerDetails({
     ["history", "Histórico"],
   ];
   return (
-    <div className="catalogContent">
+    <div className="catalogCollectionPanel catalogContent">
       <header className="catalogDetailHeader">
         <div>
           <span>{selected.key}</span>

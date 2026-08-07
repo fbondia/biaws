@@ -96,6 +96,14 @@ export function CatalogView({ actor }) {
         collections={collectionState.collections}
         collectionsVisible={collectionState.collectionsVisible}
         onShowCollections={() => collectionState.setCollectionsVisible(true)}
+        pathLabel={
+          context?.application
+            ? `${collectionPathLabel(
+                collectionState.collections,
+                context.application.collectionId || "",
+              )} / ${context.application.name}`
+            : undefined
+        }
         selectedCollectionId={collectionState.selectedCollectionId}
         sidebar={
           <ResourceCollectionSidebar
@@ -141,6 +149,9 @@ export function CatalogView({ actor }) {
               setSelectedId("");
             }}
             onSelectItem={(application) => {
+              collectionState.setSelectedCollectionId(
+                application.collectionId || "",
+              );
               setSelectedId(application.id);
               setActiveTab("overview");
             }}
@@ -152,77 +163,36 @@ export function CatalogView({ actor }) {
               </>
             )}
             selectedCollectionId={collectionState.selectedCollectionId}
+            selectedItemId={selectedId}
           />
         }
         toolbar={
-          <ResourceCollectionSearch
-            additionalFilters={
-              <label className="checkItem compactCheckItem">
-                <input
-                  checked={includeArchived}
-                  onChange={(event) => setIncludeArchived(event.target.checked)}
-                  type="checkbox"
-                />
-                <span>Arquivadas</span>
-              </label>
-            }
-            loading={loading}
-            onRefresh={() => loadApplications()}
-            onSearch={() => loadApplications()}
-            onSearchChange={setSearch}
-            placeholder="Buscar aplicações"
-            search={search}
-          />
+          selectedId ? null : (
+            <ResourceCollectionSearch
+              additionalFilters={
+                <label className="checkItem compactCheckItem">
+                  <input
+                    checked={includeArchived}
+                    onChange={(event) =>
+                      setIncludeArchived(event.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  <span>Arquivadas</span>
+                </label>
+              }
+              loading={loading}
+              onRefresh={() => loadApplications()}
+              onSearch={() => loadApplications()}
+              onSearchChange={setSearch}
+              placeholder="Buscar aplicações"
+              search={search}
+            />
+          )
         }
       >
-        <div
-          className={[
-            "catalogLayout",
-            selectedId ? "catalogDetailSelected" : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          <aside className="catalogSidebar">
-            <div className="catalogApplicationList">
-              {visibleApplications.map((application) => (
-                <button
-                  className={
-                    selectedId === application.id
-                      ? "catalogApplicationItem activeCatalogApplication"
-                      : "catalogApplicationItem"
-                  }
-                  key={application.id}
-                  draggable={canMoveApplication(application)}
-                  onDragEnd={() => collectionState.setDraggedItem(null)}
-                  onDragStart={() =>
-                    collectionState.setDraggedItem({
-                      type: "item",
-                      id: application.id,
-                    })
-                  }
-                  onClick={() => {
-                    setSelectedId(application.id);
-                    setActiveTab("overview");
-                  }}
-                  type="button"
-                >
-                  <span>
-                    <Layers3 size={16} />
-                    {application.name}
-                  </span>
-                  <small>{application.key}</small>
-                </button>
-              ))}
-              {!visibleApplications.length && !loading ? (
-                <div className="emptyState compactEmpty">
-                  Nenhuma aplicação encontrada.
-                </div>
-              ) : null}
-            </div>
-          </aside>
-
-          <div className="catalogContent">
+        {selectedId ? (
+          <div className="catalogCollectionPanel catalogContent">
             {loading && !context ? (
               <div className="emptyState">Carregando catálogo…</div>
             ) : null}
@@ -293,7 +263,43 @@ export function CatalogView({ actor }) {
               </>
             ) : null}
           </div>
-        </div>
+        ) : (
+          <div className="catalogCollectionItems">
+            {visibleApplications.map((application) => (
+              <button
+                className="catalogCollectionItem"
+                key={application.id}
+                draggable={canMoveApplication(application)}
+                onDragEnd={() => collectionState.setDraggedItem(null)}
+                onDragStart={() =>
+                  collectionState.setDraggedItem({
+                    type: "item",
+                    id: application.id,
+                  })
+                }
+                onClick={() => {
+                  setSelectedId(application.id);
+                  setActiveTab("overview");
+                }}
+                type="button"
+              >
+                <span className="catalogCollectionItemIcon">
+                  <Layers3 size={18} />
+                </span>
+                <span>
+                  <strong>{application.name}</strong>
+                  <small>{application.key}</small>
+                </span>
+                <small>{application.description || "Sem descrição."}</small>
+              </button>
+            ))}
+            {!visibleApplications.length && !loading ? (
+              <div className="emptyState compactEmpty">
+                Nenhuma aplicação encontrada.
+              </div>
+            ) : null}
+          </div>
+        )}
       </ResourceCollectionsShell>
 
       {collectionState.collectionDialog ? (

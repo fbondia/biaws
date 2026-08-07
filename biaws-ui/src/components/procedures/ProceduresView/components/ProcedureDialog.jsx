@@ -1,4 +1,4 @@
-import { Crown, Eye, Pencil, Save, Tags, X } from "lucide-react";
+import { ArrowLeft, Crown, Eye, Pencil, Save, Tags, X } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -247,6 +247,7 @@ export function TagGroupDialog({ group, selectedTags, onToggle, onClose }) {
 }
 
 export function ProcedureDialog({
+  embedded = false,
   draft,
   onChange,
   onClose,
@@ -331,55 +332,75 @@ export function ProcedureDialog({
     onPersistedChange(persistedProcedure);
   }
 
+  const details = (
+    <section
+      aria-label={
+        embedded ? `Detalhes do procedimento ${draft.title}` : undefined
+      }
+      aria-modal={embedded ? undefined : "true"}
+      className={[
+        "procedureDialog",
+        embedded ? "embeddedCollectionItemDetail" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      role={embedded ? "region" : "dialog"}
+    >
+      <ProcedureDialogHeader
+        cancelEditing={cancelEditing}
+        draft={draft}
+        embedded={embedded}
+        mode={mode}
+        onClose={onClose}
+        setMode={setMode}
+      />
+      <div className="procedureDialogBody">
+        <ProcedureDialogTabs
+          activeTab={activeTab}
+          draft={draft}
+          onSelect={setActiveTab}
+        />
+
+        <ProcedureDialogContent
+          activeTab={activeTab}
+          activeTagGroup={activeTagGroup}
+          applications={applications}
+          applyPersistedAttachmentChange={applyPersistedAttachmentChange}
+          components={components}
+          draft={draft}
+          mode={mode}
+          onChange={onChange}
+          selectedIds={selectedIds}
+          setActiveTagGroupId={setActiveTagGroupId}
+          tagGroups={tagGroups}
+          tags={tags}
+          taxonomyNodes={taxonomyNodes}
+          taxonomyPackage={taxonomyPackage}
+          toggleTag={toggleTag}
+          updatePrimaryTaxonomy={updatePrimaryTaxonomy}
+          updateTaxonomies={updateTaxonomies}
+        />
+      </div>
+      <ProcedureDialogFooter
+        cancelEditing={cancelEditing}
+        draft={draft}
+        embedded={embedded}
+        mode={mode}
+        onClose={onClose}
+        onSave={onSave}
+        saving={saving}
+      />
+    </section>
+  );
+
+  if (embedded) return details;
+
   return (
     <div
       className="dialogBackdrop"
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
     >
-      <section aria-modal="true" className="procedureDialog" role="dialog">
-        <ProcedureDialogHeader
-          cancelEditing={cancelEditing}
-          draft={draft}
-          mode={mode}
-          onClose={onClose}
-          setMode={setMode}
-        />
-        <div className="procedureDialogBody">
-          <ProcedureDialogTabs
-            activeTab={activeTab}
-            draft={draft}
-            onSelect={setActiveTab}
-          />
-
-          <ProcedureDialogContent
-            activeTab={activeTab}
-            activeTagGroup={activeTagGroup}
-            applications={applications}
-            applyPersistedAttachmentChange={applyPersistedAttachmentChange}
-            components={components}
-            draft={draft}
-            mode={mode}
-            onChange={onChange}
-            selectedIds={selectedIds}
-            setActiveTagGroupId={setActiveTagGroupId}
-            tagGroups={tagGroups}
-            tags={tags}
-            taxonomyNodes={taxonomyNodes}
-            taxonomyPackage={taxonomyPackage}
-            toggleTag={toggleTag}
-            updatePrimaryTaxonomy={updatePrimaryTaxonomy}
-            updateTaxonomies={updateTaxonomies}
-          />
-        </div>
-        <ProcedureDialogFooter
-          cancelEditing={cancelEditing}
-          draft={draft}
-          mode={mode}
-          onClose={onClose}
-          onSave={onSave}
-          saving={saving}
-        />
-      </section>
+      {details}
     </div>
   );
 }
@@ -387,6 +408,7 @@ export function ProcedureDialog({
 function ProcedureDialogHeader({
   cancelEditing,
   draft,
+  embedded,
   mode,
   onClose,
   setMode,
@@ -422,8 +444,13 @@ function ProcedureDialogHeader({
             {editing ? "Visualizar" : "Editar"}
           </button>
         ) : null}
-        <button className="iconButton" onClick={onClose} type="button">
-          <X size={18} />
+        <button
+          className="iconButton"
+          onClick={onClose}
+          title={embedded ? "Voltar para a coleção" : "Fechar"}
+          type="button"
+        >
+          {embedded ? <ArrowLeft size={18} /> : <X size={18} />}
         </button>
       </div>
     </header>
@@ -748,6 +775,7 @@ function ProcedureEditClassification({
 function ProcedureDialogFooter({
   cancelEditing,
   draft,
+  embedded,
   mode,
   onClose,
   onSave,
@@ -757,7 +785,7 @@ function ProcedureDialogFooter({
     return (
       <footer className="procedureDialogFooter">
         <button className="secondaryButton" onClick={onClose} type="button">
-          Fechar
+          {embedded ? "Voltar para a coleção" : "Fechar"}
         </button>
       </footer>
     );

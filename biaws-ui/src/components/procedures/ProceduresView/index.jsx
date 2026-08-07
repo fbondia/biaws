@@ -11,7 +11,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../constants/issues.js";
 import { CatalogFilterFields } from "../../catalog/CatalogContextFields.jsx";
@@ -32,7 +32,6 @@ import { useProceduresView } from "./hooks/useProceduresView.js";
 import { normalizeDraft } from "./model.js";
 
 export function ProceduresView({ actor }) {
-  const [focusedProcedureId, setFocusedProcedureId] = useState("");
   const {
     organizationItems,
     collections,
@@ -81,18 +80,6 @@ export function ProceduresView({ actor }) {
     visibleItems,
   } = useProceduresView(actor);
 
-  useEffect(() => {
-    if (!focusedProcedureId) return;
-    const frame = requestAnimationFrame(() => {
-      [...document.querySelectorAll("[data-collection-browser-item-id]")]
-        .find(
-          (element) =>
-            element.dataset.collectionBrowserItemId === focusedProcedureId,
-        )
-        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [focusedProcedureId, visibleItems]);
   return (
     <section className="proceduresView contentBand">
       <div className="proceduresToolbar">
@@ -150,7 +137,16 @@ export function ProceduresView({ actor }) {
         collections={collections}
         collectionsVisible={collectionsVisible}
         onShowCollections={() => setCollectionsVisible(true)}
-        pathLabel={searchActive ? "Resultados da busca" : undefined}
+        pathLabel={
+          draft?.id
+            ? `${collectionPathLabel(
+                collections,
+                draft.collectionId || "",
+              )} / ${draft.title}`
+            : searchActive
+              ? "Resultados da busca"
+              : undefined
+        }
         selectedCollectionId={selectedCollectionId}
         sidebar={
           <ResourceCollectionSidebar
@@ -180,12 +176,12 @@ export function ProceduresView({ actor }) {
             onDrop={moveDraggedItem}
             onRename={setRenamingCollection}
             onSelect={(collectionId) => {
-              setFocusedProcedureId("");
+              setDraft(null);
               setSelectedCollectionId(collectionId);
             }}
             onSelectItem={(procedure) => {
               clearFilters();
-              setFocusedProcedureId(procedure.id);
+              setDraft(normalizeDraft(procedure));
               setSelectedCollectionId(procedure.collectionId || "");
             }}
             renderItem={(procedure) => (
@@ -195,115 +191,127 @@ export function ProceduresView({ actor }) {
               </>
             )}
             selectedCollectionId={selectedCollectionId}
+            selectedItemId={draft?.id}
           />
         }
         toolbar={
-          <ResourceCollectionSearch
-            loading={loading}
-            onRefresh={() => load()}
-            onSearch={() => load()}
-            onSearchChange={setSearch}
-            placeholder="Buscar procedimentos"
-            search={search}
-          />
+          draft?.id ? null : (
+            <ResourceCollectionSearch
+              loading={loading}
+              onRefresh={() => load()}
+              onSearch={() => load()}
+              onSearchChange={setSearch}
+              placeholder="Buscar procedimentos"
+              search={search}
+            />
+          )
         }
       >
-        <section className="procedureCollectionContent">
-          {loading ? (
-            <div className="loadingLine">Carregando procedimentos...</div>
-          ) : null}
-          {!loading && !visibleItems.length ? (
-            <div className="emptyState">
-              {searchActive
-                ? "Nenhum procedimento encontrado."
-                : "Nenhum procedimento nesta coleção."}
-            </div>
-          ) : null}
-          <div className="procedureCards">
-            {visibleItems.map((procedure) => (
-              <article
-                className={[
-                  "procedureCard",
-                  "draggableProcedureCard",
-                  focusedProcedureId === procedure.id
-                    ? "resourceCollectionFocusedItem"
-                    : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                data-collection-browser-item-id={procedure.id}
-                draggable
-                key={procedure.id}
-                onDragEnd={() => setDraggedItem(null)}
-                onDragStart={(event) => {
-                  if (event.target.closest("button")) {
-                    event.preventDefault();
-                    return;
-                  }
-                  event.dataTransfer.effectAllowed = "move";
-                  event.dataTransfer.setData(
-                    "text/plain",
-                    `procedure:${procedure.id}`,
-                  );
-                  setDraggedItem({
-                    type: "procedure",
-                    id: procedure.id,
-                    collectionId: procedure.collectionId || "",
-                  });
-                }}
-              >
-                <header>
-                  <div>
-                    <GripVertical
-                      aria-hidden="true"
-                      className="procedureCardDragHandle"
-                      size={15}
-                    />
-                    <BookOpen size={18} />
-                    <h2>{procedure.title}</h2>
-                  </div>
-                  <div>
-                    <button
-                      className="iconButton"
-                      onClick={() => setDraft(normalizeDraft(procedure))}
-                      title="Visualizar"
-                      type="button"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      className="iconButton dangerIconButton"
-                      onClick={() => remove(procedure)}
-                      title="Excluir"
-                      type="button"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </header>
-                {searchActive ? (
-                  <div className="procedureCollectionLocation">
-                    <Folder size={14} />
-                    {collectionPathLabel(collections, procedure.collectionId)}
-                  </div>
-                ) : null}
-                <ProcedureClassificationSummary
-                  procedure={procedure}
-                  taxonomyPackage={taxonomyPackage}
-                />
-                <p
-                  className={
-                    procedure.summary
-                      ? "procedureCardSummary"
-                      : "procedureCardSummary emptyProcedureSummary"
-                  }
+        {draft?.id ? (
+          <ProcedureDialog
+            applications={catalog.applications}
+            components={catalog.components}
+            draft={draft}
+            embedded
+            onChange={setDraft}
+            onClose={() => setDraft(null)}
+            onPersistedChange={applyPersistedProcedure}
+            onSave={persist}
+            saving={saving}
+            taxonomyPackage={taxonomyPackage}
+          />
+        ) : (
+          <section className="procedureCollectionContent">
+            {loading ? (
+              <div className="loadingLine">Carregando procedimentos...</div>
+            ) : null}
+            {!loading && !visibleItems.length ? (
+              <div className="emptyState">
+                {searchActive
+                  ? "Nenhum procedimento encontrado."
+                  : "Nenhum procedimento nesta coleção."}
+              </div>
+            ) : null}
+            <div className="procedureCards">
+              {visibleItems.map((procedure) => (
+                <article
+                  className={["procedureCard", "draggableProcedureCard"]
+                    .filter(Boolean)
+                    .join(" ")}
+                  data-collection-browser-item-id={procedure.id}
+                  draggable
+                  key={procedure.id}
+                  onDragEnd={() => setDraggedItem(null)}
+                  onDragStart={(event) => {
+                    if (event.target.closest("button")) {
+                      event.preventDefault();
+                      return;
+                    }
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData(
+                      "text/plain",
+                      `procedure:${procedure.id}`,
+                    );
+                    setDraggedItem({
+                      type: "procedure",
+                      id: procedure.id,
+                      collectionId: procedure.collectionId || "",
+                    });
+                  }}
                 >
-                  {procedure.summary || "Sumário não informado"}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
+                  <header>
+                    <div>
+                      <GripVertical
+                        aria-hidden="true"
+                        className="procedureCardDragHandle"
+                        size={15}
+                      />
+                      <BookOpen size={18} />
+                      <h2>{procedure.title}</h2>
+                    </div>
+                    <div>
+                      <button
+                        className="iconButton"
+                        onClick={() => setDraft(normalizeDraft(procedure))}
+                        title="Visualizar"
+                        type="button"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        className="iconButton dangerIconButton"
+                        onClick={() => remove(procedure)}
+                        title="Excluir"
+                        type="button"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </header>
+                  {searchActive ? (
+                    <div className="procedureCollectionLocation">
+                      <Folder size={14} />
+                      {collectionPathLabel(collections, procedure.collectionId)}
+                    </div>
+                  ) : null}
+                  <ProcedureClassificationSummary
+                    procedure={procedure}
+                    taxonomyPackage={taxonomyPackage}
+                  />
+                  <p
+                    className={
+                      procedure.summary
+                        ? "procedureCardSummary"
+                        : "procedureCardSummary emptyProcedureSummary"
+                    }
+                  >
+                    {procedure.summary || "Sumário não informado"}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
       </ResourceCollectionsShell>
       <ProcedureDialogs
         applyPersistedProcedure={applyPersistedProcedure}
@@ -631,7 +639,7 @@ function ProcedureEntityDialogs({
           )}
         />
       ) : null}
-      {draft ? (
+      {draft && !draft.id ? (
         <ProcedureDialog
           applications={catalog.applications}
           components={catalog.components}

@@ -1,5 +1,7 @@
 import {
   Archive,
+  ArrowLeft,
+  ArrowRight,
   Check,
   Copy,
   Download,
@@ -20,15 +22,18 @@ export function SecretCard({
   canUpdate,
   canWrite,
   copied,
+  detail = false,
   draggable,
   focused,
   onArchive,
   onCopyValue,
   onDownload,
   onEdit,
+  onBack,
   onDragEnd,
   onDragStart,
   onReveal,
+  onOpen,
   onToggleValue,
   onVersion,
   revealed,
@@ -42,6 +47,7 @@ export function SecretCard({
       className={[
         "securityPanel",
         "secretCard",
+        detail ? "secretDetail embeddedCollectionItemDetail" : "",
         focused ? "resourceCollectionFocusedItem" : "",
       ]
         .filter(Boolean)
@@ -51,6 +57,13 @@ export function SecretCard({
       onDragEnd={onDragEnd}
       onDragStart={onDragStart}
     >
+      {detail ? (
+        <div className="secretDetailNavigation">
+          <button className="secondaryButton" onClick={onBack} type="button">
+            <ArrowLeft size={16} /> Voltar para a coleção
+          </button>
+        </div>
+      ) : null}
       <header className="secretCardHeader">
         <span className="secretKindIcon" aria-hidden="true">
           {isFile ? <File size={20} /> : <KeyRound size={20} />}
@@ -195,6 +208,11 @@ export function SecretCard({
           {canArchive ? (
             <button className="dangerButton" onClick={onArchive} type="button">
               <Archive size={15} /> Arquivar
+            </button>
+          ) : null}
+          {onOpen && !detail ? (
+            <button className="secondaryButton" onClick={onOpen} type="button">
+              Detalhes <ArrowRight size={15} />
             </button>
           ) : null}
         </div>

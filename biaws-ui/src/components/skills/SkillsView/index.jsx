@@ -29,7 +29,6 @@ export function SkillsView({ actor }) {
   const [search, setSearch] = useState("");
   const [publishing, setPublishing] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
-  const [focusedSkillId, setFocusedSkillId] = useState("");
   const { runWithLoading } = useLoading();
   const collectionState = useResourceCollections("skills", {
     onError: setError,
@@ -73,19 +72,6 @@ export function SkillsView({ actor }) {
   }, [result, search, collectionState.selectedCollectionId]);
   const canManageCollections = hasPermission(actor, "skills.publish");
 
-  useEffect(() => {
-    if (!focusedSkillId) return;
-    const frame = requestAnimationFrame(() => {
-      [...document.querySelectorAll("[data-collection-browser-item-id]")]
-        .find(
-          (element) =>
-            element.dataset.collectionBrowserItemId === focusedSkillId,
-        )
-        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [focusedSkillId, items]);
-
   return (
     <section className="skillsView">
       <header className="skillsToolbar">
@@ -120,6 +106,14 @@ export function SkillsView({ actor }) {
           collections={collectionState.collections}
           collectionsVisible={collectionState.collectionsVisible}
           onShowCollections={() => collectionState.setCollectionsVisible(true)}
+          pathLabel={
+            selectedSkill
+              ? `${collectionPathLabel(
+                  collectionState.collections,
+                  selectedSkill.collectionId || "",
+                )} / ${selectedSkill.name}`
+              : undefined
+          }
           selectedCollectionId={collectionState.selectedCollectionId}
           sidebar={
             <ResourceCollectionSidebar
@@ -159,12 +153,12 @@ export function SkillsView({ actor }) {
                 collectionState.setCollectionDialog(collection)
               }
               onSelect={(collectionId) => {
-                setFocusedSkillId("");
+                setSelectedSkill(null);
                 collectionState.setSelectedCollectionId(collectionId);
               }}
               onSelectItem={(skill) => {
                 setSearch("");
-                setFocusedSkillId(skill.skillId);
+                setSelectedSkill(skill);
                 collectionState.setSelectedCollectionId(
                   skill.collectionId || "",
                 );
@@ -177,104 +171,109 @@ export function SkillsView({ actor }) {
                 </>
               )}
               selectedCollectionId={collectionState.selectedCollectionId}
+              selectedItemId={selectedSkill?.skillId}
             />
           }
           toolbar={
-            <ResourceCollectionSearch
-              loading={loading}
-              onRefresh={loadSkills}
-              onSearch={loadSkills}
-              onSearchChange={setSearch}
-              placeholder="Buscar skills"
-              search={search}
-            />
+            selectedSkill ? null : (
+              <ResourceCollectionSearch
+                loading={loading}
+                onRefresh={loadSkills}
+                onSearch={loadSkills}
+                onSearchChange={setSearch}
+                placeholder="Buscar skills"
+                search={search}
+              />
+            )
           }
         >
-          <div className="skillCards">
-            {!loading && !(result?.items || []).length ? (
-              <div className="skillsEmptyState">
-                <Package size={34} />
-                <strong>Nenhuma skill encontrada</strong>
-                <span>
-                  Publique uma versão pela interface ou pelo Bondia Workspaces
-                  CLI.
-                </span>
-              </div>
-            ) : null}
-            {items.map((skill) => (
-              <article
-                className={[
-                  "skillCard",
-                  focusedSkillId === skill.skillId
-                    ? "resourceCollectionFocusedItem"
-                    : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                data-collection-browser-item-id={skill.skillId}
-                draggable={canManageCollections}
-                key={skill.skillId}
-                onDragEnd={() => collectionState.setDraggedItem(null)}
-                onDragStart={() =>
-                  collectionState.setDraggedItem({
-                    type: "item",
-                    id: skill.skillId,
-                  })
-                }
-              >
-                <header>
-                  <div className="skillCardIcon">
-                    <Package size={20} />
-                  </div>
-                  <div>
-                    <h3>{skill.name}</h3>
-                    <code>{skill.skillId}</code>
-                  </div>
-                </header>
-                <p>{skill.description}</p>
-                <dl>
-                  <div>
-                    <dt>Versão atual</dt>
-                    <dd>{skill.latestVersion}</dd>
-                  </div>
-                  <div>
-                    <dt>Versões</dt>
-                    <dd>{skill.versions.length}</dd>
-                  </div>
-                  <div>
-                    <dt>Atualizada</dt>
-                    <dd>{formatDate(skill.updatedAt)}</dd>
-                  </div>
-                </dl>
-                <footer>
-                  <span
-                    className={
-                      skill.status === "published"
-                        ? "skillStatus published"
-                        : "skillStatus deprecated"
-                    }
-                  >
-                    {skill.status === "published" ? (
-                      <CheckCircle2 size={13} />
-                    ) : (
-                      <Archive size={13} />
-                    )}
-                    {skill.status}
+          {selectedSkill ? (
+            <SkillDetailsDialog
+              embedded
+              onChanged={loadSkills}
+              onClose={() => setSelectedSkill(null)}
+              skill={selectedSkill}
+            />
+          ) : (
+            <div className="skillCards">
+              {!loading && !(result?.items || []).length ? (
+                <div className="skillsEmptyState">
+                  <Package size={34} />
+                  <strong>Nenhuma skill encontrada</strong>
+                  <span>
+                    Publique uma versão pela interface ou pelo Bondia Workspaces
+                    CLI.
                   </span>
-                  <button
-                    className="secondaryButton"
-                    onClick={() => setSelectedSkill(skill)}
-                    type="button"
-                  >
-                    Administrar
-                  </button>
-                </footer>
-              </article>
-            ))}
-            {!loading && (result?.items || []).length && !items.length ? (
-              <div className="emptyState">Nenhuma skill nesta coleção.</div>
-            ) : null}
-          </div>
+                </div>
+              ) : null}
+              {items.map((skill) => (
+                <article
+                  className="skillCard"
+                  data-collection-browser-item-id={skill.skillId}
+                  draggable={canManageCollections}
+                  key={skill.skillId}
+                  onDragEnd={() => collectionState.setDraggedItem(null)}
+                  onDragStart={() =>
+                    collectionState.setDraggedItem({
+                      type: "item",
+                      id: skill.skillId,
+                    })
+                  }
+                >
+                  <header>
+                    <div className="skillCardIcon">
+                      <Package size={20} />
+                    </div>
+                    <div>
+                      <h3>{skill.name}</h3>
+                      <code>{skill.skillId}</code>
+                    </div>
+                  </header>
+                  <p>{skill.description}</p>
+                  <dl>
+                    <div>
+                      <dt>Versão atual</dt>
+                      <dd>{skill.latestVersion}</dd>
+                    </div>
+                    <div>
+                      <dt>Versões</dt>
+                      <dd>{skill.versions.length}</dd>
+                    </div>
+                    <div>
+                      <dt>Atualizada</dt>
+                      <dd>{formatDate(skill.updatedAt)}</dd>
+                    </div>
+                  </dl>
+                  <footer>
+                    <span
+                      className={
+                        skill.status === "published"
+                          ? "skillStatus published"
+                          : "skillStatus deprecated"
+                      }
+                    >
+                      {skill.status === "published" ? (
+                        <CheckCircle2 size={13} />
+                      ) : (
+                        <Archive size={13} />
+                      )}
+                      {skill.status}
+                    </span>
+                    <button
+                      className="secondaryButton"
+                      onClick={() => setSelectedSkill(skill)}
+                      type="button"
+                    >
+                      Abrir
+                    </button>
+                  </footer>
+                </article>
+              ))}
+              {!loading && (result?.items || []).length && !items.length ? (
+                <div className="emptyState">Nenhuma skill nesta coleção.</div>
+              ) : null}
+            </div>
+          )}
         </ResourceCollectionsShell>
       ) : null}
       {collectionState.collectionDialog ? (
@@ -297,13 +296,6 @@ export function SkillsView({ actor }) {
         <PublishSkillDialog
           onClose={() => setPublishing(false)}
           onPublished={loadSkills}
-        />
-      ) : null}
-      {selectedSkill ? (
-        <SkillDetailsDialog
-          onChanged={loadSkills}
-          onClose={() => setSelectedSkill(null)}
-          skill={selectedSkill}
         />
       ) : null}
     </section>

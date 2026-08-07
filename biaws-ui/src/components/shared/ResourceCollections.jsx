@@ -280,6 +280,7 @@ function buildCollectionColumns(collections, childrenByParent, collectionId) {
 }
 
 function CollectionItemNode({
+  active,
   canDrag,
   getItemId,
   item,
@@ -299,6 +300,7 @@ function CollectionItemNode({
       className={[
         "procedureCollectionItemRow",
         viewMode === "columns" ? "procedureCollectionColumnItemRow" : "",
+        active ? "selectedResourceCollectionItem" : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -361,6 +363,7 @@ function CollectionTreeNode({
   procedureCounts,
   renderItem,
   selectedCollectionId,
+  selectedItemId,
   visited,
 }) {
   if (visited.has(collection.id)) return null;
@@ -509,11 +512,13 @@ function CollectionTreeNode({
               procedureCounts={procedureCounts}
               renderItem={renderItem}
               selectedCollectionId={selectedCollectionId}
+              selectedItemId={selectedItemId}
               visited={nextVisited}
             />
           ))}
           {collectionItems.map((item) => (
             <CollectionItemNode
+              active={selectedItemId === getItemId(item)}
               canDrag={Boolean(onDragItem) && canDragItem(item)}
               getItemId={getItemId}
               item={item}
@@ -686,6 +691,7 @@ export function ResourceCollectionSidebar({
   onSelect,
   onSelectItem,
   selectedCollectionId,
+  selectedItemId = "",
   itemLabel = "procedimentos",
   onCreate,
   onClose,
@@ -805,17 +811,6 @@ export function ResourceCollectionSidebar({
             <ListTree aria-hidden="true" size={15} />
           )}
         </button>
-        {onClose ? (
-          <button
-            aria-label="Ocultar coleções"
-            className="iconButton resourceCollectionCloseButton"
-            onClick={onClose}
-            title="Ocultar coleções"
-            type="button"
-          >
-            <X size={16} />
-          </button>
-        ) : null}
       </header>
 
       {viewMode === "tree" ? (
@@ -893,11 +888,13 @@ export function ResourceCollectionSidebar({
                   procedureCounts={procedureCounts}
                   renderItem={renderItem}
                   selectedCollectionId={selectedCollectionId}
+                  selectedItemId={selectedItemId}
                   visited={new Set()}
                 />
               ))}
               {(itemsByCollection.get("") || []).map((item) => (
                 <CollectionItemNode
+                  active={selectedItemId === getItemId(item)}
                   canDrag={Boolean(onDragItem) && canDragItem(item)}
                   getItemId={getItemId}
                   item={item}
@@ -1010,6 +1007,7 @@ export function ResourceCollectionSidebar({
 
                 {(itemsByCollection.get(column.parentId) || []).map((item) => (
                   <CollectionItemNode
+                    active={selectedItemId === getItemId(item)}
                     canDrag={Boolean(onDragItem) && canDragItem(item)}
                     getItemId={getItemId}
                     item={item}

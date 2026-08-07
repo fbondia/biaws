@@ -1,6 +1,7 @@
 import {
   Boxes,
   ChevronRight,
+  Filter,
   Layers3,
   Network,
   Plus,
@@ -101,6 +102,7 @@ export function CatalogTopologyTab({
   const [selectedComponentId, setSelectedComponentId] = useState("");
   const [selectedDeploymentId, setSelectedDeploymentId] = useState("");
   const [diagramOpen, setDiagramOpen] = useState(false);
+  const [deployableOnly, setDeployableOnly] = useState(false);
   const canReadComponents = hasPermission(actor, "components.read");
   const canReadDeployments = hasPermission(actor, "deployments.read");
   const canReadRuntimes = hasPermission(actor, "runtimes.read");
@@ -122,6 +124,13 @@ export function CatalogTopologyTab({
       status: "unknown",
     }));
   }, [canReadComponents, context.components, context.deployments]);
+  const visibleComponents = useMemo(() => {
+    if (!deployableOnly) return components;
+    const deployableComponentIds = new Set(
+      context.deployments.map(({ componentId }) => componentId),
+    );
+    return components.filter(({ id }) => deployableComponentIds.has(id));
+  }, [components, context.deployments, deployableOnly]);
 
   const deployments = useMemo(
     () =>
@@ -145,12 +154,12 @@ export function CatalogTopologyTab({
   useEffect(() => {
     if (
       selectedComponentId &&
-      !components.some(({ id }) => id === selectedComponentId)
+      !visibleComponents.some(({ id }) => id === selectedComponentId)
     ) {
       setSelectedComponentId("");
       setSelectedDeploymentId("");
     }
-  }, [components, selectedComponentId]);
+  }, [selectedComponentId, visibleComponents]);
 
   useEffect(() => {
     if (
@@ -191,15 +200,32 @@ export function CatalogTopologyTab({
           Navegue da estrutura lógica da aplicação até suas instâncias em
           execução.
         </span>
-        {canViewDiagram ? (
-          <button
-            className="secondaryButton"
-            onClick={() => setDiagramOpen(true)}
-            type="button"
-          >
-            <Network size={16} /> Visualizar topologia
-          </button>
-        ) : null}
+        <div className="catalogHeaderActions">
+          {canReadComponents && canReadDeployments ? (
+            <button
+              aria-pressed={deployableOnly}
+              className={
+                deployableOnly
+                  ? "secondaryButton catalogDeployableFilterButton isActive"
+                  : "secondaryButton catalogDeployableFilterButton"
+              }
+              onClick={() => setDeployableOnly((current) => !current)}
+              title="Exibir somente componentes com deployment configurado"
+              type="button"
+            >
+              <Filter size={16} /> Somente deployáveis
+            </button>
+          ) : null}
+          {canViewDiagram ? (
+            <button
+              className="secondaryButton"
+              onClick={() => setDiagramOpen(true)}
+              type="button"
+            >
+              <Network size={16} /> Visualizar topologia
+            </button>
+          ) : null}
+        </div>
       </div>
       <div
         aria-label="Componentes, deployments e runtimes"
@@ -221,12 +247,12 @@ export function CatalogTopologyTab({
                 </button>
               ) : null
             }
-            count={components.length}
+            count={visibleComponents.length}
             icon={Boxes}
             title="Componentes"
           />
           <div className="catalogColumnList">
-            {components.map((component) => (
+            {visibleComponents.map((component) => (
               <TopologyRow
                 actions={
                   canReadComponents
@@ -245,11 +271,13 @@ export function CatalogTopologyTab({
                 onSelect={() => selectComponent(component.id)}
               />
             ))}
-            {!components.length ? (
+            {!visibleComponents.length ? (
               <EmptyColumn>
-                {canReadComponents
-                  ? "Nenhum componente cadastrado."
-                  : "Nenhum componente acessível pelos deployments disponíveis."}
+                {deployableOnly
+                  ? "Nenhum componente com deployment configurado."
+                  : canReadComponents
+                    ? "Nenhum componente cadastrado."
+                    : "Nenhum componente acessível pelos deployments disponíveis."}
               </EmptyColumn>
             ) : null}
           </div>

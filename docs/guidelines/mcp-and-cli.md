@@ -11,6 +11,7 @@ autorização e tenancy.
 - selecionar o workspace pelo mecanismo comum do cliente HTTP;
 - validar argumentos antes de iniciar uma mutação;
 - manter erros úteis, sem incluir stack ou segredo na saída normal;
+- limitar chamadas HTTP com timeout e propagar cancelamento do cliente;
 - oferecer paginação e limites em operações de lista;
 - preferir operações intencionais de domínio a primitivas genéricas.
 
@@ -38,6 +39,8 @@ O service deve:
 - usar `cleanParams`, `fetchJson`, `sendJson`, `deleteJson` ou
   `sendMultipart` conforme o contrato;
 - preservar o erro HTTP relevante para o chamador;
+- devolver falhas funcionais de `tools/call` com `isError: true`; erros JSON-RPC
+  ficam restritos ao protocolo e sempre usam códigos numéricos;
 - não reimplementar permissão ou regras de persistência.
 
 Ferramentas destrutivas ou irreversíveis precisam de identificadores explícitos

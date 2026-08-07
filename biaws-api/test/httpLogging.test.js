@@ -182,6 +182,45 @@ test("functional 4xx errors remain actionable and health checks are quiet", () =
   );
 });
 
+test("functional 4xx errors preserve explicitly public structured details", () => {
+  const { logger } = captureLogger();
+  const { req, res } = createRequest(logger, {
+    path: "/client-error",
+    headers: { "x-request-id": "structured-error-123" },
+  });
+  const error = new Error("The supplied payload is invalid");
+  error.statusCode = 422;
+  error.code = "VALIDATION_ERROR";
+  error.fields = [
+    {
+      path: "applicationId",
+      code: "required",
+      message: "applicationId is required",
+      internalValue: "must-not-be-exposed",
+    },
+  ];
+  error.requiredPermissions = ["issues.write"];
+  error.retryable = false;
+  createErrorHandler(logger)(error, req, res, () => {});
+
+  assert.deepEqual(res.body, {
+    error: {
+      code: "VALIDATION_ERROR",
+      message: "The supplied payload is invalid",
+      requestId: "structured-error-123",
+      requiredPermissions: ["issues.write"],
+      fields: [
+        {
+          path: "applicationId",
+          code: "required",
+          message: "applicationId is required",
+        },
+      ],
+      retryable: false,
+    },
+  });
+});
+
 test("error serialization preserves bounded causes for server-side diagnosis", () => {
   const root = new Error("database unavailable");
   root.code = "ECONNREFUSED";

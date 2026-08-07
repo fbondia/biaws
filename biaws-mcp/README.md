@@ -36,6 +36,14 @@ MCP preserva esse valor mesmo ao carregar `BIAWS_ENV_FILE` e o envia como
 `X-Biaws-Workspace-Id`; argumentos das tools não ampliam esse escopo. A chave
 precisa pertencer ao workspace — selecionar o ID não concede permissões.
 
+Chamadas HTTP são interrompidas após 15 segundos por padrão. Defina
+`BIAWS_MCP_HTTP_TIMEOUT_MS` para alterar esse limite, até o máximo de 120
+segundos. O timeout cobre tanto a conexão quanto a leitura do corpo da resposta.
+Leituras com falhas transitórias (`429`, `502`, `503` ou `504`) recebem até duas
+novas tentativas com backoff; `BIAWS_MCP_HTTP_RETRIES` configura esse número
+entre zero e três. Escritas, autenticação, autorização e validação nunca são
+repetidas automaticamente.
+
 ## Execução
 
 Suba a `biaws-api` em outro terminal e execute:
@@ -202,6 +210,12 @@ strings. A `ISSUE_API_KEY` é a única credencial do processo e
 
 Erros da API mantêm o status e o código funcional para que o agente diferencie
 falta de autenticação (`401`), falta de permissão (`403`), recurso inexistente
-(`404`), conflito (`409`) e payload ou relação inválida (`422`).
+(`404`), conflito (`409`) e payload ou relação inválida (`422`). Erros de
+execução são devolvidos como resultado MCP com `isError: true`, conteúdo textual
+e `structuredContent.error`; não são convertidos em erro de protocolo JSON-RPC.
+Quando disponíveis, o resultado também preserva `requiredPermissions`, erros
+por campo, `requestId` e a indicação `retryable`. Chamadas simultâneas são
+isoladas, e `notifications/cancelled` interrompe o HTTP associado sem bloquear
+as demais ferramentas.
 
 Para `issues_import_eml`, o agente deve fornecer `filename` e o conteúdo integral em `contentBase64`. Para efetivar a escrita, deve informar explicitamente `dryRun: false`; caso contrário, a ferramenta apenas retorna a issue, os comentários e os anexos que seriam importados.

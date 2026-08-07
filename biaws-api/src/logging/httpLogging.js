@@ -85,11 +85,34 @@ function publicError(error, statusCode, requestId) {
     };
   }
 
-  return {
+  const result = {
     code: error?.code || (statusCode === 404 ? "NOT_FOUND" : "BAD_REQUEST"),
     message: error?.message || "The request could not be processed",
     requestId,
   };
+
+  if (Array.isArray(error?.requiredPermissions)) {
+    result.requiredPermissions = error.requiredPermissions.map(String);
+  }
+  if (Array.isArray(error?.fields)) {
+    result.fields = error.fields.map(({ path, code, message }) => ({
+      path: String(path || ""),
+      code: String(code || "invalid"),
+      message: String(message || "Invalid value"),
+    }));
+  }
+  if (
+    error?.details &&
+    typeof error.details === "object" &&
+    !Array.isArray(error.details)
+  ) {
+    result.details = error.details;
+  }
+  if (typeof error?.retryable === "boolean") {
+    result.retryable = error.retryable;
+  }
+
+  return result;
 }
 
 export function createErrorHandler(logger) {

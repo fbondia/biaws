@@ -70,6 +70,8 @@ Para MCP, cubra:
 - dispatch para o handler esperado;
 - tradução de argumentos para request HTTP;
 - propagação segura de falhas.
+- timeout e cancelamento sem bloquear chamadas concorrentes;
+- erro funcional via `isError: true` e erro JSON-RPC com código numérico.
 
 Para CLI, cubra parsing, defaults, modo `--json`, paths e resultado/exit code.
 Isole filesystem em diretório temporário e nunca use configuração real do

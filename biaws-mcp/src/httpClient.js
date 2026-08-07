@@ -1,3 +1,12 @@
+import { currentRequestSignal } from "./requestContext.js";
+import { setTimeout as delay } from "node:timers/promises";
+
+const DEFAULT_TIMEOUT_MS = 15_000;
+const MAX_TIMEOUT_MS = 120_000;
+const DEFAULT_RETRIES = 2;
+const MAX_RETRIES = 3;
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+
 function readBaseUrl() {
   const explicit =
     process.env.ISSUE_API_URL ||
@@ -8,6 +17,20 @@ function readBaseUrl() {
   const host = process.env.ISSUE_API_HOST || process.env.HOST || "127.0.0.1";
   const port = process.env.ISSUE_API_PORT || process.env.PORT || "3100";
   return `http://${host}:${port}`;
+}
+
+function readTimeoutMs() {
+  const configured = Number(process.env.BIAWS_MCP_HTTP_TIMEOUT_MS);
+  return Number.isFinite(configured) && configured > 0
+    ? Math.min(configured, MAX_TIMEOUT_MS)
+    : DEFAULT_TIMEOUT_MS;
+}
+
+function readMaxRetries() {
+  const configured = Number(process.env.BIAWS_MCP_HTTP_RETRIES);
+  return Number.isInteger(configured) && configured >= 0
+    ? Math.min(configured, MAX_RETRIES)
+    : DEFAULT_RETRIES;
 }
 
 function buildUrl(path, params = {}) {
@@ -27,16 +50,31 @@ function authenticationHeaders() {
   const apiKey = String(process.env.ISSUE_API_KEY || "").trim();
   const workspaceId = String(process.env.ISSUE_WORKSPACE_ID || "").trim();
   return {
+    Accept: "application/json",
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     ...(workspaceId ? { "X-Biaws-Workspace-Id": workspaceId } : {}),
   };
 }
 
+function copyPublicErrorDetails(error, apiError = {}) {
+  for (const field of [
+    "requiredPermissions",
+    "fields",
+    "details",
+    "retryable",
+  ]) {
+    if (apiError[field] !== undefined) error[field] = apiError[field];
+  }
+}
+
 function responseError(response, payload) {
-  const error = new Error(payload.error?.message || `HTTP ${response.status}`);
+  const apiError = payload?.error || {};
+  const error = new Error(
+    apiError.message || payload?.message || `HTTP ${response.status}`,
+  );
   error.statusCode = response.status;
   error.code =
-    payload.error?.code ||
+    apiError.code ||
     {
       400: "BAD_REQUEST",
       401: "UNAUTHENTICATED",
@@ -46,7 +84,90 @@ function responseError(response, payload) {
       422: "UNPROCESSABLE_ENTITY",
     }[response.status] ||
     "ISSUE_API_ERROR";
+  error.requestId =
+    apiError.requestId || response.headers.get("x-request-id") || undefined;
+  error.retryable =
+    typeof apiError.retryable === "boolean"
+      ? apiError.retryable
+      : RETRYABLE_STATUSES.has(response.status);
+  copyPublicErrorDetails(error, apiError);
   return error;
+}
+
+function transportError(error, url, externalSignal) {
+  if (externalSignal?.aborted) {
+    const cancelled = new Error("The MCP request was cancelled");
+    cancelled.code = "REQUEST_CANCELLED";
+    cancelled.statusCode = 499;
+    cancelled.retryable = false;
+    return cancelled;
+  }
+  if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+    const timeout = new Error(
+      `biaws-api did not respond within ${readTimeoutMs()}ms`,
+    );
+    timeout.code = "UPSTREAM_TIMEOUT";
+    timeout.statusCode = 504;
+    timeout.retryable = true;
+    return timeout;
+  }
+  const unavailable = new Error(
+    `Failed to reach biaws-api at ${url.origin}: ${error.message}`,
+    { cause: error },
+  );
+  unavailable.code = "UPSTREAM_UNAVAILABLE";
+  unavailable.statusCode = 503;
+  unavailable.retryable = true;
+  return unavailable;
+}
+
+async function readPayload(response) {
+  const text = await response.text();
+  if (!text.trim()) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
+}
+
+async function requestJson(
+  path,
+  { method, body, params = {}, headers = {} } = {},
+) {
+  const url = buildUrl(path, params);
+  const externalSignal = currentRequestSignal();
+  const timeoutSignal = AbortSignal.timeout(readTimeoutMs());
+  const signal = externalSignal
+    ? AbortSignal.any([externalSignal, timeoutSignal])
+    : timeoutSignal;
+  const maxRetries = !method || method === "GET" ? readMaxRetries() : 0;
+
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        ...(method ? { method } : {}),
+        headers: { ...authenticationHeaders(), ...headers },
+        body,
+        signal,
+      });
+      const payload = await readPayload(response);
+      if (!response.ok) throw responseError(response, payload);
+      return payload;
+    } catch (cause) {
+      const error = cause?.statusCode
+        ? cause
+        : transportError(cause, url, externalSignal);
+      if (attempt >= maxRetries || error.retryable !== true || signal.aborted) {
+        throw error;
+      }
+      try {
+        await delay(100 * 2 ** attempt, undefined, { signal });
+      } catch (delayError) {
+        throw transportError(delayError, url, externalSignal);
+      }
+    }
+  }
 }
 
 export function cleanParams(value = {}) {
@@ -57,70 +178,23 @@ export function cleanParams(value = {}) {
   );
 }
 
-export async function fetchJson(path, params = {}) {
-  const url = buildUrl(path, params);
-  let response;
-
-  try {
-    response = await fetch(url, { headers: authenticationHeaders() });
-  } catch (error) {
-    throw new Error(
-      `Failed to reach biaws-api at ${url.origin}: ${error.message}`,
-      { cause: error },
-    );
-  }
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw responseError(response, payload);
-  }
-
-  return payload;
+export function fetchJson(path, params = {}) {
+  return requestJson(path, { params });
 }
 
-export async function sendJson(path, body = {}, params = {}, method = "PUT") {
-  const response = await fetch(buildUrl(path, params), {
+export function sendJson(path, body = {}, params = {}, method = "PUT") {
+  return requestJson(path, {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      ...authenticationHeaders(),
-    },
+    params,
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw responseError(response, payload);
-  }
-
-  return payload;
 }
 
-export async function deleteJson(path, params = {}) {
-  const response = await fetch(buildUrl(path, params), {
-    method: "DELETE",
-    headers: authenticationHeaders(),
-  });
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw responseError(response, payload);
-  }
-
-  return payload;
+export function deleteJson(path, params = {}) {
+  return requestJson(path, { method: "DELETE", params });
 }
 
-export async function sendMultipart(path, form, params = {}) {
-  const response = await fetch(buildUrl(path, params), {
-    method: "POST",
-    headers: authenticationHeaders(),
-    body: form,
-  });
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw responseError(response, payload);
-  }
-
-  return payload;
+export function sendMultipart(path, form, params = {}) {
+  return requestJson(path, { method: "POST", params, body: form });
 }

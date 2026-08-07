@@ -23,7 +23,7 @@ import {
   ResourceCollectionSearch,
   ResourceCollectionNavigator,
   ResourceCollectionsShell,
-} from "../shared/ResourceCollections.jsx";
+} from "../shared/ResourceCollections/index.jsx";
 import { CatalogEntityDialog } from "./CatalogEntityDialog.jsx";
 import { buildServerApplicationGroups } from "./serverApplicationModel.js";
 

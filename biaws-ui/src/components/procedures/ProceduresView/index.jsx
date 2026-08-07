@@ -23,7 +23,7 @@ import {
   ResourceCollectionSearch,
   ResourceCollectionNavigator,
   ResourceCollectionsShell,
-} from "../../shared/ResourceCollections.jsx";
+} from "../../shared/ResourceCollections/index.jsx";
 import {
   ProcedureClassificationSummary,
   ProcedureDialog,

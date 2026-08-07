@@ -8,7 +8,7 @@ import {
   ResourceCollectionSearch,
   ResourceCollectionNavigator,
   ResourceCollectionsShell,
-} from "../../shared/ResourceCollections.jsx";
+} from "../../shared/ResourceCollections/index.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { CatalogEntityDialog } from "../CatalogEntityDialog.jsx";
 import { HeaderActions } from "./components/CatalogComponents.jsx";

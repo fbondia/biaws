@@ -15,7 +15,7 @@ import {
   ResourceCollectionSearch,
   ResourceCollectionNavigator,
   ResourceCollectionsShell,
-} from "../../shared/ResourceCollections.jsx";
+} from "../../shared/ResourceCollections/index.jsx";
 import { useLoading } from "../../shared/LoadingProvider.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { PublishSkillDialog } from "./components/PublishSkillDialog.jsx";

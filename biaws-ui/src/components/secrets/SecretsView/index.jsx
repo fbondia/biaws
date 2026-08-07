@@ -8,7 +8,7 @@ import {
   ResourceCollectionSearch,
   ResourceCollectionNavigator,
   ResourceCollectionsShell,
-} from "../../shared/ResourceCollections.jsx";
+} from "../../shared/ResourceCollections/index.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { CreateSecretDialog } from "./components/CreateSecretDialog.jsx";
 import { EditSecretDialog } from "./components/EditSecretDialog.jsx";

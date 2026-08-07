@@ -12,7 +12,6 @@ export function useResourceCollections(
   { onError, onMoved } = {},
 ) {
   const [collections, setCollections] = useState([]);
-  const [collectionsVisible, setCollectionsVisible] = useState(true);
   const [selectedCollectionId, setSelectedCollectionId] = useState("");
   const [draggedItem, setDraggedItem] = useState(null);
   const [collectionDialog, setCollectionDialog] = useState(null);
@@ -91,7 +90,6 @@ export function useResourceCollections(
   return {
     collectionDialog,
     collections,
-    collectionsVisible,
     createCollection,
     draggedItem,
     dropItem,
@@ -100,7 +98,6 @@ export function useResourceCollections(
     saveCollection,
     selectedCollectionId,
     setCollectionDialog,
-    setCollectionsVisible,
     setDraggedItem,
     setSelectedCollectionId,
   };

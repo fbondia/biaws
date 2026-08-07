@@ -13,7 +13,7 @@ import {
   collectionPathLabel,
   ResourceCollectionDialog,
   ResourceCollectionSearch,
-  ResourceCollectionSidebar,
+  ResourceCollectionNavigator,
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections.jsx";
 import { useLoading } from "../../shared/LoadingProvider.jsx";
@@ -104,8 +104,11 @@ export function SkillsView({ actor }) {
       {!loading || result ? (
         <ResourceCollectionsShell
           collections={collectionState.collections}
-          collectionsVisible={collectionState.collectionsVisible}
-          onShowCollections={() => collectionState.setCollectionsVisible(true)}
+          detailVisible={Boolean(selectedSkill)}
+          draggedItem={collectionState.draggedItem}
+          onDropRoot={() => collectionState.dropItem("", moveSkillToCollection)}
+          onNavigateBack={() => setSelectedSkill(null)}
+          onSelectCollection={collectionState.setSelectedCollectionId}
           pathLabel={
             selectedSkill
               ? `${collectionPathLabel(
@@ -115,8 +118,8 @@ export function SkillsView({ actor }) {
               : undefined
           }
           selectedCollectionId={collectionState.selectedCollectionId}
-          sidebar={
-            <ResourceCollectionSidebar
+          navigator={
+            <ResourceCollectionNavigator
               canDragItem={() => canManageCollections}
               collections={collectionState.collections}
               draggedItem={collectionState.draggedItem}
@@ -129,7 +132,6 @@ export function SkillsView({ actor }) {
                   : undefined
               }
               onDelete={collectionState.removeCollection}
-              onClose={() => collectionState.setCollectionsVisible(false)}
               onDragCollection={
                 canManageCollections
                   ? (collection) =>
@@ -261,7 +263,12 @@ export function SkillsView({ actor }) {
                     </span>
                     <button
                       className="secondaryButton"
-                      onClick={() => setSelectedSkill(skill)}
+                      onClick={() => {
+                        setSelectedSkill(skill);
+                        collectionState.setSelectedCollectionId(
+                          skill.collectionId || "",
+                        );
+                      }}
                       type="button"
                     >
                       Abrir

@@ -1,5 +1,6 @@
 import {
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Columns3,
   Folder,
@@ -15,10 +16,6 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-
-const COLLECTION_SIDEBAR_MIN_WIDTH = 220;
-const COLLECTION_SIDEBAR_MAX_WIDTH = 640;
-const COLLECTION_CONTENT_MIN_WIDTH = 320;
 
 function sortCollections(items) {
   return [...items].sort((first, second) =>
@@ -66,113 +63,97 @@ export function collectionPathLabel(collections = [], collectionId = "") {
   return path.length ? path.join(" / ") : "Raiz";
 }
 
+function parentCollectionId(collections = [], collectionId = "") {
+  if (!collectionId) return "";
+  return (
+    collections.find((collection) => collection.id === collectionId)
+      ?.parentId || ""
+  );
+}
+
 export function ResourceCollectionsShell({
   children,
   className = "",
   collections,
-  collectionsVisible = true,
-  onShowCollections,
+  detailVisible = false,
+  draggedItem,
+  onDropRoot,
+  onNavigateBack,
+  onSelectCollection,
   pathLabel,
   selectedCollectionId,
-  sidebar,
+  navigator,
   toolbar,
 }) {
-  const layoutRef = useRef(null);
-  const [sidebarWidth, setSidebarWidth] = useState(270);
-  const [resizingSidebar, setResizingSidebar] = useState(false);
+  const [rootDropActive, setRootDropActive] = useState(false);
+  const canNavigateBack = Boolean(detailVisible || selectedCollectionId);
 
-  function clampSidebarWidth(width) {
-    const layoutWidth = layoutRef.current?.getBoundingClientRect().width;
-    const availableWidth = layoutWidth
-      ? layoutWidth - COLLECTION_CONTENT_MIN_WIDTH
-      : COLLECTION_SIDEBAR_MAX_WIDTH;
-    const maximumWidth = Math.max(
-      COLLECTION_SIDEBAR_MIN_WIDTH,
-      Math.min(COLLECTION_SIDEBAR_MAX_WIDTH, availableWidth),
-    );
-    return Math.min(
-      maximumWidth,
-      Math.max(COLLECTION_SIDEBAR_MIN_WIDTH, width),
-    );
-  }
-
-  function resizeSidebar(clientX) {
-    const layoutLeft = layoutRef.current?.getBoundingClientRect().left;
-    if (layoutLeft === undefined) return;
-    setSidebarWidth(clampSidebarWidth(clientX - layoutLeft));
-  }
+  useEffect(() => {
+    if (!draggedItem) setRootDropActive(false);
+  }, [draggedItem]);
 
   return (
     <div
       className={[
         "resourceCollectionsLayout",
         className,
-        !collectionsVisible ? "resourceCollectionsCollapsed" : "",
+        detailVisible ? "resourceCollectionsDetailVisible" : "",
       ]
         .filter(Boolean)
         .join(" ")}
-      ref={layoutRef}
-      style={{
-        "--resource-collections-sidebar-width": `${sidebarWidth}px`,
-      }}
     >
-      {sidebar}
-      {collectionsVisible && sidebar ? (
-        <div
-          aria-label="Redimensionar coluna de coleções"
-          aria-orientation="vertical"
-          aria-valuemax={COLLECTION_SIDEBAR_MAX_WIDTH}
-          aria-valuemin={COLLECTION_SIDEBAR_MIN_WIDTH}
-          aria-valuenow={sidebarWidth}
+      <div className="resourceCollectionBar">
+        <button
           className={[
-            "resourceCollectionsResizer",
-            resizingSidebar ? "resourceCollectionsResizing" : "",
+            "resourceCollectionPath",
+            rootDropActive ? "procedureCollectionDropTarget" : "",
           ]
             .filter(Boolean)
             .join(" ")}
-          onKeyDown={(event) => {
-            let nextWidth;
-            if (event.key === "ArrowLeft") nextWidth = sidebarWidth - 20;
-            if (event.key === "ArrowRight") nextWidth = sidebarWidth + 20;
-            if (event.key === "Home") nextWidth = COLLECTION_SIDEBAR_MIN_WIDTH;
-            if (event.key === "End") nextWidth = COLLECTION_SIDEBAR_MAX_WIDTH;
-            if (nextWidth === undefined) return;
+          onClick={() => {
+            if (detailVisible) onNavigateBack?.();
+            else if (selectedCollectionId) {
+              onSelectCollection?.(
+                parentCollectionId(collections, selectedCollectionId),
+              );
+            }
+          }}
+          onDragLeave={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setRootDropActive(false);
+            }
+          }}
+          onDragOver={(event) => {
+            if (!draggedItem || !onDropRoot) return;
             event.preventDefault();
-            setSidebarWidth(clampSidebarWidth(nextWidth));
+            event.dataTransfer.dropEffect = "move";
+            setRootDropActive(true);
           }}
-          onLostPointerCapture={() => setResizingSidebar(false)}
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-            setResizingSidebar(true);
+          onDrop={(event) => {
+            if (!draggedItem || !onDropRoot) return;
+            event.preventDefault();
+            setRootDropActive(false);
+            onDropRoot();
           }}
-          onPointerMove={(event) => {
-            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
-            resizeSidebar(event.clientX);
-          }}
-          onPointerUp={(event) => {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-            setResizingSidebar(false);
-          }}
-          role="separator"
-          tabIndex={0}
-          title="Arraste para redimensionar a coluna de coleções"
-        />
-      ) : null}
-      <div className="resourceCollectionContent">
-        <div className="resourceCollectionBar">
-          <button
-            aria-expanded={collectionsVisible}
-            className="resourceCollectionPath"
-            onClick={onShowCollections}
-            title="Mostrar coleções"
-            type="button"
-          >
-            {pathLabel ||
-              collectionPathLabel(collections, selectedCollectionId)}
-          </button>
-          {toolbar}
-        </div>
-        {children}
+          title={
+            detailVisible
+              ? "Voltar à coleção"
+              : selectedCollectionId
+                ? "Voltar à coleção anterior"
+                : "Raiz"
+          }
+          type="button"
+        >
+          {canNavigateBack ? (
+            <ChevronLeft aria-hidden="true" size={15} />
+          ) : null}
+          {pathLabel || collectionPathLabel(collections, selectedCollectionId)}
+        </button>
+        {toolbar}
+      </div>
+      <div className="resourceCollectionsBody">
+        {navigator}
+        <div className="resourceCollectionContent">{children}</div>
       </div>
     </div>
   );
@@ -677,7 +658,7 @@ function CollectionAddForm({ disabled, error, name, onChange, onSubmit }) {
   );
 }
 
-export function ResourceCollectionSidebar({
+export function ResourceCollectionNavigator({
   canDragItem = () => true,
   collections,
   draggedItem,
@@ -694,13 +675,17 @@ export function ResourceCollectionSidebar({
   selectedItemId = "",
   itemLabel = "procedimentos",
   onCreate,
-  onClose,
   onRename,
   renderItem,
 }) {
   const [collapsedIds, setCollapsedIds] = useState(() => new Set());
   const [dropTargetId, setDropTargetId] = useState(null);
-  const [viewMode, setViewMode] = useState("tree");
+  const [viewMode, setViewMode] = useState(() =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 900px)").matches
+      ? "columns"
+      : "tree",
+  );
   const [collectionDrafts, setCollectionDrafts] = useState({});
   const [creatingParentId, setCreatingParentId] = useState(null);
   const [creationError, setCreationError] = useState(null);
@@ -742,6 +727,14 @@ export function ResourceCollectionSidebar({
       ),
     [childrenByParent, collections, selectedCollectionId],
   );
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 900px)");
+    const adaptViewMode = ({ matches }) =>
+      setViewMode(matches ? "columns" : "tree");
+    media.addEventListener("change", adaptViewMode);
+    return () => media.removeEventListener("change", adaptViewMode);
+  }, []);
 
   useEffect(() => {
     if (viewMode !== "columns") return;
@@ -817,43 +810,6 @@ export function ResourceCollectionSidebar({
         <div className="procedureCollectionTree">
           <div className="procedureCollectionTreeScroll">
             <div className="procedureCollectionTreeInner">
-              <div
-                className={[
-                  "procedureCollectionTreeRow",
-                  "procedureCollectionRootRow",
-                  !selectedCollectionId ? "selectedProcedureCollection" : "",
-                  dropTargetId === "" ? "procedureCollectionDropTarget" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                onDragLeave={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget))
-                    setDropTargetId(null);
-                }}
-                onDragOver={(event) => {
-                  if (!draggedItem) return;
-                  event.preventDefault();
-                  event.dataTransfer.dropEffect = "move";
-                  setDropTargetId("");
-                }}
-                onDrop={(event) => {
-                  if (!draggedItem) return;
-                  event.preventDefault();
-                  dropAt("");
-                }}
-              >
-                <span className="procedureCollectionRootSpacer" />
-                <button
-                  className="procedureCollectionSelectButton"
-                  onClick={() => onSelect("")}
-                  type="button"
-                >
-                  <FolderOpen size={16} />
-                  <span>Raiz</span>
-                  <small>{procedureCounts[""] || 0}</small>
-                </button>
-              </div>
-
               {(childrenByParent.get("") || []).map((collection) => (
                 <CollectionTreeNode
                   canDragItem={canDragItem}
@@ -937,46 +893,6 @@ export function ResourceCollectionSidebar({
               role="group"
             >
               <div className="procedureCollectionColumnList">
-                {columnIndex === 0 ? (
-                  <div
-                    aria-selected={!selectedCollectionId}
-                    className={[
-                      "procedureCollectionColumnRow",
-                      "procedureCollectionColumnRootRow",
-                      !selectedCollectionId
-                        ? "selectedProcedureCollection"
-                        : "",
-                      dropTargetId === ""
-                        ? "procedureCollectionDropTarget"
-                        : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    onDragOver={(event) => {
-                      if (!draggedItem) return;
-                      event.preventDefault();
-                      event.dataTransfer.dropEffect = "move";
-                      setDropTargetId("");
-                    }}
-                    onDrop={(event) => {
-                      if (!draggedItem) return;
-                      event.preventDefault();
-                      dropAt("");
-                    }}
-                    role="treeitem"
-                  >
-                    <button
-                      className="procedureCollectionColumnSelectButton"
-                      onClick={() => onSelect("")}
-                      type="button"
-                    >
-                      <FolderOpen size={16} />
-                      <span>Raiz</span>
-                      <small>{procedureCounts[""] || 0}</small>
-                    </button>
-                  </div>
-                ) : null}
-
                 {column.collections.map((collection) => (
                   <CollectionColumnRow
                     active={

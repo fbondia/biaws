@@ -2196,21 +2196,6 @@
 }
 
 @media (max-width: 1120px) {
-  .resourceCollectionsLayout.applicationsCollectionsLayout,
-  .resourceCollectionsLayout.serversCollectionsLayout {
-    grid-template-columns: 1fr;
-  }
-
-  .applicationsCollectionsLayout .procedureCollectionsPanel,
-  .serversCollectionsLayout .procedureCollectionsPanel {
-    position: static;
-  }
-
-  .applicationsCollectionsLayout .resourceCollectionsResizer,
-  .serversCollectionsLayout .resourceCollectionsResizer {
-    display: none;
-  }
-
   .applicationsCollectionsLayout .procedureCollectionTree,
   .serversCollectionsLayout .procedureCollectionTree {
     max-height: 280px;
@@ -2237,13 +2222,6 @@
   .serversCollectionsLayout .resourceCollectionSearchInput {
     width: auto;
     flex: 1 1 auto;
-  }
-
-  .catalogResourceSelected > .procedureCollectionsPanel,
-  .catalogResourceSelected
-    > .resourceCollectionContent
-    > .resourceCollectionBar {
-    display: none;
   }
 }
 

@@ -20,7 +20,6 @@ export function useProceduresView(actor) {
   const [items, setItems] = useState([]);
   const [organizationItems, setOrganizationItems] = useState([]);
   const [collections, setCollections] = useState([]);
-  const [collectionsVisible, setCollectionsVisible] = useState(true);
   const [search, setSearch] = useState("");
   const [taxonomyFilters, setTaxonomyFilters] = useState([]);
   const [tagFilters, setTagFilters] = useState({});

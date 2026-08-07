@@ -6,7 +6,7 @@ import {
   collectionPathLabel,
   ResourceCollectionDialog,
   ResourceCollectionSearch,
-  ResourceCollectionSidebar,
+  ResourceCollectionNavigator,
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
@@ -147,8 +147,11 @@ export function SecretsView({ actor }) {
       ) : null}
       <ResourceCollectionsShell
         collections={collectionState.collections}
-        collectionsVisible={collectionState.collectionsVisible}
-        onShowCollections={() => collectionState.setCollectionsVisible(true)}
+        detailVisible={Boolean(selectedSecret)}
+        draggedItem={collectionState.draggedItem}
+        onDropRoot={() => collectionState.dropItem("", moveSecretToCollection)}
+        onNavigateBack={closeSecret}
+        onSelectCollection={collectionState.setSelectedCollectionId}
         pathLabel={
           selectedSecret
             ? `${collectionPathLabel(
@@ -158,8 +161,8 @@ export function SecretsView({ actor }) {
             : undefined
         }
         selectedCollectionId={collectionState.selectedCollectionId}
-        sidebar={
-          <ResourceCollectionSidebar
+        navigator={
+          <ResourceCollectionNavigator
             canDragItem={(secret) =>
               permissions.update && allowed("secrets.update", secret)
             }
@@ -171,7 +174,6 @@ export function SecretsView({ actor }) {
               permissions.update ? collectionState.createCollection : undefined
             }
             onDelete={collectionState.removeCollection}
-            onClose={() => collectionState.setCollectionsVisible(false)}
             onDragCollection={
               permissions.update
                 ? (collection) =>

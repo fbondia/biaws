@@ -124,10 +124,6 @@ export function SecretCard({
       ) : null}
       {revealed ? (
         <div className="secretNotice secretRevealedValue">
-          <div>
-            <strong>Valor carregado</strong>
-            <span>Permanece mascarado até você selecionar “Mostrar”.</span>
-          </div>
           <code
             aria-label={showValue ? "Valor visível" : "Valor oculto"}
             className={!showValue ? "isMasked" : undefined}

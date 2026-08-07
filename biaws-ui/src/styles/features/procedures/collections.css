@@ -186,12 +186,6 @@
   opacity: 1;
 }
 
-.procedureCollectionColumnRootRow {
-  grid-template-columns: minmax(0, 1fr);
-  margin-bottom: 4px;
-  border-bottom-color: var(--color-border);
-}
-
 .procedureCollectionSelectButton > span {
   font-size: 12px;
 }
@@ -443,14 +437,6 @@ button.procedureCollectionItemContent {
   .procedureCollectionDeleteButton {
     opacity: 1;
   }
-}
-
-.procedureCollectionRootSpacer {
-  grid-column: 1 / 3;
-}
-
-.procedureCollectionRootRow .procedureCollectionSelectButton {
-  grid-column: 3 / 5;
 }
 
 .selectedProcedureCollection {

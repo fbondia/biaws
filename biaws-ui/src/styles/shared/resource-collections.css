@@ -1,46 +1,25 @@
 .resourceCollectionsLayout {
   display: grid;
   min-width: 0;
-  grid-template-columns:
-    var(--resource-collections-sidebar-width, 270px) 8px
-    minmax(0, 1fr);
-  align-items: start;
-  gap: 4px;
-}
-
-.resourceCollectionsResizer {
-  position: relative;
-  width: 8px;
-  min-height: 80px;
-  align-self: stretch;
-  border-radius: 999px;
-  cursor: col-resize;
-  outline: 0;
-  touch-action: none;
-}
-
-.resourceCollectionsResizer::before {
-  position: absolute;
-  inset: 0 3px;
-  border-radius: inherit;
-  background: var(--color-border);
-  content: "";
-  transition:
-    inset 120ms ease,
-    background-color 120ms ease;
-}
-
-.resourceCollectionsResizer:hover::before,
-.resourceCollectionsResizer:focus-visible::before,
-.resourceCollectionsResizing::before {
-  inset-inline: 2px;
-  background: var(--color-focus);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
 }
 
 .resourceCollectionContent {
   display: grid;
   min-width: 0;
+  align-content: start;
   gap: 12px;
+  padding: 14px;
+}
+
+.resourceCollectionsBody {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  align-items: start;
 }
 
 .resourceCollectionBar {
@@ -49,23 +28,19 @@
   grid-template-columns: minmax(140px, 1fr) minmax(280px, auto);
   align-items: center;
   gap: 10px;
-}
-
-.resourceCollectionsLayout.resourceCollectionsCollapsed {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.resourceCollectionsCollapsed > .procedureCollectionsPanel {
-  display: none;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+  padding: 10px 12px;
 }
 
 .resourceCollectionPath {
   display: flex;
   width: 100%;
   align-items: center;
-  border: 1px solid var(--color-border);
+  gap: 6px;
+  border: 1px solid transparent;
   border-radius: 8px;
-  background: var(--color-surface-subtle);
+  background: transparent;
   color: var(--color-text-secondary);
   padding: 9px 12px;
   font-size: 12px;
@@ -130,6 +105,14 @@
   gap: 8px;
 }
 
+.resourceCollectionsBody > .procedureCollectionsPanel {
+  position: static;
+  border: 0;
+  border-right: 1px solid var(--color-border);
+  border-radius: 0;
+  align-self: start;
+}
+
 .resourceCollectionViewModeToggle {
   width: 30px;
   height: 30px;
@@ -168,20 +151,26 @@
   box-shadow: none;
 }
 
-.serversCollectionsLayout > .resourceCollectionContent {
+.serversCollectionsLayout .resourceCollectionContent {
   min-width: 0;
 }
 
 @media (max-width: 900px) {
-  .resourceCollectionsLayout {
-    grid-template-columns: 1fr;
+  .resourceCollectionsBody {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .resourceCollectionsLayout .procedureCollectionsPanel {
+  .resourceCollectionsLayout
+    > .resourceCollectionsBody
+    > .procedureCollectionsPanel {
     position: static;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
   }
 
-  .resourceCollectionsResizer {
+  .resourceCollectionsDetailVisible
+    > .resourceCollectionsBody
+    > .procedureCollectionsPanel {
     display: none;
   }
 
@@ -193,6 +182,11 @@
     height: 280px;
     min-height: 0;
     max-height: 280px;
+  }
+
+  .resourceCollectionsLayout .procedureCollectionColumn {
+    min-width: min(82vw, 320px);
+    flex-basis: min(82vw, 320px);
   }
 
   .resourceCollectionBar {

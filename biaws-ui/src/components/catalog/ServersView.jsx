@@ -21,7 +21,7 @@ import {
   collectionPathLabel,
   ResourceCollectionDialog,
   ResourceCollectionSearch,
-  ResourceCollectionSidebar,
+  ResourceCollectionNavigator,
   ResourceCollectionsShell,
 } from "../shared/ResourceCollections.jsx";
 import { CatalogEntityDialog } from "./CatalogEntityDialog.jsx";
@@ -179,15 +179,13 @@ export function ServersView({ actor }) {
       />
       {error ? <div className="errorBox">{error}</div> : null}
       <ResourceCollectionsShell
-        className={[
-          "serversCollectionsLayout",
-          selected ? "catalogResourceSelected" : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        className="serversCollectionsLayout"
         collections={collectionState.collections}
-        collectionsVisible={collectionState.collectionsVisible}
-        onShowCollections={() => collectionState.setCollectionsVisible(true)}
+        detailVisible={Boolean(selected)}
+        draggedItem={collectionState.draggedItem}
+        onDropRoot={() => collectionState.dropItem("", moveServerToCollection)}
+        onNavigateBack={() => setSelected(null)}
+        onSelectCollection={collectionState.setSelectedCollectionId}
         pathLabel={
           selected
             ? `${collectionPathLabel(
@@ -197,8 +195,8 @@ export function ServersView({ actor }) {
             : undefined
         }
         selectedCollectionId={collectionState.selectedCollectionId}
-        sidebar={
-          <ResourceCollectionSidebar
+        navigator={
+          <ResourceCollectionNavigator
             canDragItem={() => canManageCollections}
             collections={collectionState.collections}
             draggedItem={collectionState.draggedItem}
@@ -210,7 +208,6 @@ export function ServersView({ actor }) {
                 : undefined
             }
             onDelete={collectionState.removeCollection}
-            onClose={() => collectionState.setCollectionsVisible(false)}
             onDragCollection={
               canManageCollections
                 ? (collection) =>

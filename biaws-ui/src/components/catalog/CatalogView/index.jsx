@@ -6,7 +6,7 @@ import {
   collectionPathLabel,
   ResourceCollectionDialog,
   ResourceCollectionSearch,
-  ResourceCollectionSidebar,
+  ResourceCollectionNavigator,
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
@@ -87,15 +87,15 @@ export function CatalogView({ actor }) {
       {error ? <div className="errorBox">{error}</div> : null}
 
       <ResourceCollectionsShell
-        className={[
-          "applicationsCollectionsLayout",
-          selectedId ? "catalogResourceSelected" : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        className="applicationsCollectionsLayout"
         collections={collectionState.collections}
-        collectionsVisible={collectionState.collectionsVisible}
-        onShowCollections={() => collectionState.setCollectionsVisible(true)}
+        detailVisible={Boolean(selectedId)}
+        draggedItem={collectionState.draggedItem}
+        onDropRoot={() =>
+          collectionState.dropItem("", moveApplicationToCollection)
+        }
+        onNavigateBack={() => setSelectedId("")}
+        onSelectCollection={collectionState.setSelectedCollectionId}
         pathLabel={
           context?.application
             ? `${collectionPathLabel(
@@ -105,8 +105,8 @@ export function CatalogView({ actor }) {
             : undefined
         }
         selectedCollectionId={collectionState.selectedCollectionId}
-        sidebar={
-          <ResourceCollectionSidebar
+        navigator={
+          <ResourceCollectionNavigator
             canDragItem={canMoveApplication}
             collections={collectionState.collections}
             draggedItem={collectionState.draggedItem}
@@ -118,7 +118,6 @@ export function CatalogView({ actor }) {
                 : undefined
             }
             onDelete={collectionState.removeCollection}
-            onClose={() => collectionState.setCollectionsVisible(false)}
             onDragCollection={
               canManageCollections
                 ? (collection) =>
@@ -290,7 +289,6 @@ export function CatalogView({ actor }) {
                   <strong>{application.name}</strong>
                   <small>{application.key}</small>
                 </span>
-                <small>{application.description || "Sem descrição."}</small>
               </button>
             ))}
             {!visibleApplications.length && !loading ? (

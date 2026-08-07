@@ -21,7 +21,7 @@ import {
   collectionPathLabel,
   ResourceCollectionDialog,
   ResourceCollectionSearch,
-  ResourceCollectionSidebar,
+  ResourceCollectionNavigator,
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections.jsx";
 import {
@@ -35,8 +35,6 @@ export function ProceduresView({ actor }) {
   const {
     organizationItems,
     collections,
-    collectionsVisible,
-    setCollectionsVisible,
     search,
     setSearch,
     taxonomyFilters,
@@ -135,8 +133,11 @@ export function ProceduresView({ actor }) {
 
       <ResourceCollectionsShell
         collections={collections}
-        collectionsVisible={collectionsVisible}
-        onShowCollections={() => setCollectionsVisible(true)}
+        detailVisible={Boolean(draft?.id)}
+        draggedItem={draggedItem}
+        onDropRoot={() => moveDraggedItem("")}
+        onNavigateBack={() => setDraft(null)}
+        onSelectCollection={setSelectedCollectionId}
         pathLabel={
           draft?.id
             ? `${collectionPathLabel(
@@ -148,14 +149,13 @@ export function ProceduresView({ actor }) {
               : undefined
         }
         selectedCollectionId={selectedCollectionId}
-        sidebar={
-          <ResourceCollectionSidebar
+        navigator={
+          <ResourceCollectionNavigator
             canDragItem={() => true}
             collections={collections}
             draggedItem={draggedItem}
             itemLabel="procedimentos"
             items={organizationItems}
-            onClose={() => setCollectionsVisible(false)}
             onCreate={createCollection}
             onDelete={removeCollection}
             onDragCollection={(collection) =>

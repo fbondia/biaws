@@ -143,7 +143,10 @@ function CollectionTreeNode({
         </button>
         <button
           className="resourceCollectionSelectButton"
-          onClick={() => onSelect(collection.id)}
+          onClick={() => {
+            onToggle(collection.id);
+            onSelect(collection.id);
+          }}
           title={collection.name}
           type="button"
         >
@@ -157,7 +160,7 @@ function CollectionTreeNode({
         </button>
 
         {selectedCollectionId === collection.id && 
-          <div className="resourceCollectionRowActions">
+          <div className="procedureCollectionRowActions">
             {createAt ? (
               <button
                 aria-expanded={addingSubcollection}

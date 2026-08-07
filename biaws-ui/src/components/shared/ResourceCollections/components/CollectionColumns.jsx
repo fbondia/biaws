@@ -98,30 +98,32 @@ function CollectionColumnRow({
       ) : (
         <span />
       )*/}
-      <div className="resourceCollectionRowActions">
-        {active && onRename ? (
-          <button
-            aria-label={`Editar coleção ${collection.name}`}
-            className="resourceCollectionEditButton"
-            onClick={() => onRename(collection)}
-            title="Editar coleção"
-            type="button"
-          >
-            <Pencil size={13} />
-          </button>
-        ) : null}
-        {onDelete ? (
-          <button
-            aria-label={`Excluir coleção ${collection.name}`}
-            className="resourceCollectionActionButton"
-            onClick={() => onDelete(collection)}
-            title="Excluir coleção vazia"
-            type="button"
-          >
-            <Trash2 size={13} />
-          </button>
-        ) : null}
-      </div>
+      {active && 
+        <div className="resourceCollectionRowActions">
+          {onRename ? (
+            <button
+              aria-label={`Editar coleção ${collection.name}`}
+              className="resourceCollectionActionButton"
+              onClick={() => onRename(collection)}
+              title="Editar coleção"
+              type="button"
+            >
+              <Pencil size={13} />
+            </button>
+          ) : null}
+          {onDelete ? (
+            <button
+              aria-label={`Excluir coleção ${collection.name}`}
+              className="resourceCollectionActionButton"
+              onClick={() => onDelete(collection)}
+              title="Excluir coleção vazia"
+              type="button"
+            >
+              <Trash2 size={13} />
+            </button>
+          ) : null}
+        </div>
+      }
     </div>
   );
 }

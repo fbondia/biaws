@@ -168,7 +168,8 @@
 }
 
 .selectedResourceCollectionItem .resourceCollectionItemContent {
-  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+  background: #f0f6ff;
   color: var(--color-accent-text);
   font-weight: 700;
 }

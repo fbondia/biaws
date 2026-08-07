@@ -1,4 +1,4 @@
-import { Plus, Save, ShieldCheck } from "lucide-react";
+import { ChevronDown, Plus, Save, ShieldCheck } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 
 import {
@@ -38,7 +38,7 @@ export function GroupsView({ actor }) {
   const [activePermissionDomain, setActivePermissionDomain] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const permissionTabsId = useId();
+  const permissionCategoriesId = useId();
   const { runWithLoading } = useLoading();
   const canManage = hasPermission(actor, "roles.manage");
 
@@ -52,11 +52,6 @@ export function GroupsView({ actor }) {
       ),
     [catalog],
   );
-  const activeDomain =
-    domains.find(([domain]) => domain === activePermissionDomain) || domains[0];
-  const activeDomainIndex = domains.indexOf(activeDomain);
-  const activeSections = groupPermissionsBySection(activeDomain?.[1]);
-
   async function load(preferredId) {
     return runWithLoading(async () => {
       try {
@@ -294,73 +289,116 @@ export function GroupsView({ actor }) {
               </div>
             ) : null}
           </fieldset>
-          <section className="permissionTabsSection">
-            <div
-              aria-label="Categorias de permissões"
-              className="permissionTabs"
-              role="tablist"
-            >
+          <section
+            aria-label="Categorias de permissões"
+            className="permissionCategoriesSection"
+          >
+            <div className="permissionCategoriesHeader">
+              <div>
+                <h3>Permissões</h3>
+                <p>Expanda uma categoria para configurar as permissões.</p>
+              </div>
+              <span>
+                {draft.permissions.length}{" "}
+                {draft.permissions.length === 1
+                  ? "selecionada"
+                  : "selecionadas"}
+              </span>
+            </div>
+            <div className="permissionCategoryList">
               {domains.map(([domain, permissions], index) => {
                 const selectedCount = permissions.filter(({ id }) =>
                   draft.permissions.includes(id),
                 ).length;
-                const isActive = domain === activeDomain?.[0];
+                const isExpanded = domain === activePermissionDomain;
+                const sections = groupPermissionsBySection(permissions);
                 return (
-                  <button
-                    aria-controls={`${permissionTabsId}-panel-${index}`}
-                    aria-selected={isActive}
-                    className={isActive ? "tab activeTab" : "tab"}
-                    id={`${permissionTabsId}-tab-${index}`}
+                  <article
+                    className={
+                      isExpanded
+                        ? "permissionCategory expanded"
+                        : "permissionCategory"
+                    }
                     key={domain}
-                    onClick={() => setActivePermissionDomain(domain)}
-                    role="tab"
-                    type="button"
                   >
-                    <span>{domain}</span>
-                    <span
-                      aria-label={`${selectedCount} permissões selecionadas`}
-                      className="permissionTabBadge"
+                    <button
+                      aria-controls={`${permissionCategoriesId}-panel-${index}`}
+                      aria-expanded={isExpanded}
+                      className="permissionCategoryTrigger"
+                      id={`${permissionCategoriesId}-trigger-${index}`}
+                      onClick={() =>
+                        setActivePermissionDomain(isExpanded ? "" : domain)
+                      }
+                      type="button"
                     >
-                      {selectedCount}
-                    </span>
-                  </button>
+                      <span className="permissionCategoryTitle">
+                        <strong>{domain}</strong>
+                        <small>
+                          {permissions.length}{" "}
+                          {permissions.length === 1
+                            ? "permissão disponível"
+                            : "permissões disponíveis"}
+                        </small>
+                      </span>
+                      <span className="permissionCategorySummary">
+                        <span
+                          aria-label={`${selectedCount} de ${permissions.length} permissões selecionadas`}
+                          className="permissionCategoryBadge"
+                        >
+                          {selectedCount}/{permissions.length}
+                        </span>
+                        <ChevronDown
+                          aria-hidden="true"
+                          className="permissionCategoryChevron"
+                          size={18}
+                        />
+                      </span>
+                    </button>
+                    {isExpanded ? (
+                      <div
+                        aria-labelledby={`${permissionCategoriesId}-trigger-${index}`}
+                        className="permissionCategoryPanel"
+                        id={`${permissionCategoriesId}-panel-${index}`}
+                        role="region"
+                      >
+                        {sections.map(([section, sectionPermissions]) => (
+                          <section className="permissionSection" key={section}>
+                            <h4>{section}</h4>
+                            <div className="permissionSectionOptions">
+                              {sectionPermissions.map((permission) => (
+                                <label
+                                  className="permissionOption"
+                                  key={permission.id}
+                                >
+                                  <input
+                                    checked={draft.permissions.includes(
+                                      permission.id,
+                                    )}
+                                    disabled={
+                                      !canManage ||
+                                      (draft.scope?.type === "applications" &&
+                                        permission.scope === "workspace")
+                                    }
+                                    onChange={() =>
+                                      togglePermission(permission.id)
+                                    }
+                                    type="checkbox"
+                                  />
+                                  <span>
+                                    {permission.label}
+                                    <small>{permission.id}</small>
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </section>
+                        ))}
+                      </div>
+                    ) : null}
+                  </article>
                 );
               })}
             </div>
-            {activeDomain ? (
-              <div
-                aria-labelledby={`${permissionTabsId}-tab-${activeDomainIndex}`}
-                className="permissionTabPanel"
-                id={`${permissionTabsId}-panel-${activeDomainIndex}`}
-                role="tabpanel"
-              >
-                {activeSections.map(([section, permissions]) => (
-                  <section className="permissionSection" key={section}>
-                    <h3>{section}</h3>
-                    <div className="permissionSectionOptions">
-                      {permissions.map((permission) => (
-                        <label className="permissionOption" key={permission.id}>
-                          <input
-                            checked={draft.permissions.includes(permission.id)}
-                            disabled={
-                              !canManage ||
-                              (draft.scope?.type === "applications" &&
-                                permission.scope === "workspace")
-                            }
-                            onChange={() => togglePermission(permission.id)}
-                            type="checkbox"
-                          />
-                          <span>
-                            {permission.label}
-                            <small>{permission.id}</small>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            ) : null}
           </section>
           <div className="securityActions">
             {canManage ? (

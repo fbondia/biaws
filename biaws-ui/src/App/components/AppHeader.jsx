@@ -226,7 +226,6 @@ export function AppHeader({
             })}
             <NavigationButton
               active={activeView === "account"}
-              iconOnly
               onClick={() => selectView("account")}
               view={{ icon: CircleUserRound, label: "Conta" }}
             />

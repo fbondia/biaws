@@ -77,59 +77,125 @@
   font-family: monospace;
 }
 
-.permissionTabsSection {
+.permissionCategoriesSection {
+  display: grid;
+  gap: 0.75rem;
   min-width: 0;
 }
 
-.permissionTabs {
+.permissionCategoriesHeader {
   display: flex;
-  gap: 0.35rem;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0.5rem;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-.permissionTabs .tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 0 0 auto;
-  background: transparent;
-  border-color: transparent;
-  color: var(--color-text-secondary);
-  padding: 0 0.75rem;
+.permissionCategoriesHeader h3,
+.permissionCategoriesHeader p {
+  margin: 0;
 }
 
-.permissionTabs .activeTab {
-  background: var(--color-accent-soft);
+.permissionCategoriesHeader h3 {
+  font-size: 1rem;
+}
+
+.permissionCategoriesHeader p,
+.permissionCategoriesHeader > span {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+}
+
+.permissionCategoryList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.permissionCategory {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.permissionCategory:hover {
+  border-color: var(--color-border-strong);
+}
+
+.permissionCategory.expanded {
   border-color: var(--color-accent-border);
-  color: var(--color-accent-text);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
 }
 
-.permissionTabBadge {
-  display: inline-flex;
-  min-width: 1.45rem;
-  height: 1.45rem;
+.permissionCategoryTrigger {
+  display: flex;
+  width: 100%;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0.85rem 1rem;
+  text-align: left;
+}
+
+.permissionCategory.expanded .permissionCategoryTrigger {
+  background: var(--color-accent-soft);
+}
+
+.permissionCategoryTitle {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.permissionCategoryTitle small {
+  color: var(--color-text-subtle);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.permissionCategorySummary {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.permissionCategoryBadge {
+  min-width: 3rem;
   border-radius: 999px;
   background: var(--color-surface-subtle);
-  color: var(--color-text-subtle);
-  padding: 0 0.4rem;
+  color: var(--color-text-secondary);
+  padding: 0.3rem 0.55rem;
   font-size: 0.75rem;
   font-weight: 700;
-  line-height: 1;
+  text-align: center;
 }
 
-.permissionTabs .activeTab .permissionTabBadge {
+.permissionCategory.expanded .permissionCategoryBadge {
   background: var(--color-surface);
   color: var(--color-accent-text);
 }
 
-.permissionTabPanel {
+.permissionCategoryChevron {
+  color: var(--color-text-subtle);
+  transition: transform 160ms ease;
+}
+
+.permissionCategory.expanded .permissionCategoryChevron {
+  color: var(--color-accent-text);
+  transform: rotate(180deg);
+}
+
+.permissionCategoryPanel {
   display: grid;
   gap: 1.25rem;
-  padding: 1rem 0.25rem 0.25rem;
+  border-top: 1px solid var(--color-border-subtle);
+  padding: 1rem;
 }
 
 .permissionSection {
@@ -142,7 +208,7 @@
   padding-top: 1rem;
 }
 
-.permissionSection h3 {
+.permissionSection h4 {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 0.85rem;

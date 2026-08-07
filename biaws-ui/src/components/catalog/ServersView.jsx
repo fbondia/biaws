@@ -473,7 +473,17 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
             </div>
             <div>
               <dt>Endereços</dt>
-              <dd>{(selected.addresses || []).join(", ") || "-"}</dd>
+              <dd>
+                {selected.addresses?.length ? (
+                  <ul className="catalogAddressList">
+                    {selected.addresses.map((address, index) => (
+                      <li key={`${address}-${index}`}>{address}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  "-"
+                )}
+              </dd>
             </div>
             <div>
               <dt>Provedor</dt>

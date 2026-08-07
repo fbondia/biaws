@@ -197,7 +197,7 @@ export function SkillsView({ actor }) {
               skill={selectedSkill}
             />
           ) : (
-            <div className="skillCards">
+            <>
               {!loading && !(result?.items || []).length ? (
                 <div className="skillsEmptyState">
                   <Package size={34} />
@@ -208,78 +208,82 @@ export function SkillsView({ actor }) {
                   </span>
                 </div>
               ) : null}
-              {items.map((skill) => (
-                <article
-                  className="skillCard"
-                  data-collection-browser-item-id={skill.skillId}
-                  draggable={canManageCollections}
-                  key={skill.skillId}
-                  onDragEnd={() => collectionState.setDraggedItem(null)}
-                  onDragStart={() =>
-                    collectionState.setDraggedItem({
-                      type: "item",
-                      id: skill.skillId,
-                    })
-                  }
-                >
-                  <header>
-                    <div className="skillCardIcon">
-                      <Package size={20} />
-                    </div>
-                    <div>
-                      <h3>{skill.name}</h3>
-                      <code>{skill.skillId}</code>
-                    </div>
-                  </header>
-                  <p>{skill.description}</p>
-                  <dl>
-                    <div>
-                      <dt>Versão atual</dt>
-                      <dd>{skill.latestVersion}</dd>
-                    </div>
-                    <div>
-                      <dt>Versões</dt>
-                      <dd>{skill.versions.length}</dd>
-                    </div>
-                    <div>
-                      <dt>Atualizada</dt>
-                      <dd>{formatDate(skill.updatedAt)}</dd>
-                    </div>
-                  </dl>
-                  <footer>
-                    <span
-                      className={
-                        skill.status === "published"
-                          ? "skillStatus published"
-                          : "skillStatus deprecated"
-                      }
-                    >
-                      {skill.status === "published" ? (
-                        <CheckCircle2 size={13} />
-                      ) : (
-                        <Archive size={13} />
-                      )}
-                      {skill.status}
-                    </span>
-                    <button
-                      className="secondaryButton"
-                      onClick={() => {
-                        setSelectedSkill(skill);
-                        collectionState.setSelectedCollectionId(
-                          skill.collectionId || "",
-                        );
-                      }}
-                      type="button"
-                    >
-                      Abrir
-                    </button>
-                  </footer>
-                </article>
-              ))}
-              {!loading && (result?.items || []).length && !items.length ? (
-                <div className="emptyState">Nenhuma skill nesta coleção.</div>
-              ) : null}
-            </div>
+
+              <div className="skillCards">
+
+                {items.map((skill) => (
+                  <article
+                    className="skillCard"
+                    data-collection-browser-item-id={skill.skillId}
+                    draggable={canManageCollections}
+                    key={skill.skillId}
+                    onDragEnd={() => collectionState.setDraggedItem(null)}
+                    onDragStart={() =>
+                      collectionState.setDraggedItem({
+                        type: "item",
+                        id: skill.skillId,
+                      })
+                    }
+                  >
+                    <header>
+                      <div className="skillCardIcon">
+                        <Package size={20} />
+                      </div>
+                      <div>
+                        <h3>{skill.name}</h3>
+                        <code>{skill.skillId}</code>
+                      </div>
+                    </header>
+                    <p>{skill.description}</p>
+                    <dl>
+                      <div>
+                        <dt>Versão atual</dt>
+                        <dd>{skill.latestVersion}</dd>
+                      </div>
+                      <div>
+                        <dt>Versões</dt>
+                        <dd>{skill.versions.length}</dd>
+                      </div>
+                      <div>
+                        <dt>Atualizada</dt>
+                        <dd>{formatDate(skill.updatedAt)}</dd>
+                      </div>
+                    </dl>
+                    <footer>
+                      <span
+                        className={
+                          skill.status === "published"
+                            ? "skillStatus published"
+                            : "skillStatus deprecated"
+                        }
+                      >
+                        {skill.status === "published" ? (
+                          <CheckCircle2 size={13} />
+                        ) : (
+                          <Archive size={13} />
+                        )}
+                        {skill.status}
+                      </span>
+                      <button
+                        className="secondaryButton"
+                        onClick={() => {
+                          setSelectedSkill(skill);
+                          collectionState.setSelectedCollectionId(
+                            skill.collectionId || "",
+                          );
+                        }}
+                        type="button"
+                      >
+                        Abrir
+                      </button>
+                    </footer>
+                  </article>
+                ))}
+                {!loading && (result?.items || []).length && !items.length ? (
+                  <div className="emptyState">Nenhuma skill nesta coleção.</div>
+                ) : null}
+              </div>
+            </>
           )}
         </ResourceCollectionsShell>
       ) : null}

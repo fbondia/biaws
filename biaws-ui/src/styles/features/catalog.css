@@ -245,6 +245,35 @@
   font-weight: 700;
 }
 
+.catalogAddressList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+}
+
+.catalogLinksCard ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.catalogLinksCard a {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--color-accent-text);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.catalogLinksCard p {
+  margin: 0;
+  color: var(--color-text-subtle);
+}
+
 .catalogApplicationMonitoring {
   display: grid;
   gap: var(--space-4);

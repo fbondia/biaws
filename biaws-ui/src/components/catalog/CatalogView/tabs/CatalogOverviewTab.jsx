@@ -1,8 +1,12 @@
-import { Boxes, GitBranch, Layers3 } from "lucide-react";
+import { Boxes, ExternalLink, GitBranch, Layers3 } from "lucide-react";
 
 import { CatalogApplicationMonitoring } from "../../CatalogApplicationMonitoring.jsx";
 
 export function CatalogOverviewTab({ context }) {
+  const links = Array.isArray(context.application.links)
+    ? context.application.links
+    : [];
+
   return (
     <div className="catalogOverviewGrid">
       {[
@@ -32,6 +36,23 @@ export function CatalogOverviewTab({ context }) {
             <dd>{(context.application.tags || []).join(", ") || "-"}</dd>
           </div>
         </dl>
+      </article>
+      <article className="catalogOverviewCard catalogLinksCard">
+        <h3>Links</h3>
+        {links.length ? (
+          <ul>
+            {links.map((link, index) => (
+              <li key={`${link.label}-${link.url}-${index}`}>
+                <a href={link.url} rel="noopener noreferrer" target="_blank">
+                  <span>{link.label}</span>
+                  <ExternalLink aria-hidden="true" size={15} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Nenhum link cadastrado.</p>
+        )}
       </article>
       <CatalogApplicationMonitoring
         monitoringHealth={context.monitoringHealth}

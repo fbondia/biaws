@@ -2,6 +2,7 @@ import { KeyRound, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { moveSecretToCollection } from "../../../api.js";
+import { IllustratedEmptyState } from "../../shared/IllustratedEmptyState.jsx";
 import {
   collectionPathLabel,
   ResourceCollectionDialog,
@@ -139,11 +140,11 @@ export function SecretsView({ actor }) {
       {error ? <div className="authError">{error}</div> : null}
       {loading ? <p>Carregando segredos…</p> : null}
       {!loading && !secrets.length ? (
-        <div className="securityPanel secretsEmptyState">
-          <KeyRound size={28} />
-          <strong>Nenhum segredo acessível</strong>
-          <p>Crie o primeiro segredo para este workspace ou aplicação.</p>
-        </div>
+        <IllustratedEmptyState
+          description="Crie o primeiro segredo para este workspace ou aplicação."
+          icon={KeyRound}
+          title="Nenhum segredo acessível"
+        />
       ) : null}
       <ResourceCollectionsShell
         collections={collectionState.collections}
@@ -248,7 +249,11 @@ export function SecretsView({ actor }) {
               />
             ))}
             {!loading && secrets.length && !visibleSecrets.length ? (
-              <div className="emptyState">Nenhum segredo nesta coleção.</div>
+              <IllustratedEmptyState
+                description="Escolha outra coleção ou mova um segredo para esta pasta."
+                icon={KeyRound}
+                title="Nenhum segredo nesta coleção"
+              />
             ) : null}
           </div>
         )}

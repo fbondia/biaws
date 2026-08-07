@@ -1,7 +1,7 @@
 .groupAdminLayout {
   display: grid;
-  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
-  gap: 1rem;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 1.25rem;
   align-items: start;
 }
 
@@ -11,18 +11,80 @@
   gap: 0.75rem;
 }
 
-.groupListItem {
+.groupList {
+  position: sticky;
+  top: 1rem;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(45, 108, 223, 0.045), transparent 120px),
+    var(--color-surface);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
+}
+
+.groupListHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.15rem;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.groupListHeader strong {
+  display: inline-flex;
+  min-width: 1.65rem;
+  height: 1.65rem;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0;
+}
+
+.groupListItem {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
   background: var(--color-surface);
   color: inherit;
-  padding: 0.75rem;
+  padding: 0.85rem 0.9rem;
   text-align: left;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.groupListItem:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.07);
+  transform: translateY(-1px);
 }
 
 .groupListItem.selected {
-  border-color: var(--color-focus);
-  background: #eef4ff;
+  border-color: var(--color-accent-border);
+  background: linear-gradient(
+    135deg,
+    rgba(45, 108, 223, 0.1),
+    rgba(45, 108, 223, 0.035)
+  );
+  box-shadow: 0 6px 18px rgba(45, 108, 223, 0.11);
+}
+
+.groupListItem.selected::before {
+  position: absolute;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--color-focus);
+  content: "";
+  inset: 0.65rem auto 0.65rem -1px;
 }
 
 .groupListItem span,
@@ -38,31 +100,108 @@
   color: var(--color-text-subtle);
 }
 
+.groupListItem > span {
+  color: var(--color-text-secondary);
+  font-weight: 700;
+}
+
+.groupListItem.selected > span {
+  color: var(--color-accent-text);
+}
+
+.groupEditor {
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+  padding: 1.4rem;
+}
+
 .groupEditor > label {
   display: grid;
   gap: 0.35rem;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .groupEditor input,
 .groupEditor textarea {
   border: 1px solid var(--color-border-strong);
-  border-radius: 7px;
-  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 10px 12px;
   font: inherit;
+  font-weight: 400;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.groupEditor > label input:focus,
+.groupEditor > label textarea:focus {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgba(45, 108, 223, 0.12);
+  outline: 0;
 }
 
 .permissionDomain {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  gap: 0.5rem;
+  gap: 0.65rem;
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 0.75rem;
+  border-radius: 12px;
+  background: var(--color-surface-subtle);
+  padding: 0.9rem;
 }
 
 .permissionDomain legend {
   padding: 0 0.35rem;
+  color: var(--color-text-secondary);
   font-weight: 700;
+}
+
+.scopeOption {
+  min-height: 68px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  padding: 0.75rem;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.scopeOption:hover {
+  border-color: var(--color-border-strong);
+}
+
+.scopeOption:has(input:checked) {
+  border-color: var(--color-accent-border);
+  background: rgba(45, 108, 223, 0.055);
+  box-shadow: 0 3px 12px rgba(45, 108, 223, 0.08);
+}
+
+.scopeOption:has(input:checked) > span {
+  color: var(--color-accent-text);
+  font-weight: 700;
+}
+
+.scopeApplicationList {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.55rem;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 0.15rem;
+  padding-top: 0.75rem;
+}
+
+.scopeApplicationList .permissionOption {
+  border-radius: 8px;
+  background: var(--color-surface);
+  padding: 0.65rem;
 }
 
 .permissionOption {
@@ -88,6 +227,9 @@
   align-items: end;
   justify-content: space-between;
   gap: 1rem;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 0.25rem;
+  padding-top: 1rem;
 }
 
 .permissionCategoriesHeader h3,
@@ -99,10 +241,20 @@
   font-size: 1rem;
 }
 
-.permissionCategoriesHeader p,
-.permissionCategoriesHeader > span {
+.permissionCategoriesHeader p {
   color: var(--color-text-subtle);
   font-size: 0.8rem;
+}
+
+.permissionCategoriesHeader > span {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-subtle);
+  color: var(--color-text-subtle);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .permissionCategoryList {
@@ -111,22 +263,36 @@
 }
 
 .permissionCategory {
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--color-surface);
   transition:
     border-color 160ms ease,
-    box-shadow 160ms ease;
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .permissionCategory:hover {
   border-color: var(--color-border-strong);
+  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.055);
+  transform: translateY(-1px);
 }
 
 .permissionCategory.expanded {
   border-color: var(--color-accent-border);
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 8px 24px rgba(45, 108, 223, 0.09);
+  transform: none;
+}
+
+.permissionCategory.expanded::before {
+  position: absolute;
+  z-index: 1;
+  width: 3px;
+  background: var(--color-focus);
+  content: "";
+  inset: 0 auto 0 0;
 }
 
 .permissionCategoryTrigger {
@@ -144,7 +310,11 @@
 }
 
 .permissionCategory.expanded .permissionCategoryTrigger {
-  background: var(--color-accent-soft);
+  background: linear-gradient(
+    90deg,
+    rgba(45, 108, 223, 0.1),
+    rgba(45, 108, 223, 0.025)
+  );
 }
 
 .permissionCategoryTitle {
@@ -167,6 +337,7 @@
 
 .permissionCategoryBadge {
   min-width: 3rem;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 999px;
   background: var(--color-surface-subtle);
   color: var(--color-text-secondary);
@@ -195,7 +366,8 @@
   display: grid;
   gap: 1.25rem;
   border-top: 1px solid var(--color-border-subtle);
-  padding: 1rem;
+  background: linear-gradient(180deg, var(--color-surface-subtle), transparent);
+  padding: 1rem 1.1rem 1.1rem;
 }
 
 .permissionSection {
@@ -219,7 +391,30 @@
 .permissionSectionOptions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 0.75rem 1.25rem;
+  gap: 0.55rem;
+}
+
+.permissionCategoryPanel .permissionOption {
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 0.65rem 0.7rem;
+  transition:
+    border-color 130ms ease,
+    background-color 130ms ease;
+}
+
+.permissionCategoryPanel .permissionOption:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
+
+.permissionCategoryPanel .permissionOption:has(input:checked) {
+  background: rgba(45, 108, 223, 0.045);
+}
+
+.permissionOption input {
+  margin-top: 0.15rem;
+  accent-color: var(--color-focus);
 }
 
 .securityActions {
@@ -227,6 +422,9 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: 0.25rem;
+  padding-top: 1rem;
 }
 
 .userGroupPicker {
@@ -253,6 +451,21 @@
 @media (max-width: 900px) {
   .groupAdminLayout {
     grid-template-columns: 1fr;
+  }
+
+  .groupList {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .permissionDomain {
+    grid-template-columns: 1fr;
+  }
+
+  .permissionCategoriesHeader {
+    align-items: start;
+    flex-direction: column;
   }
 }
 

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { IllustratedEmptyState } from "../../IllustratedEmptyState.jsx";
 import { descendantCollectionIds } from "../model.js";
 import { CollectionAddForm } from "./CollectionAddForm.jsx";
 import { CollectionItemNode } from "./CollectionItemNode.jsx";
@@ -159,7 +160,7 @@ function CollectionTreeNode({
           {/*<small>{itemCounts[collection.id] || 0}</small>*/}
         </button>
 
-        {selectedCollectionId === collection.id && 
+        {selectedCollectionId === collection.id && (
           <div className="procedureCollectionRowActions">
             {createAt ? (
               <button
@@ -200,7 +201,7 @@ function CollectionTreeNode({
               </button>
             ) : null}
           </div>
-        }
+        )}
       </div>
 
       {addingSubcollection ? (
@@ -316,6 +317,20 @@ export function CollectionTree({
     <div className="resourceCollectionTree">
       <div className="resourceCollectionTreeScroll">
         <div className="resourceCollectionTreeInner">
+          {!(childrenByParent.get("") || []).length &&
+          !(itemsByCollection.get("") || []).length ? (
+            <IllustratedEmptyState
+              className="resourceCollectionNavigatorEmpty"
+              compact
+              description={
+                onCreate
+                  ? "Crie uma coleção para começar a organizar os itens."
+                  : "Os itens e coleções aparecerão aqui."
+              }
+              icon={FolderPlus}
+              title="Nada cadastrado ainda"
+            />
+          ) : null}
           {(childrenByParent.get("") || []).map((collection) => (
             <CollectionTreeNode
               addingParentId={addingParentId}

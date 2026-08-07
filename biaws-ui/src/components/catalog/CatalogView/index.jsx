@@ -2,6 +2,7 @@ import { Layers3, Plus } from "lucide-react";
 
 import { moveApplicationToCollection } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
+import { IllustratedEmptyState } from "../../shared/IllustratedEmptyState.jsx";
 import {
   collectionPathLabel,
   ResourceCollectionDialog,
@@ -292,9 +293,15 @@ export function CatalogView({ actor }) {
               </button>
             ))}
             {!visibleApplications.length && !loading ? (
-              <div className="emptyState compactEmpty">
-                Nenhuma aplicação encontrada.
-              </div>
+              <IllustratedEmptyState
+                description={
+                  applications.length
+                    ? "Escolha outra coleção ou ajuste os critérios da busca."
+                    : "Cadastre a primeira aplicação para começar a organizar o catálogo."
+                }
+                icon={Layers3}
+                title="Nenhuma aplicação encontrada"
+              />
             ) : null}
           </div>
         )}

@@ -183,6 +183,7 @@ export function GroupsView({ actor }) {
       <header className="securityHeader">
         <div>
           <h2>Grupos de permissões</h2>
+          <p>Defina o alcance e os acessos de cada perfil do workspace.</p>
         </div>
         {canManage ? (
           <button className="primaryButton" onClick={startNew} type="button">
@@ -193,6 +194,10 @@ export function GroupsView({ actor }) {
       {error ? <div className="authError">{error}</div> : null}
       <div className="groupAdminLayout">
         <aside className="securityPanel groupList">
+          <div className="groupListHeader">
+            <span>Grupos disponíveis</span>
+            <strong>{groups.length}</strong>
+          </div>
           {groups.map((group) => (
             <button
               className={
@@ -242,7 +247,7 @@ export function GroupsView({ actor }) {
           </label>
           <fieldset className="permissionDomain">
             <legend>Escopo</legend>
-            <label className="permissionOption">
+            <label className="permissionOption scopeOption">
               <input
                 checked={draft.scope?.type !== "applications"}
                 disabled={!canManage}
@@ -255,7 +260,7 @@ export function GroupsView({ actor }) {
                 <small>Todas as aplicações e recursos gerais</small>
               </span>
             </label>
-            <label className="permissionOption">
+            <label className="permissionOption scopeOption">
               <input
                 checked={draft.scope?.type === "applications"}
                 disabled={!canManage}

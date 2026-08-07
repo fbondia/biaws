@@ -162,6 +162,15 @@
   margin: 0;
 }
 
+.resourceCollectionNavigatorEmpty {
+  width: auto;
+  min-width: 0;
+}
+
+.resourceCollectionTreeInner > .resourceCollectionNavigatorEmpty {
+  width: calc(100% - 16px);
+}
+
 .resourceCollectionFocusedItem {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;

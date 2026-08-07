@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { fetchSkills, moveSkillToCollection } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
+import { IllustratedEmptyState } from "../../shared/IllustratedEmptyState.jsx";
 import {
   collectionPathLabel,
   ResourceCollectionDialog,
@@ -199,18 +200,14 @@ export function SkillsView({ actor }) {
           ) : (
             <>
               {!loading && !(result?.items || []).length ? (
-                <div className="skillsEmptyState">
-                  <Package size={34} />
-                  <strong>Nenhuma skill encontrada</strong>
-                  <span>
-                    Publique uma versão pela interface ou pelo Bondia Workspaces
-                    CLI.
-                  </span>
-                </div>
+                <IllustratedEmptyState
+                  description="Publique uma versão pela interface ou pelo Bondia Workspaces CLI."
+                  icon={Package}
+                  title="Nenhuma skill encontrada"
+                />
               ) : null}
 
               <div className="skillCards">
-
                 {items.map((skill) => (
                   <article
                     className="skillCard"

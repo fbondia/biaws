@@ -1,10 +1,18 @@
-import { Archive, ArrowLeft, Pencil, X } from "lucide-react";
+import { Archive, ArrowLeft, Inbox, Pencil, X } from "lucide-react";
 
 import { hasPermission } from "../../../../permissions.js";
+import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
 
 export function EntityTable({ actions, columns, empty, items, onOpen }) {
   if (!items.length)
-    return <div className="emptyState catalogEmptyState">{empty}</div>;
+    return (
+      <IllustratedEmptyState
+        className="catalogEmptyState"
+        description="Cadastre o primeiro item para começar a preencher esta seção."
+        icon={Inbox}
+        title={empty.replace(/\.$/, "")}
+      />
+    );
   return (
     <div className="catalogTableWrap">
       <table className="catalogTable">

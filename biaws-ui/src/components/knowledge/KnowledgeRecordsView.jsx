@@ -28,6 +28,7 @@ import {
   useCatalogOptions,
 } from "../catalog/CatalogContextFields.jsx";
 import { AuditHistory } from "../shared/AuditHistory.jsx";
+import { IllustratedEmptyState } from "../shared/IllustratedEmptyState.jsx";
 import {
   MarkdownEditor,
   MarkdownPreview,
@@ -362,9 +363,15 @@ export function KnowledgeRecordsView({ actor, type }) {
               <div className="loadingLine">Carregando {config.plural}...</div>
             ) : null}
             {!loading && !visibleItems.length ? (
-              <div className="emptyState">
-                Nenhuma {config.label.toLocaleLowerCase("pt-BR")} encontrada.
-              </div>
+              <IllustratedEmptyState
+                description={`Crie a primeira ${config.label.toLocaleLowerCase(
+                  "pt-BR",
+                )} para registrar o conhecimento do workspace.`}
+                icon={Icon}
+                title={`Nenhuma ${config.label.toLocaleLowerCase(
+                  "pt-BR",
+                )} encontrada`}
+              />
             ) : null}
             <div className="procedureCards">
               {visibleItems.map((record) => (

@@ -2,11 +2,13 @@ import {
   ChevronRight,
   Folder,
   FolderOpen,
+  FolderPlus,
   GripVertical,
   Pencil,
   Trash2,
 } from "lucide-react";
 
+import { IllustratedEmptyState } from "../../IllustratedEmptyState.jsx";
 import { descendantCollectionIds } from "../model.js";
 import { CollectionAddForm } from "./CollectionAddForm.jsx";
 import { CollectionItemNode } from "./CollectionItemNode.jsx";
@@ -98,7 +100,7 @@ function CollectionColumnRow({
       ) : (
         <span />
       )*/}
-      {active && 
+      {active && (
         <div className="resourceCollectionRowActions">
           {onRename ? (
             <button
@@ -123,7 +125,7 @@ function CollectionColumnRow({
             </button>
           ) : null}
         </div>
-      }
+      )}
     </div>
   );
 }
@@ -208,11 +210,24 @@ export function CollectionColumns({
             ))}
 
             {!column.collections.length &&
-            !(itemsByCollection.get(column.parentId) || []).length &&
-            columnIndex > 0 ? (
-              <p className="resourceCollectionColumnEmpty">
-                Nenhuma subcoleção
-              </p>
+            !(itemsByCollection.get(column.parentId) || []).length ? (
+              columnIndex === 0 ? (
+                <IllustratedEmptyState
+                  className="resourceCollectionNavigatorEmpty"
+                  compact
+                  description={
+                    onCreate
+                      ? "Crie uma coleção para começar a organizar os itens."
+                      : "Os itens e coleções aparecerão aqui."
+                  }
+                  icon={FolderPlus}
+                  title="Nada cadastrado ainda"
+                />
+              ) : (
+                <p className="resourceCollectionColumnEmpty">
+                  Nenhuma subcoleção
+                </p>
+              )
             ) : null}
           </div>
           {onCreate ? (

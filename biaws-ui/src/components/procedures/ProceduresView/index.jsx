@@ -16,6 +16,7 @@ import { useState } from "react";
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../constants/issues.js";
 import { CatalogFilterFields } from "../../catalog/CatalogContextFields.jsx";
 import { FilterDialogButton } from "../../shared/FilterDialogButton.jsx";
+import { IllustratedEmptyState } from "../../shared/IllustratedEmptyState.jsx";
 import { TaxonomySelector } from "../../taxonomy/TaxonomySelector.jsx";
 import {
   collectionPathLabel,
@@ -228,11 +229,19 @@ export function ProceduresView({ actor }) {
               <div className="loadingLine">Carregando procedimentos...</div>
             ) : null}
             {!loading && !visibleItems.length ? (
-              <div className="emptyState">
-                {searchActive
-                  ? "Nenhum procedimento encontrado."
-                  : "Nenhum procedimento nesta coleção."}
-              </div>
+              <IllustratedEmptyState
+                description={
+                  searchActive
+                    ? "Tente ajustar a busca ou os filtros aplicados."
+                    : "Crie o primeiro procedimento para documentar e padronizar a operação."
+                }
+                icon={BookOpen}
+                title={
+                  searchActive
+                    ? "Nenhum procedimento encontrado"
+                    : "Nenhum procedimento nesta coleção"
+                }
+              />
             ) : null}
             <div className="procedureCards">
               {visibleItems.map((procedure) => (

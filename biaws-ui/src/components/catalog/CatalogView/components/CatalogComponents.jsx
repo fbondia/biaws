@@ -1,4 +1,4 @@
-import { Archive, ArrowLeft, Pencil } from "lucide-react";
+import { Archive, ArrowLeft, Pencil, X } from "lucide-react";
 
 import { hasPermission } from "../../../../permissions.js";
 
@@ -54,13 +54,6 @@ export function HeaderActions({
 }) {
   return (
     <div className="catalogHeaderActions">
-      <button
-        className="secondaryButton catalogBackButton"
-        onClick={onBack}
-        type="button"
-      >
-        <ArrowLeft size={16} /> Voltar
-      </button>
       {hasPermission(actor, "applications.update") ? (
         <button className="secondaryButton" onClick={onEdit} type="button">
           <Pencil size={16} /> Editar
@@ -72,6 +65,13 @@ export function HeaderActions({
           <Archive size={16} /> Arquivar
         </button>
       ) : null}
+      <button
+        className="secondaryButton catalogBackButton"
+        onClick={onBack}
+        type="button"
+      >
+        <X size={16} />
+      </button>
     </div>
   );
 }

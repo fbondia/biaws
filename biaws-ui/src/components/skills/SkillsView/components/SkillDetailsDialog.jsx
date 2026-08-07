@@ -105,7 +105,7 @@ export function SkillDetailsDialog({
           title={embedded ? "Voltar para a coleção" : "Fechar"}
           type="button"
         >
-          {embedded ? <ArrowLeft size={18} /> : <X size={18} />}
+          <X size={18} />
         </button>
       </header>
       <div className="skillDetailsBody">

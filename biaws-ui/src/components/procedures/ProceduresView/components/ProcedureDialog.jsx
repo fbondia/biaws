@@ -461,7 +461,7 @@ function ProcedureDialogHeader({
           title={embedded ? "Voltar para a coleção" : "Fechar"}
           type="button"
         >
-          {embedded ? <ArrowLeft size={18} /> : <X size={18} />}
+          <X size={18} />
         </button>
       </div>
     </header>
@@ -801,9 +801,6 @@ function ProcedureDialogFooter({
             <Trash2 size={16} /> Excluir procedimento
           </button>
         ) : null}
-        <button className="secondaryButton" onClick={onClose} type="button">
-          {embedded ? "Voltar para a coleção" : "Fechar"}
-        </button>
       </footer>
     );
   return (

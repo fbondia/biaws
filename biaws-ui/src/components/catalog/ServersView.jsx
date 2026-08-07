@@ -1,4 +1,4 @@
-import { Archive, ArrowLeft, Pencil, Plus, Server } from "lucide-react";
+import { Archive, ArrowLeft, Pencil, Plus, X, Server } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
@@ -411,13 +411,6 @@ function ServerDetails({
           <p>{selected.description || selected.purpose || "Sem descrição."}</p>
         </div>
         <div className="catalogHeaderActions">
-          <button
-            className="secondaryButton catalogBackButton"
-            onClick={onBack}
-            type="button"
-          >
-            <ArrowLeft size={16} /> Voltar
-          </button>
           {hasPermission(actor, "servers.update") ? (
             <button
               className="secondaryButton"
@@ -433,6 +426,13 @@ function ServerDetails({
               <Archive size={16} /> Arquivar
             </button>
           ) : null}
+          <button
+            className="secondaryButton catalogBackButton"
+            onClick={onBack}
+            type="button"
+          >
+            <X size={16} />
+          </button>
         </div>
       </header>
       <div className="detailTabs catalogTabs" role="tablist">

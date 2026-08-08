@@ -276,9 +276,7 @@ function normalizeReferences(value, current = []) {
         `references[${index}] é inválida`,
       );
     }
-    const targetDocumentId = String(
-      entry.targetDocumentId || entry.targetId || "",
-    ).trim();
+    const targetDocumentId = String(entry.targetDocumentId || "").trim();
     const relationship = String(entry.relationship || "related").trim();
     if (
       !targetDocumentId ||

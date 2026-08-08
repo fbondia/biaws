@@ -1,6 +1,5 @@
 export const COLLECTION_NAMES = Object.freeze({
   AUDIT_EVENTS: "auditEvents",
-  ARCHITECTURE_DECISIONS: "architectureDecisions",
   AUTH_ACCOUNTS: "authAccounts",
   AUTH_API_KEYS: "authApiKeys",
   AUTH_SESSIONS: "authSessions",
@@ -13,7 +12,6 @@ export const COLLECTION_NAMES = Object.freeze({
   APPLICATION_REPOSITORIES: "applicationRepositories",
   APPLICATION_TOPOLOGY_DIAGRAMS: "applicationTopologyDiagrams",
   API_RATE_LIMITS: "apiRateLimits",
-  BUSINESS_RULES: "businessRules",
   DEPLOYMENT_RUNTIMES: "deploymentRuntimes",
   DOCUMENTS: "documents",
   RUNTIME_MONITORING_SIGNALS: "runtimeMonitoringSignals",

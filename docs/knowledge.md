@@ -58,10 +58,9 @@ observações são append-only.
 ## API, MCP e contexto
 
 As rotas HTTP ficam sob `/api/knowledge/documents` e oferecem listagem, criação,
-leitura, atualização, arquivamento, movimentação, revisões e observações. Os
-endpoints antigos de regras e decisões permanecem aliases temporários sobre a
-coleção unificada. A permissão `documents.*` é híbrida: pode abranger todo o
-workspace ou aplicações selecionadas.
+leitura, atualização, arquivamento, movimentação, revisões e observações. A
+permissão `documents.*` é híbrida: pode abranger todo o workspace ou aplicações
+selecionadas.
 
 O MCP expõe `documents_search`, `documents_get`, `documents_create`,
 `documents_update` e `documents_add_observation`. `knowledge_context_load`

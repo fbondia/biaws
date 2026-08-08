@@ -5,8 +5,6 @@ import { getMongoDatabase } from "../helpers/mongoClient.js";
 
 export const RESOURCE_COLLECTION_TYPES = Object.freeze([
   "applications",
-  "architecture-decisions",
-  "business-rules",
   "documents",
   "demands",
   "secrets",
@@ -19,14 +17,6 @@ const RESOURCE_CONFIG = Object.freeze({
     collection: COLLECTION_NAMES.APPLICATIONS,
     label: "aplicações",
   },
-  "architecture-decisions": {
-    collection: COLLECTION_NAMES.ARCHITECTURE_DECISIONS,
-    label: "decisões arquiteturais",
-  },
-  "business-rules": {
-    collection: COLLECTION_NAMES.BUSINESS_RULES,
-    label: "regras de negócio",
-  },
   documents: { collection: COLLECTION_NAMES.DOCUMENTS, label: "documentos" },
   demands: { collection: COLLECTION_NAMES.REQUESTS, label: "melhorias" },
   secrets: { collection: COLLECTION_NAMES.SECRETS, label: "segredos" },
@@ -34,12 +24,7 @@ const RESOURCE_CONFIG = Object.freeze({
   servers: { collection: COLLECTION_NAMES.SERVERS, label: "servidores" },
 });
 
-const APPLICATION_SCOPED_COLLECTION_TYPES = new Set([
-  "architecture-decisions",
-  "business-rules",
-  "documents",
-  "demands",
-]);
+const APPLICATION_SCOPED_COLLECTION_TYPES = new Set(["documents", "demands"]);
 
 function httpError(statusCode, code, message) {
   const error = new Error(message);

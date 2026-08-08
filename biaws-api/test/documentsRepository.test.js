@@ -77,7 +77,7 @@ test("document type is immutable and validates type-specific status", () => {
   );
 });
 
-test("legacy typed references normalize to unified document ids", () => {
+test("document references require unified document ids", () => {
   const document = normalizeDocumentPayload({
     documentType: "business-rule",
     title: "Uma regra",
@@ -85,8 +85,7 @@ test("legacy typed references normalize to unified document ids", () => {
     markdown: "# Regra",
     references: [
       {
-        targetType: "architecture-decisions",
-        targetId: "decision-1",
+        targetDocumentId: "decision-1",
         relationship: "supported-by",
       },
     ],

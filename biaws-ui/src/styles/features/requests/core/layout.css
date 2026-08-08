@@ -79,6 +79,12 @@
   min-width: 0;
 }
 
+.requestCollectionsNavigator .resourceCollectionColumn {
+  box-sizing: border-box;
+  min-width: 100%;
+  flex-basis: 100%;
+}
+
 .requestCollectionsNavigator .resourceCollectionItemRow {
   box-sizing: border-box;
   width: 100%;

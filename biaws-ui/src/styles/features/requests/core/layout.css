@@ -69,7 +69,19 @@
   white-space: nowrap;
 }
 
+.requestCollectionsNavigator .resourceCollectionTreeInner,
+.requestCollectionsNavigator .resourceCollectionTreeBranch {
+  width: 100%;
+  min-width: 0;
+}
+
+.requestCollectionsNavigator .resourceCollectionTreeChildren {
+  min-width: 0;
+}
+
 .requestCollectionsNavigator .resourceCollectionItemRow {
+  box-sizing: border-box;
+  width: 100%;
   min-height: 56px;
   border-color: var(--color-border);
   border-radius: 8px;
@@ -84,7 +96,10 @@
 }
 
 .requestCollectionsNavigator .resourceCollectionItemContent {
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 46px;
   padding: 4px 6px;
 }

@@ -174,6 +174,7 @@ export function RequestsView({ actor }) {
         collections={collectionState.collections}
         detailVisible={Boolean(selectedRequest)}
         draggedItem={collectionState.draggedItem}
+        initialNavigationWidth={400}
         onDropRoot={() =>
           collectionState.dropItem("", moveImprovementToCollection)
         }

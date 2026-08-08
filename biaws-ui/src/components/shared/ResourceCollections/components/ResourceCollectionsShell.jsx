@@ -13,6 +13,7 @@ export function ResourceCollectionsShell({
   collections,
   detailVisible = false,
   draggedItem,
+  initialNavigationWidth = 340,
   onDropRoot,
   onNavigateBack,
   onSelectCollection,
@@ -22,7 +23,9 @@ export function ResourceCollectionsShell({
   toolbar,
 }) {
   const bodyRef = useRef(null);
-  const [navigationWidth, setNavigationWidth] = useState(340);
+  const [navigationWidth, setNavigationWidth] = useState(
+    initialNavigationWidth,
+  );
   const [resizingNavigation, setResizingNavigation] = useState(false);
   const [rootDropActive, setRootDropActive] = useState(false);
   const canNavigateBack = Boolean(detailVisible || selectedCollectionId);

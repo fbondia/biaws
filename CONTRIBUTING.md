@@ -21,6 +21,7 @@ Use Node.js 20.19 ou mais recente. O caminho mais rápido para executar o sistem
 completo é:
 
 ```bash
+./scripts/check-prerequisites.sh --include-git
 ./scripts/bootstrap.sh
 ```
 

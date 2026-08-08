@@ -8,6 +8,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- onboarding reorganizado com rotas explícitas para macOS, Linux e Windows via
+  WSL2, além de um prompt único para instalação assistida por agente;
 - identidade da solução padronizada como Bondia Workspaces;
 - prefixos de autenticação, formatos de skills, nomes de pacotes e identificadores
   técnicos padronizados com a sigla `biaws`;
@@ -25,6 +27,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- diagnóstico de pré-requisitos com detecção de sistema, versão mínima do
+  Node.js, Docker Compose e disponibilidade do Docker Engine;
 - home configurável por usuário e workspace, com catálogo expansível, múltiplas
   instâncias por widget, ordenação, tamanhos e filtros por aplicação;
 - recepção passiva de sinais externos de saúde de runtimes, com endpoint

@@ -15,7 +15,9 @@ domínio, com identidade, escopo e auditoria.
 comandos, banco de dados, containers e outros identificadores técnicos usam a
 sigla curta `biaws`.
 
-Para começar pela instalação guiada, consulte o [QUICKSTART](QUICKSTART.md).
+Para começar, escolha a rota do seu sistema no [QUICKSTART](QUICKSTART.md) ou
+[entregue a instalação ao seu agente](docs/agent-assisted-installation.md) com
+um único prompt.
 
 ![Dashboard operacional do workspace fictício Athena Tek](docs/screenshots/athena-operations-dashboard.jpg)
 
@@ -155,13 +157,43 @@ flowchart LR
 Detalhes de responsabilidades e fluxos estão em
 [docs/architecture.md](docs/architecture.md).
 
-## Início rápido com Docker
+## Instalação
+
+O runtime usa containers, mas o setup também configura o MCP e as skills no
+projeto que será operado pelo agente. Estas são as rotas oficialmente
+documentadas:
+
+| Ambiente | Rota suportada |
+| --- | --- |
+| macOS | Bash + Docker Desktop |
+| Linux | Bash + Docker Engine ou Docker Desktop |
+| Windows | WSL2 + uma distribuição Linux + integração do Docker Desktop |
+| Agente | Um único prompt; o agente detecta o sistema e executa esta mesma rota |
+
+Windows nativo, PowerShell, Prompt de Comando, Git Bash, MSYS2 e Cygwin não são
+ambientes de execução suportados. No Windows, clone o repositório e mantenha os
+dados dentro do filesystem do WSL2, não em `/mnt/c`.
+
+As instruções de instalação dos pré-requisitos para cada sistema e o fluxo
+completo estão no [QUICKSTART](QUICKSTART.md). Se você já usa Codex, Claude Code
+ou outro agente com terminal, copie o
+[prompt de instalação assistida](docs/agent-assisted-installation.md): o agente
+poderá instalar o BIAWS sem pedir que você digite comandos, solicitando apenas
+as aprovações necessárias.
+
+### Fluxo comum após instalar os pré-requisitos
 
 Pré-requisitos:
 
 - Docker com o plugin Compose;
 - Node.js `20.19.0` ou superior;
 - `curl` e `openssl`;
+
+Valide o ambiente antes do primeiro setup:
+
+```bash
+./scripts/check-prerequisites.sh --include-git
+```
 
 Crie ou selecione uma instância e configure o projeto consumidor:
 

@@ -51,6 +51,8 @@ fi
 
 cd "${ROOT_DIR}"
 
+"${ROOT_DIR}/scripts/check-prerequisites.sh" --quiet
+
 compose() {
   docker compose \
     --env-file "${ENV_FILE}" \

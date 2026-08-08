@@ -6,25 +6,101 @@ conectá-la ao Codex ou ao Claude Code.
 Uma única cópia do repositório pode manter várias instâncias isoladas. Cada
 instância possui banco, anexos, portas, usuários e credenciais próprios.
 
-## Pré-requisitos
+## Escolha como instalar
 
-Instale:
+Todas as rotas terminam no mesmo `setup-agent.sh`. O que muda entre os sistemas
+é a preparação dos pré-requisitos.
 
-- Git;
-- Docker com o plugin Compose;
-- Node.js `20.19.0` ou superior;
-- `curl`;
-- `openssl`.
+| Seu ambiente | Siga esta rota |
+| --- | --- |
+| macOS | [macOS](#macos) |
+| Ubuntu, Debian ou outra distribuição Linux | [Linux](#linux) |
+| Windows 10/11 | [Windows com WSL2](#windows-com-wsl2) |
+| Codex, Claude Code ou outro agente com terminal | [Instalação por um único prompt](#instalação-por-um-único-prompt) |
 
-Verifique o ambiente:
+O BIAWS requer Git, Docker com o plugin Compose, Node.js `20.19.0` ou superior,
+`curl`, `openssl` e Bash. Node.js 22 LTS é recomendado.
 
-```bash
-git --version
-docker compose version
-node --version
-curl --version
-openssl version
-```
+### macOS
+
+1. Instale o [Docker Desktop para Mac](https://docs.docker.com/desktop/setup/install/mac-install/).
+2. Instale Git, Node.js, `curl` e OpenSSL. Com
+   [Homebrew](https://brew.sh/):
+
+   ```bash
+   brew install git node curl openssl
+   ```
+
+3. Abra o Docker Desktop e aguarde o engine ficar disponível.
+
+O setup é compatível com Macs Apple Silicon e Intel; as imagens Docker escolhem
+a arquitetura adequada. Não é necessário substituir o Bash fornecido pelo
+macOS.
+
+### Linux
+
+1. Instale o [Docker Engine](https://docs.docker.com/engine/install/) para sua
+   distribuição, incluindo o plugin Docker Compose. Se preferir interface
+   gráfica, use o [Docker Desktop para Linux](https://docs.docker.com/desktop/setup/install/linux/).
+2. Instale Git, `curl`, OpenSSL e os certificados do sistema. Em Ubuntu/Debian:
+
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y git curl openssl ca-certificates
+   ```
+
+3. Instale Node.js 22 LTS pelo
+   [canal oficial do Node.js](https://nodejs.org/en/download). O pacote `nodejs`
+   padrão de distribuições antigas pode não atingir a versão mínima `20.19.0`.
+4. Inicie o Docker e siga o
+   [pós-instalação oficial](https://docs.docker.com/engine/install/linux-postinstall/)
+   se quiser executá-lo sem `sudo`.
+
+### Windows com WSL2
+
+O suporte no Windows é feito por WSL2. Windows nativo, PowerShell, Prompt de
+Comando, Git Bash, MSYS2 e Cygwin não executam o instalador.
+
+1. Em um PowerShell aberto como administrador, instale o WSL2 com Ubuntu:
+
+   ```powershell
+   wsl --install -d Ubuntu
+   ```
+
+   Reinicie o Windows se solicitado e conclua a criação do usuário Linux. Veja
+   a [documentação oficial do WSL](https://learn.microsoft.com/windows/wsl/install).
+
+2. Instale o [Docker Desktop para Windows](https://docs.docker.com/desktop/setup/install/windows-install/),
+   habilite o engine baseado em WSL2 e ative a integração com a distribuição
+   Ubuntu em **Settings > Resources > WSL Integration**.
+3. No terminal Ubuntu do WSL — não no PowerShell — instale as ferramentas:
+
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y git curl openssl ca-certificates
+   ```
+
+4. Ainda no Ubuntu, instale Node.js 22 LTS pelo
+   [canal oficial do Node.js](https://nodejs.org/en/download).
+5. Clone o BIAWS e mantenha seus projetos dentro do filesystem Linux, por
+   exemplo em `~/Source`. Evite `/mnt/c`, que introduz diferenças de permissões,
+   caminhos e desempenho.
+
+Todos os comandos Bash das próximas seções devem ser executados dentro do
+terminal WSL. A UI continuará acessível no navegador do Windows por
+`http://localhost:<porta>`.
+
+### Instalação por um único prompt
+
+Se o agente atual pode usar um terminal, você não precisa copiar nenhum dos
+comandos deste guia. Envie a ele o
+[prompt pronto para instalação assistida](docs/agent-assisted-installation.md).
+
+O agente deve detectar macOS, Linux ou Windows/WSL2, verificar o ambiente,
+solicitar aprovação antes de instalar pacotes ou alterar configurações do
+sistema, clonar o repositório, executar o setup e validar o MCP. O usuário só
+precisa aprovar essas ações e, quando o sistema operacional exigir, concluir
+uma janela do Docker Desktop, reinicialização ou autenticação administrativa.
 
 ## 1. Baixar o Bondia Workspaces
 
@@ -33,6 +109,12 @@ Enquanto não houver uma release pública, clone o branch principal:
 ```bash
 git clone https://github.com/fbondia/biaws.git
 cd biaws
+```
+
+Valide os pré-requisitos e o acesso ao Docker:
+
+```bash
+./scripts/check-prerequisites.sh --include-git
 ```
 
 Quando houver releases publicadas, prefira uma versão identificada:

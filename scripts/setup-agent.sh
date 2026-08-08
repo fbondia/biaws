@@ -597,23 +597,7 @@ if [[ ! -d "${PROJECT_DIR}" ]]; then
   echo "Diretório de projeto inexistente: ${PROJECT_DIR}" >&2
   exit 2
 fi
-if ! command -v node >/dev/null 2>&1; then
-  echo "Node.js 20.19 ou superior é necessário para executar o MCP." >&2
-  exit 1
-fi
-node_major="$(node -p 'Number(process.versions.node.split(".")[0])')"
-if [[ "${node_major}" -lt 20 ]]; then
-  echo "Node.js 20.19 ou superior é necessário; versão atual: $(node --version)." >&2
-  exit 1
-fi
-if ! command -v docker >/dev/null 2>&1; then
-  echo "Docker com Compose é necessário." >&2
-  exit 1
-fi
-if ! docker compose version >/dev/null 2>&1; then
-  echo "O plugin Docker Compose não está disponível." >&2
-  exit 1
-fi
+"${ROOT_DIR}/scripts/check-prerequisites.sh" --quiet
 
 INSTANCE_DIR="${INSTANCES_DIR}/${INSTANCE}"
 ENV_FILE="${INSTANCE_DIR}/.env"

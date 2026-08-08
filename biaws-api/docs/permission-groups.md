@@ -16,7 +16,7 @@ Nenhuma permissão é copiada para o documento de sessão.
 | Administração                | Todo o catálogo canônico                                                                                                                                                  |
 | Gestão de incidentes         | Todas as permissões `issues.*`, mais leitura de workspaces, aplicações e componentes                                                                                      |
 | Gestão de melhorias          | Todas as permissões `demands.*` e `tasks.*`                                                                                                                               |
-| Gestão de conhecimento       | Todas as permissões `taxonomy.*`, `procedures.*` e `skills.*`                                                                                                             |
+| Gestão de conhecimento       | Todas as permissões `taxonomy.*`, `procedures.*`, `documents.*` e `skills.*`                                                                                              |
 | Chamados                     | `issues.read`, `issues.status.update`, `issues.comment.create`, `issues.comment.update`, `issues.attachment.read`                                                         |
 | Desenvolvimento de melhorias | `demands.read`, `demands.specification.update`, `demands.attachment.read`, `tasks.status.update`, `tasks.note.create`, `tasks.attachment.read`, `tasks.attachment.create` |
 

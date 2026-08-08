@@ -263,6 +263,26 @@ PATCH /api/procedures/:id/attachments/:attachmentId/tags
 Cada domínio usa sua própria raiz (`ISSUE_DIR`, `REQUEST_DIR` ou `PROCEDURE_DIR`)
 e o mesmo layout mensal `YYYY-MM/<id>/attachments/<arquivo>`.
 
+## Documentos de conhecimento
+
+Regras de negócio, decisões arquiteturais, guidelines, features e referências
+técnicas compartilham uma coleção e uma API discriminada por `documentType`:
+
+```text
+GET    /api/knowledge/documents
+POST   /api/knowledge/documents
+GET    /api/knowledge/documents/:id
+PUT    /api/knowledge/documents/:id
+DELETE /api/knowledge/documents/:id
+PATCH  /api/knowledge/documents/:id/collection
+GET    /api/knowledge/documents/:id/revisions
+GET    /api/knowledge/documents/:id/observations
+POST   /api/knowledge/documents/:id/observations
+```
+
+Consulte [`../docs/knowledge.md`](../docs/knowledge.md) para o contrato e os
+ciclos de vida.
+
 ## Catálogo de skills
 
 A API mantém versões imutáveis das skills usadas para configurar os ambientes dos

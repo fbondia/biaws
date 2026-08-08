@@ -321,7 +321,7 @@ servidores referenciados, issues, melhorias e procedimentos.
 Como o endpoint combina todos os domínios, ele exige as sete permissões de
 leitura do catálogo — aplicação, integração, componente, repositório, servidor,
 deployment e runtime — e as três permissões `issues.read`, `demands.read` e
-`procedures.read`.
+`procedures.read`, além de `documents.read`.
 
 O mesmo contexto está disponível no MCP pela ferramenta
 `applications_get_context`. O MCP não amplia as permissões da chave usada e
@@ -329,14 +329,16 @@ não consulta o banco diretamente.
 
 ## Relação da base de conhecimento com o catálogo
 
-Os documentos de issue, melhoria e procedimento usam os campos:
+Os documentos de issue, melhoria, procedimento e conhecimento usam os campos:
 
 - `workspaceId`;
 - `applicationId`;
 - `affectedComponentIds`.
 
 `applicationId` é obrigatório na criação de issues e melhorias. Em
-procedimentos, `applicationId` e os componentes afetados são opcionais. A API
+procedimentos, guidelines e referências técnicas, `applicationId` e os
+componentes afetados são opcionais. Regras, decisões e features exigem uma
+aplicação. A API
 confirma que a aplicação pertence ao workspace e que cada componente pertence
 à aplicação antes de persistir a relação.
 

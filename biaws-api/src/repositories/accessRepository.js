@@ -53,6 +53,7 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
     permissions: permissionsStartingWith(
       "taxonomy.",
       "procedures.",
+      "documents.",
       "business_rules.",
       "architecture_decisions.",
       "skills.",
@@ -143,6 +144,9 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
       "procedures.create",
       "procedures.update",
       "procedures.attachment.read",
+      "documents.read",
+      "documents.create",
+      "documents.update",
       "business_rules.read",
       "business_rules.create",
       "business_rules.update",
@@ -331,10 +335,13 @@ export function buildSystemGroupSeedPipeline(
           normalizedName(group.name),
         ),
         description: preserveOrInitialize("description", group.description),
-        permissions:
-          group.id === "administration"
-            ? initialPermissions
-            : preserveOrInitialize("permissions", initialPermissions),
+        permissions: [
+          "administration",
+          "knowledge-management",
+          "agent-operator",
+        ].includes(group.id)
+          ? initialPermissions
+          : preserveOrInitialize("permissions", initialPermissions),
         workspaceId: workspace.id,
         scope: preserveOrInitialize("scope", {
           type: "workspace",

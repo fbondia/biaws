@@ -1,54 +1,52 @@
 import { deleteJson, fetchJson, sendJson } from "./client.js";
 
-function basePath(type) {
-  return `/api/knowledge/${encodeURIComponent(type)}`;
+const BASE_PATH = "/api/knowledge/documents";
+
+export function fetchDocuments(params) {
+  return fetchJson(BASE_PATH, params);
 }
 
-export function fetchKnowledgeRecords(type, params) {
-  return fetchJson(basePath(type), params);
+export function fetchDocument(id) {
+  return fetchJson(`${BASE_PATH}/${encodeURIComponent(id)}`);
 }
 
-export function fetchKnowledgeRecord(type, id) {
-  return fetchJson(`${basePath(type)}/${encodeURIComponent(id)}`);
+export function createDocument(document) {
+  return sendJson(BASE_PATH, document, undefined, "POST");
 }
 
-export function createKnowledgeRecord(type, record) {
-  return sendJson(basePath(type), record, undefined, "POST");
-}
-
-export function saveKnowledgeRecord(type, id, record) {
+export function saveDocument(id, document) {
   return sendJson(
-    `${basePath(type)}/${encodeURIComponent(id)}`,
-    record,
+    `${BASE_PATH}/${encodeURIComponent(id)}`,
+    document,
     undefined,
     "PUT",
   );
 }
 
-export function archiveKnowledgeRecord(type, id) {
-  return deleteJson(`${basePath(type)}/${encodeURIComponent(id)}`);
+export function archiveDocument(id) {
+  return deleteJson(`${BASE_PATH}/${encodeURIComponent(id)}`);
 }
 
-export function moveKnowledgeRecordToCollection(type, id, collectionId) {
+export function moveDocumentToCollection(id, collectionId) {
   return sendJson(
-    `${basePath(type)}/${encodeURIComponent(id)}/collection`,
+    `${BASE_PATH}/${encodeURIComponent(id)}/collection`,
     { collectionId },
     undefined,
     "PATCH",
   );
 }
 
-export function fetchKnowledgeRevisions(type, id) {
-  return fetchJson(`${basePath(type)}/${encodeURIComponent(id)}/revisions`);
+export function fetchDocumentRevisions(id) {
+  return fetchJson(`${BASE_PATH}/${encodeURIComponent(id)}/revisions`);
 }
 
-export function fetchKnowledgeObservations(type, id) {
-  return fetchJson(`${basePath(type)}/${encodeURIComponent(id)}/observations`);
+export function fetchDocumentObservations(id) {
+  return fetchJson(`${BASE_PATH}/${encodeURIComponent(id)}/observations`);
 }
 
-export function addKnowledgeObservation(type, id, markdown) {
+export function addDocumentObservation(id, markdown) {
   return sendJson(
-    `${basePath(type)}/${encodeURIComponent(id)}/observations`,
+    `${BASE_PATH}/${encodeURIComponent(id)}/observations`,
     { markdown },
     undefined,
     "POST",

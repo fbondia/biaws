@@ -11,11 +11,16 @@ function jsonResponse(payload = { ok: true }, status = 200) {
   });
 }
 
-test("knowledge tools expose bounded typed schemas", () => {
+test("document tools expose one bounded discriminated knowledge API", () => {
   const names = knowledgeTools.map(({ name }) => name);
-  assert.equal(names.includes("knowledge_context_load"), true);
-  assert.equal(names.includes("business_rules_create"), true);
-  assert.equal(names.includes("architecture_decisions_update"), true);
+  assert.deepEqual(names, [
+    "knowledge_context_load",
+    "documents_search",
+    "documents_get",
+    "documents_create",
+    "documents_update",
+    "documents_add_observation",
+  ]);
   assert.equal(new Set(names).size, names.length);
 
   const registered = new Set(listTools().map(({ name }) => name));
@@ -24,18 +29,24 @@ test("knowledge tools expose bounded typed schemas", () => {
     assert.equal(registered.has(tool.name), true, tool.name);
   }
 
-  const create = knowledgeTools.find(
-    ({ name }) => name === "business_rules_create",
-  );
+  const create = knowledgeTools.find(({ name }) => name === "documents_create");
   assert.deepEqual(create.inputSchema.required, [
+    "documentType",
     "title",
+    "summary",
     "markdown",
-    "applicationId",
+  ]);
+  assert.deepEqual(create.inputSchema.properties.documentType.enum, [
+    "business-rule",
+    "architecture-decision",
+    "guideline",
+    "feature",
+    "technical-reference",
   ]);
   assert.equal(create.inputSchema.properties.references.maxItems, 100);
 });
 
-test("knowledge context loader fetches active rules and accepted decisions", async () => {
+test("knowledge context loader fetches current unified documents", async () => {
   const originalFetch = globalThis.fetch;
   const originalBaseUrl = process.env.ISSUE_API_URL;
   process.env.ISSUE_API_URL = "http://api.test";
@@ -43,18 +54,18 @@ test("knowledge context loader fetches active rules and accepted decisions", asy
   globalThis.fetch = async (url) => {
     const path = new URL(String(url)).pathname;
     calls.push(String(url));
-    if (path.endsWith("/business-rules")) {
-      return jsonResponse({ items: [{ id: "rule-1" }] });
+    if (path.endsWith("/documents")) {
+      return jsonResponse({
+        items: [
+          { id: "rule-1", documentType: "business-rule" },
+          { id: "feature-1", documentType: "feature" },
+        ],
+      });
     }
-    if (path.endsWith("/architecture-decisions")) {
-      return jsonResponse({ items: [{ id: "decision-1" }] });
+    if (path.endsWith("/documents/rule-1")) {
+      return jsonResponse({ document: { id: "rule-1", markdown: "# R" } });
     }
-    if (path.endsWith("/business-rules/rule-1")) {
-      return jsonResponse({ businessRule: { id: "rule-1", markdown: "# R" } });
-    }
-    return jsonResponse({
-      architectureDecision: { id: "decision-1", markdown: "# D" },
-    });
+    return jsonResponse({ document: { id: "feature-1", markdown: "# F" } });
   };
 
   try {
@@ -63,18 +74,14 @@ test("knowledge context loader fetches active rules and accepted decisions", asy
       componentId: "component-1",
       limit: 10,
     });
-    assert.equal(result.businessRules[0].markdown, "# R");
-    assert.equal(result.architectureDecisions[0].markdown, "# D");
+    assert.equal(result.documents[0].markdown, "# R");
+    assert.equal(result.documents[1].markdown, "# F");
     assert.equal(
       calls.some((url) =>
         url.includes(
-          "/api/knowledge/business-rules?applicationId=app-1&componentId=component-1&status=active&limit=10",
+          "/api/knowledge/documents?applicationId=app-1&componentId=component-1&currentOnly=true&includeWorkspace=true&limit=10",
         ),
       ),
-      true,
-    );
-    assert.equal(
-      calls.some((url) => url.includes("status=accepted")),
       true,
     );
   } finally {

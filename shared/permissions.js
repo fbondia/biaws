@@ -96,6 +96,10 @@ const definitions = [
 
   ["taxonomy.read", "Conhecimento", "Consultar a taxonomia"],
   ["taxonomy.manage", "Conhecimento", "Administrar a taxonomia"],
+  ["documents.read", "Documentos", "Consultar documentos de conhecimento"],
+  ["documents.create", "Documentos", "Criar documentos de conhecimento"],
+  ["documents.update", "Documentos", "Alterar documentos de conhecimento"],
+  ["documents.archive", "Documentos", "Arquivar documentos de conhecimento"],
   ["procedures.read", "Procedimentos", "Consultar procedimentos"],
   ["procedures.create", "Procedimentos", "Criar procedimentos"],
   ["procedures.update", "Procedimentos", "Alterar procedimentos"],
@@ -211,6 +215,7 @@ const permissionSectionRules = [
   ["demands", "Geral"],
   ["tasks", "Geral"],
   ["taxonomy", "Taxonomia"],
+  ["documents", "Geral"],
   ["procedures", "Geral"],
   ["business_rules", "Geral"],
   ["architecture_decisions", "Geral"],
@@ -250,7 +255,11 @@ const workspacePermissionPrefixes = [
 ];
 
 function permissionScope(id) {
-  if (id.startsWith("procedures.") || id.startsWith("secrets."))
+  if (
+    id.startsWith("documents.") ||
+    id.startsWith("procedures.") ||
+    id.startsWith("secrets.")
+  )
     return "hybrid";
   if (
     workspacePermissionIds.has(id) ||

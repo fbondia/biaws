@@ -1,58 +1,70 @@
-# Regras de negócio e decisões arquiteturais
+# Documentos de conhecimento
 
-O Bondia Workspaces mantém conhecimento normativo em dois recursos tipados, em
-vez de adicionar um campo genérico de documentação ao catálogo:
+O Bondia Workspaces mantém regras de negócio, decisões arquiteturais, guidelines,
+features e referências técnicas em uma única coleção de documentos. O campo
+`documentType` é um discriminador obrigatório e imutável; ele define validação,
+template, metadados específicos e ciclo de vida.
 
-- **regras de negócio** descrevem condições e comportamentos esperados do
-  domínio;
-- **decisões arquiteturais** registram escolhas técnicas e suas razões.
+## Tipos e ciclos de vida
 
-Os dois recursos exigem uma aplicação, podem apontar para zero ou mais
-componentes da mesma aplicação e armazenam o conteúdo principal em Markdown.
-Metadados de contexto, estado, datas e relações permanecem estruturados.
+| Tipo                    | Finalidade                                                     | Estados                                                      |
+| ----------------------- | -------------------------------------------------------------- | ------------------------------------------------------------ |
+| `business-rule`         | Condições e comportamentos esperados do domínio                | `draft`, `active`, `retired`, `archived`                     |
+| `architecture-decision` | Escolhas técnicas, contexto, alternativas e consequências      | `proposed`, `accepted`, `rejected`, `superseded`, `archived` |
+| `guideline`             | Diretrizes e padrões de desenvolvimento                        | `draft`, `published`, `deprecated`, `archived`               |
+| `feature`               | Descrição funcional e técnica aprofundada de uma capacidade    | `draft`, `published`, `deprecated`, `archived`               |
+| `technical-reference`   | Arquitetura atual, contratos, schemas, protocolos e mecanismos | `draft`, `published`, `deprecated`, `archived`               |
 
-## Organização e ciclo de vida
+Regras, decisões e features exigem uma aplicação. Guidelines e referências
+técnicas também podem existir no escopo geral do workspace. Componentes somente
+podem ser associados quando houver uma aplicação.
 
-Cada tipo possui uma árvore independente de coleções do workspace. As coleções
-são livres e servem apenas à organização escolhida pelo operador.
+## Contrato
 
-Regras usam `draft`, `active`, `retired` e `archived`. Decisões usam `proposed`,
-`accepted`, `rejected`, `superseded` e `archived`. Registros arquivados não são
-excluídos e deixam de aparecer nas consultas padrão.
+Todos os documentos compartilham título, resumo curto, Markdown, contexto,
+coleção, referências, origem, datas de revisão, autoria e auditoria. Campos
+específicos ficam em `details`, validados por tipo:
 
-`definedAt`, `lastReviewedAt`, `nextReviewAt` e `reviewedBy` distinguem a
-vigência conceitual das datas técnicas `createdAt` e `updatedAt`. Cada alteração
-material cria uma revisão imutável; a trilha funcional registra o ator e as
-mudanças. Observações são registros append-only e não alteram o Markdown
-normativo.
+- regra: `ruleCode` e `effectiveFrom`;
+- decisão: `decidedAt`;
+- guideline: `scope` e `enforcement`;
+- feature: `maturity`;
+- referência técnica: `referenceKind`.
 
-## Relações
+`source.mode` distingue conteúdo `native` de conteúdo canônico em `repository`.
+Nesse segundo caso, `repositoryId` e `path` são obrigatórios. O Markdown permite
+manter uma representação consultável, mas a origem declara onde a manutenção
+canônica acontece.
 
-`references` liga regras e decisões da mesma aplicação:
+## Organização, relações e governança
+
+Todos os tipos compartilham uma árvore de coleções. Assim, uma coleção de
+assunto pode reunir a feature, suas regras, decisões, guidelines e referências.
+
+Relações apontam diretamente para outro documento do mesmo workspace:
 
 ```json
 {
-  "targetType": "architecture-decisions",
-  "targetId": "id-da-decisao",
+  "targetDocumentId": "id-do-documento",
   "relationship": "supported-by"
 }
 ```
 
-O relacionamento é descritivo e permanece flexível. Auto-referências,
-duplicatas e alvos fora da aplicação ou do escopo autorizado são recusados.
+Auto-referências, duplicatas e alvos fora do escopo autorizado são recusados.
+`definedAt`, `lastReviewedAt`, `nextReviewAt` e `reviewedBy` distinguem vigência
+conceitual das datas técnicas. Cada alteração cria uma revisão imutável;
+observações são append-only.
 
-## API e MCP
+## API, MCP e contexto
 
-As rotas HTTP ficam sob:
+As rotas HTTP ficam sob `/api/knowledge/documents` e oferecem listagem, criação,
+leitura, atualização, arquivamento, movimentação, revisões e observações. Os
+endpoints antigos de regras e decisões permanecem aliases temporários sobre a
+coleção unificada. A permissão `documents.*` é híbrida: pode abranger todo o
+workspace ou aplicações selecionadas.
 
-- `/api/knowledge/business-rules`;
-- `/api/knowledge/architecture-decisions`.
-
-Cada tipo oferece listagem, criação, leitura, atualização, arquivamento,
-movimentação entre coleções, revisões e observações. As permissões
-`business_rules.*` e `architecture_decisions.*` têm escopo por aplicação.
-
-O MCP expõe ferramentas de busca, leitura, criação, atualização e observação
-para cada tipo. `knowledge_context_load` carrega regras `active` e decisões
-`accepted` por aplicação e componente, com Markdown opcional. O contexto
-agregado da aplicação inclui resumos desses dois grupos.
+O MCP expõe `documents_search`, `documents_get`, `documents_create`,
+`documents_update` e `documents_add_observation`. `knowledge_context_load`
+carrega documentos vigentes — regras ativas, decisões aceitas e demais tipos
+publicados — aplicáveis à aplicação ou componente. Listagens e o contexto
+agregado omitem o Markdown; o conteúdo completo é carregado sob demanda.

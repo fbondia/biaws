@@ -15,6 +15,7 @@ export const COLLECTION_NAMES = Object.freeze({
   API_RATE_LIMITS: "apiRateLimits",
   BUSINESS_RULES: "businessRules",
   DEPLOYMENT_RUNTIMES: "deploymentRuntimes",
+  DOCUMENTS: "documents",
   RUNTIME_MONITORING_SIGNALS: "runtimeMonitoringSignals",
   EMAIL_SANITIZATION_CONFIGS: "emailSanitizationConfigs",
   ISSUE_COMMENTS: "issueComments",

@@ -124,8 +124,7 @@ catalogTopologyRouter.get(
     "issues.read",
     "demands.read",
     "procedures.read",
-    "business_rules.read",
-    "architecture_decisions.read",
+    "documents.read",
   ),
   requireApplicationPermissions(
     "applications.read",
@@ -137,8 +136,7 @@ catalogTopologyRouter.get(
     "issues.read",
     "demands.read",
     "procedures.read",
-    "business_rules.read",
-    "architecture_decisions.read",
+    "documents.read",
   ),
   asyncHandler(async (req, res) => {
     res.json(await getApplicationContext(req.params.applicationId, req.query));

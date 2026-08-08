@@ -2,6 +2,10 @@
   margin: var(--space-3) 0;
 }
 
+.catalogContextDialogTrigger {
+  width: min(100%, 420px);
+}
+
 .catalogColumns {
   display: flex;
   min-height: 280px;

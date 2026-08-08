@@ -28,10 +28,7 @@ test("navigation groups operational and administrative destinations", () => {
     [
       ["Trabalho", ["issues", "requests"]],
       ["Ambiente", ["catalog", "servers"]],
-      [
-        "Conhecimento",
-        ["procedures", "business-rules", "architecture-decisions", "skills"],
-      ],
+      ["Conhecimento", ["procedures", "documents", "skills"]],
     ],
   );
   assert.deepEqual(

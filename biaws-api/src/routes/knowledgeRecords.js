@@ -1,38 +1,37 @@
 import { Router } from "express";
 
 import {
+  actorHasPermission,
   authorizationQuery,
-  requireAllPermissions,
+  requireAnyPermission,
 } from "../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../repositories/auditRepository.js";
-import { knowledgeContextMetadata } from "../repositories/knowledgeContextRepository.js";
 import {
-  addKnowledgeObservation,
-  archiveKnowledgeRecord,
-  createKnowledgeRecord,
-  getKnowledgeRecord,
-  knowledgeRecordConfig,
-  listKnowledgeObservations,
-  listKnowledgeRecords,
-  listKnowledgeRevisions,
-  moveKnowledgeRecord,
-  updateKnowledgeRecord,
-} from "../repositories/knowledgeRecordsRepository.js";
+  addDocumentObservation,
+  archiveDocument,
+  createDocument,
+  documentTypeConfig,
+  getDocument,
+  listDocumentObservations,
+  listDocumentRevisions,
+  listDocuments,
+  moveDocument,
+  updateDocument,
+} from "../repositories/documentsRepository.js";
+import { knowledgeContextMetadata } from "../repositories/knowledgeContextRepository.js";
 
 export const knowledgeRecordsRouter = Router();
 
-const PERMISSIONS = Object.freeze({
+const LEGACY_TYPES = Object.freeze({
   "business-rules": {
-    read: "business_rules.read",
-    create: "business_rules.create",
-    update: "business_rules.update",
-    archive: "business_rules.archive",
+    documentType: "business-rule",
+    itemKey: "businessRule",
+    permission: "business_rules",
   },
   "architecture-decisions": {
-    read: "architecture_decisions.read",
-    create: "architecture_decisions.create",
-    update: "architecture_decisions.update",
-    archive: "architecture_decisions.archive",
+    documentType: "architecture-decision",
+    itemKey: "architectureDecision",
+    permission: "architecture_decisions",
   },
 });
 
@@ -46,44 +45,96 @@ function asyncHandler(handler) {
   };
 }
 
-function permission(req, operation) {
-  knowledgeRecordConfig(req.params.type);
-  return PERMISSIONS[req.params.type][operation];
+function routeConfig(type) {
+  if (type === "documents")
+    return { itemKey: "document", permission: "documents" };
+  const legacy = LEGACY_TYPES[type];
+  if (!legacy) {
+    const error = new Error(`Tipo de conhecimento não suportado: ${type}`);
+    error.statusCode = 404;
+    error.code = "KNOWLEDGE_RECORD_TYPE_NOT_FOUND";
+    throw error;
+  }
+  return legacy;
+}
+
+function operationPermissions(req, operation) {
+  const config = routeConfig(req.params.type);
+  return req.params.type === "documents"
+    ? [`documents.${operation}`]
+    : [`documents.${operation}`, `${config.permission}.${operation}`];
 }
 
 function authorize(operation) {
   return (req, res, next) => {
     try {
-      requireAllPermissions(permission(req, operation))(req, res, next);
+      requireAnyPermission(...operationPermissions(req, operation))(
+        req,
+        res,
+        next,
+      );
     } catch (error) {
       next(error);
     }
   };
 }
 
-function query(req, operation) {
-  return authorizationQuery(req.actor, permission(req, operation), req.query);
+function effectivePermission(req, operation) {
+  return operationPermissions(req, operation).find((permission) =>
+    actorHasPermission(req.actor, permission),
+  );
+}
+
+function query(req, operation, additions = {}) {
+  return authorizationQuery(req.actor, effectivePermission(req, operation), {
+    ...req.query,
+    ...additions,
+  });
 }
 
 function actorId(req) {
   return req.actor.email || req.actor.userId;
 }
 
-async function currentRecord(req, operation = "read") {
-  const config = knowledgeRecordConfig(req.params.type);
-  const payload = await getKnowledgeRecord(
-    req.params.type,
-    req.params.id,
-    query(req, operation),
-  );
-  return payload[config.itemKey];
+function typeFor(req, payload = {}) {
+  const config = routeConfig(req.params.type);
+  const documentType =
+    config.documentType || payload.documentType || req.query.documentType;
+  if (documentType) documentTypeConfig(documentType);
+  return documentType;
+}
+
+function responseFor(req, result) {
+  const config = routeConfig(req.params.type);
+  if (config.itemKey === "document") return result;
+  return { meta: result.meta, [config.itemKey]: result.document };
+}
+
+async function currentDocument(req, operation = "read") {
+  const result = await getDocument(req.params.id, query(req, operation));
+  const document = result.document;
+  const requiredType = routeConfig(req.params.type).documentType;
+  return document && (!requiredType || document.documentType === requiredType)
+    ? document
+    : null;
+}
+
+function sendNotFound(res) {
+  res.status(404).json({
+    error: { code: "DOCUMENT_NOT_FOUND", message: "Documento não encontrado" },
+  });
 }
 
 knowledgeRecordsRouter.get(
   "/:type",
   authorize("read"),
   asyncHandler(async (req, res) => {
-    res.json(await listKnowledgeRecords(req.params.type, query(req, "read")));
+    const documentType = typeFor(req);
+    res.json(
+      await listDocuments(
+        query(req, "read", documentType ? { documentType } : {}),
+      ),
+    );
   }),
 );
 
@@ -91,22 +142,30 @@ knowledgeRecordsRouter.post(
   "/:type",
   authorize("create"),
   asyncHandler(async (req, res) => {
-    const config = knowledgeRecordConfig(req.params.type);
-    const result = await createKnowledgeRecord(
-      req.params.type,
-      { ...req.body, createdBy: actorId(req) },
+    const documentType = typeFor(req, req.body);
+    if (!documentType) {
+      res.status(422).json({
+        error: {
+          code: "INVALID_DOCUMENT_TYPE",
+          message: "documentType é obrigatório",
+        },
+      });
+      return;
+    }
+    const result = await createDocument(
+      { ...req.body, documentType, createdBy: actorId(req) },
       query(req, "create"),
     );
-    const record = result[config.itemKey];
+    const document = result.document;
     await recordAuditEvent({
       actor: req.actor,
       action: "created",
-      target: { type: config.entityType, id: record.id, label: record.title },
-      after: record,
-      summary: `${config.label} criada`,
-      metadata: knowledgeContextMetadata(record),
+      target: { type: "document", id: document.id, label: document.title },
+      after: document,
+      summary: `${documentTypeConfig(document.documentType).label} criada`,
+      metadata: knowledgeContextMetadata(document),
     });
-    res.status(201).json(result);
+    res.status(201).json(responseFor(req, result));
   }),
 );
 
@@ -114,13 +173,8 @@ knowledgeRecordsRouter.get(
   "/:type/:id/revisions",
   authorize("read"),
   asyncHandler(async (req, res) => {
-    res.json(
-      await listKnowledgeRevisions(
-        req.params.type,
-        req.params.id,
-        query(req, "read"),
-      ),
-    );
+    if (!(await currentDocument(req))) return sendNotFound(res);
+    res.json(await listDocumentRevisions(req.params.id, query(req, "read")));
   }),
 );
 
@@ -128,13 +182,8 @@ knowledgeRecordsRouter.get(
   "/:type/:id/observations",
   authorize("read"),
   asyncHandler(async (req, res) => {
-    res.json(
-      await listKnowledgeObservations(
-        req.params.type,
-        req.params.id,
-        query(req, "read"),
-      ),
-    );
+    if (!(await currentDocument(req))) return sendNotFound(res);
+    res.json(await listDocumentObservations(req.params.id, query(req, "read")));
   }),
 );
 
@@ -142,21 +191,9 @@ knowledgeRecordsRouter.post(
   "/:type/:id/observations",
   authorize("update"),
   asyncHandler(async (req, res) => {
-    const config = knowledgeRecordConfig(req.params.type);
-    const record = await currentRecord(req, "update");
-    if (!record) {
-      res
-        .status(404)
-        .json({
-          error: {
-            code: "KNOWLEDGE_RECORD_NOT_FOUND",
-            message: `${config.label} não encontrada`,
-          },
-        });
-      return;
-    }
-    const result = await addKnowledgeObservation(
-      req.params.type,
+    const document = await currentDocument(req, "update");
+    if (!document) return sendNotFound(res);
+    const result = await addDocumentObservation(
       req.params.id,
       { ...req.body, createdBy: actorId(req) },
       query(req, "update"),
@@ -165,14 +202,14 @@ knowledgeRecordsRouter.post(
       actor: req.actor,
       action: "created",
       target: {
-        type: `${config.entityType}_observation`,
+        type: "document_observation",
         id: result.observation.id,
         label: "Observação",
       },
-      root: { type: config.entityType, id: record.id },
+      root: { type: "document", id: document.id },
       after: result.observation,
       summary: "Observação adicionada",
-      metadata: knowledgeContextMetadata(record),
+      metadata: knowledgeContextMetadata(document),
     });
     res.status(201).json(result);
   }),
@@ -182,26 +219,28 @@ knowledgeRecordsRouter.patch(
   "/:type/:id/collection",
   authorize("update"),
   asyncHandler(async (req, res) => {
-    const config = knowledgeRecordConfig(req.params.type);
-    const before = await currentRecord(req, "update");
-    const result = await moveKnowledgeRecord(
-      req.params.type,
+    const before = await currentDocument(req, "update");
+    if (!before) return sendNotFound(res);
+    const result = await moveDocument(
       req.params.id,
       req.body.collectionId,
       { updatedBy: actorId(req) },
       query(req, "update"),
     );
-    const after = result[config.itemKey];
     await recordAuditEvent({
       actor: req.actor,
       action: "updated",
-      target: { type: config.entityType, id: after.id, label: after.title },
+      target: {
+        type: "document",
+        id: result.document.id,
+        label: result.document.title,
+      },
       before,
-      after,
-      summary: `${config.label} movida entre coleções`,
-      metadata: knowledgeContextMetadata(after),
+      after: result.document,
+      summary: "Documento movido entre coleções",
+      metadata: knowledgeContextMetadata(result.document),
     });
-    res.json(result);
+    res.json(responseFor(req, result));
   }),
 );
 
@@ -209,24 +248,14 @@ knowledgeRecordsRouter.get(
   "/:type/:id",
   authorize("read"),
   asyncHandler(async (req, res) => {
-    const config = knowledgeRecordConfig(req.params.type);
-    const result = await getKnowledgeRecord(
-      req.params.type,
-      req.params.id,
-      query(req, "read"),
+    const document = await currentDocument(req);
+    if (!document) return sendNotFound(res);
+    res.json(
+      responseFor(req, {
+        meta: { collection: "documents" },
+        document,
+      }),
     );
-    if (!result[config.itemKey]) {
-      res
-        .status(404)
-        .json({
-          error: {
-            code: "KNOWLEDGE_RECORD_NOT_FOUND",
-            message: `${config.label} não encontrada`,
-          },
-        });
-      return;
-    }
-    res.json(result);
   }),
 );
 
@@ -234,25 +263,28 @@ knowledgeRecordsRouter.put(
   "/:type/:id",
   authorize("update"),
   asyncHandler(async (req, res) => {
-    const config = knowledgeRecordConfig(req.params.type);
-    const before = await currentRecord(req, "update");
-    const result = await updateKnowledgeRecord(
-      req.params.type,
+    const before = await currentDocument(req, "update");
+    if (!before) return sendNotFound(res);
+    const documentType = typeFor(req, req.body) || before.documentType;
+    const result = await updateDocument(
       req.params.id,
-      { ...req.body, updatedBy: actorId(req) },
+      { ...req.body, documentType, updatedBy: actorId(req) },
       query(req, "update"),
     );
-    const after = result[config.itemKey];
     await recordAuditEvent({
       actor: req.actor,
       action: "updated",
-      target: { type: config.entityType, id: after.id, label: after.title },
+      target: {
+        type: "document",
+        id: result.document.id,
+        label: result.document.title,
+      },
       before,
-      after,
-      summary: `${config.label} atualizada`,
-      metadata: knowledgeContextMetadata(after),
+      after: result.document,
+      summary: `${documentTypeConfig(result.document.documentType).label} atualizada`,
+      metadata: knowledgeContextMetadata(result.document),
     });
-    res.json(result);
+    res.json(responseFor(req, result));
   }),
 );
 
@@ -260,24 +292,26 @@ knowledgeRecordsRouter.delete(
   "/:type/:id",
   authorize("archive"),
   asyncHandler(async (req, res) => {
-    const config = knowledgeRecordConfig(req.params.type);
-    const before = await currentRecord(req, "archive");
-    const result = await archiveKnowledgeRecord(
-      req.params.type,
+    const before = await currentDocument(req, "archive");
+    if (!before) return sendNotFound(res);
+    const result = await archiveDocument(
       req.params.id,
-      { updatedBy: actorId(req) },
+      { documentType: before.documentType, updatedBy: actorId(req) },
       query(req, "archive"),
     );
-    const after = result[config.itemKey];
     await recordAuditEvent({
       actor: req.actor,
       action: "archived",
-      target: { type: config.entityType, id: after.id, label: after.title },
+      target: {
+        type: "document",
+        id: result.document.id,
+        label: result.document.title,
+      },
       before,
-      after,
-      summary: `${config.label} arquivada`,
-      metadata: knowledgeContextMetadata(after),
+      after: result.document,
+      summary: "Documento arquivado",
+      metadata: knowledgeContextMetadata(result.document),
     });
-    res.json(result);
+    res.json(responseFor(req, result));
   }),
 );

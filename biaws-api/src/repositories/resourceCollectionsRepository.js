@@ -7,6 +7,7 @@ export const RESOURCE_COLLECTION_TYPES = Object.freeze([
   "applications",
   "architecture-decisions",
   "business-rules",
+  "documents",
   "demands",
   "secrets",
   "skills",
@@ -26,6 +27,7 @@ const RESOURCE_CONFIG = Object.freeze({
     collection: COLLECTION_NAMES.BUSINESS_RULES,
     label: "regras de negócio",
   },
+  documents: { collection: COLLECTION_NAMES.DOCUMENTS, label: "documentos" },
   demands: { collection: COLLECTION_NAMES.REQUESTS, label: "melhorias" },
   secrets: { collection: COLLECTION_NAMES.SECRETS, label: "segredos" },
   skills: { collection: COLLECTION_NAMES.SKILLS, label: "skills" },
@@ -35,6 +37,7 @@ const RESOURCE_CONFIG = Object.freeze({
 const APPLICATION_SCOPED_COLLECTION_TYPES = new Set([
   "architecture-decisions",
   "business-rules",
+  "documents",
   "demands",
 ]);
 

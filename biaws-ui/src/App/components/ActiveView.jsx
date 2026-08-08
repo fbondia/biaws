@@ -37,9 +37,7 @@ export function ActiveView({
       <RequestsView actor={actor} key={`requests-${runtimeOptionsVersion}`} />
     );
   if (activeView === "procedures") return <ProceduresView actor={actor} />;
-  if (["business-rules", "architecture-decisions"].includes(activeView)) {
-    return <KnowledgeRecordsView actor={actor} type={activeView} />;
-  }
+  if (activeView === "documents") return <KnowledgeRecordsView actor={actor} />;
   if (activeView === "taxonomy") return <IssueTaxonomyManager />;
   if (activeView === "skills") return <SkillsView actor={actor} />;
   if (activeView === "users") return <UsersView actor={actor} />;

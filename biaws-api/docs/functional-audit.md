@@ -20,7 +20,7 @@ Os eventos são armazenados em `auditEvents` e contêm:
 - `changes`: caminhos dos campos com valores anterior e novo;
 - `metadata`: contexto funcional adicional sanitizado.
 
-Os documentos principais de issues, melhorias e procedimentos também preservam
+Os documentos principais de issues, melhorias, procedimentos e conhecimento também preservam
 `createdAt`, `createdBy`, `updatedAt` e `updatedBy` para consultas diretas. A
 trilha de eventos é a fonte detalhada das alterações.
 
@@ -33,6 +33,7 @@ trilha de eventos é a fonte detalhada das alterações.
 | Anotações     | inclusão, atualização e exclusão em melhorias e tarefas                                                |
 | Tarefas       | criação, atualização, mudança de status e exclusão                                                     |
 | Procedimentos | criação, atualização e exclusão                                                                        |
+| Documentos    | criação, atualização, arquivamento, movimentação e observações                                         |
 | Anexos        | inclusão, alteração de tags e exclusão em issues, melhorias e procedimentos                            |
 | Skills        | publicação e descontinuação                                                                            |
 

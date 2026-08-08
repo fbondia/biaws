@@ -1,41 +1,54 @@
 import {
-  addKnowledgeObservation,
-  createKnowledgeRecord,
-  getKnowledgeRecord,
+  addDocumentObservation,
+  createDocument,
+  getDocument,
   loadKnowledgeContext,
-  searchKnowledgeRecords,
-  updateKnowledgeRecord,
+  searchDocuments,
+  updateDocument,
 } from "./service.js";
 
 const ID = { type: "string", minLength: 1 };
+const DOCUMENT_TYPE = {
+  type: "string",
+  enum: [
+    "business-rule",
+    "architecture-decision",
+    "guideline",
+    "feature",
+    "technical-reference",
+  ],
+};
 const REFERENCES = {
   type: "array",
   maxItems: 100,
   items: {
     type: "object",
-    required: ["targetType", "targetId"],
+    required: ["targetDocumentId"],
     additionalProperties: false,
     properties: {
-      targetType: {
-        type: "string",
-        enum: ["business-rules", "architecture-decisions"],
-      },
-      targetId: ID,
+      targetDocumentId: ID,
       relationship: { type: "string" },
     },
   },
 };
 const COMMON = {
+  documentType: DOCUMENT_TYPE,
   title: ID,
+  summary: { type: "string", minLength: 1, maxLength: 500 },
   markdown: ID,
-  applicationId: ID,
-  affectedComponentIds: {
-    type: "array",
-    maxItems: 100,
-    items: ID,
-  },
+  applicationId: { type: "string" },
+  affectedComponentIds: { type: "array", maxItems: 100, items: ID },
   collectionId: { type: "string" },
   status: { type: "string" },
+  details: { type: "object" },
+  source: {
+    type: "object",
+    properties: {
+      mode: { type: "string", enum: ["native", "repository"] },
+      repositoryId: { type: "string" },
+      path: { type: "string" },
+    },
+  },
   references: REFERENCES,
   definedAt: { type: "string", description: "YYYY-MM-DD" },
   lastReviewedAt: { type: "string", description: "YYYY-MM-DD ou vazio" },
@@ -56,69 +69,61 @@ function definition(name, description, handler, inputSchema) {
   return { name, description, handler, inputSchema };
 }
 
-function toolsFor(prefix, type, label) {
-  return [
-    definition(
-      `${prefix}_search`,
-      `Busca ${label} por aplicação, componente, coleção, estado ou texto.`,
-      (args) => searchKnowledgeRecords(type, args),
-      schema({
-        search: { type: "string" },
-        applicationId: ID,
-        componentId: ID,
-        collectionId: ID,
-        status: { type: "string" },
-        includeArchived: { type: "boolean" },
-        page: { type: "integer", minimum: 1 },
-        limit: { type: "integer", minimum: 1, maximum: 100 },
-      }),
-    ),
-    definition(
-      `${prefix}_get`,
-      `Obtém uma ${label.slice(0, -1)} com Markdown e relações.`,
-      (args) => getKnowledgeRecord(type, args),
-      schema({ recordId: ID }, ["recordId"]),
-    ),
-    definition(
-      `${prefix}_create`,
-      `Cria uma ${label.slice(0, -1)} relacionada a uma aplicação.`,
-      (args) => createKnowledgeRecord(type, args),
-      schema(COMMON, ["title", "markdown", "applicationId"]),
-    ),
-    definition(
-      `${prefix}_update`,
-      `Atualiza conteúdo, contexto, revisão e relações de uma ${label.slice(0, -1)}.`,
-      (args) => updateKnowledgeRecord(type, args),
-      schema({ recordId: ID, ...COMMON }, ["recordId"]),
-    ),
-    definition(
-      `${prefix}_add_observation`,
-      `Acrescenta uma observação imutável a uma ${label.slice(0, -1)}.`,
-      (args) => addKnowledgeObservation(type, args),
-      schema({ recordId: ID, markdown: ID }, ["recordId", "markdown"]),
-    ),
-  ];
-}
-
 export const knowledgeTools = [
   definition(
     "knowledge_context_load",
-    "Carrega regras ativas e decisões aceitas aplicáveis a uma aplicação ou componente, com Markdown opcional.",
+    "Carrega documentos vigentes aplicáveis a uma aplicação ou componente, com Markdown opcional.",
     loadKnowledgeContext,
     schema(
       {
         applicationId: ID,
         componentId: ID,
         includeMarkdown: { type: "boolean", default: true },
-        limit: { type: "integer", minimum: 1, maximum: 50, default: 25 },
+        limit: { type: "integer", minimum: 1, maximum: 100, default: 50 },
       },
       ["applicationId"],
     ),
   ),
-  ...toolsFor("business_rules", "business-rules", "regras de negócio"),
-  ...toolsFor(
-    "architecture_decisions",
-    "architecture-decisions",
-    "decisões arquiteturais",
+  definition(
+    "documents_search",
+    "Busca documentos por tipo, aplicação, componente, coleção, estado ou texto.",
+    searchDocuments,
+    schema({
+      search: { type: "string" },
+      documentType: DOCUMENT_TYPE,
+      applicationId: ID,
+      componentId: ID,
+      collectionId: ID,
+      status: { type: "string" },
+      currentOnly: { type: "boolean" },
+      includeWorkspace: { type: "boolean" },
+      includeArchived: { type: "boolean" },
+      page: { type: "integer", minimum: 1 },
+      limit: { type: "integer", minimum: 1, maximum: 100 },
+    }),
+  ),
+  definition(
+    "documents_get",
+    "Obtém um documento com Markdown, metadados específicos e relações.",
+    getDocument,
+    schema({ documentId: ID }, ["documentId"]),
+  ),
+  definition(
+    "documents_create",
+    "Cria um documento tipado no workspace ou em uma aplicação.",
+    createDocument,
+    schema(COMMON, ["documentType", "title", "summary", "markdown"]),
+  ),
+  definition(
+    "documents_update",
+    "Atualiza conteúdo, contexto, metadados e relações de um documento.",
+    updateDocument,
+    schema({ documentId: ID, ...COMMON }, ["documentId"]),
+  ),
+  definition(
+    "documents_add_observation",
+    "Acrescenta uma observação imutável a um documento.",
+    addDocumentObservation,
+    schema({ documentId: ID, markdown: ID }, ["documentId", "markdown"]),
   ),
 ];

@@ -7,7 +7,7 @@ import {
   requestStatusStyle,
   REQUEST_STATUS_OPTIONS,
 } from "../requestUtils.js";
-import { CatalogContextFields } from "../../catalog/CatalogContextFields.jsx";
+import { CatalogContextDialogField } from "../../catalog/CatalogContextFields.jsx";
 
 export function RequestMainTab({
   request,
@@ -38,7 +38,7 @@ export function RequestMainTab({
 
         {isEditing ? (
           <>
-            <CatalogContextFields
+            <CatalogContextDialogField
               affectedComponentIds={request.affectedComponentIds}
               applicationId={request.applicationId}
               applications={applications}

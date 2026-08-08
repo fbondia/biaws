@@ -35,6 +35,8 @@ VITE_ISSUE_API_URL=http://127.0.0.1:3100 npm run dev
 - Inventário de servidores com referências reversas de runtimes e deployments
 - Relações e filtros por aplicação e componente em issues, melhorias e
   procedimentos
+- Documentos unificados com seletores para regras, decisões, guidelines,
+  features e referências técnicas, formulários por tipo, revisões e relações
 - Ações e áreas de navegação condicionadas às permissões do ator autenticado
 - Filtros por texto, código, tipo, status e intervalo de datas
 - Seleção do campo de data usado nos filtros

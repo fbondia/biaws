@@ -1,3 +1,61 @@
+.documentTypeSelector {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 10px;
+}
+
+.documentTypeOption {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  padding: 8px 12px;
+  color: var(--color-text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.documentTypeOption:hover,
+.documentTypeOption.active {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.documentCreateActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.documentCreateActions select {
+  min-width: 190px;
+}
+
+.documentTypeBadge {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  padding: 3px 8px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.documentType-business-rule,
+.documentType-architecture-decision {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
 .knowledgeRecordDetail {
   gap: 0;
   overflow: hidden;
@@ -21,6 +79,12 @@
 .knowledgeRecordTitle {
   min-width: 0;
   gap: 10px;
+}
+
+.knowledgeRecordTitle > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
 }
 
 .knowledgeRecordTitle svg {
@@ -95,6 +159,12 @@
 }
 
 @media (max-width: 760px) {
+  .documentCreateActions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .knowledgeRecordHeader {
     align-items: flex-start;
     flex-direction: column;

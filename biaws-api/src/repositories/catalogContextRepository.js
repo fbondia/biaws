@@ -164,7 +164,9 @@ function procedureSummary(document) {
 function knowledgeRecordSummary(document) {
   return {
     id: document.id,
+    documentType: document.documentType,
     title: document.title,
+    summary: document.summary,
     status: document.status,
     affectedComponentIds: document.affectedComponentIds || [],
     references: document.references || [],
@@ -193,19 +195,26 @@ export async function getApplicationContext(applicationId, query = {}) {
   const issues = db.collection(COLLECTION_NAMES.ISSUES);
   const demands = db.collection(COLLECTION_NAMES.REQUESTS);
   const procedures = db.collection(COLLECTION_NAMES.PROCEDURES);
-  const businessRules = db.collection(COLLECTION_NAMES.BUSINESS_RULES);
-  const architectureDecisions = db.collection(
-    COLLECTION_NAMES.ARCHITECTURE_DECISIONS,
-  );
+  const documents = db.collection(COLLECTION_NAMES.DOCUMENTS);
   const includeHistoricalKnowledge =
     String(query.includeArchived || "").toLowerCase() === "true";
-  const businessRuleScope = {
-    ...knowledgeScope,
-    ...(includeHistoricalKnowledge ? {} : { status: "active" }),
-  };
-  const architectureDecisionScope = {
-    ...knowledgeScope,
-    ...(includeHistoricalKnowledge ? {} : { status: "accepted" }),
+  const documentScope = {
+    workspaceId: application.workspaceId,
+    applicationId: { $in: [application.id, null] },
+    ...(includeHistoricalKnowledge
+      ? {}
+      : {
+          $or: [
+            { documentType: "business-rule", status: "active" },
+            { documentType: "architecture-decision", status: "accepted" },
+            {
+              documentType: {
+                $in: ["guideline", "feature", "technical-reference"],
+              },
+              status: "published",
+            },
+          ],
+        }),
   };
 
   const [
@@ -223,10 +232,8 @@ export async function getApplicationContext(applicationId, query = {}) {
     issueTotal,
     demandTotal,
     procedureTotal,
-    businessRuleDocuments,
-    architectureDecisionDocuments,
-    businessRuleTotal,
-    architectureDecisionTotal,
+    documentDocuments,
+    documentTotal,
     integrationResult,
   ] = await Promise.all([
     components.find(scope).sort({ name: 1, id: 1 }).limit(limit).toArray(),
@@ -259,20 +266,13 @@ export async function getApplicationContext(applicationId, query = {}) {
     issues.countDocuments(knowledgeScope),
     demands.countDocuments(knowledgeScope),
     procedures.countDocuments(knowledgeScope),
-    businessRules
-      .find(businessRuleScope)
+    documents
+      .find(documentScope)
       .project({ markdown: 0 })
       .sort({ updatedAt: -1, id: 1 })
       .limit(limit)
       .toArray(),
-    architectureDecisions
-      .find(architectureDecisionScope)
-      .project({ markdown: 0 })
-      .sort({ updatedAt: -1, id: 1 })
-      .limit(limit)
-      .toArray(),
-    businessRules.countDocuments(businessRuleScope),
-    architectureDecisions.countDocuments(architectureDecisionScope),
+    documents.countDocuments(documentScope),
     listIntegrations(application.id, {
       includeArchived: query.includeArchived,
       limit,
@@ -316,8 +316,7 @@ export async function getApplicationContext(applicationId, query = {}) {
         issues: issueTotal,
         demands: demandTotal,
         procedures: procedureTotal,
-        businessRules: businessRuleTotal,
-        architectureDecisions: architectureDecisionTotal,
+        documents: documentTotal,
         integrations: integrationResult.meta.total,
       },
       truncated: {
@@ -329,9 +328,7 @@ export async function getApplicationContext(applicationId, query = {}) {
         issues: issueTotal > issueDocuments.length,
         demands: demandTotal > demandDocuments.length,
         procedures: procedureTotal > procedureDocuments.length,
-        businessRules: businessRuleTotal > businessRuleDocuments.length,
-        architectureDecisions:
-          architectureDecisionTotal > architectureDecisionDocuments.length,
+        documents: documentTotal > documentDocuments.length,
         integrations:
           integrationResult.meta.total > integrationResult.items.length,
       },
@@ -345,9 +342,6 @@ export async function getApplicationContext(applicationId, query = {}) {
     issues: issueDocuments.map(issueSummary),
     demands: demandDocuments.map(demandSummary),
     procedures: procedureDocuments.map(procedureSummary),
-    businessRules: businessRuleDocuments.map(knowledgeRecordSummary),
-    architectureDecisions: architectureDecisionDocuments.map(
-      knowledgeRecordSummary,
-    ),
+    documents: documentDocuments.map(knowledgeRecordSummary),
   };
 }

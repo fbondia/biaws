@@ -1,33 +1,20 @@
 import { cleanParams, fetchJson, sendJson } from "../../httpClient.js";
 
-const TYPE_CONFIG = Object.freeze({
-  "business-rules": { key: "businessRule", activeStatus: "active" },
-  "architecture-decisions": {
-    key: "architectureDecision",
-    activeStatus: "accepted",
-  },
-});
+const BASE_PATH = "/api/knowledge/documents";
 
-function config(type) {
-  const value = TYPE_CONFIG[type];
-  if (!value) throw new Error(`unsupported knowledge type: ${type}`);
-  return value;
-}
-
-function basePath(type) {
-  config(type);
-  return `/api/knowledge/${type}`;
-}
-
-function recordPayload(args = {}, current = {}) {
+function documentPayload(args = {}, current = {}) {
   return {
+    documentType: args.documentType ?? current.documentType,
     title: args.title ?? current.title,
+    summary: args.summary ?? current.summary,
     markdown: args.markdown ?? current.markdown,
     applicationId: args.applicationId ?? current.applicationId,
     affectedComponentIds:
       args.affectedComponentIds ?? current.affectedComponentIds ?? [],
     collectionId: args.collectionId ?? current.collectionId ?? "",
     status: args.status ?? current.status,
+    details: args.details ?? current.details ?? {},
+    source: args.source ?? current.source ?? { mode: "native" },
     references: args.references ?? current.references ?? [],
     definedAt: args.definedAt ?? current.definedAt,
     lastReviewedAt: args.lastReviewedAt ?? current.lastReviewedAt ?? "",
@@ -36,15 +23,18 @@ function recordPayload(args = {}, current = {}) {
   };
 }
 
-export async function searchKnowledgeRecords(type, args = {}) {
+export async function searchDocuments(args = {}) {
   return fetchJson(
-    basePath(type),
+    BASE_PATH,
     cleanParams({
       search: args.search ?? args.q,
+      documentType: args.documentType,
       applicationId: args.applicationId,
       componentId: args.componentId,
       collectionId: args.collectionId,
       status: args.status,
+      currentOnly: args.currentOnly,
+      includeWorkspace: args.includeWorkspace,
       includeArchived: args.includeArchived,
       page: args.page,
       limit: args.limit,
@@ -52,77 +42,67 @@ export async function searchKnowledgeRecords(type, args = {}) {
   );
 }
 
-export async function getKnowledgeRecord(type, args = {}) {
-  const recordId = String(args.recordId || "").trim();
-  if (!recordId) throw new Error("recordId is required");
-  return fetchJson(`${basePath(type)}/${encodeURIComponent(recordId)}`);
+export async function getDocument(args = {}) {
+  const documentId = String(args.documentId || "").trim();
+  if (!documentId) throw new Error("documentId is required");
+  return fetchJson(`${BASE_PATH}/${encodeURIComponent(documentId)}`);
 }
 
-export async function createKnowledgeRecord(type, args = {}) {
-  if (!String(args.title || "").trim()) throw new Error("title is required");
-  if (!String(args.markdown || "").trim())
-    throw new Error("markdown is required");
-  if (!String(args.applicationId || "").trim())
-    throw new Error("applicationId is required");
-  return sendJson(basePath(type), recordPayload(args), {}, "POST");
+export async function createDocument(args = {}) {
+  for (const field of ["documentType", "title", "summary", "markdown"]) {
+    if (!String(args[field] || "").trim())
+      throw new Error(`${field} is required`);
+  }
+  return sendJson(BASE_PATH, documentPayload(args), {}, "POST");
 }
 
-export async function updateKnowledgeRecord(type, args = {}) {
-  const recordId = String(args.recordId || "").trim();
-  if (!recordId) throw new Error("recordId is required");
-  const currentPayload = await getKnowledgeRecord(type, { recordId });
-  const current = currentPayload[config(type).key];
+export async function updateDocument(args = {}) {
+  const documentId = String(args.documentId || "").trim();
+  if (!documentId) throw new Error("documentId is required");
+  const currentPayload = await getDocument({ documentId });
   return sendJson(
-    `${basePath(type)}/${encodeURIComponent(recordId)}`,
-    recordPayload(args, current),
+    `${BASE_PATH}/${encodeURIComponent(documentId)}`,
+    documentPayload(args, currentPayload.document),
     {},
     "PUT",
   );
 }
 
-export async function addKnowledgeObservation(type, args = {}) {
-  const recordId = String(args.recordId || "").trim();
+export async function addDocumentObservation(args = {}) {
+  const documentId = String(args.documentId || "").trim();
   const markdown = String(args.markdown || "").trim();
-  if (!recordId) throw new Error("recordId is required");
+  if (!documentId) throw new Error("documentId is required");
   if (!markdown) throw new Error("markdown is required");
   return sendJson(
-    `${basePath(type)}/${encodeURIComponent(recordId)}/observations`,
+    `${BASE_PATH}/${encodeURIComponent(documentId)}/observations`,
     { markdown },
     {},
     "POST",
   );
 }
 
-async function loadFullRecords(type, args) {
-  const typeConfig = config(type);
-  const list = await searchKnowledgeRecords(type, {
-    applicationId: args.applicationId,
-    componentId: args.componentId,
-    status: typeConfig.activeStatus,
-    limit: args.limit,
-  });
-  const items = list.items || [];
-  if (args.includeMarkdown === false) return items;
-  return Promise.all(
-    items.map(async ({ id }) => {
-      const payload = await getKnowledgeRecord(type, { recordId: id });
-      return payload[typeConfig.key];
-    }),
-  );
-}
-
 export async function loadKnowledgeContext(args = {}) {
   const applicationId = String(args.applicationId || "").trim();
   if (!applicationId) throw new Error("applicationId is required");
-  const options = { ...args, applicationId, limit: args.limit || 25 };
-  const [businessRules, architectureDecisions] = await Promise.all([
-    loadFullRecords("business-rules", options),
-    loadFullRecords("architecture-decisions", options),
-  ]);
+  const list = await searchDocuments({
+    applicationId,
+    componentId: args.componentId,
+    includeWorkspace: true,
+    currentOnly: true,
+    limit: args.limit || 50,
+  });
+  const items = list.items || [];
+  const documents =
+    args.includeMarkdown === false
+      ? items
+      : await Promise.all(
+          items.map(
+            async ({ id }) => (await getDocument({ documentId: id })).document,
+          ),
+        );
   return {
     applicationId,
     componentId: args.componentId || null,
-    businessRules,
-    architectureDecisions,
+    documents,
   };
 }

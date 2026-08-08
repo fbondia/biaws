@@ -101,6 +101,19 @@ As rotas atuais não oferecem anexos diretamente em subtarefas; as permissões
 | `PATCH`  | `/api/procedures/:id/attachments/:attachmentId/tags` | `procedures.attachment.update` |
 | `DELETE` | `/api/procedures/:id/attachments/:attachmentId`      | `procedures.attachment.delete` |
 
+## Documentos
+
+| Método   | Rota                                                                    | Permissão aplicada                       |
+| -------- | ----------------------------------------------------------------------- | ---------------------------------------- |
+| `GET`    | `/api/knowledge/documents`, `/api/knowledge/documents/:id`              | `documents.read`                         |
+| `POST`   | `/api/knowledge/documents`, `/api/knowledge/documents/:id/observations` | `documents.create` ou `documents.update` |
+| `PUT`    | `/api/knowledge/documents/:id`                                          | `documents.update`                       |
+| `PATCH`  | `/api/knowledge/documents/:id/collection`                               | `documents.update`                       |
+| `DELETE` | `/api/knowledge/documents/:id`                                          | `documents.archive`                      |
+
+As rotas legadas de regras e decisões aceitam as permissões antigas durante a
+migração, mas persistem na coleção unificada.
+
 ## Skills
 
 | Método  | Rota                                                                            | Permissão aplicada |

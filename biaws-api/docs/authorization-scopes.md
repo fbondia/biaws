@@ -22,8 +22,8 @@ Permissões são classificadas como:
 
 - `workspace`: somente grupos com alcance integral podem concedê-las;
 - `application`: podem ser limitadas a aplicações;
-- `hybrid`: procedimentos gerais exigem alcance de workspace, enquanto
-  procedimentos associados respeitam o conjunto de aplicações.
+- `hybrid`: procedimentos e documentos gerais exigem alcance de workspace,
+  enquanto os associados respeitam o conjunto de aplicações.
 
 `servers.read` permanece uma permissão de workspace. Por isso hostname e
 endereços não receberam uma permissão adicional nesta fase: grupos limitados a

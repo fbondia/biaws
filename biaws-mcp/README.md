@@ -10,7 +10,7 @@ O servidor separa os domínios:
 - `issues_*`: chamados, incidentes, requisições operacionais, taxonomia e classificação.
 - `demands_*`: melhorias, especificações, jornadas, prazos e contexto para desenvolvimento.
 - `procedures_*`: procedimentos operacionais em Markdown, com tags e classificação taxonômica compartilhadas com issues.
-- `business_rules_*` e `architecture_decisions_*`: conhecimento normativo
+- `documents_*`: regras, decisões, guidelines, features e referências técnicas
   relacionado a aplicações e componentes.
 - `knowledge_context_load`: regras ativas e decisões aceitas para o contexto
   solicitado.

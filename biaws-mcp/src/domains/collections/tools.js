@@ -3,9 +3,8 @@ import {
   deleteResourceCollection,
   listResourceCollections,
   moveApplicationToCollection,
-  moveArchitectureDecisionToCollection,
-  moveBusinessRuleToCollection,
   moveDemandToCollection,
+  moveDocumentToCollection,
   moveProcedureToCollection,
   moveSecretToCollection,
   moveServerToCollection,
@@ -22,9 +21,8 @@ const RESOURCE_TYPE = {
   type: "string",
   enum: [
     "applications",
-    "architecture-decisions",
-    "business-rules",
     "demands",
+    "documents",
     "procedures",
     "secrets",
     "skills",
@@ -101,15 +99,6 @@ export const collectionTools = [
   moveDefinition("secrets", "secretId", moveSecretToCollection),
   moveDefinition("skills", "skillId", moveSkillToCollection),
   moveDefinition("demands", "requestId", moveDemandToCollection),
+  moveDefinition("documents", "documentId", moveDocumentToCollection),
   moveDefinition("procedures", "procedureId", moveProcedureToCollection),
-  moveDefinition(
-    "business_rules",
-    "businessRuleId",
-    moveBusinessRuleToCollection,
-  ),
-  moveDefinition(
-    "architecture_decisions",
-    "architectureDecisionId",
-    moveArchitectureDecisionToCollection,
-  ),
 ];

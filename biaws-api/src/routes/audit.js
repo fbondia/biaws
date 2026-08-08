@@ -15,6 +15,7 @@ const readPermissionByType = {
   procedure: "procedures.read",
   business_rule: "business_rules.read",
   architecture_decision: "architecture_decisions.read",
+  document: "documents.read",
   taxonomy: "taxonomy.read",
   skill: "skills.read",
   application: "applications.read",

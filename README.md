@@ -82,14 +82,14 @@ BIAWS local; ela não é um token faturável do provedor do modelo.
 
 ## Como o harness se organiza
 
-| Camada | O que o BIAWS oferece |
-| --- | --- |
-| Trabalho | Chamados, melhorias, tarefas, prazos, checklists, anexos e jornadas |
-| Conhecimento | Procedimentos, regras de negócio e decisões arquiteturais em Markdown |
-| Topologia | Aplicações, componentes, repositórios, integrações, servidores, deployments e runtimes |
-| Observação | Sinais externos de saúde, metadados operacionais e relação com procedimentos |
-| Controle | Tenancy, permissões, escopo por aplicação, segredos e trilha de auditoria |
-| Interface para agentes | MCP com ferramentas de domínio, CLI e catálogo de skills |
+| Camada                 | O que o BIAWS oferece                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| Trabalho               | Chamados, melhorias, tarefas, prazos, checklists, anexos e jornadas                    |
+| Conhecimento           | Procedimentos e documentos tipados em Markdown                                         |
+| Topologia              | Aplicações, componentes, repositórios, integrações, servidores, deployments e runtimes |
+| Observação             | Sinais externos de saúde, metadados operacionais e relação com procedimentos           |
+| Controle               | Tenancy, permissões, escopo por aplicação, segredos e trilha de auditoria              |
+| Interface para agentes | MCP com ferramentas de domínio, CLI e catálogo de skills                               |
 
 ## Comece pelo contexto que já existe
 
@@ -97,11 +97,11 @@ O primeiro inventário não precisa começar em um formulário. O catálogo inic
 inclui skills de descoberta que ajudam o modelo a ler evidências já presentes no
 projeto, comparar o resultado com o BIAWS e propor um mapa para revisão:
 
-| Skill | O que descobre | Fontes típicas |
-| --- | --- | --- |
-| `$biaws-discover-application` | Aplicações, componentes, repositórios e integrações | Código, manifests de pacotes, contratos e documentação |
-| `$biaws-discover-infrastructure` | Servidores, deployments, runtimes e relações de topologia | Docker, Kubernetes, IaC, CI/CD e runbooks |
-| `$biaws-discover-secret-inventory` | Nomes, escopos, consumidores e referências de segredos | Templates de ambiente, schemas, manifests e workflows |
+| Skill                              | O que descobre                                            | Fontes típicas                                         |
+| ---------------------------------- | --------------------------------------------------------- | ------------------------------------------------------ |
+| `$biaws-discover-application`      | Aplicações, componentes, repositórios e integrações       | Código, manifests de pacotes, contratos e documentação |
+| `$biaws-discover-infrastructure`   | Servidores, deployments, runtimes e relações de topologia | Docker, Kubernetes, IaC, CI/CD e runbooks              |
+| `$biaws-discover-secret-inventory` | Nomes, escopos, consumidores e referências de segredos    | Templates de ambiente, schemas, manifests e workflows  |
 
 As descobertas são baseadas em evidências e funcionam em modo de proposta por
 padrão. O agente mostra fontes, confiança, correspondências e lacunas; a equipe
@@ -123,7 +123,7 @@ mas apresente a proposta e as evidências antes de registrar qualquer mudança.
 - melhorias com especificação Markdown, tarefas, checklist, prazos e acompanhamento de jornadas;
 - procedimentos organizados em coleções, classificados pela mesma taxonomia e
   associáveis a runtimes;
-- regras de negócio e decisões arquiteturais em Markdown, com coleções,
+- documentos tipados em Markdown — regras, decisões, guidelines, features e referências técnicas — com coleções,
   contexto de aplicação, componentes, revisões e referências estruturadas;
 - workspaces e aplicações como fronteiras de organização e autorização;
 - componentes, repositórios, servidores, deployments e runtimes com consultas
@@ -163,12 +163,12 @@ O runtime usa containers, mas o setup também configura o MCP e as skills no
 projeto que será operado pelo agente. Estas são as rotas oficialmente
 documentadas:
 
-| Ambiente | Rota suportada |
-| --- | --- |
-| macOS | Bash + Docker Desktop |
-| Linux | Bash + Docker Engine ou Docker Desktop |
-| Windows | WSL2 + uma distribuição Linux + integração do Docker Desktop |
-| Agente | Um único prompt; o agente detecta o sistema e executa esta mesma rota |
+| Ambiente | Rota suportada                                                        |
+| -------- | --------------------------------------------------------------------- |
+| macOS    | Bash + Docker Desktop                                                 |
+| Linux    | Bash + Docker Engine ou Docker Desktop                                |
+| Windows  | WSL2 + uma distribuição Linux + integração do Docker Desktop          |
+| Agente   | Um único prompt; o agente detecta o sistema e executa esta mesma rota |
 
 Windows nativo, PowerShell, Prompt de Comando, Git Bash, MSYS2 e Cygwin não são
 ambientes de execução suportados. No Windows, clone o repositório e mantenha os
@@ -422,7 +422,7 @@ de ingestão está em [docs/monitoring.md](docs/monitoring.md).
 
 - [Status, releases e suporte](docs/project-status.md)
 - [Arquitetura](docs/architecture.md)
-- [Regras de negócio e decisões arquiteturais](docs/knowledge.md)
+- [Documentos de conhecimento](docs/knowledge.md)
 - [Guidelines de desenvolvimento](docs/guidelines/INDEX.md)
 - [Operação e recuperação](docs/operations.md)
 - [Índices e performance](docs/performance.md)

@@ -97,6 +97,96 @@ export function CatalogContextFields({
   );
 }
 
+export function CatalogContextDialogField({
+  affectedComponentIds = [],
+  applicationId = "",
+  applications,
+  components,
+  disabled = false,
+  onChange,
+}) {
+  const [open, setOpen] = useState(false);
+  const selectedApplication = applications.find(
+    ({ id }) => id === applicationId,
+  );
+  const selectedComponents = components.filter(
+    ({ id, applicationId: componentApplicationId }) =>
+      componentApplicationId === applicationId &&
+      affectedComponentIds.includes(id),
+  );
+  const selectionCount =
+    Number(Boolean(selectedApplication)) + selectedComponents.length;
+  const componentSummary = selectedComponents.length
+    ? `${selectedComponents.length} componente(s)`
+    : "Nenhum componente";
+  const summary = selectedApplication
+    ? `${selectedApplication.name} · ${componentSummary}`
+    : "Selecione uma aplicação";
+
+  return (
+    <div className="catalogContextFields catalogContextDialogField">
+      <FilterDialogButton
+        className="catalogContextDialogTrigger"
+        count={selectionCount}
+        icon={Layers3}
+        label="Aplicação e componentes"
+        onClick={() => setOpen(true)}
+        summary={summary}
+      />
+
+      {open ? (
+        <div
+          className="tagFilterDialogBackdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setOpen(false);
+          }}
+        >
+          <section
+            aria-label="Selecionar aplicação e componentes afetados"
+            aria-modal="true"
+            className="tagFilterDialog catalogFilterDialog"
+            role="dialog"
+          >
+            <header>
+              <div>
+                <strong>Selecionar aplicação e componentes</strong>
+                <span>
+                  Escolha a aplicação da melhoria e marque os componentes
+                  afetados.
+                </span>
+              </div>
+              {selectionCount ? (
+                <small>{selectionCount} selecionado(s)</small>
+              ) : null}
+            </header>
+            <div className="catalogFilterDialogContent">
+              <CatalogColumnSelector
+                affectedComponentIds={affectedComponentIds}
+                applicationId={applicationId}
+                applications={applications}
+                components={components}
+                disabled={disabled}
+                multipleComponents
+                onChange={onChange}
+              />
+            </div>
+            <footer>
+              <button
+                className="primaryButton"
+                data-dialog-close
+                onClick={() => setOpen(false)}
+                type="button"
+              >
+                Concluir
+              </button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function CatalogFilterFields({
   applicationId,
   applications,

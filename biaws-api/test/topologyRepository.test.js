@@ -192,6 +192,7 @@ test("deployment publications are append-only and materialize the latest release
         {
           version: "2.4.0",
           revision: "abc123",
+          status: "deployed",
           publishedAt: "2026-07-30T12:00:00.000Z",
           description: "Novo cálculo de cobrança",
         },
@@ -202,6 +203,7 @@ test("deployment publications are append-only and materialize the latest release
   );
   assert.equal(deployment.publications.length, 1);
   assert.equal(deployment.publications[0].recordedBy, "user-1");
+  assert.equal(deployment.publications[0].status, "deployed");
   assert.equal(deployment.version, "2.4.0");
   assert.equal(deployment.source.revision, "abc123");
   assert.equal(deployment.source.repositoryId, "repository-1");
@@ -214,6 +216,61 @@ test("deployment publications are append-only and materialize the latest release
       ),
     (error) =>
       error.statusCode === 409 && error.code === "CATALOG_HISTORY_IMMUTABLE",
+  );
+});
+
+test("deployment publication status is validated and can be updated", () => {
+  const deployment = normalizeDeploymentInput(
+    {
+      key: "billing-production",
+      name: "Billing production",
+      componentId: "component-1",
+      publications: [{ version: "2.5.0", status: "planned" }],
+    },
+    null,
+    { userId: "user-1" },
+  );
+  assert.equal(deployment.publications[0].status, "planned");
+  assert.equal(deployment.version, "");
+  assert.equal(deployment.deployedAt, null);
+
+  const deployed = normalizeDeploymentInput(
+    {
+      publications: deployment.publications.map((publication) => ({
+        ...publication,
+        status: "deployed",
+      })),
+    },
+    { ...deployment, id: "deployment-1" },
+    { userId: "user-2" },
+  );
+  assert.equal(deployed.publications[0].status, "deployed");
+  assert.equal(deployed.version, "2.5.0");
+
+  const canceled = normalizeDeploymentInput(
+    {
+      publications: deployed.publications.map((publication) => ({
+        ...publication,
+        status: "canceled",
+      })),
+    },
+    { ...deployed, id: "deployment-1" },
+  );
+  assert.equal(canceled.version, "");
+  assert.equal(canceled.deployedAt, null);
+
+  assert.throws(
+    () =>
+      normalizeDeploymentInput(
+        {
+          publications: deployment.publications.map((publication) => ({
+            ...publication,
+            status: "unknown",
+          })),
+        },
+        { ...deployment, id: "deployment-1" },
+      ),
+    (error) => error.statusCode === 422,
   );
 });
 

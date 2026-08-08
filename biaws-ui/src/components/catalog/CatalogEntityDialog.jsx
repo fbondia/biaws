@@ -44,6 +44,11 @@ const DEPLOYMENT_STATUSES = [
   "inactive",
   "failed",
 ];
+const PUBLICATION_STATUSES = [
+  { value: "planned", label: "Planejada" },
+  { value: "canceled", label: "Cancelada" },
+  { value: "deployed", label: "Implantada" },
+];
 const RUNTIME_KINDS = [
   "process",
   "container",
@@ -190,6 +195,7 @@ export function CatalogEntityDialog({
   const [publicationDraft, setPublicationDraft] = useState({
     version: "",
     revision: "",
+    status: "planned",
     publishedAt: "",
     description: "",
   });
@@ -307,6 +313,7 @@ export function CatalogEntityDialog({
         version: publicationDraft.version.trim(),
         revision: publicationDraft.revision.trim(),
         repositoryId: draft.repositoryId || "",
+        status: publicationDraft.status,
         publishedAt: publicationDraft.publishedAt
           ? new Date(publicationDraft.publishedAt).toISOString()
           : new Date().toISOString(),
@@ -316,6 +323,7 @@ export function CatalogEntityDialog({
     setPublicationDraft({
       version: "",
       revision: "",
+      status: "planned",
       publishedAt: "",
       description: "",
     });
@@ -715,6 +723,19 @@ export function CatalogEntityDialog({
                     type="datetime-local"
                     value={publicationDraft.publishedAt}
                   />
+                  <SelectField
+                    label="Status"
+                    name="publicationStatus"
+                    onChange={(_name, value) =>
+                      setPublicationDraft((current) => ({
+                        ...current,
+                        status: value,
+                      }))
+                    }
+                    options={PUBLICATION_STATUSES}
+                    required
+                    value={publicationDraft.status}
+                  />
                   <label className="field catalogHistoryDescription">
                     <span>Descrição da publicação</span>
                     <textarea
@@ -743,6 +764,23 @@ export function CatalogEntityDialog({
                   renderItem={(publication) => (
                     <>
                       <strong>{publication.version}</strong>
+                      <SelectField
+                        label="Status da publicação"
+                        name={`publicationStatus-${publication.id}`}
+                        onChange={(_name, status) =>
+                          update(
+                            "publications",
+                            (draft.publications || []).map((item) =>
+                              item.id === publication.id
+                                ? { ...item, status }
+                                : item,
+                            ),
+                          )
+                        }
+                        options={PUBLICATION_STATUSES}
+                        required
+                        value={publication.status || "deployed"}
+                      />
                       <small>
                         {formatDate(publication.publishedAt)}
                         {publication.revision

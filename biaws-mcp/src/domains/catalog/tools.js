@@ -186,6 +186,10 @@ const DEPLOYMENT_PROPERTIES = {
         version: STRING,
         revision: STRING,
         repositoryId: { type: ["string", "null"] },
+        status: {
+          type: "string",
+          enum: ["planned", "canceled", "deployed"],
+        },
         publishedAt: { type: ["string", "null"] },
         description: STRING,
         recordedAt: { type: ["string", "null"] },

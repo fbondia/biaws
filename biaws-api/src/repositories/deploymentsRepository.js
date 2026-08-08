@@ -5,6 +5,7 @@ import {
   DEFAULT_MONITORING_RETENTION_DAYS,
   DEPLOYMENT_ENVIRONMENTS,
   DEPLOYMENT_STATUSES,
+  PUBLICATION_STATUSES,
   RUNTIME_KINDS,
   RUNTIME_STATUSES,
 } from "../../../shared/index.js";
@@ -87,6 +88,7 @@ function legacyPublications(current) {
       version: current.version || "Versão não informada",
       revision: current.source?.revision || "",
       repositoryId: current.source?.repositoryId || null,
+      status: "deployed",
       publishedAt: current.deployedAt || current.updatedAt || current.createdAt,
       description: "",
       recordedAt: current.updatedAt || current.createdAt,
@@ -120,8 +122,17 @@ function normalizeAppendOnlyHistory({
       `${field} entries cannot be changed or removed`,
     );
   }
+  const preserved = current.map((item, index) => ({
+    ...item,
+    status: normalizeEnum(
+      value[index]?.status,
+      `${field}[${index}].status`,
+      PUBLICATION_STATUSES,
+      item.status || "deployed",
+    ),
+  }));
   return [
-    ...current,
+    ...preserved,
     ...value.slice(current.length).map((item, index) =>
       normalizeItem(item, current.length + index, {
         actor,
@@ -140,6 +151,7 @@ function normalizePublication(item, index, context) {
       "version",
       "revision",
       "repositoryId",
+      "status",
       "publishedAt",
       "description",
       "recordedAt",
@@ -165,6 +177,12 @@ function normalizePublication(item, index, context) {
         `publications[${index}].repositoryId`,
         100,
       ) || null,
+    status: normalizeEnum(
+      item.status,
+      `publications[${index}].status`,
+      PUBLICATION_STATUSES,
+      "planned",
+    ),
     publishedAt:
       normalizeDate(item.publishedAt, `publications[${index}].publishedAt`) ||
       context.recordedAt,
@@ -271,7 +289,9 @@ export function normalizeDeploymentInput(
       ),
     value: payload.publications,
   });
-  const latestPublication = publications.at(-1);
+  const latestDeployedPublication = publications.findLast(
+    (publication) => !publication.status || publication.status === "deployed",
+  );
   return {
     key: normalizeKey(payload.key, current?.key),
     name: requiredText(
@@ -288,14 +308,14 @@ export function normalizeDeploymentInput(
     ),
     repositoryId,
     publications,
-    version:
-      latestPublication?.version ||
-      optionalText(payload.version ?? current?.version, "version"),
+    version: publications.length
+      ? latestDeployedPublication?.version || ""
+      : optionalText(payload.version ?? current?.version, "version"),
     source: {
       repositoryId,
-      revision:
-        latestPublication?.revision ||
-        normalizeSource(payload.source, current?.source).revision,
+      revision: publications.length
+        ? latestDeployedPublication?.revision || ""
+        : normalizeSource(payload.source, current?.source).revision,
     },
     status: normalizeEnum(
       payload.status,
@@ -303,9 +323,9 @@ export function normalizeDeploymentInput(
       MUTABLE_DEPLOYMENT_STATUSES,
       current?.status || "planned",
     ),
-    deployedAt:
-      latestPublication?.publishedAt ||
-      normalizeDate(payload.deployedAt, "deployedAt", current?.deployedAt),
+    deployedAt: publications.length
+      ? latestDeployedPublication?.publishedAt || null
+      : normalizeDate(payload.deployedAt, "deployedAt", current?.deployedAt),
   };
 }
 

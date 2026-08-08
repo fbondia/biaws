@@ -101,6 +101,10 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
     ),
     false,
   );
+  const publicationStatus = catalogTools.find(
+    ({ name }) => name === "deployments_update",
+  ).inputSchema.properties.publications.items.properties.status;
+  assert.deepEqual(publicationStatus.enum, ["planned", "canceled", "deployed"]);
   const runtimeProperties = catalogTools.find(
     ({ name }) => name === "runtimes_update",
   ).inputSchema.properties;

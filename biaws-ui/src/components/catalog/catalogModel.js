@@ -112,7 +112,10 @@ export function catalogEntityDraft(kind, entity = {}) {
     draft.repositoryId =
       source.repositoryId || source.source?.repositoryId || "";
     draft.publications = Array.isArray(source.publications)
-      ? source.publications
+      ? source.publications.map((publication) => ({
+          ...publication,
+          status: publication.status || "deployed",
+        }))
       : source.version || source.source?.revision || source.deployedAt
         ? [
             {
@@ -120,6 +123,7 @@ export function catalogEntityDraft(kind, entity = {}) {
               version: source.version || "Versão não informada",
               revision: source.source?.revision || "",
               repositoryId: source.source?.repositoryId || "",
+              status: "deployed",
               publishedAt: source.deployedAt || source.updatedAt,
               description: "",
             },

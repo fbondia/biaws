@@ -58,6 +58,11 @@ export const DEPLOYMENT_STATUSES = Object.freeze([
   "failed",
   "archived",
 ]);
+export const PUBLICATION_STATUSES = Object.freeze([
+  "planned",
+  "canceled",
+  "deployed",
+]);
 export const RUNTIME_KINDS = Object.freeze([
   "process",
   "container",

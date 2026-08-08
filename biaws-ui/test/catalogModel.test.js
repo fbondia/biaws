@@ -33,6 +33,7 @@ test("deployment payload stores repository and publication history", () => {
         id: "publication-1",
         version: "2.4.0",
         revision: "abc123",
+        status: "planned",
         publishedAt: "2026-07-30T12:00:00.000Z",
         description: "Publicação principal",
       },
@@ -41,6 +42,7 @@ test("deployment payload stores repository and publication history", () => {
   const payload = catalogEntityPayload("deployment", draft, true);
   assert.equal(payload.repositoryId, "repository-1");
   assert.equal(payload.publications[0].version, "2.4.0");
+  assert.equal(payload.publications[0].status, "planned");
   assert.equal(Object.hasOwn(payload, "version"), false);
   assert.equal(Object.hasOwn(payload, "deployedAt"), false);
 });

@@ -21,6 +21,7 @@ import {
   normalizeStoredKnowledgeContext,
   resolveKnowledgeContext,
 } from "./knowledgeContextRepository.js";
+import { assertResourceCollection } from "./resourceCollectionsRepository.js";
 
 const REQUESTS_COLLECTION = COLLECTION_NAMES.REQUESTS;
 const JOURNEY_PERIODS_COLLECTION = COLLECTION_NAMES.REQUEST_JOURNEY_PERIODS;
@@ -392,6 +393,7 @@ function normalizeRequestPayload(payload = {}, allowedHistoricalStatus = "") {
         "estimatedJourneys",
       ),
       description: readString(payload.description),
+      collectionId: readString(payload.collectionId).trim(),
       checklist: normalizeChecklist(payload.checklist),
     },
     journeys: normalizeJourneyPeriods(
@@ -474,6 +476,7 @@ function normalizeRequestDocument(
     endDate: document.endDate || "",
     estimatedJourneys: Number(document.estimatedJourneys) || 0,
     description: document.description || "",
+    collectionId: document.collectionId || "",
     notes: notes.map(normalizeNoteDocument),
     tasks: tasks.map((task) => normalizeTaskDocument(task, context)),
     checklist: normalizeChecklist(document.checklist),
@@ -535,6 +538,12 @@ async function ensureIndexes(db) {
       applicationId: 1,
       updatedAt: -1,
       _id: 1,
+    }),
+    db.collection(REQUESTS_COLLECTION).createIndex({
+      workspaceId: 1,
+      applicationId: 1,
+      collectionId: 1,
+      listRank: -1,
     }),
     db.collection(REQUESTS_COLLECTION).createIndex({
       workspaceId: 1,
@@ -930,6 +939,11 @@ export async function listRequests(query = {}) {
   await ensureRequestListRanks(db);
 
   const filter = buildKnowledgeContextFilter(query);
+  if (Object.hasOwn(query, "collectionId")) {
+    const collectionId = readString(query.collectionId).trim();
+    filter.collectionId =
+      collectionId === "__root__" ? { $in: ["", null] } : collectionId;
+  }
   const requestedStatuses = String(query.status || "")
     .split(",")
     .map((status) => status.trim())
@@ -996,6 +1010,57 @@ export async function listRequests(query = {}) {
   };
 }
 
+export async function listRequestCollectionItems(query = {}) {
+  const db = await getMongoDatabase({ db: query.db, database: query.database });
+  await loadRequestOptions(db, query);
+  await ensureIndexes(db);
+  await ensureRequestListRanks(db);
+
+  const filter = buildKnowledgeContextFilter(query);
+  const requestedStatuses = String(query.status || "")
+    .split(",")
+    .map((status) => status.trim())
+    .filter(Boolean);
+  if (requestedStatuses.length) {
+    const validStatuses = [...new Set(requestedStatuses)].filter((status) =>
+      allRequestStatusOptions.includes(status),
+    );
+    filter.status =
+      validStatuses.length === 1 ? validStatuses[0] : { $in: validStatuses };
+  }
+
+  const items = await db
+    .collection(REQUESTS_COLLECTION)
+    .find(filter)
+    .sort({ listRank: -1, updatedAt: -1, createdAt: -1 })
+    .project({
+      clientCode: 1,
+      title: 1,
+      status: 1,
+      collectionId: 1,
+      listRank: 1,
+      createdAt: 1,
+      updatedAt: 1,
+    })
+    .toArray();
+
+  return {
+    meta: { total: items.length },
+    items: items.map((document) => ({
+      id: document._id.toString(),
+      clientCode: document.clientCode || "",
+      title: document.title || "",
+      status: allRequestStatusOptions.includes(document.status)
+        ? document.status
+        : defaultRequestStatus,
+      collectionId: document.collectionId || "",
+      listRank: requestListRank(document),
+      createdAt: document.createdAt || null,
+      updatedAt: document.updatedAt || null,
+    })),
+  };
+}
+
 export async function createRequest(payload, query = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   await loadRequestOptions(db, query);
@@ -1008,6 +1073,12 @@ export async function createRequest(payload, query = {}) {
     authorizationScope: query.authorizationScope,
     create: true,
   });
+  request.collectionId = await assertResourceCollection(
+    "demands",
+    request.collectionId,
+    context.workspaceId,
+    query,
+  );
   const initialNotes = normalizeLegacyNotesPayload(payload.notes);
   const now = new Date();
   const result = await db.collection(REQUESTS_COLLECTION).insertOne({
@@ -1073,6 +1144,12 @@ export async function updateRequest(requestIdValue, payload, query = {}) {
       }),
     );
   }
+  request.collectionId = await assertResourceCollection(
+    "demands",
+    request.collectionId,
+    request.workspaceId || existing.workspaceId,
+    query,
+  );
   const now = new Date();
 
   await db
@@ -1496,6 +1573,30 @@ export async function reorderRequest(requestIdValue, payload = {}, query = {}) {
   return {
     request: await readRequestById(db, requestId, query),
   };
+}
+
+export async function moveRequestToCollection(
+  requestIdValue,
+  collectionId,
+  query = {},
+) {
+  const db = await getMongoDatabase({ db: query.db, database: query.database });
+  await ensureIndexes(db);
+
+  const requestId = requestObjectId(requestIdValue);
+  const result = await db
+    .collection(REQUESTS_COLLECTION)
+    .updateOne(requestFilter(requestId, query), {
+      $set: {
+        collectionId: String(collectionId || ""),
+        updatedAt: new Date(),
+      },
+    });
+  if (!result.matchedCount) {
+    throw createHttpError(404, `Request not found: ${requestIdValue}`);
+  }
+
+  return { request: await readRequestById(db, requestId, query) };
 }
 
 export async function deleteRequest(requestIdValue, query = {}) {

@@ -44,6 +44,118 @@
   display: none;
 }
 
+.requestsCollectionsLayout {
+  min-height: 320px;
+}
+
+.requestsCollectionsLayout .resourceCollectionContent {
+  padding: 14px;
+}
+
+.requestCollectionPagination {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.requestCollectionPagination > span {
+  overflow: hidden;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.requestCollectionsNavigator .resourceCollectionItemRow {
+  min-height: 56px;
+  border-color: var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  padding: 4px;
+  margin-top: 0.2rem;
+}
+
+.requestCollectionsNavigator .resourceCollectionItemRow:hover {
+  border-color: var(--color-accent-border);
+  background: #f8fbff;
+}
+
+.requestCollectionsNavigator .resourceCollectionItemContent {
+  width: 100%;
+  min-height: 46px;
+  padding: 4px 6px;
+}
+
+.requestCollectionsNavigator .requestCollectionItem {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 2px;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.requestCollectionItemHeader {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px;
+}
+
+.requestCollectionItemHeader strong {
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.requestCollectionItemHeader .requestStatusChip {
+  min-height: 22px;
+  justify-self: end;
+  padding: 2px 7px;
+  font-size: 10px;
+}
+
+.requestCollectionsNavigator .requestCollectionItemDescription {
+  overflow: hidden;
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.requestCollectionsNavigator
+  .selectedResourceCollectionItem
+  .resourceCollectionItemContent {
+  border-radius: 6px;
+  background: #367ee3;
+  color: #f8fafc;
+}
+
+.requestCollectionsNavigator
+  .selectedResourceCollectionItem
+  .requestCollectionItemHeader
+  strong,
+.requestCollectionsNavigator
+  .selectedResourceCollectionItem
+  .requestCollectionItemDescription {
+  color: #f8fafc;
+}
+
+.requestCollectionsNavigator
+  .selectedResourceCollectionItem
+  .requestStatusChip {
+  border-color: rgba(255, 255, 255, 0.32) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+}
+
 .requestListPanel,
 .requestPanel {
   min-width: 0;

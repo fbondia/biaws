@@ -171,6 +171,7 @@ export function createSpecificationSection() {
 export function normalizeRequest(request) {
   return {
     ...request,
+    collectionId: String(request.collectionId || ""),
     applicationId: String(request.applicationId || ""),
     affectedComponentIds: Array.isArray(request.affectedComponentIds)
       ? request.affectedComponentIds
@@ -191,6 +192,7 @@ export function newRequest() {
 
   return normalizeRequest({
     id: `draft-${now}`,
+    collectionId: "",
     applicationId: "",
     affectedComponentIds: [],
     clientCode: "",

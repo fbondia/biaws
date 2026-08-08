@@ -5,6 +5,7 @@ import {
   moveApplicationToCollection,
   moveArchitectureDecisionToCollection,
   moveBusinessRuleToCollection,
+  moveDemandToCollection,
   moveProcedureToCollection,
   moveSecretToCollection,
   moveServerToCollection,
@@ -23,6 +24,7 @@ const RESOURCE_TYPE = {
     "applications",
     "architecture-decisions",
     "business-rules",
+    "demands",
     "procedures",
     "secrets",
     "skills",
@@ -98,6 +100,7 @@ export const collectionTools = [
   moveDefinition("servers", "serverId", moveServerToCollection),
   moveDefinition("secrets", "secretId", moveSecretToCollection),
   moveDefinition("skills", "skillId", moveSkillToCollection),
+  moveDefinition("demands", "requestId", moveDemandToCollection),
   moveDefinition("procedures", "procedureId", moveProcedureToCollection),
   moveDefinition(
     "business_rules",

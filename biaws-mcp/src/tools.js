@@ -593,6 +593,10 @@ const tools = [
           type: "string",
           description: "Código da melhoria, se já definido",
         },
+        collectionId: {
+          type: "string",
+          description: "Coleção de melhorias; vazio mantém na raiz",
+        },
         title: { type: "string" },
         status: DEMAND_STATUS_SCHEMA,
         estimatedDeliveryDate: {

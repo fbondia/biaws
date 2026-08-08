@@ -4,6 +4,7 @@ const RESOURCE_TYPES = new Set([
   "applications",
   "architecture-decisions",
   "business-rules",
+  "demands",
   "procedures",
   "secrets",
   "skills",
@@ -123,6 +124,14 @@ export async function moveSkillToCollection(args = {}) {
   const id = requiredId(args, "skillId");
   return move(
     `/api/skills/${encodeURIComponent(id)}/collection`,
+    destinationCollectionId(args),
+  );
+}
+
+export async function moveDemandToCollection(args = {}) {
+  const id = requiredId(args, "requestId");
+  return move(
+    `/api/requests/${encodeURIComponent(id)}/collection`,
     destinationCollectionId(args),
   );
 }

@@ -9,6 +9,8 @@ import {
   deleteRequestNote,
   deleteRequestTask,
   deleteRequestTaskNote,
+  fetchRequest,
+  fetchRequestCollectionItems,
   fetchRequests,
   reorderRequest,
   saveRequest,
@@ -34,9 +36,11 @@ import {
   sortRequestsForList,
 } from "../../requestUtils.js";
 
-export function useRequestsView(actor) {
+export function useRequestsView(actor, { collectionId = "" } = {}) {
   const [requests, setRequests] = useState([]);
+  const [requestCollectionItems, setRequestCollectionItems] = useState([]);
   const [selectedRequestId, setSelectedRequestId] = useState("");
+  const [selectedRequestOverride, setSelectedRequestOverride] = useState(null);
   const [editingRequestId, setEditingRequestId] = useState("");
   const [checklistDialogLabel, setChecklistDialogLabel] = useState("");
   const [loadingRequests, setLoadingRequests] = useState(false);
@@ -65,7 +69,9 @@ export function useRequestsView(actor) {
   const pendingRequestsRef = useRef(new Map());
 
   const selectedRequest =
-    requests.find((request) => request.id === selectedRequestId) || null;
+    (selectedRequestOverride?.id === selectedRequestId
+      ? selectedRequestOverride
+      : requests.find((request) => request.id === selectedRequestId)) || null;
   const isEditing = Boolean(
     selectedRequest?.id && editingRequestId === selectedRequest.id,
   );
@@ -82,6 +88,7 @@ export function useRequestsView(actor) {
       const payload = await fetchRequests({
         applicationId: applicationFilter,
         componentId: componentFilter,
+        collectionId: collectionId || "__root__",
         status: statusFilters.join(","),
         page: requestPage,
         limit: 25,
@@ -97,15 +104,26 @@ export function useRequestsView(actor) {
         total: payload.meta?.total || 0,
         totalPages: payload.meta?.totalPages || 1,
       });
-      setSelectedRequestId((current) =>
-        current && loadedRequests.some((request) => request.id === current)
-          ? current
-          : "",
-      );
     } catch (error) {
       if (isActive()) setRequestError(error.message);
     } finally {
       if (isActive()) setLoadingRequests(false);
+    }
+  }
+
+  async function loadRequestCollectionItems(isActive = () => true) {
+    try {
+      const payload = await fetchRequestCollectionItems({
+        applicationId: applicationFilter,
+        componentId: componentFilter,
+        status: statusFilters.join(","),
+      });
+      if (!isActive()) return;
+      setRequestCollectionItems(
+        sortRequestsForList((payload.items || []).map(normalizeRequest)),
+      );
+    } catch (error) {
+      if (isActive()) setRequestError(error.message);
     }
   }
 
@@ -116,7 +134,21 @@ export function useRequestsView(actor) {
     return () => {
       active = false;
     };
-  }, [applicationFilter, componentFilter, requestPage, statusFilters]);
+  }, [
+    applicationFilter,
+    collectionId,
+    componentFilter,
+    requestPage,
+    statusFilters,
+  ]);
+
+  useEffect(() => {
+    let active = true;
+    void loadRequestCollectionItems(() => active);
+    return () => {
+      active = false;
+    };
+  }, [applicationFilter, componentFilter, statusFilters]);
 
   useEffect(() => {
     return () => {
@@ -196,8 +228,11 @@ export function useRequestsView(actor) {
   }, [scheduleJourneyMonths.length, scheduleRequests]);
 
   function upsertRequestInList(nextRequest) {
+    const normalizedRequest = normalizeRequest(nextRequest);
+    if (normalizedRequest.id === selectedRequestId) {
+      setSelectedRequestOverride(normalizedRequest);
+    }
     setRequests((current) => {
-      const normalizedRequest = normalizeRequest(nextRequest);
       const exists = current.some(
         (request) => request.id === normalizedRequest.id,
       );
@@ -209,9 +244,24 @@ export function useRequestsView(actor) {
 
       return sortRequestsForList(nextRequests);
     });
+    setRequestCollectionItems((current) => {
+      const exists = current.some(
+        (request) => request.id === normalizedRequest.id,
+      );
+      return sortRequestsForList(
+        exists
+          ? current.map((request) =>
+              request.id === normalizedRequest.id ? normalizedRequest : request,
+            )
+          : [normalizedRequest, ...current],
+      );
+    });
   }
 
   function updateRequest(requestId, updater) {
+    setSelectedRequestOverride((current) =>
+      current?.id === requestId ? normalizeRequest(updater(current)) : current,
+    );
     setRequests((current) =>
       sortRequestsForList(
         current.map((request) => {
@@ -331,6 +381,7 @@ export function useRequestsView(actor) {
     }
     const request = {
       ...newRequest(),
+      collectionId,
       workspaceId: catalog.workspace?.id,
       ...context,
       listRank: nextTopRequestListRank(requests),
@@ -343,8 +394,9 @@ export function useRequestsView(actor) {
       const payload = await createRequest(request);
       const savedRequest = normalizeRequest(payload.request);
 
-      setRequests((current) => sortRequestsForList([savedRequest, ...current]));
+      upsertRequestInList(savedRequest);
       setSelectedRequestId(savedRequest.id);
+      setSelectedRequestOverride(savedRequest);
       setEditingRequestId(savedRequest.id);
       setNewContext(null);
     } catch (error) {
@@ -374,7 +426,11 @@ export function useRequestsView(actor) {
         setSelectedRequestId("");
         return nextRequests;
       });
+      setRequestCollectionItems((current) =>
+        current.filter((request) => request.id !== requestId),
+      );
       setEditingRequestId("");
+      setSelectedRequestOverride(null);
       setChecklistDialogLabel("");
       setNumberDrafts({});
       setActiveDetailTab("main");
@@ -385,12 +441,31 @@ export function useRequestsView(actor) {
     }
   }
 
-  function selectRequest(requestId) {
+  async function selectRequest(requestId) {
     setSelectedRequestId(requestId);
     setEditingRequestId("");
     setChecklistDialogLabel("");
     setNumberDrafts({});
     setActiveDetailTab("main");
+
+    const loadedRequest = requests.find((request) => request.id === requestId);
+    if (loadedRequest) {
+      setSelectedRequestOverride(loadedRequest);
+      return;
+    }
+
+    try {
+      const payload = await fetchRequest(requestId);
+      if (payload.request) {
+        const request = normalizeRequest(payload.request);
+        setSelectedRequestOverride(request);
+        upsertRequestInList(request);
+      }
+    } catch (error) {
+      setRequestError(error.message);
+      setSelectedRequestId("");
+      setSelectedRequestOverride(null);
+    }
   }
 
   async function moveRequest(requestId, targetRequestId) {
@@ -456,6 +531,7 @@ export function useRequestsView(actor) {
 
   function closeSelectedRequest() {
     setSelectedRequestId("");
+    setSelectedRequestOverride(null);
     setEditingRequestId("");
     setChecklistDialogLabel("");
     setNumberDrafts({});
@@ -492,7 +568,9 @@ export function useRequestsView(actor) {
     loadingRequests,
     moveRequest,
     requestMeta,
+    requestCollectionItems,
     loadRequests,
+    loadRequestCollectionItems,
     selectRequest,
     setStatusFilters,
     requests,

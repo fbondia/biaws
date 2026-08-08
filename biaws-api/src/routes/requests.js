@@ -10,13 +10,16 @@ import {
   deleteRequestTask,
   deleteRequestTaskNote,
   getRequest,
+  listRequestCollectionItems,
   listRequests,
+  moveRequestToCollection,
   reorderRequest,
   updateRequestNote,
   updateRequestTask,
   updateRequestTaskNote,
   updateRequest,
 } from "../repositories/requestsRepository.js";
+import { assertResourceCollection } from "../repositories/resourceCollectionsRepository.js";
 import { registerAttachmentRoutes } from "./attachmentRoutes.js";
 import {
   authorizationQuery,
@@ -85,6 +88,24 @@ requestsRouter.get(
   }),
 );
 
+requestsRouter.get(
+  "/collection-items",
+  requireAllPermissions("demands.read"),
+  asyncHandler(async (req, res) => {
+    res.json(
+      await listRequestCollectionItems(scopedQuery(req, "demands.read")),
+    );
+  }),
+);
+
+requestsRouter.get(
+  "/:id",
+  requireAllPermissions("demands.read"),
+  asyncHandler(async (req, res) => {
+    res.json(await getRequest(req.params.id, scopedQuery(req, "demands.read")));
+  }),
+);
+
 requestsRouter.post(
   "/",
   requireBodyFieldPermissions(
@@ -144,6 +165,34 @@ requestsRouter.patch(
       req,
       action: "reordered",
       summary: "Melhoria reordenada",
+      before,
+      after: result.request,
+    });
+    res.json(result);
+  }),
+);
+
+requestsRouter.patch(
+  "/:id/collection",
+  requireAllPermissions("demands.update"),
+  asyncHandler(async (req, res) => {
+    const query = scopedQuery(req, "demands.update");
+    const before = (await getRequest(req.params.id, query)).request;
+    const collectionId = await assertResourceCollection(
+      "demands",
+      req.body?.collectionId,
+      req.actor.workspaceId,
+      query,
+    );
+    const result = await moveRequestToCollection(
+      req.params.id,
+      collectionId,
+      query,
+    );
+    await auditDemand({
+      req,
+      action: "updated",
+      summary: "Melhoria movida entre coleções",
       before,
       after: result.request,
     });

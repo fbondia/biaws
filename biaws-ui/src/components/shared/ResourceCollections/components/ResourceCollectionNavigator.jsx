@@ -6,6 +6,7 @@ import { CollectionTree } from "./CollectionTree.jsx";
 
 export function ResourceCollectionNavigator({
   canDragItem = () => true,
+  className = "",
   collections,
   draggedItem,
   getItemId = (item) => item.id,
@@ -53,7 +54,11 @@ export function ResourceCollectionNavigator({
   };
 
   return (
-    <aside className="resourceCollectionsPanel">
+    <aside
+      className={["resourceCollectionsPanel", className]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <header>
         <div>
           <strong>Coleções</strong>

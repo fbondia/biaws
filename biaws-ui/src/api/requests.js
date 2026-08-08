@@ -4,6 +4,14 @@ export function fetchRequests(params) {
   return fetchJson("/api/requests", params);
 }
 
+export function fetchRequest(requestId, params) {
+  return fetchJson(`/api/requests/${encodeURIComponent(requestId)}`, params);
+}
+
+export function fetchRequestCollectionItems(params) {
+  return fetchJson("/api/requests/collection-items", params);
+}
+
 export function createRequest(request, params) {
   return sendJson("/api/requests", request, params, "POST");
 }
@@ -92,6 +100,15 @@ export function reorderRequest(requestId, placement, params) {
   return sendJson(
     `/api/requests/${encodeURIComponent(requestId)}/order`,
     placement,
+    params,
+    "PATCH",
+  );
+}
+
+export function moveRequestToCollection(requestId, collectionId, params) {
+  return sendJson(
+    `/api/requests/${encodeURIComponent(requestId)}/collection`,
+    { collectionId },
     params,
     "PATCH",
   );

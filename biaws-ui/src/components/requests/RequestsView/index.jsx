@@ -1,29 +1,41 @@
-import { CalendarDays, ClipboardList, ListChecks, Plus } from "lucide-react";
-import { useRef, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ListChecks,
+  Plus,
+  RefreshCw,
+} from "lucide-react";
+import { useState } from "react";
 
+import { moveRequestToCollection } from "../../../api.js";
+import { hasPermission } from "../../../permissions.js";
 import {
   CatalogContextFields,
   CatalogFilterFields,
 } from "../../catalog/CatalogContextFields.jsx";
 import { FilterDialogButton } from "../../shared/FilterDialogButton.jsx";
+import {
+  collectionPathLabel,
+  ResourceCollectionDialog,
+  ResourceCollectionNavigator,
+  ResourceCollectionsShell,
+} from "../../shared/ResourceCollections/index.jsx";
+import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { RequestDetails } from "../RequestDetails.jsx";
-import { RequestList } from "../RequestList.jsx";
 import {
   normalizeRequest,
   requestStatusLabel,
+  requestStatusStyle,
   REQUEST_STATUS_OPTIONS,
 } from "../requestUtils.js";
 import { RequestsOverview } from "./components/RequestsOverview.jsx";
 import { useRequestsView } from "./hooks/useRequestsView.js";
 
-const REQUEST_LIST_MIN_WIDTH = 280;
-const REQUEST_LIST_MAX_WIDTH = 720;
-const REQUEST_CONTENT_MIN_WIDTH = 480;
-
 export function RequestsView({ actor }) {
-  const layoutRef = useRef(null);
-  const [requestListWidth, setRequestListWidth] = useState(360);
-  const [resizingRequestList, setResizingRequestList] = useState(false);
+  const [collectionError, setCollectionError] = useState("");
+  const collectionState = useResourceCollections("demands", {
+    onError: setCollectionError,
+  });
   const {
     catalog,
     savingRequestId,
@@ -35,14 +47,13 @@ export function RequestsView({ actor }) {
     componentFilter,
     setComponentFilter,
     setRequestPage,
-    activeMobileSection,
-    setActiveMobileSection,
     statusFilters,
     filteredRequests,
     loadingRequests,
-    moveRequest,
     requestMeta,
+    requestCollectionItems,
     loadRequests,
+    loadRequestCollectionItems,
     selectRequest,
     setStatusFilters,
     selectedRequestId,
@@ -92,25 +103,22 @@ export function RequestsView({ actor }) {
     scheduleRequests,
     newContext,
     setNewContext,
-  } = useRequestsView(actor);
+  } = useRequestsView(actor, {
+    collectionId: collectionState.selectedCollectionId,
+  });
+  const canManageCollections = hasPermission(actor, "demands.update");
 
-  function clampRequestListWidth(width) {
-    const layoutWidth = layoutRef.current?.getBoundingClientRect().width;
-    const availableWidth = layoutWidth
-      ? layoutWidth - REQUEST_CONTENT_MIN_WIDTH - 8
-      : REQUEST_LIST_MAX_WIDTH;
-    const maximumWidth = Math.max(
-      REQUEST_LIST_MIN_WIDTH,
-      Math.min(REQUEST_LIST_MAX_WIDTH, availableWidth),
-    );
-
-    return Math.min(maximumWidth, Math.max(REQUEST_LIST_MIN_WIDTH, width));
+  async function moveImprovementToCollection(requestId, collectionId) {
+    const payload = await moveRequestToCollection(requestId, collectionId);
+    if (payload.request) upsertRequestInList(payload.request);
+    await Promise.all([loadRequests(), loadRequestCollectionItems()]);
+    return payload;
   }
 
-  function resizeRequestList(clientX) {
-    const layoutLeft = layoutRef.current?.getBoundingClientRect().left;
-    if (layoutLeft === undefined) return;
-    setRequestListWidth(clampRequestListWidth(clientX - layoutLeft));
+  function selectCollection(collectionId) {
+    closeSelectedRequest();
+    setRequestPage(1);
+    collectionState.setSelectedCollectionId(collectionId);
   }
 
   return (
@@ -130,8 +138,10 @@ export function RequestsView({ actor }) {
         </button>
       </header>
 
-      {requestError ? (
-        <div className="errorBox requestErrorBox">{requestError}</div>
+      {requestError || collectionError ? (
+        <div className="errorBox requestErrorBox">
+          {requestError || collectionError}
+        </div>
       ) : null}
 
       {!selectedRequest ? (
@@ -159,118 +169,143 @@ export function RequestsView({ actor }) {
         </div>
       ) : null}
 
-      {!selectedRequest ? (
-        <div
-          className="requestsMobileTabs"
-          role="tablist"
-          aria-label="Navegação de melhorias"
-        >
-          <button
-            aria-selected={activeMobileSection === "requests"}
-            className={
-              activeMobileSection === "requests"
-                ? "detailTab activeDetailTab"
-                : "detailTab"
+      <ResourceCollectionsShell
+        className="requestsCollectionsLayout"
+        collections={collectionState.collections}
+        detailVisible={Boolean(selectedRequest)}
+        draggedItem={collectionState.draggedItem}
+        onDropRoot={() =>
+          collectionState.dropItem("", moveImprovementToCollection)
+        }
+        onNavigateBack={closeSelectedRequest}
+        onSelectCollection={selectCollection}
+        pathLabel={
+          selectedRequest
+            ? `${collectionPathLabel(
+                collectionState.collections,
+                selectedRequest.collectionId,
+              )} / ${selectedRequest.title || "Sem título"}`
+            : undefined
+        }
+        selectedCollectionId={collectionState.selectedCollectionId}
+        navigator={
+          <ResourceCollectionNavigator
+            canDragItem={() => canManageCollections}
+            className="requestCollectionsNavigator"
+            collections={collectionState.collections}
+            draggedItem={collectionState.draggedItem}
+            getItemId={(request) => request.id}
+            itemLabel="melhorias"
+            items={requestCollectionItems}
+            onCreate={
+              canManageCollections
+                ? collectionState.createCollection
+                : undefined
             }
-            onClick={() => setActiveMobileSection("requests")}
-            role="tab"
-            type="button"
-          >
-            <ClipboardList size={16} />
-            Melhorias
-          </button>
-          <button
-            aria-selected={activeMobileSection === "overview"}
-            className={
-              activeMobileSection === "overview"
-                ? "detailTab activeDetailTab"
-                : "detailTab"
+            onDelete={collectionState.removeCollection}
+            onDragCollection={
+              canManageCollections
+                ? (collection) =>
+                    collectionState.setDraggedItem({
+                      type: "collection",
+                      id: collection.id,
+                    })
+                : undefined
             }
-            onClick={() => setActiveMobileSection("overview")}
-            role="tab"
-            type="button"
-          >
-            <CalendarDays size={16} />
-            Acompanhamento
-          </button>
-        </div>
-      ) : null}
-
-      <div
-        className={[
-          "requestsLayout",
-          selectedRequest ? "requestDetailSelected" : "",
-          activeMobileSection === "requests"
-            ? "mobileRequestsList"
-            : "mobileRequestsOverview",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        ref={layoutRef}
-        style={{ "--request-list-width": `${requestListWidth}px` }}
+            onDragEnd={() => collectionState.setDraggedItem(null)}
+            onDragItem={(request) =>
+              collectionState.setDraggedItem({
+                type: "item",
+                id: request.id,
+              })
+            }
+            onDrop={(collectionId) =>
+              collectionState.dropItem(
+                collectionId,
+                moveImprovementToCollection,
+              )
+            }
+            onRename={(collection) =>
+              collectionState.setCollectionDialog(collection)
+            }
+            onSelect={selectCollection}
+            onSelectItem={(request) => {
+              setRequestPage(1);
+              collectionState.setSelectedCollectionId(
+                request.collectionId || "",
+              );
+              void selectRequest(request.id);
+            }}
+            renderItem={(request) => (
+              <span className="requestCollectionItem">
+                <span className="requestCollectionItemHeader">
+                  <strong>{request.clientCode || "Sem código"}</strong>
+                  <span
+                    className="requestStatusChip"
+                    style={requestStatusStyle(request.status)}
+                  >
+                    {requestStatusLabel(request.status)}
+                  </span>
+                </span>
+                <span className="requestCollectionItemDescription">
+                  {request.title || "Sem título"}
+                </span>
+              </span>
+            )}
+            selectedCollectionId={collectionState.selectedCollectionId}
+            selectedItemId={selectedRequestId}
+          />
+        }
+        toolbar={
+          <div className="requestCollectionPagination">
+            <span>
+              {requestMeta.total} melhoria(s) · página {requestMeta.page} de{" "}
+              {requestMeta.totalPages}
+            </span>
+            <button
+              className="iconButton"
+              disabled={loadingRequests || requestMeta.page <= 1}
+              onClick={() =>
+                setRequestPage((current) => Math.max(1, current - 1))
+              }
+              title="Página anterior"
+              type="button"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              className="iconButton"
+              disabled={
+                loadingRequests || requestMeta.page >= requestMeta.totalPages
+              }
+              onClick={() =>
+                setRequestPage((current) =>
+                  Math.min(requestMeta.totalPages, current + 1),
+                )
+              }
+              title="Próxima página"
+              type="button"
+            >
+              <ChevronRight size={16} />
+            </button>
+            <button
+              className="iconButton"
+              disabled={loadingRequests}
+              onClick={() =>
+                void Promise.all([
+                  loadRequests(),
+                  loadRequestCollectionItems(),
+                  collectionState.loadCollections(),
+                ])
+              }
+              title="Atualizar melhorias"
+              type="button"
+            >
+              <RefreshCw size={16} />
+            </button>
+          </div>
+        }
       >
-        <RequestList
-          allowManualOrder={!statusFilters.length}
-          filteredRequests={filteredRequests}
-          hasActiveFilters={Boolean(
-            applicationFilter || componentFilter || statusFilters.length,
-          )}
-          loadingRequests={loadingRequests}
-          onMoveRequest={moveRequest}
-          onNextPage={() =>
-            setRequestPage((current) =>
-              Math.min(requestMeta.totalPages, current + 1),
-            )
-          }
-          onPreviousPage={() =>
-            setRequestPage((current) => Math.max(1, current - 1))
-          }
-          onRefresh={() => loadRequests()}
-          onSelectRequest={selectRequest}
-          requestMeta={requestMeta}
-          selectedRequestId={selectedRequestId}
-        />
-
-        <div
-          aria-label="Redimensionar lista de melhorias"
-          aria-orientation="vertical"
-          aria-valuemax={REQUEST_LIST_MAX_WIDTH}
-          aria-valuemin={REQUEST_LIST_MIN_WIDTH}
-          aria-valuenow={requestListWidth}
-          className={[
-            "requestListResizer",
-            resizingRequestList ? "requestListResizing" : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          onKeyDown={(event) => {
-            let nextWidth;
-            if (event.key === "ArrowLeft") nextWidth = requestListWidth - 20;
-            if (event.key === "ArrowRight") nextWidth = requestListWidth + 20;
-            if (event.key === "Home") nextWidth = REQUEST_LIST_MIN_WIDTH;
-            if (event.key === "End") nextWidth = REQUEST_LIST_MAX_WIDTH;
-            if (nextWidth === undefined) return;
-            event.preventDefault();
-            setRequestListWidth(clampRequestListWidth(nextWidth));
-          }}
-          onLostPointerCapture={() => setResizingRequestList(false)}
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-            setResizingRequestList(true);
-          }}
-          onPointerMove={(event) => {
-            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
-            resizeRequestList(event.clientX);
-          }}
-          onPointerUp={(event) => {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-            setResizingRequestList(false);
-          }}
-          role="separator"
-          tabIndex={0}
-          title="Arraste para redimensionar a lista de melhorias"
-        />
-
         {selectedRequest ? (
           <RequestDetails
             activeTab={activeDetailTab}
@@ -339,7 +374,7 @@ export function RequestsView({ actor }) {
             taskRequests={filteredRequests}
           />
         )}
-      </div>
+      </ResourceCollectionsShell>
       {newContext ? (
         <div
           className="dialogBackdrop"
@@ -391,6 +426,22 @@ export function RequestsView({ actor }) {
             </footer>
           </section>
         </div>
+      ) : null}
+      {collectionState.collectionDialog ? (
+        <ResourceCollectionDialog
+          collection={
+            collectionState.collectionDialog.id
+              ? collectionState.collectionDialog
+              : null
+          }
+          onClose={() => collectionState.setCollectionDialog(null)}
+          onSave={collectionState.saveCollection}
+          parentLabel={collectionPathLabel(
+            collectionState.collections,
+            collectionState.selectedCollectionId,
+          )}
+          resourceLabel="melhorias"
+        />
       ) : null}
     </section>
   );

@@ -26,3 +26,12 @@ test("request normalization maps legacy billing to the journey model", () => {
     },
   ]);
 });
+
+test("request normalization preserves its improvement collection", () => {
+  const request = normalizeRequest({
+    id: "improvement-2",
+    collectionId: "roadmap/platform",
+  });
+
+  assert.equal(request.collectionId, "roadmap/platform");
+});

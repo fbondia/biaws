@@ -26,6 +26,7 @@ const PERMISSIONS = Object.freeze({
     read: "business_rules.read",
     manage: "business_rules.update",
   },
+  demands: { read: "demands.read", manage: "demands.update" },
   secrets: { read: "secrets.metadata.read", manage: "secrets.update" },
   skills: { read: "skills.read", manage: "skills.publish" },
   servers: { read: "servers.read", manage: "servers.update" },

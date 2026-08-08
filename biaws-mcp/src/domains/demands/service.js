@@ -89,6 +89,7 @@ function compactDemand(request) {
     startDate: request.startDate,
     endDate: request.endDate,
     estimatedJourneys: request.estimatedJourneys,
+    collectionId: request.collectionId || "",
     listRank: request.listRank,
     createdAt: request.createdAt,
     updatedAt: request.updatedAt,
@@ -183,6 +184,7 @@ export async function createDemand(args = {}) {
       },
       checklist: Array.isArray(args.checklist) ? args.checklist : [],
       journeys: Array.isArray(args.journeys) ? args.journeys : [],
+      collectionId: String(args.collectionId || "").trim(),
       workspaceId: args.workspaceId,
       applicationId,
       affectedComponentIds: Array.isArray(args.affectedComponentIds)

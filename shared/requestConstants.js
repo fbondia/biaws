@@ -4,7 +4,6 @@ export const REQUEST_CHECKLIST_ITEMS = [
   "Aprovação",
   "Desenvolvimento",
   "Homologação",
-  "MOP",
   "Implantação",
   "Acompanhamento",
 ];

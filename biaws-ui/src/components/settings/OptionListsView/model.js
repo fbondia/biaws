@@ -31,6 +31,20 @@ export function newItem(list) {
   return { value: "", label: "", active: true, order, metadata, _new: true };
 }
 
+export function removeItem(list, index) {
+  const removedItem = list.items[index];
+  const items = list.items.filter((item, itemIndex) => itemIndex !== index);
+
+  return {
+    ...list,
+    items,
+    defaultValue:
+      removedItem?.value === list.defaultValue
+        ? items.find((item) => item.active !== false)?.value || ""
+        : list.defaultValue,
+  };
+}
+
 export function detectEmlIssueType(subject, items = []) {
   let firstMatch = null;
 

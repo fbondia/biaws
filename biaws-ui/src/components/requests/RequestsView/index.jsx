@@ -79,6 +79,7 @@ export function RequestsView({ actor }) {
     removeRequestNote,
     removeRequestTask,
     removeRequestTaskNote,
+    removeChecklistItem,
     updateSelectedField,
     moveSpecificationSection,
     readDraftedNumber,
@@ -349,6 +350,7 @@ export function RequestsView({ actor }) {
               schedulePersistRequest(nextRequest);
             }}
             onRemoveSpecificationSection={removeSpecificationSection}
+            onRemoveChecklistItem={removeChecklistItem}
             onTabChange={setActiveDetailTab}
             onToggleChecklistItem={toggleChecklistItem}
             onToggleEditMode={toggleSelectedEditMode}

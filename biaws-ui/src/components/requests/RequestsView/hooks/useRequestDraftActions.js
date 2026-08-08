@@ -86,6 +86,20 @@ export function useRequestDraftActions({
     setChecklistDialogLabel(item.label);
   }
 
+  function removeChecklistItem(label) {
+    if (!selectedRequest) return;
+
+    const nextRequest = normalizeRequest({
+      ...selectedRequest,
+      checklist: selectedRequest.checklist.filter(
+        (item) => item.label !== label,
+      ),
+    });
+    updateRequest(selectedRequest.id, () => nextRequest);
+    setChecklistDialogLabel("");
+    schedulePersistRequest(nextRequest);
+  }
+
   function updateJourneyMonth(month, field, value) {
     if (!selectedRequest) return;
 
@@ -205,6 +219,7 @@ export function useRequestDraftActions({
     moveSpecificationSection,
     readDraftedNumber,
     removeSpecificationSection,
+    removeChecklistItem,
     toggleChecklistItem,
     updateJourneyComment,
     updateChecklistItem,

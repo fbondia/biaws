@@ -49,6 +49,7 @@ export function RequestDetails({
   onAddSpecificationSection,
   onAddMissingSpecificationSections,
   onMoveSpecificationSection,
+  onRemoveChecklistItem,
   onRemoveSpecificationSection,
   onUpdateNote,
   onUpdateTask,
@@ -155,6 +156,8 @@ export function RequestDetails({
 
       {activeTab === "checklist" ? (
         <RequestChecklistTab
+          isEditing={isEditing}
+          onRemoveChecklistItem={onRemoveChecklistItem}
           onToggleChecklistItem={onToggleChecklistItem}
           request={request}
         />

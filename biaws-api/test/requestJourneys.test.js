@@ -1,7 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { normalizeJourneyPeriods } from "../src/repositories/requestsRepository.js";
+import {
+  normalizeChecklist,
+  normalizeJourneyPeriods,
+} from "../src/repositories/requestsRepository.js";
+
+test("checklist defaults are only added when the field is omitted", () => {
+  assert.ok(normalizeChecklist(undefined).length > 0);
+  assert.deepEqual(normalizeChecklist([]), []);
+  assert.deepEqual(normalizeChecklist([{ label: "Implantação" }]), [
+    { label: "Implantação", done: false, date: "", comment: "" },
+  ]);
+});
 
 test("journey periods expose planned and executed journeys", () => {
   const periods = normalizeJourneyPeriods(

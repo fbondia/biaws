@@ -175,15 +175,16 @@ function monthKeysBetween(startDate, endDate) {
   return months;
 }
 
-function normalizeChecklist(items = []) {
-  const sourceItems = Array.isArray(items) ? items : [];
+export function normalizeChecklist(items) {
+  const sourceItems = Array.isArray(items)
+    ? items
+    : checklistLabels.map((label) => ({ label }));
   const byLabel = new Map(sourceItems.map((item) => [item?.label, item]));
-  const labels = [
-    ...checklistLabels,
-    ...sourceItems
-      .map((item) => String(item?.label || "").trim())
-      .filter(Boolean),
-  ].filter((label, index, values) => values.indexOf(label) === index);
+  const labels = sourceItems
+    .map((item) => String(item?.label || "").trim())
+    .filter((label, index, values) =>
+      Boolean(label && values.indexOf(label) === index),
+    );
 
   return labels.map((label) => {
     const item = byLabel.get(label) || {};

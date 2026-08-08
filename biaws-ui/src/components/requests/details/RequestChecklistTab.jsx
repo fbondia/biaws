@@ -1,8 +1,13 @@
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, Trash2 } from "lucide-react";
 
 import { formatDate, requestChecklistLabel } from "../requestUtils.js";
 
-export function RequestChecklistTab({ request, onToggleChecklistItem }) {
+export function RequestChecklistTab({
+  request,
+  isEditing,
+  onRemoveChecklistItem,
+  onToggleChecklistItem,
+}) {
   return (
     <section className="requestPanel">
       <div className="panelHeader">
@@ -39,8 +44,22 @@ export function RequestChecklistTab({ request, onToggleChecklistItem }) {
               <span>Comentários</span>
               <strong>{item.comment || "-"}</strong>
             </div>
+            {isEditing ? (
+              <button
+                aria-label={`Excluir ${requestChecklistLabel(item.label)} do checklist`}
+                className="iconButton dangerIconButton"
+                onClick={() => onRemoveChecklistItem(item.label)}
+                title="Excluir item do checklist"
+                type="button"
+              >
+                <Trash2 size={16} />
+              </button>
+            ) : null}
           </div>
         ))}
+        {!request.checklist.length ? (
+          <p className="emptyState">Nenhum item neste checklist.</p>
+        ) : null}
       </div>
     </section>
   );

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   detectEmlIssueType,
   newItem,
+  removeItem,
 } from "../src/components/settings/OptionListsView/model.js";
 
 test("new issue types start with EML detection disabled", () => {
@@ -39,4 +40,20 @@ test("EML tester detects type and named code capture", () => {
     label: "Mudança",
     code: "CHG-00421",
   });
+});
+
+test("removing a saved option also selects a valid replacement default", () => {
+  const list = removeItem(
+    {
+      defaultValue: "new",
+      items: [
+        { value: "new", active: true },
+        { value: "done", active: true },
+      ],
+    },
+    0,
+  );
+
+  assert.deepEqual(list.items, [{ value: "done", active: true }]);
+  assert.equal(list.defaultValue, "done");
 });

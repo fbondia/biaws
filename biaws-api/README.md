@@ -492,9 +492,12 @@ curl -X PUT http://127.0.0.1:3100/api/requests/64f000000000000000000000 \
   -d @request.json
 ```
 
-O payload de atualização usa o mesmo formato da criação. A API normaliza o
-checklist fixo, mantém `requestJourneyPeriods` sincronizada com os meses entre
-`startDate` e `endDate` e sincroniza `requestSpecifications` por `requestId`.
+O payload de atualização usa o mesmo formato da criação. Quando `checklist` é
+omitido na criação, a API usa os itens ativos configurados na lista de opções;
+quando o campo é enviado, preserva exatamente os itens informados, inclusive
+uma lista vazia. A API também mantém `requestJourneyPeriods` sincronizada com
+os meses entre `startDate` e `endDate` e sincroniza `requestSpecifications` por
+`requestId`.
 
 Instalações que ainda possuem `requestBillingPeriods` devem executar a migração
 uma vez antes de iniciar esta versão da API:

@@ -1,4 +1,11 @@
-import { AlertTriangle, GripVertical, Plus, Save, X } from "lucide-react";
+import {
+  AlertTriangle,
+  GripVertical,
+  Plus,
+  Save,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 
 import { updateOptionList } from "../../../../api.js";
@@ -8,6 +15,7 @@ import {
   detectEmlIssueType,
   EML_DETECTION_LIST_KEY,
   newItem,
+  removeItem,
 } from "../model.js";
 
 export function ListEditor({ list, canManage, onSaved }) {
@@ -70,13 +78,6 @@ export function ListEditor({ list, canManage, onSaved }) {
             }
           : item,
       ),
-    }));
-  }
-
-  function removeNewItem(index) {
-    setDraft((current) => ({
-      ...current,
-      items: current.items.filter((item, itemIndex) => itemIndex !== index),
     }));
   }
 
@@ -221,6 +222,7 @@ export function ListEditor({ list, canManage, onSaved }) {
               {hasColors ? <th>Cores</th> : null}
               {hasEmlDetection ? <th>Detecção no assunto do EML</th> : null}
               <th>Ativo</th>
+              <th aria-label="Ações" />
             </tr>
           </thead>
           <tbody>
@@ -344,13 +346,7 @@ export function ListEditor({ list, canManage, onSaved }) {
                 ) : null}
                 <td>
                   {item._new ? (
-                    <button
-                      className="optionActiveButton"
-                      onClick={() => removeNewItem(index)}
-                      type="button"
-                    >
-                      <X size={14} /> Remover
-                    </button>
+                    <span>-</span>
                   ) : (
                     <button
                       className={
@@ -372,6 +368,26 @@ export function ListEditor({ list, canManage, onSaved }) {
                       )}
                     </button>
                   )}
+                </td>
+                <td>
+                  {canManage ? (
+                    <button
+                      aria-label={`Excluir ${item.label || item.value || "opção"}`}
+                      className="iconButton dangerIconButton"
+                      disabled={draft.items.length === 1}
+                      onClick={() =>
+                        setDraft((current) => removeItem(current, index))
+                      }
+                      title={
+                        draft.items.length === 1
+                          ? "A lista precisa ter ao menos uma opção"
+                          : "Excluir opção"
+                      }
+                      type="button"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  ) : null}
                 </td>
               </tr>
             ))}

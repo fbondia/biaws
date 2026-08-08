@@ -8,7 +8,10 @@ function createHarness() {
     id: "request-1",
     startDate: "2026-08-01",
     endDate: "2026-08-31",
-    checklist: [],
+    checklist: [
+      { label: "Aprovação", done: false, date: "", comment: "" },
+      { label: "Implantação", done: false, date: "", comment: "" },
+    ],
     journeys: [
       {
         month: "2026-08",
@@ -58,4 +61,19 @@ test("editing a journey comment schedules persistence", () => {
 
   assert.equal(updates[0].request.journeys[0].comment, "Execução iniciada");
   assert.equal(persisted[0].journeys[0].comment, "Execução iniciada");
+});
+
+test("removing a checklist item updates and persists the improvement", () => {
+  const { actions, persisted, updates } = createHarness();
+
+  actions.removeChecklistItem("Aprovação");
+
+  assert.deepEqual(
+    updates[0].request.checklist.map((item) => item.label),
+    ["Implantação"],
+  );
+  assert.deepEqual(
+    persisted[0].checklist.map((item) => item.label),
+    ["Implantação"],
+  );
 });

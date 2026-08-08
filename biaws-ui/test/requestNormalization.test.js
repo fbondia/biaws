@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { normalizeRequest } from "../src/components/requests/requestUtils/normalization.js";
+import {
+  newRequest,
+  normalizeRequest,
+  requestChecklist,
+} from "../src/components/requests/requestUtils/normalization.js";
 
 test("request normalization maps legacy billing to the journey model", () => {
   const request = normalizeRequest({
@@ -34,4 +38,16 @@ test("request normalization preserves its improvement collection", () => {
   });
 
   assert.equal(request.collectionId, "roadmap/platform");
+});
+
+test("checklist defaults are only added when the field is omitted", () => {
+  assert.ok(requestChecklist(undefined).length > 0);
+  assert.deepEqual(requestChecklist([]), []);
+  assert.deepEqual(requestChecklist([{ label: "Implantação" }]), [
+    { label: "Implantação", done: false, date: "", comment: "" },
+  ]);
+});
+
+test("new improvements still receive the configured checklist defaults", () => {
+  assert.ok(newRequest().checklist.length > 0);
 });

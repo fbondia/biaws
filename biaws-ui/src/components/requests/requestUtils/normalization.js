@@ -8,12 +8,14 @@ import { monthKeysBetween, scheduleSortValue } from "./dates.js";
 import { dateTimeValue, requestListRankValue } from "./ordering.js";
 import { normalizeRequestStatus } from "./status.js";
 
-export function requestChecklist(items = []) {
-  const byLabel = new Map(items.map((item) => [item.label, item]));
-  const labels = [
-    ...REQUEST_CHECKLIST_ITEMS,
-    ...items.map((item) => item.label),
-  ].filter((label, index, values) => label && values.indexOf(label) === index);
+export function requestChecklist(items) {
+  const sourceItems = Array.isArray(items)
+    ? items
+    : REQUEST_CHECKLIST_ITEMS.map((label) => ({ label }));
+  const byLabel = new Map(sourceItems.map((item) => [item.label, item]));
+  const labels = sourceItems
+    .map((item) => item.label)
+    .filter((label, index, values) => label && values.indexOf(label) === index);
 
   return labels.map((label) => ({
     label,
@@ -206,7 +208,6 @@ export function newRequest() {
     notes: [],
     tasks: [],
     listRank: now,
-    checklist: [],
     journeys: [],
     specification: {
       sections: defaultSpecificationSections(),

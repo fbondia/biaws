@@ -49,13 +49,18 @@ function readMarkdownBlock(lines, index) {
 
 function readCodeBlock(lines, startIndex) {
   const content = [];
+  const language = lines[startIndex].trim().slice(3).trim().split(/\s+/u)[0];
   let index = startIndex + 1;
   while (index < lines.length && !lines[index].trim().startsWith("```")) {
     content.push(lines[index]);
     index += 1;
   }
   return {
-    value: { type: "code", text: content.join("\n") },
+    value: {
+      type: "code",
+      language: String(language || "").toLowerCase(),
+      text: content.join("\n"),
+    },
     nextIndex: index + 1,
   };
 }

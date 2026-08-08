@@ -183,6 +183,43 @@
   padding: 0;
 }
 
+.mermaidDiagram {
+  overflow-x: auto;
+  margin: 0 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  padding: 12px;
+  text-align: center;
+}
+
+.mermaidDiagram svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.mermaidDiagramLoading {
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.mermaidDiagramError {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 10px;
+  border: 1px solid #f5b6b6;
+  border-radius: 8px;
+  background: #fff1f1;
+  color: #9b1c1c;
+  padding: 10px;
+}
+
+.mermaidDiagramError pre {
+  margin: 4px 0 0;
+}
+
 .markdownPreview a {
   color: var(--color-accent-text);
   font-weight: 800;

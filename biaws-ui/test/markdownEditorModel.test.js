@@ -26,3 +26,22 @@ test("blockquote preserves an empty quoted line", () => {
     "<blockquote>antes<br><br>depois</blockquote>",
   );
 });
+
+test("code block preserves its normalized language", () => {
+  assert.deepEqual(
+    parseMarkdownBlocks("```Mermaid\nflowchart LR\n  A --> B\n```"),
+    [
+      {
+        type: "code",
+        language: "mermaid",
+        text: "flowchart LR\n  A --> B",
+      },
+    ],
+  );
+});
+
+test("code block without a language remains ordinary code", () => {
+  assert.deepEqual(parseMarkdownBlocks("```\nconst value = 1;\n```"), [
+    { type: "code", language: "", text: "const value = 1;" },
+  ]);
+});

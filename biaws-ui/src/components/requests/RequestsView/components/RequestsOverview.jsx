@@ -7,6 +7,7 @@ import { REQUEST_OVERVIEW_TABS } from "../../requestUtils.js";
 
 export function RequestsOverview({
   activeTab,
+  collections,
   journeyMonths,
   journeyRequests,
   loading,
@@ -72,6 +73,7 @@ export function RequestsOverview({
 
         {!loading && activeTab === "schedule" ? (
           <RequestSchedule
+            collections={collections}
             onSelectRequest={onSelectRequest}
             requests={scheduleRequests}
           />

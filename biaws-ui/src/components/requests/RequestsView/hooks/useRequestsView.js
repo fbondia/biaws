@@ -32,11 +32,15 @@ import {
   newRequest,
   nextTopRequestListRank,
   REQUEST_SAVE_DEBOUNCE_MS,
+  requestsInCollectionBranch,
   scheduleSortValue,
   sortRequestsForList,
 } from "../../requestUtils.js";
 
-export function useRequestsView(actor, { collectionId = "" } = {}) {
+export function useRequestsView(
+  actor,
+  { collectionId = "", collections = [] } = {},
+) {
   const [requests, setRequests] = useState([]);
   const [requestCollectionItems, setRequestCollectionItems] = useState([]);
   const [selectedRequestId, setSelectedRequestId] = useState("");
@@ -186,7 +190,13 @@ export function useRequestsView(actor, { collectionId = "" } = {}) {
   );
 
   const scheduleRequests = useMemo(() => {
-    return [...filteredRequests].sort((first, second) => {
+    const branchRequests = requestsInCollectionBranch(
+      collections,
+      requestCollectionItems,
+      collectionId,
+    );
+
+    return [...branchRequests].sort((first, second) => {
       return (
         scheduleSortValue(
           first.estimatedDeliveryDate || first.endDate || first.startDate,
@@ -196,7 +206,7 @@ export function useRequestsView(actor, { collectionId = "" } = {}) {
         )
       );
     });
-  }, [filteredRequests]);
+  }, [collectionId, collections, requestCollectionItems]);
 
   const scheduleJourneyMonths = useMemo(() => {
     const months = new Set();

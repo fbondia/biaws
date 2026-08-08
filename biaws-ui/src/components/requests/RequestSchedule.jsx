@@ -1,6 +1,8 @@
+import { FolderTree } from "lucide-react";
 import { useRef, useState } from "react";
 
 import {
+  buildScheduleCollectionRows,
   formatDate,
   formatMonth,
   normalizeRequestStatus,
@@ -13,11 +15,12 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const GANTT_DEMAND_MIN_WIDTH = 180;
 const GANTT_DEMAND_MAX_WIDTH = 520;
 
-export function RequestSchedule({ requests, onSelectRequest }) {
+export function RequestSchedule({ collections, requests, onSelectRequest }) {
   const resizeStartRef = useRef(null);
   const [demandWidth, setDemandWidth] = useState(240);
   const [resizingDemand, setResizingDemand] = useState(false);
   const ganttItems = requests.map(toGanttItem).filter(Boolean);
+  const ganttRows = buildScheduleCollectionRows(collections, ganttItems);
   const timeline = buildGanttTimeline(ganttItems);
 
   function clampDemandWidth(width) {
@@ -122,7 +125,31 @@ export function RequestSchedule({ requests, onSelectRequest }) {
               </div>
             </div>
 
-            {ganttItems.map((item) => {
+            {ganttRows.map((row) => {
+              if (row.kind === "collection") {
+                return (
+                  <div
+                    className="requestGanttRow requestGanttCollectionRow"
+                    key={`collection:${row.id || "root"}`}
+                    style={{ "--gantt-row-depth": row.depth }}
+                  >
+                    <div className="requestGanttCollectionName">
+                      <FolderTree aria-hidden="true" size={14} />
+                      <strong>{row.name}</strong>
+                      <span>
+                        {row.itemCount} melhoria
+                        {row.itemCount === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <div
+                      aria-hidden="true"
+                      className="requestGanttCollectionTimeline"
+                    />
+                  </div>
+                );
+              }
+
+              const { item } = row;
               const left = timelinePercent(timeline, item.barStart);
               const width = Math.min(
                 100 - left,
@@ -136,7 +163,11 @@ export function RequestSchedule({ requests, onSelectRequest }) {
                 : null;
 
               return (
-                <div className="requestGanttRow" key={item.request.id}>
+                <div
+                  className="requestGanttRow"
+                  key={item.request.id}
+                  style={{ "--gantt-row-depth": row.depth }}
+                >
                   <button
                     className="requestGanttDemand"
                     onClick={() => onSelectRequest(item.request.id)}

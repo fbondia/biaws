@@ -105,6 +105,7 @@ export function RequestsView({ actor }) {
     setNewContext,
   } = useRequestsView(actor, {
     collectionId: collectionState.selectedCollectionId,
+    collections: collectionState.collections,
   });
   const canManageCollections = hasPermission(actor, "demands.update");
 
@@ -366,6 +367,7 @@ export function RequestsView({ actor }) {
         ) : (
           <RequestsOverview
             activeTab={activeOverviewTab}
+            collections={collectionState.collections}
             journeyMonths={scheduleJourneyMonths}
             journeyRequests={scheduleJourneyRequests}
             loading={loadingRequests}

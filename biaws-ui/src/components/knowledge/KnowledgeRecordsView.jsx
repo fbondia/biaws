@@ -129,8 +129,8 @@ const TYPE_FILTERS = [
 ];
 
 const TABS = [
+  ["overview", "Visão Geral"],
   ["content", "Conteúdo"],
-  ["type", "Tipo"],
   ["context", "Contexto"],
   ["references", "Referências"],
   ["observations", "Observações"],
@@ -561,7 +561,7 @@ function DocumentDetail({
   saving,
 }) {
   const config = DOCUMENT_TYPES[draft.documentType];
-  const [tab, setTab] = useState("content");
+  const [tab, setTab] = useState("overview");
   const [observations, setObservations] = useState([]);
   const [revisions, setRevisions] = useState([]);
   const [observationDraft, setObservationDraft] = useState("");
@@ -674,7 +674,7 @@ function DocumentDetail({
           </button>
         ))}
       </nav>
-      {tab === "content" ? (
+      {tab === "overview" ? (
         <div className="dialogForm knowledgeRecordPanel">
           <label className="field">
             <span>Título</span>
@@ -715,17 +715,6 @@ function DocumentDetail({
               ))}
             </select>
           </label>
-          <div className="field">
-            <span>Conteúdo Markdown</span>
-            <MarkdownEditor
-              onChange={(markdown) => onChange({ ...draft, markdown })}
-              value={draft.markdown}
-            />
-          </div>
-        </div>
-      ) : null}
-      {tab === "type" ? (
-        <div className="dialogForm knowledgeRecordPanel">
           <label className="field">
             <span>Tipo de documento</span>
             <select
@@ -748,6 +737,16 @@ function DocumentDetail({
             draft={draft}
             onChange={onChange}
           />
+        </div>
+      ) : null}
+      {tab === "content" ? (
+        <div className="dialogForm knowledgeRecordPanel">
+          <div className="field">
+            <MarkdownEditor
+              onChange={(markdown) => onChange({ ...draft, markdown })}
+              value={draft.markdown}
+            />
+          </div>
         </div>
       ) : null}
       {tab === "context" ? (

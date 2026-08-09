@@ -139,8 +139,14 @@ test(
               _id: "administration",
             })
         ).permissions.includes("runtimes.read"),
-        true,
+        false,
       );
+      await database
+        .collection(COLLECTION_NAMES.PERMISSION_GROUPS)
+        .updateOne(
+          { _id: "administration" },
+          { $addToSet: { permissions: "runtimes.read" } },
+        );
 
       const adminCookie = await login("admin.phase2@example.test");
       const workspaceResponse = await request("/api/catalog/workspaces", {

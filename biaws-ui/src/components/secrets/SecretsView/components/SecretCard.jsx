@@ -65,21 +65,21 @@ export function SecretCard({
         <div className="secretCardIdentity">
           <strong>{secret.name}</strong>
           <div className="secretCardBadges">
-           {isPending ? (
-            <span className="secretPendingBadge">Aguardando valor</span>
-          ) : null}
-          <span className="typeBadge">{secret.type}</span>
-          <span className="secretFormatBadge">
-            {isFile ? "Arquivo" : "Texto"}
-          </span>
-        </div>            
+            {isPending ? (
+              <span className="secretPendingBadge">Aguardando valor</span>
+            ) : null}
+            <span className="typeBadge">{secret.type}</span>
+            <span className="secretFormatBadge">
+              {isFile ? "Arquivo" : "Texto"}
+            </span>
+          </div>
         </div>
         <div className="secretCardActions">
-         {detail ? (
+          {detail ? (
             <button className="secondaryButton" onClick={onBack} type="button">
               <X size={16} />
             </button>
-          ) : (          
+          ) : (
             <button className="secondaryButton" onClick={onOpen} type="button">
               Detalhes <Eye size={15} />
             </button>
@@ -90,7 +90,7 @@ export function SecretCard({
         <p className="secretDescription">{secret.description}</p>
       ) : null}
 
-      {detail &&
+      {detail && (
         <>
           <div className="secretIdentifier">
             <span>Identificação técnica</span>
@@ -186,14 +186,18 @@ export function SecretCard({
               ) : null}
             </div>
 
-            {detail &&
+            {detail && (
               <div
                 aria-label="Ações de gestão"
                 className="securityActions secretManagementActions"
                 role="group"
               >
                 {canUpdate ? (
-                  <button className="secondaryButton" onClick={onEdit} type="button">
+                  <button
+                    className="secondaryButton"
+                    onClick={onEdit}
+                    type="button"
+                  >
                     <Pencil size={15} /> Editar
                   </button>
                 ) : null}
@@ -212,15 +216,19 @@ export function SecretCard({
                   </button>
                 ) : null}
                 {canArchive ? (
-                  <button className="dangerButton" onClick={onArchive} type="button">
+                  <button
+                    className="dangerButton"
+                    onClick={onArchive}
+                    type="button"
+                  >
                     <Archive size={15} /> Arquivar
                   </button>
                 ) : null}
               </div>
-            }
+            )}
           </footer>
         </>
-      }
+      )}
     </article>
   );
 }

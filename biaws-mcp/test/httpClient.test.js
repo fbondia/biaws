@@ -116,10 +116,21 @@ test("MCP HTTP client times out stalled responses", async () => {
   const originalTimeout = process.env.BIAWS_MCP_HTTP_TIMEOUT_MS;
   process.env.BIAWS_MCP_HTTP_TIMEOUT_MS = "20";
   globalThis.fetch = async (url, { signal }) =>
-    new Promise((resolve, reject) => {
-      signal.addEventListener("abort", () => reject(signal.reason), {
-        once: true,
-      });
+    new Promise((_, reject) => {
+      // AbortSignal.timeout uses an unreferenced timer in Node 22. A real
+      // pending request keeps the event loop alive, so the stub must too.
+      const pendingRequest = setTimeout(
+        () => reject(new Error("Expected the stalled request to be aborted")),
+        1_000,
+      );
+      signal.addEventListener(
+        "abort",
+        () => {
+          clearTimeout(pendingRequest);
+          reject(signal.reason);
+        },
+        { once: true },
+      );
     });
   try {
     await assert.rejects(

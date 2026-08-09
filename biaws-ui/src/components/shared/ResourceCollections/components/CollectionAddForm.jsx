@@ -11,9 +11,7 @@ export function CollectionAddForm({
 }) {
   return (
     <form
-      className={["resourceCollectionAdd", className]
-        .filter(Boolean)
-        .join(" ")}
+      className={["resourceCollectionAdd", className].filter(Boolean).join(" ")}
       onSubmit={onSubmit}
     >
       {error ? <small role="alert">{error}</small> : null}

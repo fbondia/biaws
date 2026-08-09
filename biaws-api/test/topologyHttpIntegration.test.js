@@ -494,15 +494,15 @@ test(
         configuredHome.configuration.widgets[0].config.environment,
         "production",
       );
-      assert.equal(configuredHome.data["billing-health"].nok, 1);
-      assert.equal(configuredHome.data["billing-health"].total, 1);
+      const billingHealth = configuredHome.data["billing-health"];
+      assert.equal(billingHealth.kind, "health");
+      assert.equal(billingHealth.applicationId, application.id);
+      assert.equal(billingHealth.environment, "production");
+      assert.equal(billingHealth.items.length, 1);
+      assert.equal(billingHealth.items[0].name, application.name);
       assert.equal(
-        configuredHome.data["billing-health"].items[0].name,
-        application.name,
-      );
-      assert.equal(
-        configuredHome.data["billing-health"].items[0].components[0]
-          .deployments[0].runtimes[0].server.name,
+        billingHealth.items[0].components[0].deployments[0].runtimes[0].server
+          .name,
         topologyServer.name,
       );
       const { diagram } = await mutate(

@@ -50,6 +50,9 @@ if [[ "\${1:-}" == "compose" ]]; then
   fi
   exit 0
 fi
+if [[ "\${1:-}" == "info" ]]; then
+  exit 0
+fi
 exit 1
 `,
   );

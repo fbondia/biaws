@@ -1,6 +1,8 @@
 import {
   Archive,
   Building2,
+  Check,
+  Copy,
   Plus,
   RefreshCw,
   RotateCcw,
@@ -226,6 +228,7 @@ export function WorkspaceAdminView({ actor }) {
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState({ name: "", description: "" });
   const [newMember, setNewMember] = useState({ userId: "", groupIds: [] });
+  const [uuidCopied, setUuidCopied] = useState(false);
   const [error, setError] = useState("");
 
   async function loadWorkspaces() {
@@ -289,6 +292,10 @@ export function WorkspaceAdminView({ actor }) {
     loadDetails(selectedId);
   }, [selectedId, workspaces]);
 
+  useEffect(() => {
+    setUuidCopied(false);
+  }, [selected?.id]);
+
   const availableUsers = useMemo(() => {
     const memberIds = new Set(members.map(({ userId }) => userId));
     return users.filter(({ id }) => !memberIds.has(String(id)));
@@ -307,6 +314,16 @@ export function WorkspaceAdminView({ actor }) {
       await loadWorkspaces();
     } catch (saveError) {
       setError(saveError.message);
+    }
+  }
+
+  async function copyWorkspaceUuid() {
+    try {
+      await copyPlainText(selected.id);
+      setUuidCopied(true);
+    } catch {
+      setUuidCopied(false);
+      setError("Não foi possível copiar o UUID do workspace.");
     }
   }
 
@@ -469,6 +486,29 @@ export function WorkspaceAdminView({ actor }) {
                       required
                       value={draft.name}
                     />
+                  </label>
+                  <label>
+                    <span>UUID</span>
+                    <div className="platformUuidField">
+                      <input
+                        aria-label="UUID do workspace"
+                        readOnly
+                        value={selected.id}
+                      />
+                      <button
+                        aria-label={
+                          uuidCopied
+                            ? "UUID do workspace copiado"
+                            : "Copiar UUID do workspace"
+                        }
+                        className="secondaryButton"
+                        onClick={copyWorkspaceUuid}
+                        type="button"
+                      >
+                        {uuidCopied ? <Check size={16} /> : <Copy size={16} />}
+                        {uuidCopied ? "Copiado" : "Copiar"}
+                      </button>
+                    </div>
                   </label>
                   <label>
                     <span>Descrição</span>
@@ -644,4 +684,19 @@ export function WorkspaceAdminView({ actor }) {
       ) : null}
     </section>
   );
+}
+
+async function copyPlainText(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
 }

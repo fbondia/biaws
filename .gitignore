@@ -21,3 +21,4 @@ debug-ui.sh
 .agents/biaws-skills.lock.json
 .agents/skills/biaws-operate-workspace/SKILL.md
 .agents/skills/biaws-operate-workspace/agents/openai.yaml
+update-starter-skills.sh

@@ -151,6 +151,23 @@
   font-weight: 700;
 }
 
+.platformUuidField {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.platformUuidField input {
+  min-width: 0;
+  flex: 1;
+  color: var(--color-text-subtle);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.platformUuidField button {
+  flex: none;
+}
+
 .platformMetrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));

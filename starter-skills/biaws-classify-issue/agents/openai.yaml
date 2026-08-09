@@ -1,0 +1,4 @@
+interface:
+  display_name: "Classify Biaws Issue"
+  short_description: "Classify issues from current workspace"
+  default_prompt: "Use $biaws-classify-issue to analyze and recommend a classification for this issue."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Biaws Improvement"
+  short_description: "Decompose an improvement into safe tasks"
+  default_prompt: "Use $biaws-plan-improvement to create an executable task plan for this improvement."

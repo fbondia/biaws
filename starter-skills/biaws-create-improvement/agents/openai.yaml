@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Biaws Improvement"
+  short_description: "Structure and create a tracked improvement"
+  default_prompt: "Use $biaws-create-improvement to investigate, structure, and create this improvement."

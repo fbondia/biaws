@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Biaws Work Item"
+  short_description: "Implement an improvement task with evidence"
+  default_prompt: "Use $biaws-implement-work-item to implement this task and record its evidence."

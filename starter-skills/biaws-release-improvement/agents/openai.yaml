@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release Biaws Improvement"
+  short_description: "Version, publish, and record a release"
+  default_prompt: "Use $biaws-release-improvement to complete and record this improvement release safely."

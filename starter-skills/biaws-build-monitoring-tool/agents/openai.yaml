@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Biaws Monitoring Tool"
+  short_description: "Design and build workspace-native monitoring"
+  default_prompt: "Use $biaws-build-monitoring-tool to discover the monitoring target, propose the design, and implement it after approval."

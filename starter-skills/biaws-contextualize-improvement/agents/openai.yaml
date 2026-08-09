@@ -1,0 +1,4 @@
+interface:
+  display_name: "Contextualize Biaws Improvement"
+  short_description: "Explain an improvement from current evidence"
+  default_prompt: "Use $biaws-contextualize-improvement to explain the current context of this improvement."

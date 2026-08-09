@@ -1,4 +1,4 @@
 interface:
-  display_name: "Operate Bondia Workspace"
+  display_name: "Operate Biaws Workspace"
   short_description: "Work safely with Bondia operational context"
   default_prompt: "Use $biaws-operate-workspace to inspect the workspace context and perform the requested operation safely."

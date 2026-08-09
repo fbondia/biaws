@@ -33,39 +33,25 @@ test("administration initial group contains every permission", () => {
   );
 });
 
-test("system group provisioning preserves an edited permission matrix", () => {
-  const group = INITIAL_PERMISSION_GROUPS.find(({ id }) => id === "support");
-  const pipeline = buildSystemGroupSeedPipeline(
-    group,
-    { id: "default", default: true },
-    { userId: "system" },
-    new Date("2026-08-06T12:00:00.000Z"),
-  );
+test("system group provisioning preserves edited permission matrices", () => {
+  for (const group of INITIAL_PERMISSION_GROUPS) {
+    const pipeline = buildSystemGroupSeedPipeline(
+      group,
+      { id: "default", default: true },
+      { userId: "system" },
+      new Date("2026-08-06T12:00:00.000Z"),
+    );
 
-  assert.deepEqual(seededField(pipeline, "permissions"), {
-    $ifNull: ["$permissions", group.permissions.toSorted()],
-  });
-  assert.deepEqual(seededField(pipeline, "active"), {
-    $ifNull: ["$active", true],
-  });
-  assert.deepEqual(seededField(pipeline, "scope"), {
-    $ifNull: ["$scope", { type: "workspace", applicationIds: [] }],
-  });
-});
-
-test("administration provisioning still follows the canonical catalog", () => {
-  const group = INITIAL_PERMISSION_GROUPS.find(
-    ({ id }) => id === "administration",
-  );
-  const pipeline = buildSystemGroupSeedPipeline(group, {
-    id: "workspace-a",
-    default: false,
-  });
-
-  assert.deepEqual(
-    seededField(pipeline, "permissions"),
-    [...group.permissions].sort(),
-  );
+    assert.deepEqual(seededField(pipeline, "permissions"), {
+      $ifNull: ["$permissions", group.permissions.toSorted()],
+    });
+    assert.deepEqual(seededField(pipeline, "active"), {
+      $ifNull: ["$active", true],
+    });
+    assert.deepEqual(seededField(pipeline, "scope"), {
+      $ifNull: ["$scope", { type: "workspace", applicationIds: [] }],
+    });
+  }
 });
 
 test("agent operator excludes administrative and catalog publication permissions", () => {

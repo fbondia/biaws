@@ -327,13 +327,7 @@ export function buildSystemGroupSeedPipeline(
           normalizedName(group.name),
         ),
         description: preserveOrInitialize("description", group.description),
-        permissions: [
-          "administration",
-          "knowledge-management",
-          "agent-operator",
-        ].includes(group.id)
-          ? initialPermissions
-          : preserveOrInitialize("permissions", initialPermissions),
+        permissions: preserveOrInitialize("permissions", initialPermissions),
         workspaceId: workspace.id,
         scope: preserveOrInitialize("scope", {
           type: "workspace",

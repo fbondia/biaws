@@ -1509,15 +1509,25 @@ export async function deleteRequestTaskNote(
   };
 }
 
-async function readListRankNeighbor(db, requestIdValue, fieldName, query = {}) {
+async function readListRankNeighbor(
+  db,
+  requestIdValue,
+  fieldName,
+  collectionId,
+  query = {},
+) {
   if (!requestIdValue) return null;
 
   const requestId = requestObjectId(requestIdValue);
-  const request = await db
-    .collection(REQUESTS_COLLECTION)
-    .findOne(requestFilter(requestId, query), {
+  const request = await db.collection(REQUESTS_COLLECTION).findOne(
+    {
+      ...requestFilter(requestId, query),
+      collectionId: collectionId ? collectionId : { $in: ["", null] },
+    },
+    {
       projection: { listRank: 1, updatedAt: 1, createdAt: 1 },
-    });
+    },
+  );
 
   if (!request) {
     throw createHttpError(
@@ -1559,12 +1569,14 @@ export async function reorderRequest(requestIdValue, payload = {}, query = {}) {
     db,
     payload.previousRequestId,
     "previousRequestId",
+    String(existing.collectionId || ""),
     query,
   );
   const nextRank = await readListRankNeighbor(
     db,
     payload.nextRequestId,
     "nextRequestId",
+    String(existing.collectionId || ""),
     query,
   );
   const listRank = calculateMovedListRank(previousRank, nextRank);

@@ -1,11 +1,14 @@
 import { Columns3, ListTree } from "lucide-react";
 
 import { useResourceCollectionNavigator } from "../hooks/useResourceCollectionNavigator.js";
+import { isItemReorderDrop } from "../model.js";
 import { CollectionColumns } from "./CollectionColumns.jsx";
 import { CollectionTree } from "./CollectionTree.jsx";
 
 export function ResourceCollectionNavigator({
   canDragItem = () => true,
+  canDropOnCollection = () => true,
+  canReorderItem = () => true,
   className = "",
   collections,
   draggedItem,
@@ -24,6 +27,7 @@ export function ResourceCollectionNavigator({
   itemLabel = "procedimentos",
   onCreate,
   onRename,
+  onReorderItem,
   renderItem,
 }) {
   const navigator = useResourceCollectionNavigator({
@@ -34,9 +38,32 @@ export function ResourceCollectionNavigator({
     onSelect,
     selectedCollectionId,
   });
+
+  function canDropOnItem(item) {
+    return (
+      Boolean(onReorderItem) &&
+      isItemReorderDrop(draggedItem, item, getItemId) &&
+      canReorderItem(draggedItem, item)
+    );
+  }
+
+  function dragOverItem(item) {
+    navigator.setDropTargetId(null);
+    navigator.setItemDropTargetId(getItemId(item));
+  }
+
+  function dropOnItem(item) {
+    navigator.setDropTargetId(null);
+    navigator.setItemDropTargetId(null);
+    if (!canDropOnItem(item)) return;
+    onReorderItem(draggedItem.id, item);
+  }
+
   const viewProps = {
     ...navigator,
     canDragItem,
+    canDropOnCollection,
+    canDropOnItem,
     draggedItem,
     getItemId,
     onCreate,
@@ -45,12 +72,18 @@ export function ResourceCollectionNavigator({
     onDragCollection,
     onDragEnd,
     onDragItem,
+    onDragOverItem: dragOverItem,
     onRename,
+    onDropItem: dropOnItem,
     onSelect,
     onSelectItem,
     renderItem,
     selectedCollectionId,
     selectedItemId,
+    setDropTargetId: (collectionId) => {
+      navigator.setItemDropTargetId(null);
+      navigator.setDropTargetId(collectionId);
+    },
   };
 
   return (

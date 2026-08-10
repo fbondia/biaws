@@ -488,22 +488,41 @@ export function useRequestsView(
     )
       return;
 
-    const currentIndex = requests.findIndex(
+    const movedRequest = requestCollectionItems.find(
       (request) => request.id === requestId,
     );
-    const targetIndex = requests.findIndex(
+    const targetRequest = requestCollectionItems.find(
+      (request) => request.id === targetRequestId,
+    );
+    if (
+      !movedRequest ||
+      !targetRequest ||
+      String(movedRequest.collectionId || "") !==
+        String(targetRequest.collectionId || "")
+    )
+      return;
+
+    const collectionRequests = requestCollectionItems.filter(
+      (request) =>
+        String(request.collectionId || "") ===
+        String(movedRequest.collectionId || ""),
+    );
+    const currentIndex = collectionRequests.findIndex(
+      (request) => request.id === requestId,
+    );
+    const targetIndex = collectionRequests.findIndex(
       (request) => request.id === targetRequestId,
     );
 
     if (currentIndex < 0 || targetIndex < 0 || currentIndex === targetIndex)
       return;
 
-    const nextRequests = [...requests];
-    const [movedRequest] = nextRequests.splice(currentIndex, 1);
-    nextRequests.splice(targetIndex, 0, movedRequest);
+    const nextCollectionRequests = [...collectionRequests];
+    nextCollectionRequests.splice(currentIndex, 1);
+    nextCollectionRequests.splice(targetIndex, 0, movedRequest);
 
-    const previousRequest = nextRequests[targetIndex - 1] || null;
-    const nextRequest = nextRequests[targetIndex + 1] || null;
+    const previousRequest = nextCollectionRequests[targetIndex - 1] || null;
+    const nextRequest = nextCollectionRequests[targetIndex + 1] || null;
     const previousRank = previousRequest?.listRank;
     const nextRank = nextRequest?.listRank;
     const optimisticRank =
@@ -515,13 +534,19 @@ export function useRequestsView(
             ? previousRank - 1000
             : Date.now();
 
-    setRequests(
-      nextRequests.map((request) =>
-        request.id === requestId
-          ? { ...request, listRank: optimisticRank }
-          : request,
-      ),
-    );
+    const requestsBeforeMove = requests;
+    const collectionItemsBeforeMove = requestCollectionItems;
+    const applyOptimisticRank = (items) =>
+      sortRequestsForList(
+        items.map((request) =>
+          request.id === requestId
+            ? { ...request, listRank: optimisticRank }
+            : request,
+        ),
+      );
+
+    setRequests((current) => applyOptimisticRank(current));
+    setRequestCollectionItems((current) => applyOptimisticRank(current));
     setSavingRequestId(requestId);
     setRequestError("");
 
@@ -534,7 +559,8 @@ export function useRequestsView(
       if (payload.request) upsertRequestInList(payload.request);
     } catch (error) {
       setRequestError(error.message);
-      setRequests((current) => sortRequestsForList(current));
+      setRequests(requestsBeforeMove);
+      setRequestCollectionItems(collectionItemsBeforeMove);
     } finally {
       setSavingRequestId((current) => (current === requestId ? "" : current));
     }

@@ -17,6 +17,7 @@ export function useResourceCollectionNavigator({
 }) {
   const [collapsedIds, setCollapsedIds] = useState(() => new Set());
   const [dropTargetId, setDropTargetId] = useState(null);
+  const [itemDropTargetId, setItemDropTargetId] = useState(null);
   const [viewMode, setViewMode] = useState(() =>
     typeof window !== "undefined" &&
     window.matchMedia("(max-width: 900px)").matches
@@ -67,6 +68,7 @@ export function useResourceCollectionNavigator({
 
   function dropAt(collectionId) {
     setDropTargetId(null);
+    setItemDropTargetId(null);
     onDrop(collectionId);
   }
 
@@ -106,7 +108,8 @@ export function useResourceCollectionNavigator({
 
   function finishDrag(onDragEnd) {
     setDropTargetId(null);
-    onDragEnd();
+    setItemDropTargetId(null);
+    onDragEnd?.();
   }
 
   return {
@@ -122,7 +125,9 @@ export function useResourceCollectionNavigator({
     dropTargetId,
     finishDrag,
     itemCounts,
+    itemDropTargetId,
     itemsByCollection,
+    setItemDropTargetId,
     setDropTargetId,
     setViewMode,
     toggleCollection,

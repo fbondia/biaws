@@ -19,6 +19,8 @@ import { CollectionItemNode } from "./CollectionItemNode.jsx";
 function CollectionTreeNode({
   addingParentId,
   canDragItem,
+  canDropOnCollection,
+  canDropOnItem,
   collection,
   collectionDrafts,
   createAt,
@@ -29,14 +31,17 @@ function CollectionTreeNode({
   draggedItem,
   dropTargetId,
   getItemId,
+  itemDropTargetId,
   itemsByCollection,
   onDragCollection,
   onDragEnd,
   onDragItem,
+  onDragOverItem,
   onDragOverCollection,
   onDelete,
   onDeleteItem,
   onDrop,
+  onDropItem,
   onRename,
   onSelect,
   onSelectItem,
@@ -62,7 +67,10 @@ function CollectionTreeNode({
       descendantCollectionIds(childrenByParent, draggedItem.id).has(
         collection.id,
       ));
-  const canDrop = Boolean(draggedItem) && !invalidCollectionDrop;
+  const canDrop =
+    Boolean(draggedItem) &&
+    !invalidCollectionDrop &&
+    canDropOnCollection(draggedItem, collection);
   const addingSubcollection = addingParentId === collection.id;
 
   function toggleSubcollectionForm() {
@@ -227,6 +235,8 @@ function CollectionTreeNode({
             <CollectionTreeNode
               addingParentId={addingParentId}
               canDragItem={canDragItem}
+              canDropOnCollection={canDropOnCollection}
+              canDropOnItem={canDropOnItem}
               childrenByParent={childrenByParent}
               collapsedIds={collapsedIds}
               collection={child}
@@ -237,6 +247,7 @@ function CollectionTreeNode({
               draggedItem={draggedItem}
               dropTargetId={dropTargetId}
               getItemId={getItemId}
+              itemDropTargetId={itemDropTargetId}
               itemsByCollection={itemsByCollection}
               key={child.id}
               onDelete={onDelete}
@@ -244,8 +255,10 @@ function CollectionTreeNode({
               onDragCollection={onDragCollection}
               onDragEnd={onDragEnd}
               onDragItem={onDragItem}
+              onDragOverItem={onDragOverItem}
               onDragOverCollection={onDragOverCollection}
               onDrop={onDrop}
+              onDropItem={onDropItem}
               onRename={onRename}
               onSelect={onSelect}
               onSelectItem={onSelectItem}
@@ -263,13 +276,17 @@ function CollectionTreeNode({
             <CollectionItemNode
               active={selectedItemId === getItemId(item)}
               canDrag={Boolean(onDragItem) && canDragItem(item)}
+              canDrop={canDropOnItem(item)}
+              dropActive={itemDropTargetId === getItemId(item)}
               getItemId={getItemId}
               item={item}
               key={getItemId(item)}
               onDragEnd={onDragEnd}
               onDragItem={onDragItem}
+              onDragOverItem={onDragOverItem}
               onDeleteItem={onDeleteItem}
               onSelectItem={onSelectItem}
+              onDropItem={onDropItem}
               renderItem={renderItem}
               viewMode="tree"
             />
@@ -282,6 +299,8 @@ function CollectionTreeNode({
 
 export function CollectionTree({
   canDragItem,
+  canDropOnCollection,
+  canDropOnItem,
   childrenByParent,
   collapsedIds,
   collectionDrafts,
@@ -294,6 +313,7 @@ export function CollectionTree({
   finishDrag,
   getItemId,
   itemCounts,
+  itemDropTargetId,
   itemsByCollection,
   onCreate,
   onDelete,
@@ -301,7 +321,9 @@ export function CollectionTree({
   onDragCollection,
   onDragEnd,
   onDragItem,
+  onDragOverItem,
   onRename,
+  onDropItem,
   onSelect,
   onSelectItem,
   renderItem,
@@ -335,6 +357,8 @@ export function CollectionTree({
             <CollectionTreeNode
               addingParentId={addingParentId}
               canDragItem={canDragItem}
+              canDropOnCollection={canDropOnCollection}
+              canDropOnItem={canDropOnItem}
               childrenByParent={childrenByParent}
               collapsedIds={collapsedIds}
               collection={collection}
@@ -345,6 +369,7 @@ export function CollectionTree({
               draggedItem={draggedItem}
               dropTargetId={dropTargetId}
               getItemId={getItemId}
+              itemDropTargetId={itemDropTargetId}
               itemsByCollection={itemsByCollection}
               key={collection.id}
               onDelete={onCreate ? onDelete : undefined}
@@ -352,8 +377,10 @@ export function CollectionTree({
               onDragCollection={onDragCollection}
               onDragEnd={() => finishDrag(onDragEnd)}
               onDragItem={onDragItem}
+              onDragOverItem={onDragOverItem}
               onDragOverCollection={setDropTargetId}
               onDrop={dropAt}
+              onDropItem={onDropItem}
               onRename={onRename}
               onSelect={onSelect}
               onSelectItem={onSelectItem}
@@ -371,13 +398,17 @@ export function CollectionTree({
             <CollectionItemNode
               active={selectedItemId === getItemId(item)}
               canDrag={Boolean(onDragItem) && canDragItem(item)}
+              canDrop={canDropOnItem(item)}
+              dropActive={itemDropTargetId === getItemId(item)}
               getItemId={getItemId}
               item={item}
               key={getItemId(item)}
-              onDragEnd={onDragEnd}
+              onDragEnd={() => finishDrag(onDragEnd)}
               onDragItem={onDragItem}
+              onDragOverItem={onDragOverItem}
               onDeleteItem={onDeleteItem}
               onSelectItem={onSelectItem}
+              onDropItem={onDropItem}
               renderItem={renderItem}
               viewMode="tree"
             />

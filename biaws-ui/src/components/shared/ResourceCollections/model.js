@@ -130,3 +130,15 @@ export function groupItemsByCollection(collections, items) {
     return groups;
   }, new Map());
 }
+
+export function isItemReorderDrop(draggedItem, targetItem, getItemId) {
+  if (draggedItem?.type !== "item" || !targetItem) return false;
+
+  const targetId = getItemId(targetItem);
+  if (!draggedItem.id || draggedItem.id === targetId) return false;
+
+  return (
+    String(draggedItem.collectionId || "") ===
+    String(targetItem.collectionId || "")
+  );
+}

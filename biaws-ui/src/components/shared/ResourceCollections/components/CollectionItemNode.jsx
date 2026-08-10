@@ -3,12 +3,16 @@ import { GripVertical, Trash2 } from "lucide-react";
 export function CollectionItemNode({
   active,
   canDrag,
+  canDrop,
+  dropActive,
   getItemId,
   item,
   onDragEnd,
   onDragItem,
+  onDragOverItem,
   onDeleteItem,
   onSelectItem,
+  onDropItem,
   renderItem,
   viewMode,
 }) {
@@ -23,11 +27,18 @@ export function CollectionItemNode({
         "resourceCollectionItemRow",
         viewMode === "columns" ? "resourceCollectionColumnItemRow" : "",
         active ? "selectedResourceCollectionItem" : "",
+        dropActive ? "resourceCollectionDropTarget" : "",
       ]
         .filter(Boolean)
         .join(" ")}
       draggable={canDrag}
       onDragEnd={onDragEnd}
+      onDragOver={(event) => {
+        if (!canDrop) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        onDragOverItem(item);
+      }}
       onDragStart={(event) => {
         if (!canDrag || !onDragItem) {
           event.preventDefault();
@@ -36,6 +47,12 @@ export function CollectionItemNode({
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", `item:${itemId}`);
         onDragItem(item);
+      }}
+      onDrop={(event) => {
+        if (!canDrop) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onDropItem(item);
       }}
       role="treeitem"
     >

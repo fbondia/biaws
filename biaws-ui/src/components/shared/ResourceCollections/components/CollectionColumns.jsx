@@ -15,6 +15,7 @@ import { CollectionItemNode } from "./CollectionItemNode.jsx";
 
 function CollectionColumnRow({
   active,
+  canDropOnCollection,
   collection,
   childrenByParent,
   draggedItem,
@@ -35,7 +36,10 @@ function CollectionColumnRow({
       descendantCollectionIds(childrenByParent, draggedItem.id).has(
         collection.id,
       ));
-  const canDrop = Boolean(draggedItem) && !invalidCollectionDrop;
+  const canDrop =
+    Boolean(draggedItem) &&
+    !invalidCollectionDrop &&
+    canDropOnCollection(draggedItem, collection);
 
   return (
     <div
@@ -132,6 +136,8 @@ function CollectionColumnRow({
 
 export function CollectionColumns({
   canDragItem,
+  canDropOnCollection,
+  canDropOnItem,
   childrenByParent,
   collectionDrafts,
   columnNavigation,
@@ -145,6 +151,7 @@ export function CollectionColumns({
   finishDrag,
   getItemId,
   itemCounts,
+  itemDropTargetId,
   itemsByCollection,
   onCreate,
   onDelete,
@@ -152,7 +159,9 @@ export function CollectionColumns({
   onDragCollection,
   onDragEnd,
   onDragItem,
+  onDragOverItem,
   onRename,
+  onDropItem,
   onSelect,
   onSelectItem,
   renderItem,
@@ -175,6 +184,7 @@ export function CollectionColumns({
                 active={
                   columnNavigation.activePath[columnIndex] === collection.id
                 }
+                canDropOnCollection={canDropOnCollection}
                 childrenByParent={childrenByParent}
                 collection={collection}
                 draggedItem={draggedItem}
@@ -197,13 +207,17 @@ export function CollectionColumns({
               <CollectionItemNode
                 active={selectedItemId === getItemId(item)}
                 canDrag={Boolean(onDragItem) && canDragItem(item)}
+                canDrop={canDropOnItem(item)}
+                dropActive={itemDropTargetId === getItemId(item)}
                 getItemId={getItemId}
                 item={item}
                 key={getItemId(item)}
-                onDragEnd={onDragEnd}
+                onDragEnd={() => finishDrag(onDragEnd)}
                 onDragItem={onDragItem}
+                onDragOverItem={onDragOverItem}
                 onDeleteItem={onDeleteItem}
                 onSelectItem={onSelectItem}
+                onDropItem={onDropItem}
                 renderItem={renderItem}
                 viewMode="columns"
               />

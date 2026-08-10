@@ -14,6 +14,7 @@ export function ResourceCollectionsShell({
   detailVisible = false,
   draggedItem,
   initialNavigationWidth = 340,
+  canDropRoot = () => true,
   onDropRoot,
   onNavigateBack,
   onSelectCollection,
@@ -87,13 +88,15 @@ export function ResourceCollectionsShell({
             }
           }}
           onDragOver={(event) => {
-            if (!draggedItem || !onDropRoot) return;
+            if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
+              return;
             event.preventDefault();
             event.dataTransfer.dropEffect = "move";
             setRootDropActive(true);
           }}
           onDrop={(event) => {
-            if (!draggedItem || !onDropRoot) return;
+            if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
+              return;
             event.preventDefault();
             setRootDropActive(false);
             onDropRoot();

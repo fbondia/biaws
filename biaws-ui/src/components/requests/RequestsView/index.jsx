@@ -55,6 +55,7 @@ export function RequestsView({
     statusFilters,
     filteredRequests,
     loadingRequests,
+    moveRequest,
     requestMeta,
     requestCollectionItems,
     loadRequests,
@@ -114,6 +115,7 @@ export function RequestsView({
     collections: collectionState.collections,
   });
   const canManageCollections = hasPermission(actor, "demands.update");
+  const canReorderRequests = hasPermission(actor, "demands.reorder");
 
   useEffect(() => {
     if (!initialTaskTarget?.requestId || !initialTaskTarget?.taskId) return;
@@ -191,6 +193,9 @@ export function RequestsView({
       ) : null}
 
       <ResourceCollectionsShell
+        canDropRoot={(draggedItem) =>
+          draggedItem.type === "collection" || canManageCollections
+        }
         className="requestsCollectionsLayout"
         collections={collectionState.collections}
         detailVisible={Boolean(selectedRequest)}
@@ -212,7 +217,14 @@ export function RequestsView({
         selectedCollectionId={collectionState.selectedCollectionId}
         navigator={
           <ResourceCollectionNavigator
-            canDragItem={() => canManageCollections}
+            canDragItem={() =>
+              canManageCollections ||
+              (canReorderRequests && !statusFilters.length)
+            }
+            canDropOnCollection={(draggedItem) =>
+              draggedItem.type === "collection" || canManageCollections
+            }
+            canReorderItem={() => canReorderRequests && !statusFilters.length}
             className="requestCollectionsNavigator"
             collections={collectionState.collections}
             draggedItem={collectionState.draggedItem}
@@ -239,6 +251,7 @@ export function RequestsView({
               collectionState.setDraggedItem({
                 type: "item",
                 id: request.id,
+                collectionId: request.collectionId || "",
               })
             }
             onDrop={(collectionId) =>
@@ -249,6 +262,9 @@ export function RequestsView({
             }
             onRename={(collection) =>
               collectionState.setCollectionDialog(collection)
+            }
+            onReorderItem={(requestId, targetRequest) =>
+              void moveRequest(requestId, targetRequest.id)
             }
             onSelect={selectCollection}
             onSelectItem={(request) => {

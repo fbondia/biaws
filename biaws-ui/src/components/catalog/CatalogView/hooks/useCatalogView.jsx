@@ -1,5 +1,5 @@
 import { Archive, Pencil } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   archiveApplication,
@@ -112,6 +112,7 @@ export function useCatalogView(actor) {
     {},
   );
   const [runtimeErrorByDeployment, setRuntimeErrorByDeployment] = useState({});
+  const applicationLoadVersionRef = useRef(0);
 
   const visibleTabs = useMemo(
     () =>
@@ -125,11 +126,14 @@ export function useCatalogView(actor) {
 
   async function loadApplications(nextWorkspace = workspace, filters = {}) {
     if (!nextWorkspace?.id) return;
+    const loadVersion = applicationLoadVersionRef.current + 1;
+    applicationLoadVersionRef.current = loadVersion;
     const payload = await fetchApplications(nextWorkspace.id, {
       q: filters.search ?? search,
       includeArchived: filters.includeArchived ?? includeArchived,
       limit: 100,
     });
+    if (loadVersion !== applicationLoadVersionRef.current) return;
     setApplications(payload.items || []);
     setSelectedId((current) =>
       current && (payload.items || []).some(({ id }) => id === current)
@@ -227,18 +231,22 @@ export function useCatalogView(actor) {
 
   useEffect(() => {
     if (!workspace?.id) return undefined;
+    let active = true;
     const timer = window.setTimeout(async () => {
       setLoading(true);
       setError("");
       try {
         await loadApplications(workspace, { search, includeArchived });
       } catch (loadError) {
-        setError(loadError.message);
+        if (active) setError(loadError.message);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }, 250);
-    return () => window.clearTimeout(timer);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
   }, [workspace?.id, search, includeArchived]);
 
   async function persistApplication(payload) {

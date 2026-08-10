@@ -875,88 +875,132 @@ function valueMatchesType(value, type) {
   return typeof value === type;
 }
 
-function validateValue(value, schema, path, fields) {
-  if (!schema || value === undefined) return;
-  if (schema.type && !valueMatchesType(value, schema.type)) {
-    fields.push({
-      path,
-      code: "invalid_type",
-      message: `${path} must be of type ${Array.isArray(schema.type) ? schema.type.join(" or ") : schema.type}`,
-    });
-    return;
-  }
+function addValidationField(fields, path, code, message) {
+  fields.push({ path, code, message });
+}
+
+function validateSchemaType(value, schema, path, fields) {
+  if (!schema.type || valueMatchesType(value, schema.type)) return true;
+  const expected = Array.isArray(schema.type)
+    ? schema.type.join(" or ")
+    : schema.type;
+  addValidationField(
+    fields,
+    path,
+    "invalid_type",
+    `${path} must be of type ${expected}`,
+  );
+  return false;
+}
+
+function validateEnum(value, schema, path, fields) {
   if (schema.enum && !schema.enum.includes(value)) {
-    fields.push({
+    addValidationField(
+      fields,
       path,
-      code: "invalid_enum",
-      message: `${path} must be one of ${schema.enum.join(", ")}`,
-    });
-  }
-  if (typeof value === "number") {
-    if (schema.minimum !== undefined && value < schema.minimum) {
-      fields.push({
-        path,
-        code: "minimum",
-        message: `${path} must be at least ${schema.minimum}`,
-      });
-    }
-    if (schema.maximum !== undefined && value > schema.maximum) {
-      fields.push({
-        path,
-        code: "maximum",
-        message: `${path} must be at most ${schema.maximum}`,
-      });
-    }
-  }
-  if (Array.isArray(value)) {
-    if (schema.minItems !== undefined && value.length < schema.minItems) {
-      fields.push({
-        path,
-        code: "min_items",
-        message: `${path} must contain at least ${schema.minItems} items`,
-      });
-    }
-    if (schema.maxItems !== undefined && value.length > schema.maxItems) {
-      fields.push({
-        path,
-        code: "max_items",
-        message: `${path} must contain at most ${schema.maxItems} items`,
-      });
-    }
-    value.forEach((entry, index) =>
-      validateValue(entry, schema.items, `${path}[${index}]`, fields),
+      "invalid_enum",
+      `${path} must be one of ${schema.enum.join(", ")}`,
     );
   }
-  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
-    const properties = schema.properties || {};
-    for (const required of schema.required || []) {
-      if (value[required] === undefined) {
-        const requiredPath = path ? `${path}.${required}` : required;
-        fields.push({
-          path: requiredPath,
-          code: "required",
-          message: `${requiredPath} is required`,
-        });
-      }
-    }
-    for (const [key, entry] of Object.entries(value)) {
-      const entryPath = path ? `${path}.${key}` : key;
-      if (properties[key]) {
-        validateValue(entry, properties[key], entryPath, fields);
-      } else if (schema.additionalProperties === false) {
-        fields.push({
-          path: entryPath,
-          code: "additional_property",
-          message: `${entryPath} is not supported`,
-        });
-      } else if (
-        schema.additionalProperties &&
-        typeof schema.additionalProperties === "object"
-      ) {
-        validateValue(entry, schema.additionalProperties, entryPath, fields);
-      }
+}
+
+function validateNumber(value, schema, path, fields) {
+  if (typeof value !== "number") return;
+  if (schema.minimum !== undefined && value < schema.minimum) {
+    addValidationField(
+      fields,
+      path,
+      "minimum",
+      `${path} must be at least ${schema.minimum}`,
+    );
+  }
+  if (schema.maximum !== undefined && value > schema.maximum) {
+    addValidationField(
+      fields,
+      path,
+      "maximum",
+      `${path} must be at most ${schema.maximum}`,
+    );
+  }
+}
+
+function validateArray(value, schema, path, fields) {
+  if (!Array.isArray(value)) return;
+  if (schema.minItems !== undefined && value.length < schema.minItems) {
+    addValidationField(
+      fields,
+      path,
+      "min_items",
+      `${path} must contain at least ${schema.minItems} items`,
+    );
+  }
+  if (schema.maxItems !== undefined && value.length > schema.maxItems) {
+    addValidationField(
+      fields,
+      path,
+      "max_items",
+      `${path} must contain at most ${schema.maxItems} items`,
+    );
+  }
+  for (const [index, entry] of value.entries()) {
+    validateValue(entry, schema.items, `${path}[${index}]`, fields);
+  }
+}
+
+function isPlainObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isObjectSchema(value) {
+  return Boolean(value) && typeof value === "object";
+}
+
+function validateRequiredProperties(value, schema, path, fields) {
+  for (const required of schema.required || []) {
+    if (value[required] === undefined) {
+      const requiredPath = path ? `${path}.${required}` : required;
+      addValidationField(
+        fields,
+        requiredPath,
+        "required",
+        `${requiredPath} is required`,
+      );
     }
   }
+}
+
+function validateObjectEntries(value, schema, path, fields) {
+  const properties = schema.properties || {};
+  for (const [key, entry] of Object.entries(value)) {
+    const entryPath = path ? `${path}.${key}` : key;
+    if (properties[key]) {
+      validateValue(entry, properties[key], entryPath, fields);
+    } else if (schema.additionalProperties === false) {
+      addValidationField(
+        fields,
+        entryPath,
+        "additional_property",
+        `${entryPath} is not supported`,
+      );
+    } else if (isObjectSchema(schema.additionalProperties)) {
+      validateValue(entry, schema.additionalProperties, entryPath, fields);
+    }
+  }
+}
+
+function validateObject(value, schema, path, fields) {
+  if (!isPlainObject(value)) return;
+  validateRequiredProperties(value, schema, path, fields);
+  validateObjectEntries(value, schema, path, fields);
+}
+
+function validateValue(value, schema, path, fields) {
+  if (!schema || value === undefined) return;
+  if (!validateSchemaType(value, schema, path, fields)) return;
+  validateEnum(value, schema, path, fields);
+  validateNumber(value, schema, path, fields);
+  validateArray(value, schema, path, fields);
+  validateObject(value, schema, path, fields);
 }
 
 function validateArguments(tool, args) {

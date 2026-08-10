@@ -26,6 +26,248 @@ const LOCAL_SETUP_TABS = [
   { key: "doctor", label: "Diagnóstico" },
 ];
 
+function navigationGroupIsActive(group, activeView) {
+  return group.sections.some(({ views }) =>
+    views.some(({ key }) => key === activeView),
+  );
+}
+
+function NavigationMenuSection({
+  activeView,
+  groupKey,
+  onSelectView,
+  section,
+}) {
+  return (
+    <section aria-label={section.label} className="navigationSubmenuSection">
+      <span className="navigationSubmenuLabel">{section.label}</span>
+      {section.views.map((view) => (
+        <NavigationButton
+          active={activeView === view.key}
+          key={view.key}
+          menu
+          onClick={() => onSelectView(groupKey, view.key)}
+          view={view}
+        />
+      ))}
+    </section>
+  );
+}
+
+function NavigationMenu({
+  activeView,
+  group,
+  onMenuRef,
+  onOpen,
+  onSelectView,
+}) {
+  const GroupIcon = group.icon;
+  const active = navigationGroupIsActive(group, activeView);
+  return (
+    <details
+      className="navigationMenu"
+      onToggle={(event) => event.currentTarget.open && onOpen(group.key)}
+      ref={(menu) => onMenuRef(group.key, menu)}
+    >
+      <summary
+        aria-current={active ? "page" : undefined}
+        className={active ? "viewTab activeViewTab" : "viewTab"}
+      >
+        <GroupIcon size={16} /> {group.label}
+        <ChevronDown className="navigationMenuChevron" size={14} />
+      </summary>
+      <div className="navigationSubmenu">
+        {group.sections.map((section) => (
+          <NavigationMenuSection
+            activeView={activeView}
+            groupKey={group.key}
+            key={section.key}
+            onSelectView={onSelectView}
+            section={section}
+          />
+        ))}
+      </div>
+    </details>
+  );
+}
+
+function WorkspaceList({ currentWorkspaceId, onSelect, workspaces }) {
+  if (!workspaces.length) {
+    return (
+      <p className="workspaceSwitcherEmpty">
+        Nenhum workspace associado à sua identidade.
+      </p>
+    );
+  }
+  return (
+    <div className="workspaceSwitcherList">
+      {workspaces.map((workspace) => {
+        const selected = workspace.id === currentWorkspaceId;
+        return (
+          <button
+            aria-current={selected ? "true" : undefined}
+            className={
+              selected
+                ? "workspaceSwitcherItem selected"
+                : "workspaceSwitcherItem"
+            }
+            key={workspace.id}
+            onClick={() => onSelect(workspace.id)}
+            type="button"
+          >
+            <span>
+              <strong>{workspace.name}</strong>
+              <small>{workspace.key}</small>
+            </span>
+            {selected ? <Check size={18} /> : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function LocalSetupTabs({ activeTab, onSelect }) {
+  return (
+    <div
+      aria-label="Formas de sincronizar o projeto"
+      className="workspaceLocalTabs"
+      role="tablist"
+    >
+      {LOCAL_SETUP_TABS.map((tab) => (
+        <button
+          aria-controls={`workspace-local-panel-${tab.key}`}
+          aria-selected={activeTab === tab.key}
+          className={activeTab === tab.key ? "active" : ""}
+          id={`workspace-local-tab-${tab.key}`}
+          key={tab.key}
+          onClick={() => onSelect(tab.key)}
+          role="tab"
+          type="button"
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function LocalSetupPanel({
+  commands,
+  copyStatus,
+  disabled,
+  onCopy,
+  tab,
+  workspaceId,
+}) {
+  const common = { copyStatus, disabled, onCopy, workspaceId };
+  if (tab === "setup")
+    return (
+      <LocalCommandCard
+        {...common}
+        command={commands.setup}
+        commandKey="setup"
+        description="Fluxo recomendado para uma instância já instalada. Reaplica a configuração MCP, instala as skills ausentes e executa o diagnóstico final."
+        title="Sincronizar com Setup Agent"
+      />
+    );
+  if (tab === "cli")
+    return (
+      <LocalCommandCard
+        {...common}
+        command={commands.configure}
+        commandKey="configure"
+        description="Configura diretamente o MCP e o catálogo de skills deste projeto usando o arquivo de ambiente da instância."
+        title="Configurar pelo CLI"
+      />
+    );
+  if (tab === "doctor")
+    return (
+      <LocalCommandCard
+        {...common}
+        command={commands.doctor}
+        commandKey="doctor"
+        description="Verifica Node.js, API, autenticação, workspace, handshake MCP, configuração local e skills."
+        title="Validar ambiente"
+      />
+    );
+  if (tab !== "skills") return null;
+  return (
+    <div className="workspaceLocalCommandStack">
+      <LocalCommandCard
+        {...common}
+        command={commands.installSkills}
+        commandKey="install-skills"
+        description="Instala no projeto as skills do catálogo que ainda não estão disponíveis localmente."
+        title="Instalar catálogo"
+      />
+      <LocalCommandCard
+        {...common}
+        command={commands.updateSkills}
+        commandKey="update-skills"
+        description="Atualiza as skills já instaladas para as versões publicadas no workspace."
+        title="Atualizar skills"
+      />
+      <LocalCommandCard
+        {...common}
+        command={commands.publishSkill}
+        commandKey="publish-skill"
+        description="Publica uma nova versão de uma skill local no catálogo do workspace. Ajuste o diretório, a versão e, se necessário, acrescente --changelog. Requer a permissão skills.publish."
+        title="Publicar uma skill"
+      />
+      <LocalCommandCard
+        {...common}
+        command={commands.publishAllSkills}
+        commandKey="publish-all-skills"
+        description="Publica as skills locais que possuem SKILL.md e ignora versões que já existem no catálogo. Ajuste a versão inicial antes de executar. Requer a permissão skills.publish."
+        title="Publicar todas as skills"
+      />
+    </div>
+  );
+}
+
+function WorkspaceSwitcherFooter({
+  canManage,
+  localSetupOpen,
+  onBack,
+  onClose,
+  onManage,
+  onOpenLocal,
+  workspaceId,
+}) {
+  if (localSetupOpen) {
+    return (
+      <footer className="workspaceSwitcherActions">
+        <button className="secondaryButton" onClick={onBack} type="button">
+          <ArrowLeft size={16} /> Voltar
+        </button>
+        <span className="workspaceSwitcherActionSpacer" />
+      </footer>
+    );
+  }
+  return (
+    <footer className="workspaceSwitcherActions">
+      <button
+        className="secondaryButton workspaceLocalSetupButton"
+        disabled={!workspaceId}
+        onClick={onOpenLocal}
+        type="button"
+      >
+        <Terminal size={16} /> Configurar localmente
+      </button>
+      <span className="workspaceSwitcherActionSpacer" />
+      <button className="secondaryButton" onClick={onClose} type="button">
+        Fechar
+      </button>
+      {canManage ? (
+        <button className="primaryButton" onClick={onManage} type="button">
+          <Settings size={16} /> Gerenciar
+        </button>
+      ) : null}
+    </footer>
+  );
+}
+
 export function AppHeader({
   activeView,
   actor,
@@ -59,11 +301,6 @@ export function AppHeader({
     workspaceId: actor.workspaceId,
   });
   const showWorkspaceControl = canOpenWorkspaceSwitcher(actor);
-  function groupIsActive(group) {
-    return group.sections.some(({ views }) =>
-      views.some(({ key }) => key === activeView),
-    );
-  }
   function closeNavigationMenus(exceptKey) {
     Object.entries(navigationMenuRefs.current).forEach(([key, menu]) => {
       if (key !== exceptKey) menu?.removeAttribute("open");
@@ -72,6 +309,13 @@ export function AppHeader({
   function selectView(view) {
     onViewChange(view);
     onMobileMenuChange(false);
+  }
+  function selectGroupedView(groupKey, view) {
+    selectView(view);
+    navigationMenuRefs.current[groupKey]?.removeAttribute("open");
+  }
+  function setNavigationMenuRef(groupKey, menu) {
+    navigationMenuRefs.current[groupKey] = menu;
   }
   function closeWorkspaceDialog() {
     setWorkspaceDialogOpen(false);
@@ -171,59 +415,16 @@ export function AppHeader({
                 view={view}
               />
             ))}
-            {availableNavigationGroups.map((group) => {
-              const GroupIcon = group.icon;
-              const active = groupIsActive(group);
-              return (
-                <details
-                  className="navigationMenu"
-                  key={group.key}
-                  onToggle={(event) => {
-                    if (event.currentTarget.open) {
-                      closeNavigationMenus(group.key);
-                    }
-                  }}
-                  ref={(menu) => {
-                    navigationMenuRefs.current[group.key] = menu;
-                  }}
-                >
-                  <summary
-                    aria-current={active ? "page" : undefined}
-                    className={active ? "viewTab activeViewTab" : "viewTab"}
-                  >
-                    <GroupIcon size={16} /> {group.label}
-                    <ChevronDown className="navigationMenuChevron" size={14} />
-                  </summary>
-                  <div className="navigationSubmenu">
-                    {group.sections.map((section) => (
-                      <section
-                        aria-label={section.label}
-                        className="navigationSubmenuSection"
-                        key={section.key}
-                      >
-                        <span className="navigationSubmenuLabel">
-                          {section.label}
-                        </span>
-                        {section.views.map((view) => (
-                          <NavigationButton
-                            active={activeView === view.key}
-                            key={view.key}
-                            menu
-                            onClick={() => {
-                              selectView(view.key);
-                              navigationMenuRefs.current[
-                                group.key
-                              ]?.removeAttribute("open");
-                            }}
-                            view={view}
-                          />
-                        ))}
-                      </section>
-                    ))}
-                  </div>
-                </details>
-              );
-            })}
+            {availableNavigationGroups.map((group) => (
+              <NavigationMenu
+                activeView={activeView}
+                group={group}
+                key={group.key}
+                onMenuRef={setNavigationMenuRef}
+                onOpen={closeNavigationMenus}
+                onSelectView={selectGroupedView}
+              />
+            ))}
             <NavigationButton
               active={activeView === "account"}
               onClick={() => selectView("account")}
@@ -330,29 +531,13 @@ export function AppHeader({
                   </label>
                 </div>
 
-                <div
-                  aria-label="Formas de sincronizar o projeto"
-                  className="workspaceLocalTabs"
-                  role="tablist"
-                >
-                  {LOCAL_SETUP_TABS.map((tab) => (
-                    <button
-                      aria-controls={`workspace-local-panel-${tab.key}`}
-                      aria-selected={localSetupTab === tab.key}
-                      className={localSetupTab === tab.key ? "active" : ""}
-                      id={`workspace-local-tab-${tab.key}`}
-                      key={tab.key}
-                      onClick={() => {
-                        setLocalSetupTab(tab.key);
-                        setCopyStatus("idle");
-                      }}
-                      role="tab"
-                      type="button"
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
+                <LocalSetupTabs
+                  activeTab={localSetupTab}
+                  onSelect={(tab) => {
+                    setLocalSetupTab(tab);
+                    setCopyStatus("idle");
+                  }}
+                />
 
                 <div
                   aria-labelledby={`workspace-local-tab-${localSetupTab}`}
@@ -360,169 +545,39 @@ export function AppHeader({
                   id={`workspace-local-panel-${localSetupTab}`}
                   role="tabpanel"
                 >
-                  {localSetupTab === "setup" ? (
-                    <LocalCommandCard
-                      command={localCommands.setup}
-                      commandKey="setup"
-                      copyStatus={copyStatus}
-                      description="Fluxo recomendado para uma instância já instalada. Reaplica a configuração MCP, instala as skills ausentes e executa o diagnóstico final."
-                      disabled={!localInstance.trim() || !localProject.trim()}
-                      onCopy={copyLocalCommand}
-                      title="Sincronizar com Setup Agent"
-                      workspaceId={actor.workspaceId}
-                    />
-                  ) : null}
-                  {localSetupTab === "cli" ? (
-                    <LocalCommandCard
-                      command={localCommands.configure}
-                      commandKey="configure"
-                      copyStatus={copyStatus}
-                      description="Configura diretamente o MCP e o catálogo de skills deste projeto usando o arquivo de ambiente da instância."
-                      disabled={!localInstance.trim() || !localProject.trim()}
-                      onCopy={copyLocalCommand}
-                      title="Configurar pelo CLI"
-                      workspaceId={actor.workspaceId}
-                    />
-                  ) : null}
-                  {localSetupTab === "skills" ? (
-                    <div className="workspaceLocalCommandStack">
-                      <LocalCommandCard
-                        command={localCommands.installSkills}
-                        commandKey="install-skills"
-                        copyStatus={copyStatus}
-                        description="Instala no projeto as skills do catálogo que ainda não estão disponíveis localmente."
-                        disabled={!localInstance.trim() || !localProject.trim()}
-                        onCopy={copyLocalCommand}
-                        title="Instalar catálogo"
-                        workspaceId={actor.workspaceId}
-                      />
-                      <LocalCommandCard
-                        command={localCommands.updateSkills}
-                        commandKey="update-skills"
-                        copyStatus={copyStatus}
-                        description="Atualiza as skills já instaladas para as versões publicadas no workspace."
-                        disabled={!localInstance.trim() || !localProject.trim()}
-                        onCopy={copyLocalCommand}
-                        title="Atualizar skills"
-                        workspaceId={actor.workspaceId}
-                      />
-                      <LocalCommandCard
-                        command={localCommands.publishSkill}
-                        commandKey="publish-skill"
-                        copyStatus={copyStatus}
-                        description="Publica uma nova versão de uma skill local no catálogo do workspace. Ajuste o diretório, a versão e, se necessário, acrescente --changelog. Requer a permissão skills.publish."
-                        disabled={!localInstance.trim() || !localProject.trim()}
-                        onCopy={copyLocalCommand}
-                        title="Publicar uma skill"
-                        workspaceId={actor.workspaceId}
-                      />
-                      <LocalCommandCard
-                        command={localCommands.publishAllSkills}
-                        commandKey="publish-all-skills"
-                        copyStatus={copyStatus}
-                        description="Publica as skills locais que possuem SKILL.md e ignora versões que já existem no catálogo. Ajuste a versão inicial antes de executar. Requer a permissão skills.publish."
-                        disabled={!localInstance.trim() || !localProject.trim()}
-                        onCopy={copyLocalCommand}
-                        title="Publicar todas as skills"
-                        workspaceId={actor.workspaceId}
-                      />
-                    </div>
-                  ) : null}
-                  {localSetupTab === "doctor" ? (
-                    <LocalCommandCard
-                      command={localCommands.doctor}
-                      commandKey="doctor"
-                      copyStatus={copyStatus}
-                      description="Verifica Node.js, API, autenticação, workspace, handshake MCP, configuração local e skills."
-                      disabled={!localInstance.trim() || !localProject.trim()}
-                      onCopy={copyLocalCommand}
-                      title="Validar ambiente"
-                      workspaceId={actor.workspaceId}
-                    />
-                  ) : null}
+                  <LocalSetupPanel
+                    commands={localCommands}
+                    copyStatus={copyStatus}
+                    disabled={!localInstance.trim() || !localProject.trim()}
+                    onCopy={copyLocalCommand}
+                    tab={localSetupTab}
+                    workspaceId={actor.workspaceId}
+                  />
                 </div>
               </div>
             ) : (
-              <div className="workspaceSwitcherList">
-                {workspaces.length ? (
-                  workspaces.map((workspace) => {
-                    const selected = workspace.id === actor.workspaceId;
-                    return (
-                      <button
-                        aria-current={selected ? "true" : undefined}
-                        className={
-                          selected
-                            ? "workspaceSwitcherItem selected"
-                            : "workspaceSwitcherItem"
-                        }
-                        key={workspace.id}
-                        onClick={() => selectWorkspace(workspace.id)}
-                        type="button"
-                      >
-                        <span>
-                          <strong>{workspace.name}</strong>
-                          <small>{workspace.key}</small>
-                        </span>
-                        {selected ? <Check size={18} /> : null}
-                      </button>
-                    );
-                  })
-                ) : (
-                  <p className="workspaceSwitcherEmpty">
-                    Nenhum workspace associado à sua identidade.
-                  </p>
-                )}
-              </div>
+              <WorkspaceList
+                currentWorkspaceId={actor.workspaceId}
+                onSelect={selectWorkspace}
+                workspaces={workspaces}
+              />
             )}
-            <footer className="workspaceSwitcherActions">
-              {localSetupOpen ? (
-                <>
-                  <button
-                    className="secondaryButton"
-                    onClick={() => {
-                      setLocalSetupOpen(false);
-                      setCopyStatus("idle");
-                    }}
-                    type="button"
-                  >
-                    <ArrowLeft size={16} /> Voltar
-                  </button>
-                  <span className="workspaceSwitcherActionSpacer" />
-                </>
-              ) : (
-                <>
-                  <button
-                    className="secondaryButton workspaceLocalSetupButton"
-                    disabled={!actor.workspaceId}
-                    onClick={() => {
-                      setLocalSetupTab("setup");
-                      setCopyStatus("idle");
-                      setLocalSetupOpen(true);
-                    }}
-                    type="button"
-                  >
-                    <Terminal size={16} /> Configurar localmente
-                  </button>
-                  <span className="workspaceSwitcherActionSpacer" />
-                  <button
-                    className="secondaryButton"
-                    onClick={closeWorkspaceDialog}
-                    type="button"
-                  >
-                    Fechar
-                  </button>
-                  {canManageWorkspaces ? (
-                    <button
-                      className="primaryButton"
-                      onClick={manageWorkspaces}
-                      type="button"
-                    >
-                      <Settings size={16} /> Gerenciar
-                    </button>
-                  ) : null}
-                </>
-              )}
-            </footer>
+            <WorkspaceSwitcherFooter
+              canManage={canManageWorkspaces}
+              localSetupOpen={localSetupOpen}
+              onBack={() => {
+                setLocalSetupOpen(false);
+                setCopyStatus("idle");
+              }}
+              onClose={closeWorkspaceDialog}
+              onManage={manageWorkspaces}
+              onOpenLocal={() => {
+                setLocalSetupTab("setup");
+                setCopyStatus("idle");
+                setLocalSetupOpen(true);
+              }}
+              workspaceId={actor.workspaceId}
+            />
           </section>
         </div>
       ) : null}

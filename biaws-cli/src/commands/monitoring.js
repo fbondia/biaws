@@ -28,45 +28,65 @@ function printSignal(result) {
   );
 }
 
+function buildSignalPayload(options) {
+  if (!options.status) throw new Error("Informe --status.");
+  if (!options.source) throw new Error("Informe --source.");
+  return {
+    status: options.status,
+    source: options.source,
+    ...(options["signal-id"] ? { signalId: options["signal-id"] } : {}),
+    ...(options["observed-at"] ? { observedAt: options["observed-at"] } : {}),
+    ...(options.message ? { message: options.message } : {}),
+    ...(options["metadata-profile"]
+      ? { metadataProfile: options["metadata-profile"] }
+      : {}),
+    metadata: parseMetadata(options.metadata),
+    ...(options.payload ? { payload: parsePayload(options.payload) } : {}),
+  };
+}
+
+async function sendSignal(api, runtimeReference, options) {
+  const result = await api.monitoring.signal(
+    runtimeReference,
+    buildSignalPayload(options),
+  );
+  if (options.json) console.log(JSON.stringify(result, null, 2));
+  else printSignal(result);
+  return result;
+}
+
+function printSignals(result) {
+  if (!result.items.length) {
+    console.log("Nenhum sinal recebido.");
+    return;
+  }
+  for (const signal of result.items) {
+    console.log(
+      `${signal.observedAt}  ${signal.status.padEnd(11)}  ${signal.source}${signal.message ? `  ${signal.message}` : ""}`,
+    );
+  }
+}
+
+async function listSignals(api, runtimeReference, options) {
+  const result = await api.monitoring.listSignals(runtimeReference, options);
+  if (options.json) console.log(JSON.stringify(result, null, 2));
+  else printSignals(result);
+  return result;
+}
+
+const MONITORING_ACTIONS = {
+  signal: sendSignal,
+  signals: listSignals,
+};
+
 export async function runMonitoringCommand(api, action, positional, options) {
   const runtimeReference = positional[0];
-  if (!runtimeReference) {
+  if (!runtimeReference)
     throw new Error("Informe o UUID ou caminho do runtime.");
-  }
-
-  if (action === "signal") {
-    if (!options.status) throw new Error("Informe --status.");
-    if (!options.source) throw new Error("Informe --source.");
-    const result = await api.monitoring.signal(runtimeReference, {
-      status: options.status,
-      source: options.source,
-      ...(options["signal-id"] ? { signalId: options["signal-id"] } : {}),
-      ...(options["observed-at"] ? { observedAt: options["observed-at"] } : {}),
-      ...(options.message ? { message: options.message } : {}),
-      ...(options["metadata-profile"]
-        ? { metadataProfile: options["metadata-profile"] }
-        : {}),
-      metadata: parseMetadata(options.metadata),
-      ...(options.payload ? { payload: parsePayload(options.payload) } : {}),
-    });
-    if (options.json) console.log(JSON.stringify(result, null, 2));
-    else printSignal(result);
-    return result;
-  }
-
-  if (action === "signals") {
-    const result = await api.monitoring.listSignals(runtimeReference, options);
-    if (options.json) console.log(JSON.stringify(result, null, 2));
-    else if (!result.items.length) console.log("Nenhum sinal recebido.");
-    else {
-      for (const signal of result.items) {
-        console.log(
-          `${signal.observedAt}  ${signal.status.padEnd(11)}  ${signal.source}${signal.message ? `  ${signal.message}` : ""}`,
-        );
-      }
-    }
-    return result;
-  }
-
-  throw new Error(`Ação de monitoramento desconhecida: ${action || "(vazia)"}`);
+  const handler = MONITORING_ACTIONS[action];
+  if (!handler)
+    throw new Error(
+      `Ação de monitoramento desconhecida: ${action || "(vazia)"}`,
+    );
+  return handler(api, runtimeReference, options);
 }

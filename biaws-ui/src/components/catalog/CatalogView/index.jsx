@@ -16,6 +16,180 @@ import { HeaderActions } from "./components/CatalogComponents.jsx";
 import { useCatalogView } from "./hooks/useCatalogView.jsx";
 import { CatalogTabContent } from "./tabs/CatalogTabContent.jsx";
 
+function CatalogSelectedDetail({
+  activeTab,
+  actor,
+  context,
+  loading,
+  onArchive,
+  onBack,
+  onEdit,
+  onSelectTab,
+  tabProps,
+  visibleTabs,
+}) {
+  if (loading && !context)
+    return (
+      <div className="catalogCollectionPanel catalogContent">
+        <div className="emptyState">Carregando catálogo…</div>
+      </div>
+    );
+  if (!context)
+    return (
+      <div className="catalogCollectionPanel catalogContent">
+        <div className="catalogWelcome">
+          <Layers3 size={36} />
+          <h3>Selecione uma aplicação</h3>
+          <p>Consulte sua topologia, conhecimento relacionado e histórico.</p>
+        </div>
+      </div>
+    );
+  return (
+    <div className="catalogCollectionPanel catalogContent">
+      <header className="catalogDetailHeader">
+        <div>
+          <span>{context.application.key}</span>
+          <h2>{context.application.name}</h2>
+          <p>{context.application.description || "Sem descrição."}</p>
+        </div>
+        <HeaderActions
+          actor={actor}
+          application={context.application}
+          onArchive={onArchive}
+          onBack={onBack}
+          onEdit={onEdit}
+        />
+      </header>
+      <div
+        className="detailTabs catalogTabs"
+        role="tablist"
+        aria-label="Detalhes da aplicação"
+      >
+        {visibleTabs.map((tab) => (
+          <button
+            aria-selected={activeTab === tab.key}
+            className={
+              activeTab === tab.key ? "detailTab activeDetailTab" : "detailTab"
+            }
+            key={tab.key}
+            onClick={() => onSelectTab(tab.key)}
+            role="tab"
+            type="button"
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <CatalogTabContent
+        activeTab={activeTab}
+        actor={actor}
+        context={context}
+        {...tabProps}
+      />
+    </div>
+  );
+}
+
+function CatalogApplicationItems({
+  allApplications,
+  applications,
+  canMove,
+  collectionState,
+  loading,
+  onSelect,
+}) {
+  return (
+    <div className="catalogCollectionItems">
+      {applications.map((application) => (
+        <button
+          className="catalogCollectionItem"
+          key={application.id}
+          draggable={canMove(application)}
+          onDragEnd={() => collectionState.setDraggedItem(null)}
+          onDragStart={() =>
+            collectionState.setDraggedItem({ type: "item", id: application.id })
+          }
+          onClick={() => onSelect(application.id)}
+          type="button"
+        >
+          <span className="catalogCollectionItemIcon">
+            <Layers3 size={18} />
+          </span>
+          <span>
+            <strong>{application.name}</strong>
+            <small>{application.key}</small>
+          </span>
+        </button>
+      ))}
+      {!applications.length && !loading ? (
+        <IllustratedEmptyState
+          description={
+            allApplications.length
+              ? "Escolha outra coleção ou ajuste os critérios da busca."
+              : "Cadastre a primeira aplicação para começar a organizar o catálogo."
+          }
+          icon={Layers3}
+          title="Nenhuma aplicação encontrada"
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function CatalogDialogs({
+  actor,
+  collectionState,
+  context,
+  dialog,
+  onPersistApplication,
+  onPersistEntity,
+  setDialog,
+  workspace,
+}) {
+  return (
+    <>
+      {collectionState.collectionDialog ? (
+        <ResourceCollectionDialog
+          collection={
+            collectionState.collectionDialog.id
+              ? collectionState.collectionDialog
+              : null
+          }
+          onClose={() => collectionState.setCollectionDialog(null)}
+          onSave={collectionState.saveCollection}
+          parentLabel={collectionPathLabel(
+            collectionState.collections,
+            collectionState.selectedCollectionId,
+          )}
+          resourceLabel="aplicações"
+        />
+      ) : null}
+      {dialog ? (
+        <CatalogEntityDialog
+          entity={dialog.entity}
+          kind={dialog.kind}
+          onClose={() => setDialog(null)}
+          onSave={
+            dialog.kind === "application"
+              ? onPersistApplication
+              : onPersistEntity
+          }
+          options={{
+            application: context?.application,
+            applications: context?.availableApplications || [],
+            canReadProcedures: hasPermission(actor, "procedures.read"),
+            components: context?.components || [],
+            deployments: context?.deployments || [],
+            repositories: context?.repositories || [],
+            servers: context?.servers || [],
+            workspace,
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
+
 export function CatalogView({ actor }) {
   const {
     workspace,
@@ -85,7 +259,11 @@ export function CatalogView({ actor }) {
         ) : null}
       </header>
 
-      {error ? <div className="errorBox">{error}</div> : null}
+      {error ? (
+        <div className="errorBox" role="alert">
+          {error}
+        </div>
+      ) : null}
 
       <ResourceCollectionsShell
         className="applicationsCollectionsLayout"
@@ -193,158 +371,53 @@ export function CatalogView({ actor }) {
         }
       >
         {selectedId ? (
-          <div className="catalogCollectionPanel catalogContent">
-            {loading && !context ? (
-              <div className="emptyState">Carregando catálogo…</div>
-            ) : null}
-            {!loading && !context ? (
-              <div className="catalogWelcome">
-                <Layers3 size={36} />
-                <h3>Selecione uma aplicação</h3>
-                <p>
-                  Consulte sua topologia, conhecimento relacionado e histórico.
-                </p>
-              </div>
-            ) : null}
-            {context ? (
-              <>
-                <header className="catalogDetailHeader">
-                  <div>
-                    <span>{context.application.key}</span>
-                    <h2>{context.application.name}</h2>
-                    <p>{context.application.description || "Sem descrição."}</p>
-                  </div>
-                  <HeaderActions
-                    actor={actor}
-                    application={context.application}
-                    onArchive={() => void archiveSelectedApplication()}
-                    onBack={() => setSelectedId("")}
-                    onEdit={() =>
-                      setDialog({
-                        kind: "application",
-                        entity: context.application,
-                      })
-                    }
-                  />
-                </header>
-                <div
-                  className="detailTabs catalogTabs"
-                  role="tablist"
-                  aria-label="Detalhes da aplicação"
-                >
-                  {visibleTabs.map((tab) => (
-                    <button
-                      aria-selected={activeTab === tab.key}
-                      className={
-                        activeTab === tab.key
-                          ? "detailTab activeDetailTab"
-                          : "detailTab"
-                      }
-                      key={tab.key}
-                      onClick={() => setActiveTab(tab.key)}
-                      role="tab"
-                      type="button"
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-                <CatalogTabContent
-                  activeTab={activeTab}
-                  actor={actor}
-                  context={context}
-                  editEntity={editEntity}
-                  entityActions={entityActions}
-                  runtimeByDeployment={runtimeByDeployment}
-                  runtimeErrorByDeployment={runtimeErrorByDeployment}
-                  runtimeLoadingByDeployment={runtimeLoadingByDeployment}
-                  loadRuntimes={loadRuntimes}
-                  setDialog={setDialog}
-                />
-              </>
-            ) : null}
-          </div>
+          <CatalogSelectedDetail
+            activeTab={activeTab}
+            actor={actor}
+            context={context}
+            loading={loading}
+            onArchive={() => void archiveSelectedApplication()}
+            onBack={() => setSelectedId("")}
+            onEdit={() =>
+              setDialog({ kind: "application", entity: context.application })
+            }
+            onSelectTab={setActiveTab}
+            tabProps={{
+              editEntity,
+              entityActions,
+              runtimeByDeployment,
+              runtimeErrorByDeployment,
+              runtimeLoadingByDeployment,
+              loadRuntimes,
+              setDialog,
+            }}
+            visibleTabs={visibleTabs}
+          />
         ) : (
-          <div className="catalogCollectionItems">
-            {visibleApplications.map((application) => (
-              <button
-                className="catalogCollectionItem"
-                key={application.id}
-                draggable={canMoveApplication(application)}
-                onDragEnd={() => collectionState.setDraggedItem(null)}
-                onDragStart={() =>
-                  collectionState.setDraggedItem({
-                    type: "item",
-                    id: application.id,
-                  })
-                }
-                onClick={() => {
-                  setSelectedId(application.id);
-                  setActiveTab("overview");
-                }}
-                type="button"
-              >
-                <span className="catalogCollectionItemIcon">
-                  <Layers3 size={18} />
-                </span>
-                <span>
-                  <strong>{application.name}</strong>
-                  <small>{application.key}</small>
-                </span>
-              </button>
-            ))}
-            {!visibleApplications.length && !loading ? (
-              <IllustratedEmptyState
-                description={
-                  applications.length
-                    ? "Escolha outra coleção ou ajuste os critérios da busca."
-                    : "Cadastre a primeira aplicação para começar a organizar o catálogo."
-                }
-                icon={Layers3}
-                title="Nenhuma aplicação encontrada"
-              />
-            ) : null}
-          </div>
+          <CatalogApplicationItems
+            allApplications={applications}
+            applications={visibleApplications}
+            canMove={canMoveApplication}
+            collectionState={collectionState}
+            loading={loading}
+            onSelect={(applicationId) => {
+              setSelectedId(applicationId);
+              setActiveTab("overview");
+            }}
+          />
         )}
       </ResourceCollectionsShell>
 
-      {collectionState.collectionDialog ? (
-        <ResourceCollectionDialog
-          collection={
-            collectionState.collectionDialog.id
-              ? collectionState.collectionDialog
-              : null
-          }
-          onClose={() => collectionState.setCollectionDialog(null)}
-          onSave={collectionState.saveCollection}
-          parentLabel={collectionPathLabel(
-            collectionState.collections,
-            collectionState.selectedCollectionId,
-          )}
-          resourceLabel="aplicações"
-        />
-      ) : null}
-
-      {dialog ? (
-        <CatalogEntityDialog
-          entity={dialog.entity}
-          kind={dialog.kind}
-          onClose={() => setDialog(null)}
-          onSave={
-            dialog.kind === "application" ? persistApplication : persistEntity
-          }
-          options={{
-            application: context?.application,
-            applications: context?.availableApplications || [],
-            canReadProcedures: hasPermission(actor, "procedures.read"),
-            components: context?.components || [],
-            deployments: context?.deployments || [],
-            repositories: context?.repositories || [],
-            servers: context?.servers || [],
-            workspace,
-          }}
-        />
-      ) : null}
+      <CatalogDialogs
+        actor={actor}
+        collectionState={collectionState}
+        context={context}
+        dialog={dialog}
+        onPersistApplication={persistApplication}
+        onPersistEntity={persistEntity}
+        setDialog={setDialog}
+        workspace={workspace}
+      />
     </section>
   );
 }

@@ -88,6 +88,287 @@ function EmptyColumn({ children }) {
   return <p className="catalogColumnEmpty">{children}</p>;
 }
 
+function TopologyHeader({
+  canFilter,
+  canViewDiagram,
+  deployableOnly,
+  onOpenDiagram,
+  onToggleDeployable,
+}) {
+  return (
+    <div className="catalogSectionHeader">
+      <span>
+        Navegue da estrutura lógica da aplicação até suas instâncias em
+        execução.
+      </span>
+      <div className="catalogHeaderActions">
+        {canFilter ? (
+          <button
+            aria-pressed={deployableOnly}
+            className={
+              deployableOnly
+                ? "secondaryButton catalogDeployableFilterButton isActive"
+                : "secondaryButton catalogDeployableFilterButton"
+            }
+            onClick={onToggleDeployable}
+            title="Exibir somente componentes com deployment configurado"
+            type="button"
+          >
+            <Filter size={16} /> Somente deployáveis
+          </button>
+        ) : null}
+        {canViewDiagram ? (
+          <button
+            className="secondaryButton"
+            onClick={onOpenDiagram}
+            type="button"
+          >
+            <Network size={16} /> Visualizar topologia
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function ComponentsColumn({
+  actor,
+  canReadComponents,
+  canReadDeployments,
+  deployableOnly,
+  entityActions,
+  onCreate,
+  onSelect,
+  selectedId,
+  visibleComponents,
+}) {
+  let emptyMessage =
+    "Nenhum componente acessível pelos deployments disponíveis.";
+  if (deployableOnly)
+    emptyMessage = "Nenhum componente com deployment configurado.";
+  else if (canReadComponents) emptyMessage = "Nenhum componente cadastrado.";
+  return (
+    <section className="catalogColumn" role="group">
+      <ColumnHeader
+        action={
+          hasPermission(actor, "components.create") ? (
+            <button
+              aria-label="Novo componente"
+              className="iconButton catalogTopologyAddButton"
+              onClick={onCreate}
+              title="Novo componente"
+              type="button"
+            >
+              <Plus size={15} />
+            </button>
+          ) : null
+        }
+        count={visibleComponents.length}
+        icon={Boxes}
+        title="Componentes"
+      />
+      <div className="catalogColumnList">
+        {visibleComponents.map((component) => (
+          <TopologyRow
+            actions={
+              canReadComponents
+                ? entityActions(
+                    "component",
+                    "components.update",
+                    "components.archive",
+                  )(component)
+                : null
+            }
+            active={component.id === selectedId}
+            hasChildren={canReadDeployments}
+            key={component.id}
+            meta={component.key}
+            name={component.name}
+            onSelect={() => onSelect(component.id)}
+          />
+        ))}
+        {!visibleComponents.length ? (
+          <EmptyColumn>{emptyMessage}</EmptyColumn>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function DeploymentsColumn({
+  actor,
+  canReadRuntimes,
+  deployments,
+  entityActions,
+  onCreate,
+  onSelect,
+  selectedComponent,
+  selectedComponentId,
+  selectedDeploymentId,
+}) {
+  return (
+    <section className="catalogColumn" role="group">
+      <ColumnHeader
+        action={
+          hasPermission(actor, "deployments.create") ? (
+            <button
+              aria-label="Novo deployment"
+              className="iconButton catalogTopologyAddButton"
+              disabled={!selectedComponentId}
+              onClick={onCreate}
+              title={
+                selectedComponentId
+                  ? `Novo deployment de ${selectedComponent?.name}`
+                  : "Selecione um componente"
+              }
+              type="button"
+            >
+              <Plus size={15} />
+            </button>
+          ) : null
+        }
+        count={selectedComponentId ? deployments.length : undefined}
+        icon={Layers3}
+        title="Deployments"
+      />
+      <div className="catalogColumnList">
+        {!selectedComponentId ? (
+          <EmptyColumn>
+            Selecione um componente para visualizar seus deployments.
+          </EmptyColumn>
+        ) : null}
+        {selectedComponentId && !deployments.length ? (
+          <EmptyColumn>
+            Nenhum deployment cadastrado para este componente.
+          </EmptyColumn>
+        ) : null}
+        {deployments.map((deployment) => (
+          <TopologyRow
+            actions={entityActions(
+              "deployment",
+              "deployments.update",
+              "deployments.archive",
+            )(deployment)}
+            active={deployment.id === selectedDeploymentId}
+            hasChildren={canReadRuntimes}
+            key={deployment.id}
+            meta={deployment.key}
+            name={deployment.name}
+            onSelect={() => onSelect(deployment.id)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function RuntimesColumn({
+  actor,
+  entityActions,
+  error,
+  loading,
+  loadRuntimes,
+  onCreate,
+  onEdit,
+  runtimes,
+  selectedDeployment,
+  selectedDeploymentId,
+}) {
+  return (
+    <section className="catalogColumn" role="group">
+      <ColumnHeader
+        action={
+          hasPermission(actor, "runtimes.create") ? (
+            <button
+              aria-label="Novo runtime"
+              className="iconButton catalogTopologyAddButton"
+              disabled={!selectedDeploymentId}
+              onClick={onCreate}
+              title={
+                selectedDeploymentId
+                  ? `Novo runtime de ${selectedDeployment?.name}`
+                  : "Selecione um deployment"
+              }
+              type="button"
+            >
+              <Plus size={15} />
+            </button>
+          ) : null
+        }
+        count={Array.isArray(runtimes) ? runtimes.length : undefined}
+        icon={ServerCog}
+        title="Runtimes"
+      />
+      <div className="catalogColumnList">
+        {!selectedDeploymentId ? (
+          <EmptyColumn>
+            Selecione um deployment para visualizar seus runtimes.
+          </EmptyColumn>
+        ) : null}
+        {selectedDeploymentId && loading ? (
+          <EmptyColumn>Carregando runtimes…</EmptyColumn>
+        ) : null}
+        {selectedDeploymentId && error ? (
+          <div className="catalogTopologyLoadError">
+            <p>{error}</p>
+            <button
+              className="secondaryButton"
+              onClick={() =>
+                loadRuntimes(selectedDeploymentId, { force: true })
+              }
+              type="button"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        ) : null}
+        {selectedDeploymentId && Array.isArray(runtimes) && !runtimes.length ? (
+          <EmptyColumn>Nenhum runtime cadastrado neste deployment.</EmptyColumn>
+        ) : null}
+        {(runtimes || []).map((runtime) => (
+          <TopologyRow
+            actions={entityActions(
+              "runtime",
+              "runtimes.update",
+              "runtimes.archive",
+            )(runtime)}
+            key={runtime.id}
+            meta={runtime.key}
+            name={runtime.name}
+            onSelect={
+              hasPermission(actor, "runtimes.update")
+                ? () => onEdit(runtime)
+                : undefined
+            }
+            status={runtime.status}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TopologyDiagramOverlay({ actor, context, onClose, open }) {
+  if (!open) return null;
+  return (
+    <Suspense
+      fallback={
+        <div className="dialogBackdrop topologyDiagramBackdrop">
+          <div className="topologyDiagramBootstrap">
+            Carregando editor de topologia…
+          </div>
+        </div>
+      }
+    >
+      <TopologyDiagramDialog
+        actor={actor}
+        context={context}
+        onClose={onClose}
+      />
+    </Suspense>
+  );
+}
+
 export function CatalogTopologyTab({
   actor,
   context,
@@ -178,7 +459,7 @@ export function CatalogTopologyTab({
       !runtimeLoadingByDeployment[selectedDeploymentId] &&
       !runtimeErrorByDeployment[selectedDeploymentId]
     ) {
-      void loadRuntimes(selectedDeploymentId);
+      loadRuntimes(selectedDeploymentId);
     }
   }, [
     canReadRuntimes,
@@ -195,256 +476,76 @@ export function CatalogTopologyTab({
 
   return (
     <section>
-      <div className="catalogSectionHeader">
-        <span>
-          Navegue da estrutura lógica da aplicação até suas instâncias em
-          execução.
-        </span>
-        <div className="catalogHeaderActions">
-          {canReadComponents && canReadDeployments ? (
-            <button
-              aria-pressed={deployableOnly}
-              className={
-                deployableOnly
-                  ? "secondaryButton catalogDeployableFilterButton isActive"
-                  : "secondaryButton catalogDeployableFilterButton"
-              }
-              onClick={() => setDeployableOnly((current) => !current)}
-              title="Exibir somente componentes com deployment configurado"
-              type="button"
-            >
-              <Filter size={16} /> Somente deployáveis
-            </button>
-          ) : null}
-          {canViewDiagram ? (
-            <button
-              className="secondaryButton"
-              onClick={() => setDiagramOpen(true)}
-              type="button"
-            >
-              <Network size={16} /> Visualizar topologia
-            </button>
-          ) : null}
-        </div>
-      </div>
+      <TopologyHeader
+        canFilter={canReadComponents && canReadDeployments}
+        canViewDiagram={canViewDiagram}
+        deployableOnly={deployableOnly}
+        onOpenDiagram={() => setDiagramOpen(true)}
+        onToggleDeployable={() => setDeployableOnly((current) => !current)}
+      />
       <div
         aria-label="Componentes, deployments e runtimes"
         className="catalogColumns catalogTopologyColumns"
         role="tree"
       >
-        <section className="catalogColumn" role="group">
-          <ColumnHeader
-            action={
-              hasPermission(actor, "components.create") ? (
-                <button
-                  aria-label="Novo componente"
-                  className="iconButton catalogTopologyAddButton"
-                  onClick={() => setDialog({ kind: "component", entity: null })}
-                  title="Novo componente"
-                  type="button"
-                >
-                  <Plus size={15} />
-                </button>
-              ) : null
-            }
-            count={visibleComponents.length}
-            icon={Boxes}
-            title="Componentes"
-          />
-          <div className="catalogColumnList">
-            {visibleComponents.map((component) => (
-              <TopologyRow
-                actions={
-                  canReadComponents
-                    ? entityActions(
-                        "component",
-                        "components.update",
-                        "components.archive",
-                      )(component)
-                    : null
-                }
-                active={component.id === selectedComponentId}
-                hasChildren={canReadDeployments}
-                key={component.id}
-                meta={component.key}
-                name={component.name}
-                onSelect={() => selectComponent(component.id)}
-              />
-            ))}
-            {!visibleComponents.length ? (
-              <EmptyColumn>
-                {deployableOnly
-                  ? "Nenhum componente com deployment configurado."
-                  : canReadComponents
-                    ? "Nenhum componente cadastrado."
-                    : "Nenhum componente acessível pelos deployments disponíveis."}
-              </EmptyColumn>
-            ) : null}
-          </div>
-        </section>
+        <ComponentsColumn
+          actor={actor}
+          canReadComponents={canReadComponents}
+          canReadDeployments={canReadDeployments}
+          deployableOnly={deployableOnly}
+          entityActions={entityActions}
+          onCreate={() => setDialog({ kind: "component", entity: null })}
+          onSelect={selectComponent}
+          selectedId={selectedComponentId}
+          visibleComponents={visibleComponents}
+        />
 
         {canReadDeployments ? (
-          <section className="catalogColumn" role="group">
-            <ColumnHeader
-              action={
-                hasPermission(actor, "deployments.create") ? (
-                  <button
-                    aria-label="Novo deployment"
-                    className="iconButton catalogTopologyAddButton"
-                    disabled={!selectedComponentId}
-                    onClick={() =>
-                      setDialog({
-                        kind: "deployment",
-                        entity: { componentId: selectedComponentId },
-                      })
-                    }
-                    title={
-                      selectedComponentId
-                        ? `Novo deployment de ${selectedComponent?.name}`
-                        : "Selecione um componente"
-                    }
-                    type="button"
-                  >
-                    <Plus size={15} />
-                  </button>
-                ) : null
-              }
-              count={selectedComponentId ? deployments.length : undefined}
-              icon={Layers3}
-              title="Deployments"
-            />
-            <div className="catalogColumnList">
-              {!selectedComponentId ? (
-                <EmptyColumn>
-                  Selecione um componente para visualizar seus deployments.
-                </EmptyColumn>
-              ) : null}
-              {selectedComponentId && !deployments.length ? (
-                <EmptyColumn>
-                  Nenhum deployment cadastrado para este componente.
-                </EmptyColumn>
-              ) : null}
-              {deployments.map((deployment) => (
-                <TopologyRow
-                  actions={entityActions(
-                    "deployment",
-                    "deployments.update",
-                    "deployments.archive",
-                  )(deployment)}
-                  active={deployment.id === selectedDeploymentId}
-                  hasChildren={canReadRuntimes}
-                  key={deployment.id}
-                  meta={deployment.key}
-                  name={deployment.name}
-                  onSelect={() => setSelectedDeploymentId(deployment.id)}
-                />
-              ))}
-            </div>
-          </section>
+          <DeploymentsColumn
+            actor={actor}
+            canReadRuntimes={canReadRuntimes}
+            deployments={deployments}
+            entityActions={entityActions}
+            onCreate={() =>
+              setDialog({
+                kind: "deployment",
+                entity: { componentId: selectedComponentId },
+              })
+            }
+            onSelect={setSelectedDeploymentId}
+            selectedComponent={selectedComponent}
+            selectedComponentId={selectedComponentId}
+            selectedDeploymentId={selectedDeploymentId}
+          />
         ) : null}
 
         {canReadDeployments && canReadRuntimes ? (
-          <section className="catalogColumn" role="group">
-            <ColumnHeader
-              action={
-                hasPermission(actor, "runtimes.create") ? (
-                  <button
-                    aria-label="Novo runtime"
-                    className="iconButton catalogTopologyAddButton"
-                    disabled={!selectedDeploymentId}
-                    onClick={() =>
-                      setDialog({
-                        kind: "runtime",
-                        entity: null,
-                        deploymentId: selectedDeploymentId,
-                      })
-                    }
-                    title={
-                      selectedDeploymentId
-                        ? `Novo runtime de ${selectedDeployment?.name}`
-                        : "Selecione um deployment"
-                    }
-                    type="button"
-                  >
-                    <Plus size={15} />
-                  </button>
-                ) : null
-              }
-              count={Array.isArray(runtimes) ? runtimes.length : undefined}
-              icon={ServerCog}
-              title="Runtimes"
-            />
-            <div className="catalogColumnList">
-              {!selectedDeploymentId ? (
-                <EmptyColumn>
-                  Selecione um deployment para visualizar seus runtimes.
-                </EmptyColumn>
-              ) : null}
-              {selectedDeploymentId &&
-              runtimeLoadingByDeployment[selectedDeploymentId] ? (
-                <EmptyColumn>Carregando runtimes…</EmptyColumn>
-              ) : null}
-              {selectedDeploymentId &&
-              runtimeErrorByDeployment[selectedDeploymentId] ? (
-                <div className="catalogTopologyLoadError">
-                  <p>{runtimeErrorByDeployment[selectedDeploymentId]}</p>
-                  <button
-                    className="secondaryButton"
-                    onClick={() =>
-                      void loadRuntimes(selectedDeploymentId, { force: true })
-                    }
-                    type="button"
-                  >
-                    Tentar novamente
-                  </button>
-                </div>
-              ) : null}
-              {selectedDeploymentId &&
-              Array.isArray(runtimes) &&
-              !runtimes.length ? (
-                <EmptyColumn>
-                  Nenhum runtime cadastrado neste deployment.
-                </EmptyColumn>
-              ) : null}
-              {(runtimes || []).map((runtime) => (
-                <TopologyRow
-                  actions={entityActions(
-                    "runtime",
-                    "runtimes.update",
-                    "runtimes.archive",
-                  )(runtime)}
-                  key={runtime.id}
-                  meta={runtime.key}
-                  name={runtime.name}
-                  onSelect={
-                    hasPermission(actor, "runtimes.update")
-                      ? () => void editEntity("runtime", runtime)
-                      : undefined
-                  }
-                  status={runtime.status}
-                />
-              ))}
-            </div>
-          </section>
+          <RuntimesColumn
+            actor={actor}
+            entityActions={entityActions}
+            error={runtimeErrorByDeployment[selectedDeploymentId]}
+            loading={runtimeLoadingByDeployment[selectedDeploymentId]}
+            loadRuntimes={loadRuntimes}
+            onCreate={() =>
+              setDialog({
+                kind: "runtime",
+                entity: null,
+                deploymentId: selectedDeploymentId,
+              })
+            }
+            onEdit={(runtime) => editEntity("runtime", runtime)}
+            runtimes={runtimes}
+            selectedDeployment={selectedDeployment}
+            selectedDeploymentId={selectedDeploymentId}
+          />
         ) : null}
       </div>
-      {diagramOpen ? (
-        <Suspense
-          fallback={
-            <div className="dialogBackdrop topologyDiagramBackdrop">
-              <div className="topologyDiagramBootstrap">
-                Carregando editor de topologia…
-              </div>
-            </div>
-          }
-        >
-          <TopologyDiagramDialog
-            actor={actor}
-            context={context}
-            onClose={() => setDiagramOpen(false)}
-          />
-        </Suspense>
-      ) : null}
+      <TopologyDiagramOverlay
+        actor={actor}
+        context={context}
+        onClose={() => setDiagramOpen(false)}
+        open={diagramOpen}
+      />
     </section>
   );
 }

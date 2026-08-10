@@ -1,32 +1,3 @@
-.errorBox {
-  margin: 0 28px 16px;
-  border: 1px solid #f5b6b6;
-  border-radius: 8px;
-  background: #fff1f1;
-  color: #9b1c1c;
-  padding: 12px 14px;
-}
-
-.infoBox,
-.warningBox {
-  margin: 0 0 16px;
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 14px;
-}
-
-.infoBox {
-  border: 1px solid #b9d3ff;
-  background: #f0f6ff;
-  color: var(--color-accent-text);
-}
-
-.warningBox {
-  border: 1px solid #f2cf8d;
-  background: #fff8e8;
-  color: #8a5700;
-}
-
 .taxonomyError {
   margin-left: 0;
   margin-right: 0;
@@ -115,7 +86,7 @@
 
 .sortableColumnHeader:hover:not(:disabled),
 .activeSortableColumnHeader {
-  background: #eef6ff;
+  background: var(--color-accent-soft);
   color: var(--color-accent-text);
 }
 
@@ -145,7 +116,7 @@
 
 .clickableRow:hover td,
 .clickableRow:focus td {
-  background: #f8fbff;
+  background: var(--color-palette-hex-f8fbff);
 }
 
 .clickableRow:focus {
@@ -191,7 +162,7 @@
   max-width: 100%;
   min-height: 28px;
   align-items: center;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--color-palette-hex-d0d5dd);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-secondary);
@@ -202,9 +173,9 @@
 }
 
 .primaryIssueTaxonomyPill {
-  border-color: #f2c94c;
-  background: #fffbeb;
-  color: #6f4e00;
+  border-color: var(--color-palette-hex-f2c94c);
+  background: var(--color-palette-hex-fffbeb);
+  color: var(--color-palette-hex-6f4e00);
 }
 
 .primaryIssueTaxonomyPill svg {
@@ -230,7 +201,7 @@
 .inlineIssueSelect:focus {
   border-color: var(--color-accent-border);
   outline: 0;
-  box-shadow: 0 0 0 3px rgba(45, 108, 223, 0.13);
+  box-shadow: 0 0 0 3px var(--color-palette-rgb-45-108-223-0-13);
 }
 
 .inlineIssueSelect:disabled {
@@ -238,21 +209,21 @@
 }
 
 .inlineStatusSelect.statusOpen {
-  border-color: #b8e7c8;
-  background: #e7f6ec;
-  color: #1f7a45;
+  border-color: var(--color-palette-hex-b8e7c8);
+  background: var(--color-palette-hex-e7f6ec);
+  color: var(--color-palette-hex-1f7a45);
 }
 
 .inlineStatusSelect.statusClosed {
-  border-color: #d9dee7;
-  background: #eef1f5;
+  border-color: var(--color-palette-hex-d9dee7);
+  background: var(--color-palette-hex-eef1f5);
   color: var(--color-text-muted);
 }
 
 .inlineStatusSelect.statusOther {
-  border-color: #f1d28a;
-  background: #fff3d6;
-  color: #8a5700;
+  border-color: var(--color-palette-hex-f1d28a);
+  background: var(--color-palette-hex-fff3d6);
+  color: var(--color-palette-hex-8a5700);
 }
 
 .issueTagPill {
@@ -282,18 +253,18 @@
 }
 
 .statusOpen {
-  background: #e7f6ec;
-  color: #1f7a45;
+  background: var(--color-palette-hex-e7f6ec);
+  color: var(--color-palette-hex-1f7a45);
 }
 
 .statusClosed {
-  background: #eef1f5;
+  background: var(--color-palette-hex-eef1f5);
   color: var(--color-text-muted);
 }
 
 .statusOther {
-  background: #fff3d6;
-  color: #8a5700;
+  background: var(--color-palette-hex-fff3d6);
+  color: var(--color-palette-hex-8a5700);
 }
 
 .emptyState,

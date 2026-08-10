@@ -144,6 +144,99 @@ function HealthMetadataExplorer({
   );
 }
 
+function HealthRuntimeCard({ onSelectRuntime, runtime }) {
+  return (
+    <div className="homeHealthRuntimeCard">
+      <button
+        className="homeHealthRuntime"
+        onClick={() => onSelectRuntime(runtime)}
+        type="button"
+      >
+        <div className="homeHealthRuntimeIdentity">
+          <strong>{runtime.name}</strong>
+          <span className="homeHealthServer">
+            <Server size={13} />
+            {runtime.server?.name || "Sem servidor associado"}
+          </span>
+          <span className="homeHealthLastSignal">
+            <Clock3 size={13} />
+            Última entrada: {formatMonitoringDate(runtime.observedAt)}
+            {runtime.source ? ` · ${runtime.source}` : ""}
+            {runtime.message ? ` · ${runtime.message}` : ""}
+          </span>
+        </div>
+        <span className={`catalogStatus catalogStatus-${runtime.status}`}>
+          {runtime.status}
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function HealthDeploymentSection({ deployment, onSelectRuntime }) {
+  return (
+    <section>
+      <header>
+        <div>
+          <strong>{deployment.name}</strong>
+        </div>
+      </header>
+      <div className="homeHealthRuntimes">
+        {deployment.runtimes.map((runtime) => (
+          <HealthRuntimeCard
+            key={runtime.id}
+            onSelectRuntime={onSelectRuntime}
+            runtime={runtime}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HealthComponentSection({ component, onSelectRuntime }) {
+  return (
+    <section>
+      <header>
+        <strong>{component.name}</strong>
+      </header>
+      <div className="homeHealthDeployments">
+        {component.deployments.map((deployment) => (
+          <HealthDeploymentSection
+            deployment={deployment}
+            key={deployment.id}
+            onSelectRuntime={onSelectRuntime}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HealthApplicationSection({ application, onSelectRuntime }) {
+  return (
+    <section className="homeHealthApplication">
+      <header>
+        <div>
+          <strong>{application.name}</strong>
+        </div>
+        <span className={`catalogStatus catalogStatus-${application.status}`}>
+          {application.status}
+        </span>
+      </header>
+      <div className="homeHealthComponents">
+        {application.components.map((component) => (
+          <HealthComponentSection
+            component={component}
+            key={component.id}
+            onSelectRuntime={onSelectRuntime}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function ApplicationHealthWidget({ config, data, onSelectRuntime }) {
   const presentation =
     config?.runtimeId || config?.presentation === "tabs" ? "tabs" : "list";
@@ -165,77 +258,11 @@ export function ApplicationHealthWidget({ config, data, onSelectRuntime }) {
       ) : (
         <div className="homeHealthApplications">
           {data.items.map((application) => (
-            <section className="homeHealthApplication" key={application.id}>
-              <header>
-                <div>
-                  <strong>{application.name}</strong>
-                </div>
-                <span
-                  className={`catalogStatus catalogStatus-${application.status}`}
-                >
-                  {application.status}
-                </span>
-              </header>
-              <div className="homeHealthComponents">
-                {application.components.map((component) => (
-                  <section key={component.id}>
-                    <header>
-                      <strong>{component.name}</strong>
-                    </header>
-                    <div className="homeHealthDeployments">
-                      {component.deployments.map((deployment) => (
-                        <section key={deployment.id}>
-                          <header>
-                            <div>
-                              <strong>{deployment.name}</strong>
-                            </div>
-                          </header>
-                          <div className="homeHealthRuntimes">
-                            {deployment.runtimes.map((runtime) => (
-                              <div
-                                className="homeHealthRuntimeCard"
-                                key={runtime.id}
-                              >
-                                <button
-                                  className="homeHealthRuntime"
-                                  onClick={() => onSelectRuntime(runtime)}
-                                  type="button"
-                                >
-                                  <div className="homeHealthRuntimeIdentity">
-                                    <strong>{runtime.name}</strong>
-                                    <span className="homeHealthServer">
-                                      <Server size={13} />
-                                      {runtime.server?.name ||
-                                        "Sem servidor associado"}
-                                    </span>
-                                    <span className="homeHealthLastSignal">
-                                      <Clock3 size={13} />
-                                      Última entrada:{" "}
-                                      {formatMonitoringDate(runtime.observedAt)}
-                                      {runtime.source
-                                        ? ` · ${runtime.source}`
-                                        : ""}
-                                      {runtime.message
-                                        ? ` · ${runtime.message}`
-                                        : ""}
-                                    </span>
-                                  </div>
-                                  <span
-                                    className={`catalogStatus catalogStatus-${runtime.status}`}
-                                  >
-                                    {runtime.status}
-                                  </span>
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </section>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            </section>
+            <HealthApplicationSection
+              application={application}
+              key={application.id}
+              onSelectRuntime={onSelectRuntime}
+            />
           ))}
         </div>
       )}

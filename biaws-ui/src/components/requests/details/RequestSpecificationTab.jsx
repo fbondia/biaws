@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Check, Copy, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   normalizeSpecificationSectionTitle,
@@ -21,6 +21,19 @@ export function RequestSpecificationTab({
   onUpdateSpecificationSection,
 }) {
   const [copiedSectionId, setCopiedSectionId] = useState("");
+  const copyResetTimerRef = useRef(null);
+
+  useEffect(() => () => window.clearTimeout(copyResetTimerRef.current), []);
+
+  function markSectionCopied(sectionId) {
+    setCopiedSectionId(sectionId);
+    window.clearTimeout(copyResetTimerRef.current);
+    copyResetTimerRef.current = window.setTimeout(
+      () =>
+        setCopiedSectionId((current) => (current === sectionId ? "" : current)),
+      1800,
+    );
+  }
   const sections = request.specification?.sections || [];
   const existingTitles = new Set(
     sections.map((section) =>
@@ -87,7 +100,7 @@ export function RequestSpecificationTab({
                       <CopySectionButton
                         copied={copiedSectionId === section.id}
                         onCopy={() =>
-                          copySectionContent(section, setCopiedSectionId)
+                          copySectionContent(section, markSectionCopied)
                         }
                       />
                       <button
@@ -142,7 +155,7 @@ export function RequestSpecificationTab({
                     <CopySectionButton
                       copied={copiedSectionId === section.id}
                       onCopy={() =>
-                        copySectionContent(section, setCopiedSectionId)
+                        copySectionContent(section, markSectionCopied)
                       }
                     />
                   </div>
@@ -174,7 +187,7 @@ function CopySectionButton({ copied, onCopy }) {
   );
 }
 
-async function copySectionContent(section, setCopiedSectionId) {
+async function copySectionContent(section, markCopied) {
   const content = section.content || "";
 
   try {
@@ -192,26 +205,10 @@ async function copySectionContent(section, setCopiedSectionId) {
     } else {
       copyTextWithFallback(content);
     }
-
-    setCopiedSectionId(section.id);
-    window.setTimeout(
-      () =>
-        setCopiedSectionId((current) =>
-          current === section.id ? "" : current,
-        ),
-      1800,
-    );
   } catch {
     copyTextWithFallback(content);
-    setCopiedSectionId(section.id);
-    window.setTimeout(
-      () =>
-        setCopiedSectionId((current) =>
-          current === section.id ? "" : current,
-        ),
-      1800,
-    );
   }
+  markCopied(section.id);
 }
 
 function copyTextWithFallback(content) {

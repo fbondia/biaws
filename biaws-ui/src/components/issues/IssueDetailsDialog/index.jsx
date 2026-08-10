@@ -639,66 +639,16 @@ function IssueCommentsTab({
             const commentId = String(
               comment._id || comment.hash || `comment-${index}`,
             );
-            const expanded = expandedCommentIds.has(commentId);
             return (
-              <article
-                className={
-                  expanded ? "commentItem" : "commentItem collapsedCommentItem"
-                }
+              <IssueCommentItem
+                canUpdateComment={canUpdateComment}
+                comment={comment}
+                commentId={commentId}
+                expanded={expandedCommentIds.has(commentId)}
                 key={commentId}
-              >
-                <header>
-                  <div>
-                    <strong>{comment.from || "Origem não identificada"}</strong>
-                    <span>{formatDate(comment.date || comment.createdAt)}</span>
-                  </div>
-                  <div className="issueCommentItemActions">
-                    {canUpdateComment && comment._id ? (
-                      <button
-                        className="secondaryButton issueCommentEditButton"
-                        onClick={() => openEdit(comment)}
-                        title="Editar comentário"
-                        type="button"
-                      >
-                        <Pencil size={15} /> Editar
-                      </button>
-                    ) : null}
-                    <button
-                      aria-expanded={expanded}
-                      className="secondaryButton issueCommentToggleButton"
-                      onClick={() => toggleComment(commentId)}
-                      title={
-                        expanded ? "Contrair comentário" : "Expandir comentário"
-                      }
-                      type="button"
-                    >
-                      {expanded ? (
-                        <ChevronUp size={15} />
-                      ) : (
-                        <ChevronDown size={15} />
-                      )}
-                    </button>
-                  </div>
-                </header>
-                {expanded ? (
-                  <>
-                    {comment.to || comment.cc || comment.rawDate ? (
-                      <div className="commentMeta">
-                        {comment.to ? <span>Para: {comment.to}</span> : null}
-                        {comment.cc ? <span>Cc: {comment.cc}</span> : null}
-                        {comment.rawDate ? (
-                          <span>Data original: {comment.rawDate}</span>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    <MarkdownPreview value={comment.text || ""} />
-                  </>
-                ) : (
-                  <p className="commentCollapsedPreview">
-                    {commentPreview(comment.text)}
-                  </p>
-                )}
-              </article>
+                onEdit={openEdit}
+                onToggle={toggleComment}
+              />
             );
           })}
         </div>
@@ -736,6 +686,70 @@ function commentPreview(value) {
     .replace(/\s+/gu, " ")
     .trim();
   return text || "Comentário sem conteúdo.";
+}
+
+function IssueCommentMeta({ comment }) {
+  if (!comment.to && !comment.cc && !comment.rawDate) return null;
+  return (
+    <div className="commentMeta">
+      {comment.to ? <span>Para: {comment.to}</span> : null}
+      {comment.cc ? <span>Cc: {comment.cc}</span> : null}
+      {comment.rawDate ? <span>Data original: {comment.rawDate}</span> : null}
+    </div>
+  );
+}
+
+function IssueCommentItem({
+  canUpdateComment,
+  comment,
+  commentId,
+  expanded,
+  onEdit,
+  onToggle,
+}) {
+  return (
+    <article
+      className={expanded ? "commentItem" : "commentItem collapsedCommentItem"}
+    >
+      <header>
+        <div>
+          <strong>{comment.from || "Origem não identificada"}</strong>
+          <span>{formatDate(comment.date || comment.createdAt)}</span>
+        </div>
+        <div className="issueCommentItemActions">
+          {canUpdateComment && comment._id ? (
+            <button
+              className="secondaryButton issueCommentEditButton"
+              onClick={() => onEdit(comment)}
+              title="Editar comentário"
+              type="button"
+            >
+              <Pencil size={15} /> Editar
+            </button>
+          ) : null}
+          <button
+            aria-expanded={expanded}
+            className="secondaryButton issueCommentToggleButton"
+            onClick={() => onToggle(commentId)}
+            title={expanded ? "Contrair comentário" : "Expandir comentário"}
+            type="button"
+          >
+            {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          </button>
+        </div>
+      </header>
+      {expanded ? (
+        <>
+          <IssueCommentMeta comment={comment} />
+          <MarkdownPreview value={comment.text || ""} />
+        </>
+      ) : (
+        <p className="commentCollapsedPreview">
+          {commentPreview(comment.text)}
+        </p>
+      )}
+    </article>
+  );
 }
 
 function IssueFilesTab({

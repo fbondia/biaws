@@ -1,5 +1,5 @@
 import { Archive, ArrowLeft, Pencil, Plus, X, Server } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   archiveServer,
@@ -27,6 +27,73 @@ import {
 import { CatalogEntityDialog } from "./CatalogEntityDialog.jsx";
 import { buildServerApplicationGroups } from "./serverApplicationModel.js";
 
+function ServerList({ canDrag, collectionState, loading, onOpen, servers }) {
+  return (
+    <div className="catalogCollectionItems">
+      {servers.map((server) => (
+        <button
+          className="catalogCollectionItem"
+          key={server.id}
+          draggable={canDrag}
+          onDragEnd={() => collectionState.setDraggedItem(null)}
+          onDragStart={() =>
+            collectionState.setDraggedItem({ type: "item", id: server.id })
+          }
+          onClick={() => onOpen(server)}
+          type="button"
+        >
+          <span className="catalogCollectionItemIcon">
+            <Server size={18} />
+          </span>
+          <span>
+            <strong>{server.name}</strong>
+            <small>{server.hostname || server.key}</small>
+          </span>
+          <span className={`catalogStatus catalogStatus-${server.status}`}>
+            {server.status}
+          </span>
+        </button>
+      ))}
+      {!servers.length && !loading ? (
+        <div className="emptyState compactEmpty">
+          Nenhum servidor encontrado.
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ServerDialogs({ collectionState, dialog, onPersist, setDialog }) {
+  return (
+    <>
+      {collectionState.collectionDialog ? (
+        <ResourceCollectionDialog
+          collection={
+            collectionState.collectionDialog.id
+              ? collectionState.collectionDialog
+              : null
+          }
+          onClose={() => collectionState.setCollectionDialog(null)}
+          onSave={collectionState.saveCollection}
+          parentLabel={collectionPathLabel(
+            collectionState.collections,
+            collectionState.selectedCollectionId,
+          )}
+          resourceLabel="servidores"
+        />
+      ) : null}
+      {dialog ? (
+        <CatalogEntityDialog
+          entity={dialog.id ? dialog : null}
+          kind="server"
+          onClose={() => setDialog(null)}
+          onSave={onPersist}
+        />
+      ) : null}
+    </>
+  );
+}
+
 export function ServersView({ actor }) {
   const [workspace, setWorkspace] = useState(null);
   const [servers, setServers] = useState([]);
@@ -38,6 +105,7 @@ export function ServersView({ actor }) {
   const [dialog, setDialog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const listLoadVersionRef = useRef(0);
   const collectionState = useResourceCollections("servers", {
     onError: setError,
     onMoved: () => loadList(),
@@ -45,11 +113,14 @@ export function ServersView({ actor }) {
 
   async function loadList(nextWorkspace = workspace, filters = {}) {
     if (!nextWorkspace?.id) return;
+    const loadVersion = listLoadVersionRef.current + 1;
+    listLoadVersionRef.current = loadVersion;
     const payload = await fetchServers(nextWorkspace.id, {
       q: filters.search ?? search,
       includeArchived: filters.includeArchived ?? includeArchived,
       limit: 100,
     });
+    if (loadVersion !== listLoadVersionRef.current) return;
     setServers(payload.items || []);
   }
 
@@ -131,18 +202,22 @@ export function ServersView({ actor }) {
 
   useEffect(() => {
     if (!workspace?.id) return undefined;
+    let active = true;
     const timer = window.setTimeout(async () => {
       setLoading(true);
       setError("");
       try {
         await loadList(workspace, { search, includeArchived });
       } catch (loadError) {
-        setError(loadError.message);
+        if (active) setError(loadError.message);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }, 250);
-    return () => window.clearTimeout(timer);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
   }, [workspace?.id, search, includeArchived]);
 
   async function persist(payload) {
@@ -177,7 +252,11 @@ export function ServersView({ actor }) {
         onCreate={() => setDialog({})}
         workspace={workspace}
       />
-      {error ? <div className="errorBox">{error}</div> : null}
+      {error ? (
+        <div className="errorBox" role="alert">
+          {error}
+        </div>
+      ) : null}
       <ResourceCollectionsShell
         className="serversCollectionsLayout"
         collections={collectionState.collections}
@@ -286,68 +365,21 @@ export function ServersView({ actor }) {
             selected={selected}
           />
         ) : (
-          <div className="catalogCollectionItems">
-            {visibleServers.map((server) => (
-              <button
-                className="catalogCollectionItem"
-                key={server.id}
-                draggable={canManageCollections}
-                onDragEnd={() => collectionState.setDraggedItem(null)}
-                onDragStart={() =>
-                  collectionState.setDraggedItem({
-                    type: "item",
-                    id: server.id,
-                  })
-                }
-                onClick={() => void openServer(server)}
-                type="button"
-              >
-                <span className="catalogCollectionItemIcon">
-                  <Server size={18} />
-                </span>
-                <span>
-                  <strong>{server.name}</strong>
-                  <small>{server.hostname || server.key}</small>
-                </span>
-                <span
-                  className={`catalogStatus catalogStatus-${server.status}`}
-                >
-                  {server.status}
-                </span>
-              </button>
-            ))}
-            {!visibleServers.length && !loading ? (
-              <div className="emptyState compactEmpty">
-                Nenhum servidor encontrado.
-              </div>
-            ) : null}
-          </div>
+          <ServerList
+            canDrag={canManageCollections}
+            collectionState={collectionState}
+            loading={loading}
+            onOpen={(server) => void openServer(server)}
+            servers={visibleServers}
+          />
         )}
       </ResourceCollectionsShell>
-      {collectionState.collectionDialog ? (
-        <ResourceCollectionDialog
-          collection={
-            collectionState.collectionDialog.id
-              ? collectionState.collectionDialog
-              : null
-          }
-          onClose={() => collectionState.setCollectionDialog(null)}
-          onSave={collectionState.saveCollection}
-          parentLabel={collectionPathLabel(
-            collectionState.collections,
-            collectionState.selectedCollectionId,
-          )}
-          resourceLabel="servidores"
-        />
-      ) : null}
-      {dialog ? (
-        <CatalogEntityDialog
-          entity={dialog.id ? dialog : null}
-          kind="server"
-          onClose={() => setDialog(null)}
-          onSave={persist}
-        />
-      ) : null}
+      <ServerDialogs
+        collectionState={collectionState}
+        dialog={dialog}
+        onPersist={persist}
+        setDialog={setDialog}
+      />
     </section>
   );
 }
@@ -428,6 +460,7 @@ function ServerDetails({
             </button>
           ) : null}
           <button
+            aria-label="Fechar detalhes do servidor"
             className="secondaryButton catalogBackButton"
             onClick={onBack}
             type="button"

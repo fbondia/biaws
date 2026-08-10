@@ -34,7 +34,7 @@
 
 .activeFiltersButton {
   border-color: var(--color-accent-border);
-  background: #f0f6ff;
+  background: var(--color-palette-hex-f0f6ff);
   color: var(--color-accent-text);
 }
 
@@ -46,7 +46,7 @@
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: var(--color-surface-subtle);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 2px 8px var(--color-palette-rgb-15-23-42-0-04);
   padding: 16px;
 }
 
@@ -75,51 +75,6 @@
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 12px;
   align-items: end;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.field span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 18px;
-  color: var(--color-text-muted);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0;
-  text-transform: uppercase;
-}
-
-.field input,
-.field select,
-.field textarea {
-  width: 100%;
-  min-height: 38px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 6px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  padding: 8px 10px;
-  outline: none;
-}
-
-.field textarea {
-  min-height: 112px;
-  resize: vertical;
-  line-height: 1.45;
-}
-
-.field input:focus,
-.field select:focus,
-.field textarea:focus {
-  border-color: var(--color-focus);
-  box-shadow: 0 0 0 3px rgba(45, 108, 223, 0.13);
 }
 
 .colorField input[type="color"] {
@@ -166,7 +121,7 @@
 
 .datePeriodOption:hover,
 .activeDatePeriodOption {
-  background: #f0f6ff;
+  background: var(--color-palette-hex-f0f6ff);
   color: var(--color-accent-text);
 }
 
@@ -240,7 +195,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(16, 24, 40, 0.2);
+  background: var(--color-palette-rgb-16-24-40-0-2);
   padding: 20px;
 }
 
@@ -253,7 +208,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 20px 60px var(--color-palette-rgb-15-23-42-0-18);
 }
 
 .tagFilterDialog > header {

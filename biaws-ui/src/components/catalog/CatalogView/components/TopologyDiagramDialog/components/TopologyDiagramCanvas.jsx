@@ -23,6 +23,18 @@ const nodeTypes = {
   topologyServer: TopologyServerNode,
 };
 
+function SelectedEditor({
+  controller,
+  selectedEdge,
+  selectedElement,
+  selectedGroup,
+}) {
+  if (selectedGroup) return <GroupEditorPanel controller={controller} />;
+  if (selectedElement) return <ElementEditorPanel controller={controller} />;
+  if (selectedEdge) return <EdgeEditorPanel controller={controller} />;
+  return null;
+}
+
 export function TopologyDiagramCanvas({ controller }) {
   const {
     actions,
@@ -116,13 +128,12 @@ export function TopologyDiagramCanvas({ controller }) {
               Nenhum elemento corresponde aos filtros de exibição.
             </Panel>
           ) : null}
-          {selectedGroup ? (
-            <GroupEditorPanel controller={controller} />
-          ) : selectedElement ? (
-            <ElementEditorPanel controller={controller} />
-          ) : selectedEdge ? (
-            <EdgeEditorPanel controller={controller} />
-          ) : null}
+          <SelectedEditor
+            controller={controller}
+            selectedEdge={selectedEdge}
+            selectedElement={selectedElement}
+            selectedGroup={selectedGroup}
+          />
           <CommentsPanel controller={controller} />
         </ReactFlow>
       ) : null}

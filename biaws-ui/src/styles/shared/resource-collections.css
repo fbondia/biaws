@@ -103,7 +103,7 @@
 
 .resourceCollectionSearchInput:focus-within {
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 3px rgba(45, 108, 223, 0.13);
+  box-shadow: 0 0 0 3px var(--color-palette-rgb-45-108-223-0-13);
 }
 
 .resourceCollectionSearchInput input {
@@ -179,7 +179,7 @@
 
 .selectedResourceCollectionItem .resourceCollectionItemContent {
   border-color: var(--color-accent-border);
-  background: #f0f6ff;
+  background: var(--color-palette-hex-f0f6ff);
   color: var(--color-accent-text);
   font-weight: 700;
 }

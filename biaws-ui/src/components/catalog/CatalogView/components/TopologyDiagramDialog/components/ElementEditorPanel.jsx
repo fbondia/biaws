@@ -11,6 +11,7 @@ export function ElementEditorPanel({ controller }) {
       <label className="field">
         <span>Tipo</span>
         <input
+          aria-describedby="topology-element-validation"
           aria-invalid={!selectedElementType.trim()}
           disabled={!canEdit}
           onChange={(event) =>
@@ -23,6 +24,7 @@ export function ElementEditorPanel({ controller }) {
       <label className="field">
         <span>Título</span>
         <input
+          aria-describedby="topology-element-validation"
           aria-invalid={!element.title.trim()}
           disabled={!canEdit}
           onChange={(event) =>
@@ -32,7 +34,11 @@ export function ElementEditorPanel({ controller }) {
         />
       </label>
       {!selectedElementType.trim() || !element.title.trim() ? (
-        <small className="topologyDiagramGroupValidation">
+        <small
+          className="topologyDiagramGroupValidation"
+          id="topology-element-validation"
+          role="alert"
+        >
           Informe o tipo e o título para salvar o diagrama.
         </small>
       ) : null}

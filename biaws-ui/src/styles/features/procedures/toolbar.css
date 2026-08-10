@@ -28,7 +28,7 @@
 
 .activeProcedureModeButton {
   border-color: var(--color-accent-border);
-  background: #f0f6ff;
+  background: var(--color-palette-hex-f0f6ff);
   color: var(--color-accent-text);
 }
 
@@ -45,7 +45,7 @@
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: var(--color-surface-subtle);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 2px 8px var(--color-palette-rgb-15-23-42-0-04);
   padding: 16px;
 }
 

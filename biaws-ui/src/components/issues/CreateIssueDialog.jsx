@@ -92,7 +92,11 @@ export function CreateIssueDialog({
         </header>
 
         <div className="issueFormDialogBody">
-          {error ? <div className="errorBox">{error}</div> : null}
+          {error ? (
+            <div className="errorBox" role="alert">
+              {error}
+            </div>
+          ) : null}
           <div className="issueFormGrid">
             <label className="field issueFormTitleField">
               <span>Título</span>

@@ -63,7 +63,7 @@ export function TopologyDiagramToolbar({ controller }) {
             <select
               disabled={!diagram || topologyLoading || !canEdit}
               onChange={(event) =>
-                void actions.changeEnvironment(event.target.value)
+                actions.changeEnvironment(event.target.value)
               }
               value={environment}
             >
@@ -87,7 +87,7 @@ export function TopologyDiagramToolbar({ controller }) {
                 !dirty ||
                 hasUntitledNode
               }
-              onClick={() => void actions.saveDiagram()}
+              onClick={() => actions.saveDiagram()}
               type="button"
             >
               <Save size={15} /> {saving ? "Salvando…" : "Salvar"}

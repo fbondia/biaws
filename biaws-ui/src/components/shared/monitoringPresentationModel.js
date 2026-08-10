@@ -28,6 +28,29 @@ export function monitoringStatusTone(value) {
   return "unknown";
 }
 
+function formatBytes(value) {
+  const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+  let scaled = Number(value);
+  let index = 0;
+  while (Math.abs(scaled) >= 1024 && index < units.length - 1) {
+    scaled /= 1024;
+    index += 1;
+  }
+  return `${BYTE_FORMAT.format(scaled)} ${units[index]}`;
+}
+
+function formatFileCount(value) {
+  const count = Number(value);
+  return `${NUMBER_FORMAT.format(count)} ${count === 1 ? "arquivo" : "arquivos"}`;
+}
+
+function formatDate(value) {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime())
+    ? null
+    : date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+}
+
 export function formatMonitoringValue(value, format) {
   if (value === undefined || value === null) return "—";
   if (format === "status") return statusText(value);
@@ -35,25 +58,14 @@ export function formatMonitoringValue(value, format) {
     return `${NUMBER_FORMAT.format(Number(value))}%`;
   }
   if (format === "bytes" && Number.isFinite(Number(value))) {
-    const bytes = Number(value);
-    const units = ["B", "KiB", "MiB", "GiB", "TiB"];
-    let scaled = bytes;
-    let index = 0;
-    while (Math.abs(scaled) >= 1024 && index < units.length - 1) {
-      scaled /= 1024;
-      index += 1;
-    }
-    return `${BYTE_FORMAT.format(scaled)} ${units[index]}`;
+    return formatBytes(value);
   }
   if (format === "files" && Number.isFinite(Number(value))) {
-    const count = Number(value);
-    return `${NUMBER_FORMAT.format(count)} ${count === 1 ? "arquivo" : "arquivos"}`;
+    return formatFileCount(value);
   }
   if (format === "date") {
-    const date = new Date(`${value}T00:00:00.000Z`);
-    if (!Number.isNaN(date.getTime())) {
-      return date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
-    }
+    const formatted = formatDate(value);
+    if (formatted) return formatted;
   }
   if (typeof value === "number") return NUMBER_FORMAT.format(value);
   return String(value);

@@ -1,3 +1,88 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 18px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 8px 10px;
+  outline: none;
+}
+
+.field textarea {
+  min-height: 112px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-palette-rgb-45-108-223-0-13);
+}
+
+.errorBox {
+  margin: 0 28px 16px;
+  border: 1px solid var(--color-palette-hex-f5b6b6);
+  border-radius: 8px;
+  background: var(--color-palette-hex-fff1f1);
+  color: var(--color-palette-hex-9b1c1c);
+  padding: 12px 14px;
+}
+
+.infoBox,
+.warningBox {
+  margin: 0 0 16px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.infoBox {
+  border: 1px solid var(--color-palette-hex-b9d3ff);
+  background: var(--color-palette-hex-f0f6ff);
+  color: var(--color-accent-text);
+}
+
+.warningBox {
+  border: 1px solid var(--color-palette-hex-f2cf8d);
+  background: var(--color-palette-hex-fff8e8);
+  color: var(--color-palette-hex-8a5700);
+}
+
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dropdown);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-palette-rgb-15-23-42-0-46);
+  padding: 22px;
+}
+
 .primaryButton,
 .secondaryButton,
 .dangerButton,
@@ -17,14 +102,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #246b49;
+  background: var(--color-palette-hex-246b49);
   color: var(--color-surface);
   padding: 0 16px;
   font-weight: 700;
 }
 
 .primaryButton:hover {
-  background: #1d5a3d;
+  background: var(--color-palette-hex-1d5a3d);
 }
 
 .secondaryButton {
@@ -43,7 +128,7 @@
 .iconButton:hover,
 .tab:hover,
 .clickableRow:hover {
-  border-color: #98a2b3;
+  border-color: var(--color-palette-hex-98a2b3);
 }
 
 .dangerButton {
@@ -51,9 +136,9 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #fff1f1;
-  border-color: #f5b6b6;
-  color: #9b1c1c;
+  background: var(--color-palette-hex-fff1f1);
+  border-color: var(--color-palette-hex-f5b6b6);
+  color: var(--color-palette-hex-9b1c1c);
   padding: 0 14px;
   font-weight: 700;
 }
@@ -68,4 +153,16 @@
   border-color: var(--color-border-strong);
   color: var(--color-text-secondary);
   flex: 0 0 auto;
+}
+
+@media (max-width: 720px) {
+  .errorBox {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+
+  .dialogBackdrop {
+    align-items: stretch;
+    padding: 10px;
+  }
 }

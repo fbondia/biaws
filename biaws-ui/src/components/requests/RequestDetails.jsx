@@ -96,7 +96,12 @@ export function RequestDetails({
             {isEditing ? <Save size={16} /> : <Edit3 size={16} />}
             {isEditing ? "Gravar" : "Editar"}
           </button>
-          <button className="secondaryButton" onClick={onClose} type="button">
+          <button
+            aria-label="Fechar detalhes da melhoria"
+            className="secondaryButton"
+            onClick={onClose}
+            type="button"
+          >
             <X size={16} />
           </button>
         </div>

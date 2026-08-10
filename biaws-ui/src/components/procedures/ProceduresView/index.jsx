@@ -32,6 +32,38 @@ import {
 import { useProceduresView } from "./hooks/useProceduresView.js";
 import { normalizeDraft } from "./model.js";
 
+function ProceduresToolbar({ filtersVisible, onCreate, onToggleFilters }) {
+  return (
+    <div className="proceduresToolbar">
+      <button
+        aria-controls="procedure-filters"
+        aria-expanded={filtersVisible}
+        className={
+          filtersVisible
+            ? "secondaryButton activeFiltersButton"
+            : "secondaryButton"
+        }
+        onClick={onToggleFilters}
+        type="button"
+      >
+        {filtersVisible ? <FilterX size={16} /> : <Filter size={16} />}
+        {filtersVisible ? "Ocultar filtros" : "Mostrar filtros"}
+      </button>
+      <div className="procedureToolbarActions">
+        <button className="primaryButton" onClick={onCreate} type="button">
+          <Plus size={16} /> Novo procedimento
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function procedurePathLabel({ collections, draft, searchActive }) {
+  if (draft?.id)
+    return `${collectionPathLabel(collections, draft.collectionId || "")} / ${draft.title}`;
+  return searchActive ? "Resultados da busca" : undefined;
+}
+
 export function ProceduresView({ actor }) {
   const {
     organizationItems,
@@ -81,37 +113,17 @@ export function ProceduresView({ actor }) {
 
   return (
     <section className="proceduresView contentBand">
-      <div className="proceduresToolbar">
-        <button
-          aria-controls="procedure-filters"
-          aria-expanded={filtersVisible}
-          className={
-            filtersVisible
-              ? "secondaryButton activeFiltersButton"
-              : "secondaryButton"
-          }
-          onClick={() => setFiltersVisible((current) => !current)}
-          type="button"
-        >
-          {filtersVisible ? <FilterX size={16} /> : <Filter size={16} />}
-          {filtersVisible ? "Ocultar filtros" : "Mostrar filtros"}
-        </button>
-        <div className="procedureToolbarActions">
-          <button
-            className="primaryButton"
-            onClick={() =>
-              setDraft(
-                normalizeDraft({
-                  collectionId: searchActive ? "" : selectedCollectionId,
-                }),
-              )
-            }
-            type="button"
-          >
-            <Plus size={16} /> Novo procedimento
-          </button>
-        </div>
-      </div>
+      <ProceduresToolbar
+        filtersVisible={filtersVisible}
+        onCreate={() =>
+          setDraft(
+            normalizeDraft({
+              collectionId: searchActive ? "" : selectedCollectionId,
+            }),
+          )
+        }
+        onToggleFilters={() => setFiltersVisible((current) => !current)}
+      />
 
       <ProcedureFilters
         applicationFilter={applicationFilter}
@@ -139,16 +151,7 @@ export function ProceduresView({ actor }) {
         onDropRoot={() => moveDraggedItem("")}
         onNavigateBack={() => setDraft(null)}
         onSelectCollection={setSelectedCollectionId}
-        pathLabel={
-          draft?.id
-            ? `${collectionPathLabel(
-                collections,
-                draft.collectionId || "",
-              )} / ${draft.title}`
-            : searchActive
-              ? "Resultados da busca"
-              : undefined
-        }
+        pathLabel={procedurePathLabel({ collections, draft, searchActive })}
         selectedCollectionId={selectedCollectionId}
         navigator={
           <ResourceCollectionNavigator

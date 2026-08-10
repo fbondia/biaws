@@ -22,6 +22,7 @@ import { hasPermission } from "../../../../permissions.js";
 import { useCatalogOptions } from "../../../catalog/CatalogContextFields.jsx";
 import { useRequestCollaborationActions } from "./useRequestCollaborationActions.js";
 import { useRequestDraftActions } from "./useRequestDraftActions.js";
+import { flushPendingRequestSaves } from "../requestSaveQueue.js";
 import {
   createDefaultSpecificationSection,
   createSpecificationSection,
@@ -71,6 +72,8 @@ export function useRequestsView(
   );
   const saveTimersRef = useRef(new Map());
   const pendingRequestsRef = useRef(new Map());
+  const requestSaveVersionsRef = useRef(new Map());
+  const mountedRef = useRef(true);
 
   const selectedRequest =
     (selectedRequestOverride?.id === selectedRequestId
@@ -156,11 +159,12 @@ export function useRequestsView(
 
   useEffect(() => {
     return () => {
-      for (const timeoutId of saveTimersRef.current.values()) {
-        clearTimeout(timeoutId);
-      }
-      saveTimersRef.current.clear();
-      pendingRequestsRef.current.clear();
+      mountedRef.current = false;
+      void flushPendingRequestSaves({
+        timers: saveTimersRef.current,
+        pendingRequests: pendingRequestsRef.current,
+        persist: (request) => saveRequest(request.id, request),
+      });
     };
   }, []);
 
@@ -283,19 +287,46 @@ export function useRequestsView(
     );
   }
 
-  async function persistRequest(request) {
+  async function recoverFailedRequestSave(request, saveVersion) {
+    const isLatestSave =
+      requestSaveVersionsRef.current.get(request.id) === saveVersion;
+    if (!isLatestSave || pendingRequestsRef.current.has(request.id)) return;
+
+    try {
+      const payload = await fetchRequest(request.id);
+      if (mountedRef.current && payload.request) {
+        upsertRequestInList(payload.request);
+      }
+    } catch {
+      // Mantém o erro original da gravação, que é a ação relevante ao usuário.
+    }
+  }
+
+  function finishRequestSave(requestId) {
+    if (!mountedRef.current) return;
+    setSavingRequestId((current) => (current === requestId ? "" : current));
+  }
+
+  async function persistRequest(request, saveVersion) {
     if (!request?.id) return;
 
-    setSavingRequestId(request.id);
-    setRequestError("");
+    if (mountedRef.current) {
+      setSavingRequestId(request.id);
+      setRequestError("");
+    }
 
     try {
       const payload = await saveRequest(request.id, request);
-      if (payload.request) upsertRequestInList(payload.request);
+      if (mountedRef.current && payload.request) {
+        upsertRequestInList(payload.request);
+      }
     } catch (error) {
+      if (!mountedRef.current) return;
+
       setRequestError(error.message);
+      await recoverFailedRequestSave(request, saveVersion);
     } finally {
-      setSavingRequestId((current) => (current === request.id ? "" : current));
+      finishRequestSave(request.id);
     }
   }
 
@@ -306,6 +337,9 @@ export function useRequestsView(
     if (existingTimer) clearTimeout(existingTimer);
 
     pendingRequestsRef.current.set(request.id, request);
+    const saveVersion =
+      (requestSaveVersionsRef.current.get(request.id) || 0) + 1;
+    requestSaveVersionsRef.current.set(request.id, saveVersion);
     setSavingRequestId(request.id);
     setRequestError("");
 
@@ -313,7 +347,7 @@ export function useRequestsView(
       saveTimersRef.current.delete(request.id);
       const pendingRequest = pendingRequestsRef.current.get(request.id);
       pendingRequestsRef.current.delete(request.id);
-      void persistRequest(pendingRequest);
+      void persistRequest(pendingRequest, saveVersion);
     }, REQUEST_SAVE_DEBOUNCE_MS);
 
     saveTimersRef.current.set(request.id, timeoutId);
@@ -324,6 +358,7 @@ export function useRequestsView(
     if (existingTimer) clearTimeout(existingTimer);
     saveTimersRef.current.delete(requestId);
     pendingRequestsRef.current.delete(requestId);
+    requestSaveVersionsRef.current.delete(requestId);
   }
 
   function updateSelectedField(field, value) {

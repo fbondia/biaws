@@ -49,6 +49,10 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+function toggleId(ids, id) {
+  return ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id];
+}
+
 function WorkspaceFormDialog({ actor, onClose, onCreated, users }) {
   const [form, setForm] = useState({
     ...EMPTY_FORM,
@@ -180,11 +184,7 @@ function MemberEditor({ groups, member, onRemove, onSave }) {
               <input
                 checked={groupIds.includes(group.id)}
                 onChange={() =>
-                  setGroupIds((current) =>
-                    current.includes(group.id)
-                      ? current.filter((id) => id !== group.id)
-                      : [...current, group.id],
-                  )
+                  setGroupIds((current) => toggleId(current, group.id))
                 }
                 type="checkbox"
               />
@@ -209,6 +209,256 @@ function MemberEditor({ groups, member, onRemove, onSave }) {
         </button>
       </div>
     </article>
+  );
+}
+
+function GeneralWorkspaceTab({
+  draft,
+  onCopyUuid,
+  onDraftChange,
+  onSave,
+  onStatusChange,
+  selected,
+  uuidCopied,
+}) {
+  return (
+    <form className="platformGeneralForm" onSubmit={onSave}>
+      <label>
+        <span>Nome</span>
+        <input
+          onChange={(event) =>
+            onDraftChange({ ...draft, name: event.target.value })
+          }
+          required
+          value={draft.name}
+        />
+      </label>
+      <label>
+        <span>UUID</span>
+        <div className="platformUuidField">
+          <input aria-label="UUID do workspace" readOnly value={selected.id} />
+          <button
+            aria-label={
+              uuidCopied
+                ? "UUID do workspace copiado"
+                : "Copiar UUID do workspace"
+            }
+            className="secondaryButton"
+            onClick={onCopyUuid}
+            type="button"
+          >
+            {uuidCopied ? <Check size={16} /> : <Copy size={16} />}
+            {uuidCopied ? "Copiado" : "Copiar"}
+          </button>
+        </div>
+      </label>
+      <label>
+        <span>Descrição</span>
+        <textarea
+          onChange={(event) =>
+            onDraftChange({ ...draft, description: event.target.value })
+          }
+          rows={4}
+          value={draft.description}
+        />
+      </label>
+      <div className="platformFormActions">
+        <button className="primaryButton" type="submit">
+          <Save size={16} /> Salvar
+        </button>
+        <button
+          className={
+            selected.status === "active" ? "dangerButton" : "secondaryButton"
+          }
+          disabled={selected.default}
+          onClick={onStatusChange}
+          type="button"
+        >
+          {selected.status === "active" ? (
+            <Archive size={16} />
+          ) : (
+            <RotateCcw size={16} />
+          )}
+          {selected.status === "active" ? "Arquivar" : "Reativar"}
+        </button>
+      </div>
+      {selected.default ? (
+        <p className="platformHint">
+          O workspace padrão não pode ser arquivado.
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+function MembersWorkspaceTab({
+  availableUsers,
+  groups,
+  members,
+  newMember,
+  onAdd,
+  onNewMemberChange,
+  onRemove,
+  onSave,
+  selectedId,
+}) {
+  const activeGroups = groups.filter(({ active }) => active);
+  function toggleNewMemberGroup(groupId) {
+    onNewMemberChange({
+      ...newMember,
+      groupIds: toggleId(newMember.groupIds, groupId),
+    });
+  }
+  return (
+    <div className="platformMembers">
+      <form className="platformAddMember" onSubmit={onAdd}>
+        <select
+          onChange={(event) =>
+            onNewMemberChange({ ...newMember, userId: event.target.value })
+          }
+          required
+          value={newMember.userId}
+        >
+          <option value="">Selecionar usuário…</option>
+          {availableUsers.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name || user.email} · {user.email}
+            </option>
+          ))}
+        </select>
+        <div className="platformGroupChecks">
+          {activeGroups.map((group) => (
+            <label key={group.id}>
+              <input
+                checked={newMember.groupIds.includes(group.id)}
+                onChange={() => toggleNewMemberGroup(group.id)}
+                type="checkbox"
+              />
+              {group.name}
+            </label>
+          ))}
+        </div>
+        <button className="primaryButton" type="submit">
+          <UserPlus size={16} /> Adicionar
+        </button>
+      </form>
+      <div className="platformMemberList">
+        {members.map((member) => (
+          <MemberEditor
+            groups={groups}
+            key={`${selectedId}:${member.userId}`}
+            member={member}
+            onRemove={onRemove}
+            onSave={onSave}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GroupsWorkspaceTab({ groups }) {
+  return (
+    <div className="platformGroupList">
+      {groups.map((group) => (
+        <article key={group.id}>
+          <strong>{group.name}</strong>
+          <span>
+            {group.system ? "Sistema" : "Personalizado"} ·{" "}
+            {group.permissions.length} permissões ·{" "}
+            {group.active ? "Ativo" : "Inativo"}
+          </span>
+          <small>
+            {group.scope.type === "workspace"
+              ? "Workspace inteiro"
+              : `${group.scope.applicationIds.length} aplicações`}
+          </small>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function InventoryWorkspaceTab({ summary }) {
+  const metrics = {
+    Membros: summary.members,
+    Grupos: summary.groups,
+    Aplicações: summary.applications,
+    Servidores: summary.servers,
+    Chamados: summary.issues,
+    Melhorias: summary.demands,
+  };
+  return (
+    <div className="platformMetrics">
+      {Object.entries(metrics).map(([label, value]) => (
+        <article key={label}>
+          <strong>{value}</strong>
+          <span>{label}</span>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function AuditWorkspaceTab({ events }) {
+  if (!events.length) {
+    return <div className="emptyState">Nenhum evento registrado.</div>;
+  }
+  return (
+    <div className="platformAuditList">
+      {events.map((event) => (
+        <article key={event.id}>
+          <strong>{event.summary || event.action}</strong>
+          <span>
+            {event.actor?.displayName || event.actor?.email || "Sistema"} ·{" "}
+            {formatDate(event.occurredAt)}
+          </span>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function WorkspaceTabContent({ tab, ...props }) {
+  if (tab === "general") return <GeneralWorkspaceTab {...props} />;
+  if (tab === "members") return <MembersWorkspaceTab {...props} />;
+  if (tab === "groups") return <GroupsWorkspaceTab {...props} />;
+  if (tab === "inventory" && props.summary) {
+    return <InventoryWorkspaceTab summary={props.summary} />;
+  }
+  if (tab === "audit") return <AuditWorkspaceTab events={props.events} />;
+  return null;
+}
+
+function WorkspaceDetail({ onTabChange, selected, tab, ...tabProps }) {
+  if (!selected) {
+    return <div className="emptyState">Selecione um workspace.</div>;
+  }
+  return (
+    <>
+      <header className="platformDetailHeader">
+        <div>
+          <h3>{selected.name}</h3>
+          <p>{selected.key}</p>
+        </div>
+        <span className={`platformStatus ${selected.status}`}>
+          {selected.status === "active" ? "Ativo" : "Arquivado"}
+        </span>
+      </header>
+      <nav className="platformTabs" aria-label="Detalhes do workspace">
+        {TABS.map(([key, label]) => (
+          <button
+            className={tab === key ? "tab active" : "tab"}
+            key={key}
+            onClick={() => onTabChange(key)}
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      <WorkspaceTabContent {...tabProps} selected={selected} tab={tab} />
+    </>
   );
 }
 
@@ -452,222 +702,28 @@ export function WorkspaceAdminView({ actor }) {
           </div>
         </aside>
         <div className="securityPanel platformWorkspaceDetail">
-          {selected ? (
-            <>
-              <header className="platformDetailHeader">
-                <div>
-                  <h3>{selected.name}</h3>
-                  <p>{selected.key}</p>
-                </div>
-                <span className={`platformStatus ${selected.status}`}>
-                  {selected.status === "active" ? "Ativo" : "Arquivado"}
-                </span>
-              </header>
-              <nav className="platformTabs" aria-label="Detalhes do workspace">
-                {TABS.map(([key, label]) => (
-                  <button
-                    className={tab === key ? "tab active" : "tab"}
-                    key={key}
-                    onClick={() => setTab(key)}
-                    type="button"
-                  >
-                    {label}
-                  </button>
-                ))}
-              </nav>
-              {tab === "general" ? (
-                <form className="platformGeneralForm" onSubmit={saveGeneral}>
-                  <label>
-                    <span>Nome</span>
-                    <input
-                      onChange={(event) =>
-                        setDraft({ ...draft, name: event.target.value })
-                      }
-                      required
-                      value={draft.name}
-                    />
-                  </label>
-                  <label>
-                    <span>UUID</span>
-                    <div className="platformUuidField">
-                      <input
-                        aria-label="UUID do workspace"
-                        readOnly
-                        value={selected.id}
-                      />
-                      <button
-                        aria-label={
-                          uuidCopied
-                            ? "UUID do workspace copiado"
-                            : "Copiar UUID do workspace"
-                        }
-                        className="secondaryButton"
-                        onClick={copyWorkspaceUuid}
-                        type="button"
-                      >
-                        {uuidCopied ? <Check size={16} /> : <Copy size={16} />}
-                        {uuidCopied ? "Copiado" : "Copiar"}
-                      </button>
-                    </div>
-                  </label>
-                  <label>
-                    <span>Descrição</span>
-                    <textarea
-                      onChange={(event) =>
-                        setDraft({ ...draft, description: event.target.value })
-                      }
-                      rows={4}
-                      value={draft.description}
-                    />
-                  </label>
-                  <div className="platformFormActions">
-                    <button className="primaryButton" type="submit">
-                      <Save size={16} /> Salvar
-                    </button>
-                    <button
-                      className={
-                        selected.status === "active"
-                          ? "dangerButton"
-                          : "secondaryButton"
-                      }
-                      disabled={selected.default}
-                      onClick={changeStatus}
-                      type="button"
-                    >
-                      {selected.status === "active" ? (
-                        <Archive size={16} />
-                      ) : (
-                        <RotateCcw size={16} />
-                      )}
-                      {selected.status === "active" ? "Arquivar" : "Reativar"}
-                    </button>
-                  </div>
-                  {selected.default ? (
-                    <p className="platformHint">
-                      O workspace padrão não pode ser arquivado.
-                    </p>
-                  ) : null}
-                </form>
-              ) : null}
-              {tab === "members" ? (
-                <div className="platformMembers">
-                  <form className="platformAddMember" onSubmit={addMember}>
-                    <select
-                      onChange={(event) =>
-                        setNewMember({
-                          ...newMember,
-                          userId: event.target.value,
-                        })
-                      }
-                      required
-                      value={newMember.userId}
-                    >
-                      <option value="">Selecionar usuário…</option>
-                      {availableUsers.map((user) => (
-                        <option key={user.id} value={user.id}>
-                          {user.name || user.email} · {user.email}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="platformGroupChecks">
-                      {groups
-                        .filter(({ active }) => active)
-                        .map((group) => (
-                          <label key={group.id}>
-                            <input
-                              checked={newMember.groupIds.includes(group.id)}
-                              onChange={() =>
-                                setNewMember((current) => ({
-                                  ...current,
-                                  groupIds: current.groupIds.includes(group.id)
-                                    ? current.groupIds.filter(
-                                        (id) => id !== group.id,
-                                      )
-                                    : [...current.groupIds, group.id],
-                                }))
-                              }
-                              type="checkbox"
-                            />
-                            {group.name}
-                          </label>
-                        ))}
-                    </div>
-                    <button className="primaryButton" type="submit">
-                      <UserPlus size={16} /> Adicionar
-                    </button>
-                  </form>
-                  <div className="platformMemberList">
-                    {members.map((member) => (
-                      <MemberEditor
-                        groups={groups}
-                        key={`${selected.id}:${member.userId}`}
-                        member={member}
-                        onRemove={removeMember}
-                        onSave={saveMember}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              {tab === "groups" ? (
-                <div className="platformGroupList">
-                  {groups.map((group) => (
-                    <article key={group.id}>
-                      <strong>{group.name}</strong>
-                      <span>
-                        {group.system ? "Sistema" : "Personalizado"} ·{" "}
-                        {group.permissions.length} permissões ·{" "}
-                        {group.active ? "Ativo" : "Inativo"}
-                      </span>
-                      <small>
-                        {group.scope.type === "workspace"
-                          ? "Workspace inteiro"
-                          : `${group.scope.applicationIds.length} aplicações`}
-                      </small>
-                    </article>
-                  ))}
-                </div>
-              ) : null}
-              {tab === "inventory" && summary ? (
-                <div className="platformMetrics">
-                  {Object.entries({
-                    Membros: summary.members,
-                    Grupos: summary.groups,
-                    Aplicações: summary.applications,
-                    Servidores: summary.servers,
-                    Chamados: summary.issues,
-                    Melhorias: summary.demands,
-                  }).map(([label, value]) => (
-                    <article key={label}>
-                      <strong>{value}</strong>
-                      <span>{label}</span>
-                    </article>
-                  ))}
-                </div>
-              ) : null}
-              {tab === "audit" ? (
-                <div className="platformAuditList">
-                  {events.length ? (
-                    events.map((event) => (
-                      <article key={event.id}>
-                        <strong>{event.summary || event.action}</strong>
-                        <span>
-                          {event.actor?.displayName ||
-                            event.actor?.email ||
-                            "Sistema"}{" "}
-                          · {formatDate(event.occurredAt)}
-                        </span>
-                      </article>
-                    ))
-                  ) : (
-                    <div className="emptyState">Nenhum evento registrado.</div>
-                  )}
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <div className="emptyState">Selecione um workspace.</div>
-          )}
+          <WorkspaceDetail
+            availableUsers={availableUsers}
+            draft={draft}
+            events={events}
+            groups={groups}
+            members={members}
+            newMember={newMember}
+            onAdd={addMember}
+            onCopyUuid={copyWorkspaceUuid}
+            onDraftChange={setDraft}
+            onNewMemberChange={setNewMember}
+            onRemove={removeMember}
+            onSave={saveMember}
+            onStatusChange={changeStatus}
+            onTabChange={setTab}
+            selected={selected}
+            selectedId={selected?.id}
+            summary={summary}
+            tab={tab}
+            uuidCopied={uuidCopied}
+            {...(tab === "general" ? { onSave: saveGeneral } : {})}
+          />
         </div>
       </div>
       {creating ? (

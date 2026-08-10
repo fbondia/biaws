@@ -31,6 +31,16 @@ import {
 import { RequestsOverview } from "./components/RequestsOverview.jsx";
 import { useRequestsView } from "./hooks/useRequestsView.js";
 
+function RequestError({ collectionError, requestError }) {
+  const message = requestError || collectionError;
+  if (!message) return null;
+  return (
+    <div className="errorBox requestErrorBox" role="alert">
+      {message}
+    </div>
+  );
+}
+
 export function RequestsView({
   actor,
   initialTaskTarget,
@@ -161,11 +171,10 @@ export function RequestsView({
         </button>
       </header>
 
-      {requestError || collectionError ? (
-        <div className="errorBox requestErrorBox">
-          {requestError || collectionError}
-        </div>
-      ) : null}
+      <RequestError
+        collectionError={collectionError}
+        requestError={requestError}
+      />
 
       {!selectedRequest ? (
         <div className="requestCatalogFilters contentBand">

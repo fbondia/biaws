@@ -3,6 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 
 const CAN_MODIFY_CATALOG = true;
 
+function toggleApplicationId(current, applicationId, checked) {
+  if (!checked) return [...current, applicationId];
+  return current.filter((id) => id !== applicationId);
+}
+
 function findNodePath(nodes = [], targetId, currentPath = []) {
   for (const node of nodes) {
     const nextPath = [...currentPath, node.id];
@@ -392,11 +397,11 @@ export function TaxonomySelector({
                               checked={checked}
                               onChange={() =>
                                 setEditApplicationIds((current) =>
-                                  checked
-                                    ? current.filter(
-                                        (id) => id !== application.id,
-                                      )
-                                    : [...current, application.id],
+                                  toggleApplicationId(
+                                    current,
+                                    application.id,
+                                    checked,
+                                  ),
                                 )
                               }
                               type="checkbox"

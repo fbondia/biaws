@@ -139,7 +139,7 @@ export function RequestTaskDialog({
           </div>
 
           {validationError ? (
-            <div className="errorBox requestTaskValidationError">
+            <div className="errorBox requestTaskValidationError" role="alert">
               {validationError}
             </div>
           ) : null}

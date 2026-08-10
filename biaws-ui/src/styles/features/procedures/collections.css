@@ -284,7 +284,7 @@
 
 .resourceCollectionAdd > small {
   overflow: hidden;
-  color: #9b1c1c;
+  color: var(--color-palette-hex-9b1c1c);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -448,8 +448,8 @@ button.resourceCollectionItemContent {
 }
 
 .resourceCollectionActionButton:hover {
-  background: #fff1f1;
-  color: #9b1c1c;
+  background: var(--color-palette-hex-fff1f1);
+  color: var(--color-palette-hex-9b1c1c);
 }
 
 @media (pointer: coarse) {
@@ -460,15 +460,15 @@ button.resourceCollectionItemContent {
 
 .selectedResourceCollection {
   border-color: var(--color-accent-border);
-  background: #f0f6ff;
+  background: var(--color-palette-hex-f0f6ff);
   color: var(--color-accent-text);
 }
 
 .resourceCollectionDropTarget {
-  border-color: #246b49;
-  background: #edf7f2;
-  box-shadow: inset 0 0 0 1px #246b49;
-  color: #185c3c;
+  border-color: var(--color-palette-hex-246b49);
+  background: var(--color-palette-hex-edf7f2);
+  box-shadow: inset 0 0 0 1px var(--color-palette-hex-246b49);
+  color: var(--color-palette-hex-185c3c);
 }
 
 .resourceCollectionContent {

@@ -363,16 +363,6 @@
     grid-column: auto;
   }
 
-  .errorBox {
-    margin-left: 16px;
-    margin-right: 16px;
-  }
-
-  .dialogBackdrop {
-    align-items: stretch;
-    padding: 10px;
-  }
-
   .issueDialog {
     max-height: calc(100dvh - 20px);
   }

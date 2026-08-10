@@ -11,7 +11,7 @@ import {
   Save,
   Scale,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   addDocumentObservation,
@@ -44,6 +44,11 @@ import {
   ResourceCollectionsShell,
 } from "../shared/ResourceCollections/index.jsx";
 import { useResourceCollections } from "../shared/useResourceCollections.js";
+import {
+  createEmptyDocumentDraft,
+  documentStatusLabel,
+  normalizeDocumentDraft,
+} from "./knowledgeModel.js";
 
 const DOCUMENT_TYPES = Object.freeze({
   "business-rule": {
@@ -138,57 +143,192 @@ const TABS = [
   ["history", "Histórico"],
 ];
 
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function emptyDraft(documentType, collectionId = "") {
-  const config = DOCUMENT_TYPES[documentType];
-  return {
-    id: "",
-    documentType,
-    title: "",
-    summary: "",
-    markdown: config.template,
-    applicationId: "",
-    affectedComponentIds: [],
-    collectionId,
-    status: config.defaultStatus,
-    details: { ...config.details },
-    source: { mode: "native", repositoryId: "", path: "" },
-    references: [],
-    definedAt: today(),
-    lastReviewedAt: "",
-    nextReviewAt: "",
-  };
+  return createEmptyDocumentDraft(DOCUMENT_TYPES, documentType, collectionId);
 }
 
 function normalizedDraft(record = {}) {
-  const documentType = record.documentType || "business-rule";
-  return {
-    ...emptyDraft(documentType),
-    ...record,
-    details: {
-      ...DOCUMENT_TYPES[documentType].details,
-      ...(record.details || {}),
-    },
-    source: {
-      mode: "native",
-      repositoryId: "",
-      path: "",
-      ...(record.source || {}),
-    },
-    affectedComponentIds: record.affectedComponentIds || [],
-    references: record.references || [],
-  };
+  return normalizeDocumentDraft(DOCUMENT_TYPES, record);
 }
 
 function statusLabel(document) {
+  return documentStatusLabel(DOCUMENT_TYPES, document);
+}
+
+function guidelineScope(draft, context) {
+  if (!context.applicationId) return "workspace";
+  if (context.affectedComponentIds?.length) return "component";
+  return draft.details.scope === "workspace"
+    ? "application"
+    : draft.details.scope;
+}
+
+function KnowledgeRecordCard({ canArchive, onArchive, onOpen, record }) {
+  const config = DOCUMENT_TYPES[record.documentType];
+  const TypeIcon = config?.icon || FileText;
   return (
-    DOCUMENT_TYPES[document.documentType]?.statuses.find(
-      ([value]) => value === document.status,
-    )?.[1] || document.status
+    <article className="procedureCard draggableProcedureCard">
+      <header>
+        <div>
+          <GripVertical size={15} />
+          <TypeIcon size={18} />
+          <h2>{record.title}</h2>
+        </div>
+        <div>
+          <button
+            className="iconButton"
+            onClick={() => onOpen(record)}
+            title="Visualizar"
+            type="button"
+          >
+            <Eye size={16} />
+          </button>
+          {canArchive ? (
+            <button
+              className="iconButton dangerIconButton"
+              onClick={() => onArchive(record)}
+              title="Arquivar"
+              type="button"
+            >
+              <Archive size={16} />
+            </button>
+          ) : null}
+        </div>
+      </header>
+      <span className={`documentTypeBadge documentType-${record.documentType}`}>
+        {config?.label || record.documentType}
+      </span>
+      <p>{record.summary}</p>
+      <p className="procedureCardSummary">
+        {statusLabel(record)} · definida em{" "}
+        {record.definedAt || "data não informada"}
+      </p>
+    </article>
   );
+}
+
+function KnowledgeRecordHeader({
+  canArchive,
+  canUpdate,
+  config,
+  draft,
+  onArchive,
+  onSave,
+  saving,
+}) {
+  return (
+    <header className="knowledgeRecordHeader">
+      <div className="knowledgeRecordTitle">
+        <BookMarked size={20} />
+        <div>
+          <span
+            className={`documentTypeBadge documentType-${draft.documentType}`}
+          >
+            {config.label}
+          </span>
+          <h2>{draft.title || config.label}</h2>
+        </div>
+      </div>
+      <div className="knowledgeRecordActions">
+        {draft.id && canArchive ? (
+          <button className="secondaryButton" onClick={onArchive} type="button">
+            <Archive size={16} /> Arquivar
+          </button>
+        ) : null}
+        {canUpdate ? (
+          <button
+            className="primaryButton"
+            disabled={saving}
+            onClick={() => onSave()}
+            type="button"
+          >
+            <Save size={16} /> {saving ? "Salvando..." : "Salvar"}
+          </button>
+        ) : null}
+      </div>
+    </header>
+  );
+}
+
+function KnowledgeRecordTabs({ documentId, onSelect, tab }) {
+  const visibleTabs = documentId
+    ? TABS
+    : TABS.filter(
+        ([key]) => !["observations", "revisions", "history"].includes(key),
+      );
+  return (
+    <nav
+      className="detailTabs knowledgeRecordTabs"
+      aria-label="Detalhes do documento"
+    >
+      {visibleTabs.map(([key, label]) => (
+        <button
+          className={tab === key ? "detailTab activeDetailTab" : "detailTab"}
+          key={key}
+          onClick={() => onSelect(key)}
+          type="button"
+        >
+          {label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+function KnowledgeCollectionDialog({ collectionsState }) {
+  if (!collectionsState.collectionDialog) return null;
+  async function save(name) {
+    await collectionsState.saveCollection(name);
+    collectionsState.setCollectionDialog(null);
+  }
+  return (
+    <ResourceCollectionDialog
+      collection={collectionsState.collectionDialog}
+      onClose={() => collectionsState.setCollectionDialog(null)}
+      onSave={save}
+      resourceLabel="documentos"
+    />
+  );
+}
+
+function KnowledgeRecordList({
+  canArchive,
+  loading,
+  onArchive,
+  onOpen,
+  records,
+}) {
+  return (
+    <section className="resourceCollectionContent">
+      {loading ? (
+        <div className="loadingLine">Carregando documentos...</div>
+      ) : null}
+      {!loading && !records.length ? (
+        <IllustratedEmptyState
+          description="Crie o primeiro documento para registrar conhecimento governado do workspace."
+          icon={BookMarked}
+          title="Nenhum documento encontrado"
+        />
+      ) : null}
+      <div className="procedureCards">
+        {records.map((record) => (
+          <KnowledgeRecordCard
+            canArchive={canArchive}
+            key={record.id}
+            onArchive={onArchive}
+            onOpen={onOpen}
+            record={record}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ImmutableTypeHint({ documentId }) {
+  return documentId ? (
+    <small>O tipo é imutável depois que o documento é criado.</small>
+  ) : null;
 }
 
 export function KnowledgeRecordsView({ actor }) {
@@ -212,6 +352,8 @@ export function KnowledgeRecordsView({ actor }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [searchActive, setSearchActive] = useState(false);
+  const loadVersionRef = useRef(0);
+  const mountedRef = useRef(true);
   const collectionsState = useResourceCollections("documents", {
     onError: setError,
     onMoved: () => load(),
@@ -223,6 +365,8 @@ export function KnowledgeRecordsView({ actor }) {
     componentValue = componentFilter,
     typeValue = typeFilter,
   ) {
+    const loadVersion = loadVersionRef.current + 1;
+    loadVersionRef.current = loadVersion;
     setLoading(true);
     setError("");
     try {
@@ -233,6 +377,7 @@ export function KnowledgeRecordsView({ actor }) {
         componentId: componentValue,
         limit: 100,
       });
+      if (!mountedRef.current || loadVersion !== loadVersionRef.current) return;
       const loaded = payload.items || [];
       setItems(loaded);
       const filtered = Boolean(
@@ -241,11 +386,22 @@ export function KnowledgeRecordsView({ actor }) {
       if (!filtered) setOrganizationItems(loaded);
       setSearchActive(filtered);
     } catch (loadError) {
-      setError(loadError.message);
+      if (mountedRef.current && loadVersion === loadVersionRef.current) {
+        setError(loadError.message);
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current && loadVersion === loadVersionRef.current) {
+        setLoading(false);
+      }
     }
   }
+
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    [],
+  );
 
   useEffect(() => {
     void load("", "", "", typeFilter);
@@ -383,7 +539,11 @@ export function KnowledgeRecordsView({ actor }) {
           </button>
         </div>
       </div>
-      {error ? <div className="errorBox">{error}</div> : null}
+      {error ? (
+        <div className="errorBox" role="alert">
+          {error}
+        </div>
+      ) : null}
       <ResourceCollectionsShell
         collections={collectionsState.collections}
         detailVisible={Boolean(draft)}
@@ -472,81 +632,16 @@ export function KnowledgeRecordsView({ actor }) {
             saving={saving}
           />
         ) : (
-          <section className="resourceCollectionContent">
-            {loading ? (
-              <div className="loadingLine">Carregando documentos...</div>
-            ) : null}
-            {!loading && !visibleItems.length ? (
-              <IllustratedEmptyState
-                description="Crie o primeiro documento para registrar conhecimento governado do workspace."
-                icon={BookMarked}
-                title="Nenhum documento encontrado"
-              />
-            ) : null}
-            <div className="procedureCards">
-              {visibleItems.map((record) => {
-                const config = DOCUMENT_TYPES[record.documentType];
-                const TypeIcon = config?.icon || FileText;
-                return (
-                  <article
-                    className="procedureCard draggableProcedureCard"
-                    key={record.id}
-                  >
-                    <header>
-                      <div>
-                        <GripVertical size={15} />
-                        <TypeIcon size={18} />
-                        <h2>{record.title}</h2>
-                      </div>
-                      <div>
-                        <button
-                          className="iconButton"
-                          onClick={() => openRecord(record)}
-                          title="Visualizar"
-                          type="button"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        {canArchive ? (
-                          <button
-                            className="iconButton dangerIconButton"
-                            onClick={() => archive(record)}
-                            title="Arquivar"
-                            type="button"
-                          >
-                            <Archive size={16} />
-                          </button>
-                        ) : null}
-                      </div>
-                    </header>
-                    <span
-                      className={`documentTypeBadge documentType-${record.documentType}`}
-                    >
-                      {config?.label || record.documentType}
-                    </span>
-                    <p>{record.summary}</p>
-                    <p className="procedureCardSummary">
-                      {statusLabel(record)} · definida em{" "}
-                      {record.definedAt || "data não informada"}
-                    </p>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
+          <KnowledgeRecordList
+            canArchive={canArchive}
+            loading={loading}
+            onArchive={archive}
+            onOpen={openRecord}
+            records={visibleItems}
+          />
         )}
       </ResourceCollectionsShell>
-      {collectionsState.collectionDialog ? (
-        <ResourceCollectionDialog
-          collection={collectionsState.collectionDialog}
-          onClose={() => collectionsState.setCollectionDialog(null)}
-          onSave={async (name) => {
-            await collectionsState.saveCollection(name);
-            collectionsState.setCollectionDialog(null);
-          }}
-          resourceLabel="documentos"
-        />
-      ) : null}
+      <KnowledgeCollectionDialog collectionsState={collectionsState} />
     </section>
   );
 }
@@ -571,23 +666,43 @@ function DocumentDetail({
 
   useEffect(() => {
     if (!draft.id) return;
+    let active = true;
     Promise.all([
       fetchDocumentObservations(draft.id),
       fetchDocumentRevisions(draft.id),
-    ]).then(([observationPayload, revisionPayload]) => {
-      setObservations(observationPayload.items || []);
-      setRevisions(revisionPayload.items || []);
-    });
+    ])
+      .then(([observationPayload, revisionPayload]) => {
+        if (!active) return;
+        setObservations(observationPayload.items || []);
+        setRevisions(revisionPayload.items || []);
+      })
+      .catch(() => {
+        if (active) {
+          setObservations([]);
+          setRevisions([]);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, [draft.id, refreshKey]);
 
   useEffect(() => {
+    let active = true;
     fetchDocuments({ limit: 100 })
       .then((payload) =>
-        setReferenceOptions(
-          (payload.items || []).filter(({ id }) => id !== draft.id),
-        ),
+        active
+          ? setReferenceOptions(
+              (payload.items || []).filter(({ id }) => id !== draft.id),
+            )
+          : undefined,
       )
-      .catch(() => setReferenceOptions([]));
+      .catch(() => {
+        if (active) setReferenceOptions([]);
+      });
+    return () => {
+      active = false;
+    };
   }, [draft.id]);
 
   function changeType(documentType) {
@@ -607,13 +722,7 @@ function DocumentDetail({
       onChange({ ...draft, ...context });
       return;
     }
-    const scope = !context.applicationId
-      ? "workspace"
-      : context.affectedComponentIds?.length
-        ? "component"
-        : draft.details.scope === "workspace"
-          ? "application"
-          : draft.details.scope;
+    const scope = guidelineScope(draft, context);
     onChange({
       ...draft,
       ...context,
@@ -623,58 +732,16 @@ function DocumentDetail({
 
   return (
     <section className="resourceCollectionContent knowledgeRecordDetail">
-      <header className="knowledgeRecordHeader">
-        <div className="knowledgeRecordTitle">
-          <BookMarked size={20} />
-          <div>
-            <span
-              className={`documentTypeBadge documentType-${draft.documentType}`}
-            >
-              {config.label}
-            </span>
-            <h2>{draft.title || config.label}</h2>
-          </div>
-        </div>
-        <div className="knowledgeRecordActions">
-          {draft.id && canArchive ? (
-            <button
-              className="secondaryButton"
-              onClick={onArchive}
-              type="button"
-            >
-              <Archive size={16} /> Arquivar
-            </button>
-          ) : null}
-          {canUpdate ? (
-            <button
-              className="primaryButton"
-              disabled={saving}
-              onClick={() => onSave()}
-              type="button"
-            >
-              <Save size={16} /> {saving ? "Salvando..." : "Salvar"}
-            </button>
-          ) : null}
-        </div>
-      </header>
-      <nav
-        className="detailTabs knowledgeRecordTabs"
-        aria-label="Detalhes do documento"
-      >
-        {TABS.filter(
-          ([key]) =>
-            draft.id || !["observations", "revisions", "history"].includes(key),
-        ).map(([key, label]) => (
-          <button
-            className={tab === key ? "detailTab activeDetailTab" : "detailTab"}
-            key={key}
-            onClick={() => setTab(key)}
-            type="button"
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+      <KnowledgeRecordHeader
+        canArchive={canArchive}
+        canUpdate={canUpdate}
+        config={config}
+        draft={draft}
+        onArchive={onArchive}
+        onSave={onSave}
+        saving={saving}
+      />
+      <KnowledgeRecordTabs documentId={draft.id} onSelect={setTab} tab={tab} />
       {tab === "overview" ? (
         <div className="dialogForm knowledgeRecordPanel">
           <label className="field">
@@ -730,9 +797,7 @@ function DocumentDetail({
               ))}
             </select>
           </label>
-          {draft.id ? (
-            <small>O tipo é imutável depois que o documento é criado.</small>
-          ) : null}
+          <ImmutableTypeHint documentId={draft.id} />
           <DocumentDetailsFields
             disabled={!canUpdate}
             draft={draft}

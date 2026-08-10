@@ -156,7 +156,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-24);
 }
 
 .requestNoteDialogHeader,

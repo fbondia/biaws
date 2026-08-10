@@ -80,6 +80,7 @@ export function PublishSkillDialog({ onClose, onPublished }) {
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
     >
       <section
+        aria-labelledby="publish-skill-dialog-title"
         aria-modal="true"
         className="skillDialog publishSkillDialog"
         role="dialog"
@@ -87,9 +88,10 @@ export function PublishSkillDialog({ onClose, onPublished }) {
         <header className="skillDialogHeader">
           <div>
             <span>Catálogo de skills</span>
-            <h2>Publicar nova versão</h2>
+            <h2 id="publish-skill-dialog-title">Publicar nova versão</h2>
           </div>
           <button
+            aria-label="Fechar publicação de skill"
             className="iconButton"
             onClick={onClose}
             title="Fechar"

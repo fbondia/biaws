@@ -110,7 +110,11 @@ export function AuthGate({ children }) {
               value={password}
             />
           </label>
-          {error ? <div className="authError">{error}</div> : null}
+          {error ? (
+            <div className="authError" role="alert">
+              {error}
+            </div>
+          ) : null}
           <button className="primaryButton" disabled={submitting} type="submit">
             {submitting ? "Entrando…" : "Entrar"}
           </button>

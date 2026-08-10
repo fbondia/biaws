@@ -1,5 +1,5 @@
 import { Check, Copy } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function SummaryTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -99,7 +99,10 @@ async function copySvgToClipboard(svgElement) {
 
 export function SummaryChartFrame({ children, className = "" }) {
   const chartRef = useRef(null);
+  const copyResetTimerRef = useRef(null);
   const [copyStatus, setCopyStatus] = useState("idle");
+
+  useEffect(() => () => window.clearTimeout(copyResetTimerRef.current), []);
 
   function findChartSvg() {
     const candidates = [...(chartRef.current?.querySelectorAll("svg") || [])]
@@ -134,7 +137,11 @@ export function SummaryChartFrame({ children, className = "" }) {
       console.error(error);
       setCopyStatus("failed");
     } finally {
-      window.setTimeout(() => setCopyStatus("idle"), 1800);
+      window.clearTimeout(copyResetTimerRef.current);
+      copyResetTimerRef.current = window.setTimeout(
+        () => setCopyStatus("idle"),
+        1800,
+      );
     }
   }
 

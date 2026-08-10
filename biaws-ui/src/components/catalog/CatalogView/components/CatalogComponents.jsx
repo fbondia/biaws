@@ -74,6 +74,7 @@ export function HeaderActions({
         </button>
       ) : null}
       <button
+        aria-label="Fechar detalhes da aplicação"
         className="secondaryButton catalogBackButton"
         onClick={onBack}
         type="button"

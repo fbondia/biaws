@@ -49,7 +49,9 @@ export function buildServerApplicationGroups({
       components: [...application.components.values()]
         .map((component) => ({
           ...component,
-          environments: [...component.environments].sort(),
+          environments: [...component.environments].sort((left, right) =>
+            left.localeCompare(right, "pt-BR"),
+          ),
         }))
         .sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
     }))

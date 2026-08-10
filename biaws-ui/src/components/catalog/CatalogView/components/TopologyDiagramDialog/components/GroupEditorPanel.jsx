@@ -10,6 +10,7 @@ export function GroupEditorPanel({ controller }) {
       <label className="field">
         <span>Título</span>
         <input
+          aria-describedby="topology-group-validation"
           aria-invalid={!selectedGroup.data.group.title.trim()}
           disabled={!canEdit}
           onChange={(event) =>
@@ -19,7 +20,11 @@ export function GroupEditorPanel({ controller }) {
         />
       </label>
       {!selectedGroup.data.group.title.trim() ? (
-        <small className="topologyDiagramGroupValidation">
+        <small
+          className="topologyDiagramGroupValidation"
+          id="topology-group-validation"
+          role="alert"
+        >
           Informe um título para salvar o diagrama.
         </small>
       ) : null}

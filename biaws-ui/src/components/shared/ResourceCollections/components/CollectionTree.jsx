@@ -16,6 +16,63 @@ import { descendantCollectionIds } from "../model.js";
 import { CollectionAddForm } from "./CollectionAddForm.jsx";
 import { CollectionItemNode } from "./CollectionItemNode.jsx";
 
+function CollectionRowActions({
+  addingSubcollection,
+  collection,
+  createAt,
+  onDelete,
+  onRename,
+  onToggleAdd,
+}) {
+  return (
+    <div className="procedureCollectionRowActions">
+      {createAt ? (
+        <button
+          aria-expanded={addingSubcollection}
+          aria-label={`Criar subcoleção em ${collection.name}`}
+          className={
+            addingSubcollection
+              ? "resourceCollectionActionButton activeCollectionAction"
+              : "resourceCollectionActionButton"
+          }
+          onClick={onToggleAdd}
+          title="Criar subcoleção"
+          type="button"
+        >
+          <FolderPlus size={13} />
+        </button>
+      ) : null}
+      {onRename ? (
+        <button
+          aria-label={`Editar coleção ${collection.name}`}
+          className="resourceCollectionActionButton"
+          onClick={() => onRename(collection)}
+          title="Editar coleção"
+          type="button"
+        >
+          <Pencil size={13} />
+        </button>
+      ) : null}
+      {onDelete ? (
+        <button
+          aria-label={`Excluir coleção ${collection.name}`}
+          className="resourceCollectionActionButton"
+          onClick={() => onDelete(collection)}
+          title="Excluir coleção vazia"
+          type="button"
+        >
+          <Trash2 size={13} />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function CollectionExpandIcon({ expanded, hasContents }) {
+  if (!hasContents) return <span />;
+  return expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />;
+}
+
 function CollectionTreeNode({
   addingParentId,
   canDragItem,
@@ -140,15 +197,7 @@ function CollectionTreeNode({
           onClick={() => onToggle(collection.id)}
           type="button"
         >
-          {hasContents ? (
-            expanded ? (
-              <ChevronDown size={14} />
-            ) : (
-              <ChevronRight size={14} />
-            )
-          ) : (
-            <span />
-          )}
+          <CollectionExpandIcon expanded={expanded} hasContents={hasContents} />
         </button>
         <button
           className="resourceCollectionSelectButton"
@@ -168,48 +217,16 @@ function CollectionTreeNode({
           {/*<small>{itemCounts[collection.id] || 0}</small>*/}
         </button>
 
-        {selectedCollectionId === collection.id && (
-          <div className="procedureCollectionRowActions">
-            {createAt ? (
-              <button
-                aria-expanded={addingSubcollection}
-                aria-label={`Criar subcoleção em ${collection.name}`}
-                className={
-                  addingSubcollection
-                    ? "resourceCollectionActionButton activeCollectionAction"
-                    : "resourceCollectionActionButton"
-                }
-                onClick={toggleSubcollectionForm}
-                title="Criar subcoleção"
-                type="button"
-              >
-                <FolderPlus size={13} />
-              </button>
-            ) : null}
-            {onRename ? (
-              <button
-                aria-label={`Editar coleção ${collection.name}`}
-                className="resourceCollectionActionButton"
-                onClick={() => onRename(collection)}
-                title="Editar coleção"
-                type="button"
-              >
-                <Pencil size={13} />
-              </button>
-            ) : null}
-            {onDelete ? (
-              <button
-                aria-label={`Excluir coleção ${collection.name}`}
-                className="resourceCollectionActionButton"
-                onClick={() => onDelete(collection)}
-                title="Excluir coleção vazia"
-                type="button"
-              >
-                <Trash2 size={13} />
-              </button>
-            ) : null}
-          </div>
-        )}
+        {selectedCollectionId === collection.id ? (
+          <CollectionRowActions
+            addingSubcollection={addingSubcollection}
+            collection={collection}
+            createAt={createAt}
+            onDelete={onDelete}
+            onRename={onRename}
+            onToggleAdd={toggleSubcollectionForm}
+          />
+        ) : null}
       </div>
 
       {addingSubcollection ? (

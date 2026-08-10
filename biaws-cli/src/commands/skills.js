@@ -142,6 +142,43 @@ async function installSkill(api, positional, options) {
   }
 }
 
+async function installCatalogSkill(api, item, lock, options, results) {
+  const localSkill = lock.skills[item.skillId];
+  if (localSkill && !options.force) {
+    results.skipped.push({
+      skillId: item.skillId,
+      version: localSkill.version,
+      reason: "already-installed",
+    });
+    return;
+  }
+
+  try {
+    const result = await install(api, item.skillId, item.latestVersion, {
+      ...options,
+      force: Boolean(localSkill),
+    });
+    results.installed.push({
+      skillId: item.skillId,
+      version: result.skill.version,
+      directory: result.directory,
+    });
+  } catch (error) {
+    results.failed.push({ skillId: item.skillId, message: error.message });
+  }
+}
+
+function printInstallAllResults(results) {
+  for (const item of results.installed)
+    console.log(
+      `Instalada ${item.skillId}@${item.version} em ${item.directory}`,
+    );
+  for (const item of results.skipped)
+    console.log(`Preservada ${item.skillId}@${item.version}`);
+  for (const item of results.failed)
+    console.error(`Falha em ${item.skillId}: ${item.message}`);
+}
+
 async function installAllSkills(api, _positional, options) {
   const [catalog, lock] = await Promise.all([
     api.list(),
@@ -149,42 +186,13 @@ async function installAllSkills(api, _positional, options) {
   ]);
   const results = { installed: [], skipped: [], failed: [] };
   for (const item of catalog.items) {
-    if (lock.skills[item.skillId] && !options.force) {
-      results.skipped.push({
-        skillId: item.skillId,
-        version: lock.skills[item.skillId].version,
-        reason: "already-installed",
-      });
-      continue;
-    }
-    try {
-      const result = await install(api, item.skillId, item.latestVersion, {
-        ...options,
-        force: Boolean(lock.skills[item.skillId]),
-      });
-      results.installed.push({
-        skillId: item.skillId,
-        version: result.skill.version,
-        directory: result.directory,
-      });
-    } catch (error) {
-      results.failed.push({ skillId: item.skillId, message: error.message });
-    }
+    await installCatalogSkill(api, item, lock, options, results);
   }
   if (printJson(results, options)) {
     if (results.failed.length) process.exitCode = 1;
     return results;
   }
-  if (!options.quiet) {
-    for (const item of results.installed)
-      console.log(
-        `Instalada ${item.skillId}@${item.version} em ${item.directory}`,
-      );
-    for (const item of results.skipped)
-      console.log(`Preservada ${item.skillId}@${item.version}`);
-    for (const item of results.failed)
-      console.error(`Falha em ${item.skillId}: ${item.message}`);
-  }
+  if (!options.quiet) printInstallAllResults(results);
   if (results.failed.length) process.exitCode = 1;
   return results;
 }

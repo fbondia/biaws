@@ -4,7 +4,7 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { buildSkillPayload } from "../../../biaws-cli/src/skillPackage.js";
+import { buildSkillPayload } from "../../../shared/skillPackage.js";
 import { closeMongoClient } from "../helpers/mongoClient.js";
 import {
   ensureDefaultWorkspace,

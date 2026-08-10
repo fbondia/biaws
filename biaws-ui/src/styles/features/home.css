@@ -4,10 +4,14 @@
   background:
     radial-gradient(
       circle at 12% 0%,
-      rgba(55, 111, 180, 0.09),
+      var(--color-palette-rgb-55-111-180-0-09),
       transparent 28%
     ),
-    linear-gradient(180deg, #f8fafc 0%, var(--color-background) 360px);
+    linear-gradient(
+      180deg,
+      var(--color-palette-hex-f8fafc) 0%,
+      var(--color-background) 360px
+    );
 }
 
 .homeHero {
@@ -68,8 +72,8 @@
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  background: var(--color-palette-rgb-255-255-255-0-94);
+  box-shadow: 0 8px 28px var(--color-palette-rgb-15-23-42-0-06);
   transition:
     border-color 140ms ease,
     box-shadow 140ms ease,
@@ -96,7 +100,7 @@
 .homeWidgetDragging {
   border-color: var(--color-focus);
   opacity: 0.55;
-  box-shadow: 0 12px 32px rgba(32, 91, 159, 0.18);
+  box-shadow: 0 12px 32px var(--color-palette-rgb-32-91-159-0-18);
 }
 
 .homeWidget > header {
@@ -270,7 +274,11 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #3c78b7, #79a9d6);
+  background: linear-gradient(
+    90deg,
+    var(--color-palette-hex-3c78b7),
+    var(--color-palette-hex-79a9d6)
+  );
 }
 
 .homeTasksWidget,
@@ -342,14 +350,14 @@
   height: 30px;
   min-height: 30px;
   border-color: var(--color-accent-border);
-  background: #f0f6ff;
+  background: var(--color-palette-hex-f0f6ff);
   color: var(--color-accent-text);
   padding: 0;
 }
 
 .secondaryButton.homeTaskOpenButton:hover:not(:disabled) {
   border-color: var(--color-focus);
-  background: #eaf2ff;
+  background: var(--color-palette-hex-eaf2ff);
 }
 
 .secondaryButton.homeTaskOpenButton > svg {
@@ -362,14 +370,14 @@
 .secondaryButton.homeTasksLoadMore {
   width: 100%;
   border-color: var(--color-accent-border);
-  background: #f0f6ff;
+  background: var(--color-palette-hex-f0f6ff);
   color: var(--color-accent-text);
   font-weight: 600;
 }
 
 .secondaryButton.homeTasksLoadMore:hover:not(:disabled) {
   border-color: var(--color-focus);
-  background: #eaf2ff;
+  background: var(--color-palette-hex-eaf2ff);
 }
 
 .secondaryButton.homeTasksLoadMore > span {
@@ -378,7 +386,7 @@
 }
 
 .homeTasksLoadMoreError {
-  color: #9b1c1c;
+  color: var(--color-palette-hex-9b1c1c);
   font-size: 0.78rem;
 }
 
@@ -465,7 +473,7 @@
 
 .homeHealthDeployments > section > header {
   padding: 7px 9px;
-  background: #fbfcfe;
+  background: var(--color-palette-hex-fbfcfe);
   font-size: 0.76rem;
 }
 
@@ -557,7 +565,7 @@
 .homeHealthApplicationTabs button.isActive {
   border-color: var(--color-primary);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-palette-hex-fff);
   font-weight: 700;
 }
 
@@ -580,8 +588,8 @@
 
 .homeHealthRuntimeAlertBadge {
   border-radius: 999px;
-  background: #fff1f1;
-  color: #8f1d1d;
+  background: var(--color-palette-hex-fff1f1);
+  color: var(--color-palette-hex-8f1d1d);
   padding: 2px 5px;
   font-size: 0.58rem;
   font-weight: 800;
@@ -666,7 +674,7 @@
   margin: 20px auto;
   border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--color-palette-rgb-255-255-255-0-7);
   color: var(--color-text-subtle);
   text-align: center;
 }
@@ -684,7 +692,7 @@
   position: fixed;
   z-index: 95;
   inset: 0;
-  background: rgba(15, 23, 42, 0.28);
+  background: var(--color-palette-rgb-15-23-42-0-28);
 }
 
 .homeWidgetCatalog {
@@ -696,7 +704,7 @@
   height: 100dvh;
   flex-direction: column;
   background: var(--color-surface);
-  box-shadow: -16px 0 48px rgba(15, 23, 42, 0.18);
+  box-shadow: -16px 0 48px var(--color-palette-rgb-15-23-42-0-18);
 }
 
 .homeWidgetCatalog > header,
@@ -784,7 +792,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24);
+  box-shadow: 0 24px 64px var(--color-palette-rgb-15-23-42-0-24);
 }
 
 .homeMonitoringDialog > header {
@@ -895,7 +903,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24);
+  box-shadow: 0 24px 64px var(--color-palette-rgb-15-23-42-0-24);
 }
 
 .homeConfigurationFields {

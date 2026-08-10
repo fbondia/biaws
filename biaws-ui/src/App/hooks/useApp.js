@@ -24,6 +24,26 @@ import {
   NAVIGATION_GROUPS,
 } from "../model.js";
 
+function allowedNavigationView(actor) {
+  return ({ permission }) => !permission || hasPermission(actor, permission);
+}
+
+function navigationSection(actor, section) {
+  return {
+    ...section,
+    views: section.views.filter(allowedNavigationView(actor)),
+  };
+}
+
+function navigationGroup(actor, group) {
+  return {
+    ...group,
+    sections: group.sections
+      .map((section) => navigationSection(actor, section))
+      .filter(({ views }) => views.length),
+  };
+}
+
 export function useApp(actor) {
   const [activeView, setActiveView] = useState(() => {
     if (
@@ -75,17 +95,9 @@ export function useApp(actor) {
   );
   const availableNavigationGroups = useMemo(() => {
     if (!actor.workspaceId) return [];
-    return NAVIGATION_GROUPS.map((group) => ({
-      ...group,
-      sections: group.sections
-        .map((section) => ({
-          ...section,
-          views: section.views.filter(
-            ({ permission }) => !permission || hasPermission(actor, permission),
-          ),
-        }))
-        .filter(({ views }) => views.length),
-    })).filter(({ sections }) => sections.length);
+    return NAVIGATION_GROUPS.map((group) =>
+      navigationGroup(actor, group),
+    ).filter(({ sections }) => sections.length);
   }, [actor]);
   const params = useMemo(
     () =>

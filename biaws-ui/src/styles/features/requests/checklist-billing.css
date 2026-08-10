@@ -1,11 +1,11 @@
 .dangerIconButton {
-  border-color: #fecdca;
-  background: #fff5f5;
-  color: #b42318;
+  border-color: var(--color-palette-hex-fecdca);
+  background: var(--color-palette-hex-fff5f5);
+  color: var(--color-palette-hex-b42318);
 }
 
 .dangerIconButton:hover {
-  background: #fee4e2;
+  background: var(--color-palette-hex-fee4e2);
 }
 
 .requestDeleteActions {
@@ -71,7 +71,7 @@
 }
 
 .requestChecklistStatus input:checked + svg {
-  color: #246b49;
+  color: var(--color-palette-hex-246b49);
 }
 
 .requestChecklistStatus strong {
@@ -90,7 +90,7 @@
 }
 
 .completedChecklistStatus svg {
-  color: #246b49;
+  color: var(--color-palette-hex-246b49);
 }
 
 .requestChecklistDialog {
@@ -100,7 +100,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-24);
   padding: 16px;
 }
 
@@ -215,7 +215,7 @@
 }
 
 .requestBillingJourneys strong {
-  color: #d92e2e;
+  color: var(--color-palette-hex-d92e2e);
   font-size: 15px;
 }
 .requestBillingComment textarea {

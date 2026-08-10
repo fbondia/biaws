@@ -180,6 +180,114 @@ function HistoryItems({ empty, items, renderItem }) {
   );
 }
 
+function EntityFieldGroup({ active, children }) {
+  if (!active) return null;
+  return children;
+}
+
+function catalogEntitySections(kind) {
+  if (kind === "deployment")
+    return [
+      ["basic", "Dados básicos"],
+      ["publications", "Publicações"],
+    ];
+  if (kind === "runtime")
+    return [
+      ["basic", "Dados básicos"],
+      ["service", "Serviço"],
+      ["monitoring", "Monitoramento"],
+      ["procedure", "Procedimento"],
+    ];
+  return [];
+}
+
+function runtimeSignalUrl(runtimePath) {
+  if (!runtimePath) return "";
+  return buildUrl(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimePath)}/signals`,
+  ).toString();
+}
+
+function catalogDialogKicker(editing, label) {
+  return editing ? `Editar ${label}` : `Novo ${label}`;
+}
+
+function CatalogEntityFooter({ error, onClose, saving }) {
+  return (
+    <>
+      {error ? <div className="errorBox">{error}</div> : null}
+      <footer>
+        <button
+          className="secondaryButton"
+          disabled={saving}
+          onClick={onClose}
+          type="button"
+        >
+          Cancelar
+        </button>
+        <button className="primaryButton" disabled={saving} type="submit">
+          <Save size={16} />
+          {saving ? "Salvando..." : "Salvar"}
+        </button>
+      </footer>
+    </>
+  );
+}
+
+function CatalogEntityOverlays({
+  options,
+  onConfirmProcedures,
+  runtimeComponent,
+  selectedProcedure,
+  setProcedureSelectorOpen,
+  setSelectedProcedure,
+  procedureSelectorOpen,
+  selectedIds,
+}) {
+  return (
+    <>
+      {procedureSelectorOpen ? (
+        <RuntimeProcedureSelectorDialog
+          applicationId={options.application?.id}
+          componentId={runtimeComponent?.id}
+          onClose={() => setProcedureSelectorOpen(false)}
+          onConfirm={onConfirmProcedures}
+          selectedIds={selectedIds}
+        />
+      ) : null}
+      {selectedProcedure ? (
+        <RuntimeProcedureDetailsDialog
+          application={options.application}
+          applications={options.applications}
+          components={options.components}
+          onClose={() => setSelectedProcedure(null)}
+          procedure={selectedProcedure}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function RuntimeMonitoringSummary({ monitoring }) {
+  return (
+    <div className="catalogMonitoringSummary">
+      <strong>Linha do tempo de monitoramento</strong>
+      <span>
+        Sinais externos e observações manuais aparecem juntos, com a origem
+        identificada em cada registro.
+      </span>
+      {monitoring ? (
+        <small>
+          Último sinal externo: {monitoring.status} ·{" "}
+          {formatDate(monitoring.observedAt)} · {monitoring.source}
+        </small>
+      ) : (
+        <small>Nenhum sinal externo recebido.</small>
+      )}
+    </div>
+  );
+}
+
 export function CatalogEntityDialog({
   entity,
   kind,
@@ -226,30 +334,13 @@ export function CatalogEntityDialog({
     deployment: runtimeDeployment,
     runtime: entity,
   });
-  const monitoringUrl = runtimePath
-    ? buildUrl(
-        `/api/monitoring/runtimes/${encodeURIComponent(runtimePath)}/signals`,
-      ).toString()
-    : "";
+  const monitoringUrl = runtimeSignalUrl(runtimePath);
   const curlExample = monitoringSignalCurl({
     apiUrl: monitoringUrl,
     runtimeReference: runtimePath,
     workspaceId: options.workspace?.id,
   });
-  const sections =
-    kind === "deployment"
-      ? [
-          ["basic", "Dados básicos"],
-          ["publications", "Publicações"],
-        ]
-      : kind === "runtime"
-        ? [
-            ["basic", "Dados básicos"],
-            ["service", "Serviço"],
-            ["monitoring", "Monitoramento"],
-            ["procedure", "Procedimento"],
-          ]
-        : [];
+  const sections = catalogEntitySections(kind);
 
   useEffect(() => {
     if (kind !== "runtime" || !entity?.id) return;
@@ -389,7 +480,7 @@ export function CatalogEntityDialog({
       >
         <header>
           <div>
-            <span>{editing ? `Editar ${label}` : `Novo ${label}`}</span>
+            <span>{catalogDialogKicker(editing, label)}</span>
             <h2 id="catalog-entity-dialog-title">
               {draft.name || `Novo ${label}`}
             </h2>
@@ -405,7 +496,7 @@ export function CatalogEntityDialog({
           </button>
         </header>
         <form onSubmit={submit}>
-          {sections.length ? (
+          <EntityFieldGroup active={Boolean(sections.length)}>
             <div className="catalogEntityTabs" role="tablist">
               {sections.map(([key, title]) => (
                 <button
@@ -425,9 +516,11 @@ export function CatalogEntityDialog({
                 </button>
               ))}
             </div>
-          ) : null}
+          </EntityFieldGroup>
           <div className="catalogFormGrid">
-            {!sections.length || activeSection === "basic" ? (
+            <EntityFieldGroup
+              active={!sections.length || activeSection === "basic"}
+            >
               <TextField
                 label="Identificador"
                 name="key"
@@ -436,9 +529,13 @@ export function CatalogEntityDialog({
                 required
                 value={draft.key}
               />
-            ) : null}
-            {kind !== "repository" &&
-            (!sections.length || activeSection === "basic") ? (
+            </EntityFieldGroup>
+            <EntityFieldGroup
+              active={
+                kind !== "repository" &&
+                (!sections.length || activeSection === "basic")
+              }
+            >
               <TextField
                 label="Nome"
                 name="name"
@@ -446,9 +543,9 @@ export function CatalogEntityDialog({
                 required
                 value={draft.name}
               />
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "application" ? (
+            <EntityFieldGroup active={kind === "application"}>
               <>
                 <TextField
                   label="Equipe responsável"
@@ -469,9 +566,9 @@ export function CatalogEntityDialog({
                   value={draft.tagsText}
                 />
               </>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "component" ? (
+            <EntityFieldGroup active={kind === "component"}>
               <>
                 <SelectField
                   label="Tipo"
@@ -504,9 +601,9 @@ export function CatalogEntityDialog({
                   value={draft.dependencyIds}
                 />
               </>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "integration" ? (
+            <EntityFieldGroup active={kind === "integration"}>
               <>
                 {!editing ? (
                   <SelectField
@@ -536,9 +633,9 @@ export function CatalogEntityDialog({
                   />
                 )}
               </>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "repository" ? (
+            <EntityFieldGroup active={kind === "repository"}>
               <div className="catalogRepositoryForm">
                 <TextField
                   className="catalogRepositoryPrimaryField"
@@ -581,9 +678,9 @@ export function CatalogEntityDialog({
                   value={draft.organization}
                 />
               </div>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "server" ? (
+            <EntityFieldGroup active={kind === "server"}>
               <>
                 <TextField
                   label="Hostname"
@@ -640,9 +737,11 @@ export function CatalogEntityDialog({
                   />
                 </label>
               </>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "deployment" && activeSection === "basic" ? (
+            <EntityFieldGroup
+              active={kind === "deployment" && activeSection === "basic"}
+            >
               <>
                 {!editing ? (
                   <SelectField
@@ -684,9 +783,11 @@ export function CatalogEntityDialog({
                   value={draft.status}
                 />
               </>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "deployment" && activeSection === "publications" ? (
+            <EntityFieldGroup
+              active={kind === "deployment" && activeSection === "publications"}
+            >
               <div className="catalogHistorySection catalogWideField">
                 <div className="catalogHistoryComposer">
                   <TextField
@@ -794,9 +895,11 @@ export function CatalogEntityDialog({
                   )}
                 />
               </div>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "runtime" && activeSection === "basic" ? (
+            <EntityFieldGroup
+              active={kind === "runtime" && activeSection === "basic"}
+            >
               <>
                 <SelectField
                   label="Tipo"
@@ -825,9 +928,11 @@ export function CatalogEntityDialog({
                   value={draft.status}
                 />
               </>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "runtime" && activeSection === "service" ? (
+            <EntityFieldGroup
+              active={kind === "runtime" && activeSection === "service"}
+            >
               <>
                 <TextField
                   label="Endpoint"
@@ -866,26 +971,13 @@ export function CatalogEntityDialog({
                   />
                 </label>
               </>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "runtime" && activeSection === "monitoring" ? (
+            <EntityFieldGroup
+              active={kind === "runtime" && activeSection === "monitoring"}
+            >
               <div className="catalogHistorySection catalogWideField">
-                <div className="catalogMonitoringSummary">
-                  <strong>Linha do tempo de monitoramento</strong>
-                  <span>
-                    Sinais externos e observações manuais aparecem juntos, com a
-                    origem identificada em cada registro.
-                  </span>
-                  {entity?.monitoring ? (
-                    <small>
-                      Último sinal externo: {entity.monitoring.status} ·{" "}
-                      {formatDate(entity.monitoring.observedAt)} ·{" "}
-                      {entity.monitoring.source}
-                    </small>
-                  ) : (
-                    <small>Nenhum sinal externo recebido.</small>
-                  )}
-                </div>
+                <RuntimeMonitoringSummary monitoring={entity?.monitoring} />
                 <div className="catalogMonitoringInstructions">
                   <h3>Referência do runtime</h3>
                   <p>
@@ -1034,9 +1126,11 @@ export function CatalogEntityDialog({
                   )}
                 />
               </div>
-            ) : null}
+            </EntityFieldGroup>
 
-            {kind === "runtime" && activeSection === "procedure" ? (
+            <EntityFieldGroup
+              active={kind === "runtime" && activeSection === "procedure"}
+            >
               <>
                 {options.canReadProcedures ? (
                   <div className="catalogWideField runtimeProcedureSection">
@@ -1098,15 +1192,17 @@ export function CatalogEntityDialog({
                   </small>
                 </label>
               </>
-            ) : null}
+            </EntityFieldGroup>
 
-            {[
-              "application",
-              "component",
-              "integration",
-              "repository",
-              "server",
-            ].includes(kind) ? (
+            <EntityFieldGroup
+              active={[
+                "application",
+                "component",
+                "integration",
+                "repository",
+                "server",
+              ].includes(kind)}
+            >
               <label className="field catalogWideField">
                 <span>Descrição</span>
                 <textarea
@@ -1117,46 +1213,28 @@ export function CatalogEntityDialog({
                   value={draft.description || ""}
                 />
               </label>
-            ) : null}
+            </EntityFieldGroup>
           </div>
-          {error ? <div className="errorBox">{error}</div> : null}
-          <footer>
-            <button
-              className="secondaryButton"
-              disabled={saving}
-              onClick={onClose}
-              type="button"
-            >
-              Cancelar
-            </button>
-            <button className="primaryButton" disabled={saving} type="submit">
-              <Save size={16} />
-              {saving ? "Salvando..." : "Salvar"}
-            </button>
-          </footer>
+          <CatalogEntityFooter
+            error={error}
+            onClose={onClose}
+            saving={saving}
+          />
         </form>
       </section>
-      {procedureSelectorOpen ? (
-        <RuntimeProcedureSelectorDialog
-          applicationId={options.application?.id}
-          componentId={runtimeComponent?.id}
-          onClose={() => setProcedureSelectorOpen(false)}
-          onConfirm={(procedureIds) => {
-            update("procedureIds", procedureIds);
-            setProcedureSelectorOpen(false);
-          }}
-          selectedIds={draft.procedureIds || []}
-        />
-      ) : null}
-      {selectedProcedure ? (
-        <RuntimeProcedureDetailsDialog
-          application={options.application}
-          applications={options.applications}
-          components={options.components}
-          onClose={() => setSelectedProcedure(null)}
-          procedure={selectedProcedure}
-        />
-      ) : null}
+      <CatalogEntityOverlays
+        options={options}
+        onConfirmProcedures={(procedureIds) => {
+          update("procedureIds", procedureIds);
+          setProcedureSelectorOpen(false);
+        }}
+        procedureSelectorOpen={procedureSelectorOpen}
+        runtimeComponent={runtimeComponent}
+        selectedIds={draft.procedureIds || []}
+        selectedProcedure={selectedProcedure}
+        setProcedureSelectorOpen={setProcedureSelectorOpen}
+        setSelectedProcedure={setSelectedProcedure}
+      />
     </div>
   );
 }

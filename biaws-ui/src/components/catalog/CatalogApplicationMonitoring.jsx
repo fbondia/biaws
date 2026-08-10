@@ -23,6 +23,64 @@ function applicationRuntimes(application) {
   );
 }
 
+function MonitoringRuntimeButton({ activeRuntimeId, onSelect, runtime }) {
+  return (
+    <button
+      aria-pressed={runtime.id === activeRuntimeId}
+      className={runtime.id === activeRuntimeId ? "isActive" : ""}
+      onClick={() => onSelect(runtime.id)}
+      type="button"
+    >
+      <div>
+        <strong>{runtime.name}</strong>
+        <small>
+          <Server size={13} />
+          {runtime.server?.name || "Sem servidor associado"}
+        </small>
+      </div>
+      <span className={`catalogStatus catalogStatus-${runtime.status}`}>
+        {runtime.status}
+      </span>
+    </button>
+  );
+}
+
+function MonitoringDeployment({ activeRuntimeId, deployment, onSelect }) {
+  return (
+    <div className="catalogMonitoringDeployment">
+      <span>{deployment.name}</span>
+      <div>
+        {deployment.runtimes.map((runtime) => (
+          <MonitoringRuntimeButton
+            activeRuntimeId={activeRuntimeId}
+            key={runtime.id}
+            onSelect={onSelect}
+            runtime={runtime}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MonitoringComponent({ activeRuntimeId, component, onSelect }) {
+  return (
+    <section>
+      <header>
+        <strong>{component.name}</strong>
+      </header>
+      {component.deployments.map((deployment) => (
+        <MonitoringDeployment
+          activeRuntimeId={activeRuntimeId}
+          deployment={deployment}
+          key={deployment.id}
+          onSelect={onSelect}
+        />
+      ))}
+    </section>
+  );
+}
+
 export function CatalogApplicationMonitoring({ monitoringHealth }) {
   const application = monitoringHealth?.details?.items?.[0];
   const runtimes = useMemo(
@@ -55,45 +113,12 @@ export function CatalogApplicationMonitoring({ monitoringHealth }) {
         <div className="catalogApplicationMonitoringLayout">
           <div className="catalogMonitoringTopology">
             {application.components.map((component) => (
-              <section key={component.id}>
-                <header>
-                  <strong>{component.name}</strong>
-                </header>
-                {component.deployments.map((deployment) => (
-                  <div
-                    className="catalogMonitoringDeployment"
-                    key={deployment.id}
-                  >
-                    <span>{deployment.name}</span>
-                    <div>
-                      {deployment.runtimes.map((runtime) => (
-                        <button
-                          aria-pressed={runtime.id === activeRuntime?.id}
-                          className={
-                            runtime.id === activeRuntime?.id ? "isActive" : ""
-                          }
-                          key={runtime.id}
-                          onClick={() => setRuntimeId(runtime.id)}
-                          type="button"
-                        >
-                          <div>
-                            <strong>{runtime.name}</strong>
-                            <small>
-                              <Server size={13} />
-                              {runtime.server?.name || "Sem servidor associado"}
-                            </small>
-                          </div>
-                          <span
-                            className={`catalogStatus catalogStatus-${runtime.status}`}
-                          >
-                            {runtime.status}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </section>
+              <MonitoringComponent
+                activeRuntimeId={activeRuntime?.id}
+                component={component}
+                key={component.id}
+                onSelect={setRuntimeId}
+              />
             ))}
           </div>
           {activeRuntime ? (

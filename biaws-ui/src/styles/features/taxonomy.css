@@ -127,7 +127,7 @@
 
 .tagGroupNavigation > button:hover,
 .tagGroupNavigation > .activeTagGroupNavigationItem {
-  background: #eef6ff;
+  background: var(--color-accent-soft);
   color: var(--color-accent-text);
 }
 
@@ -231,8 +231,8 @@
 }
 
 .editableTag button:hover {
-  background: #fff1f1;
-  color: #9b1c1c;
+  background: var(--color-palette-hex-fff1f1);
+  color: var(--color-palette-hex-9b1c1c);
 }
 
 .addTagChip {
@@ -240,18 +240,18 @@
   align-items: center;
   gap: 6px;
   min-height: 32px;
-  border: 1px dashed #7f56d9;
+  border: 1px dashed var(--color-palette-hex-7f56d9);
   border-radius: 999px;
-  background: #f4f0ff;
-  color: #6941c6;
+  background: var(--color-palette-hex-f4f0ff);
+  color: var(--color-palette-hex-6941c6);
   padding: 4px 11px;
   font-size: 12px;
   font-weight: 800;
 }
 
 .addTagChip:hover {
-  border-color: #6941c6;
-  background: #ebe3ff;
+  border-color: var(--color-palette-hex-6941c6);
+  background: var(--color-palette-hex-ebe3ff);
 }
 
 .taxonomyTreeWrap {
@@ -285,7 +285,7 @@
 
 .taxonomyNode:hover,
 .selectedTaxonomyNode {
-  background: #f8fbff;
+  background: var(--color-palette-hex-f8fbff);
 }
 
 .selectedTaxonomyNode {

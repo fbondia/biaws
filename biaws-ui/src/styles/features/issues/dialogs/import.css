@@ -12,7 +12,7 @@
   min-height: 150px;
   place-items: center;
   gap: 7px;
-  border: 2px dashed #b8c1cc;
+  border: 2px dashed var(--color-palette-hex-b8c1cc);
   border-radius: 10px;
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
@@ -22,9 +22,9 @@
 
 .emlDropZone:hover,
 .activeEmlDropZone {
-  border-color: #246b49;
-  background: #f0f8f4;
-  color: #1d5a3d;
+  border-color: var(--color-palette-hex-246b49);
+  background: var(--color-palette-hex-f0f8f4);
+  color: var(--color-palette-hex-1d5a3d);
 }
 
 .emlDropZone span {
@@ -41,10 +41,10 @@
   display: grid;
   gap: 14px;
   border: 1px solid var(--color-border);
-  border-left: 4px solid #98a2b3;
+  border-left: 4px solid var(--color-palette-hex-98a2b3);
   border-radius: 12px;
   background: var(--color-surface);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 3px var(--color-palette-rgb-15-23-42-0-06);
   padding: 14px 16px;
   transition:
     border-color 160ms ease,
@@ -52,23 +52,23 @@
 }
 
 .emlImportItem--ready {
-  border-left-color: #2970ff;
+  border-left-color: var(--color-palette-hex-2970ff);
 }
 
 .emlImportItem--analyzing,
 .emlImportItem--importing {
-  border-left-color: #7f56d9;
+  border-left-color: var(--color-palette-hex-7f56d9);
 }
 
 .emlImportItem--done {
-  border-color: #a6d8bd;
-  border-left-color: #17874f;
-  background: #f7fcf9;
+  border-color: var(--color-palette-hex-a6d8bd);
+  border-left-color: var(--color-palette-hex-17874f);
+  background: var(--color-palette-hex-f7fcf9);
 }
 
 .emlImportItem--error {
-  border-color: #f4b4ad;
-  border-left-color: #d92d20;
+  border-color: var(--color-palette-hex-f4b4ad);
+  border-left-color: var(--color-palette-hex-d92d20);
 }
 
 .emlImportItemHeader {
@@ -84,29 +84,29 @@
   height: 36px;
   place-items: center;
   border-radius: 10px;
-  background: #f2f4f7;
-  color: #475467;
+  background: var(--color-palette-hex-f2f4f7);
+  color: var(--color-text-muted);
 }
 
 .emlImportItem--ready .emlImportStatus {
-  background: #eff4ff;
-  color: #175cd3;
+  background: var(--color-palette-hex-eff4ff);
+  color: var(--color-palette-hex-175cd3);
 }
 
 .emlImportItem--analyzing .emlImportStatus,
 .emlImportItem--importing .emlImportStatus {
-  background: #f4f3ff;
-  color: #6941c6;
+  background: var(--color-palette-hex-f4f3ff);
+  color: var(--color-palette-hex-6941c6);
 }
 
 .emlImportItem--done .emlImportStatus {
-  background: #eaf8f0;
-  color: #087443;
+  background: var(--color-palette-hex-eaf8f0);
+  color: var(--color-palette-hex-087443);
 }
 
 .emlImportItem--error .emlImportStatus {
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--color-palette-hex-fef3f2);
+  color: var(--color-palette-hex-b42318);
 }
 
 .emlImportTitle {
@@ -130,36 +130,36 @@
   min-height: 20px;
   align-items: center;
   border-radius: 999px;
-  background: #f2f4f7;
-  color: #475467;
+  background: var(--color-palette-hex-f2f4f7);
+  color: var(--color-text-muted);
   padding: 2px 8px;
   font-size: 11px;
   font-weight: 700;
 }
 
 .emlImportItem--ready .emlImportStatusBadge {
-  background: #eff4ff;
-  color: #175cd3;
+  background: var(--color-palette-hex-eff4ff);
+  color: var(--color-palette-hex-175cd3);
 }
 
 .emlImportItem--done .emlImportStatusBadge {
-  background: #dcfae6;
-  color: #087443;
+  background: var(--color-palette-hex-dcfae6);
+  color: var(--color-palette-hex-087443);
 }
 
 .emlImportItem--error .emlImportStatusBadge {
-  background: #fee4e2;
-  color: #b42318;
+  background: var(--color-palette-hex-fee4e2);
+  color: var(--color-palette-hex-b42318);
 }
 
 .emlRemoveButton {
-  color: #98a2b3;
+  color: var(--color-palette-hex-98a2b3);
 }
 
 .emlRemoveButton:hover:not(:disabled) {
-  border-color: #fda29b;
-  background: #fef3f2;
-  color: #b42318;
+  border-color: var(--color-palette-hex-fda29b);
+  background: var(--color-palette-hex-fef3f2);
+  color: var(--color-palette-hex-b42318);
 }
 
 .emlImportAssignmentButtons {
@@ -206,25 +206,25 @@
 }
 
 .emlApplicationButton {
-  border-color: #b2ccff;
-  background: #f5f8ff;
-  color: #1849a9;
+  border-color: var(--color-palette-hex-b2ccff);
+  background: var(--color-palette-hex-f5f8ff);
+  color: var(--color-palette-hex-1849a9);
 }
 
 .emlApplicationButton:hover:not(:disabled) {
-  border-color: #528bff;
-  background: #eff4ff;
+  border-color: var(--color-palette-hex-528bff);
+  background: var(--color-palette-hex-eff4ff);
 }
 
 .emlClassificationButton {
-  border-color: #d9d6fe;
-  background: #f7f5ff;
-  color: #5925dc;
+  border-color: var(--color-palette-hex-d9d6fe);
+  background: var(--color-palette-hex-f7f5ff);
+  color: var(--color-palette-hex-5925dc);
 }
 
 .emlClassificationButton:hover:not(:disabled) {
-  border-color: #9b8afb;
-  background: #f4f3ff;
+  border-color: var(--color-palette-hex-9b8afb);
+  background: var(--color-palette-hex-f4f3ff);
 }
 
 .emlContextDialog {
@@ -302,18 +302,18 @@
   width: 100%;
   min-width: 0;
   height: 34px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--color-palette-hex-d0d5dd);
   border-radius: 6px;
   background: var(--color-surface);
   padding: 0 9px;
-  color: #1d2939;
+  color: var(--color-palette-hex-1d2939);
   font-size: 13px;
 }
 
 .emlImportEditableFields input:focus,
 .emlImportEditableFields select:focus {
-  border-color: #84adff;
-  box-shadow: 0 0 0 3px rgba(41, 112, 255, 0.1);
+  border-color: var(--color-palette-hex-84adff);
+  box-shadow: 0 0 0 3px var(--color-palette-rgb-41-112-255-0-1);
 }
 
 .emlImportPreviewFooter {
@@ -337,8 +337,8 @@
   min-height: 24px;
   align-items: center;
   border-radius: 999px;
-  background: #eaecf0;
-  color: #475467;
+  background: var(--color-palette-hex-eaecf0);
+  color: var(--color-text-muted);
   padding: 3px 8px;
   font-size: 11px;
   font-style: normal;
@@ -346,8 +346,8 @@
 }
 
 .emlImportFacts em {
-  background: #fef0c7;
-  color: #93370d;
+  background: var(--color-palette-hex-fef0c7);
+  color: var(--color-palette-hex-93370d);
 }
 
 .emlRecalculateButton {
@@ -355,14 +355,14 @@
   min-height: 32px;
   align-items: center;
   gap: 7px;
-  border-color: #d0d5dd;
+  border-color: var(--color-palette-hex-d0d5dd);
   background: var(--color-surface);
-  color: #344054;
+  color: var(--color-text-secondary);
 }
 
 .emlRecalculateButton:hover:not(:disabled) {
-  border-color: #98a2b3;
-  background: #f9fafb;
+  border-color: var(--color-palette-hex-98a2b3);
+  background: var(--color-surface-muted);
 }
 
 .importDialogFooter,
@@ -376,10 +376,10 @@
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  border: 1px solid #fecdca;
+  border: 1px solid var(--color-palette-hex-fecdca);
   border-radius: 8px;
-  background: #fef3f2;
-  color: #b42318;
+  background: var(--color-palette-hex-fef3f2);
+  color: var(--color-palette-hex-b42318);
   padding: 9px 10px;
   font-size: 12px;
 }
@@ -409,7 +409,7 @@
   min-height: 36px;
   align-items: center;
   gap: 7px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 1px 2px var(--color-palette-rgb-15-23-42-0-12);
 }
 
 .spinIcon {

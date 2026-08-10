@@ -1,0 +1,4 @@
+interface:
+  display_name: "Qualidade de Código BIAWS"
+  short_description: "Audita guidelines, refatora e trata Sonar"
+  default_prompt: "Use $biaws-code-quality para executar a próxima passada de qualidade do projeto e registrar o progresso no BIAWS."

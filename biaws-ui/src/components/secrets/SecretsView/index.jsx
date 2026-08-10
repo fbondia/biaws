@@ -17,6 +17,98 @@ import { SecretCard } from "./components/SecretCard.jsx";
 import { SecretValueDialog } from "./components/SecretValueDialog.jsx";
 import { useSecretsView } from "./hooks/useSecretsView.js";
 
+function SecretsStatus({ error, loading, secrets }) {
+  if (error) return <div className="authError">{error}</div>;
+  if (loading) return <p>Carregando segredos…</p>;
+  if (!secrets.length) {
+    return (
+      <IllustratedEmptyState
+        description="Crie o primeiro segredo para este workspace ou aplicação."
+        icon={KeyRound}
+        title="Nenhum segredo acessível"
+      />
+    );
+  }
+  return null;
+}
+
+function SecretsGrid({
+  canDrag,
+  cardProps,
+  collectionState,
+  loading,
+  onOpen,
+  secrets,
+  visibleSecrets,
+}) {
+  return (
+    <div className="secretsGrid">
+      {visibleSecrets.map((secret) => (
+        <SecretCard
+          {...cardProps(secret)}
+          draggable={canDrag(secret)}
+          key={secret.id}
+          onDragEnd={() => collectionState.setDraggedItem(null)}
+          onDragStart={() =>
+            collectionState.setDraggedItem({ type: "item", id: secret.id })
+          }
+          onOpen={() => onOpen(secret)}
+        />
+      ))}
+      {!loading && secrets.length && !visibleSecrets.length ? (
+        <IllustratedEmptyState
+          description="Escolha outra coleção ou mova um segredo para esta pasta."
+          icon={KeyRound}
+          title="Nenhum segredo nesta coleção"
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function SecretDialogs({
+  actor,
+  applications,
+  creating,
+  editing,
+  finishCreation,
+  finishEditing,
+  finishVersioning,
+  setCreating,
+  setEditing,
+  setVersioning,
+  versioning,
+}) {
+  return (
+    <>
+      {creating ? (
+        <CreateSecretDialog
+          actor={actor}
+          applications={applications}
+          onClose={() => setCreating(false)}
+          onCreated={finishCreation}
+        />
+      ) : null}
+      {editing ? (
+        <EditSecretDialog
+          actor={actor}
+          applications={applications}
+          onClose={() => setEditing(null)}
+          onSaved={finishEditing}
+          secret={editing}
+        />
+      ) : null}
+      {versioning ? (
+        <SecretValueDialog
+          onClose={() => setVersioning(null)}
+          onSaved={finishVersioning}
+          secret={versioning}
+        />
+      ) : null}
+    </>
+  );
+}
+
 export function SecretsView({ actor }) {
   const [search, setSearch] = useState("");
   const [selectedSecretId, setSelectedSecretId] = useState("");
@@ -137,15 +229,7 @@ export function SecretsView({ actor }) {
           </button>
         ) : null}
       </header>
-      {error ? <div className="authError">{error}</div> : null}
-      {loading ? <p>Carregando segredos…</p> : null}
-      {!loading && !secrets.length ? (
-        <IllustratedEmptyState
-          description="Crie o primeiro segredo para este workspace ou aplicação."
-          icon={KeyRound}
-          title="Nenhum segredo acessível"
-        />
-      ) : null}
+      <SecretsStatus error={error} loading={loading} secrets={secrets} />
       <ResourceCollectionsShell
         collections={collectionState.collections}
         detailVisible={Boolean(selectedSecret)}
@@ -231,32 +315,17 @@ export function SecretsView({ actor }) {
             onBack={closeSecret}
           />
         ) : (
-          <div className="secretsGrid">
-            {visibleSecrets.map((secret) => (
-              <SecretCard
-                {...secretCardProps(secret)}
-                draggable={
-                  permissions.update && allowed("secrets.update", secret)
-                }
-                key={secret.id}
-                onDragEnd={() => collectionState.setDraggedItem(null)}
-                onDragStart={() =>
-                  collectionState.setDraggedItem({
-                    type: "item",
-                    id: secret.id,
-                  })
-                }
-                onOpen={() => openSecret(secret)}
-              />
-            ))}
-            {!loading && secrets.length && !visibleSecrets.length ? (
-              <IllustratedEmptyState
-                description="Escolha outra coleção ou mova um segredo para esta pasta."
-                icon={KeyRound}
-                title="Nenhum segredo nesta coleção"
-              />
-            ) : null}
-          </div>
+          <SecretsGrid
+            canDrag={(secret) =>
+              permissions.update && allowed("secrets.update", secret)
+            }
+            cardProps={secretCardProps}
+            collectionState={collectionState}
+            loading={loading}
+            onOpen={openSecret}
+            secrets={secrets}
+            visibleSecrets={visibleSecrets}
+          />
         )}
       </ResourceCollectionsShell>
       {collectionState.collectionDialog ? (
@@ -275,30 +344,19 @@ export function SecretsView({ actor }) {
           resourceLabel="segredos"
         />
       ) : null}
-      {creating ? (
-        <CreateSecretDialog
-          actor={actor}
-          applications={applications}
-          onClose={() => setCreating(false)}
-          onCreated={finishCreation}
-        />
-      ) : null}
-      {editing ? (
-        <EditSecretDialog
-          actor={actor}
-          applications={applications}
-          onClose={() => setEditing(null)}
-          onSaved={finishEditing}
-          secret={editing}
-        />
-      ) : null}
-      {versioning ? (
-        <SecretValueDialog
-          onClose={() => setVersioning(null)}
-          onSaved={finishVersioning}
-          secret={versioning}
-        />
-      ) : null}
+      <SecretDialogs
+        actor={actor}
+        applications={applications}
+        creating={creating}
+        editing={editing}
+        finishCreation={finishCreation}
+        finishEditing={finishEditing}
+        finishVersioning={finishVersioning}
+        setCreating={setCreating}
+        setEditing={setEditing}
+        setVersioning={setVersioning}
+        versioning={versioning}
+      />
     </section>
   );
 }

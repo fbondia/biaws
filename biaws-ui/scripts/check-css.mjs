@@ -40,6 +40,30 @@ const requiredColorTokens = [
 
 const tokenSource = readFileSync(tokenFile, "utf8");
 const errors = [];
+const styleFiles = cssFiles(stylesDirectory);
+const declaredVariables = new Set();
+const runtimeVariables = new Set([
+  "billing-month-count",
+  "depth",
+  "file-tag-background",
+  "file-tag-border",
+  "file-tag-color",
+  "gantt-demand-width",
+  "gantt-min-width",
+  "gantt-row-depth",
+  "request-list-width",
+  "request-status-background",
+  "request-status-border",
+  "request-status-foreground",
+  "resource-collections-navigation-width",
+]);
+
+for (const file of styleFiles) {
+  const source = readFileSync(file, "utf8");
+  for (const match of source.matchAll(/--([a-z0-9-]+)\s*:/gi)) {
+    declaredVariables.add(match[1]);
+  }
+}
 
 for (const token of requiredColorTokens) {
   const definition = tokenSource
@@ -56,10 +80,21 @@ for (const token of requiredColorTokens) {
   }
 }
 
-for (const file of cssFiles(stylesDirectory)) {
+for (const file of styleFiles) {
   const source = readFileSync(file, "utf8");
   for (const match of source.matchAll(/--([a-z0-9-]+):\s*var\(--\1\)/gi)) {
     errors.push(`Variável autorreferente em ${file}: --${match[1]}`);
+  }
+  for (const match of source.matchAll(/var\(--([a-z0-9-]+)/gi)) {
+    if (!declaredVariables.has(match[1]) && !runtimeVariables.has(match[1])) {
+      errors.push(`Variável CSS não declarada em ${file}: --${match[1]}`);
+    }
+  }
+  if (
+    file !== fileURLToPath(tokenFile) &&
+    /#[0-9a-f]{3,8}\b|rgba?\([^)]*\)|rgb\([^)]*\/[^)]*\)/i.test(source)
+  ) {
+    errors.push(`Cor literal fora de foundations/tokens.css em ${file}`);
   }
 }
 

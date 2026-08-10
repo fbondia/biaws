@@ -22,6 +22,10 @@ async function fetchAllProcedures(params) {
   return items;
 }
 
+function retainAvailableIds(current, availableIds) {
+  return new Set([...current].filter((id) => availableIds.has(id)));
+}
+
 function ProcedureLeaf({ checked, onToggle, procedure }) {
   return (
     <label className="runtimeProcedureTreeLeaf">
@@ -124,10 +128,7 @@ export function RuntimeProcedureSelectorDialog({
         setProcedures(procedureItems);
         setCollections(collectionPayload.items || []);
         const availableIds = new Set(procedureItems.map(({ id }) => id));
-        setSelectedIds(
-          (current) =>
-            new Set([...current].filter((id) => availableIds.has(id))),
-        );
+        setSelectedIds((current) => retainAvailableIds(current, availableIds));
       })
       .catch((loadError) => {
         if (active) setError(loadError.message);

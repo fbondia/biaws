@@ -145,101 +145,111 @@ function attachmentSizeError(maxBytes, actualBytes) {
   return error;
 }
 
+function createRequestContext(path, params, maxRetries) {
+  const url = buildUrl(path, params);
+  const externalSignal = currentRequestSignal();
+  const timeoutSignal = AbortSignal.timeout(readTimeoutMs());
+  return {
+    url,
+    externalSignal,
+    signal: externalSignal
+      ? AbortSignal.any([externalSignal, timeoutSignal])
+      : timeoutSignal,
+    maxRetries,
+  };
+}
+
+function normalizeRequestError(cause, context) {
+  return cause?.statusCode
+    ? cause
+    : transportError(cause, context.url, context.externalSignal);
+}
+
+function shouldRetryRequest(error, attempt, context) {
+  return (
+    attempt < context.maxRetries &&
+    error.retryable === true &&
+    !context.signal.aborted
+  );
+}
+
+async function waitBeforeRetry(attempt, context) {
+  try {
+    await delay(100 * 2 ** attempt, undefined, { signal: context.signal });
+  } catch (error) {
+    throw transportError(error, context.url, context.externalSignal);
+  }
+}
+
+async function requestWithRetries(context, operation) {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await operation(context);
+    } catch (cause) {
+      const error = normalizeRequestError(cause, context);
+      if (!shouldRetryRequest(error, attempt, context)) throw error;
+      await waitBeforeRetry(attempt, context);
+    }
+  }
+}
+
+function validAttachmentLimit(maxBytes) {
+  return Number.isFinite(maxBytes) && maxBytes > 0;
+}
+
+async function validateDeclaredAttachmentSize(response, maxBytes) {
+  const declaredBytes = Number(response.headers.get("content-length"));
+  if (!validAttachmentLimit(maxBytes) || !Number.isFinite(declaredBytes))
+    return;
+  if (declaredBytes <= maxBytes) return;
+  await response.body?.cancel();
+  throw attachmentSizeError(maxBytes, declaredBytes);
+}
+
+function validateAttachmentSize(content, maxBytes) {
+  if (validAttachmentLimit(maxBytes) && content.length > maxBytes) {
+    throw attachmentSizeError(maxBytes, content.length);
+  }
+}
+
 async function requestJson(
   path,
   { method, body, params = {}, headers = {} } = {},
 ) {
-  const url = buildUrl(path, params);
-  const externalSignal = currentRequestSignal();
-  const timeoutSignal = AbortSignal.timeout(readTimeoutMs());
-  const signal = externalSignal
-    ? AbortSignal.any([externalSignal, timeoutSignal])
-    : timeoutSignal;
   const maxRetries = !method || method === "GET" ? readMaxRetries() : 0;
-
-  for (let attempt = 0; ; attempt += 1) {
-    try {
-      const response = await fetch(url, {
-        ...(method ? { method } : {}),
-        headers: { ...authenticationHeaders(), ...headers },
-        body,
-        signal,
-      });
-      const payload = await readPayload(response);
-      if (!response.ok) throw responseError(response, payload);
-      return payload;
-    } catch (cause) {
-      const error = cause?.statusCode
-        ? cause
-        : transportError(cause, url, externalSignal);
-      if (attempt >= maxRetries || error.retryable !== true || signal.aborted) {
-        throw error;
-      }
-      try {
-        await delay(100 * 2 ** attempt, undefined, { signal });
-      } catch (delayError) {
-        throw transportError(delayError, url, externalSignal);
-      }
-    }
-  }
+  const context = createRequestContext(path, params, maxRetries);
+  return requestWithRetries(context, async ({ url, signal }) => {
+    const response = await fetch(url, {
+      ...(method ? { method } : {}),
+      headers: { ...authenticationHeaders(), ...headers },
+      body,
+      signal,
+    });
+    const payload = await readPayload(response);
+    if (!response.ok) throw responseError(response, payload);
+    return payload;
+  });
 }
 
 async function requestBinary(
   path,
   { params = {}, headers = {}, maxBytes } = {},
 ) {
-  const url = buildUrl(path, params);
-  const externalSignal = currentRequestSignal();
-  const timeoutSignal = AbortSignal.timeout(readTimeoutMs());
-  const signal = externalSignal
-    ? AbortSignal.any([externalSignal, timeoutSignal])
-    : timeoutSignal;
-  const maxRetries = readMaxRetries();
-
-  for (let attempt = 0; ; attempt += 1) {
-    try {
-      const response = await fetch(url, {
-        headers: { ...authenticationHeaders(), ...headers },
-        signal,
-      });
-      if (!response.ok) {
-        throw responseError(response, await readPayload(response));
-      }
-
-      const declaredBytes = Number(response.headers.get("content-length"));
-      if (
-        Number.isFinite(maxBytes) &&
-        maxBytes > 0 &&
-        Number.isFinite(declaredBytes) &&
-        declaredBytes > maxBytes
-      ) {
-        await response.body?.cancel();
-        throw attachmentSizeError(maxBytes, declaredBytes);
-      }
-
-      const content = Buffer.from(await response.arrayBuffer());
-      if (
-        Number.isFinite(maxBytes) &&
-        maxBytes > 0 &&
-        content.length > maxBytes
-      ) {
-        throw attachmentSizeError(maxBytes, content.length);
-      }
-      return { content, headers: response.headers };
-    } catch (cause) {
-      const error = cause?.statusCode
-        ? cause
-        : transportError(cause, url, externalSignal);
-      if (attempt >= maxRetries || error.retryable !== true || signal.aborted) {
-        throw error;
-      }
-      try {
-        await delay(100 * 2 ** attempt, undefined, { signal });
-      } catch (delayError) {
-        throw transportError(delayError, url, externalSignal);
-      }
+  const context = createRequestContext(path, params, readMaxRetries());
+  return requestWithRetries(context, async ({ url, signal }) => {
+    const response = await fetch(url, {
+      headers: { ...authenticationHeaders(), ...headers },
+      signal,
+    });
+    if (!response.ok) {
+      throw responseError(response, await readPayload(response));
     }
-  }
+
+    await validateDeclaredAttachmentSize(response, maxBytes);
+    const content = Buffer.from(await response.arrayBuffer());
+    validateAttachmentSize(content, maxBytes);
+    return { content, headers: response.headers };
+  });
 }
 
 export function cleanParams(value = {}) {

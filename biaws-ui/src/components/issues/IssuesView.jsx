@@ -83,6 +83,32 @@ function IssuesPanel({ activeTab, listProps, summaryProps }) {
   return <IssueSummary {...summaryProps} />;
 }
 
+function canReadIssueCatalog(actor) {
+  return (
+    hasPermission(actor, "applications.read") &&
+    hasPermission(actor, "components.read")
+  );
+}
+
+function IssueFiltersControl({ filtersVisible, onToggle }) {
+  return (
+    <button
+      aria-controls="issue-filters"
+      aria-expanded={filtersVisible}
+      className={
+        filtersVisible
+          ? "secondaryButton activeFiltersButton"
+          : "secondaryButton"
+      }
+      onClick={onToggle}
+      type="button"
+    >
+      {filtersVisible ? <FilterX size={16} /> : <Filter size={16} />}
+      {filtersVisible ? "Ocultar filtros" : "Mostrar filtros"}
+    </button>
+  );
+}
+
 function IssueOverlays({
   canClassify,
   canCreate,
@@ -209,9 +235,7 @@ export function IssuesView({
   const canImport = hasPermission(actor, "issues.import.eml");
   const canConfigureImport =
     actor?.permissionScopes?.["issues.import.eml"]?.workspace === true;
-  const canReadCatalog =
-    hasPermission(actor, "applications.read") &&
-    hasPermission(actor, "components.read");
+  const canReadCatalog = canReadIssueCatalog(actor);
   const catalog = useCatalogOptions(canReadCatalog, actor.workspaceId);
   const canUpdateIssue = hasPermission(actor, "issues.update");
   const canUpdateStatus = hasPermission(actor, "issues.status.update");
@@ -263,20 +287,10 @@ export function IssuesView({
           onRefresh={onRefresh}
           onSelect={setActiveTab}
         />
-        <button
-          aria-controls="issue-filters"
-          aria-expanded={filtersVisible}
-          className={
-            filtersVisible
-              ? "secondaryButton activeFiltersButton"
-              : "secondaryButton"
-          }
-          onClick={() => setFiltersVisible((current) => !current)}
-          type="button"
-        >
-          {filtersVisible ? <FilterX size={16} /> : <Filter size={16} />}
-          {filtersVisible ? "Ocultar filtros" : "Mostrar filtros"}
-        </button>
+        <IssueFiltersControl
+          filtersVisible={filtersVisible}
+          onToggle={() => setFiltersVisible((current) => !current)}
+        />
       </section>
 
       {filtersVisible ? (
@@ -292,7 +306,11 @@ export function IssuesView({
         />
       ) : null}
 
-      {error ? <div className="errorBox">{error}</div> : null}
+      {error ? (
+        <div className="errorBox" role="alert">
+          {error}
+        </div>
+      ) : null}
 
       <div
         aria-labelledby={`issues-tab-${activeTab}`}

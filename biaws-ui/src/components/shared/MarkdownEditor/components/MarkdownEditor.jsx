@@ -17,6 +17,7 @@ export function MarkdownEditor({
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const textareaRef = useRef(null);
+  const copyResetTimerRef = useRef(null);
 
   useLayoutEffect(() => {
     if (mode === "text") resizeTextarea(textareaRef.current, fullscreen);
@@ -32,6 +33,8 @@ export function MarkdownEditor({
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [isFullscreen]);
+
+  useEffect(() => () => window.clearTimeout(copyResetTimerRef.current), []);
 
   async function copyContent() {
     const markdown = String(value || "");
@@ -55,7 +58,8 @@ export function MarkdownEditor({
     }
 
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1600);
+    window.clearTimeout(copyResetTimerRef.current);
+    copyResetTimerRef.current = window.setTimeout(() => setCopied(false), 1600);
   }
 
   return (

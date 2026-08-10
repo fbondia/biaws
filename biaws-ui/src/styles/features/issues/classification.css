@@ -61,7 +61,7 @@
 .classificationTab:hover,
 .activeClassificationTab {
   border-color: var(--color-accent-border);
-  background: #e8f1ff;
+  background: var(--color-palette-hex-e8f1ff);
   color: var(--color-accent-text);
 }
 
@@ -90,7 +90,7 @@
   min-height: 30px;
   align-items: center;
   gap: 7px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--color-palette-hex-d0d5dd);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-secondary);
@@ -100,14 +100,14 @@
 }
 
 .primaryTaxonomyChip {
-  border-color: #f2c94c;
-  background: #fffbeb;
-  color: #6f4e00;
+  border-color: var(--color-palette-hex-f2c94c);
+  background: var(--color-palette-hex-fffbeb);
+  color: var(--color-palette-hex-6f4e00);
 }
 
 .primaryTaxonomyIcon {
   flex: 0 0 auto;
-  color: #b7791f;
+  color: var(--color-palette-hex-b7791f);
 }
 
 .classificationTaxonomyChip button {
@@ -124,17 +124,17 @@
 }
 
 .classificationTaxonomyChip button:hover {
-  background: #fff1f1;
-  color: #9b1c1c;
+  background: var(--color-palette-hex-fff1f1);
+  color: var(--color-palette-hex-9b1c1c);
 }
 
 .clearTaxonomyChip {
-  color: #9b1c1c;
+  color: var(--color-palette-hex-9b1c1c);
 }
 
 .clearTaxonomyChip:hover {
-  border-color: #f5b6b6;
-  background: #fff1f1;
+  border-color: var(--color-palette-hex-f5b6b6);
+  background: var(--color-palette-hex-fff1f1);
 }
 
 .classificationTagChips {
@@ -150,7 +150,7 @@
   min-height: 30px;
   align-items: center;
   gap: 7px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--color-palette-hex-d0d5dd);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-secondary);
@@ -173,8 +173,8 @@
 }
 
 .classificationTagChip button:hover {
-  background: #fff1f1;
-  color: #9b1c1c;
+  background: var(--color-palette-hex-fff1f1);
+  color: var(--color-palette-hex-9b1c1c);
 }
 
 .tagPickerBackdrop {
@@ -184,7 +184,7 @@
   display: grid;
   align-items: center;
   justify-content: center;
-  background: rgba(16, 24, 40, 0.2);
+  background: var(--color-palette-rgb-16-24-40-0-2);
   padding: 20px;
 }
 
@@ -195,7 +195,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 20px 60px var(--color-palette-rgb-15-23-42-0-18);
   padding: 14px;
 }
 

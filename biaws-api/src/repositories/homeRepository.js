@@ -156,6 +156,60 @@ function defaultConfiguration(widgetId) {
   return {};
 }
 
+function normalizeIssuesPeriodConfiguration(value) {
+  const period = String(value.period || "week");
+  if (!["week", "month"].includes(period)) {
+    throw homeError(
+      422,
+      "INVALID_HOME_CONFIGURATION",
+      "period must be week or month",
+    );
+  }
+  return { period };
+}
+
+function normalizeApplicationHealthConfiguration(value) {
+  const environment = String(value.environment || "").trim();
+  const applicationId = String(value.applicationId || "").trim();
+  const componentId = String(value.componentId || "").trim();
+  const deploymentId = String(value.deploymentId || "").trim();
+  const runtimeId = String(value.runtimeId || "").trim();
+  const requestedPresentation = String(value.presentation || "list").trim();
+  if (environment && !DEPLOYMENT_ENVIRONMENTS.includes(environment)) {
+    throw homeError(
+      422,
+      "INVALID_HOME_CONFIGURATION",
+      `environment must be one of: ${DEPLOYMENT_ENVIRONMENTS.join(", ")}`,
+    );
+  }
+  if (!["list", "tabs"].includes(requestedPresentation)) {
+    throw homeError(
+      422,
+      "INVALID_HOME_CONFIGURATION",
+      "presentation must be list or tabs",
+    );
+  }
+  if (
+    (componentId && !applicationId) ||
+    (deploymentId && !componentId) ||
+    (runtimeId && !deploymentId)
+  ) {
+    throw homeError(
+      422,
+      "INVALID_HOME_CONFIGURATION",
+      "application health filters must follow application, component, deployment and runtime hierarchy",
+    );
+  }
+  return {
+    applicationId,
+    componentId,
+    deploymentId,
+    environment,
+    presentation: runtimeId ? "tabs" : requestedPresentation,
+    runtimeId,
+  };
+}
+
 function normalizeConfiguration(widget, value = {}) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw homeError(
@@ -176,56 +230,10 @@ function normalizeConfiguration(widget, value = {}) {
     );
   }
   if (widget.id === "issues-period") {
-    const period = String(value.period || "week");
-    if (!["week", "month"].includes(period)) {
-      throw homeError(
-        422,
-        "INVALID_HOME_CONFIGURATION",
-        "period must be week or month",
-      );
-    }
-    return { period };
+    return normalizeIssuesPeriodConfiguration(value);
   }
   if (widget.id === "application-health") {
-    const environment = String(value.environment || "").trim();
-    const applicationId = String(value.applicationId || "").trim();
-    const componentId = String(value.componentId || "").trim();
-    const deploymentId = String(value.deploymentId || "").trim();
-    const runtimeId = String(value.runtimeId || "").trim();
-    const requestedPresentation = String(value.presentation || "list").trim();
-    if (environment && !DEPLOYMENT_ENVIRONMENTS.includes(environment)) {
-      throw homeError(
-        422,
-        "INVALID_HOME_CONFIGURATION",
-        `environment must be one of: ${DEPLOYMENT_ENVIRONMENTS.join(", ")}`,
-      );
-    }
-    if (!["list", "tabs"].includes(requestedPresentation)) {
-      throw homeError(
-        422,
-        "INVALID_HOME_CONFIGURATION",
-        "presentation must be list or tabs",
-      );
-    }
-    if (
-      (componentId && !applicationId) ||
-      (deploymentId && !componentId) ||
-      (runtimeId && !deploymentId)
-    ) {
-      throw homeError(
-        422,
-        "INVALID_HOME_CONFIGURATION",
-        "application health filters must follow application, component, deployment and runtime hierarchy",
-      );
-    }
-    return {
-      applicationId,
-      componentId,
-      deploymentId,
-      environment,
-      presentation: runtimeId ? "tabs" : requestedPresentation,
-      runtimeId,
-    };
+    return normalizeApplicationHealthConfiguration(value);
   }
   return {};
 }
@@ -358,17 +366,8 @@ export async function getHomeConfiguration(actor) {
   };
 }
 
-export async function saveHomeConfiguration(payload = {}, actor) {
-  const unknown = Object.keys(payload || {}).filter((key) => key !== "widgets");
-  if (unknown.length) {
-    throw homeError(
-      422,
-      "INVALID_HOME_CONFIGURATION",
-      `unknown home fields: ${unknown.join(", ")}`,
-    );
-  }
-  const widgets = normalizeHomeWidgets(payload.widgets, actor);
-  const configuredApplicationIds = [
+function configuredApplicationIds(widgets) {
+  return [
     ...new Set(
       widgets
         .map(({ config }) => config.applicationId)
@@ -376,6 +375,9 @@ export async function saveHomeConfiguration(payload = {}, actor) {
         .map(String),
     ),
   ];
+}
+
+function assertConfiguredApplicationAccess(widgets, actor) {
   for (const instance of widgets) {
     const applicationId = instance.config.applicationId;
     if (
@@ -389,70 +391,104 @@ export async function saveHomeConfiguration(payload = {}, actor) {
       );
     }
   }
-  if (configuredApplicationIds.length) {
-    const database = await getMongoDatabase();
-    const applicationCount = await database
-      .collection(COLLECTION_NAMES.APPLICATIONS)
-      .countDocuments({
-        workspaceId: actor.workspaceId,
-        id: { $in: configuredApplicationIds },
-        status: { $ne: "archived" },
-      });
-    if (applicationCount !== configuredApplicationIds.length) {
-      throw homeError(
-        422,
-        "INVALID_HOME_CONFIGURATION",
-        "configured application is unavailable",
+}
+
+function configuredMonitoringTargets(config) {
+  const { applicationId, componentId, deploymentId, runtimeId } = config;
+  return [
+    componentId
+      ? {
+          collection: COLLECTION_NAMES.APPLICATION_COMPONENTS,
+          filter: { applicationId, id: componentId },
+        }
+      : null,
+    deploymentId
+      ? {
+          collection: COLLECTION_NAMES.APPLICATION_DEPLOYMENTS,
+          filter: { applicationId, componentId, id: deploymentId },
+        }
+      : null,
+    runtimeId
+      ? {
+          collection: COLLECTION_NAMES.DEPLOYMENT_RUNTIMES,
+          filter: {
+            applicationId,
+            componentId,
+            deploymentId,
+            id: runtimeId,
+            monitoring: { $exists: true, $ne: null },
+          },
+        }
+      : null,
+  ].filter(Boolean);
+}
+
+async function assertMonitoringTargetAvailable(database, target, workspaceId) {
+  const available = await database
+    .collection(target.collection)
+    .countDocuments({
+      workspaceId,
+      status: { $ne: "archived" },
+      ...target.filter,
+    });
+  if (available !== 1) {
+    throw homeError(
+      422,
+      "INVALID_HOME_CONFIGURATION",
+      "configured monitoring target is unavailable",
+    );
+  }
+}
+
+async function assertConfiguredMonitoringTargets(database, widgets, actor) {
+  const healthWidgets = widgets.filter(
+    ({ widgetId }) => widgetId === "application-health",
+  );
+  for (const instance of healthWidgets) {
+    const targets = configuredMonitoringTargets(instance.config);
+    for (const target of targets) {
+      await assertMonitoringTargetAvailable(
+        database,
+        target,
+        actor.workspaceId,
       );
     }
-    for (const instance of widgets) {
-      if (instance.widgetId !== "application-health") continue;
-      const { applicationId, componentId, deploymentId, runtimeId } =
-        instance.config;
-      const targets = [
-        componentId
-          ? {
-              collection: COLLECTION_NAMES.APPLICATION_COMPONENTS,
-              filter: { applicationId, id: componentId },
-            }
-          : null,
-        deploymentId
-          ? {
-              collection: COLLECTION_NAMES.APPLICATION_DEPLOYMENTS,
-              filter: { applicationId, componentId, id: deploymentId },
-            }
-          : null,
-        runtimeId
-          ? {
-              collection: COLLECTION_NAMES.DEPLOYMENT_RUNTIMES,
-              filter: {
-                applicationId,
-                componentId,
-                deploymentId,
-                id: runtimeId,
-                monitoring: { $exists: true, $ne: null },
-              },
-            }
-          : null,
-      ].filter(Boolean);
-      for (const target of targets) {
-        const available = await database
-          .collection(target.collection)
-          .countDocuments({
-            workspaceId: actor.workspaceId,
-            status: { $ne: "archived" },
-            ...target.filter,
-          });
-        if (available !== 1) {
-          throw homeError(
-            422,
-            "INVALID_HOME_CONFIGURATION",
-            "configured monitoring target is unavailable",
-          );
-        }
-      }
-    }
   }
+}
+
+async function validateConfiguredApplications(widgets, actor) {
+  assertConfiguredApplicationAccess(widgets, actor);
+  const applicationIds = configuredApplicationIds(widgets);
+  if (!applicationIds.length) return;
+  const database = await getMongoDatabase();
+  const applicationCount = await database
+    .collection(COLLECTION_NAMES.APPLICATIONS)
+    .countDocuments({
+      workspaceId: actor.workspaceId,
+      id: { $in: applicationIds },
+      status: { $ne: "archived" },
+    });
+  if (applicationCount !== applicationIds.length) {
+    throw homeError(
+      422,
+      "INVALID_HOME_CONFIGURATION",
+      "configured application is unavailable",
+    );
+  }
+  await assertConfiguredMonitoringTargets(database, widgets, actor);
+}
+
+export async function saveHomeConfiguration(payload = {}, actor) {
+  const unknown = Object.keys(payload || {}).filter((key) => key !== "widgets");
+  if (unknown.length) {
+    throw homeError(
+      422,
+      "INVALID_HOME_CONFIGURATION",
+      `unknown home fields: ${unknown.join(", ")}`,
+    );
+  }
+  const widgets = normalizeHomeWidgets(payload.widgets, actor);
+  await validateConfiguredApplications(widgets, actor);
   const collection = await homeCollection();
   const now = new Date();
   await collection.updateOne(
@@ -636,6 +672,91 @@ function namedTopologyItem(item, fallbackLabel) {
   return item || { id: "unknown", key: "unknown", name: fallbackLabel };
 }
 
+function getOrCreateHealthGroup(groups, item, childrenKey, children) {
+  let group = groups.get(item.id);
+  if (!group) {
+    group = {
+      ...item,
+      counts: {},
+      observedAt: null,
+      [childrenKey]: children,
+    };
+    groups.set(item.id, group);
+  }
+  return group;
+}
+
+function recordHealthObservation(group, status, observedAt) {
+  incrementHealthCount(group.counts, status);
+  group.observedAt = latestDate(group.observedAt, observedAt);
+}
+
+function runtimeHealthItem(
+  runtime,
+  status,
+  observedAt,
+  latestSignalsByRuntimeId,
+  serversById,
+) {
+  const latestSignal = latestSignalsByRuntimeId.get(runtime.id) || null;
+  const metadataPresentation = monitoringMetadataPresentation(
+    latestSignal?.metadataProfile,
+  );
+  return {
+    id: runtime.id,
+    key: runtime.key,
+    name: runtime.name,
+    status,
+    observedAt,
+    receivedAt: runtime.monitoring?.receivedAt || null,
+    source: runtime.monitoring?.source || "",
+    message: runtime.monitoring?.message || "",
+    latestSignal: latestSignal
+      ? {
+          id: latestSignal.id,
+          metadata: latestSignal.metadata || {},
+          ...(latestSignal.metadataProfile
+            ? { metadataProfile: latestSignal.metadataProfile }
+            : {}),
+          ...(metadataPresentation ? { metadataPresentation } : {}),
+        }
+      : null,
+    server: runtime.serverId ? serversById.get(runtime.serverId) || null : null,
+  };
+}
+
+function compareNamedItems(left, right) {
+  return left.name.localeCompare(right.name, "pt-BR");
+}
+
+function materializeDeploymentHealth(deployment) {
+  return {
+    ...deployment,
+    status: healthFromCounts(deployment.counts),
+    runtimes: deployment.runtimes.sort(compareNamedItems),
+  };
+}
+
+function materializeComponentHealth(component) {
+  return {
+    ...component,
+    status: healthFromCounts(component.counts),
+    deployments: [...component.deployments.values()]
+      .map(materializeDeploymentHealth)
+      .sort(compareNamedItems),
+  };
+}
+
+function materializeApplicationHealth(application) {
+  return {
+    ...application,
+    status: healthFromCounts(application.counts),
+    components: [...application.components.values()]
+      .map(materializeComponentHealth)
+      .sort(compareNamedItems),
+  };
+}
+
 export function filterRuntimesByDeploymentEnvironment(
   runtimes = [],
   deployments = [],
@@ -687,105 +808,43 @@ export function buildApplicationHealthItems({
     const status = runtime.monitoring?.status || runtime.status || "unknown";
     const observedAt =
       runtime.monitoring?.observedAt || runtime.monitoringObservedAt || null;
-    let applicationGroup = grouped.get(application.id);
-    if (!applicationGroup) {
-      applicationGroup = {
-        ...application,
-        counts: {},
-        observedAt: null,
-        components: new Map(),
-      };
-      grouped.set(application.id, applicationGroup);
-    }
-    incrementHealthCount(applicationGroup.counts, status);
-    applicationGroup.observedAt = latestDate(
-      applicationGroup.observedAt,
-      observedAt,
+    const applicationGroup = getOrCreateHealthGroup(
+      grouped,
+      application,
+      "components",
+      new Map(),
     );
+    recordHealthObservation(applicationGroup, status, observedAt);
 
-    let componentGroup = applicationGroup.components.get(component.id);
-    if (!componentGroup) {
-      componentGroup = {
-        ...component,
-        counts: {},
-        observedAt: null,
-        deployments: new Map(),
-      };
-      applicationGroup.components.set(component.id, componentGroup);
-    }
-    incrementHealthCount(componentGroup.counts, status);
-    componentGroup.observedAt = latestDate(
-      componentGroup.observedAt,
-      observedAt,
+    const componentGroup = getOrCreateHealthGroup(
+      applicationGroup.components,
+      component,
+      "deployments",
+      new Map(),
     );
+    recordHealthObservation(componentGroup, status, observedAt);
 
-    let deploymentGroup = componentGroup.deployments.get(deployment.id);
-    if (!deploymentGroup) {
-      deploymentGroup = {
-        ...deployment,
-        counts: {},
-        observedAt: null,
-        runtimes: [],
-      };
-      componentGroup.deployments.set(deployment.id, deploymentGroup);
-    }
-    incrementHealthCount(deploymentGroup.counts, status);
-    deploymentGroup.observedAt = latestDate(
-      deploymentGroup.observedAt,
-      observedAt,
+    const deploymentGroup = getOrCreateHealthGroup(
+      componentGroup.deployments,
+      deployment,
+      "runtimes",
+      [],
     );
-    const latestSignal = latestSignalsByRuntimeId.get(runtime.id) || null;
-    const metadataPresentation = monitoringMetadataPresentation(
-      latestSignal?.metadataProfile,
+    recordHealthObservation(deploymentGroup, status, observedAt);
+    deploymentGroup.runtimes.push(
+      runtimeHealthItem(
+        runtime,
+        status,
+        observedAt,
+        latestSignalsByRuntimeId,
+        serversById,
+      ),
     );
-    deploymentGroup.runtimes.push({
-      id: runtime.id,
-      key: runtime.key,
-      name: runtime.name,
-      status,
-      observedAt,
-      receivedAt: runtime.monitoring?.receivedAt || null,
-      source: runtime.monitoring?.source || "",
-      message: runtime.monitoring?.message || "",
-      latestSignal: latestSignal
-        ? {
-            id: latestSignal.id,
-            metadata: latestSignal.metadata || {},
-            ...(latestSignal.metadataProfile
-              ? { metadataProfile: latestSignal.metadataProfile }
-              : {}),
-            ...(metadataPresentation ? { metadataPresentation } : {}),
-          }
-        : null,
-      server: runtime.serverId
-        ? serversById.get(runtime.serverId) || null
-        : null,
-    });
   }
 
   return [...grouped.values()]
-    .map((application) => ({
-      ...application,
-      status: healthFromCounts(application.counts),
-      components: [...application.components.values()]
-        .map((component) => ({
-          ...component,
-          status: healthFromCounts(component.counts),
-          deployments: [...component.deployments.values()]
-            .map((deployment) => ({
-              ...deployment,
-              status: healthFromCounts(deployment.counts),
-              runtimes: deployment.runtimes.sort((left, right) =>
-                left.name.localeCompare(right.name, "pt-BR"),
-              ),
-            }))
-            .sort((left, right) =>
-              left.name.localeCompare(right.name, "pt-BR"),
-            ),
-        }))
-        .sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
-    }))
-    .sort((left, right) => left.name.localeCompare(right.name, "pt-BR"));
+    .map(materializeApplicationHealth)
+    .sort(compareNamedItems);
 }
 
 async function latestRuntimeMonitoringSignals(
@@ -961,6 +1020,71 @@ async function resolveWidgetMetric(database, actor, instance, now) {
   return { kind: "unknown" };
 }
 
+function monitoringRuntimeItem({ id, name }) {
+  return { id, name };
+}
+
+function monitoringDeploymentItem(
+  deployment,
+  runtimes,
+  applicationId,
+  componentId,
+) {
+  const relatedRuntimes = runtimes.filter(
+    (runtime) =>
+      runtime.applicationId === applicationId &&
+      runtime.componentId === componentId &&
+      runtime.deploymentId === deployment.id,
+  );
+  return {
+    id: deployment.id,
+    name: deployment.name,
+    runtimes: relatedRuntimes.map(monitoringRuntimeItem),
+  };
+}
+
+function monitoringComponentItem(
+  component,
+  deployments,
+  runtimes,
+  applicationId,
+) {
+  const relatedDeployments = deployments.filter(
+    (deployment) =>
+      deployment.applicationId === applicationId &&
+      deployment.componentId === component.id,
+  );
+  return {
+    id: component.id,
+    name: component.name,
+    deployments: relatedDeployments.map((deployment) =>
+      monitoringDeploymentItem(
+        deployment,
+        runtimes,
+        applicationId,
+        component.id,
+      ),
+    ),
+  };
+}
+
+function monitoringApplicationItem(
+  application,
+  components,
+  deployments,
+  runtimes,
+) {
+  const relatedComponents = components.filter(
+    ({ applicationId }) => applicationId === application.id,
+  );
+  return {
+    ...application,
+    components: relatedComponents.map((component) =>
+      monitoringComponentItem(component, deployments, runtimes, application.id),
+    ),
+  };
+}
+
 async function homeMonitoringApplications(database, actor) {
   if (!hasPermission(actor, "runtimes.read")) return [];
   const monitoringScope = applicationScope(actor, "runtimes.read");
@@ -1032,33 +1156,9 @@ async function homeMonitoringApplications(database, actor) {
           .toArray()
       : [],
   ]);
-  return applications.map((application) => ({
-    ...application,
-    components: components
-      .filter(({ applicationId }) => applicationId === application.id)
-      .map((component) => ({
-        id: component.id,
-        name: component.name,
-        deployments: deployments
-          .filter(
-            (deployment) =>
-              deployment.applicationId === application.id &&
-              deployment.componentId === component.id,
-          )
-          .map((deployment) => ({
-            id: deployment.id,
-            name: deployment.name,
-            runtimes: runtimes
-              .filter(
-                (runtime) =>
-                  runtime.applicationId === application.id &&
-                  runtime.componentId === component.id &&
-                  runtime.deploymentId === deployment.id,
-              )
-              .map(({ id, name }) => ({ id, name })),
-          })),
-      })),
-  }));
+  return applications.map((application) =>
+    monitoringApplicationItem(application, components, deployments, runtimes),
+  );
 }
 
 export async function getHomeDashboard(actor, { now = new Date() } = {}) {

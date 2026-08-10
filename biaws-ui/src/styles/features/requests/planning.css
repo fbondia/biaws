@@ -29,7 +29,7 @@
 
 .requestTasksStatusChip {
   min-height: 30px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--color-palette-hex-d0d5dd);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-subtle);
@@ -40,7 +40,7 @@
 }
 
 .requestTasksStatusChip:hover {
-  border-color: #98a2b3;
+  border-color: var(--color-palette-hex-98a2b3);
   background: var(--color-surface-muted);
 }
 
@@ -67,7 +67,7 @@
 
 .requestTasksOverviewItem:hover {
   border-color: var(--color-accent-border);
-  background: #f8fbff;
+  background: var(--color-palette-hex-f8fbff);
 }
 
 .requestTasksOverviewMain {
@@ -138,7 +138,7 @@
 
 .requestScheduleRow:hover {
   border-color: var(--color-accent-border);
-  background: #f8fbff;
+  background: var(--color-palette-hex-f8fbff);
 }
 
 .requestScheduleMain {
@@ -325,7 +325,7 @@
 
 .requestGanttDemand:hover,
 .requestGanttTimeline:hover {
-  background: #f8fbff;
+  background: var(--color-palette-hex-f8fbff);
 }
 
 .requestGanttDemand strong {
@@ -357,8 +357,8 @@
       to right,
       transparent 0,
       transparent calc(100% / 12 - 1px),
-      #f2f4f7 calc(100% / 12 - 1px),
-      #f2f4f7 calc(100% / 12)
+      var(--color-palette-hex-f2f4f7) calc(100% / 12 - 1px),
+      var(--color-palette-hex-f2f4f7) calc(100% / 12)
     ),
     var(--color-surface-subtle);
   padding: 0;
@@ -376,7 +376,7 @@
   overflow: hidden;
   border: 1px solid transparent;
   border-radius: 999px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+  box-shadow: 0 1px 2px var(--color-palette-rgb-16-24-40-0-08);
   color: var(--color-surface);
   font-size: 11px;
   font-weight: 800;
@@ -396,8 +396,8 @@
   bottom: 8px;
   width: 2px;
   border-radius: 999px;
-  background: #dc6803;
-  box-shadow: 0 0 0 3px rgba(220, 104, 3, 0.12);
+  background: var(--color-palette-hex-dc6803);
+  box-shadow: 0 0 0 3px var(--color-palette-rgb-220-104-3-0-12);
 }
 
 .requestBillingMatrixWrap {
@@ -457,7 +457,7 @@
 }
 
 .requestBillingMatrixDemand:hover {
-  background: #f8fbff;
+  background: var(--color-palette-hex-f8fbff);
 }
 
 .requestBillingMatrixDemand strong {
@@ -497,19 +497,19 @@
 }
 
 .requestBillingMatrixChipPlanned {
-  border-color: #fedf89;
-  background: #fffaeb;
-  color: #b54708;
+  border-color: var(--color-palette-hex-fedf89);
+  background: var(--color-palette-hex-fffaeb);
+  color: var(--color-palette-hex-b54708);
 }
 
 .requestBillingMatrixChipBilled {
-  border-color: #abefc6;
-  background: #ecfdf3;
-  color: #067647;
+  border-color: var(--color-palette-hex-abefc6);
+  background: var(--color-palette-hex-ecfdf3);
+  color: var(--color-palette-hex-067647);
 }
 
 .requestBillingMatrixEmpty {
-  color: #98a2b3;
+  color: var(--color-palette-hex-98a2b3);
   font-weight: 700;
 }
 
@@ -532,11 +532,11 @@
 }
 
 .billingBalanced {
-  background: #e7f6ec;
-  color: #1f7a45;
+  background: var(--color-palette-hex-e7f6ec);
+  color: var(--color-palette-hex-1f7a45);
 }
 
 .billingPending {
-  background: #fff3d6;
-  color: #8a5700;
+  background: var(--color-palette-hex-fff3d6);
+  color: var(--color-palette-hex-8a5700);
 }

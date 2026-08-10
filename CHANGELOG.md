@@ -27,6 +27,9 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- tools MCP para enviar, baixar, classificar e excluir anexos de chamados,
+  melhorias, tarefas e procedimentos, com Base64 limitado e associação de
+  tarefas compatível com a UI;
 - diagnóstico de pré-requisitos com detecção de sistema, versão mínima do
   Node.js, Docker Compose e disponibilidade do Docker Engine;
 - home configurável por usuário e workspace, com catálogo expansível, múltiplas

@@ -14,6 +14,8 @@ O servidor separa os domínios:
   relacionado a aplicações e componentes.
 - `knowledge_context_load`: regras ativas e decisões aceitas para o contexto
   solicitado.
+- `attachments_*`: envio, download, classificação e exclusão de arquivos de
+  chamados, melhorias, tarefas e procedimentos.
 - `secrets_*`: consulta e registro de metadados de segredos, sem acesso aos valores.
 - `resource_collections_*` e `*_move_to_collection`: organização hierárquica
   de aplicações, regras, decisões, procedimentos, segredos, skills e servidores.
@@ -47,6 +49,10 @@ Leituras com falhas transitórias (`429`, `502`, `503` ou `504`) recebem até du
 novas tentativas com backoff; `BIAWS_MCP_HTTP_RETRIES` configura esse número
 entre zero e três. Escritas, autenticação, autorização e validação nunca são
 repetidas automaticamente.
+
+Arquivos enviados ou baixados pelo MCP têm limite padrão de 10 MiB. Defina
+`BIAWS_MCP_MAX_ATTACHMENT_BYTES` para reduzir ou elevar esse limite, respeitado
+o teto de 50 MiB do MCP e o limite independente configurado na API.
 
 ## Execução
 
@@ -133,7 +139,7 @@ conhecimento.
 
 - `issues_search`: busca issues com os mesmos filtros principais da
   `biaws-api`, inclusive por workspace, aplicação e componente afetado.
-- `issues_get`: obtém uma issue com comentários.
+- `issues_get`: obtém uma issue com comentários e metadados dos anexos.
 - `issues_get_classification_catalog`: obtém a árvore taxonômica e os grupos de tags válidos; opcionalmente inclui listas achatadas de IDs e caminhos.
 - `issues_create_taxonomy_item`: inclui um item na raiz ou sob outro item,
   opcionalmente configurando seu escopo por aplicações.
@@ -170,6 +176,38 @@ conhecimento.
 - `demands_update_task_note`: altera uma nota de execução.
 - `demands_delete_task_note`: exclui uma nota de execução.
 
+### Anexos
+
+- `attachments_upload`: envia até dez arquivos, fornecidos em
+  `files[].contentBase64`, para uma entidade;
+- `attachments_download`: devolve nome, MIME type, tamanho e conteúdo integral
+  do arquivo em `contentBase64`;
+- `attachments_update_tags`: substitui as tags de classificação do arquivo;
+- `attachments_delete`: exclui permanentemente o registro do anexo e seu
+  conteúdo armazenado.
+
+As quatro ferramentas aceitam `entityType` com `issue`, `demand`, `task` ou
+`procedure`. `entityId` identifica o chamado, melhoria ou procedimento. Para
+`task`, `entityId` deve ser o ID da melhoria pai e `taskId` deve identificar a
+tarefa por ID ou código.
+
+Como a API ainda não possui uma rota própria de anexos de tarefas, o MCP mantém
+o contrato vigente da UI: armazena o arquivo na melhoria e associa a tarefa por
+uma tag igual ao seu código. O MCP valida essa associação antes de baixar,
+alterar tags ou excluir o arquivo e nunca remove a tag da tarefa por meio de
+`attachments_update_tags`.
+
+Os arquivos trafegam exclusivamente em Base64 no protocolo MCP. O servidor não
+aceita caminhos locais, URLs para download remoto ou referências ao filesystem
+do processo. Todas as operações passam pelas rotas autenticadas da
+`biaws-api`, preservando autorização, escopo e auditoria por domínio.
+Em instalações novas, o grupo padrão `agent-operator` inclui as permissões de
+leitura, criação, alteração de tags e exclusão de anexos nesses três domínios
+raiz. Matrizes de grupos já existentes são preservadas durante atualizações;
+quando essas permissões tiverem sido removidas ou ainda não existirem, um
+administrador deverá concedê-las. Operações no contexto de tarefa usam as
+permissões de anexos da melhoria pai.
+
 ### Procedimentos
 
 - `procedures_search`: pesquisa por ID, texto (título, sumário e conteúdo),
@@ -205,7 +243,7 @@ Nas ferramentas de consulta, os filtros comuns são `workspaceId`,
 
 ## Segurança operacional
 
-Este MCP não expõe uma ferramenta genérica de armazenamento. As escritas disponíveis são intencionais, estruturadas, limitadas ao domínio e passam pela `biaws-api`. As ferramentas `secrets_*` não possuem campos para valor, arquivo ou conteúdo codificado.
+Este MCP não expõe uma ferramenta genérica de armazenamento. As escritas disponíveis são intencionais, estruturadas, limitadas ao domínio e passam pela `biaws-api`. As ferramentas `attachments_*` aceitam somente os quatro tipos de entidade declarados e não podem ser usadas para segredos. As ferramentas `secrets_*` não possuem campos para valor, arquivo ou conteúdo codificado.
 
 O MCP não acessa MongoDB, não executa shell, SSH, deploy ou sincronização Git e
 não recebe valores de senhas, tokens, chaves privadas, kubeconfig ou connection

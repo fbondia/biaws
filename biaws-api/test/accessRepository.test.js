@@ -60,10 +60,15 @@ test("agent operator excludes administrative and catalog publication permissions
   );
   assert.ok(agent.permissions.includes("skills.read"));
   assert.ok(agent.permissions.includes("issues.create"));
-  assert.ok(agent.permissions.includes("issues.attachment.read"));
-  assert.ok(agent.permissions.includes("demands.attachment.read"));
+  for (const domain of ["issues", "demands", "procedures"]) {
+    for (const operation of ["read", "create", "update", "delete"]) {
+      assert.ok(
+        agent.permissions.includes(`${domain}.attachment.${operation}`),
+        `${domain}.attachment.${operation}`,
+      );
+    }
+  }
   assert.ok(agent.permissions.includes("tasks.attachment.read"));
-  assert.ok(agent.permissions.includes("procedures.attachment.read"));
   assert.ok(agent.permissions.includes("taxonomy.manage"));
   assert.ok(agent.permissions.includes("secrets.metadata.read"));
   assert.ok(agent.permissions.includes("secrets.metadata.create"));

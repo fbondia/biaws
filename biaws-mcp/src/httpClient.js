@@ -131,6 +131,20 @@ async function readPayload(response) {
   }
 }
 
+function attachmentSizeError(maxBytes, actualBytes) {
+  const error = new Error(
+    `Attachment exceeds the MCP limit of ${maxBytes} bytes`,
+  );
+  error.code = "ATTACHMENT_TOO_LARGE";
+  error.statusCode = 413;
+  error.retryable = false;
+  error.details = {
+    maxBytes,
+    ...(Number.isFinite(actualBytes) ? { actualBytes } : {}),
+  };
+  return error;
+}
+
 async function requestJson(
   path,
   { method, body, params = {}, headers = {} } = {},
@@ -170,6 +184,64 @@ async function requestJson(
   }
 }
 
+async function requestBinary(
+  path,
+  { params = {}, headers = {}, maxBytes } = {},
+) {
+  const url = buildUrl(path, params);
+  const externalSignal = currentRequestSignal();
+  const timeoutSignal = AbortSignal.timeout(readTimeoutMs());
+  const signal = externalSignal
+    ? AbortSignal.any([externalSignal, timeoutSignal])
+    : timeoutSignal;
+  const maxRetries = readMaxRetries();
+
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        headers: { ...authenticationHeaders(), ...headers },
+        signal,
+      });
+      if (!response.ok) {
+        throw responseError(response, await readPayload(response));
+      }
+
+      const declaredBytes = Number(response.headers.get("content-length"));
+      if (
+        Number.isFinite(maxBytes) &&
+        maxBytes > 0 &&
+        Number.isFinite(declaredBytes) &&
+        declaredBytes > maxBytes
+      ) {
+        await response.body?.cancel();
+        throw attachmentSizeError(maxBytes, declaredBytes);
+      }
+
+      const content = Buffer.from(await response.arrayBuffer());
+      if (
+        Number.isFinite(maxBytes) &&
+        maxBytes > 0 &&
+        content.length > maxBytes
+      ) {
+        throw attachmentSizeError(maxBytes, content.length);
+      }
+      return { content, headers: response.headers };
+    } catch (cause) {
+      const error = cause?.statusCode
+        ? cause
+        : transportError(cause, url, externalSignal);
+      if (attempt >= maxRetries || error.retryable !== true || signal.aborted) {
+        throw error;
+      }
+      try {
+        await delay(100 * 2 ** attempt, undefined, { signal });
+      } catch (delayError) {
+        throw transportError(delayError, url, externalSignal);
+      }
+    }
+  }
+}
+
 export function cleanParams(value = {}) {
   return Object.fromEntries(
     Object.entries(value).filter(
@@ -180,6 +252,10 @@ export function cleanParams(value = {}) {
 
 export function fetchJson(path, params = {}) {
   return requestJson(path, { params });
+}
+
+export function fetchBinary(path, params = {}, options = {}) {
+  return requestBinary(path, { params, maxBytes: options.maxBytes });
 }
 
 export function sendJson(path, body = {}, params = {}, method = "PUT") {

@@ -2,8 +2,10 @@ import { Router } from "express";
 
 import {
   getHomeDashboard,
+  getPendingTasksMetric,
   saveHomeConfiguration,
 } from "../repositories/homeRepository.js";
+import { requireAllPermissions } from "../auth/authorizationMiddleware.js";
 
 export const homeRouter = Router();
 
@@ -21,6 +23,14 @@ homeRouter.get(
   "/",
   asyncHandler(async (req, res) => {
     res.json(await getHomeDashboard(req.actor));
+  }),
+);
+
+homeRouter.get(
+  "/pending-tasks",
+  requireAllPermissions("demands.read"),
+  asyncHandler(async (req, res) => {
+    res.json(await getPendingTasksMetric(req.actor, req.query));
   }),
 );
 

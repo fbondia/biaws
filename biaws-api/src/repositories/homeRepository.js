@@ -3,10 +3,12 @@ import { randomUUID } from "node:crypto";
 import { DEPLOYMENT_ENVIRONMENTS } from "../../../shared/index.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
+import { getPagination } from "../helpers/query.js";
 import { actorCanAccessApplication } from "../auth/authorizationMiddleware.js";
 import { monitoringMetadataPresentation } from "./monitoringMetadataProfiles.js";
 
 const MAX_WIDGETS = 30;
+const DEFAULT_PENDING_TASKS_LIMIT = 6;
 const WIDGET_SIZES = new Set(["small", "medium-1", "medium-2", "large"]);
 const COMPLETED_TASK_STATUSES = [
   "Concluído",
@@ -556,14 +558,31 @@ async function issueBreakdownMetric(database, actor, field) {
   };
 }
 
-async function pendingTasksMetric(database, actor) {
+export function pendingTasksPagination(query = {}) {
+  const requestedLimit = String(query.limit ?? "").trim()
+    ? query.limit
+    : DEFAULT_PENDING_TASKS_LIMIT;
+  return getPagination({ ...query, limit: requestedLimit });
+}
+
+export async function buildPendingTasksMetric(database, actor, query = {}) {
+  const pagination = pendingTasksPagination(query);
   const requests = await database
     .collection(COLLECTION_NAMES.REQUESTS)
     .find(scopedFilter(actor, "demands.read"))
     .project({ _id: 1, title: 1 })
     .toArray();
   const requestIds = requests.map(({ _id }) => _id);
-  if (!requestIds.length) return { kind: "tasks", value: 0, items: [] };
+  if (!requestIds.length) {
+    return {
+      kind: "tasks",
+      value: 0,
+      items: [],
+      page: pagination.page,
+      limit: pagination.limit,
+      hasMore: false,
+    };
+  }
   const filter = {
     requestId: { $in: requestIds },
     status: { $nin: COMPLETED_TASK_STATUSES },
@@ -573,8 +592,9 @@ async function pendingTasksMetric(database, actor) {
     database
       .collection(COLLECTION_NAMES.REQUEST_TASKS)
       .find(filter)
-      .sort({ endDate: 1, createdAt: -1 })
-      .limit(6)
+      .sort({ endDate: 1, createdAt: -1, _id: 1 })
+      .skip(pagination.skip)
+      .limit(pagination.limit)
       .toArray(),
   ]);
   const requestNames = new Map(
@@ -583,14 +603,23 @@ async function pendingTasksMetric(database, actor) {
   return {
     kind: "tasks",
     value,
+    page: pagination.page,
+    limit: pagination.limit,
+    hasMore: pagination.skip + tasks.length < value,
     items: tasks.map((task) => ({
       id: task._id.toString(),
+      requestId: task.requestId?.toString() || "",
       title: task.title,
       status: task.status,
       endDate: task.endDate || "",
       requestTitle: requestNames.get(task.requestId?.toString()) || "Melhoria",
     })),
   };
+}
+
+export async function getPendingTasksMetric(actor, query = {}) {
+  const database = await getMongoDatabase();
+  return buildPendingTasksMetric(database, actor, query);
 }
 
 function incrementHealthCount(counts, status) {
@@ -926,7 +955,7 @@ async function resolveWidgetMetric(database, actor, instance, now) {
   if (instance.widgetId === "open-issues-by-type")
     return issueBreakdownMetric(database, actor, "type");
   if (instance.widgetId === "pending-tasks")
-    return pendingTasksMetric(database, actor);
+    return buildPendingTasksMetric(database, actor);
   if (instance.widgetId === "application-health")
     return applicationHealthMetric(database, actor, instance.config);
   return { kind: "unknown" };

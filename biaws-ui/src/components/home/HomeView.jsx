@@ -3,14 +3,12 @@ import {
   BarChart3,
   CheckCircle2,
   ChevronDown,
-  Clock3,
   ClipboardList,
   GripVertical,
   LayoutDashboard,
   Plus,
   RefreshCw,
   Save,
-  Server,
   Settings,
   Settings2,
   Trash2,
@@ -23,10 +21,7 @@ import {
   fetchRuntimeMonitoringTimeline,
   updateHomeConfiguration,
 } from "../../api.js";
-import {
-  MonitoringEventDetails,
-  MonitoringMetadataPresentation,
-} from "../shared/MonitoringEventDetails.jsx";
+import { MonitoringEventDetails } from "../shared/MonitoringEventDetails.jsx";
 import {
   createWidgetInstance,
   HOME_WIDGET_SIZES,
@@ -35,6 +30,8 @@ import {
   widgetSubtitle,
   widgetTitle,
 } from "./homeModel.js";
+import { WidgetContent } from "./widgets/WidgetContent.jsx";
+import { formatMonitoringDate } from "./widgets/widgetUtils.js";
 
 const ICONS = {
   "issues-period": Activity,
@@ -55,313 +52,6 @@ const EMPTY_MONITORING_FILTERS = {
   observedFrom: "",
   observedTo: "",
 };
-
-function formatDate(value) {
-  if (!value) return "Sem sinal recebido";
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function applicationRuntimes(application) {
-  return (application?.components || []).flatMap((component) =>
-    (component.deployments || []).flatMap((deployment) =>
-      (deployment.runtimes || []).map((runtime) => ({
-        ...runtime,
-        componentName: component.name,
-        deploymentName: deployment.name,
-      })),
-    ),
-  );
-}
-
-function HealthMetadataExplorer({
-  applications,
-  hideTabs,
-  onSelectRuntime,
-  selectedApplicationId,
-  selectedRuntimeId,
-}) {
-  const [applicationId, setApplicationId] = useState(
-    () => applications[0]?.id || "",
-  );
-  const [runtimeId, setRuntimeId] = useState("");
-  const activeApplication =
-    applications.find(({ id }) => id === selectedApplicationId) ||
-    applications.find(({ id }) => id === applicationId) ||
-    applications[0];
-  const runtimes = applicationRuntimes(activeApplication);
-  const activeRuntime =
-    runtimes.find(({ id }) => id === selectedRuntimeId) ||
-    runtimes.find(({ id }) => id === runtimeId) ||
-    runtimes[0];
-
-  function selectApplication(application) {
-    setApplicationId(application.id);
-    setRuntimeId(applicationRuntimes(application)[0]?.id || "");
-  }
-
-  if (!activeApplication || !activeRuntime) return null;
-  const hasMetadata = Boolean(
-    activeRuntime.latestSignal?.metadata &&
-    Object.keys(activeRuntime.latestSignal.metadata).length,
-  );
-
-  return (
-    <section className="homeHealthMetadataExplorer">
-      {!hideTabs ? (
-        <>
-          <div
-            aria-label="Aplicações monitoradas"
-            className="homeHealthApplicationTabs"
-            role="tablist"
-          >
-            {applications.map((application) => (
-              <button
-                aria-selected={application.id === activeApplication.id}
-                className={
-                  application.id === activeApplication.id
-                    ? "isActive"
-                    : undefined
-                }
-                key={application.id}
-                onClick={() => selectApplication(application)}
-                role="tab"
-                type="button"
-              >
-                {application.name}
-              </button>
-            ))}
-          </div>
-          <div
-            aria-label={`Runtimes de ${activeApplication.name}`}
-            className="homeHealthRuntimeTabs"
-            role="tablist"
-          >
-            {runtimes.map((runtime) => (
-              <button
-                aria-selected={runtime.id === activeRuntime.id}
-                className={
-                  runtime.id === activeRuntime.id ? "isActive" : undefined
-                }
-                key={runtime.id}
-                onClick={() => setRuntimeId(runtime.id)}
-                role="tab"
-                type="button"
-              >
-                <span className="homeHealthRuntimeTabHeading">
-                  <span>{runtime.name}</span>
-                  {runtime.status !== "healthy" ? (
-                    <span className="homeHealthRuntimeAlertBadge">Não OK</span>
-                  ) : null}
-                </span>
-                <small>{runtime.deploymentName}</small>
-              </button>
-            ))}
-          </div>
-        </>
-      ) : null}
-      <div className="homeHealthMetadataPanel" role="tabpanel">
-        <header>
-          <div>
-            <strong>{activeRuntime.name}</strong>
-            <small>
-              {activeRuntime.componentName} · {activeRuntime.deploymentName} ·{" "}
-              {activeRuntime.server?.name || "Sem servidor associado"}
-            </small>
-          </div>
-          <button
-            className="secondaryButton"
-            onClick={() => onSelectRuntime(activeRuntime)}
-            type="button"
-          >
-            Ver histórico
-          </button>
-        </header>
-        <div className="homeHealthMetadataPanelContext">
-          <span
-            className={`catalogStatus catalogStatus-${activeRuntime.status}`}
-          >
-            {activeRuntime.status}
-          </span>
-          <span>Última entrada: {formatDate(activeRuntime.observedAt)}</span>
-        </div>
-        {hasMetadata ? (
-          <MonitoringMetadataPresentation
-            event={activeRuntime.latestSignal}
-            showRawFallback
-          />
-        ) : (
-          <div className="homeHealthRuntimeMetadataEmpty">
-            O último sinal não possui metadados.
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function WidgetContent({ config, data, onSelectRuntime }) {
-  if (!data) {
-    return (
-      <div className="homeWidgetPending">
-        Salve a personalização para carregar este widget.
-      </div>
-    );
-  }
-  if (data.kind === "stat") {
-    return (
-      <div className="homeStatWidget">
-        <strong>{data.value}</strong>
-        <span>chamados recebidos</span>
-      </div>
-    );
-  }
-  if (data.kind === "breakdown") {
-    const maximum = Math.max(
-      1,
-      ...(data.items || []).map(({ value }) => value),
-    );
-    if (!data.items?.length)
-      return <div className="homeWidgetEmpty">Nenhum chamado aberto.</div>;
-    return (
-      <div className="homeBreakdown">
-        {data.items.map((item) => (
-          <div className="homeBreakdownRow" key={item.key}>
-            <div>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-            </div>
-            <span className="homeBreakdownTrack">
-              <span style={{ width: `${(item.value / maximum) * 100}%` }} />
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  if (data.kind === "tasks") {
-    return (
-      <div className="homeTasksWidget">
-        <strong className="homeTasksTotal">{data.value} pendentes</strong>
-        {!data.items?.length ? (
-          <div className="homeWidgetEmpty">Nenhuma tarefa pendente.</div>
-        ) : (
-          <div className="homeTaskList">
-            {data.items.map((task) => (
-              <article key={task.id}>
-                <div>
-                  <strong>{task.title}</strong>
-                  <small>{task.requestTitle}</small>
-                </div>
-                <span>{task.status}</span>
-              </article>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-  if (data.kind === "health") {
-    const presentation =
-      config?.runtimeId || config?.presentation === "tabs" ? "tabs" : "list";
-    return (
-      <div className="homeHealthWidget">
-        {!data.items?.length ? (
-          <div className="homeWidgetEmpty">
-            Nenhum runtime com sinais de monitoramento.
-          </div>
-        ) : presentation === "tabs" ? (
-          <HealthMetadataExplorer
-            applications={data.items}
-            hideTabs={Boolean(config?.runtimeId)}
-            onSelectRuntime={onSelectRuntime}
-            selectedApplicationId={config?.applicationId}
-            selectedRuntimeId={config?.runtimeId}
-          />
-        ) : (
-          <div className="homeHealthApplications">
-            {data.items.map((application) => (
-              <section className="homeHealthApplication" key={application.id}>
-                <header>
-                  <div>
-                    <strong>{application.name}</strong>
-                  </div>
-                  <span
-                    className={`catalogStatus catalogStatus-${application.status}`}
-                  >
-                    {application.status}
-                  </span>
-                </header>
-                <div className="homeHealthComponents">
-                  {application.components.map((component) => (
-                    <section key={component.id}>
-                      <header>
-                        <strong>{component.name}</strong>
-                      </header>
-                      <div className="homeHealthDeployments">
-                        {component.deployments.map((deployment) => (
-                          <section key={deployment.id}>
-                            <header>
-                              <div>
-                                <strong>{deployment.name}</strong>
-                              </div>
-                            </header>
-                            <div className="homeHealthRuntimes">
-                              {deployment.runtimes.map((runtime) => (
-                                <div
-                                  className="homeHealthRuntimeCard"
-                                  key={runtime.id}
-                                >
-                                  <button
-                                    className="homeHealthRuntime"
-                                    onClick={() => onSelectRuntime(runtime)}
-                                    type="button"
-                                  >
-                                    <div className="homeHealthRuntimeIdentity">
-                                      <strong>{runtime.name}</strong>
-                                      <span className="homeHealthServer">
-                                        <Server size={13} />
-                                        {runtime.server?.name ||
-                                          "Sem servidor associado"}
-                                      </span>
-                                      <span className="homeHealthLastSignal">
-                                        <Clock3 size={13} />
-                                        Última entrada:{" "}
-                                        {formatDate(runtime.observedAt)}
-                                        {runtime.source
-                                          ? ` · ${runtime.source}`
-                                          : ""}
-                                        {runtime.message
-                                          ? ` · ${runtime.message}`
-                                          : ""}
-                                      </span>
-                                    </div>
-                                    <span
-                                      className={`catalogStatus catalogStatus-${runtime.status}`}
-                                    >
-                                      {runtime.status}
-                                    </span>
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </section>
-                        ))}
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-  return <div className="homeWidgetEmpty">Widget indisponível.</div>;
-}
 
 function RuntimeMonitoringDialog({ runtime, onClose }) {
   const [signals, setSignals] = useState([]);
@@ -534,13 +224,13 @@ function RuntimeMonitoringDialog({ runtime, onClose }) {
                       </span>
                     </div>
                     <time dateTime={signal.observedAt}>
-                      {formatDate(signal.observedAt)}
+                      {formatMonitoringDate(signal.observedAt)}
                     </time>
                   </div>
                   <strong>{signal.source}</strong>
                   {signal.message ? <p>{signal.message}</p> : null}
                   <small>
-                    Recebido em {formatDate(signal.receivedAt)}
+                    Recebido em {formatMonitoringDate(signal.receivedAt)}
                     {signal.signalId ? ` · Sinal ${signal.signalId}` : ""}
                   </small>
                   <MonitoringEventDetails event={signal} />
@@ -752,7 +442,7 @@ function WidgetCatalog({ catalog, onAdd, onClose }) {
   );
 }
 
-export function HomeView() {
+export function HomeView({ onOpenRequestTask }) {
   const [dashboard, setDashboard] = useState(null);
   const [draftWidgets, setDraftWidgets] = useState([]);
   const [editing, setEditing] = useState(false);
@@ -1028,6 +718,7 @@ export function HomeView() {
                   <WidgetContent
                     config={instance.config}
                     data={dashboard.data[instance.id]}
+                    onOpenRequestTask={onOpenRequestTask}
                     onSelectRuntime={setMonitoringRuntime}
                   />
                 </div>

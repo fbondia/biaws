@@ -5,7 +5,7 @@ import {
   Plus,
   RefreshCw,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { moveRequestToCollection } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
@@ -31,8 +31,13 @@ import {
 import { RequestsOverview } from "./components/RequestsOverview.jsx";
 import { useRequestsView } from "./hooks/useRequestsView.js";
 
-export function RequestsView({ actor }) {
+export function RequestsView({
+  actor,
+  initialTaskTarget,
+  onInitialTaskTargetHandled,
+}) {
   const [collectionError, setCollectionError] = useState("");
+  const [taskToOpenId, setTaskToOpenId] = useState("");
   const collectionState = useResourceCollections("demands", {
     onError: setCollectionError,
   });
@@ -109,6 +114,20 @@ export function RequestsView({ actor }) {
     collections: collectionState.collections,
   });
   const canManageCollections = hasPermission(actor, "demands.update");
+
+  useEffect(() => {
+    if (!initialTaskTarget?.requestId || !initialTaskTarget?.taskId) return;
+    let active = true;
+    setTaskToOpenId(initialTaskTarget.taskId);
+    void selectRequest(initialTaskTarget.requestId).then(() => {
+      if (!active) return;
+      setActiveDetailTab("tasks");
+      onInitialTaskTargetHandled?.();
+    });
+    return () => {
+      active = false;
+    };
+  }, [initialTaskTarget?.requestId, initialTaskTarget?.taskId]);
 
   async function moveImprovementToCollection(requestId, collectionId) {
     const payload = await moveRequestToCollection(requestId, collectionId);
@@ -312,6 +331,7 @@ export function RequestsView({ actor }) {
         {selectedRequest ? (
           <RequestDetails
             activeTab={activeDetailTab}
+            initialTaskId={taskToOpenId}
             journeyTotals={{
               executedTotal: selectedExecutedTotal,
               overExecutedTotal: selectedOverExecutedTotal,
@@ -322,6 +342,7 @@ export function RequestsView({ actor }) {
             onBeginNumberDraft={beginNumberDraft}
             onJourneyCommentChange={updateJourneyComment}
             onJourneyMonthCommit={commitJourneyMonth}
+            onInitialTaskHandled={() => setTaskToOpenId("")}
             onCreateNote={addRequestNote}
             onCreateTask={addRequestTask}
             onCreateTaskNote={addRequestTaskNote}

@@ -303,7 +303,7 @@
   padding: 9px 11px;
 }
 
-.homeTaskList article > div {
+.homeTaskIdentity {
   display: grid;
   min-width: 0;
   gap: 2px;
@@ -321,13 +321,65 @@
   font-size: 0.7rem;
 }
 
-.homeTaskList article > span {
+.homeTaskActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.homeTaskStatus {
   flex: 0 0 auto;
   border-radius: 999px;
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
   padding: 3px 7px;
   font-size: 0.68rem;
+}
+
+.secondaryButton.homeTaskOpenButton {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  border-color: var(--color-accent-border);
+  background: #f0f6ff;
+  color: var(--color-accent-text);
+  padding: 0;
+}
+
+.secondaryButton.homeTaskOpenButton:hover:not(:disabled) {
+  border-color: var(--color-focus);
+  background: #eaf2ff;
+}
+
+.secondaryButton.homeTaskOpenButton > svg {
+  display: block;
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+  stroke: currentColor;
+}
+
+.secondaryButton.homeTasksLoadMore {
+  width: 100%;
+  border-color: var(--color-accent-border);
+  background: #f0f6ff;
+  color: var(--color-accent-text);
+  font-weight: 600;
+}
+
+.secondaryButton.homeTasksLoadMore:hover:not(:disabled) {
+  border-color: var(--color-focus);
+  background: #eaf2ff;
+}
+
+.secondaryButton.homeTasksLoadMore > span {
+  display: inline;
+  color: var(--color-accent-text);
+}
+
+.homeTasksLoadMoreError {
+  color: #9b1c1c;
+  font-size: 0.78rem;
 }
 
 .homeHealthApplications,

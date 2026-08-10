@@ -19,10 +19,15 @@ export function ActiveView({
   actor,
   issuesProps,
   loadRuntimeOptionLists,
+  onOpenRequestTask,
+  onRequestTaskTargetHandled,
   onSignOut,
+  requestTaskTarget,
   runtimeOptionsVersion,
 }) {
-  if (activeView === "home") return <HomeView />;
+  if (activeView === "home") {
+    return <HomeView onOpenRequestTask={onOpenRequestTask} />;
+  }
   if (activeView === "workspace-admin") {
     return <WorkspaceAdminView actor={actor} />;
   }
@@ -34,7 +39,12 @@ export function ActiveView({
     );
   if (activeView === "requests")
     return (
-      <RequestsView actor={actor} key={`requests-${runtimeOptionsVersion}`} />
+      <RequestsView
+        actor={actor}
+        initialTaskTarget={requestTaskTarget}
+        key={`requests-${runtimeOptionsVersion}`}
+        onInitialTaskTargetHandled={onRequestTaskTargetHandled}
+      />
     );
   if (activeView === "procedures") return <ProceduresView actor={actor} />;
   if (activeView === "documents") return <KnowledgeRecordsView actor={actor} />;

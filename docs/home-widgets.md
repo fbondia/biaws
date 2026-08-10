@@ -44,6 +44,18 @@ Retorna:
 - `data`: resultado de cada widget, indexado pelo ID da instância;
 - `generatedAt`: instante da leitura.
 
+O widget de tarefas pendentes carrega inicialmente 6 itens. Os lotes seguintes
+são obtidos pelo endpoint paginado abaixo, sempre preservando o escopo de
+`demands.read` do ator:
+
+```http
+GET /api/home/pending-tasks?page=2&limit=6
+```
+
+A resposta informa `value` (total de pendentes), `items`, `page`, `limit` e
+`hasMore`. Cada item inclui `requestId`, usado pela interface para abrir a
+melhoria diretamente na tarefa selecionada.
+
 ```http
 PUT /api/home/configuration
 Content-Type: application/json

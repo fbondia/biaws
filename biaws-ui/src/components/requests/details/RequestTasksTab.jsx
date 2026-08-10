@@ -30,10 +30,12 @@ function statusStyle(status) {
 export function RequestTasksTab({
   request,
   saving,
+  initialTaskId,
   onCreateTask,
   onCreateTaskNote,
   onDeleteTask,
   onDeleteTaskNote,
+  onInitialTaskHandled,
   onUpdateTask,
   onUpdateTaskNote,
   onRequestUpdated,
@@ -43,6 +45,14 @@ export function RequestTasksTab({
   useEffect(() => {
     setDialogTask(null);
   }, [request.id]);
+
+  useEffect(() => {
+    if (!initialTaskId) return;
+    setDialogTask(
+      request.tasks.find((task) => task.id === initialTaskId) || null,
+    );
+    onInitialTaskHandled?.();
+  }, [initialTaskId, request.id]);
 
   function beginCreate() {
     setDialogTask({

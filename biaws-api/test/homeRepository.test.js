@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildPendingTasksMetric,
   buildApplicationHealthItems,
   defaultHomeWidgets,
   filterRuntimesByDeploymentEnvironment,
   HOME_WIDGET_CATALOG,
   normalizeHomeWidgets,
+  pendingTasksPagination,
 } from "../src/repositories/homeRepository.js";
 
 const actor = {
@@ -192,6 +194,106 @@ test("home configuration rejects unauthorized widgets and invalid config", () =>
       ),
     (error) => error.code === "INVALID_HOME_CONFIGURATION",
   );
+});
+
+test("pending tasks use six-item pages by default", () => {
+  assert.deepEqual(pendingTasksPagination(), { page: 1, limit: 6, skip: 0 });
+  assert.deepEqual(pendingTasksPagination({ page: "3", limit: "8" }), {
+    page: 3,
+    limit: 8,
+    skip: 16,
+  });
+  assert.throws(
+    () => pendingTasksPagination({ page: "invalid" }),
+    (error) => error.code === "INVALID_QUERY",
+  );
+});
+
+test("pending tasks metric returns a deterministic page and pagination metadata", async () => {
+  const observations = {};
+  const requests = [{ _id: "request-1", title: "Melhoria principal" }];
+  const tasks = Array.from({ length: 8 }, (_, index) => ({
+    _id: `task-${index + 1}`,
+    requestId: "request-1",
+    title: `Tarefa ${index + 1}`,
+    status: "Pendente",
+  }));
+  const database = {
+    collection(name) {
+      if (name === "requests") {
+        return {
+          find(filter) {
+            observations.requestFilter = filter;
+            return {
+              project() {
+                return this;
+              },
+              async toArray() {
+                return requests;
+              },
+            };
+          },
+        };
+      }
+      assert.equal(name, "requestTasks");
+      return {
+        async countDocuments(filter) {
+          observations.taskFilter = filter;
+          return tasks.length;
+        },
+        find(filter) {
+          observations.taskFilter = filter;
+          let skip = 0;
+          let limit = tasks.length;
+          return {
+            sort(value) {
+              observations.sort = value;
+              return this;
+            },
+            skip(value) {
+              skip = value;
+              observations.skip = value;
+              return this;
+            },
+            limit(value) {
+              limit = value;
+              observations.limit = value;
+              return this;
+            },
+            async toArray() {
+              return tasks.slice(skip, skip + limit);
+            },
+          };
+        },
+      };
+    },
+  };
+  const result = await buildPendingTasksMetric(
+    database,
+    {
+      workspaceId: "workspace-1",
+      permissionScopes: { "demands.read": { workspace: true } },
+    },
+    { page: 2, limit: 3 },
+  );
+
+  assert.deepEqual(observations.requestFilter, { workspaceId: "workspace-1" });
+  assert.deepEqual(observations.sort, {
+    endDate: 1,
+    createdAt: -1,
+    _id: 1,
+  });
+  assert.equal(observations.skip, 3);
+  assert.equal(observations.limit, 3);
+  assert.deepEqual(
+    result.items.map(({ id }) => id),
+    ["task-4", "task-5", "task-6"],
+  );
+  assert.equal(result.items[0].requestId, "request-1");
+  assert.equal(result.value, 8);
+  assert.equal(result.page, 2);
+  assert.equal(result.limit, 3);
+  assert.equal(result.hasMore, true);
 });
 
 test("application health filters runtimes by deployment environment", () => {

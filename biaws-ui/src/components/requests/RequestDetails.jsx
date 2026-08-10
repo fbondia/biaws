@@ -1,4 +1,4 @@
-import { Edit3, Eye, X } from "lucide-react";
+import { Edit3, Save, X } from "lucide-react";
 
 import { REQUEST_DETAIL_TABS } from "./requestUtils.js";
 import { RequestJourneyTab } from "./details/RequestJourneyTab.jsx";
@@ -22,6 +22,7 @@ export function RequestDetails({
   request,
   isEditing,
   activeTab,
+  initialTaskId,
   savingRequestId,
   selectedChecklistItem,
   journeyTotals,
@@ -40,6 +41,7 @@ export function RequestDetails({
   onCloseChecklistDialog,
   onJourneyMonthCommit,
   onJourneyCommentChange,
+  onInitialTaskHandled,
   onCreateNote,
   onCreateTask,
   onCreateTaskNote,
@@ -87,12 +89,12 @@ export function RequestDetails({
         </div>
         <div className="requestDetailActions">
           <button
-            className="secondaryButton"
+            className="primaryButton"
             onClick={onToggleEditMode}
             type="button"
           >
-            {isEditing ? <Eye size={16} /> : <Edit3 size={16} />}
-            {isEditing ? "Concluir edição" : "Editar"}
+            {isEditing ? <Save size={16} /> : <Edit3 size={16} />}
+            {isEditing ? "Gravar" : "Editar"}
           </button>
           <button className="secondaryButton" onClick={onClose} type="button">
             <X size={16} />
@@ -142,10 +144,12 @@ export function RequestDetails({
 
       {activeTab === "tasks" ? (
         <RequestTasksTab
+          initialTaskId={initialTaskId}
           onCreateTask={onCreateTask}
           onCreateTaskNote={onCreateTaskNote}
           onDeleteTask={onDeleteTask}
           onDeleteTaskNote={onDeleteTaskNote}
+          onInitialTaskHandled={onInitialTaskHandled}
           onUpdateTask={onUpdateTask}
           onUpdateTaskNote={onUpdateTaskNote}
           onRequestUpdated={onRequestUpdated}

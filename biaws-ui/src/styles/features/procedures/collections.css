@@ -472,6 +472,7 @@ button.resourceCollectionItemContent {
 }
 
 .resourceCollectionContent {
+  background-color: var(--color-background);
   display: grid;
   min-width: 0;
   gap: 14px;

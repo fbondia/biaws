@@ -38,13 +38,6 @@ export function RequestMainTab({
 
         {isEditing ? (
           <>
-            <CatalogContextDialogField
-              affectedComponentIds={request.affectedComponentIds}
-              applicationId={request.applicationId}
-              applications={applications}
-              components={components}
-              onChange={onContextChange}
-            />
             <div className="requestFormGrid">
               <label className="field requestCodeField">
                 <span>Código da melhoria</span>
@@ -65,6 +58,15 @@ export function RequestMainTab({
                   }
                   type="text"
                   value={request.title}
+                />
+              </label>
+              <label className="catalogContextField">
+                <CatalogContextDialogField
+                  affectedComponentIds={request.affectedComponentIds}
+                  applicationId={request.applicationId}
+                  applications={applications}
+                  components={components}
+                  onChange={onContextChange}
                 />
               </label>
               <label className="field requestMetaField">

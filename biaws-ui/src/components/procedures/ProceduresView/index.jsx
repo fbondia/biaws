@@ -157,6 +157,7 @@ export function ProceduresView({ actor }) {
             draggedItem={draggedItem}
             itemLabel="procedimentos"
             items={organizationItems}
+            preferenceKey="procedures"
             onCreate={createCollection}
             onDelete={removeCollection}
             onDeleteItem={remove}

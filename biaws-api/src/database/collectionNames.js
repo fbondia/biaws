@@ -36,6 +36,7 @@ export const COLLECTION_NAMES = Object.freeze({
   SECRETS: "secrets",
   SKILLS: "skills",
   TAXONOMIES: "taxonomies",
+  USER_PREFERENCES: "userPreferences",
   WORKSPACE_MEMBERSHIPS: "workspaceMemberships",
   WORKSPACES: "workspaces",
 });

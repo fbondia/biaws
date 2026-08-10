@@ -113,6 +113,7 @@ export function CatalogView({ actor }) {
             draggedItem={collectionState.draggedItem}
             itemLabel="aplicações"
             items={applications}
+            preferenceKey="applications"
             onCreate={
               canManageCollections
                 ? collectionState.createCollection

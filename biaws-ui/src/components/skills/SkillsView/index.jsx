@@ -127,6 +127,7 @@ export function SkillsView({ actor }) {
               getItemId={(skill) => skill.skillId}
               itemLabel="skills"
               items={result?.items || []}
+              preferenceKey="skills"
               onCreate={
                 canManageCollections
                   ? collectionState.createCollection

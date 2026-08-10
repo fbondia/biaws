@@ -231,6 +231,7 @@ export function RequestsView({
             getItemId={(request) => request.id}
             itemLabel="melhorias"
             items={requestCollectionItems}
+            preferenceKey="demands"
             onCreate={
               canManageCollections
                 ? collectionState.createCollection

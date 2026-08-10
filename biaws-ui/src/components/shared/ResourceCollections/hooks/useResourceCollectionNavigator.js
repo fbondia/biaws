@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  fetchCollectionNavigationPreference,
+  updateCollectionNavigationPreference,
+} from "../../../../api/userPreferences.js";
+import { getCurrentWorkspaceId } from "../../../../api/client.js";
+
+import {
   buildCollectionColumns,
   buildCollectionTree,
   countItemsByCollection,
@@ -13,9 +19,14 @@ export function useResourceCollectionNavigator({
   onCreate,
   onDrop,
   onSelect,
+  preferenceKey,
   selectedCollectionId,
 }) {
   const [collapsedIds, setCollapsedIds] = useState(() => new Set());
+  const collapsedIdsRef = useRef(collapsedIds);
+  const preferenceLoadVersionRef = useRef(0);
+  const preferenceMutationQueuesRef = useRef(new Map());
+  const preferenceMutationVersionsRef = useRef(new Map());
   const [dropTargetId, setDropTargetId] = useState(null);
   const [itemDropTargetId, setItemDropTargetId] = useState(null);
   const [viewMode, setViewMode] = useState(() =>
@@ -46,6 +57,38 @@ export function useResourceCollectionNavigator({
       ),
     [childrenByParent, collections, selectedCollectionId],
   );
+
+  useEffect(() => {
+    const loadVersion = preferenceLoadVersionRef.current + 1;
+    preferenceLoadVersionRef.current = loadVersion;
+    preferenceMutationVersionsRef.current.clear();
+    const empty = new Set();
+    collapsedIdsRef.current = empty;
+    setCollapsedIds(empty);
+    if (!preferenceKey) return undefined;
+
+    let active = true;
+    fetchCollectionNavigationPreference(preferenceKey)
+      .then((preference) => {
+        if (
+          !active ||
+          preferenceLoadVersionRef.current !== loadVersion ||
+          preferenceMutationVersionsRef.current.size
+        ) {
+          return;
+        }
+        const loaded = new Set(preference.collapsedCollectionIds || []);
+        collapsedIdsRef.current = loaded;
+        setCollapsedIds(loaded);
+      })
+      .catch((error) => {
+        console.error("Não foi possível carregar o estado das coleções", error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [preferenceKey]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
@@ -98,12 +141,54 @@ export function useResourceCollectionNavigator({
   }
 
   function toggleCollection(collectionId) {
-    setCollapsedIds((current) => {
-      const next = new Set(current);
-      if (next.has(collectionId)) next.delete(collectionId);
-      else next.add(collectionId);
-      return next;
-    });
+    const next = new Set(collapsedIdsRef.current);
+    const collapsed = !next.has(collectionId);
+    if (collapsed) next.add(collectionId);
+    else next.delete(collectionId);
+    collapsedIdsRef.current = next;
+    setCollapsedIds(next);
+
+    if (!preferenceKey) return;
+    const mutationVersion =
+      (preferenceMutationVersionsRef.current.get(collectionId) || 0) + 1;
+    preferenceMutationVersionsRef.current.set(collectionId, mutationVersion);
+    const previousMutation =
+      preferenceMutationQueuesRef.current.get(collectionId) ||
+      Promise.resolve();
+    const mutationWorkspaceId = getCurrentWorkspaceId();
+    const mutation = previousMutation
+      .catch(() => undefined)
+      .then(() =>
+        updateCollectionNavigationPreference(
+          preferenceKey,
+          collectionId,
+          collapsed,
+          mutationWorkspaceId,
+        ),
+      );
+    preferenceMutationQueuesRef.current.set(collectionId, mutation);
+    mutation
+      .catch((error) => {
+        if (
+          preferenceMutationVersionsRef.current.get(collectionId) !==
+          mutationVersion
+        ) {
+          return;
+        }
+        const rolledBack = new Set(collapsedIdsRef.current);
+        if (collapsed) rolledBack.delete(collectionId);
+        else rolledBack.add(collectionId);
+        collapsedIdsRef.current = rolledBack;
+        setCollapsedIds(rolledBack);
+        console.error("Não foi possível salvar o estado da coleção", error);
+      })
+      .finally(() => {
+        if (
+          preferenceMutationQueuesRef.current.get(collectionId) === mutation
+        ) {
+          preferenceMutationQueuesRef.current.delete(collectionId);
+        }
+      });
   }
 
   function finishDrag(onDragEnd) {

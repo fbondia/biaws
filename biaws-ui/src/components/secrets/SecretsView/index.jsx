@@ -171,6 +171,7 @@ export function SecretsView({ actor }) {
             draggedItem={collectionState.draggedItem}
             itemLabel="segredos"
             items={secrets}
+            preferenceKey="secrets"
             onCreate={
               permissions.update ? collectionState.createCollection : undefined
             }

@@ -25,6 +25,17 @@ A configuração pertence ao próprio `userId` dentro do workspace selecionado.
 Widgets de chamados, tarefas e monitoramento respeitam respectivamente
 `issues.read`, `demands.read` e `runtimes.read`, incluindo escopo por aplicação.
 
+## Preferências pessoais
+
+| Método  | Rota                                              | Autorização aplicada                                         |
+| ------- | ------------------------------------------------- | ------------------------------------------------------------ |
+| `GET`   | `/api/preferences/collection-navigation/:context` | identidade autenticada; lê somente a preferência do ator     |
+| `PATCH` | `/api/preferences/collection-navigation/:context` | identidade autenticada; altera somente a preferência do ator |
+
+O estado de expansão das coleções pertence ao próprio `userId` dentro do
+workspace selecionado. Cada alteração adiciona ou remove atomicamente o ID da
+coleção no contexto de navegação correspondente.
+
 ## Grupos e vínculos
 
 | Método  | Rota                                                 | Permissão aplicada              |

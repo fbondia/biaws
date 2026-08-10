@@ -32,6 +32,7 @@ import { platformRouter } from "./routes/platform.js";
 import { secretsRouter } from "./routes/secrets.js";
 import { resourceCollectionsRouter } from "./routes/resourceCollections.js";
 import { knowledgeRecordsRouter } from "./routes/knowledgeRecords.js";
+import { userPreferencesRouter } from "./routes/userPreferences.js";
 import {
   rejectDatabaseOverride,
   requireIdentityAdminOperation,
@@ -134,6 +135,7 @@ export function createApp({ logger = apiLogger } = {}) {
   app.use("/api/option-lists", ...protectedRoute, optionListsRouter);
   app.use("/api/secrets", ...protectedRoute, secretsRouter);
   app.use("/api/knowledge", ...protectedRoute, knowledgeRecordsRouter);
+  app.use("/api/preferences", ...protectedRoute, userPreferencesRouter);
   app.use(
     "/api/resource-collections",
     ...protectedRoute,

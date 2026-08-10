@@ -202,6 +202,7 @@ export function ServersView({ actor }) {
             draggedItem={collectionState.draggedItem}
             itemLabel="servidores"
             items={servers}
+            preferenceKey="servers"
             onCreate={
               canManageCollections
                 ? collectionState.createCollection

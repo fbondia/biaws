@@ -22,12 +22,13 @@ export function getCurrentWorkspaceId() {
   return currentWorkspaceId;
 }
 
-export function workspaceHeaders(headers = {}) {
+export function workspaceHeaders(
+  headers = {},
+  workspaceId = currentWorkspaceId,
+) {
   return {
     ...headers,
-    ...(currentWorkspaceId
-      ? { "X-Biaws-Workspace-Id": currentWorkspaceId }
-      : {}),
+    ...(workspaceId ? { "X-Biaws-Workspace-Id": workspaceId } : {}),
   };
 }
 

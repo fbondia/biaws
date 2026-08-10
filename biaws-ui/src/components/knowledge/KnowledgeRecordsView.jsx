@@ -406,6 +406,7 @@ export function KnowledgeRecordsView({ actor }) {
             draggedItem={collectionsState.draggedItem}
             itemLabel="documentos"
             items={organizationItems}
+            preferenceKey="documents"
             onCreate={collectionsState.createCollection}
             onDelete={collectionsState.removeCollection}
             onDeleteItem={canArchive ? archive : undefined}

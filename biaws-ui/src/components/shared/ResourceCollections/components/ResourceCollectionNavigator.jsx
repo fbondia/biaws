@@ -28,6 +28,7 @@ export function ResourceCollectionNavigator({
   onCreate,
   onRename,
   onReorderItem,
+  preferenceKey,
   renderItem,
 }) {
   const navigator = useResourceCollectionNavigator({
@@ -36,6 +37,7 @@ export function ResourceCollectionNavigator({
     onCreate,
     onDrop,
     onSelect,
+    preferenceKey,
     selectedCollectionId,
   });
 

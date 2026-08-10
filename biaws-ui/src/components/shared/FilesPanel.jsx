@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { detailValue, formatBytes } from "../../utils/issues.js";
+import { detailValue, formatBytes, formatDate } from "../../utils/issues.js";
 import { canPreviewFile, FilePreview } from "./FilePreview.jsx";
 
 export function FilesPanel({
@@ -267,7 +267,10 @@ export function FilesPanel({
                       <strong>{file.filename || "anexo"}</strong>
                       <small>
                         {detailValue(file.contentType)} ·{" "}
-                        {formatBytes(file.size)}
+                        {formatBytes(file.size)} ·{" "}
+                        {file.uploadedAt
+                          ? `Adicionado em ${formatDate(file.uploadedAt)}`
+                          : "Data não registrada"}
                       </small>
                     </span>
                   </button>

@@ -418,7 +418,11 @@ async function storeAttachments(options, parsedIssue, plan) {
       continue;
     }
 
-    const attachment = { ...parsedAttachment, index: nextAttachmentIndex };
+    const attachment = {
+      ...parsedAttachment,
+      index: nextAttachmentIndex,
+      uploadedAt: new Date(),
+    };
     const content = contentByIndex.get(parsedAttachment.index)?.content;
     const key = buildAttachmentStorageKey(plan.issueId, attachment, plan.issue);
     const storage = await attachmentStorage.save({ key, content });

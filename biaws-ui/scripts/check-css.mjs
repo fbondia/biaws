@@ -37,6 +37,21 @@ const requiredColorTokens = [
   "color-accent-border",
   "color-focus",
 ];
+const requiredSemanticColorTokens = [
+  "color-danger-surface",
+  "color-danger-border",
+  "color-danger-text",
+  "color-success-surface",
+  "color-success-text",
+  "color-warning-surface",
+  "color-warning-border",
+  "color-warning-text",
+  "color-info-surface",
+  "color-info-border",
+  "color-focus-ring",
+  "color-overlay-backdrop",
+  "color-shadow-dialog",
+];
 
 const tokenSource = readFileSync(tokenFile, "utf8");
 const errors = [];
@@ -80,6 +95,17 @@ for (const token of requiredColorTokens) {
   }
 }
 
+for (const token of requiredSemanticColorTokens) {
+  const definition = tokenSource
+    .match(new RegExp(`--${token}:\\s*([^;]+);`))?.[1]
+    ?.trim();
+  if (!definition) {
+    errors.push(`Token semântico obrigatório ausente: --${token}`);
+  } else if (definition.includes(`var(--${token})`)) {
+    errors.push(`Token semântico autorreferente: --${token}`);
+  }
+}
+
 for (const file of styleFiles) {
   const source = readFileSync(file, "utf8");
   for (const match of source.matchAll(/--([a-z0-9-]+):\s*var\(--\1\)/gi)) {
@@ -89,6 +115,9 @@ for (const file of styleFiles) {
     if (!declaredVariables.has(match[1]) && !runtimeVariables.has(match[1])) {
       errors.push(`Variável CSS não declarada em ${file}: --${match[1]}`);
     }
+  }
+  if (/--color-palette-(?:hex|rgb)-/i.test(source)) {
+    errors.push(`Token de cor nomeado pelo valor em ${file}`);
   }
   if (
     file !== fileURLToPath(tokenFile) &&

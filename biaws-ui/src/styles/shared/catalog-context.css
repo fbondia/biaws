@@ -73,7 +73,7 @@ label.catalogColumnRow {
 
 .catalogColumnRow:hover:not(:disabled),
 .activeCatalogColumnRow {
-  background: var(--color-palette-hex-f8fbff);
+  background: var(--palette-neutral-03);
 }
 
 .activeCatalogColumnRow {
@@ -81,7 +81,7 @@ label.catalogColumnRow {
 }
 
 .checkedCatalogColumnRow {
-  background: var(--color-palette-hex-f1f8f4);
+  background: var(--palette-neutral-08);
 }
 
 .catalogColumnRow:focus-visible {
@@ -130,7 +130,7 @@ label.catalogColumnRow {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: 0 20px 55px var(--color-palette-rgb-15-23-42-0-2);
+  box-shadow: 0 20px 55px var(--color-shadow);
   padding: var(--space-5);
 }
 

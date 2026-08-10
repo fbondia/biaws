@@ -7,7 +7,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-24);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
 }
 
 .dialogHeader {
@@ -52,9 +52,9 @@
   align-items: center;
   gap: 6px;
   min-height: 24px;
-  border: 1px solid var(--color-palette-hex-d6e4ff);
+  border: 1px solid var(--palette-blue-13);
   border-radius: 999px;
-  background: var(--color-palette-hex-f4f8ff);
+  background: var(--palette-blue-03);
   color: var(--color-accent-text);
   padding: 2px 9px;
   font-size: 12px;

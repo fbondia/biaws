@@ -18,7 +18,7 @@
 
 .requestTaskCard:hover {
   border-color: var(--color-accent-border);
-  background: var(--color-palette-hex-f8fbff);
+  background: var(--palette-neutral-03);
 }
 
 .requestTaskCardHeader {
@@ -72,9 +72,9 @@
 
 .requestTaskStatus {
   flex: 0 0 auto;
-  border: 1px solid var(--color-palette-hex-d0d5dd);
+  border: 1px solid var(--palette-neutral-15);
   border-radius: 999px;
-  background: var(--color-palette-hex-f2f4f7);
+  background: var(--palette-neutral-09);
   color: var(--color-text-muted);
   padding: 3px 8px;
   font-size: 12px;
@@ -90,7 +90,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-24);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
 }
 
 .requestTaskDialogHeader,
@@ -202,7 +202,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-24);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
 }
 
 .requestTaskNoteDialogHeader,

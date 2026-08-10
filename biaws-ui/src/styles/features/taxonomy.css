@@ -231,8 +231,8 @@
 }
 
 .editableTag button:hover {
-  background: var(--color-palette-hex-fff1f1);
-  color: var(--color-palette-hex-9b1c1c);
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
 }
 
 .addTagChip {
@@ -240,18 +240,18 @@
   align-items: center;
   gap: 6px;
   min-height: 32px;
-  border: 1px dashed var(--color-palette-hex-7f56d9);
+  border: 1px dashed var(--palette-purple-07);
   border-radius: 999px;
-  background: var(--color-palette-hex-f4f0ff);
-  color: var(--color-palette-hex-6941c6);
+  background: var(--palette-purple-02);
+  color: var(--palette-purple-09);
   padding: 4px 11px;
   font-size: 12px;
   font-weight: 800;
 }
 
 .addTagChip:hover {
-  border-color: var(--color-palette-hex-6941c6);
-  background: var(--color-palette-hex-ebe3ff);
+  border-color: var(--palette-purple-09);
+  background: var(--palette-purple-04);
 }
 
 .taxonomyTreeWrap {
@@ -285,7 +285,7 @@
 
 .taxonomyNode:hover,
 .selectedTaxonomyNode {
-  background: var(--color-palette-hex-f8fbff);
+  background: var(--palette-neutral-03);
 }
 
 .selectedTaxonomyNode {

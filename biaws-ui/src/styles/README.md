@@ -18,7 +18,11 @@ da tela de melhorias.
 ## Convenções
 
 1. Use variáveis de `foundations/tokens.css` para cores, espaçamento, raios,
-   alturas de controles e níveis de sobreposição.
+   alturas de controles e níveis de sobreposição. Para cores, prefira tokens
+   semânticos (`--color-danger-*`, `--color-success-*`, `--color-warning-*`,
+   `--color-info-*` e `--color-shadow-*`). A paleta primitiva
+   (`--palette-<família>-<posição>`) é reservada a composições visuais sem papel
+   semântico compartilhado; não crie tokens nomeados pelo hexadecimal ou RGB.
 2. Evite seletores globais de elementos em arquivos de feature. Tabelas de dados,
    por exemplo, devem ter uma classe raiz própria.
 3. Classes compartilhadas devem representar um primitive estável, não detalhes
@@ -31,6 +35,16 @@ da tela de melhorias.
    foco visível.
 7. CSS Modules podem ser usados para componentes autocontidos. Estilos que
    precisam ser compartilhados devem continuar em `shared/`.
+
+## Hierarquia de cores
+
+- tokens base descrevem superfícies, texto, bordas, ação e foco;
+- tokens de feedback descrevem superfície, borda e texto por intenção;
+- tokens de efeito descrevem anéis de foco, overlays e cores de sombra;
+- tokens categóricos de domínio, como `--color-topology-*`, distinguem entidades
+  sem transformar uma cor específica em contrato global;
+- a paleta primitiva é o último recurso e organiza valores por família, do tom
+  mais claro para o mais escuro.
 
 Ao mover regras existentes, preserve primeiro a ordem dos imports e valide o
 build antes de alterar especificidade ou introduzir novos layers de cascata.

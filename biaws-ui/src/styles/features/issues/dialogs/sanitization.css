@@ -119,8 +119,8 @@
 }
 
 .sanitizationPreviewSection {
-  border-color: var(--color-palette-hex-b8d7c8);
-  background: var(--color-palette-hex-f7fbf9);
+  border-color: var(--palette-green-13);
+  background: var(--palette-neutral-07);
 }
 
 .sanitizationPreviewToolbar {

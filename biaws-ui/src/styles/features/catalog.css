@@ -201,16 +201,16 @@
 }
 
 .catalogHealthText-healthy {
-  color: var(--color-palette-hex-17633d);
+  color: var(--palette-green-25);
 }
 
 .catalogHealthText-degraded,
 .catalogHealthText-stopped {
-  color: var(--color-palette-hex-8a5a00);
+  color: var(--palette-orange-16);
 }
 
 .catalogHealthText-unavailable {
-  color: var(--color-palette-hex-8f1d1d);
+  color: var(--palette-red-15);
 }
 
 .catalogOverviewCard {
@@ -432,7 +432,7 @@
 
 .catalogDeployableFilterButton.isActive {
   border-color: var(--color-accent-border);
-  background: var(--color-palette-hex-f0f6ff);
+  background: var(--color-info-surface);
   color: var(--color-accent-text);
 }
 
@@ -489,28 +489,28 @@
 
 .catalogStatus-active,
 .catalogStatus-healthy {
-  border-color: var(--color-palette-hex-9fd5b8);
-  background: var(--color-palette-hex-edf9f2);
-  color: var(--color-palette-hex-17633d);
+  border-color: var(--palette-green-15);
+  background: var(--palette-green-03);
+  color: var(--palette-green-25);
 }
 
 .catalogStatus-degraded,
 .catalogStatus-stopped {
-  border-color: var(--color-palette-hex-e6c26f);
-  background: var(--color-palette-hex-fff8e6);
-  color: var(--color-palette-hex-7a5100);
+  border-color: var(--palette-orange-09);
+  background: var(--palette-orange-03);
+  color: var(--palette-orange-17);
 }
 
 .catalogStatus-failed,
 .catalogStatus-unavailable,
 .catalogStatus-archived {
-  border-color: var(--color-palette-hex-efb4b4);
-  background: var(--color-palette-hex-fff1f1);
-  color: var(--color-palette-hex-8f1d1d);
+  border-color: var(--palette-red-07);
+  background: var(--color-danger-surface);
+  color: var(--palette-red-15);
 }
 
 .dangerIconButton {
-  color: var(--color-palette-hex-9b1c1c);
+  color: var(--color-danger-text);
 }
 
 .catalogDeploymentList,
@@ -592,7 +592,7 @@
 
 .catalogTopologyRow:hover,
 .activeCatalogTopologyRow {
-  background: var(--color-palette-hex-f8fbff);
+  background: var(--palette-neutral-03);
 }
 
 .activeCatalogTopologyRow {
@@ -689,8 +689,8 @@
   overflow-x: auto;
   margin: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-palette-hex-111827);
-  color: var(--color-palette-hex-f8fafc);
+  background: var(--palette-neutral-22);
+  color: var(--palette-neutral-05);
   padding: var(--space-4);
   font-size: 0.72rem;
   line-height: 1.55;
@@ -752,7 +752,7 @@
 
 .catalogTopologyLoadError p {
   margin: 0;
-  color: var(--color-palette-hex-8f1d1d);
+  color: var(--palette-red-15);
   font-size: 0.8rem;
 }
 
@@ -765,7 +765,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  box-shadow: 0 18px 50px var(--color-palette-rgb-15-23-42-0-2);
+  box-shadow: 0 18px 50px var(--color-shadow);
   color: var(--color-text-subtle);
   padding: var(--space-5);
   font-weight: 700;
@@ -781,7 +781,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-26);
+  box-shadow: 0 24px 70px var(--color-shadow-elevated);
 }
 
 .topologyDiagramDialog > header {
@@ -929,7 +929,7 @@
 
 .topologyDiagramVisibilityMenu[open] > summary {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px var(--color-palette-rgb-47-111-181-0-12);
+  box-shadow: 0 0 0 2px var(--palette-alpha-blue-19);
 }
 
 .topologyDiagramVisibilityMenu > summary small {
@@ -950,7 +950,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   background: var(--color-surface);
-  box-shadow: 0 14px 34px var(--color-palette-rgb-15-23-42-0-2);
+  box-shadow: 0 14px 34px var(--color-shadow);
 }
 
 .topologyDiagramVisibilityPopover > header {
@@ -1036,7 +1036,7 @@
 }
 
 .topologyDiagramToolbarActions small {
-  color: var(--color-palette-hex-945e0a);
+  color: var(--palette-orange-14);
   font-weight: 700;
 }
 
@@ -1044,8 +1044,8 @@
   display: flex;
   align-items: end;
   gap: var(--space-3);
-  border-bottom: 1px solid var(--color-palette-hex-bcd2ee);
-  background: var(--color-palette-hex-f3f8ff);
+  border-bottom: 1px solid var(--palette-blue-24);
+  background: var(--palette-blue-04);
   padding: var(--space-3) var(--space-5);
 }
 
@@ -1061,11 +1061,11 @@
   position: relative;
   min-height: 0;
   flex: 1;
-  background: var(--color-palette-hex-f8fafc);
+  background: var(--palette-neutral-05);
 }
 
 .topologyDiagramCanvas .react-flow {
-  background: var(--color-palette-hex-f8fafc);
+  background: var(--palette-neutral-05);
 }
 
 .topologyDiagramLoading {
@@ -1074,7 +1074,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: var(--color-palette-rgb-248-250-252-0-84);
+  background: var(--palette-alpha-neutral-11);
   color: var(--color-text-subtle);
   font-weight: 700;
 }
@@ -1082,7 +1082,7 @@
 .topologyDiagramEmptyFilter {
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
-  background: var(--color-palette-rgb-255-255-255-0-94);
+  background: var(--palette-alpha-neutral-08);
   color: var(--color-text-subtle);
   padding: var(--space-2) var(--space-3);
   font-size: 0.78rem;
@@ -1093,35 +1093,35 @@
   position: relative;
   width: 285px;
   overflow: hidden;
-  border: 1px solid var(--color-palette-hex-a9bfdc);
+  border: 1px solid var(--color-topology-server-border);
   border-radius: 10px;
   background: var(--color-surface);
-  box-shadow: 0 8px 20px var(--color-palette-rgb-30-64-175-0-1);
+  box-shadow: 0 8px 20px var(--color-topology-server-shadow);
 }
 
 .topologyIntegrationNode {
   position: relative;
   width: 285px;
   overflow: hidden;
-  border: 1px solid var(--color-palette-hex-b7a5df);
+  border: 1px solid var(--color-topology-integration-border);
   border-radius: 10px;
   background: var(--color-surface);
-  box-shadow: 0 8px 20px var(--color-palette-rgb-91-33-182-0-1);
+  box-shadow: 0 8px 20px var(--color-topology-integration-shadow);
 }
 
 .topologyElementNode {
   position: relative;
   width: 285px;
   overflow: hidden;
-  border: 1px solid var(--color-palette-hex-78aa9b);
+  border: 1px solid var(--color-topology-element-border);
   border-radius: 10px;
   background: var(--color-surface);
-  box-shadow: 0 8px 20px var(--color-palette-rgb-22-101-82-0-1);
+  box-shadow: 0 8px 20px var(--color-topology-element-shadow);
 }
 
 .topologyElementNode > header {
-  border-bottom: 1px solid var(--color-palette-hex-cde5dd);
-  background: var(--color-palette-hex-edf9f5);
+  border-bottom: 1px solid var(--color-topology-element-header-border);
+  background: var(--color-topology-element-header-surface);
   padding: 8px 10px;
 }
 
@@ -1129,7 +1129,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-palette-hex-286c5b);
+  color: var(--color-topology-element-text);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.03em;
@@ -1157,35 +1157,35 @@
 .topologyDiagramCanvas
   .react-flow__node-topologyElement.selected
   .topologyElementNode {
-  border-color: var(--color-palette-hex-286c5b);
-  box-shadow: 0 0 0 3px var(--color-palette-rgb-40-108-91-0-16);
+  border-color: var(--color-topology-element-text);
+  box-shadow: 0 0 0 3px var(--color-topology-element-focus-ring);
 }
 
 .topologyGroupNode {
   width: 100%;
   height: 100%;
-  border: 2px dashed var(--color-palette-hex-8ba4c4);
+  border: 2px dashed var(--color-topology-group-border);
   border-radius: 14px;
-  background: var(--color-palette-rgb-226-236-249-0-42);
-  box-shadow: inset 0 0 0 1px var(--color-palette-rgb-255-255-255-0-72);
+  background: var(--color-topology-group-surface);
+  box-shadow: inset 0 0 0 1px var(--palette-alpha-neutral-06);
 }
 
 .topologyDiagramCanvas
   .react-flow__node-topologyGroup.selected
   .topologyGroupNode {
-  border-color: var(--color-palette-hex-3975bb);
+  border-color: var(--color-topology-group-selected-border);
   box-shadow:
-    0 0 0 3px var(--color-palette-rgb-57-117-187-0-16),
-    inset 0 0 0 1px var(--color-palette-rgb-255-255-255-0-72);
+    0 0 0 3px var(--color-topology-group-focus-ring),
+    inset 0 0 0 1px var(--palette-alpha-neutral-06);
 }
 
 .topologyGroupNode > header {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  border-bottom: 1px solid var(--color-palette-rgb-139-164-196-0-5);
+  border-bottom: 1px solid var(--color-topology-group-header-border);
   border-radius: 12px 12px 0 0;
-  background: var(--color-palette-rgb-232-240-250-0-94);
+  background: var(--color-topology-group-header-surface);
   padding: 10px 12px;
 }
 
@@ -1193,7 +1193,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  color: var(--color-palette-hex-42678f);
+  color: var(--color-topology-group-label);
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -1202,7 +1202,7 @@
 
 .topologyGroupNode > header strong {
   overflow: hidden;
-  color: var(--color-palette-hex-244b73);
+  color: var(--color-topology-group-text);
   font-size: 0.88rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1223,8 +1223,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  border-bottom: 1px solid var(--color-palette-hex-e4dcf5);
-  background: var(--color-palette-hex-f5f0ff);
+  border-bottom: 1px solid var(--color-topology-integration-header-border);
+  background: var(--color-topology-integration-header-surface);
   padding: 8px 10px;
 }
 
@@ -1232,7 +1232,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-palette-hex-6941a5);
+  color: var(--color-topology-integration-text);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.03em;
@@ -1258,9 +1258,9 @@
 
 .topologyIntegrationUnavailable {
   display: block;
-  border-top: 1px solid var(--color-palette-hex-e4dcf5);
-  background: var(--color-palette-hex-faf8ff);
-  color: var(--color-palette-hex-6941a5);
+  border-top: 1px solid var(--color-topology-integration-header-border);
+  background: var(--color-topology-integration-footer-surface);
+  color: var(--color-topology-integration-text);
   padding: 7px 10px;
   font-size: 0.68rem;
 }
@@ -1269,9 +1269,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  border-bottom: 1px solid var(--color-palette-hex-dbe6f3);
-  background: var(--color-palette-hex-eff6ff);
-  color: var(--color-palette-hex-315c8d);
+  border-bottom: 1px solid var(--color-topology-server-header-border);
+  background: var(--color-topology-server-header-surface);
+  color: var(--color-topology-server-text);
   padding: 10px;
 }
 
@@ -1312,7 +1312,7 @@
 }
 
 .topologyServerComponents > div {
-  border-left: 3px solid var(--color-palette-hex-93b7e3);
+  border-left: 3px solid var(--palette-blue-28);
   padding-left: 8px;
 }
 
@@ -1324,7 +1324,7 @@
   width: 10px;
   height: 10px;
   border: 2px solid var(--color-surface);
-  background: var(--color-palette-hex-3975bb);
+  background: var(--color-topology-group-selected-border);
   opacity: 0.72;
   transition:
     opacity 120ms ease,
@@ -1346,8 +1346,8 @@
 .topologyDiagramGroupEditor {
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
-  background: var(--color-palette-rgb-255-255-255-0-96);
-  box-shadow: 0 10px 28px var(--color-palette-rgb-15-23-42-0-16);
+  background: var(--palette-alpha-neutral-09);
+  box-shadow: 0 10px 28px var(--palette-alpha-neutral-19);
   padding: var(--space-3);
 }
 
@@ -1423,7 +1423,7 @@
 }
 
 .topologyDiagramGroupValidation {
-  color: var(--color-palette-hex-a33a2b);
+  color: var(--palette-red-12);
   font-size: 0.68rem;
   font-weight: 700;
 }
@@ -1476,7 +1476,7 @@
 }
 
 .topologyDiagramCanvas .react-flow__edge.selected path {
-  stroke: var(--color-palette-hex-1f66ad);
+  stroke: var(--palette-blue-42);
   stroke-width: 3;
 }
 
@@ -1486,7 +1486,7 @@
 }
 
 .topologyDiagramCanvas .react-flow__edge-textbg {
-  fill: var(--color-palette-rgb-255-255-255-0-92);
+  fill: var(--palette-alpha-neutral-07);
 }
 
 .topologyDiagramCanvas .react-flow__attribution {
@@ -1593,7 +1593,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-22);
+  box-shadow: 0 24px 70px var(--color-shadow-deep);
 }
 
 .catalogEntityDialog > header,
@@ -1854,15 +1854,15 @@
 }
 
 .monitoringStatusBadge-healthy {
-  border-color: var(--color-palette-hex-9fd5b8);
-  background: var(--color-palette-hex-edf9f2);
-  color: var(--color-palette-hex-17633d) !important;
+  border-color: var(--palette-green-15);
+  background: var(--palette-green-03);
+  color: var(--palette-green-25) !important;
 }
 
 .monitoringStatusBadge-unavailable {
-  border-color: var(--color-palette-hex-efb4b4);
-  background: var(--color-palette-hex-fff1f1);
-  color: var(--color-palette-hex-8f1d1d) !important;
+  border-color: var(--palette-red-07);
+  background: var(--color-danger-surface);
+  color: var(--palette-red-15) !important;
 }
 
 .monitoringSeries {
@@ -1994,7 +1994,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-24);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
 }
 
 .runtimeProcedureDetailsDialog > header,
@@ -2105,7 +2105,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-24);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
 }
 
 .runtimeProcedureSelectorDialog > header,

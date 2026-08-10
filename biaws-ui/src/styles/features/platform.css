@@ -83,7 +83,7 @@
 
 .platformWorkspaceItem.selected {
   border-color: var(--color-focus);
-  background: var(--color-palette-hex-eef4ff);
+  background: var(--palette-blue-10);
 }
 
 .platformWorkspaceItem span {
@@ -116,12 +116,12 @@
 }
 
 .platformStatus.active {
-  background: var(--color-palette-hex-e5f6ec);
-  color: var(--color-palette-hex-17663b);
+  background: var(--palette-green-08);
+  color: var(--palette-green-22);
 }
 
 .platformStatus.archived {
-  background: var(--color-palette-hex-f1f2f4);
+  background: var(--palette-neutral-10);
   color: var(--color-text-muted);
 }
 
@@ -140,7 +140,7 @@
 }
 
 .platformTabs .tab.active {
-  background: var(--color-palette-hex-eef4ff);
+  background: var(--palette-blue-10);
   color: var(--color-accent-text);
 }
 
@@ -227,7 +227,7 @@
   border: 1px solid var(--color-border);
   border-radius: 12px;
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-22);
+  box-shadow: 0 24px 70px var(--color-shadow-deep);
 }
 
 .platformDialogBody {

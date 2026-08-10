@@ -81,7 +81,7 @@
 
 .optionListTable th,
 .optionListTable td {
-  border-bottom: 1px solid var(--color-palette-hex-eaecf0);
+  border-bottom: 1px solid var(--palette-neutral-13);
   padding: 8px;
   text-align: left;
   vertical-align: middle;
@@ -100,7 +100,7 @@
 
 .optionDragHandle {
   align-items: center;
-  color: var(--color-palette-hex-98a2b3);
+  color: var(--palette-neutral-18);
   cursor: grab;
   display: inline-flex;
   justify-content: center;
@@ -126,7 +126,7 @@
 }
 
 .optionListTable input:not([type="color"]) {
-  border: 1px solid var(--color-palette-hex-d0d5dd);
+  border: 1px solid var(--palette-neutral-15);
   border-radius: 7px;
   box-sizing: border-box;
   min-width: 120px;
@@ -177,7 +177,7 @@
 }
 
 .optionEmlDetectionFields textarea {
-  border: 1px solid var(--color-palette-hex-d0d5dd);
+  border: 1px solid var(--palette-neutral-15);
   border-radius: 7px;
   box-sizing: border-box;
   display: block;
@@ -216,11 +216,11 @@
 }
 
 .optionDetectionResult.error {
-  color: var(--color-palette-hex-b42318);
+  color: var(--color-danger-text-strong);
 }
 
 .optionActiveButton {
-  background: var(--color-palette-hex-f2f4f7);
+  background: var(--palette-neutral-09);
   border: 0;
   border-radius: 999px;
   color: var(--color-text-subtle);
@@ -228,8 +228,8 @@
 }
 
 .optionActiveButton.active {
-  background: var(--color-palette-hex-e7f6ec);
-  color: var(--color-palette-hex-1f7a45);
+  background: var(--color-success-surface);
+  color: var(--color-success-text);
 }
 
 .optionAddButton {
@@ -238,10 +238,10 @@
 
 .optionListError {
   align-items: center;
-  background: var(--color-palette-hex-fff1f1);
-  border: 1px solid var(--color-palette-hex-f5b6b6);
+  background: var(--color-danger-surface);
+  border: 1px solid var(--color-danger-border);
   border-radius: 8px;
-  color: var(--color-palette-hex-b42318);
+  color: var(--color-danger-text-strong);
   display: flex;
   gap: 8px;
   margin-top: 12px;

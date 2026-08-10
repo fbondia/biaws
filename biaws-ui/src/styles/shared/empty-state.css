@@ -11,7 +11,7 @@
   background:
     radial-gradient(
       circle at 50% 0%,
-      var(--color-palette-rgb-45-108-223-0-09),
+      var(--palette-alpha-blue-10),
       transparent 48%
     ),
     linear-gradient(180deg, var(--color-surface), var(--color-surface-subtle));
@@ -24,7 +24,7 @@
   position: absolute;
   width: 180px;
   height: 180px;
-  border: 1px solid var(--color-palette-rgb-45-108-223-0-055);
+  border: 1px solid var(--palette-alpha-blue-08);
   border-radius: 50%;
   content: "";
   inset: -118px auto auto 50%;
@@ -41,7 +41,7 @@
   border: 1px solid var(--color-accent-border);
   border-radius: 15px;
   background: var(--color-surface);
-  box-shadow: 0 10px 24px var(--color-palette-rgb-45-108-223-0-12);
+  box-shadow: 0 10px 24px var(--palette-alpha-blue-13);
   color: var(--color-accent-text);
 }
 
@@ -74,7 +74,7 @@
   width: 40px;
   height: 40px;
   border-radius: 11px;
-  box-shadow: 0 6px 16px var(--color-palette-rgb-45-108-223-0-1);
+  box-shadow: 0 6px 16px var(--palette-alpha-blue-11);
 }
 
 .compactIllustratedEmptyState strong {

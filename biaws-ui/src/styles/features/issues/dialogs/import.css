@@ -12,7 +12,7 @@
   min-height: 150px;
   place-items: center;
   gap: 7px;
-  border: 2px dashed var(--color-palette-hex-b8c1cc);
+  border: 2px dashed var(--palette-neutral-16);
   border-radius: 10px;
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
@@ -22,9 +22,9 @@
 
 .emlDropZone:hover,
 .activeEmlDropZone {
-  border-color: var(--color-palette-hex-246b49);
-  background: var(--color-palette-hex-f0f8f4);
-  color: var(--color-palette-hex-1d5a3d);
+  border-color: var(--color-success-action);
+  background: var(--palette-green-02);
+  color: var(--color-success-action-hover);
 }
 
 .emlDropZone span {
@@ -41,10 +41,10 @@
   display: grid;
   gap: 14px;
   border: 1px solid var(--color-border);
-  border-left: 4px solid var(--color-palette-hex-98a2b3);
+  border-left: 4px solid var(--palette-neutral-18);
   border-radius: 12px;
   background: var(--color-surface);
-  box-shadow: 0 1px 3px var(--color-palette-rgb-15-23-42-0-06);
+  box-shadow: 0 1px 3px var(--color-shadow-subtle);
   padding: 14px 16px;
   transition:
     border-color 160ms ease,
@@ -52,23 +52,23 @@
 }
 
 .emlImportItem--ready {
-  border-left-color: var(--color-palette-hex-2970ff);
+  border-left-color: var(--palette-blue-35);
 }
 
 .emlImportItem--analyzing,
 .emlImportItem--importing {
-  border-left-color: var(--color-palette-hex-7f56d9);
+  border-left-color: var(--palette-purple-07);
 }
 
 .emlImportItem--done {
-  border-color: var(--color-palette-hex-a6d8bd);
-  border-left-color: var(--color-palette-hex-17874f);
-  background: var(--color-palette-hex-f7fcf9);
+  border-color: var(--palette-green-14);
+  border-left-color: var(--palette-green-18);
+  background: var(--palette-neutral-06);
 }
 
 .emlImportItem--error {
-  border-color: var(--color-palette-hex-f4b4ad);
-  border-left-color: var(--color-palette-hex-d92d20);
+  border-color: var(--palette-red-08);
+  border-left-color: var(--color-danger-action);
 }
 
 .emlImportItemHeader {
@@ -84,29 +84,29 @@
   height: 36px;
   place-items: center;
   border-radius: 10px;
-  background: var(--color-palette-hex-f2f4f7);
+  background: var(--palette-neutral-09);
   color: var(--color-text-muted);
 }
 
 .emlImportItem--ready .emlImportStatus {
-  background: var(--color-palette-hex-eff4ff);
-  color: var(--color-palette-hex-175cd3);
+  background: var(--palette-blue-09);
+  color: var(--palette-blue-40);
 }
 
 .emlImportItem--analyzing .emlImportStatus,
 .emlImportItem--importing .emlImportStatus {
-  background: var(--color-palette-hex-f4f3ff);
-  color: var(--color-palette-hex-6941c6);
+  background: var(--palette-blue-06);
+  color: var(--palette-purple-09);
 }
 
 .emlImportItem--done .emlImportStatus {
-  background: var(--color-palette-hex-eaf8f0);
-  color: var(--color-palette-hex-087443);
+  background: var(--palette-green-06);
+  color: var(--palette-green-24);
 }
 
 .emlImportItem--error .emlImportStatus {
-  background: var(--color-palette-hex-fef3f2);
-  color: var(--color-palette-hex-b42318);
+  background: var(--color-danger-surface-subtle);
+  color: var(--color-danger-text-strong);
 }
 
 .emlImportTitle {
@@ -130,7 +130,7 @@
   min-height: 20px;
   align-items: center;
   border-radius: 999px;
-  background: var(--color-palette-hex-f2f4f7);
+  background: var(--palette-neutral-09);
   color: var(--color-text-muted);
   padding: 2px 8px;
   font-size: 11px;
@@ -138,28 +138,28 @@
 }
 
 .emlImportItem--ready .emlImportStatusBadge {
-  background: var(--color-palette-hex-eff4ff);
-  color: var(--color-palette-hex-175cd3);
+  background: var(--palette-blue-09);
+  color: var(--palette-blue-40);
 }
 
 .emlImportItem--done .emlImportStatusBadge {
-  background: var(--color-palette-hex-dcfae6);
-  color: var(--color-palette-hex-087443);
+  background: var(--palette-green-09);
+  color: var(--palette-green-24);
 }
 
 .emlImportItem--error .emlImportStatusBadge {
-  background: var(--color-palette-hex-fee4e2);
-  color: var(--color-palette-hex-b42318);
+  background: var(--color-danger-border-subtle);
+  color: var(--color-danger-text-strong);
 }
 
 .emlRemoveButton {
-  color: var(--color-palette-hex-98a2b3);
+  color: var(--palette-neutral-18);
 }
 
 .emlRemoveButton:hover:not(:disabled) {
-  border-color: var(--color-palette-hex-fda29b);
-  background: var(--color-palette-hex-fef3f2);
-  color: var(--color-palette-hex-b42318);
+  border-color: var(--color-danger-accent);
+  background: var(--color-danger-surface-subtle);
+  color: var(--color-danger-text-strong);
 }
 
 .emlImportAssignmentButtons {
@@ -206,25 +206,25 @@
 }
 
 .emlApplicationButton {
-  border-color: var(--color-palette-hex-b2ccff);
-  background: var(--color-palette-hex-f5f8ff);
-  color: var(--color-palette-hex-1849a9);
+  border-color: var(--palette-blue-22);
+  background: var(--palette-blue-02);
+  color: var(--palette-blue-43);
 }
 
 .emlApplicationButton:hover:not(:disabled) {
-  border-color: var(--color-palette-hex-528bff);
-  background: var(--color-palette-hex-eff4ff);
+  border-color: var(--palette-blue-31);
+  background: var(--palette-blue-09);
 }
 
 .emlClassificationButton {
-  border-color: var(--color-palette-hex-d9d6fe);
-  background: var(--color-palette-hex-f7f5ff);
-  color: var(--color-palette-hex-5925dc);
+  border-color: var(--palette-blue-14);
+  background: var(--palette-purple-01);
+  color: var(--palette-purple-10);
 }
 
 .emlClassificationButton:hover:not(:disabled) {
-  border-color: var(--color-palette-hex-9b8afb);
-  background: var(--color-palette-hex-f4f3ff);
+  border-color: var(--palette-blue-26);
+  background: var(--palette-blue-06);
 }
 
 .emlContextDialog {
@@ -302,18 +302,18 @@
   width: 100%;
   min-width: 0;
   height: 34px;
-  border: 1px solid var(--color-palette-hex-d0d5dd);
+  border: 1px solid var(--palette-neutral-15);
   border-radius: 6px;
   background: var(--color-surface);
   padding: 0 9px;
-  color: var(--color-palette-hex-1d2939);
+  color: var(--palette-blue-47);
   font-size: 13px;
 }
 
 .emlImportEditableFields input:focus,
 .emlImportEditableFields select:focus {
-  border-color: var(--color-palette-hex-84adff);
-  box-shadow: 0 0 0 3px var(--color-palette-rgb-41-112-255-0-1);
+  border-color: var(--palette-blue-27);
+  box-shadow: 0 0 0 3px var(--palette-alpha-blue-04);
 }
 
 .emlImportPreviewFooter {
@@ -337,7 +337,7 @@
   min-height: 24px;
   align-items: center;
   border-radius: 999px;
-  background: var(--color-palette-hex-eaecf0);
+  background: var(--palette-neutral-13);
   color: var(--color-text-muted);
   padding: 3px 8px;
   font-size: 11px;
@@ -346,8 +346,8 @@
 }
 
 .emlImportFacts em {
-  background: var(--color-palette-hex-fef0c7);
-  color: var(--color-palette-hex-93370d);
+  background: var(--palette-orange-05);
+  color: var(--palette-orange-13);
 }
 
 .emlRecalculateButton {
@@ -355,13 +355,13 @@
   min-height: 32px;
   align-items: center;
   gap: 7px;
-  border-color: var(--color-palette-hex-d0d5dd);
+  border-color: var(--palette-neutral-15);
   background: var(--color-surface);
   color: var(--color-text-secondary);
 }
 
 .emlRecalculateButton:hover:not(:disabled) {
-  border-color: var(--color-palette-hex-98a2b3);
+  border-color: var(--palette-neutral-18);
   background: var(--color-surface-muted);
 }
 
@@ -376,10 +376,10 @@
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  border: 1px solid var(--color-palette-hex-fecdca);
+  border: 1px solid var(--color-danger-border-strong);
   border-radius: 8px;
-  background: var(--color-palette-hex-fef3f2);
-  color: var(--color-palette-hex-b42318);
+  background: var(--color-danger-surface-subtle);
+  color: var(--color-danger-text-strong);
   padding: 9px 10px;
   font-size: 12px;
 }
@@ -409,7 +409,7 @@
   min-height: 36px;
   align-items: center;
   gap: 7px;
-  box-shadow: 0 1px 2px var(--color-palette-rgb-15-23-42-0-12);
+  box-shadow: 0 1px 2px var(--color-shadow-soft);
 }
 
 .spinIcon {

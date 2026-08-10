@@ -144,13 +144,13 @@
 }
 
 .skillStatus.published {
-  background: var(--color-palette-hex-e7f6ec);
-  color: var(--color-palette-hex-1f7a45);
+  background: var(--color-success-surface);
+  color: var(--color-success-text);
 }
 
 .skillStatus.deprecated {
-  background: var(--color-palette-hex-fff3d6);
-  color: var(--color-palette-hex-8a5700);
+  background: var(--color-warning-surface);
+  color: var(--color-warning-text);
 }
 
 .skillsEmptyState {
@@ -174,10 +174,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--color-palette-hex-f5b6b6);
+  border: 1px solid var(--color-danger-border);
   border-radius: 7px;
-  background: var(--color-palette-hex-fff1f1);
-  color: var(--color-palette-hex-9b1c1c);
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
   padding: 11px 13px;
   font-size: 13px;
 }
@@ -191,7 +191,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: 10px;
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-24);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
 }
 
 .publishSkillDialog {
@@ -232,7 +232,7 @@
   min-height: 78px;
   align-items: center;
   gap: 13px;
-  border: 1px dashed var(--color-palette-hex-98a2b3);
+  border: 1px dashed var(--palette-neutral-18);
   border-radius: 8px;
   background: var(--color-surface-muted);
   color: var(--color-text-muted);
@@ -242,7 +242,7 @@
 
 .skillDirectoryPicker:hover {
   border-color: var(--color-focus);
-  background: var(--color-palette-hex-f3f7ff);
+  background: var(--palette-blue-05);
 }
 
 .skillDirectoryPicker > span {
@@ -295,7 +295,7 @@
 .skillFormGrid input:focus,
 .skillFormGrid textarea:focus {
   border-color: var(--color-accent-border);
-  box-shadow: 0 0 0 3px var(--color-palette-rgb-45-108-223-0-13);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .skillFormWide {
@@ -346,7 +346,7 @@
 
 .skillVersionButton:hover,
 .activeSkillVersion {
-  border-color: var(--color-palette-hex-cfe0ff);
+  border-color: var(--palette-blue-15);
   background: var(--color-surface);
   color: var(--color-accent-text);
 }
@@ -356,11 +356,11 @@
 }
 
 .skillVersionButton small {
-  color: var(--color-palette-hex-1f7a45);
+  color: var(--color-success-text);
 }
 
 .skillDeprecatedText {
-  color: var(--color-palette-hex-8a5700) !important;
+  color: var(--color-warning-text) !important;
 }
 
 .skillPackagePanel {
@@ -427,13 +427,13 @@
 }
 
 .skillFileButton small {
-  color: var(--color-palette-hex-98a2b3);
+  color: var(--palette-neutral-18);
   font-size: 10px;
 }
 
 .skillFileButton:hover,
 .activeSkillFile {
-  background: var(--color-palette-hex-eaf2ff);
+  background: var(--palette-blue-11);
   color: var(--color-accent-text);
 }
 
@@ -461,7 +461,7 @@
   margin: 0;
   overflow: auto;
   background: var(--color-surface-subtle);
-  color: var(--color-palette-hex-263238);
+  color: var(--palette-neutral-20);
   padding: 13px;
   font:
     12px/1.55 ui-monospace,

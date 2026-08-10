@@ -61,7 +61,7 @@
 .classificationTab:hover,
 .activeClassificationTab {
   border-color: var(--color-accent-border);
-  background: var(--color-palette-hex-e8f1ff);
+  background: var(--palette-blue-12);
   color: var(--color-accent-text);
 }
 
@@ -90,7 +90,7 @@
   min-height: 30px;
   align-items: center;
   gap: 7px;
-  border: 1px solid var(--color-palette-hex-d0d5dd);
+  border: 1px solid var(--palette-neutral-15);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-secondary);
@@ -100,14 +100,14 @@
 }
 
 .primaryTaxonomyChip {
-  border-color: var(--color-palette-hex-f2c94c);
-  background: var(--color-palette-hex-fffbeb);
-  color: var(--color-palette-hex-6f4e00);
+  border-color: var(--color-warning-accent);
+  background: var(--palette-amber-01);
+  color: var(--palette-orange-18);
 }
 
 .primaryTaxonomyIcon {
   flex: 0 0 auto;
-  color: var(--color-palette-hex-b7791f);
+  color: var(--palette-orange-11);
 }
 
 .classificationTaxonomyChip button {
@@ -124,17 +124,17 @@
 }
 
 .classificationTaxonomyChip button:hover {
-  background: var(--color-palette-hex-fff1f1);
-  color: var(--color-palette-hex-9b1c1c);
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
 }
 
 .clearTaxonomyChip {
-  color: var(--color-palette-hex-9b1c1c);
+  color: var(--color-danger-text);
 }
 
 .clearTaxonomyChip:hover {
-  border-color: var(--color-palette-hex-f5b6b6);
-  background: var(--color-palette-hex-fff1f1);
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-surface);
 }
 
 .classificationTagChips {
@@ -150,7 +150,7 @@
   min-height: 30px;
   align-items: center;
   gap: 7px;
-  border: 1px solid var(--color-palette-hex-d0d5dd);
+  border: 1px solid var(--palette-neutral-15);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-secondary);
@@ -173,8 +173,8 @@
 }
 
 .classificationTagChip button:hover {
-  background: var(--color-palette-hex-fff1f1);
-  color: var(--color-palette-hex-9b1c1c);
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
 }
 
 .tagPickerBackdrop {
@@ -184,7 +184,7 @@
   display: grid;
   align-items: center;
   justify-content: center;
-  background: var(--color-palette-rgb-16-24-40-0-2);
+  background: var(--palette-alpha-neutral-28);
   padding: 20px;
 }
 
@@ -195,7 +195,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: 0 20px 60px var(--color-palette-rgb-15-23-42-0-18);
+  box-shadow: 0 20px 60px var(--color-shadow-medium);
   padding: 14px;
 }
 

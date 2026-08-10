@@ -16,13 +16,9 @@
   top: 1rem;
   border-radius: 14px;
   background:
-    linear-gradient(
-      180deg,
-      var(--color-palette-rgb-45-108-223-0-045),
-      transparent 120px
-    ),
+    linear-gradient(180deg, var(--palette-alpha-blue-07), transparent 120px),
     var(--color-surface);
-  box-shadow: 0 8px 28px var(--color-palette-rgb-15-23-42-0-05);
+  box-shadow: 0 8px 28px var(--palette-alpha-neutral-13);
 }
 
 .groupListHeader {
@@ -68,7 +64,7 @@
 
 .groupListItem:hover {
   border-color: var(--color-border-strong);
-  box-shadow: 0 5px 16px var(--color-palette-rgb-15-23-42-0-07);
+  box-shadow: 0 5px 16px var(--palette-alpha-neutral-16);
   transform: translateY(-1px);
 }
 
@@ -76,10 +72,10 @@
   border-color: var(--color-accent-border);
   background: linear-gradient(
     135deg,
-    var(--color-palette-rgb-45-108-223-0-1),
-    var(--color-palette-rgb-45-108-223-0-035)
+    var(--palette-alpha-blue-11),
+    var(--palette-alpha-blue-06)
   );
-  box-shadow: 0 6px 18px var(--color-palette-rgb-45-108-223-0-11);
+  box-shadow: 0 6px 18px var(--palette-alpha-blue-12);
 }
 
 .groupListItem.selected::before {
@@ -115,7 +111,7 @@
 
 .groupEditor {
   border-radius: 14px;
-  box-shadow: 0 12px 34px var(--color-palette-rgb-15-23-42-0-06);
+  box-shadow: 0 12px 34px var(--color-shadow-subtle);
   padding: 1.4rem;
 }
 
@@ -144,7 +140,7 @@
 .groupEditor > label input:focus,
 .groupEditor > label textarea:focus {
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 3px var(--color-palette-rgb-45-108-223-0-12);
+  box-shadow: 0 0 0 3px var(--palette-alpha-blue-13);
   outline: 0;
 }
 
@@ -183,8 +179,8 @@
 
 .scopeOption:has(input:checked) {
   border-color: var(--color-accent-border);
-  background: var(--color-palette-rgb-45-108-223-0-055);
-  box-shadow: 0 3px 12px var(--color-palette-rgb-45-108-223-0-08);
+  background: var(--palette-alpha-blue-08);
+  box-shadow: 0 3px 12px var(--palette-alpha-blue-09);
 }
 
 .scopeOption:has(input:checked) > span {
@@ -280,13 +276,13 @@
 
 .permissionCategory:hover {
   border-color: var(--color-border-strong);
-  box-shadow: 0 5px 16px var(--color-palette-rgb-15-23-42-0-055);
+  box-shadow: 0 5px 16px var(--palette-alpha-neutral-14);
   transform: translateY(-1px);
 }
 
 .permissionCategory.expanded {
   border-color: var(--color-accent-border);
-  box-shadow: 0 8px 24px var(--color-palette-rgb-45-108-223-0-09);
+  box-shadow: 0 8px 24px var(--palette-alpha-blue-10);
   transform: none;
 }
 
@@ -316,8 +312,8 @@
 .permissionCategory.expanded .permissionCategoryTrigger {
   background: linear-gradient(
     90deg,
-    var(--color-palette-rgb-45-108-223-0-1),
-    var(--color-palette-rgb-45-108-223-0-025)
+    var(--palette-alpha-blue-11),
+    var(--palette-alpha-blue-05)
   );
 }
 
@@ -413,7 +409,7 @@
 }
 
 .permissionCategoryPanel .permissionOption:has(input:checked) {
-  background: var(--color-palette-rgb-45-108-223-0-045);
+  background: var(--palette-alpha-blue-07);
 }
 
 .permissionOption input {
@@ -490,7 +486,7 @@
   background:
     radial-gradient(
       circle at top left,
-      var(--color-palette-rgb-45-108-223-0-16),
+      var(--palette-alpha-blue-16),
       transparent 38%
     ),
     var(--color-background);
@@ -504,7 +500,7 @@
   border: 1px solid var(--color-border);
   border-radius: 14px;
   background: var(--color-surface);
-  box-shadow: 0 22px 60px var(--color-palette-rgb-15-23-42-0-12);
+  box-shadow: 0 22px 60px var(--color-shadow-soft);
   padding: 30px;
 }
 
@@ -525,7 +521,7 @@
   height: 52px;
   place-items: center;
   border-radius: 12px;
-  background: var(--color-palette-hex-eaf2ff);
+  background: var(--palette-blue-11);
   color: var(--color-accent-text);
 }
 
@@ -551,22 +547,22 @@
 .inlineCreateForm input:focus,
 .userCreateForm input:focus {
   border-color: var(--color-accent-border);
-  box-shadow: 0 0 0 3px var(--color-palette-rgb-45-108-223-0-13);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .authError {
-  border: 1px solid var(--color-palette-hex-f5b6b6);
+  border: 1px solid var(--color-danger-border);
   border-radius: 7px;
-  background: var(--color-palette-hex-fff1f1);
-  color: var(--color-palette-hex-9b1c1c);
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
   padding: 10px 12px;
 }
 
 .authSuccess {
-  border: 1px solid var(--color-palette-hex-9bcbb3);
+  border: 1px solid var(--palette-green-16);
   border-radius: 7px;
-  background: var(--color-palette-hex-edf7f2);
-  color: var(--color-palette-hex-185c3c);
+  background: var(--palette-green-05);
+  color: var(--palette-green-27);
   padding: 10px 12px;
 }
 
@@ -692,9 +688,9 @@
 .secretNotice {
   display: grid;
   gap: 10px;
-  border: 1px solid var(--color-palette-hex-f2cf8d);
+  border: 1px solid var(--color-warning-border);
   border-radius: 9px;
-  background: var(--color-palette-hex-fff8e8);
+  background: var(--color-warning-surface-subtle);
   padding: 15px;
 }
 
@@ -716,7 +712,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: 10px;
   background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-palette-rgb-15-23-42-0-24);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
 }
 
 .changePasswordDialog {
@@ -774,7 +770,7 @@
 
 .userCreateDialogForm input:not([type="checkbox"]):focus {
   border-color: var(--color-accent-border);
-  box-shadow: 0 0 0 3px var(--color-palette-rgb-45-108-223-0-13);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .userCreateDialogForm small {

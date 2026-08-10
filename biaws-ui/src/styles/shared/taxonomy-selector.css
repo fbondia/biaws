@@ -44,7 +44,7 @@
 
 .taxonomyColumnRow:hover,
 .activeTaxonomyColumnRow {
-  background: var(--color-palette-hex-f8fbff);
+  background: var(--palette-neutral-03);
 }
 
 .activeTaxonomyColumnRow {
@@ -52,7 +52,7 @@
 }
 
 .checkedTaxonomyColumnRow {
-  background: var(--color-palette-hex-f1f8f4);
+  background: var(--palette-neutral-08);
 }
 
 .activeTaxonomyColumnRow.checkedTaxonomyColumnRow {
@@ -60,7 +60,7 @@
 }
 
 .disabledTaxonomyColumnRow {
-  color: var(--color-palette-hex-98a2b3);
+  color: var(--palette-neutral-18);
 }
 
 .taxonomyColumnRow:focus-visible {
@@ -81,14 +81,14 @@
 }
 
 .taxonomyColumnRow svg {
-  color: var(--color-palette-hex-98a2b3);
+  color: var(--palette-neutral-18);
 }
 
 .taxonomyPrimaryBadge {
   display: inline-flex;
   min-height: 24px;
   align-items: center;
-  border: 1px solid var(--color-palette-hex-d0d5dd);
+  border: 1px solid var(--palette-neutral-15);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-subtle);
@@ -105,7 +105,7 @@
 
 .activeTaxonomyPrimaryBadge {
   border-color: var(--color-focus);
-  background: var(--color-palette-hex-e8f1ff);
+  background: var(--palette-blue-12);
   color: var(--color-accent-text);
 }
 
@@ -114,7 +114,7 @@
   min-height: 24px;
   align-items: center;
   gap: 4px;
-  border: 1px solid var(--color-palette-hex-d0d5dd);
+  border: 1px solid var(--palette-neutral-15);
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-secondary);
@@ -151,7 +151,7 @@
 
 .taxonomyColumnAdd input {
   min-height: 32px;
-  border: 1px solid var(--color-palette-hex-d0d5dd);
+  border: 1px solid var(--palette-neutral-15);
   border-radius: 6px;
   padding: 0 8px;
   font-size: 12px;
@@ -180,7 +180,7 @@
   display: grid;
   align-items: center;
   justify-content: center;
-  background: var(--color-palette-rgb-16-24-40-0-2);
+  background: var(--palette-alpha-neutral-28);
   padding: 20px;
 }
 
@@ -190,7 +190,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
-  box-shadow: 0 20px 60px var(--color-palette-rgb-15-23-42-0-18);
+  box-shadow: 0 20px 60px var(--color-shadow-medium);
   padding: 14px;
 }
 

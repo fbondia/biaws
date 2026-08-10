@@ -40,15 +40,15 @@
 .field select:focus,
 .field textarea:focus {
   border-color: var(--color-focus);
-  box-shadow: 0 0 0 3px var(--color-palette-rgb-45-108-223-0-13);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .errorBox {
   margin: 0 28px 16px;
-  border: 1px solid var(--color-palette-hex-f5b6b6);
+  border: 1px solid var(--color-danger-border);
   border-radius: 8px;
-  background: var(--color-palette-hex-fff1f1);
-  color: var(--color-palette-hex-9b1c1c);
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
   padding: 12px 14px;
 }
 
@@ -61,15 +61,15 @@
 }
 
 .infoBox {
-  border: 1px solid var(--color-palette-hex-b9d3ff);
-  background: var(--color-palette-hex-f0f6ff);
+  border: 1px solid var(--color-info-border);
+  background: var(--color-info-surface);
   color: var(--color-accent-text);
 }
 
 .warningBox {
-  border: 1px solid var(--color-palette-hex-f2cf8d);
-  background: var(--color-palette-hex-fff8e8);
-  color: var(--color-palette-hex-8a5700);
+  border: 1px solid var(--color-warning-border);
+  background: var(--color-warning-surface-subtle);
+  color: var(--color-warning-text);
 }
 
 .dialogBackdrop {
@@ -79,7 +79,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-palette-rgb-15-23-42-0-46);
+  background: var(--color-overlay-backdrop);
   padding: 22px;
 }
 
@@ -102,14 +102,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--color-palette-hex-246b49);
+  background: var(--color-success-action);
   color: var(--color-surface);
   padding: 0 16px;
   font-weight: 700;
 }
 
 .primaryButton:hover {
-  background: var(--color-palette-hex-1d5a3d);
+  background: var(--color-success-action-hover);
 }
 
 .secondaryButton {
@@ -128,7 +128,7 @@
 .iconButton:hover,
 .tab:hover,
 .clickableRow:hover {
-  border-color: var(--color-palette-hex-98a2b3);
+  border-color: var(--palette-neutral-18);
 }
 
 .dangerButton {
@@ -136,9 +136,9 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--color-palette-hex-fff1f1);
-  border-color: var(--color-palette-hex-f5b6b6);
-  color: var(--color-palette-hex-9b1c1c);
+  background: var(--color-danger-surface);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-text);
   padding: 0 14px;
   font-weight: 700;
 }

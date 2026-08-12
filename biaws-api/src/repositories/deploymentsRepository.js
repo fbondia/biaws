@@ -622,9 +622,81 @@ export async function archiveDeployment(deploymentId, actor = {}) {
       applicationId: current.applicationId,
       status: { $ne: "archived" },
     },
-    { $set: archiveFields(actor) },
+    { $set: { ...archiveFields(actor), archivedFromStatus: current.status } },
   );
   return getDeployment(current.id);
+}
+
+export async function restoreDeployment(deploymentId, actor = {}) {
+  const current = await getDeployment(deploymentId);
+  if (!current)
+    throw createCatalogError(
+      404,
+      "DEPLOYMENT_NOT_FOUND",
+      "Deployment not found",
+    );
+  if (current.status !== "archived") return current;
+  await requireOperationalApplication(current.applicationId, {
+    workspaceId: current.workspaceId,
+    active: true,
+  });
+  const restoredStatus =
+    DEPLOYMENT_STATUSES.includes(current.archivedFromStatus) &&
+    current.archivedFromStatus !== "archived"
+      ? current.archivedFromStatus
+      : "inactive";
+  const { deployments } = await getTopologyCollections();
+  await deployments.updateOne(
+    { id: current.id, workspaceId: current.workspaceId, status: "archived" },
+    {
+      $set: {
+        status: restoredStatus,
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+      $unset: { archivedAt: "", archivedBy: "", archivedFromStatus: "" },
+    },
+  );
+  return getDeployment(current.id);
+}
+
+export async function deleteDeployment(deploymentId) {
+  const current = await getDeployment(deploymentId);
+  if (!current)
+    throw createCatalogError(
+      404,
+      "DEPLOYMENT_NOT_FOUND",
+      "Deployment not found",
+    );
+  if (current.status !== "archived")
+    throw createCatalogError(
+      409,
+      "DEPLOYMENT_NOT_ARCHIVED",
+      "Only archived deployments can be permanently deleted",
+    );
+  const { deployments, runtimes } = await getTopologyCollections();
+  const runtimeCount = await runtimes.countDocuments(
+    { workspaceId: current.workspaceId, deploymentId: current.id },
+    { limit: 1 },
+  );
+  if (runtimeCount)
+    throw createCatalogError(
+      409,
+      "DEPLOYMENT_HAS_DEPENDENCIES",
+      "Exclua os runtimes antes de excluir o deployment",
+    );
+  const result = await deployments.deleteOne({
+    id: current.id,
+    workspaceId: current.workspaceId,
+    status: "archived",
+  });
+  if (!result.deletedCount)
+    throw createCatalogError(
+      409,
+      "DEPLOYMENT_DELETE_CONFLICT",
+      "Deployment was not deleted",
+    );
+  return current;
 }
 
 export function normalizeRuntimeInput(
@@ -999,9 +1071,69 @@ export async function archiveRuntime(runtimeId, actor = {}) {
       deploymentId: current.deploymentId,
       status: { $ne: "archived" },
     },
-    { $set: archiveFields(actor) },
+    { $set: { ...archiveFields(actor), archivedFromStatus: current.status } },
   );
   return getRuntime(current.id);
+}
+
+export async function restoreRuntime(runtimeId, actor = {}) {
+  const current = await getRuntime(runtimeId);
+  if (!current)
+    throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
+  if (current.status !== "archived") return current;
+  const deployment = await getDeployment(current.deploymentId);
+  if (!deployment || deployment.status === "archived")
+    throw createCatalogError(
+      409,
+      "DEPLOYMENT_ARCHIVED",
+      "Restore the deployment before restoring the runtime",
+    );
+  const restoredStatus =
+    RUNTIME_STATUSES.includes(current.archivedFromStatus) &&
+    current.archivedFromStatus !== "archived"
+      ? current.archivedFromStatus
+      : "stopped";
+  const { runtimes } = await getTopologyCollections();
+  await runtimes.updateOne(
+    { id: current.id, workspaceId: current.workspaceId, status: "archived" },
+    {
+      $set: {
+        status: restoredStatus,
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+      $unset: { archivedAt: "", archivedBy: "", archivedFromStatus: "" },
+    },
+  );
+  return getRuntime(current.id);
+}
+
+export async function deleteRuntime(runtimeId) {
+  const current = await getRuntime(runtimeId);
+  if (!current)
+    throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
+  if (current.status !== "archived")
+    throw createCatalogError(
+      409,
+      "RUNTIME_NOT_ARCHIVED",
+      "Only archived runtimes can be permanently deleted",
+    );
+  const { db, runtimes } = await getTopologyCollections();
+  const result = await runtimes.deleteOne({
+    id: current.id,
+    workspaceId: current.workspaceId,
+    status: "archived",
+  });
+  if (!result.deletedCount)
+    throw createCatalogError(
+      409,
+      "RUNTIME_DELETE_CONFLICT",
+      "Runtime was not deleted",
+    );
+  await db
+    .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)
+    .deleteMany({ workspaceId: current.workspaceId, runtimeId: current.id });
+  return current;
 }
 
 export async function assertApplicationCanArchive(applicationId) {

@@ -13,21 +13,39 @@ test(
 
     const { closeMongoClient, getMongoDatabase } =
       await import("../src/helpers/mongoClient.js");
-    const { archiveApplication, createApplication, ensureDefaultWorkspace } =
-      await import("../src/repositories/catalogRepository.js");
-    const { archiveComponent, createComponent, updateComponent } =
-      await import("../src/repositories/componentsRepository.js");
+    const {
+      archiveApplication,
+      createApplication,
+      deleteApplication,
+      ensureDefaultWorkspace,
+      getApplication,
+      restoreApplication,
+    } = await import("../src/repositories/catalogRepository.js");
+    const {
+      archiveComponent,
+      createComponent,
+      deleteComponent,
+      getComponent,
+      restoreComponent,
+      updateComponent,
+    } = await import("../src/repositories/componentsRepository.js");
     const {
       archiveRepository,
       createRepository,
+      deleteRepository,
+      getRepository,
       listRepositoryComponents,
+      restoreRepository,
       updateRepository,
     } = await import("../src/repositories/repositoriesRepository.js");
     const {
       archiveServer,
       createServer,
+      deleteServer,
+      getServer,
       listServerDeployments,
       listServerRuntimes,
+      restoreServer,
       updateServer,
     } = await import("../src/repositories/serversRepository.js");
     const {
@@ -36,15 +54,27 @@ test(
       assertApplicationCanArchive,
       createDeployment,
       createRuntime,
+      deleteDeployment,
+      deleteRuntime,
+      getDeployment,
+      getRuntime,
       listDeployments,
       listRuntimes,
+      restoreDeployment,
+      restoreRuntime,
       updateDeployment,
       updateRuntime,
     } = await import("../src/repositories/deploymentsRepository.js");
     const { getApplicationContext } =
       await import("../src/repositories/catalogContextRepository.js");
-    const { archiveIntegration, createIntegration, listIntegrations } =
-      await import("../src/repositories/integrationsRepository.js");
+    const {
+      archiveIntegration,
+      createIntegration,
+      deleteIntegration,
+      getIntegration,
+      listIntegrations,
+      restoreIntegration,
+    } = await import("../src/repositories/integrationsRepository.js");
     const {
       createTopologyDiagram,
       getTopologyDiagram,
@@ -448,6 +478,120 @@ test(
         (await archiveApplication(application.id, actor)).status,
         "archived",
       );
+      await assert.rejects(
+        deleteApplication(application.id),
+        (error) => error.code === "APPLICATION_HAS_DEPENDENCIES",
+      );
+      assert.equal(
+        (await restoreApplication(application.id, actor)).status,
+        "active",
+      );
+      await assert.rejects(
+        deleteDeployment(deployment.id),
+        (error) => error.code === "DEPLOYMENT_HAS_DEPENDENCIES",
+      );
+      await assert.rejects(
+        deleteComponent(component.id),
+        (error) => error.code === "COMPONENT_HAS_DEPENDENCIES",
+      );
+      await assert.rejects(
+        deleteRepository(repository.id),
+        (error) => error.code === "REPOSITORY_HAS_DEPENDENCIES",
+      );
+      await assert.rejects(
+        deleteServer(server.id),
+        (error) => error.code === "SERVER_HAS_DEPENDENCIES",
+      );
+
+      assert.equal(
+        (await restoreIntegration(integration.id, actor)).status,
+        "active",
+      );
+      await archiveIntegration(integration.id, actor);
+      await deleteIntegration(integration.id);
+      assert.equal(await getIntegration(integration.id), null);
+
+      assert.equal(
+        (await restoreDeployment(deployment.id, actor)).status,
+        "active",
+      );
+      assert.equal(
+        (await restoreRuntime(runtime.id, actor)).status,
+        "degraded",
+      );
+      await archiveRuntime(runtime.id, actor);
+      await deleteRuntime(runtime.id);
+      assert.equal(await getRuntime(runtime.id), null);
+      await archiveDeployment(deployment.id, actor);
+      await deleteDeployment(deployment.id);
+      assert.equal(await getDeployment(deployment.id), null);
+
+      assert.equal(
+        (await restoreComponent(component.id, actor)).status,
+        "active",
+      );
+      await archiveComponent(component.id, actor);
+      await deleteComponent(component.id);
+      assert.equal(await getComponent(component.id), null);
+
+      assert.equal(
+        (await restoreRepository(repository.id, actor)).status,
+        "active",
+      );
+      await archiveRepository(repository.id, actor);
+      await deleteRepository(repository.id);
+      assert.equal(await getRepository(repository.id), null);
+
+      await archiveApplication(application.id, actor);
+      await deleteApplication(application.id);
+      assert.equal(await getApplication(application.id), null);
+      assert.equal(
+        await database
+          .collection("applicationTopologyDiagrams")
+          .countDocuments({ applicationId: application.id }),
+        0,
+      );
+
+      assert.equal(
+        (await restoreServer(server.id, actor)).status,
+        "maintenance",
+      );
+      await archiveServer(server.id, actor);
+      await deleteServer(server.id);
+      assert.equal(await getServer(server.id), null);
+
+      const disposableApplication = await createApplication(
+        workspace.id,
+        { key: "disposable", name: "Disposable" },
+        actor,
+      );
+      await archiveApplication(disposableApplication.id, actor);
+      assert.equal(
+        (await deleteApplication(disposableApplication.id)).id,
+        disposableApplication.id,
+      );
+      assert.equal(await getApplication(disposableApplication.id), null);
+
+      const disposableServer = await createServer(
+        workspace.id,
+        {
+          key: "disposable-server",
+          name: "Disposable server",
+          status: "retired",
+        },
+        actor,
+      );
+      await archiveServer(disposableServer.id, actor);
+      assert.equal(
+        (await restoreServer(disposableServer.id, actor)).status,
+        "retired",
+      );
+      await archiveServer(disposableServer.id, actor);
+      assert.equal(
+        (await deleteServer(disposableServer.id)).id,
+        disposableServer.id,
+      );
+      assert.equal(await getServer(disposableServer.id), null);
 
       const indexNames = (
         await database.collection("deploymentRuntimes").indexes()

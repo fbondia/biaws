@@ -1,5 +1,6 @@
 import {
   Archive,
+  ArchiveRestore,
   CopyPlus,
   Download,
   Save,
@@ -99,9 +100,11 @@ export function KnowledgeRecordHeader({
 export function KnowledgeRecordFooter({
   canArchive,
   canDelete,
+  canRestore,
   draft,
   onArchive,
   onDelete,
+  onRestore,
 }) {
   if (!draft.id || (!canArchive && !canDelete)) return null;
 
@@ -111,6 +114,11 @@ export function KnowledgeRecordFooter({
       {archived && canDelete ? (
         <button className="dangerButton" onClick={onDelete} type="button">
           <Trash2 aria-hidden="true" size={16} /> Excluir definitivamente
+        </button>
+      ) : null}
+      {archived && canRestore ? (
+        <button className="secondaryButton" onClick={onRestore} type="button">
+          <ArchiveRestore aria-hidden="true" size={16} /> Desarquivar
         </button>
       ) : null}
       {!archived && canArchive ? (

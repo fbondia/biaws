@@ -1,5 +1,6 @@
 import {
   buildUrl,
+  deleteJson,
   fetchJson,
   readPayload,
   sendJson,
@@ -138,4 +139,17 @@ export function archiveSecret(secretId) {
     undefined,
     "POST",
   );
+}
+
+export function restoreSecret(secretId) {
+  return sendJson(
+    `/api/secrets/${encodeURIComponent(secretId)}/restore`,
+    {},
+    undefined,
+    "POST",
+  );
+}
+
+export function deleteSecret(secretId) {
+  return deleteJson(`/api/secrets/${encodeURIComponent(secretId)}/permanent`);
 }

@@ -127,15 +127,19 @@ export function SecretsView({ actor }) {
     finishCreation,
     finishEditing,
     finishVersioning,
+    includeArchived,
     loading,
     load,
     permissions,
     reveal,
     revealed,
     secrets,
+    remove,
+    restore,
     setCreating,
     setEditing,
     setError,
+    setIncludeArchived,
     setShowValue,
     setVersioning,
     showValue,
@@ -184,25 +188,42 @@ export function SecretsView({ actor }) {
   }
 
   function secretCardProps(secret) {
+    const archived = secret.status === "archived";
     return {
       applicationName: secret.applicationId
         ? applicationNames[secret.applicationId] || secret.applicationId
         : "",
-      canArchive: permissions.archive && allowed("secrets.archive", secret),
+      canArchive:
+        !archived && permissions.archive && allowed("secrets.archive", secret),
+      canDelete:
+        archived && permissions.archive && allowed("secrets.archive", secret),
       canReveal:
+        !archived &&
         secret.provisioningStatus === "ready" &&
         permissions.reveal &&
         allowed("secrets.value.reveal", secret),
-      canUpdate: permissions.update && allowed("secrets.update", secret),
-      canWrite: permissions.write && allowed("secrets.value.write", secret),
+      canRestore:
+        archived && permissions.archive && allowed("secrets.archive", secret),
+      canUpdate:
+        !archived && permissions.update && allowed("secrets.update", secret),
+      canWrite:
+        !archived &&
+        permissions.write &&
+        allowed("secrets.value.write", secret),
       copied: copiedSecretId === secret.id,
       onArchive: async () => {
         if (await archive(secret)) closeSecret();
       },
       onCopyValue: () => copyValue(secret),
       onDownload: () => download(secret),
+      onDelete: async () => {
+        if (await remove(secret)) closeSecret();
+      },
       onEdit: () => setEditing(secret),
       onReveal: () => reveal(secret),
+      onRestore: async () => {
+        if (await restore(secret)) closeSecret();
+      },
       onToggleValue: () => setShowValue((current) => !current),
       onVersion: () => setVersioning(secret),
       revealed: revealed?.secretId === secret.id ? revealed : null,
@@ -260,6 +281,8 @@ export function SecretsView({ actor }) {
               permissions.update ? collectionState.createCollection : undefined
             }
             onDelete={collectionState.removeCollection}
+            onArchiveItem={permissions.archive ? archive : undefined}
+            onDeleteItem={permissions.archive ? remove : undefined}
             onDragCollection={
               permissions.update
                 ? (collection) =>
@@ -279,6 +302,7 @@ export function SecretsView({ actor }) {
             onRename={(collection) =>
               collectionState.setCollectionDialog(collection)
             }
+            onRestoreItem={permissions.archive ? restore : undefined}
             onSelect={(collectionId) => {
               closeSecret();
               collectionState.setSelectedCollectionId(collectionId);
@@ -298,8 +322,11 @@ export function SecretsView({ actor }) {
         toolbar={
           selectedSecret ? null : (
             <ResourceCollectionSearch
+              archivedItemsLabel="segredos arquivados"
+              includeArchived={includeArchived}
               loading={loading}
               onClearFilters={() => setSearch("")}
+              onIncludeArchivedChange={setIncludeArchived}
               onRefresh={load}
               onSearch={load}
               onSearchChange={setSearch}

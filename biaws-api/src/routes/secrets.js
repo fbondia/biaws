@@ -8,11 +8,13 @@ import {
   archiveSecret,
   createFileSecret,
   createSecret,
+  deleteSecret,
   downloadSecretFile,
   getAccessibleSecret,
   listAccessibleSecrets,
   moveSecretToCollection,
   registerSecretMetadata,
+  restoreSecret,
   revealSecret,
   updateSecret,
   writeSecretFile,
@@ -286,5 +288,43 @@ secretsRouter.post(
       summary: `Segredo arquivado: ${secret.name}`,
     });
     res.json({ secret });
+  }),
+);
+
+secretsRouter.post(
+  "/:secretId/restore",
+  requireAllPermissions("secrets.metadata.read", "secrets.archive"),
+  asyncHandler(async (req, res) => {
+    const before = await getAccessibleSecret(req.params.secretId, req.actor);
+    const secret = await restoreSecret(req.params.secretId, req.actor);
+    await recordAuditEvent({
+      actor: req.actor,
+      action: "restored",
+      target: auditTarget(secret),
+      before,
+      after: secret,
+      metadata: auditMetadata(secret),
+      summary: `Segredo desarquivado: ${secret.name}`,
+    });
+    res.json({ secret });
+  }),
+);
+
+secretsRouter.delete(
+  "/:secretId/permanent",
+  requireAllPermissions("secrets.metadata.read", "secrets.archive"),
+  asyncHandler(async (req, res) => {
+    const before = await getAccessibleSecret(req.params.secretId, req.actor);
+    await deleteSecret(req.params.secretId, req.actor);
+    await recordAuditEvent({
+      actor: req.actor,
+      action: "deleted",
+      target: auditTarget(before),
+      before,
+      after: null,
+      metadata: auditMetadata(before),
+      summary: `Segredo excluído definitivamente: ${before.name}`,
+    });
+    res.json({ deleted: true, id: before.id });
   }),
 );

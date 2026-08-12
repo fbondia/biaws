@@ -308,6 +308,90 @@ export async function archiveRepository(repositoryId, actor = {}) {
   return getRepository(current.id);
 }
 
+export async function restoreRepository(repositoryId, actor = {}) {
+  const current = await getRepository(repositoryId);
+  if (!current)
+    throw createCatalogError(
+      404,
+      "REPOSITORY_NOT_FOUND",
+      "Repository not found",
+    );
+  if (current.status !== "archived") return current;
+  await requireOperationalApplication(current.applicationId, {
+    workspaceId: current.workspaceId,
+    active: true,
+  });
+  const { repositories } = await getTopologyCollections();
+  await repositories.updateOne(
+    { id: current.id, workspaceId: current.workspaceId, status: "archived" },
+    {
+      $set: {
+        status: "active",
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+      $unset: { archivedAt: "", archivedBy: "" },
+    },
+  );
+  return getRepository(current.id);
+}
+
+export async function deleteRepository(repositoryId) {
+  const current = await getRepository(repositoryId);
+  if (!current)
+    throw createCatalogError(
+      404,
+      "REPOSITORY_NOT_FOUND",
+      "Repository not found",
+    );
+  if (current.status !== "archived")
+    throw createCatalogError(
+      409,
+      "REPOSITORY_NOT_ARCHIVED",
+      "Only archived repositories can be permanently deleted",
+    );
+  const { components, deployments, repositories } =
+    await getTopologyCollections();
+  const scope = {
+    workspaceId: current.workspaceId,
+    applicationId: current.applicationId,
+  };
+  const counts = await Promise.all([
+    components.countDocuments(
+      { ...scope, "repositoryLinks.repositoryId": current.id },
+      { limit: 1 },
+    ),
+    deployments.countDocuments(
+      {
+        ...scope,
+        $or: [
+          { repositoryId: current.id },
+          { "source.repositoryId": current.id },
+        ],
+      },
+      { limit: 1 },
+    ),
+  ]);
+  if (counts.some(Boolean))
+    throw createCatalogError(
+      409,
+      "REPOSITORY_HAS_DEPENDENCIES",
+      "Remova as referências antes de excluir o repositório",
+    );
+  const result = await repositories.deleteOne({
+    id: current.id,
+    ...scope,
+    status: "archived",
+  });
+  if (!result.deletedCount)
+    throw createCatalogError(
+      409,
+      "REPOSITORY_DELETE_CONFLICT",
+      "Repository was not deleted",
+    );
+  return current;
+}
+
 export async function listRepositoryComponents(repositoryId, query = {}) {
   const repository = await getRepository(repositoryId);
   if (!repository) {

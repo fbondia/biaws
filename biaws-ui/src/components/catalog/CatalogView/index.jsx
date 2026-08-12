@@ -23,7 +23,9 @@ function CatalogSelectedDetail({
   loading,
   onArchive,
   onBack,
+  onDelete,
   onEdit,
+  onRestore,
   onSelectTab,
   tabProps,
   visibleTabs,
@@ -57,7 +59,9 @@ function CatalogSelectedDetail({
           application={context.application}
           onArchive={onArchive}
           onBack={onBack}
+          onDelete={onDelete}
           onEdit={onEdit}
+          onRestore={onRestore}
         />
       </header>
       <div
@@ -210,7 +214,9 @@ export function CatalogView({ actor }) {
     visibleTabs,
     persistApplication,
     persistEntity,
+    archiveApplicationItem,
     archiveSelectedApplication,
+    deleteArchivedApplication,
     editEntity,
     entityActions,
     runtimeByDeployment,
@@ -218,6 +224,7 @@ export function CatalogView({ actor }) {
     runtimeErrorByDeployment,
     loadRuntimes,
     loadApplications,
+    restoreArchivedApplication,
     setError,
   } = useCatalogView(actor);
   const collectionState = useResourceCollections("applications", {
@@ -237,6 +244,10 @@ export function CatalogView({ actor }) {
     (updateScope.workspace === true ||
       updateScope.applicationIds?.includes(application.id));
   const canManageCollections = updateScope.workspace === true;
+  const canManageApplicationLifecycle = hasPermission(
+    actor,
+    "applications.archive",
+  );
   return (
     <section className="catalogPage">
       <header className="catalogHero">
@@ -298,6 +309,16 @@ export function CatalogView({ actor }) {
                 : undefined
             }
             onDelete={collectionState.removeCollection}
+            onArchiveItem={
+              canManageApplicationLifecycle
+                ? (application) => void archiveApplicationItem(application)
+                : undefined
+            }
+            onDeleteItem={
+              canManageApplicationLifecycle
+                ? (application) => void deleteArchivedApplication(application)
+                : undefined
+            }
             onDragCollection={
               canManageCollections
                 ? (collection) =>
@@ -322,6 +343,11 @@ export function CatalogView({ actor }) {
             }
             onRename={(collection) =>
               collectionState.setCollectionDialog(collection)
+            }
+            onRestoreItem={
+              canManageApplicationLifecycle
+                ? (application) => void restoreArchivedApplication(application)
+                : undefined
             }
             onSelect={(collectionId) => {
               collectionState.setSelectedCollectionId(collectionId);
@@ -370,8 +396,12 @@ export function CatalogView({ actor }) {
             loading={loading}
             onArchive={() => void archiveSelectedApplication()}
             onBack={() => setSelectedId("")}
+            onDelete={() => void deleteArchivedApplication(context.application)}
             onEdit={() =>
               setDialog({ kind: "application", entity: context.application })
+            }
+            onRestore={() =>
+              void restoreArchivedApplication(context.application)
             }
             onSelectTab={setActiveTab}
             tabProps={{

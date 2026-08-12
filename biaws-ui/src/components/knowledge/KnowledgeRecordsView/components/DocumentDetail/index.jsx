@@ -26,6 +26,7 @@ import { useDocumentExports } from "./hooks/useDocumentExports.js";
 export function DocumentDetail({
   canArchive,
   canDelete,
+  canRestore,
   canCreateAttachments,
   canDeleteAttachments,
   canReadAttachments,
@@ -37,6 +38,7 @@ export function DocumentDetail({
   onArchive,
   onChange,
   onDelete,
+  onRestore,
   onSave,
   saving,
   taxonomyPackage,
@@ -171,9 +173,11 @@ export function DocumentDetail({
       <KnowledgeRecordFooter
         canArchive={canArchive}
         canDelete={canDelete}
+        canRestore={canRestore}
         draft={draft}
         onArchive={onArchive}
         onDelete={onDelete}
+        onRestore={onRestore}
       />
     </section>
   );

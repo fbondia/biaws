@@ -11,11 +11,13 @@ import { assertApplicationCanArchive } from "../repositories/deploymentsReposito
 import {
   archiveApplication,
   createApplication,
+  deleteApplication,
   getApplication,
   getWorkspace,
   listApplications,
   listWorkspaces,
   moveApplicationToCollection,
+  restoreApplication,
   updateApplication,
 } from "../repositories/catalogRepository.js";
 
@@ -239,5 +241,75 @@ catalogRouter.patch(
       });
     }
     res.json({ application: after });
+  }),
+);
+
+catalogRouter.patch(
+  "/applications/:applicationId/restore",
+  requireAllPermissions("applications.archive"),
+  asyncHandler(async (req, res) => {
+    const before = actorCanAccessApplication(
+      req.actor,
+      "applications.archive",
+      req.params.applicationId,
+    )
+      ? await getApplication(req.params.applicationId, {
+          workspaceId: req.actor.workspaceId,
+        })
+      : null;
+    if (!before) {
+      sendNotFound(res, "APPLICATION_NOT_FOUND", "Application not found");
+      return;
+    }
+    const after = await restoreApplication(req.params.applicationId, req.actor);
+    if (before.status !== after.status) {
+      await recordAuditEvent({
+        actor: req.actor,
+        action: "restored",
+        target: { type: "application", id: after.id, label: after.name },
+        before,
+        after,
+        metadata: {
+          workspaceId: after.workspaceId,
+          applicationId: after.id,
+        },
+        summary: `Aplicação desarquivada: ${after.name}`,
+      });
+    }
+    res.json({ application: after });
+  }),
+);
+
+catalogRouter.delete(
+  "/applications/:applicationId/permanent",
+  requireAllPermissions("applications.archive"),
+  asyncHandler(async (req, res) => {
+    const before = actorCanAccessApplication(
+      req.actor,
+      "applications.archive",
+      req.params.applicationId,
+    )
+      ? await getApplication(req.params.applicationId, {
+          workspaceId: req.actor.workspaceId,
+        })
+      : null;
+    if (!before) {
+      sendNotFound(res, "APPLICATION_NOT_FOUND", "Application not found");
+      return;
+    }
+    await deleteApplication(req.params.applicationId);
+    await recordAuditEvent({
+      actor: req.actor,
+      action: "deleted",
+      target: { type: "application", id: before.id, label: before.name },
+      before,
+      after: null,
+      metadata: {
+        workspaceId: before.workspaceId,
+        applicationId: before.id,
+      },
+      summary: `Aplicação excluída definitivamente: ${before.name}`,
+    });
+    res.json({ deleted: true, id: before.id });
   }),
 );

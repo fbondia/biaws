@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  applicationDeletionDependencies,
   buildApplicationFilter,
   buildOperationalWorkspaceFilter,
   normalizeApplicationInput,
@@ -110,6 +111,40 @@ test("application filters support assigned and root collections", () => {
     buildApplicationFilter("workspace-1", { collectionId: "" }).collectionId,
     { $in: ["", null] },
   );
+});
+
+test("permanent application deletion checks every owned and referenced resource", () => {
+  const dependencies = applicationDeletionDependencies({
+    id: "application-1",
+    workspaceId: "workspace-1",
+  });
+  assert.deepEqual(
+    dependencies.map(([label]) => label),
+    [
+      "componentes",
+      "integrações",
+      "repositórios",
+      "deployments",
+      "runtimes",
+      "documentos",
+      "issues",
+      "demandas",
+      "segredos",
+    ],
+  );
+  assert.deepEqual(dependencies[1][2], {
+    workspaceId: "workspace-1",
+    $or: [
+      { applicationId: "application-1" },
+      { targetApplicationId: "application-1" },
+    ],
+  });
+  for (const [, , filter] of dependencies.filter(
+    ([label]) => label !== "integrações",
+  )) {
+    assert.equal(filter.workspaceId, "workspace-1");
+    assert.equal(filter.applicationId, "application-1");
+  }
 });
 
 test("workspace filters use the explicit workspace boundary", () => {

@@ -53,6 +53,7 @@ export function KnowledgeRecordsView({ actor }) {
     permissions,
     persist,
     remove,
+    restore,
     saving,
     search,
     searchActive,
@@ -118,7 +119,8 @@ export function KnowledgeRecordsView({ actor }) {
             preferenceKey="documents"
             onCreate={collectionsState.createCollection}
             onDelete={collectionsState.removeCollection}
-            onDeleteItem={permissions.archive ? archive : undefined}
+            onArchiveItem={permissions.archive ? archive : undefined}
+            onDeleteItem={permissions.archive ? remove : undefined}
             onDragCollection={(collection) =>
               collectionsState.setDraggedItem({
                 type: "collection",
@@ -138,6 +140,7 @@ export function KnowledgeRecordsView({ actor }) {
               collectionsState.dropItem(collectionId, moveItem)
             }
             onRename={collectionsState.setCollectionDialog}
+            onRestoreItem={permissions.archive ? restore : undefined}
             onSelect={selectCollection}
             onSelectItem={openRecord}
             renderItem={(record) => {
@@ -214,6 +217,7 @@ export function KnowledgeRecordsView({ actor }) {
           <DocumentDetail
             canArchive={permissions.archive}
             canDelete={permissions.archive}
+            canRestore={permissions.archive}
             canCreateAttachments={permissions.attachments.create}
             canDeleteAttachments={permissions.attachments.delete}
             canReadAttachments={permissions.attachments.read}
@@ -226,6 +230,7 @@ export function KnowledgeRecordsView({ actor }) {
             onArchive={() => archive(draft)}
             onChange={setDraft}
             onDelete={() => remove(draft)}
+            onRestore={() => restore(draft)}
             onSave={persist}
             saving={saving}
             taxonomyPackage={taxonomyPackage}
@@ -236,7 +241,9 @@ export function KnowledgeRecordsView({ actor }) {
             canArchive={permissions.archive}
             loading={loading}
             onArchive={archive}
+            onDelete={remove}
             onOpen={openRecord}
+            onRestore={restore}
             records={visibleItems}
           />
         )}

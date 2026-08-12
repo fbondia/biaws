@@ -1,4 +1,12 @@
-import { Archive, ArrowLeft, Inbox, Pencil, X } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  ArrowLeft,
+  Inbox,
+  Pencil,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { hasPermission } from "../../../../permissions.js";
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
@@ -58,11 +66,14 @@ export function HeaderActions({
   application,
   onArchive,
   onBack,
+  onDelete,
   onEdit,
+  onRestore,
 }) {
   return (
     <div className="catalogHeaderActions">
-      {hasPermission(actor, "applications.update") ? (
+      {application.status !== "archived" &&
+      hasPermission(actor, "applications.update") ? (
         <button className="secondaryButton" onClick={onEdit} type="button">
           <Pencil size={16} /> Editar
         </button>
@@ -72,6 +83,17 @@ export function HeaderActions({
         <button className="dangerButton" onClick={onArchive} type="button">
           <Archive size={16} /> Arquivar
         </button>
+      ) : null}
+      {hasPermission(actor, "applications.archive") &&
+      application.status === "archived" ? (
+        <>
+          <button className="secondaryButton" onClick={onRestore} type="button">
+            <ArchiveRestore size={16} /> Desarquivar
+          </button>
+          <button className="dangerButton" onClick={onDelete} type="button">
+            <Trash2 size={16} /> Excluir definitivamente
+          </button>
+        </>
       ) : null}
       <button
         aria-label="Fechar detalhes da aplicação"

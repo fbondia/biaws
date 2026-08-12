@@ -153,6 +153,7 @@ export function CollectionColumns({
   itemCounts,
   itemDropTargetId,
   itemsByCollection,
+  onArchiveItem,
   onCreate,
   onDelete,
   onDeleteItem,
@@ -164,6 +165,7 @@ export function CollectionColumns({
   onDropItem,
   onSelect,
   onSelectItem,
+  onRestoreItem,
   renderItem,
   selectedCollectionId,
   selectedItemId,
@@ -212,11 +214,13 @@ export function CollectionColumns({
                 getItemId={getItemId}
                 item={item}
                 key={getItemId(item)}
+                onArchiveItem={onArchiveItem}
                 onDragEnd={() => finishDrag(onDragEnd)}
                 onDragItem={onDragItem}
                 onDragOverItem={onDragOverItem}
                 onDeleteItem={onDeleteItem}
                 onSelectItem={onSelectItem}
+                onRestoreItem={onRestoreItem}
                 onDropItem={onDropItem}
                 renderItem={renderItem}
                 viewMode="columns"

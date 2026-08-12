@@ -168,3 +168,12 @@ export function isItemReorderDrop(draggedItem, targetItem, getItemId) {
     String(targetItem.collectionId || "")
   );
 }
+
+export function collectionItemLifecycleActions(item, handlers = {}) {
+  const archived = item?.status === "archived";
+  return {
+    archive: !archived && Boolean(handlers.onArchiveItem),
+    delete: archived && Boolean(handlers.onDeleteItem),
+    restore: archived && Boolean(handlers.onRestoreItem),
+  };
+}

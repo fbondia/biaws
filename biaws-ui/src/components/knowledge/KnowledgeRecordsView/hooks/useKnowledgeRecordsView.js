@@ -8,6 +8,7 @@ import {
   fetchDocuments,
   fetchIssueTaxonomy,
   moveDocumentToCollection,
+  restoreDocument,
   saveDocument,
 } from "../../../../api.js";
 import { hasPermission } from "../../../../permissions.js";
@@ -164,6 +165,18 @@ export function useKnowledgeRecordsView(actor) {
     }
   }
 
+  async function restore(record) {
+    if (record.status !== "archived") return;
+    if (!window.confirm(`Desarquivar “${record.title}”?`)) return;
+    try {
+      await restoreDocument(record.id);
+      if (draft?.id === record.id) setDraft(null);
+      await load();
+    } catch (restoreError) {
+      setError(restoreError.message);
+    }
+  }
+
   async function moveItem(id, collectionId) {
     await moveDocumentToCollection(id, collectionId);
     setOrganizationItems((current) =>
@@ -232,6 +245,7 @@ export function useKnowledgeRecordsView(actor) {
     permissions,
     persist,
     remove,
+    restore,
     saving,
     search,
     searchActive,

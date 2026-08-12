@@ -7,11 +7,13 @@ import {
   createPendingSecretDocument,
   createSecretDocument,
   currentSecretVersion,
+  deleteSecretDocument,
   getSecretDocument,
   listSecrets,
   moveSecretDocumentToCollection,
   normalizeSecretPayload,
   publicSecret,
+  restoreSecretDocument,
   updateSecretDocument,
 } from "../repositories/secretsRepository.js";
 import { assertResourceCollection } from "../repositories/resourceCollectionsRepository.js";
@@ -464,4 +466,34 @@ export async function archiveSecret(secretId, actor) {
     "secrets.archive",
   );
   return archiveSecretDocument(document, actor, scope);
+}
+
+export async function restoreSecret(secretId, actor) {
+  const { document, scope } = await requiredSecret(
+    secretId,
+    actor,
+    "secrets.archive",
+  );
+  return restoreSecretDocument(document, actor, scope);
+}
+
+export async function deleteSecret(secretId, actor) {
+  const { document, scope } = await requiredSecret(
+    secretId,
+    actor,
+    "secrets.archive",
+  );
+  if (document.status !== "archived") {
+    throw secretError(
+      409,
+      "SECRET_NOT_ARCHIVED",
+      "Only archived secrets can be permanently deleted",
+    );
+  }
+  await Promise.all(
+    (document.versions || []).map(({ locator }) =>
+      getSecretProvider().deleteValue(locator),
+    ),
+  );
+  return deleteSecretDocument(document, scope);
 }

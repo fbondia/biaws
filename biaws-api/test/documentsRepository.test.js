@@ -6,6 +6,7 @@ import {
   documentReplicationPayload,
   documentTypeConfig,
   normalizeDocumentPayload,
+  restoredDocumentStatus,
 } from "../src/repositories/documentsRepository.js";
 
 test("documents keep type-specific lifecycle states in one model", () => {
@@ -29,6 +30,17 @@ test("documents keep type-specific lifecycle states in one model", () => {
     "archived",
   ]);
   assert.equal(Object.keys(DOCUMENT_TYPES).length, 6);
+});
+
+test("document restoration preserves its previous status with a safe fallback", () => {
+  assert.equal(
+    restoredDocumentStatus({
+      documentType: "procedure",
+      archivedFromStatus: "published",
+    }),
+    "published",
+  );
+  assert.equal(restoredDocumentStatus({ documentType: "procedure" }), "draft");
 });
 
 test("document payload normalizes its common envelope and typed details", () => {

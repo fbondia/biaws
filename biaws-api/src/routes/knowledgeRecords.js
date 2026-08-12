@@ -21,6 +21,7 @@ import {
   listDocumentRevisions,
   listDocuments,
   moveDocument,
+  restoreDocument,
   updateDocument,
 } from "../repositories/documentsRepository.js";
 import { deleteStoredAttachments } from "../services/attachmentService.js";
@@ -379,6 +380,34 @@ knowledgeRecordsRouter.delete(
       metadata: knowledgeContextMetadata(before),
     });
     res.json({ ...result, attachmentCleanup });
+  }),
+);
+
+knowledgeRecordsRouter.patch(
+  "/documents/:id/restore",
+  authorize("archive"),
+  asyncHandler(async (req, res) => {
+    const before = await currentDocument(req, "archive");
+    if (!before) return sendNotFound(res);
+    const result = await restoreDocument(
+      req.params.id,
+      { documentType: before.documentType, updatedBy: actorId(req) },
+      query(req, "archive"),
+    );
+    await recordAuditEvent({
+      actor: req.actor,
+      action: "restored",
+      target: {
+        type: "document",
+        id: result.document.id,
+        label: result.document.title,
+      },
+      before,
+      after: result.document,
+      summary: "Documento desarquivado",
+      metadata: knowledgeContextMetadata(result.document),
+    });
+    res.json(result);
   }),
 );
 

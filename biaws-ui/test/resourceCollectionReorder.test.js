@@ -2,11 +2,28 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  collectionItemLifecycleActions,
   isItemReorderDrop,
   populatedCollections,
 } from "../src/components/shared/ResourceCollections/model.js";
 
 const getItemId = (item) => item.id;
+
+test("archived collection items expose restore and permanent deletion", () => {
+  const handlers = {
+    onArchiveItem: () => {},
+    onDeleteItem: () => {},
+    onRestoreItem: () => {},
+  };
+  assert.deepEqual(
+    collectionItemLifecycleActions({ status: "active" }, handlers),
+    { archive: true, delete: false, restore: false },
+  );
+  assert.deepEqual(
+    collectionItemLifecycleActions({ status: "archived" }, handlers),
+    { archive: false, delete: true, restore: true },
+  );
+});
 
 test("collection items can be reordered inside the same collection", () => {
   assert.equal(

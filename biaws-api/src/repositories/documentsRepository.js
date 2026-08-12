@@ -833,7 +833,8 @@ export async function updateDocument(id, payload = {}, query = {}) {
 }
 
 export async function archiveDocument(id, payload = {}, query = {}) {
-  return updateDocument(
+  const current = await requireDocument(id, query);
+  const result = await updateDocument(
     id,
     {
       ...payload,
@@ -842,6 +843,54 @@ export async function archiveDocument(id, payload = {}, query = {}) {
     },
     query,
   );
+  if (current.status !== "archived") {
+    const db = await getMongoDatabase({
+      db: query.db,
+      database: query.database,
+    });
+    await db.collection(COLLECTION_NAMES.DOCUMENTS).updateOne(
+      {
+        id: String(id),
+        workspaceId: current.workspaceId,
+        status: "archived",
+      },
+      { $set: { archivedFromStatus: current.status } },
+    );
+  }
+  return result;
+}
+
+export function restoredDocumentStatus(document) {
+  const config = documentTypeConfig(document.documentType);
+  return document.archivedFromStatus &&
+    document.archivedFromStatus !== "archived" &&
+    config.statuses.includes(document.archivedFromStatus)
+    ? document.archivedFromStatus
+    : config.defaultStatus;
+}
+
+export async function restoreDocument(id, payload = {}, query = {}) {
+  const current = await requireDocument(id, query);
+  if (current.status !== "archived") return getDocument(id, query);
+  const restoredStatus = restoredDocumentStatus(current);
+  const result = await updateDocument(
+    id,
+    {
+      ...payload,
+      status: restoredStatus,
+      changeSummary: payload.changeSummary || "Documento desarquivado",
+    },
+    query,
+  );
+  const db = await getMongoDatabase({ db: query.db, database: query.database });
+  await db
+    .collection(COLLECTION_NAMES.DOCUMENTS)
+    .updateOne(
+      { id: String(id), workspaceId: current.workspaceId },
+      { $unset: { archivedFromStatus: "" } },
+    );
+  delete result.document.archivedFromStatus;
+  return result;
 }
 
 export async function deleteDocument(id, query = {}) {

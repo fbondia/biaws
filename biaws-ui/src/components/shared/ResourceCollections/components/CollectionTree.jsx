@@ -90,6 +90,7 @@ function CollectionTreeNode({
   getItemId,
   itemDropTargetId,
   itemsByCollection,
+  onArchiveItem,
   onDragCollection,
   onDragEnd,
   onDragItem,
@@ -102,6 +103,7 @@ function CollectionTreeNode({
   onRename,
   onSelect,
   onSelectItem,
+  onRestoreItem,
   onToggle,
   itemCounts,
   renderItem,
@@ -267,6 +269,7 @@ function CollectionTreeNode({
               itemDropTargetId={itemDropTargetId}
               itemsByCollection={itemsByCollection}
               key={child.id}
+              onArchiveItem={onArchiveItem}
               onDelete={onDelete}
               onDeleteItem={onDeleteItem}
               onDragCollection={onDragCollection}
@@ -279,6 +282,7 @@ function CollectionTreeNode({
               onRename={onRename}
               onSelect={onSelect}
               onSelectItem={onSelectItem}
+              onRestoreItem={onRestoreItem}
               onToggle={onToggle}
               itemCounts={itemCounts}
               renderItem={renderItem}
@@ -298,11 +302,13 @@ function CollectionTreeNode({
               getItemId={getItemId}
               item={item}
               key={getItemId(item)}
+              onArchiveItem={onArchiveItem}
               onDragEnd={onDragEnd}
               onDragItem={onDragItem}
               onDragOverItem={onDragOverItem}
               onDeleteItem={onDeleteItem}
               onSelectItem={onSelectItem}
+              onRestoreItem={onRestoreItem}
               onDropItem={onDropItem}
               renderItem={renderItem}
               viewMode="tree"
@@ -332,6 +338,7 @@ export function CollectionTree({
   itemCounts,
   itemDropTargetId,
   itemsByCollection,
+  onArchiveItem,
   onCreate,
   onDelete,
   onDeleteItem,
@@ -343,6 +350,7 @@ export function CollectionTree({
   onDropItem,
   onSelect,
   onSelectItem,
+  onRestoreItem,
   renderItem,
   selectedCollectionId,
   selectedItemId,
@@ -388,6 +396,7 @@ export function CollectionTree({
               getItemId={getItemId}
               itemDropTargetId={itemDropTargetId}
               itemsByCollection={itemsByCollection}
+              onArchiveItem={onArchiveItem}
               key={collection.id}
               onDelete={onCreate ? onDelete : undefined}
               onDeleteItem={onDeleteItem}
@@ -401,6 +410,7 @@ export function CollectionTree({
               onRename={onRename}
               onSelect={onSelect}
               onSelectItem={onSelectItem}
+              onRestoreItem={onRestoreItem}
               onToggle={toggleCollection}
               itemCounts={itemCounts}
               renderItem={renderItem}
@@ -420,11 +430,13 @@ export function CollectionTree({
               getItemId={getItemId}
               item={item}
               key={getItemId(item)}
+              onArchiveItem={onArchiveItem}
               onDragEnd={() => finishDrag(onDragEnd)}
               onDragItem={onDragItem}
               onDragOverItem={onDragOverItem}
               onDeleteItem={onDeleteItem}
               onSelectItem={onSelectItem}
+              onRestoreItem={onRestoreItem}
               onDropItem={onDropItem}
               renderItem={renderItem}
               viewMode="tree"

@@ -279,9 +279,84 @@ export async function archiveServer(serverId, actor = {}) {
       workspaceId: current.workspaceId,
       status: { $ne: "archived" },
     },
-    { $set: archiveFields(actor) },
+    {
+      $set: {
+        ...archiveFields(actor),
+        archivedFromStatus: current.status,
+      },
+    },
   );
   return getServer(current.id);
+}
+
+export async function restoreServer(serverId, actor = {}) {
+  const current = await getServer(serverId);
+  if (!current) {
+    throw createCatalogError(404, "SERVER_NOT_FOUND", "Server not found");
+  }
+  if (current.status !== "archived") return current;
+  await requireOperationalWorkspace(current.workspaceId, { active: true });
+  const restoredStatus = MUTABLE_SERVER_STATUSES.includes(
+    current.archivedFromStatus,
+  )
+    ? current.archivedFromStatus
+    : "active";
+  const { servers } = await getTopologyCollections();
+  await servers.updateOne(
+    { id: current.id, workspaceId: current.workspaceId, status: "archived" },
+    {
+      $set: {
+        status: restoredStatus,
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+      $unset: {
+        archivedAt: "",
+        archivedBy: "",
+        archivedFromStatus: "",
+      },
+    },
+  );
+  return getServer(current.id);
+}
+
+export async function deleteServer(serverId) {
+  const current = await getServer(serverId);
+  if (!current) {
+    throw createCatalogError(404, "SERVER_NOT_FOUND", "Server not found");
+  }
+  if (current.status !== "archived") {
+    throw createCatalogError(
+      409,
+      "SERVER_NOT_ARCHIVED",
+      "Only archived servers can be permanently deleted",
+    );
+  }
+  const { runtimes, servers } = await getTopologyCollections();
+  const runtimeCount = await runtimes.countDocuments(
+    { workspaceId: current.workspaceId, serverId: current.id },
+    { limit: 1 },
+  );
+  if (runtimeCount) {
+    throw createCatalogError(
+      409,
+      "SERVER_HAS_DEPENDENCIES",
+      "Remova os runtimes vinculados antes de excluir o servidor",
+    );
+  }
+  const result = await servers.deleteOne({
+    id: current.id,
+    workspaceId: current.workspaceId,
+    status: "archived",
+  });
+  if (!result.deletedCount) {
+    throw createCatalogError(
+      409,
+      "SERVER_DELETE_CONFLICT",
+      "Server was not deleted",
+    );
+  }
+  return current;
 }
 
 export async function moveServerToCollection(

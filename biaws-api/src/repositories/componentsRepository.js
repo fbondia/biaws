@@ -405,3 +405,94 @@ export async function archiveComponent(componentId, actor = {}) {
   );
   return getComponent(current.id);
 }
+
+export async function restoreComponent(componentId, actor = {}) {
+  const current = await getComponent(componentId);
+  if (!current) {
+    throw createCatalogError(404, "COMPONENT_NOT_FOUND", "Component not found");
+  }
+  if (current.status !== "archived") return current;
+  await requireOperationalApplication(current.applicationId, {
+    workspaceId: current.workspaceId,
+    active: true,
+  });
+  const { components } = await getTopologyCollections();
+  await components.updateOne(
+    { id: current.id, workspaceId: current.workspaceId, status: "archived" },
+    {
+      $set: {
+        status: "active",
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+      $unset: { archivedAt: "", archivedBy: "" },
+    },
+  );
+  return getComponent(current.id);
+}
+
+export async function deleteComponent(componentId) {
+  const current = await getComponent(componentId);
+  if (!current) {
+    throw createCatalogError(404, "COMPONENT_NOT_FOUND", "Component not found");
+  }
+  if (current.status !== "archived") {
+    throw createCatalogError(
+      409,
+      "COMPONENT_NOT_ARCHIVED",
+      "Only archived components can be permanently deleted",
+    );
+  }
+  const { components, deployments, db } = await getTopologyCollections();
+  const scope = {
+    workspaceId: current.workspaceId,
+    applicationId: current.applicationId,
+  };
+  const counts = await Promise.all([
+    components.countDocuments(
+      { ...scope, "dependencies.componentId": current.id },
+      { limit: 1 },
+    ),
+    deployments.countDocuments(
+      { ...scope, componentId: current.id },
+      { limit: 1 },
+    ),
+    db
+      .collection(COLLECTION_NAMES.DOCUMENTS)
+      .countDocuments(
+        { ...scope, affectedComponentIds: current.id },
+        { limit: 1 },
+      ),
+    db
+      .collection(COLLECTION_NAMES.ISSUES)
+      .countDocuments(
+        { ...scope, affectedComponentIds: current.id },
+        { limit: 1 },
+      ),
+    db
+      .collection(COLLECTION_NAMES.REQUESTS)
+      .countDocuments(
+        { ...scope, affectedComponentIds: current.id },
+        { limit: 1 },
+      ),
+  ]);
+  if (counts.some(Boolean)) {
+    throw createCatalogError(
+      409,
+      "COMPONENT_HAS_DEPENDENCIES",
+      "Remova as dependências antes de excluir o componente",
+    );
+  }
+  const result = await components.deleteOne({
+    id: current.id,
+    ...scope,
+    status: "archived",
+  });
+  if (!result.deletedCount)
+    throw createCatalogError(
+      409,
+      "COMPONENT_DELETE_CONFLICT",
+      "Component was not deleted",
+    );
+  return current;
+}

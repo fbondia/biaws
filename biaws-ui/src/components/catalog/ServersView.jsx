@@ -1,9 +1,19 @@
-import { Archive, ArrowLeft, Pencil, Plus, X, Server } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  ArrowLeft,
+  Pencil,
+  Plus,
+  Server,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import {
   archiveServer,
   createServer,
+  deleteServer,
   fetchApplications,
   fetchComponents,
   fetchServer,
@@ -12,6 +22,7 @@ import {
   fetchServers,
   fetchWorkspaces,
   moveServerToCollection,
+  restoreServer,
   updateServer,
 } from "../../api.js";
 import { hasPermission } from "../../permissions.js";
@@ -228,14 +239,42 @@ export function ServersView({ actor }) {
     if (result.server?.id) await openServer(result.server);
   }
 
-  async function archiveSelected() {
-    if (!selected || !window.confirm(`Arquivar “${selected.name}”?`)) return;
+  async function archiveServerItem(server) {
+    if (!server || !window.confirm(`Arquivar “${server.name}”?`)) return;
     try {
-      await archiveServer(selected.id);
+      await archiveServer(server.id);
       setSelected(null);
       await loadList();
     } catch (archiveError) {
       setError(archiveError.message);
+    }
+  }
+
+  async function restoreServerItem(server) {
+    if (!window.confirm(`Desarquivar “${server.name}”?`)) return;
+    try {
+      await restoreServer(server.id);
+      setSelected(null);
+      await loadList();
+    } catch (restoreError) {
+      setError(restoreError.message);
+    }
+  }
+
+  async function deleteServerItem(server) {
+    if (
+      !window.confirm(
+        `Excluir definitivamente “${server.name}”? Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      await deleteServer(server.id);
+      setSelected(null);
+      await loadList();
+    } catch (deleteError) {
+      setError(deleteError.message);
     }
   }
 
@@ -244,6 +283,7 @@ export function ServersView({ actor }) {
       String(collectionId || "") === collectionState.selectedCollectionId,
   );
   const canManageCollections = hasPermission(actor, "servers.update");
+  const canManageServerLifecycle = hasPermission(actor, "servers.archive");
 
   return (
     <section className="catalogPage serversPage">
@@ -288,6 +328,16 @@ export function ServersView({ actor }) {
                 : undefined
             }
             onDelete={collectionState.removeCollection}
+            onArchiveItem={
+              canManageServerLifecycle
+                ? (server) => void archiveServerItem(server)
+                : undefined
+            }
+            onDeleteItem={
+              canManageServerLifecycle
+                ? (server) => void deleteServerItem(server)
+                : undefined
+            }
             onDragCollection={
               canManageCollections
                 ? (collection) =>
@@ -306,6 +356,11 @@ export function ServersView({ actor }) {
             }
             onRename={(collection) =>
               collectionState.setCollectionDialog(collection)
+            }
+            onRestoreItem={
+              canManageServerLifecycle
+                ? (server) => void restoreServerItem(server)
+                : undefined
             }
             onSelect={(collectionId) => {
               collectionState.setSelectedCollectionId(collectionId);
@@ -349,9 +404,11 @@ export function ServersView({ actor }) {
           <ServerContent
             activeTab={activeTab}
             actor={actor}
-            onArchive={archiveSelected}
+            onArchive={() => void archiveServerItem(selected)}
             onBack={() => setSelected(null)}
+            onDelete={() => void deleteServerItem(selected)}
             onEdit={setDialog}
+            onRestore={() => void restoreServerItem(selected)}
             onSelectTab={setActiveTab}
             serverApplications={serverApplications}
             selected={selected}
@@ -412,7 +469,9 @@ function ServerDetails({
   actor,
   onArchive,
   onBack,
+  onDelete,
   onEdit,
+  onRestore,
   onSelectTab,
   serverApplications,
   selected,
@@ -450,6 +509,21 @@ function ServerDetails({
             <button className="dangerButton" onClick={onArchive} type="button">
               <Archive size={16} /> Arquivar
             </button>
+          ) : null}
+          {hasPermission(actor, "servers.archive") &&
+          selected.status === "archived" ? (
+            <>
+              <button
+                className="secondaryButton"
+                onClick={onRestore}
+                type="button"
+              >
+                <ArchiveRestore size={16} /> Desarquivar
+              </button>
+              <button className="dangerButton" onClick={onDelete} type="button">
+                <Trash2 size={16} /> Excluir definitivamente
+              </button>
+            </>
           ) : null}
           <button
             aria-label="Fechar detalhes do servidor"

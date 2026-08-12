@@ -212,14 +212,17 @@ export async function listSecrets(query = {}) {
   const { secrets } = await getCollections();
   const page = Math.max(1, Number(query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(query.limit) || 25));
-  const status = String(query.status || "active").trim();
-  if (!["active", "archived"].includes(status)) {
+  const status = String(query.status || "").trim();
+  if (status && !["active", "archived"].includes(status)) {
     throw secretError(422, "INVALID_SECRET_FILTER", "status is invalid");
   }
   const filter = {
     ...accessFilter(query.authorizationScope || {}),
-    status,
   };
+  if (status) filter.status = status;
+  else if (String(query.includeArchived || "").toLowerCase() !== "true") {
+    filter.status = "active";
+  }
   if (query.applicationId) {
     filter.applicationId = String(query.applicationId);
   }
@@ -484,6 +487,55 @@ export async function archiveSecretDocument(
     throw secretError(404, "SECRET_NOT_FOUND", "Secret not found");
   }
   return publicSecret(document);
+}
+
+export async function restoreSecretDocument(
+  current,
+  actor,
+  authorizationScope,
+) {
+  if (current.status !== "archived") return publicSecret(current);
+  await assertApplication(current.applicationId, current.workspaceId);
+  const { secrets } = await getCollections();
+  const document = await secrets.findOneAndUpdate(
+    {
+      id: current.id,
+      ...accessFilter(authorizationScope),
+      status: "archived",
+    },
+    {
+      $set: {
+        status: "active",
+        updatedAt: new Date(),
+        updatedBy: actor.userId,
+      },
+    },
+    { returnDocument: "after" },
+  );
+  if (!document) {
+    throw secretError(404, "SECRET_NOT_FOUND", "Secret not found");
+  }
+  return publicSecret(document);
+}
+
+export async function deleteSecretDocument(current, authorizationScope) {
+  if (current.status !== "archived") {
+    throw secretError(
+      409,
+      "SECRET_NOT_ARCHIVED",
+      "Only archived secrets can be permanently deleted",
+    );
+  }
+  const { secrets } = await getCollections();
+  const result = await secrets.deleteOne({
+    id: current.id,
+    ...accessFilter(authorizationScope),
+    status: "archived",
+  });
+  if (!result.deletedCount) {
+    throw secretError(409, "SECRET_DELETE_CONFLICT", "Secret was not deleted");
+  }
+  return publicSecret(current);
 }
 
 export async function moveSecretDocumentToCollection(

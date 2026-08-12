@@ -31,6 +31,15 @@ export function deleteDocument(id) {
   return deleteJson(`${BASE_PATH}/${encodeURIComponent(id)}/permanent`);
 }
 
+export function restoreDocument(id) {
+  return sendJson(
+    `${BASE_PATH}/${encodeURIComponent(id)}/restore`,
+    {},
+    undefined,
+    "PATCH",
+  );
+}
+
 export function moveDocumentToCollection(id, collectionId) {
   return sendJson(
     `${BASE_PATH}/${encodeURIComponent(id)}/collection`,

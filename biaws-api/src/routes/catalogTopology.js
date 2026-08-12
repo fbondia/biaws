@@ -12,8 +12,10 @@ import { getApplicationContext } from "../repositories/catalogContextRepository.
 import {
   archiveComponent,
   createComponent,
+  deleteComponent,
   getComponent,
   listComponents,
+  restoreComponent,
   updateComponent,
 } from "../repositories/componentsRepository.js";
 import {
@@ -21,37 +23,47 @@ import {
   archiveRuntime,
   createDeployment,
   createRuntime,
+  deleteDeployment,
+  deleteRuntime,
   getDeployment,
   getRuntime,
   listDeployments,
   listRuntimes,
+  restoreDeployment,
+  restoreRuntime,
   updateDeployment,
   updateRuntime,
 } from "../repositories/deploymentsRepository.js";
 import {
   archiveIntegration,
   createIntegration,
+  deleteIntegration,
   getIntegration,
   listIntegrations,
+  restoreIntegration,
   updateIntegration,
 } from "../repositories/integrationsRepository.js";
 import { recalculateRuntimeMonitoringExpiration } from "../repositories/runtimeMonitoringRepository.js";
 import {
   archiveRepository,
   createRepository,
+  deleteRepository,
   getRepository,
   listRepositories,
   listRepositoryComponents,
+  restoreRepository,
   updateRepository,
 } from "../repositories/repositoriesRepository.js";
 import {
   archiveServer,
   createServer,
+  deleteServer,
   getServer,
   listServerDeployments,
   listServerRuntimes,
   listServers,
   moveServerToCollection,
+  restoreServer,
   updateServer,
 } from "../repositories/serversRepository.js";
 import {
@@ -96,19 +108,64 @@ async function scopedApplicationEntity(req, permission, getter, id) {
 }
 
 async function auditMutation({ req, type, action, before = null, after }) {
+  const target = after || before;
   await recordAuditEvent({
     actor: req.actor,
     action,
-    target: { type, id: after.id, label: after.name },
+    target: { type, id: target.id, label: target.name },
     before,
     after,
     metadata: {
-      workspaceId: after.workspaceId,
-      applicationId: after.applicationId || null,
-      deploymentId: after.deploymentId || null,
+      workspaceId: target.workspaceId,
+      applicationId: target.applicationId || null,
+      deploymentId: target.deploymentId || null,
     },
-    summary: `${type} ${action}: ${after.name}`,
+    summary: `${type} ${action}: ${target.name}`,
   });
+}
+
+function registerApplicationEntityLifecycle({
+  segment,
+  parameter,
+  permission,
+  type,
+  response,
+  getter,
+  restore,
+  remove,
+}) {
+  catalogTopologyRouter.patch(
+    `/${segment}/:${parameter}/restore`,
+    requireAllPermissions(permission),
+    asyncHandler(async (req, res) => {
+      const id = req.params[parameter];
+      const before = await scopedApplicationEntity(req, permission, getter, id);
+      if (!before) return sendNotFound(res, type);
+      const after = await restore(id, req.actor);
+      if (before.status !== after.status) {
+        await auditMutation({ req, type, action: "restored", before, after });
+      }
+      res.json({ [response]: after });
+    }),
+  );
+  catalogTopologyRouter.delete(
+    `/${segment}/:${parameter}/permanent`,
+    requireAllPermissions(permission),
+    asyncHandler(async (req, res) => {
+      const id = req.params[parameter];
+      const before = await scopedApplicationEntity(req, permission, getter, id);
+      if (!before) return sendNotFound(res, type);
+      await remove(id);
+      await auditMutation({
+        req,
+        type,
+        action: "deleted",
+        before,
+        after: null,
+      });
+      res.json({ deleted: true, id: before.id });
+    }),
+  );
 }
 
 catalogTopologyRouter.get(
@@ -597,6 +654,48 @@ catalogTopologyRouter.patch(
   }),
 );
 
+catalogTopologyRouter.patch(
+  "/servers/:serverId/restore",
+  requireAllPermissions("servers.archive"),
+  asyncHandler(async (req, res) => {
+    const before = await getServer(req.params.serverId, {
+      workspaceId: req.actor.workspaceId,
+    });
+    if (!before) return sendNotFound(res, "server");
+    const after = await restoreServer(req.params.serverId, req.actor);
+    if (before.status !== after.status) {
+      await auditMutation({
+        req,
+        type: "server",
+        action: "restored",
+        before,
+        after,
+      });
+    }
+    res.json({ server: after });
+  }),
+);
+
+catalogTopologyRouter.delete(
+  "/servers/:serverId/permanent",
+  requireAllPermissions("servers.archive"),
+  asyncHandler(async (req, res) => {
+    const before = await getServer(req.params.serverId, {
+      workspaceId: req.actor.workspaceId,
+    });
+    if (!before) return sendNotFound(res, "server");
+    await deleteServer(req.params.serverId);
+    await auditMutation({
+      req,
+      type: "server",
+      action: "deleted",
+      before,
+      after: null,
+    });
+    res.json({ deleted: true, id: before.id });
+  }),
+);
+
 catalogTopologyRouter.get(
   "/applications/:applicationId/deployments",
   requireAllPermissions("deployments.read"),
@@ -878,3 +977,54 @@ catalogTopologyRouter.patch(
     res.json({ diagram: after });
   }),
 );
+
+registerApplicationEntityLifecycle({
+  segment: "components",
+  parameter: "componentId",
+  permission: "components.archive",
+  type: "component",
+  response: "component",
+  getter: getComponent,
+  restore: restoreComponent,
+  remove: deleteComponent,
+});
+registerApplicationEntityLifecycle({
+  segment: "integrations",
+  parameter: "integrationId",
+  permission: "integrations.archive",
+  type: "integration",
+  response: "integration",
+  getter: getIntegration,
+  restore: restoreIntegration,
+  remove: deleteIntegration,
+});
+registerApplicationEntityLifecycle({
+  segment: "repositories",
+  parameter: "repositoryId",
+  permission: "repositories.archive",
+  type: "repository",
+  response: "repository",
+  getter: getRepository,
+  restore: restoreRepository,
+  remove: deleteRepository,
+});
+registerApplicationEntityLifecycle({
+  segment: "deployments",
+  parameter: "deploymentId",
+  permission: "deployments.archive",
+  type: "deployment",
+  response: "deployment",
+  getter: getDeployment,
+  restore: restoreDeployment,
+  remove: deleteDeployment,
+});
+registerApplicationEntityLifecycle({
+  segment: "runtimes",
+  parameter: "runtimeId",
+  permission: "runtimes.archive",
+  type: "runtime",
+  response: "runtime",
+  getter: getRuntime,
+  restore: restoreRuntime,
+  remove: deleteRuntime,
+});

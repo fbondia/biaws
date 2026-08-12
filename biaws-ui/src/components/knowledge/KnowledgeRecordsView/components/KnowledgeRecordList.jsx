@@ -1,9 +1,23 @@
-import { Archive, BookMarked, FileText, GripVertical } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  BookMarked,
+  FileText,
+  GripVertical,
+  Trash2,
+} from "lucide-react";
 
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
 import { DOCUMENT_TYPES, statusLabel } from "../model.js";
 
-function KnowledgeRecordCard({ canArchive, onArchive, onOpen, record }) {
+function KnowledgeRecordCard({
+  canArchive,
+  onArchive,
+  onDelete,
+  onOpen,
+  onRestore,
+  record,
+}) {
   const config = DOCUMENT_TYPES[record.documentType];
   const TypeIcon = config?.icon || FileText;
   return (
@@ -26,7 +40,7 @@ function KnowledgeRecordCard({ canArchive, onArchive, onOpen, record }) {
           </span>
         </div>
         <div>
-          {canArchive ? (
+          {canArchive && record.status !== "archived" ? (
             <button
               className="iconButton dangerIconButton"
               onClick={(event) => {
@@ -38,6 +52,32 @@ function KnowledgeRecordCard({ canArchive, onArchive, onOpen, record }) {
             >
               <Archive size={16} />
             </button>
+          ) : null}
+          {canArchive && record.status === "archived" ? (
+            <>
+              <button
+                className="iconButton"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRestore(record);
+                }}
+                title="Desarquivar"
+                type="button"
+              >
+                <ArchiveRestore size={16} />
+              </button>
+              <button
+                className="iconButton dangerIconButton"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(record);
+                }}
+                title="Excluir definitivamente"
+                type="button"
+              >
+                <Trash2 size={16} />
+              </button>
+            </>
           ) : null}
         </div>
       </header>
@@ -54,7 +94,9 @@ export function KnowledgeRecordList({
   canArchive,
   loading,
   onArchive,
+  onDelete,
   onOpen,
+  onRestore,
   records,
 }) {
   return (
@@ -75,7 +117,9 @@ export function KnowledgeRecordList({
             canArchive={canArchive}
             key={record.id}
             onArchive={onArchive}
+            onDelete={onDelete}
             onOpen={onOpen}
+            onRestore={onRestore}
             record={record}
           />
         ))}

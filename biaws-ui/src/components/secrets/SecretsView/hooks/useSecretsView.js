@@ -3,10 +3,12 @@ import { useEffect, useMemo, useState } from "react";
 import {
   archiveSecret,
   copySecretValue,
+  deleteSecret,
   downloadSecretFile,
   fetchApplications,
   fetchSecrets,
   revealSecretValue,
+  restoreSecret,
 } from "../../../../api.js";
 import { hasEveryPermission, hasPermission } from "../../../../permissions.js";
 import { canActOnSecret } from "../model.js";
@@ -16,6 +18,7 @@ export function useSecretsView(actor) {
   const [applications, setApplications] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [includeArchived, setIncludeArchived] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
   const [versioning, setVersioning] = useState(null);
@@ -39,7 +42,7 @@ export function useSecretsView(actor) {
     setError("");
     try {
       const [secretsPayload, applicationsPayload] = await Promise.all([
-        fetchSecrets({ limit: 100 }),
+        fetchSecrets({ limit: 100, includeArchived }),
         hasPermission(actor, "applications.read")
           ? fetchApplications(actor.workspaceId, { limit: 100 })
           : Promise.resolve({ items: [] }),
@@ -55,7 +58,7 @@ export function useSecretsView(actor) {
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [includeArchived]);
 
   useEffect(() => {
     if (!revealed) return undefined;
@@ -128,6 +131,40 @@ export function useSecretsView(actor) {
     }
   }
 
+  async function restore(secret) {
+    if (!window.confirm(`Desarquivar o segredo “${secret.name}”?`))
+      return false;
+    setError("");
+    try {
+      await restoreSecret(secret.id);
+      await load();
+      return true;
+    } catch (restoreError) {
+      setError(restoreError.message);
+      return false;
+    }
+  }
+
+  async function remove(secret) {
+    if (
+      !window.confirm(
+        `Excluir definitivamente o segredo “${secret.name}”? Todas as versões cifradas serão removidas e esta ação não poderá ser desfeita.`,
+      )
+    ) {
+      return false;
+    }
+    setError("");
+    try {
+      await deleteSecret(secret.id);
+      setRevealed(null);
+      await load();
+      return true;
+    } catch (deleteError) {
+      setError(deleteError.message);
+      return false;
+    }
+  }
+
   function clearRevealed() {
     setRevealed(null);
     setShowValue(false);
@@ -168,15 +205,19 @@ export function useSecretsView(actor) {
     finishCreation,
     finishEditing,
     finishVersioning,
+    includeArchived,
     loading,
     load,
     permissions,
     reveal,
     revealed,
     secrets,
+    remove,
+    restore,
     setCreating,
     setEditing,
     setError,
+    setIncludeArchived,
     setShowValue,
     setVersioning,
     showValue,

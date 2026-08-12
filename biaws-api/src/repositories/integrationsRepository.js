@@ -258,6 +258,68 @@ export async function archiveIntegration(integrationId, actor = {}) {
   return getIntegration(current.id);
 }
 
+export async function restoreIntegration(integrationId, actor = {}) {
+  const current = await getIntegration(integrationId);
+  if (!current)
+    throw createCatalogError(
+      404,
+      "INTEGRATION_NOT_FOUND",
+      "Integration not found",
+    );
+  if (current.status !== "archived") return current;
+  await requireOperationalApplication(current.applicationId, {
+    workspaceId: current.workspaceId,
+    active: true,
+  });
+  await requireOperationalApplication(current.targetApplicationId, {
+    workspaceId: current.workspaceId,
+    active: true,
+  });
+  const collection = await getCollection();
+  await collection.updateOne(
+    { id: current.id, workspaceId: current.workspaceId, status: "archived" },
+    {
+      $set: {
+        status: "active",
+        updatedAt: new Date(),
+        updatedBy: actorId(actor),
+      },
+      $unset: { archivedAt: "", archivedBy: "" },
+    },
+  );
+  return getIntegration(current.id);
+}
+
+export async function deleteIntegration(integrationId) {
+  const current = await getIntegration(integrationId);
+  if (!current)
+    throw createCatalogError(
+      404,
+      "INTEGRATION_NOT_FOUND",
+      "Integration not found",
+    );
+  if (current.status !== "archived")
+    throw createCatalogError(
+      409,
+      "INTEGRATION_NOT_ARCHIVED",
+      "Only archived integrations can be permanently deleted",
+    );
+  const result = await (
+    await getCollection()
+  ).deleteOne({
+    id: current.id,
+    workspaceId: current.workspaceId,
+    status: "archived",
+  });
+  if (!result.deletedCount)
+    throw createCatalogError(
+      409,
+      "INTEGRATION_DELETE_CONFLICT",
+      "Integration was not deleted",
+    );
+  return current;
+}
+
 export async function assertNoActiveApplicationIntegrations(
   workspaceId,
   applicationId,

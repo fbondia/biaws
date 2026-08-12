@@ -1,5 +1,6 @@
 import {
   Archive,
+  ArchiveRestore,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -11,6 +12,7 @@ import {
   KeyRound,
   Pencil,
   RotateCw,
+  Trash2,
   X,
 } from "lucide-react";
 
@@ -47,12 +49,16 @@ function SecretContentActions({
 
 function SecretManagementActions({
   canArchive,
+  canDelete,
+  canRestore,
   canUpdate,
   canWrite,
   isFile,
   isPending,
   onArchive,
+  onDelete,
   onEdit,
+  onRestore,
   onVersion,
 }) {
   return (
@@ -81,6 +87,16 @@ function SecretManagementActions({
           <Archive size={15} /> Arquivar
         </button>
       ) : null}
+      {canRestore ? (
+        <button className="secondaryButton" onClick={onRestore} type="button">
+          <ArchiveRestore size={15} /> Desarquivar
+        </button>
+      ) : null}
+      {canDelete ? (
+        <button className="dangerButton" onClick={onDelete} type="button">
+          <Trash2 size={15} /> Excluir definitivamente
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -88,17 +104,21 @@ function SecretManagementActions({
 function SecretDetail({
   applicationName,
   canArchive,
+  canDelete,
   canReveal,
+  canRestore,
   canUpdate,
   canWrite,
   copied,
   isFile,
   isPending,
   onArchive,
+  onDelete,
   onCopyValue,
   onDownload,
   onEdit,
   onReveal,
+  onRestore,
   onToggleValue,
   onVersion,
   revealed,
@@ -182,12 +202,16 @@ function SecretDetail({
         </div>
         <SecretManagementActions
           canArchive={canArchive}
+          canDelete={canDelete}
+          canRestore={canRestore}
           canUpdate={canUpdate}
           canWrite={canWrite}
           isFile={isFile}
           isPending={isPending}
           onArchive={onArchive}
+          onDelete={onDelete}
           onEdit={onEdit}
+          onRestore={onRestore}
           onVersion={onVersion}
         />
       </footer>
@@ -198,7 +222,9 @@ function SecretDetail({
 export function SecretCard({
   applicationName,
   canArchive,
+  canDelete,
   canReveal,
+  canRestore,
   canUpdate,
   canWrite,
   copied,
@@ -206,6 +232,7 @@ export function SecretCard({
   draggable,
   focused,
   onArchive,
+  onDelete,
   onCopyValue,
   onDownload,
   onEdit,
@@ -213,6 +240,7 @@ export function SecretCard({
   onDragEnd,
   onDragStart,
   onReveal,
+  onRestore,
   onOpen,
   onToggleValue,
   onVersion,
@@ -278,17 +306,21 @@ export function SecretCard({
         <SecretDetail
           applicationName={applicationName}
           canArchive={canArchive}
+          canDelete={canDelete}
           canReveal={canReveal}
+          canRestore={canRestore}
           canUpdate={canUpdate}
           canWrite={canWrite}
           copied={copied}
           isFile={isFile}
           isPending={isPending}
           onArchive={onArchive}
+          onDelete={onDelete}
           onCopyValue={onCopyValue}
           onDownload={onDownload}
           onEdit={onEdit}
           onReveal={onReveal}
+          onRestore={onRestore}
           onToggleValue={onToggleValue}
           onVersion={onVersion}
           revealed={revealed}

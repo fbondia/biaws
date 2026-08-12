@@ -1,4 +1,6 @@
-import { GripVertical, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, GripVertical, Trash2 } from "lucide-react";
+
+import { collectionItemLifecycleActions } from "../model.js";
 
 export function CollectionItemNode({
   active,
@@ -7,19 +9,34 @@ export function CollectionItemNode({
   dropActive,
   getItemId,
   item,
+  onArchiveItem,
   onDragEnd,
   onDragItem,
   onDragOverItem,
   onDeleteItem,
   onSelectItem,
   onDropItem,
+  onRestoreItem,
   renderItem,
   viewMode,
 }) {
   const itemId = getItemId(item);
+  const archived = item.status === "archived";
   const content = renderItem
     ? renderItem(item, { viewMode })
     : item.name || item.title || itemId;
+  const archivedBadge = archived ? (
+    <span className="resourceCollectionArchivedBadge">
+      <Archive aria-hidden="true" size={10} />
+      Arquivado
+    </span>
+  ) : null;
+  const lifecycleActions = collectionItemLifecycleActions(item, {
+    onArchiveItem,
+    onDeleteItem,
+    onRestoreItem,
+  });
+  const hasLifecycleActions = Object.values(lifecycleActions).some(Boolean);
 
   return (
     <div
@@ -27,6 +44,7 @@ export function CollectionItemNode({
         "resourceCollectionItemRow",
         viewMode === "columns" ? "resourceCollectionColumnItemRow" : "",
         active ? "selectedResourceCollectionItem" : "",
+        archived ? "resourceCollectionArchivedItem" : "",
         dropActive ? "resourceCollectionDropTarget" : "",
       ]
         .filter(Boolean)
@@ -72,20 +90,50 @@ export function CollectionItemNode({
           type="button"
         >
           {content}
+          {archivedBadge}
         </button>
       ) : (
-        <div className="resourceCollectionItemContent">{content}</div>
+        <div className="resourceCollectionItemContent">
+          {content}
+          {archivedBadge}
+        </div>
       )}
-      {onDeleteItem ? (
-        <button
-          aria-label={`Excluir ${item.name || item.title || itemId}`}
-          className="resourceCollectionActionButton"
-          onClick={() => onDeleteItem(item)}
-          title="Excluir"
-          type="button"
-        >
-          <Trash2 size={13} />
-        </button>
+      {hasLifecycleActions ? (
+        <div className="resourceCollectionItemActions">
+          {lifecycleActions.archive ? (
+            <button
+              aria-label={`Arquivar ${item.name || item.title || itemId}`}
+              className="resourceCollectionActionButton"
+              onClick={() => onArchiveItem(item)}
+              title="Arquivar"
+              type="button"
+            >
+              <Archive size={13} />
+            </button>
+          ) : null}
+          {lifecycleActions.restore ? (
+            <button
+              aria-label={`Desarquivar ${item.name || item.title || itemId}`}
+              className="resourceCollectionActionButton resourceCollectionRestoreButton"
+              onClick={() => onRestoreItem(item)}
+              title="Desarquivar"
+              type="button"
+            >
+              <ArchiveRestore size={13} />
+            </button>
+          ) : null}
+          {lifecycleActions.delete ? (
+            <button
+              aria-label={`Excluir definitivamente ${item.name || item.title || itemId}`}
+              className="resourceCollectionActionButton"
+              onClick={() => onDeleteItem(item)}
+              title="Excluir definitivamente"
+              type="button"
+            >
+              <Trash2 size={13} />
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

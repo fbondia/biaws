@@ -44,6 +44,19 @@ test("local provider encrypts one file per version and recovers the value", asyn
   );
 });
 
+test("local provider permanently removes an encrypted secret version", async (t) => {
+  const { provider, vaultDirectory } = await fixture(t);
+  const stored = await provider.putValue(context, "private-value");
+
+  await provider.deleteValue(stored.locator);
+  await provider.deleteValue(stored.locator);
+
+  await assert.rejects(
+    readFile(path.join(vaultDirectory, stored.locator)),
+    (error) => error.code === "ENOENT",
+  );
+});
+
 test("local provider preserves arbitrary encrypted binary content", async (t) => {
   const { provider, vaultDirectory } = await fixture(t);
   const content = Buffer.from([0x00, 0xff, 0x10, 0x80, 0x0a]);

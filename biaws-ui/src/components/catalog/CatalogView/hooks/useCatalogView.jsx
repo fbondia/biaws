@@ -1,4 +1,4 @@
-import { Archive, Pencil } from "lucide-react";
+import { Archive, ArchiveRestore, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -14,6 +14,12 @@ import {
   createIntegration,
   createRepository,
   createRuntime,
+  deleteComponent,
+  deleteDeployment,
+  deleteIntegration,
+  deleteRepository,
+  deleteRuntime,
+  deleteApplication,
   fetchApplication,
   fetchApplicationMonitoringHealth,
   fetchApplications,
@@ -29,6 +35,12 @@ import {
   fetchRuntimes,
   fetchServers,
   fetchWorkspaces,
+  restoreComponent,
+  restoreDeployment,
+  restoreIntegration,
+  restoreRepository,
+  restoreRuntime,
+  restoreApplication,
   updateApplication,
   updateComponent,
   updateDeployment,
@@ -63,6 +75,8 @@ const ENTITY_API = {
     create: createIntegration,
     update: updateIntegration,
     archive: archiveIntegration,
+    restore: restoreIntegration,
+    remove: deleteIntegration,
     detail: fetchIntegration,
     response: "integration",
   },
@@ -70,6 +84,8 @@ const ENTITY_API = {
     create: createComponent,
     update: updateComponent,
     archive: archiveComponent,
+    restore: restoreComponent,
+    remove: deleteComponent,
     detail: fetchComponent,
     response: "component",
   },
@@ -77,6 +93,8 @@ const ENTITY_API = {
     create: createRepository,
     update: updateRepository,
     archive: archiveRepository,
+    restore: restoreRepository,
+    remove: deleteRepository,
     detail: fetchRepository,
     response: "repository",
   },
@@ -84,6 +102,8 @@ const ENTITY_API = {
     create: createDeployment,
     update: updateDeployment,
     archive: archiveDeployment,
+    restore: restoreDeployment,
+    remove: deleteDeployment,
     detail: fetchDeployment,
     response: "deployment",
   },
@@ -91,6 +111,8 @@ const ENTITY_API = {
     create: createRuntime,
     update: updateRuntime,
     archive: archiveRuntime,
+    restore: restoreRuntime,
+    remove: deleteRuntime,
     detail: fetchRuntime,
     response: "runtime",
   },
@@ -170,19 +192,31 @@ export function useCatalogView(actor) {
       const applicationPayload = await fetchApplication(applicationId);
       const tasks = [
         hasPermission(actor, "components.read")
-          ? fetchComponents(applicationId, { limit: 100 })
+          ? fetchComponents(applicationId, {
+              includeArchived: true,
+              limit: 100,
+            })
           : null,
         hasPermission(actor, "repositories.read")
-          ? fetchRepositories(applicationId, { limit: 100 })
+          ? fetchRepositories(applicationId, {
+              includeArchived: true,
+              limit: 100,
+            })
           : null,
         hasPermission(actor, "deployments.read")
-          ? fetchDeployments(applicationId, { limit: 100 })
+          ? fetchDeployments(applicationId, {
+              includeArchived: true,
+              limit: 100,
+            })
           : null,
         hasPermission(actor, "servers.read") && workspace?.id
           ? fetchServers(workspace.id, { limit: 100 })
           : null,
         hasPermission(actor, "integrations.read")
-          ? fetchIntegrations(applicationId, { limit: 100 })
+          ? fetchIntegrations(applicationId, {
+              includeArchived: true,
+              limit: 100,
+            })
           : null,
         workspace?.id ? fetchApplications(workspace.id, { limit: 100 }) : null,
         hasPermission(actor, "runtimes.read")
@@ -309,15 +343,48 @@ export function useCatalogView(actor) {
     }
   }
 
-  async function archiveSelectedApplication() {
+  async function restoreEntity(kind, entity) {
+    if (!window.confirm(`Desarquivar “${entity.name}”?`)) return;
+    setError("");
+    try {
+      await ENTITY_API[kind].restore(entity.id);
+      if (kind === "runtime") {
+        await loadRuntimes(entity.deploymentId, { force: true });
+        return;
+      }
+      await loadContext();
+    } catch (restoreError) {
+      setError(restoreError.message);
+    }
+  }
+
+  async function deleteEntity(kind, entity) {
     if (
-      !context?.application ||
-      !window.confirm(`Arquivar “${context.application.name}”?`)
-    )
+      !window.confirm(
+        `Excluir definitivamente “${entity.name}”? Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return;
+    }
+    setError("");
+    try {
+      await ENTITY_API[kind].remove(entity.id);
+      if (kind === "runtime") {
+        await loadRuntimes(entity.deploymentId, { force: true });
+        return;
+      }
+      await loadContext();
+    } catch (deleteError) {
+      setError(deleteError.message);
+    }
+  }
+
+  async function archiveApplicationItem(application) {
+    if (!application || !window.confirm(`Arquivar “${application.name}”?`))
       return;
     setError("");
     try {
-      await archiveApplication(context.application.id);
+      await archiveApplication(application.id);
       setSelectedId("");
       setContext(null);
       await loadApplications();
@@ -326,10 +393,47 @@ export function useCatalogView(actor) {
     }
   }
 
+  async function archiveSelectedApplication() {
+    await archiveApplicationItem(context?.application);
+  }
+
+  async function restoreArchivedApplication(application) {
+    if (!window.confirm(`Desarquivar “${application.name}”?`)) return;
+    setError("");
+    try {
+      await restoreApplication(application.id);
+      setSelectedId("");
+      setContext(null);
+      await loadApplications();
+    } catch (restoreError) {
+      setError(restoreError.message);
+    }
+  }
+
+  async function deleteArchivedApplication(application) {
+    if (
+      !window.confirm(
+        `Excluir definitivamente “${application.name}”? Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return;
+    }
+    setError("");
+    try {
+      await deleteApplication(application.id);
+      setSelectedId("");
+      setContext(null);
+      await loadApplications();
+    } catch (deleteError) {
+      setError(deleteError.message);
+    }
+  }
+
   const entityActions =
     (kind, updatePermission, archivePermission) => (entity) => (
       <>
-        {hasPermission(actor, updatePermission) ? (
+        {entity.status !== "archived" &&
+        hasPermission(actor, updatePermission) ? (
           <button
             aria-label={`Editar ${entity.name}`}
             className="iconButton"
@@ -352,6 +456,29 @@ export function useCatalogView(actor) {
             <Archive size={15} />
           </button>
         ) : null}
+        {hasPermission(actor, archivePermission) &&
+        entity.status === "archived" ? (
+          <>
+            <button
+              aria-label={`Desarquivar ${entity.name}`}
+              className="iconButton"
+              onClick={() => void restoreEntity(kind, entity)}
+              title="Desarquivar"
+              type="button"
+            >
+              <ArchiveRestore size={15} />
+            </button>
+            <button
+              aria-label={`Excluir definitivamente ${entity.name}`}
+              className="iconButton dangerIconButton"
+              onClick={() => void deleteEntity(kind, entity)}
+              title="Excluir definitivamente"
+              type="button"
+            >
+              <Trash2 size={15} />
+            </button>
+          </>
+        ) : null}
       </>
     );
 
@@ -373,7 +500,10 @@ export function useCatalogView(actor) {
       [deploymentId]: "",
     }));
     try {
-      const payload = await fetchRuntimes(deploymentId, { limit: 100 });
+      const payload = await fetchRuntimes(deploymentId, {
+        includeArchived: true,
+        limit: 100,
+      });
       setRuntimeByDeployment((current) => ({
         ...current,
         [deploymentId]: payload.items || [],
@@ -410,7 +540,9 @@ export function useCatalogView(actor) {
     visibleTabs,
     persistApplication,
     persistEntity,
+    archiveApplicationItem,
     archiveSelectedApplication,
+    deleteArchivedApplication,
     editEntity,
     entityActions,
     runtimeByDeployment,
@@ -420,6 +552,7 @@ export function useCatalogView(actor) {
     loadContext,
     loadApplications,
     loadWorkspaceAndApplications,
+    restoreArchivedApplication,
     setError,
   };
 }

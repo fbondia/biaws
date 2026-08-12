@@ -28,6 +28,8 @@ const ACTION_LABELS = {
   published: "Publicou",
   deprecated: "Descontinuou",
   archived: "Arquivou",
+  restored: "Desarquivou",
+  reactivated: "Reativou",
 };
 
 function formatValue(value) {

@@ -13,6 +13,7 @@ import {
 } from "./DocumentActionDialogs.jsx";
 import {
   KnowledgeDocumentReading,
+  KnowledgeRecordFooter,
   KnowledgeRecordHeader,
   KnowledgeRecordTabs,
 } from "./DocumentChrome.jsx";
@@ -24,6 +25,7 @@ import { useDocumentExports } from "./hooks/useDocumentExports.js";
 
 export function DocumentDetail({
   canArchive,
+  canDelete,
   canCreateAttachments,
   canDeleteAttachments,
   canReadAttachments,
@@ -34,6 +36,7 @@ export function DocumentDetail({
   draft,
   onArchive,
   onChange,
+  onDelete,
   onSave,
   saving,
   taxonomyPackage,
@@ -81,11 +84,9 @@ export function DocumentDetail({
       role={draft.id ? "dialog" : undefined}
     >
       <KnowledgeRecordHeader
-        canArchive={canArchive}
         canUpdate={canUpdate}
         config={config}
         draft={draft}
-        onArchive={onArchive}
         onClose={() => setShowDetails(false)}
         onExport={() => setExportDialogOpen(true)}
         onReplicate={
@@ -167,6 +168,13 @@ export function DocumentDetail({
           />
         </div>
       ) : null}
+      <KnowledgeRecordFooter
+        canArchive={canArchive}
+        canDelete={canDelete}
+        draft={draft}
+        onArchive={onArchive}
+        onDelete={onDelete}
+      />
     </section>
   );
 

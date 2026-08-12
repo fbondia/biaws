@@ -9,10 +9,11 @@ import {
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections/index.jsx";
 import { DocumentDetail } from "./components/DocumentDetail/index.jsx";
+import { DocumentTypeFilter } from "./components/DocumentTypeFilter.jsx";
 import { DocumentTypeSelection } from "./components/DocumentTypeSelection.jsx";
 import { KnowledgeRecordList } from "./components/KnowledgeRecordList.jsx";
 import { useKnowledgeRecordsView } from "./hooks/useKnowledgeRecordsView.js";
-import { DOCUMENT_TYPES, TYPE_FILTERS } from "./model.js";
+import { DOCUMENT_TYPES } from "./model.js";
 
 function KnowledgeCollectionDialog({ collectionsState }) {
   if (!collectionsState.collectionDialog) return null;
@@ -51,6 +52,7 @@ export function KnowledgeRecordsView({ actor }) {
     organizationItems,
     permissions,
     persist,
+    remove,
     saving,
     search,
     searchActive,
@@ -155,21 +157,7 @@ export function KnowledgeRecordsView({ actor }) {
           draft || creating ? null : (
             <ResourceCollectionSearch
               additionalFilters={
-                <>
-                  <label className="documentTypeFilter">
-                    <span className="srOnly">Tipo de documento</span>
-                    <select
-                      aria-label="Tipo de documento"
-                      onChange={(event) => selectTypeFilter(event.target.value)}
-                      value={typeFilter}
-                    >
-                      {TYPE_FILTERS.map(([value, label]) => (
-                        <option key={value || "all"} value={value}>
-                          {value ? label : "Todos os tipos"}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                <div className="knowledgeDocumentFilters">
                   {catalog.applications.length ? (
                     <CatalogFilterFields
                       applicationId={applicationFilter}
@@ -186,7 +174,11 @@ export function KnowledgeRecordsView({ actor }) {
                       }}
                     />
                   ) : null}
-                </>
+                  <DocumentTypeFilter
+                    onChange={selectTypeFilter}
+                    value={typeFilter}
+                  />
+                </div>
               }
               archivedItemsLabel="documentos arquivados"
               className="knowledgeCollectionSearch"
@@ -221,6 +213,7 @@ export function KnowledgeRecordsView({ actor }) {
         ) : draft ? (
           <DocumentDetail
             canArchive={permissions.archive}
+            canDelete={permissions.archive}
             canCreateAttachments={permissions.attachments.create}
             canDeleteAttachments={permissions.attachments.delete}
             canReadAttachments={permissions.attachments.read}
@@ -232,6 +225,7 @@ export function KnowledgeRecordsView({ actor }) {
             key={draft.id || `new-${draft.documentType}`}
             onArchive={() => archive(draft)}
             onChange={setDraft}
+            onDelete={() => remove(draft)}
             onSave={persist}
             saving={saving}
             taxonomyPackage={taxonomyPackage}

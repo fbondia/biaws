@@ -793,6 +793,57 @@ export async function archiveDocument(id, payload = {}, query = {}) {
   );
 }
 
+export async function deleteDocument(id, query = {}) {
+  const db = await getMongoDatabase({ db: query.db, database: query.database });
+  await ensureIndexes(db);
+  const filter = { id: String(id), ...buildKnowledgeContextFilter(query) };
+  const document = await db
+    .collection(COLLECTION_NAMES.DOCUMENTS)
+    .findOne(filter);
+  if (!document) {
+    throw httpError(404, "DOCUMENT_NOT_FOUND", "Documento não encontrado");
+  }
+  if (document.status !== "archived") {
+    throw httpError(
+      409,
+      "DOCUMENT_NOT_ARCHIVED",
+      "Somente documentos arquivados podem ser excluídos definitivamente",
+    );
+  }
+
+  const result = await db
+    .collection(COLLECTION_NAMES.DOCUMENTS)
+    .deleteOne({ ...filter, status: "archived" });
+  if (!result.deletedCount) {
+    throw httpError(409, "DOCUMENT_DELETE_CONFLICT", "Documento não excluído");
+  }
+
+  await Promise.all([
+    db.collection(COLLECTION_NAMES.KNOWLEDGE_REVISIONS).deleteMany({
+      entityType: "document",
+      entityId: String(id),
+    }),
+    db.collection(COLLECTION_NAMES.KNOWLEDGE_OBSERVATIONS).deleteMany({
+      entityType: "document",
+      entityId: String(id),
+    }),
+    db.collection(COLLECTION_NAMES.DOCUMENTS).updateMany(
+      {
+        workspaceId: document.workspaceId,
+        "references.targetDocumentId": String(id),
+      },
+      { $pull: { references: { targetDocumentId: String(id) } } },
+    ),
+  ]);
+
+  return {
+    meta: { database: db.databaseName, collection: COLLECTION_NAMES.DOCUMENTS },
+    deleted: true,
+    document: normalizeStoredDocument(document),
+    id: String(id),
+  };
+}
+
 export async function moveDocument(id, collectionId, payload = {}, query = {}) {
   return updateDocument(
     id,

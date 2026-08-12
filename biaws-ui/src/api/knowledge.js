@@ -27,6 +27,10 @@ export function archiveDocument(id) {
   return deleteJson(`${BASE_PATH}/${encodeURIComponent(id)}`);
 }
 
+export function deleteDocument(id) {
+  return deleteJson(`${BASE_PATH}/${encodeURIComponent(id)}/permanent`);
+}
+
 export function moveDocumentToCollection(id, collectionId) {
   return sendJson(
     `${BASE_PATH}/${encodeURIComponent(id)}/collection`,

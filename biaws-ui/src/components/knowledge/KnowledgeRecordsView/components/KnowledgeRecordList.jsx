@@ -19,6 +19,11 @@ function KnowledgeRecordCard({ canArchive, onArchive, onOpen, record }) {
           <GripVertical size={15} />
           <TypeIcon size={18} />
           <h2>{record.title}</h2>
+          <span
+            className={`documentTypeBadge documentType-${record.documentType}`}
+          >
+            {config?.label || record.documentType}
+          </span>
         </div>
         <div>
           {canArchive ? (
@@ -36,9 +41,6 @@ function KnowledgeRecordCard({ canArchive, onArchive, onOpen, record }) {
           ) : null}
         </div>
       </header>
-      <span className={`documentTypeBadge documentType-${record.documentType}`}>
-        {config?.label || record.documentType}
-      </span>
       <p>{record.summary}</p>
       <p className="procedureCardSummary">
         {statusLabel(record)} · definida em{" "}

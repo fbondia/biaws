@@ -14,8 +14,6 @@ export function ResourceCollectionPath({
 }) {
   const rootDrop = useRootCollectionDrop();
 
-  if (!displayedPathLabel && !canNavigateBack) return null;
-
   return (
     <button
       {...rootDrop.dropProps}

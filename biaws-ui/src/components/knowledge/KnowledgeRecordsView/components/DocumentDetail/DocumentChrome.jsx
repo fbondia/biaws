@@ -1,4 +1,12 @@
-import { Archive, CopyPlus, Download, Save, Settings2, X } from "lucide-react";
+import {
+  Archive,
+  CopyPlus,
+  Download,
+  Save,
+  Settings2,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
 import { DOCUMENT_TABS } from "../../model.js";
@@ -6,12 +14,24 @@ import { DOCUMENT_TABS } from "../../model.js";
 function DocumentActionButtons({ onExport, onReplicate }) {
   return (
     <>
-      <button className="secondaryButton" onClick={onExport} type="button">
-        <Download size={16} /> Exportar
+      <button
+        aria-label="Exportar documento"
+        className="iconButton"
+        onClick={onExport}
+        title="Exportar"
+        type="button"
+      >
+        <Download aria-hidden="true" size={16} />
       </button>
       {onReplicate ? (
-        <button className="secondaryButton" onClick={onReplicate} type="button">
-          <CopyPlus size={16} /> Replicar
+        <button
+          aria-label="Replicar documento"
+          className="iconButton"
+          onClick={onReplicate}
+          title="Replicar"
+          type="button"
+        >
+          <CopyPlus aria-hidden="true" size={16} />
         </button>
       ) : null}
     </>
@@ -19,11 +39,9 @@ function DocumentActionButtons({ onExport, onReplicate }) {
 }
 
 export function KnowledgeRecordHeader({
-  canArchive,
   canUpdate,
   config,
   draft,
-  onArchive,
   onClose,
   onExport,
   onReplicate,
@@ -52,11 +70,6 @@ export function KnowledgeRecordHeader({
             onReplicate={onReplicate}
           />
         ) : null}
-        {draft.id && canArchive ? (
-          <button className="secondaryButton" onClick={onArchive} type="button">
-            <Archive size={16} /> Arquivar
-          </button>
-        ) : null}
         {canUpdate ? (
           <button
             className="primaryButton"
@@ -80,6 +93,32 @@ export function KnowledgeRecordHeader({
         ) : null}
       </div>
     </header>
+  );
+}
+
+export function KnowledgeRecordFooter({
+  canArchive,
+  canDelete,
+  draft,
+  onArchive,
+  onDelete,
+}) {
+  if (!draft.id || (!canArchive && !canDelete)) return null;
+
+  const archived = draft.status === "archived";
+  return (
+    <footer className="knowledgeRecordFooter">
+      {archived && canDelete ? (
+        <button className="dangerButton" onClick={onDelete} type="button">
+          <Trash2 aria-hidden="true" size={16} /> Excluir definitivamente
+        </button>
+      ) : null}
+      {!archived && canArchive ? (
+        <button className="secondaryButton" onClick={onArchive} type="button">
+          <Archive aria-hidden="true" size={16} /> Arquivar
+        </button>
+      ) : null}
+    </footer>
   );
 }
 

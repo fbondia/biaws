@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   archiveDocument,
   createDocument,
+  deleteDocument,
   fetchDocument,
   fetchDocuments,
   fetchIssueTaxonomy,
@@ -145,6 +146,24 @@ export function useKnowledgeRecordsView(actor) {
     }
   }
 
+  async function remove(record) {
+    if (record.status !== "archived") return;
+    if (
+      !window.confirm(
+        `Excluir definitivamente “${record.title}”? Esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      await deleteDocument(record.id);
+      if (draft?.id === record.id) setDraft(null);
+      await load();
+    } catch (deleteError) {
+      setError(deleteError.message);
+    }
+  }
+
   async function moveItem(id, collectionId) {
     await moveDocumentToCollection(id, collectionId);
     setOrganizationItems((current) =>
@@ -212,6 +231,7 @@ export function useKnowledgeRecordsView(actor) {
     organizationItems,
     permissions,
     persist,
+    remove,
     saving,
     search,
     searchActive,

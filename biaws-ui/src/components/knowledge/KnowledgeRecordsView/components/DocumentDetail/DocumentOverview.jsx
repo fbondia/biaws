@@ -12,47 +12,52 @@ export function DocumentOverview({
   taxonomyPackage,
 }) {
   return (
-    <div className="dialogForm knowledgeRecordPanel">
-      <label className="field">
-        <span>Título</span>
-        <input
-          disabled={!canUpdate}
-          maxLength={240}
-          onChange={(event) =>
-            onChange({ ...draft, title: event.target.value })
-          }
-          value={draft.title}
-        />
-      </label>
-      <label className="field">
-        <span>Estado</span>
-        <select
-          disabled={!canUpdate}
-          onChange={(event) =>
-            onChange({ ...draft, status: event.target.value })
-          }
-          value={draft.status}
-        >
-          {config.statuses.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="field">
-        <span>Resumo</span>
-        <textarea
-          disabled={!canUpdate}
-          maxLength={500}
-          onChange={(event) =>
-            onChange({ ...draft, summary: event.target.value })
-          }
-          rows={3}
-          value={draft.summary}
-        />
-      </label>
-      <section className="knowledgeOverviewSection">
+    <div className="dialogForm knowledgeRecordPanel knowledgeOverviewPanel">
+      <section className="knowledgeOverviewCard knowledgeOverviewIdentity">
+        <label className="field knowledgeOverviewTitleField">
+          <span>Título</span>
+          <input
+            disabled={!canUpdate}
+            maxLength={240}
+            onChange={(event) =>
+              onChange({ ...draft, title: event.target.value })
+            }
+            value={draft.title}
+          />
+        </label>
+        <label className="field knowledgeOverviewStatusField">
+          <span>Estado</span>
+          <select
+            disabled={!canUpdate || draft.status === "archived"}
+            onChange={(event) =>
+              onChange({ ...draft, status: event.target.value })
+            }
+            value={draft.status}
+          >
+            {config.statuses.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+            {draft.status === "archived" ? (
+              <option value="archived">Arquivado</option>
+            ) : null}
+          </select>
+        </label>
+        <label className="field knowledgeOverviewSummaryField">
+          <span>Resumo</span>
+          <textarea
+            disabled={!canUpdate}
+            maxLength={500}
+            onChange={(event) =>
+              onChange({ ...draft, summary: event.target.value })
+            }
+            rows={3}
+            value={draft.summary}
+          />
+        </label>
+      </section>
+      <section className="knowledgeOverviewCard knowledgeOverviewSection">
         <h3>Contexto</h3>
         <div className="knowledgeOverviewSelectors">
           <CatalogContextDialogField
@@ -77,7 +82,7 @@ export function DocumentOverview({
           />
         </div>
       </section>
-      <section className="knowledgeOverviewSection">
+      <section className="knowledgeOverviewCard knowledgeOverviewSection">
         <h3>Detalhes Adicionais</h3>
         <DocumentDetailsFields
           disabled={!canUpdate}
@@ -85,7 +90,7 @@ export function DocumentOverview({
           onChange={onChange}
         />
       </section>
-      <section className="knowledgeOverviewSection">
+      <section className="knowledgeOverviewCard knowledgeOverviewSection">
         <h3>Governança e origem</h3>
         <div className="formGrid">
           <label className="field">

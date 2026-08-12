@@ -323,6 +323,42 @@ export async function deleteAttachment(
   };
 }
 
+export async function deleteStoredAttachments(entityType, document) {
+  const config = entityConfig(entityType);
+  const attachments = document?.attachments || [];
+  const results = await Promise.allSettled(
+    attachments.map(async (attachment) => {
+      const reference = storageReference(attachment);
+      const storage = createAttachmentStorage(
+        storageOptions(config, reference.provider),
+      );
+      return {
+        attachment,
+        deleted: await storage.delete({ key: reference.key }),
+      };
+    }),
+  );
+  const failures = results.flatMap((result, index) =>
+    result.status === "rejected"
+      ? [
+          {
+            attachmentId:
+              attachments[index]?.id ?? attachments[index]?.index ?? null,
+            filename: attachments[index]?.filename || "",
+            message: result.reason?.message || "Falha ao excluir o arquivo",
+          },
+        ]
+      : [],
+  );
+  return {
+    attempted: attachments.length,
+    deleted: results.filter(
+      (result) => result.status === "fulfilled" && result.value.deleted,
+    ).length,
+    failures,
+  };
+}
+
 export async function updateAttachmentTags(
   entityType,
   entityId,

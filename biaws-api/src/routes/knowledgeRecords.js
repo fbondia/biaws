@@ -12,6 +12,7 @@ import {
   addDocumentObservation,
   archiveDocument,
   createDocument,
+  deleteDocument,
   documentReplicationPayload,
   documentTypeConfig,
   getDocument,
@@ -21,6 +22,7 @@ import {
   moveDocument,
   updateDocument,
 } from "../repositories/documentsRepository.js";
+import { deleteStoredAttachments } from "../services/attachmentService.js";
 import { knowledgeContextMetadata } from "../repositories/knowledgeContextRepository.js";
 import { registerAttachmentRoutes } from "./attachmentRoutes.js";
 
@@ -306,6 +308,34 @@ knowledgeRecordsRouter.put(
       metadata: knowledgeContextMetadata(result.document),
     });
     res.json(result);
+  }),
+);
+
+knowledgeRecordsRouter.delete(
+  "/documents/:id/permanent",
+  authorize("archive"),
+  asyncHandler(async (req, res) => {
+    const before = await currentDocument(req, "archive");
+    if (!before) return sendNotFound(res);
+    const result = await deleteDocument(req.params.id, query(req, "archive"));
+    const attachmentCleanup = await deleteStoredAttachments(
+      "documents",
+      before,
+    );
+    await recordAuditEvent({
+      actor: req.actor,
+      action: "deleted",
+      target: {
+        type: "document",
+        id: before.id,
+        label: before.title,
+      },
+      before,
+      after: null,
+      summary: "Documento excluído definitivamente",
+      metadata: knowledgeContextMetadata(before),
+    });
+    res.json({ ...result, attachmentCleanup });
   }),
 );
 

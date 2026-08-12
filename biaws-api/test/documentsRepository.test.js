@@ -143,9 +143,9 @@ test("document references require unified document ids", () => {
 });
 
 test("document replication copies its identifier and replaceable content", () => {
-  const copy = documentReplicationPayload({
+  const source = {
     identifier: "publish-api",
-    documentType: "procedure",
+    documentType: "guideline",
     title: "Publicar API",
     summary: "Executa a publicação.",
     markdown: "# Publicação",
@@ -154,7 +154,8 @@ test("document replication copies its identifier and replaceable content", () =>
     collectionId: "deploy",
     classification: { primaryTaxonomyId: "operations" },
     references: [{ targetDocumentId: "doc-2", relationship: "related" }],
-  });
+  };
+  const copy = documentReplicationPayload(source);
 
   assert.deepEqual(copy, {
     identifier: "publish-api",
@@ -162,6 +163,13 @@ test("document replication copies its identifier and replaceable content", () =>
     summary: "Executa a publicação.",
     markdown: "# Publicação",
   });
+  assert.equal(
+    normalizeDocumentPayload({
+      ...copy,
+      documentType: source.documentType,
+    }).details.scope,
+    "workspace",
+  );
 });
 
 test("document identifier is optional, editable and validated", () => {

@@ -252,7 +252,7 @@ function normalizeDetails(type, value = {}, current = {}) {
         details.scope ?? previous.scope,
         "details.scope",
         ["workspace", "application", "component"],
-        "application",
+        "workspace",
       ),
       enforcement: enumValue(
         details.enforcement ?? previous.enforcement,

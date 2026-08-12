@@ -27,13 +27,22 @@ function SkillCard({ canDrag, collectionState, onOpen, skill }) {
   const published = skill.status === "published";
   return (
     <article
+      aria-label={`Abrir ${skill.name}`}
       className="skillCard"
       data-collection-browser-item-id={skill.skillId}
       draggable={canDrag}
+      onClick={() => onOpen(skill)}
       onDragEnd={() => collectionState.setDraggedItem(null)}
       onDragStart={() =>
         collectionState.setDraggedItem({ type: "item", id: skill.skillId })
       }
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        onOpen(skill);
+      }}
+      role="button"
+      tabIndex={0}
     >
       <header>
         <div className="skillCardIcon">
@@ -68,13 +77,6 @@ function SkillCard({ canDrag, collectionState, onOpen, skill }) {
           {published ? <CheckCircle2 size={13} /> : <Archive size={13} />}
           {skill.status}
         </span>
-        <button
-          className="secondaryButton"
-          onClick={() => onOpen(skill)}
-          type="button"
-        >
-          Abrir
-        </button>
       </footer>
     </article>
   );

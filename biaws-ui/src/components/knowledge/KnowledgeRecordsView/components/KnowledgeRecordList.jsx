@@ -1,5 +1,4 @@
 import {
-  Archive,
   ArchiveRestore,
   BookMarked,
   FileText,
@@ -10,9 +9,16 @@ import {
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
 import { DOCUMENT_TYPES, statusLabel } from "../model.js";
 
+function formatDefinedAt(value) {
+  if (!value) return "Data não informada";
+
+  const [year, month, day] = String(value).slice(0, 10).split("-");
+  if (!year || !month || !day) return value;
+  return `${day}/${month}/${year}`;
+}
+
 function KnowledgeRecordCard({
   canArchive,
-  onArchive,
   onDelete,
   onOpen,
   onRestore,
@@ -29,32 +35,19 @@ function KnowledgeRecordCard({
         type="button"
       />
       <header>
-        <div>
-          <GripVertical size={15} />
-          <TypeIcon size={18} />
+        <div className="knowledgeRecordCardTitle">
+          <GripVertical aria-hidden="true" size={15} />
+          <TypeIcon aria-hidden="true" size={18} />
           <h2>{record.title}</h2>
+        </div>
+        <div className="knowledgeRecordCardHeaderMeta">
           <span
             className={`documentTypeBadge documentType-${record.documentType}`}
           >
             {config?.label || record.documentType}
           </span>
-        </div>
-        <div>
-          {canArchive && record.status !== "archived" ? (
-            <button
-              className="iconButton dangerIconButton"
-              onClick={(event) => {
-                event.stopPropagation();
-                onArchive(record);
-              }}
-              title="Arquivar"
-              type="button"
-            >
-              <Archive size={16} />
-            </button>
-          ) : null}
           {canArchive && record.status === "archived" ? (
-            <>
+            <div className="knowledgeRecordLifecycleActions">
               <button
                 className="iconButton"
                 onClick={(event) => {
@@ -77,15 +70,24 @@ function KnowledgeRecordCard({
               >
                 <Trash2 size={16} />
               </button>
-            </>
+            </div>
           ) : null}
         </div>
       </header>
-      <p>{record.summary}</p>
-      <p className="procedureCardSummary">
-        {statusLabel(record)} · definida em{" "}
-        {record.definedAt || "data não informada"}
-      </p>
+      <p className="knowledgeRecordCardSummary">{record.summary}</p>
+      <footer className="knowledgeRecordCardFooter">
+        <span
+          className={`knowledgeRecordStatusChip knowledgeRecordStatus-${record.status}`}
+        >
+          {statusLabel(record)}
+        </span>
+        <time
+          className="knowledgeRecordDefinedAt"
+          dateTime={record.definedAt || undefined}
+        >
+          Definido em {formatDefinedAt(record.definedAt)}
+        </time>
+      </footer>
     </article>
   );
 }
@@ -93,7 +95,6 @@ function KnowledgeRecordCard({
 export function KnowledgeRecordList({
   canArchive,
   loading,
-  onArchive,
   onDelete,
   onOpen,
   onRestore,
@@ -116,7 +117,6 @@ export function KnowledgeRecordList({
           <KnowledgeRecordCard
             canArchive={canArchive}
             key={record.id}
-            onArchive={onArchive}
             onDelete={onDelete}
             onOpen={onOpen}
             onRestore={onRestore}

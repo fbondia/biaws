@@ -240,7 +240,6 @@ export function KnowledgeRecordsView({ actor }) {
           <KnowledgeRecordList
             canArchive={permissions.archive}
             loading={loading}
-            onArchive={archive}
             onDelete={remove}
             onOpen={openRecord}
             onRestore={restore}

@@ -227,7 +227,7 @@
   min-height: 38px;
 }
 
-.resourceCollectionBarUtilities .activeCollectionNavigationToggle,
+.resourceCollectionBar .activeCollectionNavigationToggle,
 .resourceCollectionNavigationActions .activeCollectionNavigationToggle {
   border-color: var(--color-accent-border);
   background: var(--color-accent-soft);

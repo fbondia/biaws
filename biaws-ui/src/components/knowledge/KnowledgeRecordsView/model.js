@@ -137,6 +137,7 @@ export function normalizedDraft(record = {}) {
 }
 
 export function statusLabel(document) {
+  if (document.status === "archived") return "Arquivado";
   return documentStatusLabel(DOCUMENT_TYPES, document);
 }
 

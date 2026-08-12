@@ -56,6 +56,23 @@
   border-radius: 10px;
   background: var(--color-surface);
   padding: 17px;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.skillCard:hover {
+  border-color: var(--color-accent-border);
+  box-shadow: 0 8px 22px var(--color-shadow-soft);
+  transform: translateY(-1px);
+}
+
+.skillCard:focus-visible {
+  border-color: var(--color-accent-border);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .skillCard > header {

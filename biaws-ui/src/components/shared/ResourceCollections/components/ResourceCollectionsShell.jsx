@@ -73,6 +73,7 @@ export function ResourceCollectionsShell({
         viewModeTarget,
       }}
     >
+
       <div
         className={[
           "resourceCollectionsLayout",
@@ -82,6 +83,8 @@ export function ResourceCollectionsShell({
           .filter(Boolean)
           .join(" ")}
       >
+
+        {/* BARRA DE FERRAMENTAS */}
         <div
           className={
             displayedPathLabel || canNavigateBack
@@ -89,62 +92,11 @@ export function ResourceCollectionsShell({
               : "resourceCollectionBar resourceCollectionBarAtRoot"
           }
         >
+          
+          {/* CONTROLES À ESQUERDA */}
           <div className="resourceCollectionBarPrimary">{toolbar}</div>
-          <button
-            className={[
-              "resourceCollectionPath",
-              displayedPathLabel || canNavigateBack
-                ? ""
-                : "resourceCollectionPathEmpty",
-              rootDropActive ? "resourceCollectionDropTarget" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            aria-label={displayedPathLabel || "Raiz"}
-            onClick={() => {
-              if (detailVisible) onNavigateBack?.();
-              else if (selectedCollectionId) {
-                onSelectCollection?.(
-                  parentCollectionId(collections, selectedCollectionId),
-                );
-              }
-            }}
-            onDragLeave={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget)) {
-                setRootDropActive(false);
-              }
-            }}
-            onDragOver={(event) => {
-              if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
-                return;
-              event.preventDefault();
-              event.dataTransfer.dropEffect = "move";
-              setRootDropActive(true);
-            }}
-            onDrop={(event) => {
-              if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
-                return;
-              event.preventDefault();
-              setRootDropActive(false);
-              onDropRoot();
-            }}
-            title={
-              detailVisible
-                ? "Voltar à coleção"
-                : selectedCollectionId
-                  ? "Voltar à coleção anterior"
-                  : "Raiz"
-            }
-            tabIndex={displayedPathLabel || canNavigateBack ? 0 : -1}
-            type="button"
-          >
-            {canNavigateBack ? (
-              <ChevronLeft aria-hidden="true" size={15} />
-            ) : null}
-            <span className="resourceCollectionPathLabel">
-              {displayedPathLabel}
-            </span>
-          </button>
+          
+          {/* BOTÕES À DIREITA */}
           <div className="resourceCollectionBarUtilities">
             <div
               className="resourceCollectionBarActionSlot"
@@ -160,6 +112,9 @@ export function ResourceCollectionsShell({
             />
           </div>
         </div>
+
+        
+        {/* CORPO PRINCIPAL (LISTA + DETALHES) */}
         <div
           className="resourceCollectionsBody"
           ref={bodyRef}
@@ -212,7 +167,70 @@ export function ResourceCollectionsShell({
             tabIndex={0}
             title="Arraste para redimensionar a área de navegação"
           />
-          <div className="resourceCollectionContent">{children}</div>
+          <div className="resourceCollectionContent">
+
+            {/* PATH DE NAVEGAÇÃO */}
+            {(displayedPathLabel || canNavigateBack) &&
+              <button
+                className={[
+                  "resourceCollectionPath",
+                  displayedPathLabel || canNavigateBack
+                    ? ""
+                    : "resourceCollectionPathEmpty",
+                  rootDropActive ? "resourceCollectionDropTarget" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                aria-label={displayedPathLabel || "Raiz"}
+                onClick={() => {
+                  if (detailVisible) onNavigateBack?.();
+                  else if (selectedCollectionId) {
+                    onSelectCollection?.(
+                      parentCollectionId(collections, selectedCollectionId),
+                    );
+                  }
+                }}
+                onDragLeave={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) {
+                    setRootDropActive(false);
+                  }
+                }}
+                onDragOver={(event) => {
+                  if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
+                    return;
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                  setRootDropActive(true);
+                }}
+                onDrop={(event) => {
+                  if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
+                    return;
+                  event.preventDefault();
+                  setRootDropActive(false);
+                  onDropRoot();
+                }}
+                title={
+                  detailVisible
+                    ? "Voltar à coleção"
+                    : selectedCollectionId
+                      ? "Voltar à coleção anterior"
+                      : "Raiz"
+                }
+                tabIndex={displayedPathLabel || canNavigateBack ? 0 : -1}
+                type="button"
+              >
+                {canNavigateBack ? (
+                  <ChevronLeft aria-hidden="true" size={15} />
+                ) : null}
+                <span className="resourceCollectionPathLabel">
+                  {displayedPathLabel}
+                </span>
+              </button>
+            }
+  
+            {/* CONTEÚDO */}
+            {children}
+          </div>
         </div>
       </div>
     </ResourceCollectionBarActionsProvider>

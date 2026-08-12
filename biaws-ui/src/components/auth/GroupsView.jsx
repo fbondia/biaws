@@ -1,4 +1,4 @@
-import { ChevronDown, Plus, Save, ShieldCheck } from "lucide-react";
+import { ChevronDown, CopyPlus, Plus, Save, ShieldCheck } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 
 import {
@@ -6,12 +6,14 @@ import {
   fetchApplications,
   listPermissionCatalog,
   listPermissionGroups,
+  replicatePermissionGroup,
   setPermissionGroupActive,
   updatePermissionGroup,
 } from "../../api.js";
 import { hasPermission } from "../../permissions.js";
 
 import { groupPermissionsBySection } from "./groupsModel.js";
+import { ReplicationDialog } from "../shared/ReplicationDialog.jsx";
 
 function permissionsForScope(permissions, catalog, type) {
   if (type !== "applications") return permissions;
@@ -213,6 +215,7 @@ export function GroupsView({ actor }) {
   const [activePermissionDomain, setActivePermissionDomain] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [replicationOpen, setReplicationOpen] = useState(false);
   const permissionCategoriesId = useId();
   const { runWithLoading } = useLoading();
   const canManage = hasPermission(actor, "roles.manage");
@@ -257,6 +260,7 @@ export function GroupsView({ actor }) {
   }, []);
 
   function selectGroup(group) {
+    setReplicationOpen(false);
     setSelectedId(group.id);
     setEditorOpen(true);
     setDraft({
@@ -271,6 +275,7 @@ export function GroupsView({ actor }) {
   }
 
   function startNew() {
+    setReplicationOpen(false);
     setSelectedId("");
     setEditorOpen(true);
     setDraft(EMPTY_GROUP);
@@ -496,6 +501,16 @@ export function GroupsView({ actor }) {
                   {draft.active ? "Desativar" : "Reativar"}
                 </button>
               ) : null}
+              {selectedId &&
+              actor.workspaces?.some(({ id }) => id !== actor.workspaceId) ? (
+                <button
+                  className="secondaryButton"
+                  onClick={() => setReplicationOpen(true)}
+                  type="button"
+                >
+                  <CopyPlus size={16} /> Replicar
+                </button>
+              ) : null}
             </div>
           </form>
         ) : (
@@ -504,6 +519,27 @@ export function GroupsView({ actor }) {
           </div>
         )}
       </div>
+      <ReplicationDialog
+        currentWorkspaceId={actor.workspaceId}
+        description={
+          <p>
+            O nome, a descrição, as permissões e o escopo serão replicados, sem
+            copiar membros. Escopos de aplicação são associados por meio do
+            identificador das aplicações no destino. Grupos de sistema
+            substituem o grupo correspondente; grupos personalizados não
+            sobrescrevem nomes existentes.
+          </p>
+        }
+        eyebrow={draft.name}
+        onClose={() => setReplicationOpen(false)}
+        onReplicate={(destinationWorkspaceIds) =>
+          replicatePermissionGroup(selectedId, destinationWorkspaceIds)
+        }
+        open={replicationOpen}
+        resourceKey={selectedId}
+        title="Replicar grupo de permissões"
+        workspaces={actor.workspaces || []}
+      />
     </section>
   );
 }

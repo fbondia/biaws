@@ -38,15 +38,16 @@ coleção no contexto de navegação correspondente.
 
 ## Grupos e vínculos
 
-| Método  | Rota                                                 | Permissão aplicada              |
-| ------- | ---------------------------------------------------- | ------------------------------- |
-| `GET`   | `/api/access/permissions`                            | `roles.read`                    |
-| `GET`   | `/api/access/groups` e `/api/access/groups/:groupId` | `roles.read`                    |
-| `POST`  | `/api/access/groups`                                 | `roles.manage`                  |
-| `PUT`   | `/api/access/groups/:groupId`                        | `roles.manage`                  |
-| `PATCH` | `/api/access/groups/:groupId/status`                 | `roles.manage`                  |
-| `GET`   | `/api/access/users/:userId`                          | `users.read`                    |
-| `PUT`   | `/api/access/users/:userId/groups`                   | `users.update` e `roles.manage` |
+| Método  | Rota                                                 | Permissão aplicada                                   |
+| ------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| `GET`   | `/api/access/permissions`                            | `roles.read`                                         |
+| `GET`   | `/api/access/groups` e `/api/access/groups/:groupId` | `roles.read`                                         |
+| `POST`  | `/api/access/groups`                                 | `roles.manage`                                       |
+| `POST`  | `/api/access/groups/:groupId/replicate`              | `roles.read` na origem e `roles.manage` nos destinos |
+| `PUT`   | `/api/access/groups/:groupId`                        | `roles.manage`                                       |
+| `PATCH` | `/api/access/groups/:groupId/status`                 | `roles.manage`                                       |
+| `GET`   | `/api/access/users/:userId`                          | `users.read`                                         |
+| `PUT`   | `/api/access/users/:userId/groups`                   | `users.update` e `roles.manage`                      |
 
 As permissões da tabela são aplicadas pelo backend. A administração técnica de
 identidades também conserva as verificações internas do Better Auth.
@@ -101,25 +102,38 @@ As rotas atuais não oferecem anexos diretamente em subtarefas; as permissões
 
 ## Documentos
 
-| Método   | Rota                                                                    | Permissão aplicada                       |
-| -------- | ----------------------------------------------------------------------- | ---------------------------------------- |
-| `GET`    | `/api/knowledge/documents`, `/api/knowledge/documents/:id`              | `documents.read`                         |
-| `POST`   | `/api/knowledge/documents`, `/api/knowledge/documents/:id/observations` | `documents.create` ou `documents.update` |
-| `POST`   | `/api/knowledge/documents/:id/attachments`                              | `documents.attachment.create`            |
-| `GET`    | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.read`              |
-| `PATCH`  | `/api/knowledge/documents/:id/attachments/:attachmentId/tags`           | `documents.attachment.update`            |
-| `DELETE` | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.delete`            |
-| `PUT`    | `/api/knowledge/documents/:id`                                          | `documents.update`                       |
-| `PATCH`  | `/api/knowledge/documents/:id/collection`                               | `documents.update`                       |
-| `DELETE` | `/api/knowledge/documents/:id`                                          | `documents.archive`                      |
+| Método   | Rota                                                                    | Permissão aplicada                                           |
+| -------- | ----------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `GET`    | `/api/knowledge/documents`, `/api/knowledge/documents/:id`              | `documents.read`                                             |
+| `POST`   | `/api/knowledge/documents`, `/api/knowledge/documents/:id/observations` | `documents.create` ou `documents.update`                     |
+| `POST`   | `/api/knowledge/documents/:id/replicate`                                | `documents.read` na origem e `documents.create` nos destinos |
+| `POST`   | `/api/knowledge/documents/:id/attachments`                              | `documents.attachment.create`                                |
+| `GET`    | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.read`                                  |
+| `PATCH`  | `/api/knowledge/documents/:id/attachments/:attachmentId/tags`           | `documents.attachment.update`                                |
+| `DELETE` | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.delete`                                |
+| `PUT`    | `/api/knowledge/documents/:id`                                          | `documents.update`                                           |
+| `PATCH`  | `/api/knowledge/documents/:id/collection`                               | `documents.update`                                           |
+| `DELETE` | `/api/knowledge/documents/:id`                                          | `documents.archive`                                          |
 
 ## Skills
 
-| Método  | Rota                                                                            | Permissão aplicada |
-| ------- | ------------------------------------------------------------------------------- | ------------------ |
-| `GET`   | `/api/skills`, `/api/skills/:skillId`, `/api/skills/:skillId/:version/download` | `skills.read`      |
-| `POST`  | `/api/skills`                                                                   | `skills.publish`   |
-| `PATCH` | `/api/skills/:skillId/:version/deprecate`                                       | `skills.deprecate` |
+| Método  | Rota                                                                            | Permissão aplicada                                      |
+| ------- | ------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `GET`   | `/api/skills`, `/api/skills/:skillId`, `/api/skills/:skillId/:version/download` | `skills.read`                                           |
+| `POST`  | `/api/skills`                                                                   | `skills.publish`                                        |
+| `POST`  | `/api/skills/:skillId/:version/replicate`                                       | `skills.read` na origem e `skills.publish` nos destinos |
+| `PATCH` | `/api/skills/:skillId/:version/deprecate`                                       | `skills.deprecate`                                      |
+
+## Listas de opções
+
+| Método | Rota                               | Permissão aplicada                                                 |
+| ------ | ---------------------------------- | ------------------------------------------------------------------ |
+| `GET`  | `/api/option-lists`                | `option_lists.read`                                                |
+| `PUT`  | `/api/option-lists/:key`           | `option_lists.manage`                                              |
+| `POST` | `/api/option-lists/:key/replicate` | `option_lists.read` na origem e `option_lists.manage` nos destinos |
+
+O contrato comum, os limites e as políticas de conflito estão documentados em
+[`../../docs/replication.md`](../../docs/replication.md).
 
 ## Administração global de workspaces
 

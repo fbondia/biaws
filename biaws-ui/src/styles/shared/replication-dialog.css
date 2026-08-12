@@ -1,0 +1,163 @@
+.replicationDialogBackdrop {
+  z-index: calc(var(--z-dropdown) + 1);
+}
+
+.replicationDialog {
+  width: min(580px, calc(100vw - 44px));
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
+}
+
+.replicationDialogHeader,
+.replicationDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 18px;
+}
+
+.replicationDialogHeader {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.replicationDialogHeader h2,
+.replicationDialogHeader span {
+  display: block;
+  margin: 0;
+}
+
+.replicationDialogHeader h2 {
+  margin-top: 3px;
+  font-size: 1.05rem;
+}
+
+.replicationDialogHeader span {
+  color: var(--color-text-subtle);
+  font-size: 0.76rem;
+}
+
+.replicationDialogContent {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.replicationDescription,
+.replicationDescription p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.replicationWorkspacePicker {
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-subtle);
+  padding: 12px;
+}
+
+.replicationWorkspacePicker legend {
+  padding: 0 5px;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.replicationWorkspacePicker label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface);
+  padding: 10px 12px;
+}
+
+.replicationWorkspacePicker label:has(input:checked) {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+}
+
+.replicationWorkspacePicker input {
+  margin-top: 3px;
+  accent-color: var(--color-focus);
+}
+
+.replicationWorkspacePicker span,
+.replicationWorkspacePicker small {
+  display: block;
+}
+
+.replicationWorkspacePicker small {
+  margin-top: 2px;
+  color: var(--color-text-subtle);
+}
+
+.replicationResults {
+  display: grid;
+  gap: 8px;
+}
+
+.replicationResult {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  padding: 11px 12px;
+}
+
+.replicationResult span,
+.replicationResult small {
+  display: block;
+}
+
+.replicationResult small {
+  margin-top: 3px;
+}
+
+.replicationResultSucceeded {
+  border-color: var(--color-success-action);
+  background: var(--color-success-surface);
+  color: var(--color-success-text);
+}
+
+.replicationResultFailed {
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
+}
+
+.replicationDialogFooter {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 720px) {
+  .replicationDialogBackdrop {
+    align-items: center;
+    padding: 12px;
+  }
+
+  .replicationDialog {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+  }
+
+  .replicationDialogFooter {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+}

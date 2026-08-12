@@ -11,3 +11,17 @@ export function fetchOptionLists() {
 export function updateOptionList(key, optionList) {
   return sendJson(`/api/option-lists/${encodeURIComponent(key)}`, optionList);
 }
+
+export function replicateOptionList(key, destinationWorkspaceIds) {
+  return sendJson(
+    `/api/option-lists/${encodeURIComponent(key)}/replicate`,
+    {
+      conflictPolicy: "replace",
+      ...(Array.isArray(destinationWorkspaceIds)
+        ? { destinationWorkspaceIds }
+        : { destinationWorkspaceId: destinationWorkspaceIds }),
+    },
+    undefined,
+    "POST",
+  );
+}

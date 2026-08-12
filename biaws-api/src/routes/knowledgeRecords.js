@@ -1,12 +1,9 @@
 import { Router } from "express";
 
 import {
-  actorHasPermission,
-  actorHasWorkspaceScope,
   authorizationQuery,
   requireAllPermissions,
 } from "../auth/authorizationMiddleware.js";
-import { resolveUserAuthorization } from "../repositories/accessRepository.js";
 import { recordAuditEvent } from "../repositories/auditRepository.js";
 import {
   addDocumentObservation,
@@ -24,6 +21,10 @@ import {
 } from "../repositories/documentsRepository.js";
 import { deleteStoredAttachments } from "../services/attachmentService.js";
 import { knowledgeContextMetadata } from "../repositories/knowledgeContextRepository.js";
+import {
+  replicateAcrossWorkspaces,
+  sendReplicationResponse,
+} from "../services/workspaceReplicationService.js";
 import { registerAttachmentRoutes } from "./attachmentRoutes.js";
 
 export const knowledgeRecordsRouter = Router();
@@ -122,78 +123,51 @@ knowledgeRecordsRouter.post(
   asyncHandler(async (req, res) => {
     const source = await currentDocument(req);
     if (!source) return sendNotFound(res);
-    const destinationWorkspaceId = String(
-      req.body.destinationWorkspaceId || "",
-    ).trim();
-    if (!destinationWorkspaceId) {
-      res.status(422).json({
-        error: {
-          code: "DESTINATION_WORKSPACE_REQUIRED",
-          message: "O workspace de destino é obrigatório",
-        },
-      });
-      return;
-    }
-    if (destinationWorkspaceId === req.actor.workspaceId) {
-      res.status(422).json({
-        error: {
-          code: "SAME_WORKSPACE_REPLICATION",
-          message: "Selecione um workspace diferente do atual",
-        },
-      });
-      return;
-    }
-
-    const destinationAuthorization = await resolveUserAuthorization(
-      req.actor.userId,
-      destinationWorkspaceId,
-    );
-    const destinationActor = { ...req.actor, ...destinationAuthorization };
-    if (
-      !actorHasPermission(destinationActor, "documents.create") ||
-      !actorHasWorkspaceScope(destinationActor, "documents.create")
-    ) {
-      res.status(403).json({
-        error: {
-          code: "DESTINATION_DOCUMENT_CREATE_FORBIDDEN",
-          message:
-            "Você não possui permissão para criar documentos gerais neste workspace",
-          requiredPermissions: ["documents.create"],
-        },
-      });
-      return;
-    }
-
-    const result = await createDocument(
-      { ...documentReplicationPayload(source), createdBy: actorId(req) },
-      {
-        ...authorizationQuery(destinationActor, "documents.create"),
-        allowWorkspaceContext: true,
-      },
-    );
-    const document = result.document;
-    const destinationWorkspace = req.actor.workspaces.find(
-      ({ id }) => id === destinationWorkspaceId,
-    );
-    await recordAuditEvent({
-      actor: destinationActor,
-      action: "created",
-      target: { type: "document", id: document.id, label: document.title },
-      after: document,
-      summary: `Documento replicado de ${source.workspaceId}`,
-      metadata: {
-        ...knowledgeContextMetadata(document),
-        sourceDocumentId: source.id,
-        sourceWorkspaceId: source.workspaceId,
+    const batch = await replicateAcrossWorkspaces({
+      actor: req.actor,
+      forbiddenCode: "DESTINATION_DOCUMENT_CREATE_FORBIDDEN",
+      forbiddenMessage:
+        "Você não possui permissão para criar documentos gerais neste workspace",
+      payload: req.body,
+      permission: "documents.create",
+      resourceType: "document",
+      replicate: async ({ destinationActor }) => {
+        const result = await createDocument(
+          { ...documentReplicationPayload(source), createdBy: actorId(req) },
+          {
+            ...authorizationQuery(destinationActor, "documents.create"),
+            allowWorkspaceContext: true,
+          },
+        );
+        const document = result.document;
+        await recordAuditEvent({
+          actor: destinationActor,
+          action: "created",
+          target: {
+            type: "document",
+            id: document.id,
+            label: document.title,
+          },
+          after: document,
+          summary: `Documento replicado de ${source.workspaceId}`,
+          metadata: {
+            ...knowledgeContextMetadata(document),
+            sourceDocumentId: source.id,
+            sourceWorkspaceId: source.workspaceId,
+          },
+        });
+        return {
+          data: result,
+          resource: {
+            id: document.id,
+            label: document.title,
+            type: "document",
+          },
+          status: "created",
+        };
       },
     });
-    res.status(201).json({
-      ...result,
-      destinationWorkspace: destinationWorkspace || {
-        id: destinationWorkspaceId,
-        name: destinationWorkspaceId,
-      },
-    });
+    sendReplicationResponse(res, batch);
   }),
 );
 

@@ -283,6 +283,24 @@ export function normalizeOptionListPayload(payload = {}, current = null) {
   };
 }
 
+export function optionListReplicationPayload(optionList = {}) {
+  return {
+    key: optionList.key,
+    name: optionList.name,
+    description: optionList.description || "",
+    defaultValue: optionList.defaultValue || "",
+    items: (optionList.items || []).map(
+      ({ value, label, active, order, metadata }) => ({
+        value,
+        label,
+        active,
+        order,
+        metadata: structuredClone(metadata || {}),
+      }),
+    ),
+  };
+}
+
 async function getCollection(query = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const collection = db.collection(OPTION_LISTS_COLLECTION);

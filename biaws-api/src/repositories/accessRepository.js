@@ -496,6 +496,117 @@ export async function createPermissionGroup(payload, actor) {
   return normalizeGroup(document);
 }
 
+export function permissionGroupReplicationPayload(
+  group = {},
+  applicationIds = [],
+) {
+  const applicationScope = group.scope?.type === "applications";
+  if (applicationScope && !applicationIds.length) {
+    throw createHttpError(
+      422,
+      "GROUP_SCOPE_APPLICATION_MAPPING_MISSING",
+      "Não foi possível mapear as aplicações do grupo no workspace de destino",
+    );
+  }
+  return {
+    name: group.name,
+    description: group.description || "",
+    permissions: [...(group.permissions || [])],
+    scope: applicationScope
+      ? { type: "applications", applicationIds: [...applicationIds] }
+      : { type: "workspace", applicationIds: [] },
+  };
+}
+
+async function replicatedGroupApplicationIds(
+  db,
+  group,
+  destinationWorkspaceId,
+) {
+  if (group.scope?.type !== "applications") return [];
+  const applications = db.collection(COLLECTION_NAMES.APPLICATIONS);
+  const sourceIds = [...new Set(group.scope.applicationIds || [])];
+  const sourceApplications = await applications
+    .find({
+      id: { $in: sourceIds },
+      workspaceId: group.workspaceId,
+      status: "active",
+    })
+    .project({ _id: 0, id: 1, key: 1 })
+    .toArray();
+  if (sourceApplications.length !== sourceIds.length) {
+    throw createHttpError(
+      422,
+      "INVALID_GROUP_SCOPE",
+      "O grupo de origem referencia aplicações ausentes ou inativas",
+    );
+  }
+  const keys = sourceApplications.map(({ key }) => key);
+  const destinationApplications = await applications
+    .find({
+      key: { $in: keys },
+      workspaceId: destinationWorkspaceId,
+      status: "active",
+    })
+    .project({ _id: 0, id: 1, key: 1 })
+    .toArray();
+  if (destinationApplications.length !== keys.length) {
+    throw createHttpError(
+      422,
+      "GROUP_SCOPE_APPLICATION_MAPPING_MISSING",
+      "O workspace de destino não possui todas as aplicações do escopo do grupo",
+    );
+  }
+  const destinationByKey = new Map(
+    destinationApplications.map((application) => [
+      application.key,
+      application,
+    ]),
+  );
+  return keys.map((key) => destinationByKey.get(key).id);
+}
+
+export async function replicatePermissionGroup(group, destinationActor) {
+  const { db, groups } = await getCollections();
+  const destinationWorkspaceId = String(destinationActor.workspaceId || "");
+  const applicationIds = await replicatedGroupApplicationIds(
+    db,
+    group,
+    destinationWorkspaceId,
+  );
+  const payload = permissionGroupReplicationPayload(group, applicationIds);
+  if (!group.system || !group.systemKey) {
+    return {
+      before: null,
+      group: await createPermissionGroup(payload, destinationActor),
+      status: "created",
+    };
+  }
+  await ensureWorkspacePermissionGroups(
+    destinationWorkspaceId,
+    destinationActor,
+  );
+  const current = normalizeGroup(
+    await groups.findOne({
+      workspaceId: destinationWorkspaceId,
+      system: true,
+      systemKey: group.systemKey,
+    }),
+  );
+  if (!current) {
+    throw createHttpError(
+      404,
+      "DESTINATION_SYSTEM_GROUP_NOT_FOUND",
+      "O grupo de sistema correspondente não foi encontrado no destino",
+    );
+  }
+  return {
+    before: current,
+    group: await updatePermissionGroup(current.id, payload, destinationActor),
+    status: "replaced",
+  };
+}
+
 export async function updatePermissionGroup(groupId, payload, actor) {
   const { db, groups, defaultWorkspace } = await getCollections();
   const workspaceId = String(

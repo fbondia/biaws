@@ -7,6 +7,7 @@ import {
   calculatePermissionScopes,
   INITIAL_PERMISSION_GROUPS,
   normalizeGroupInput,
+  permissionGroupReplicationPayload,
 } from "../src/repositories/accessRepository.js";
 import { PERMISSION_CATALOG } from "../../shared/index.js";
 
@@ -146,6 +147,46 @@ test("secret permissions support workspace or application scope", () => {
   assert.deepEqual(group.scope, {
     type: "applications",
     applicationIds: ["billing"],
+  });
+});
+
+test("group replication copies its definition without members or operational metadata", () => {
+  assert.deepEqual(
+    permissionGroupReplicationPayload({
+      id: "group-1",
+      name: "Atendimento",
+      description: "Acesso aos chamados",
+      permissions: ["issues.read"],
+      scope: { type: "workspace", applicationIds: [] },
+      active: false,
+      system: false,
+      workspaceId: "source",
+      memberIds: ["user-1"],
+    }),
+    {
+      name: "Atendimento",
+      description: "Acesso aos chamados",
+      permissions: ["issues.read"],
+      scope: { type: "workspace", applicationIds: [] },
+    },
+  );
+});
+
+test("application-scoped group replication requires mapped destination applications", () => {
+  const source = {
+    name: "Billing",
+    permissions: ["issues.read"],
+    scope: { type: "applications", applicationIds: ["source-app"] },
+  };
+  assert.throws(
+    () => permissionGroupReplicationPayload(source),
+    (error) => error.code === "GROUP_SCOPE_APPLICATION_MAPPING_MISSING",
+  );
+  assert.deepEqual(permissionGroupReplicationPayload(source, ["target-app"]), {
+    name: "Billing",
+    description: "",
+    permissions: ["issues.read"],
+    scope: { type: "applications", applicationIds: ["target-app"] },
   });
 });
 

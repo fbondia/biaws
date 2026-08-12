@@ -39,10 +39,12 @@ export function deprecateSkill(skillId, version, params) {
   );
 }
 
-export function replicateSkill(skillId, version, destinationWorkspaceId) {
+export function replicateSkill(skillId, version, destinationWorkspaceIds) {
   return sendJson(
     `/api/skills/${encodeURIComponent(skillId)}/${encodeURIComponent(version)}/replicate`,
-    { destinationWorkspaceId },
+    Array.isArray(destinationWorkspaceIds)
+      ? { destinationWorkspaceIds }
+      : { destinationWorkspaceId: destinationWorkspaceIds },
     undefined,
     "POST",
   );

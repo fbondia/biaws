@@ -174,8 +174,10 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
                 >
                   <ListEditor
                     canManage={canManage}
+                    currentWorkspaceId={actor.workspaceId}
                     list={list}
                     onSaved={saved}
+                    workspaces={actor.workspaces || []}
                   />
                 </div>
               ))}

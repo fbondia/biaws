@@ -99,6 +99,17 @@ export function createPermissionGroup(group) {
   return sendJson("/api/access/groups", group, undefined, "POST");
 }
 
+export function replicatePermissionGroup(groupId, destinationWorkspaceIds) {
+  return sendJson(
+    `/api/access/groups/${encodeURIComponent(groupId)}/replicate`,
+    Array.isArray(destinationWorkspaceIds)
+      ? { destinationWorkspaceIds }
+      : { destinationWorkspaceId: destinationWorkspaceIds },
+    undefined,
+    "POST",
+  );
+}
+
 export function updatePermissionGroup(groupId, group) {
   return sendJson(`/api/access/groups/${encodeURIComponent(groupId)}`, group);
 }

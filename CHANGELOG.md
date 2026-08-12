@@ -27,6 +27,9 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- replicação compartilhada de skills, documentos, grupos de permissões e listas
+  de opções para múltiplos workspaces, com autorização por destino, auditoria,
+  resultado parcial e repetição seletiva de falhas;
 - tools MCP para enviar, baixar, classificar e excluir anexos de chamados,
   melhorias, tarefas e procedimentos, com Base64 limitado e associação de
   tarefas compatível com a UI;

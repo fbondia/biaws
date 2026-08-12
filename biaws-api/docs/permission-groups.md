@@ -38,6 +38,12 @@ reservadas enquanto não existem rotas diretas de anexos de tarefa.
 - reativar um grupo restaura seu efeito nos vínculos preservados;
 - alterações de matriz aparecem na próxima resolução do ator, sem revogar ou
   regravar sessões do Better Auth.
+- a replicação entre workspaces copia definição, permissões e escopo, mas nunca
+  vínculos de usuários;
+- escopos por aplicação são mapeados pela chave técnica da aplicação e a cópia
+  é recusada quando o destino não possui todo o conjunto;
+- grupos de sistema atualizam o grupo correspondente no destino; grupos
+  personalizados preservam a unicidade de nome e não sobrescrevem conflitos.
 
 A Fase 4 aplica as permissões no backend. A role técnica `admin` permanece apenas
 como requisito interno adicional do Better Auth para administração de

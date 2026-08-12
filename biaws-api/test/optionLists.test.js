@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { normalizeOptionListPayload } from "../src/repositories/optionListsRepository.js";
+import {
+  normalizeOptionListPayload,
+  optionListReplicationPayload,
+} from "../src/repositories/optionListsRepository.js";
 
 test("normalizes, orders and preserves option metadata", () => {
   const list = normalizeOptionListPayload({
@@ -90,4 +93,41 @@ test("rejects invalid EML detection expressions", () => {
       }),
     /subjectPatterns\[0\] is invalid/u,
   );
+});
+
+test("option list replication copies configuration without workspace metadata", () => {
+  const payload = optionListReplicationPayload({
+    key: "issue.status",
+    name: "Status",
+    description: "Fluxo",
+    defaultValue: "open",
+    items: [
+      {
+        value: "open",
+        label: "Aberto",
+        active: true,
+        order: 10,
+        metadata: { foreground: "#000000" },
+      },
+    ],
+    workspaceId: "source",
+    version: 8,
+    createdAt: new Date(),
+  });
+
+  assert.deepEqual(payload, {
+    key: "issue.status",
+    name: "Status",
+    description: "Fluxo",
+    defaultValue: "open",
+    items: [
+      {
+        value: "open",
+        label: "Aberto",
+        active: true,
+        order: 10,
+        metadata: { foreground: "#000000" },
+      },
+    ],
+  });
 });

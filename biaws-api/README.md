@@ -115,6 +115,9 @@ curl http://127.0.0.1:3100/api/home \
 O contrato de configuração e extensão está em
 [`../docs/home-widgets.md`](../docs/home-widgets.md).
 
+O contrato de replicação em lote entre workspaces está em
+[`../docs/replication.md`](../docs/replication.md).
+
 Receber um sinal de monitoramento de runtime:
 
 ```bash

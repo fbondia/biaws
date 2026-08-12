@@ -58,7 +58,10 @@ observações são append-only.
 ## API, MCP e contexto
 
 As rotas HTTP ficam sob `/api/knowledge/documents` e oferecem listagem, criação,
-leitura, atualização, arquivamento, movimentação, revisões e observações. A
+leitura, atualização, arquivamento, movimentação, revisões, observações e
+replicação para múltiplos workspaces. A replicação cria uma cópia limpa somente
+com tipo, título, resumo e Markdown; contexto, classificação e referências não
+são transportados. A
 permissão `documents.*` é híbrida: pode abranger todo o workspace ou aplicações
 selecionadas.
 

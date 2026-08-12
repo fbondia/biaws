@@ -1,7 +1,7 @@
 import { FileDown, FileText, X } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { replicateDocument } from "../../../../../api.js";
+import { ReplicationDialog } from "../../../../shared/ReplicationDialog.jsx";
 
 export function DocumentExportDialog({
   onClose,
@@ -80,136 +80,24 @@ export function DocumentReplicationDialog({
   open,
   workspaces,
 }) {
-  const targets = workspaces.filter(({ id }) => id !== currentWorkspaceId);
-  const [destinationWorkspaceId, setDestinationWorkspaceId] = useState("");
-  const [replicating, setReplicating] = useState(false);
-  const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
-
-  useEffect(() => {
-    if (!open) return;
-    setDestinationWorkspaceId("");
-    setError("");
-    setResult(null);
-  }, [open]);
-
-  if (!open) return null;
-
-  async function replicate() {
-    setReplicating(true);
-    setError("");
-    try {
-      const payload = await replicateDocument(
-        documentId,
-        destinationWorkspaceId,
-      );
-      setResult(payload);
-    } catch (replicationError) {
-      setError(replicationError.message);
-    } finally {
-      setReplicating(false);
-    }
-  }
-
   return (
-    <div
-      className="tagFilterDialogBackdrop"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !replicating) onClose();
-      }}
-    >
-      <section
-        aria-label="Replicar documento"
-        aria-modal="true"
-        className="tagFilterDialog knowledgeDocumentActionDialog"
-        role="dialog"
-      >
-        <header>
-          <div>
-            <strong>Replicar documento</strong>
-            <span>Crie uma cópia limpa em outro workspace.</span>
-          </div>
-          <button
-            aria-label="Fechar replicação"
-            className="iconButton"
-            data-dialog-close
-            disabled={replicating}
-            onClick={onClose}
-            type="button"
-          >
-            <X size={18} />
-          </button>
-        </header>
-        <div className="knowledgeReplicationContent">
-          {result ? (
-            <div className="successBox" role="status">
-              Documento replicado em{" "}
-              <strong>{result.destinationWorkspace?.name}</strong>.
-            </div>
-          ) : (
-            <>
-              <label className="field">
-                <span>Workspace de destino</span>
-                <select
-                  disabled={replicating || !targets.length}
-                  onChange={(event) =>
-                    setDestinationWorkspaceId(event.target.value)
-                  }
-                  value={destinationWorkspaceId}
-                >
-                  <option value="">Selecione...</option>
-                  {targets.map((workspace) => (
-                    <option key={workspace.id} value={workspace.id}>
-                      {workspace.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p>
-                A cópia levará somente tipo, título, resumo e conteúdo. Ela será
-                criada sem coleção, aplicação, componentes, classificações, tags
-                ou referências.
-              </p>
-              {!targets.length ? (
-                <div className="emptyState compactEmpty">
-                  Nenhum outro workspace acessível.
-                </div>
-              ) : null}
-              {error ? (
-                <div className="errorBox" role="alert">
-                  {error}
-                </div>
-              ) : null}
-            </>
-          )}
-        </div>
-        <footer>
-          {result ? (
-            <button className="primaryButton" onClick={onClose} type="button">
-              Concluir
-            </button>
-          ) : (
-            <>
-              <button
-                className="secondaryButton"
-                disabled={replicating}
-                onClick={onClose}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button
-                className="primaryButton"
-                disabled={replicating || !destinationWorkspaceId}
-                onClick={() => void replicate()}
-                type="button"
-              >
-                {replicating ? "Replicando..." : "Replicar"}
-              </button>
-            </>
-          )}
-        </footer>
-      </section>
-    </div>
+    <ReplicationDialog
+      currentWorkspaceId={currentWorkspaceId}
+      description={
+        <p>
+          Cada cópia levará somente tipo, título, resumo e conteúdo. Ela será
+          criada sem coleção, aplicação, componentes, classificações, tags ou
+          referências.
+        </p>
+      }
+      onClose={onClose}
+      onReplicate={(destinationWorkspaceIds) =>
+        replicateDocument(documentId, destinationWorkspaceIds)
+      }
+      open={open}
+      resourceKey={documentId}
+      title="Replicar documento"
+      workspaces={workspaces}
+    />
   );
 }

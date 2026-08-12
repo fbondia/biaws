@@ -9,13 +9,14 @@ import {
   skillReplicationPayload,
 } from "../repositories/skillsRepository.js";
 import {
-  actorHasPermission,
-  actorHasWorkspaceScope,
   authorizationQuery,
   requireAllPermissions,
 } from "../auth/authorizationMiddleware.js";
-import { resolveUserAuthorization } from "../repositories/accessRepository.js";
 import { recordAuditEvent } from "../repositories/auditRepository.js";
+import {
+  replicateAcrossWorkspaces,
+  sendReplicationResponse,
+} from "../services/workspaceReplicationService.js";
 import { assertResourceCollection } from "../repositories/resourceCollectionsRepository.js";
 
 export const skillsRouter = Router();
@@ -158,78 +159,48 @@ skillsRouter.post(
       return sendNotFound(res, req.params.skillId, req.params.version);
     }
 
-    const destinationWorkspaceId = String(
-      req.body.destinationWorkspaceId || "",
-    ).trim();
-    if (!destinationWorkspaceId) {
-      res.status(422).json({
-        error: {
-          code: "DESTINATION_WORKSPACE_REQUIRED",
-          message: "O workspace de destino é obrigatório",
-        },
-      });
-      return;
-    }
-    if (destinationWorkspaceId === req.actor.workspaceId) {
-      res.status(422).json({
-        error: {
-          code: "SAME_WORKSPACE_REPLICATION",
-          message: "Selecione um workspace diferente do atual",
-        },
-      });
-      return;
-    }
-
-    const destinationAuthorization = await resolveUserAuthorization(
-      req.actor.userId,
-      destinationWorkspaceId,
-    );
-    const destinationActor = { ...req.actor, ...destinationAuthorization };
-    if (
-      !actorHasPermission(destinationActor, "skills.publish") ||
-      !actorHasWorkspaceScope(destinationActor, "skills.publish")
-    ) {
-      res.status(403).json({
-        error: {
-          code: "DESTINATION_SKILL_PUBLISH_FORBIDDEN",
-          message:
-            "Você não possui permissão para publicar skills neste workspace",
-          requiredPermissions: ["skills.publish"],
-        },
-      });
-      return;
-    }
-
-    const result = await publishSkill(skillReplicationPayload(source), {
-      ...authorizationQuery(destinationActor, "skills.publish"),
-      forceRootCollection: true,
-    });
-    const destinationWorkspace = req.actor.workspaces.find(
-      ({ id }) => id === destinationWorkspaceId,
-    );
-    await recordAuditEvent({
-      actor: destinationActor,
-      action: "published",
-      target: {
-        type: "skill",
-        id: result.skill.skillId,
-        label: result.skill.name,
-      },
-      after: result.skill,
-      summary: `Skill replicada: ${result.skill.skillId}@${result.skill.version}`,
-      metadata: {
-        sourceWorkspaceId: source.workspaceId,
-        sourceSkillId: source.skillId,
-        sourceVersion: source.version,
+    const batch = await replicateAcrossWorkspaces({
+      actor: req.actor,
+      forbiddenCode: "DESTINATION_SKILL_PUBLISH_FORBIDDEN",
+      forbiddenMessage:
+        "Você não possui permissão para publicar skills neste workspace",
+      payload: req.body,
+      permission: "skills.publish",
+      resourceType: "skill",
+      replicate: async ({ destinationActor, destinationWorkspaceId }) => {
+        const result = await publishSkill(skillReplicationPayload(source), {
+          ...authorizationQuery(destinationActor, "skills.publish"),
+          forceRootCollection: true,
+        });
+        await recordAuditEvent({
+          actor: destinationActor,
+          action: "published",
+          target: {
+            type: "skill",
+            id: result.skill.skillId,
+            label: result.skill.name,
+          },
+          after: result.skill,
+          summary: `Skill replicada: ${result.skill.skillId}@${result.skill.version}`,
+          metadata: {
+            workspaceId: destinationWorkspaceId,
+            sourceWorkspaceId: source.workspaceId,
+            sourceSkillId: source.skillId,
+            sourceVersion: source.version,
+          },
+        });
+        return {
+          data: result,
+          resource: {
+            id: `${result.skill.skillId}@${result.skill.version}`,
+            label: result.skill.name,
+            type: "skill",
+          },
+          status: "created",
+        };
       },
     });
-    res.status(201).json({
-      ...result,
-      destinationWorkspace: destinationWorkspace || {
-        id: destinationWorkspaceId,
-        name: destinationWorkspaceId,
-      },
-    });
+    sendReplicationResponse(res, batch);
   }),
 );
 

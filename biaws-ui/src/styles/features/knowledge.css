@@ -227,6 +227,33 @@
   color: var(--color-text-muted);
 }
 
+.knowledgeDetailsBackdrop {
+  z-index: var(--z-dialog);
+}
+
+.knowledgeDetailsDialog {
+  display: flex;
+  width: min(1120px, calc(100vw - 44px));
+  max-height: min(860px, calc(100dvh - 44px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
+}
+
+.knowledgeDetailsDialog > .knowledgeRecordHeader,
+.knowledgeDetailsDialog > .knowledgeRecordTabs {
+  flex: 0 0 auto;
+}
+
+.knowledgeDetailsDialog > .knowledgeRecordPanel,
+.knowledgeDetailsDialog > .knowledgeRecordHistory {
+  min-height: 0;
+  overflow: auto;
+}
+
 .knowledgeDocumentReadingHeader {
   align-items: flex-start;
 }
@@ -298,6 +325,30 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   align-items: end;
+}
+
+.knowledgeOverviewSection {
+  display: grid;
+  gap: 14px;
+}
+
+.knowledgeOverviewSection > h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 15px;
+}
+
+.knowledgeOverviewSelectors {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.knowledgeOverviewSelectors .catalogContextFields,
+.knowledgeOverviewSelectors .filterDialogTriggerButton {
+  width: 100%;
+  min-width: 0;
+  grid-column: auto;
 }
 
 .knowledgeRecordPanel > .primaryButton,
@@ -384,6 +435,10 @@
   }
 
   .knowledgeRecordPanel .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .knowledgeOverviewSelectors {
     grid-template-columns: 1fr;
   }
 

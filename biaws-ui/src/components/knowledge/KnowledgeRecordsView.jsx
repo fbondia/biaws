@@ -5,6 +5,7 @@ import {
   Boxes,
   Eye,
   FileText,
+  FolderTree,
   GitBranch,
   GripVertical,
   ListChecks,
@@ -12,6 +13,8 @@ import {
   Save,
   Scale,
   Settings2,
+  Tags,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -33,14 +36,16 @@ import {
   uploadEntityAttachments,
 } from "../../api.js";
 import { hasPermission } from "../../permissions.js";
+import { DEFAULT_TAG_GROUP_COLOR } from "../../constants/issues.js";
 import {
-  CatalogContextFields,
+  CatalogContextDialogField,
   CatalogFilterFields,
   useCatalogOptions,
 } from "../catalog/CatalogContextFields.jsx";
 import { AuditHistory } from "../shared/AuditHistory.jsx";
 import { FilesPanel } from "../shared/FilesPanel.jsx";
 import { IllustratedEmptyState } from "../shared/IllustratedEmptyState.jsx";
+import { FilterDialogButton } from "../shared/FilterDialogButton.jsx";
 import {
   MarkdownEditor,
   MarkdownPreview,
@@ -60,6 +65,7 @@ import {
   documentStatusLabel,
   fetchAllDocumentPages,
   normalizeDocumentDraft,
+  todayIso,
 } from "./knowledgeModel.js";
 
 const DOCUMENT_TYPES = Object.freeze({
@@ -168,8 +174,6 @@ const TYPE_FILTERS = [
 const TABS = [
   ["overview", "Visão Geral"],
   ["content", "Conteúdo"],
-  ["context", "Contexto"],
-  ["classification", "Classificação"],
   ["references", "Referências"],
   ["files", "Arquivos"],
   ["observations", "Observações"],
@@ -254,9 +258,10 @@ function KnowledgeRecordHeader({
   config,
   draft,
   onArchive,
-  onShowDocument,
+  onClose,
   onSave,
   saving,
+  titleId,
 }) {
   const TypeIcon = config.icon;
   return (
@@ -269,20 +274,10 @@ function KnowledgeRecordHeader({
           >
             {config.label}
           </span>
-          <h2>{draft.title || config.label}</h2>
+          <h2 id={titleId}>{draft.title || config.label}</h2>
         </div>
       </div>
       <div className="knowledgeRecordActions">
-        {draft.id ? (
-          <button
-            className="iconButton knowledgeDocumentModeButton"
-            onClick={onShowDocument}
-            title="Voltar ao documento"
-            type="button"
-          >
-            <BookOpen size={16} />
-          </button>
-        ) : null}
         {draft.id && canArchive ? (
           <button className="secondaryButton" onClick={onArchive} type="button">
             <Archive size={16} /> Arquivar
@@ -296,6 +291,18 @@ function KnowledgeRecordHeader({
             type="button"
           >
             <Save size={16} /> {saving ? "Salvando..." : "Salvar"}
+          </button>
+        ) : null}
+
+        {draft.id ? (
+          <button
+            aria-label="Fechar detalhes"
+            className="iconButton knowledgeDocumentModeButton"
+            data-dialog-close
+            onClick={onClose}
+            type="button"
+          >
+            <X size={18} />
           </button>
         ) : null}
       </div>
@@ -917,27 +924,27 @@ function DocumentDetail({
     });
   }
 
-  if (!showDetails) {
-    return (
-      <KnowledgeDocumentReading
-        config={config}
-        draft={draft}
-        onShowDetails={() => setShowDetails(true)}
-      />
-    );
-  }
-
-  return (
-    <section className="resourceCollectionContent knowledgeRecordDetail">
+  const detailsPanel = (
+    <section
+      aria-labelledby={draft.id ? "knowledgeDetailsDialogTitle" : undefined}
+      aria-modal={draft.id ? "true" : undefined}
+      className={
+        draft.id
+          ? "knowledgeDetailsDialog"
+          : "resourceCollectionContent knowledgeRecordDetail"
+      }
+      role={draft.id ? "dialog" : undefined}
+    >
       <KnowledgeRecordHeader
         canArchive={canArchive}
         canUpdate={canUpdate}
         config={config}
         draft={draft}
         onArchive={onArchive}
-        onShowDocument={() => setShowDetails(false)}
+        onClose={() => setShowDetails(false)}
         onSave={onSave}
         saving={saving}
+        titleId={draft.id ? "knowledgeDetailsDialogTitle" : undefined}
       />
       <KnowledgeRecordTabs
         canReadAttachments={canReadAttachments}
@@ -1006,6 +1013,118 @@ function DocumentDetail({
             draft={draft}
             onChange={onChange}
           />
+          <section className="knowledgeOverviewSection">
+            <h3>Contexto e classificação</h3>
+            <div className="knowledgeOverviewSelectors">
+              <CatalogContextDialogField
+                affectedComponentIds={draft.affectedComponentIds}
+                applicationId={draft.applicationId || ""}
+                applications={catalog.applications}
+                components={catalog.components}
+                disabled={!canUpdate}
+                onChange={changeContext}
+                optional={[
+                  "guideline",
+                  "procedure",
+                  "technical-reference",
+                ].includes(draft.documentType)}
+              />
+              <DocumentClassificationSelectors
+                applications={catalog.applications}
+                disabled={!canUpdate}
+                draft={draft}
+                onChange={onChange}
+                taxonomyPackage={taxonomyPackage}
+              />
+            </div>
+          </section>
+          <section className="knowledgeOverviewSection">
+            <h3>Governança e origem</h3>
+            <div className="formGrid">
+              <label className="field">
+                <span>Data de definição</span>
+                <input
+                  disabled={!canUpdate}
+                  onChange={(event) =>
+                    onChange({ ...draft, definedAt: event.target.value })
+                  }
+                  type="date"
+                  value={draft.definedAt}
+                />
+              </label>
+              <label className="field">
+                <span>Última revisão</span>
+                <input
+                  disabled={!canUpdate}
+                  onChange={(event) =>
+                    onChange({ ...draft, lastReviewedAt: event.target.value })
+                  }
+                  type="date"
+                  value={draft.lastReviewedAt}
+                />
+              </label>
+              <label className="field">
+                <span>Próxima revisão</span>
+                <input
+                  disabled={!canUpdate}
+                  onChange={(event) =>
+                    onChange({ ...draft, nextReviewAt: event.target.value })
+                  }
+                  type="date"
+                  value={draft.nextReviewAt}
+                />
+              </label>
+            </div>
+            <label className="field">
+              <span>Origem</span>
+              <select
+                disabled={!canUpdate}
+                onChange={(event) =>
+                  onChange({
+                    ...draft,
+                    source: { ...draft.source, mode: event.target.value },
+                  })
+                }
+                value={draft.source.mode}
+              >
+                <option value="native">Conteúdo nativo no Biaws</option>
+                <option value="repository">Documento em repositório</option>
+              </select>
+            </label>
+            {draft.source.mode === "repository" ? (
+              <div className="formGrid">
+                <label className="field">
+                  <span>ID do repositório</span>
+                  <input
+                    disabled={!canUpdate}
+                    onChange={(event) =>
+                      onChange({
+                        ...draft,
+                        source: {
+                          ...draft.source,
+                          repositoryId: event.target.value,
+                        },
+                      })
+                    }
+                    value={draft.source.repositoryId}
+                  />
+                </label>
+                <label className="field">
+                  <span>Caminho do arquivo</span>
+                  <input
+                    disabled={!canUpdate}
+                    onChange={(event) =>
+                      onChange({
+                        ...draft,
+                        source: { ...draft.source, path: event.target.value },
+                      })
+                    }
+                    value={draft.source.path}
+                  />
+                </label>
+              </div>
+            ) : null}
+          </section>
         </div>
       ) : null}
       {tab === "content" ? (
@@ -1017,129 +1136,6 @@ function DocumentDetail({
             />
           </div>
         </div>
-      ) : null}
-      {tab === "context" ? (
-        <div className="dialogForm knowledgeRecordPanel">
-          <CatalogContextFields
-            affectedComponentIds={draft.affectedComponentIds}
-            applicationId={draft.applicationId || ""}
-            applications={catalog.applications}
-            components={catalog.components}
-            disabled={!canUpdate}
-            onChange={changeContext}
-            optional={["guideline", "technical-reference"].includes(
-              draft.documentType,
-            )}
-          />
-          <div className="formGrid">
-            <label className="field">
-              <span>Data de definição</span>
-              <input
-                disabled={!canUpdate}
-                onChange={(event) =>
-                  onChange({ ...draft, definedAt: event.target.value })
-                }
-                type="date"
-                value={draft.definedAt}
-              />
-            </label>
-            <label className="field">
-              <span>Última revisão</span>
-              <input
-                disabled={!canUpdate}
-                onChange={(event) =>
-                  onChange({ ...draft, lastReviewedAt: event.target.value })
-                }
-                type="date"
-                value={draft.lastReviewedAt}
-              />
-            </label>
-            <label className="field">
-              <span>Próxima revisão</span>
-              <input
-                disabled={!canUpdate}
-                onChange={(event) =>
-                  onChange({ ...draft, nextReviewAt: event.target.value })
-                }
-                type="date"
-                value={draft.nextReviewAt}
-              />
-            </label>
-          </div>
-          <label className="field">
-            <span>Origem</span>
-            <select
-              disabled={!canUpdate}
-              onChange={(event) =>
-                onChange({
-                  ...draft,
-                  source: { ...draft.source, mode: event.target.value },
-                })
-              }
-              value={draft.source.mode}
-            >
-              <option value="native">Conteúdo nativo no Biaws</option>
-              <option value="repository">Documento em repositório</option>
-            </select>
-          </label>
-          {draft.source.mode === "repository" ? (
-            <div className="formGrid">
-              <label className="field">
-                <span>ID do repositório</span>
-                <input
-                  disabled={!canUpdate}
-                  onChange={(event) =>
-                    onChange({
-                      ...draft,
-                      source: {
-                        ...draft.source,
-                        repositoryId: event.target.value,
-                      },
-                    })
-                  }
-                  value={draft.source.repositoryId}
-                />
-              </label>
-              <label className="field">
-                <span>Caminho do arquivo</span>
-                <input
-                  disabled={!canUpdate}
-                  onChange={(event) =>
-                    onChange({
-                      ...draft,
-                      source: { ...draft.source, path: event.target.value },
-                    })
-                  }
-                  value={draft.source.path}
-                />
-              </label>
-            </div>
-          ) : null}
-          {draft.id && canUpdate ? (
-            <button
-              className="secondaryButton"
-              onClick={() =>
-                onSave({
-                  ...draft,
-                  lastReviewedAt: today(),
-                  changeSummary: "Conteúdo revisado",
-                })
-              }
-              type="button"
-            >
-              Marcar como revisado hoje
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-      {tab === "classification" ? (
-        <DocumentClassificationPanel
-          applications={catalog.applications}
-          disabled={!canUpdate}
-          draft={draft}
-          onChange={onChange}
-          taxonomyPackage={taxonomyPackage}
-        />
       ) : null}
       {tab === "references" ? (
         <ReferencesEditor
@@ -1196,6 +1192,21 @@ function DocumentDetail({
       ) : null}
       {tab === "revisions" ? (
         <div className="dialogForm knowledgeRecordPanel">
+          {draft.id && canUpdate ? (
+            <button
+              className="secondaryButton"
+              onClick={() =>
+                onSave({
+                  ...draft,
+                  lastReviewedAt: todayIso(),
+                  changeSummary: "Conteúdo revisado",
+                })
+              }
+              type="button"
+            >
+              Marcar como revisado hoje
+            </button>
+          ) : null}
           {revisions.map((revision) => (
             <article className="auditEventContent" key={revision.id}>
               <strong>Revisão {revision.revision}</strong>
@@ -1219,15 +1230,40 @@ function DocumentDetail({
       ) : null}
     </section>
   );
+
+  if (!draft.id) return detailsPanel;
+
+  return (
+    <>
+      <KnowledgeDocumentReading
+        config={config}
+        draft={draft}
+        onShowDetails={() => setShowDetails(true)}
+      />
+      {showDetails ? (
+        <div
+          className="dialogBackdrop knowledgeDetailsBackdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowDetails(false);
+          }}
+          role="presentation"
+        >
+          {detailsPanel}
+        </div>
+      ) : null}
+    </>
+  );
 }
 
-function DocumentClassificationPanel({
+function DocumentClassificationSelectors({
   applications,
   disabled,
   draft,
   onChange,
   taxonomyPackage,
 }) {
+  const [taxonomyDialogOpen, setTaxonomyDialogOpen] = useState(false);
+  const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const classification = draft.classification || {
     primaryTaxonomyId: "",
     secondaryTaxonomyIds: [],
@@ -1246,6 +1282,10 @@ function DocumentClassificationPanel({
     draft.applicationId,
   );
   const tagGroups = taxonomyPackage?.tagGroups || [];
+  const selectedTagCount = Object.values(classification.tags || {}).reduce(
+    (count, values) => count + values.length,
+    0,
+  );
 
   function updateClassification(next) {
     onChange({ ...draft, classification: { ...classification, ...next } });
@@ -1274,62 +1314,203 @@ function DocumentClassificationPanel({
   }
 
   return (
-    <div className="dialogForm knowledgeRecordPanel documentClassificationPanel">
-      {taxonomyNodes.length ? (
-        <section>
-          <h3>Assuntos</h3>
-          <TaxonomySelector
-            applications={applications}
-            disabledIds={disabled ? taxonomyIds(taxonomyNodes) : []}
-            multiple
-            nodes={taxonomyNodes}
-            onChange={disabled ? () => {} : updateTaxonomies}
-            onPrimaryChange={
-              disabled
-                ? undefined
-                : (primaryTaxonomyId) =>
-                    updateClassification({
-                      primaryTaxonomyId,
-                      secondaryTaxonomyIds: selectedIds.filter(
-                        (id) => id !== primaryTaxonomyId,
-                      ),
-                    })
-            }
-            primaryValue={classification.primaryTaxonomyId}
-            value={selectedIds}
-          />
-        </section>
-      ) : (
-        <div className="emptyState compactEmpty">
-          Nenhuma taxonomia disponível para este contexto.
+    <>
+      <FilterDialogButton
+        count={selectedIds.length}
+        icon={FolderTree}
+        label="Classificações"
+        onClick={() => setTaxonomyDialogOpen(true)}
+        summary={
+          selectedIds.length
+            ? `${selectedIds.length} selecionada(s)`
+            : "Nenhuma classificação"
+        }
+      />
+      <FilterDialogButton
+        count={selectedTagCount}
+        icon={Tags}
+        label="Tags"
+        onClick={() => setTagsDialogOpen(true)}
+        summary={
+          selectedTagCount
+            ? `${selectedTagCount} selecionada(s)`
+            : "Nenhuma tag"
+        }
+      />
+
+      {taxonomyDialogOpen ? (
+        <div
+          className="tagFilterDialogBackdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget)
+              setTaxonomyDialogOpen(false);
+          }}
+        >
+          <section
+            aria-label="Selecionar classificações do documento"
+            aria-modal="true"
+            className="tagFilterDialog taxonomyFilterDialog"
+            role="dialog"
+          >
+            <header>
+              <div>
+                <strong>Selecionar classificações</strong>
+                <span>
+                  Selecione os assuntos e defina um deles como principal.
+                </span>
+              </div>
+              {selectedIds.length ? (
+                <small>{selectedIds.length} selecionada(s)</small>
+              ) : null}
+            </header>
+            <div className="taxonomyFilterDialogContent">
+              {taxonomyNodes.length ? (
+                <TaxonomySelector
+                  applications={applications}
+                  disabledIds={disabled ? taxonomyIds(taxonomyNodes) : []}
+                  multiple
+                  nodes={taxonomyNodes}
+                  onChange={disabled ? () => {} : updateTaxonomies}
+                  onPrimaryChange={
+                    disabled
+                      ? undefined
+                      : (primaryTaxonomyId) =>
+                          updateClassification({
+                            primaryTaxonomyId,
+                            secondaryTaxonomyIds: selectedIds.filter(
+                              (id) => id !== primaryTaxonomyId,
+                            ),
+                          })
+                  }
+                  primaryValue={classification.primaryTaxonomyId}
+                  value={selectedIds}
+                />
+              ) : (
+                <div className="emptyState compactEmpty">
+                  Nenhuma taxonomia disponível para este contexto.
+                </div>
+              )}
+            </div>
+            <footer>
+              {!disabled && selectedIds.length ? (
+                <button
+                  className="secondaryButton clearDialogSelectionButton"
+                  onClick={() => updateTaxonomies([])}
+                  type="button"
+                >
+                  Limpar seleção
+                </button>
+              ) : null}
+              <button
+                className="primaryButton"
+                data-dialog-close
+                onClick={() => setTaxonomyDialogOpen(false)}
+                type="button"
+              >
+                Concluir
+              </button>
+            </footer>
+          </section>
         </div>
-      )}
-      {tagGroups.length ? (
-        <section>
-          <h3>Tags</h3>
-          <div className="documentClassificationTags">
-            {tagGroups.map((group) => (
-              <fieldset key={group.id}>
-                <legend>{group.label}</legend>
-                {(group.tags || []).map((tagId) => (
-                  <label className="checkItem compactCheckItem" key={tagId}>
-                    <input
-                      checked={Boolean(
-                        classification.tags?.[group.id]?.includes(tagId),
-                      )}
-                      disabled={disabled}
-                      onChange={() => toggleTag(group.id, tagId)}
-                      type="checkbox"
-                    />
-                    <span>{tagId}</span>
-                  </label>
-                ))}
-              </fieldset>
-            ))}
-          </div>
-        </section>
       ) : null}
-    </div>
+
+      {tagsDialogOpen ? (
+        <div
+          className="tagFilterDialogBackdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setTagsDialogOpen(false);
+          }}
+        >
+          <section
+            aria-label="Selecionar tags do documento"
+            aria-modal="true"
+            className="tagFilterDialog"
+            role="dialog"
+          >
+            <header>
+              <div>
+                <strong>Selecionar tags</strong>
+                <span>Marque as tags que devem identificar o documento.</span>
+              </div>
+              {selectedTagCount ? (
+                <small>{selectedTagCount} selecionada(s)</small>
+              ) : null}
+            </header>
+            {tagGroups.length ? (
+              <div className="tagFilterGroups">
+                {tagGroups.map((group) => (
+                  <div className="tagFilterGroup" key={group.id}>
+                    <strong>
+                      <span
+                        className="tagColorSwatch"
+                        style={{
+                          backgroundColor:
+                            group.color || DEFAULT_TAG_GROUP_COLOR,
+                        }}
+                      />
+                      {group.label}
+                    </strong>
+                    <div className="tagFilterOptions">
+                      {(group.tags || []).map((tagId) => {
+                        const checked = Boolean(
+                          classification.tags?.[group.id]?.includes(tagId),
+                        );
+                        return (
+                          <label
+                            className={
+                              checked
+                                ? "tagFilterOption selectedTagFilterOption"
+                                : "tagFilterOption"
+                            }
+                            key={tagId}
+                            style={{
+                              borderColor: checked
+                                ? group.color || DEFAULT_TAG_GROUP_COLOR
+                                : undefined,
+                            }}
+                          >
+                            <input
+                              checked={checked}
+                              disabled={disabled}
+                              onChange={() => toggleTag(group.id, tagId)}
+                              type="checkbox"
+                            />
+                            <span>{tagId}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="emptyState compactEmpty">
+                Nenhuma tag disponível.
+              </div>
+            )}
+            <footer>
+              {!disabled && selectedTagCount ? (
+                <button
+                  className="secondaryButton clearDialogSelectionButton"
+                  onClick={() => updateClassification({ tags: {} })}
+                  type="button"
+                >
+                  Limpar seleção
+                </button>
+              ) : null}
+              <button
+                className="primaryButton"
+                data-dialog-close
+                onClick={() => setTagsDialogOpen(false)}
+                type="button"
+              >
+                Concluir
+              </button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
+    </>
   );
 }
 

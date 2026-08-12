@@ -104,6 +104,7 @@ export function CatalogContextDialogField({
   components,
   disabled = false,
   onChange,
+  optional = false,
 }) {
   const [open, setOpen] = useState(false);
   const selectedApplication = applications.find(
@@ -121,7 +122,9 @@ export function CatalogContextDialogField({
     : "Nenhum componente";
   const summary = selectedApplication
     ? `${selectedApplication.name} · ${componentSummary}`
-    : "Selecione uma aplicação";
+    : optional
+      ? "Conhecimento geral do workspace"
+      : "Selecione uma aplicação";
 
   return (
     <div className="catalogContextFields catalogContextDialogField">
@@ -151,8 +154,7 @@ export function CatalogContextDialogField({
               <div>
                 <strong>Selecionar aplicação e componentes</strong>
                 <span>
-                  Escolha a aplicação da melhoria e marque os componentes
-                  afetados.
+                  Escolha a aplicação e marque os componentes relacionados.
                 </span>
               </div>
               {selectionCount ? (
@@ -166,8 +168,12 @@ export function CatalogContextDialogField({
                 applications={applications}
                 components={components}
                 disabled={disabled}
+                emptyApplicationLabel={
+                  optional ? "Conhecimento geral do workspace" : ""
+                }
                 multipleComponents
                 onChange={onChange}
+                optional={optional}
               />
             </div>
             <footer>

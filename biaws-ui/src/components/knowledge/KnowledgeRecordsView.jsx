@@ -47,6 +47,7 @@ import { useResourceCollections } from "../shared/useResourceCollections.js";
 import {
   createEmptyDocumentDraft,
   documentStatusLabel,
+  fetchAllDocumentPages,
   normalizeDocumentDraft,
 } from "./knowledgeModel.js";
 
@@ -54,6 +55,7 @@ const DOCUMENT_TYPES = Object.freeze({
   "business-rule": {
     label: "Regra de negócio",
     plural: "Regras de negócio",
+    description: "Formalize regras, condições e exceções do negócio.",
     icon: Scale,
     statuses: [
       ["draft", "Rascunho"],
@@ -68,6 +70,7 @@ const DOCUMENT_TYPES = Object.freeze({
   "architecture-decision": {
     label: "Decisão arquitetural",
     plural: "Decisões arquiteturais",
+    description: "Registre uma decisão técnica, seu contexto e consequências.",
     icon: GitBranch,
     statuses: [
       ["proposed", "Proposta"],
@@ -83,6 +86,7 @@ const DOCUMENT_TYPES = Object.freeze({
   guideline: {
     label: "Guideline",
     plural: "Guidelines",
+    description: "Oriente práticas e padrões recomendados para o workspace.",
     icon: BookOpen,
     statuses: [
       ["draft", "Rascunho"],
@@ -97,6 +101,7 @@ const DOCUMENT_TYPES = Object.freeze({
   feature: {
     label: "Feature",
     plural: "Features",
+    description: "Descreva uma capacidade, seus fluxos e visão técnica.",
     icon: Boxes,
     statuses: [
       ["draft", "Rascunho"],
@@ -111,6 +116,7 @@ const DOCUMENT_TYPES = Object.freeze({
   "technical-reference": {
     label: "Referência técnica",
     plural: "Referências técnicas",
+    description: "Documente arquitetura, interfaces e detalhes operacionais.",
     icon: FileText,
     statuses: [
       ["draft", "Rascunho"],
@@ -325,6 +331,62 @@ function KnowledgeRecordList({
   );
 }
 
+function DocumentTypeSelection({ onContinue, onSelect, selectedType }) {
+  return (
+    <section className="documentTypeCreationStep">
+      <header>
+        <span className="documentTypeCreationEyebrow">Novo documento</span>
+        <h2>Qual tipo de documento você quer criar?</h2>
+        <p>
+          Escolha o tipo que melhor representa o conhecimento que será
+          registrado.
+        </p>
+      </header>
+      <div
+        aria-label="Tipos de documento disponíveis"
+        className="documentTypeCreationGrid"
+        role="group"
+      >
+        {Object.entries(DOCUMENT_TYPES).map(([value, config]) => {
+          const TypeIcon = config.icon;
+          const selected = selectedType === value;
+          return (
+            <button
+              aria-pressed={selected}
+              className={
+                selected
+                  ? "documentTypeCreationCard selected"
+                  : "documentTypeCreationCard"
+              }
+              key={value}
+              onClick={() => onSelect(value)}
+              type="button"
+            >
+              <span className="documentTypeCreationIcon">
+                <TypeIcon aria-hidden="true" size={24} />
+              </span>
+              <span className="documentTypeCreationCopy">
+                <strong>{config.label}</strong>
+                <small>{config.description}</small>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <footer>
+        <button
+          className="primaryButton"
+          disabled={!selectedType}
+          onClick={() => onContinue(selectedType)}
+          type="button"
+        >
+          Continuar
+        </button>
+      </footer>
+    </section>
+  );
+}
+
 function ImmutableTypeHint({ documentId }) {
   return documentId ? (
     <small>O tipo é imutável depois que o documento é criado.</small>
@@ -343,8 +405,9 @@ export function KnowledgeRecordsView({ actor }) {
   const [items, setItems] = useState([]);
   const [organizationItems, setOrganizationItems] = useState([]);
   const [draft, setDraft] = useState(null);
+  const [creating, setCreating] = useState(false);
   const [typeFilter, setTypeFilter] = useState("");
-  const [createType, setCreateType] = useState("business-rule");
+  const [createType, setCreateType] = useState("");
   const [search, setSearch] = useState("");
   const [applicationFilter, setApplicationFilter] = useState("");
   const [componentFilter, setComponentFilter] = useState("");
@@ -370,12 +433,11 @@ export function KnowledgeRecordsView({ actor }) {
     setLoading(true);
     setError("");
     try {
-      const payload = await fetchDocuments({
+      const payload = await fetchAllDocumentPages(fetchDocuments, {
         search: searchValue,
         documentType: typeValue,
         applicationId: applicationValue,
         componentId: componentValue,
-        limit: 100,
       });
       if (!mountedRef.current || loadVersion !== loadVersionRef.current) return;
       const loaded = payload.items || [];
@@ -396,12 +458,12 @@ export function KnowledgeRecordsView({ actor }) {
     }
   }
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
       mountedRef.current = false;
-    },
-    [],
-  );
+    };
+  }, []);
 
   useEffect(() => {
     void load("", "", "", typeFilter);
@@ -409,6 +471,7 @@ export function KnowledgeRecordsView({ actor }) {
 
   async function openRecord(record) {
     setError("");
+    setCreating(false);
     try {
       const payload = await fetchDocument(record.id);
       setDraft(normalizedDraft(payload.document));
@@ -475,8 +538,8 @@ export function KnowledgeRecordsView({ actor }) {
             key={value || "all"}
             onClick={() => {
               setDraft(null);
+              setCreating(false);
               setTypeFilter(value);
-              if (value) setCreateType(value);
             }}
             type="button"
           >
@@ -488,27 +551,13 @@ export function KnowledgeRecordsView({ actor }) {
         <div />
         {canCreate ? (
           <div className="documentCreateActions">
-            <select
-              aria-label="Tipo do novo documento"
-              onChange={(event) => setCreateType(event.target.value)}
-              value={createType}
-            >
-              {Object.entries(DOCUMENT_TYPES).map(([value, config]) => (
-                <option key={value} value={value}>
-                  {config.label}
-                </option>
-              ))}
-            </select>
             <button
               className="primaryButton"
-              onClick={() =>
-                setDraft(
-                  emptyDraft(
-                    createType,
-                    searchActive ? "" : collectionsState.selectedCollectionId,
-                  ),
-                )
-              }
+              onClick={() => {
+                setDraft(null);
+                setCreateType("");
+                setCreating(true);
+              }}
               type="button"
             >
               <Plus size={16} /> Novo documento
@@ -546,17 +595,22 @@ export function KnowledgeRecordsView({ actor }) {
       ) : null}
       <ResourceCollectionsShell
         collections={collectionsState.collections}
-        detailVisible={Boolean(draft)}
+        detailVisible={Boolean(draft) || creating}
         draggedItem={collectionsState.draggedItem}
         onDropRoot={() => collectionsState.dropItem("", moveItem)}
-        onNavigateBack={() => setDraft(null)}
+        onNavigateBack={() => {
+          setDraft(null);
+          setCreating(false);
+        }}
         onSelectCollection={collectionsState.setSelectedCollectionId}
         pathLabel={
           draft
             ? `${collectionPathLabel(collectionsState.collections, draft.collectionId)} / ${draft.title || `Novo ${DOCUMENT_TYPES[draft.documentType].label.toLocaleLowerCase("pt-BR")}`}`
-            : searchActive
-              ? "Resultados da busca"
-              : undefined
+            : creating
+              ? `${collectionPathLabel(collectionsState.collections, searchActive ? "" : collectionsState.selectedCollectionId)} / Novo documento`
+              : searchActive
+                ? "Resultados da busca"
+                : undefined
         }
         selectedCollectionId={collectionsState.selectedCollectionId}
         navigator={
@@ -591,6 +645,7 @@ export function KnowledgeRecordsView({ actor }) {
             onRename={collectionsState.setCollectionDialog}
             onSelect={(collectionId) => {
               setDraft(null);
+              setCreating(false);
               collectionsState.setSelectedCollectionId(collectionId);
             }}
             onSelectItem={openRecord}
@@ -608,7 +663,7 @@ export function KnowledgeRecordsView({ actor }) {
           />
         }
         toolbar={
-          draft ? null : (
+          draft || creating ? null : (
             <ResourceCollectionSearch
               loading={loading}
               onRefresh={() => load()}
@@ -620,7 +675,21 @@ export function KnowledgeRecordsView({ actor }) {
           )
         }
       >
-        {draft ? (
+        {creating ? (
+          <DocumentTypeSelection
+            onContinue={(documentType) => {
+              setDraft(
+                emptyDraft(
+                  documentType,
+                  searchActive ? "" : collectionsState.selectedCollectionId,
+                ),
+              );
+              setCreating(false);
+            }}
+            onSelect={setCreateType}
+            selectedType={createType}
+          />
+        ) : draft ? (
           <DocumentDetail
             canArchive={canArchive}
             canUpdate={canUpdate || (!draft.id && canCreate)}
@@ -689,7 +758,7 @@ function DocumentDetail({
 
   useEffect(() => {
     let active = true;
-    fetchDocuments({ limit: 100 })
+    fetchAllDocumentPages(fetchDocuments)
       .then((payload) =>
         active
           ? setReferenceOptions(

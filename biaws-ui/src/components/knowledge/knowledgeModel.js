@@ -55,3 +55,25 @@ export function documentStatusLabel(documentTypes, document) {
     )?.[1] || document.status
   );
 }
+
+export async function fetchAllDocumentPages(fetchPage, params = {}) {
+  const firstPage = await fetchPage({ ...params, limit: 100, page: 1 });
+  const items = [...(firstPage.items || [])];
+  const totalPages = firstPage.meta?.totalPages || 1;
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    const payload = await fetchPage({ ...params, limit: 100, page });
+    items.push(...(payload.items || []));
+  }
+
+  return {
+    ...firstPage,
+    items,
+    meta: {
+      ...(firstPage.meta || {}),
+      page: 1,
+      total: firstPage.meta?.total ?? items.length,
+      totalPages,
+    },
+  };
+}

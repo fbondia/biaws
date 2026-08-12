@@ -22,6 +22,7 @@ import {
   GROUPED_VIEWS,
   ISSUES_PER_PAGE,
   NAVIGATION_GROUPS,
+  resolveActiveView,
 } from "../model.js";
 
 function allowedNavigationView(actor) {
@@ -44,22 +45,10 @@ function navigationGroup(actor, group) {
   };
 }
 
-export function useApp(actor) {
-  const [activeView, setActiveView] = useState(() => {
-    if (
-      !actor.workspaceId &&
-      actor.platformPermissions?.includes("platform.workspaces.manage")
-    ) {
-      return "workspace-admin";
-    }
-    return (
-      [...APP_VIEWS, ...GROUPED_VIEWS].find(
-        ({ permission, platformPermission }) =>
-          !platformPermission &&
-          (!permission || hasPermission(actor, permission)),
-      )?.key || "account"
-    );
-  });
+export function useApp(actor, preferredView) {
+  const [activeView, setActiveView] = useState(() =>
+    resolveActiveView(actor, preferredView),
+  );
   const [draftFilters, setDraftFilters] = useState(DEFAULT_FILTERS);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
@@ -82,6 +71,7 @@ export function useApp(actor) {
   const [runtimeOptionsVersion, setRuntimeOptionsVersion] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const monthTaxonomyRequestId = useRef(0);
+  const canReadTaxonomy = hasPermission(actor, "taxonomy.read");
   const availableViews = useMemo(
     () =>
       APP_VIEWS.filter(
@@ -141,6 +131,11 @@ export function useApp(actor) {
   }, [filters]);
 
   useEffect(() => {
+    if (activeView !== "issues" || !canReadTaxonomy) {
+      setTaxonomyPackage(null);
+      return undefined;
+    }
+
     let active = true;
 
     fetchIssueTaxonomy()
@@ -154,7 +149,7 @@ export function useApp(actor) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [activeView, canReadTaxonomy]);
 
   async function loadRuntimeOptionLists() {
     const payload = await fetchRuntimeOptionLists();

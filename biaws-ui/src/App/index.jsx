@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ActiveView } from "./components/ActiveView.jsx";
 import { AppHeader } from "./components/AppHeader.jsx";
 import { useApp } from "./hooks/useApp.js";
+import {
+  activeViewFromPath,
+  activeViewPath,
+  resolveActiveView,
+} from "./model.js";
 
 export default function App({ actor, onSignOut, onWorkspaceChange }) {
   const [requestTaskTarget, setRequestTaskTarget] = useState(null);
@@ -16,12 +21,39 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
     issuesProps,
     loadRuntimeOptionLists,
     runtimeOptionsVersion,
-  } = useApp(actor);
+  } = useApp(actor, activeViewFromPath(window.location.pathname));
+
+  useEffect(() => {
+    const expectedPath = activeViewPath(activeView);
+    if (window.location.pathname !== expectedPath) {
+      window.history.replaceState(null, "", expectedPath);
+    }
+  }, [activeView]);
+
+  useEffect(() => {
+    function restoreViewFromHistory() {
+      setActiveView(
+        resolveActiveView(actor, activeViewFromPath(window.location.pathname)),
+      );
+    }
+
+    window.addEventListener("popstate", restoreViewFromHistory);
+    return () => window.removeEventListener("popstate", restoreViewFromHistory);
+  }, [actor, setActiveView]);
+
+  function selectActiveView(view) {
+    const nextView = resolveActiveView(actor, view);
+    const nextPath = activeViewPath(nextView);
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState(null, "", nextPath);
+    }
+    setActiveView(nextView);
+  }
 
   function openRequestTask(task) {
     if (!task?.requestId || !task?.id) return;
     setRequestTaskTarget({ requestId: task.requestId, taskId: task.id });
-    setActiveView("requests");
+    selectActiveView("requests");
   }
 
   return (
@@ -33,7 +65,7 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
         availableViews={availableViews}
         mobileMenuOpen={mobileMenuOpen}
         onMobileMenuChange={setMobileMenuOpen}
-        onViewChange={setActiveView}
+        onViewChange={selectActiveView}
         onWorkspaceChange={onWorkspaceChange}
       />
       <ActiveView

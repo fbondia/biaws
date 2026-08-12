@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  activeViewFromPath,
+  activeViewPath,
   APP_VIEWS,
   buildLocalDevelopmentCommands,
   buildLocalWorkspaceSetupCommand,
@@ -9,6 +11,7 @@ import {
   currentWorkspaceName,
   GROUPED_VIEWS,
   NAVIGATION_GROUPS,
+  resolveActiveView,
 } from "../src/App/model.js";
 
 test("navigation groups operational and administrative destinations", () => {
@@ -127,4 +130,34 @@ test("workspace context exposes the current name and the allowed switcher", () =
     }),
     true,
   );
+});
+
+test("active view follows a workspace switch when the destination allows it", () => {
+  const actor = {
+    workspaceId: "workspace-b",
+    permissions: ["documents.read"],
+    platformPermissions: [],
+  };
+
+  assert.equal(resolveActiveView(actor, "documents"), "documents");
+  assert.equal(resolveActiveView(actor, "account"), "account");
+});
+
+test("active views have stable URL routes", () => {
+  assert.equal(activeViewPath("documents"), "/documents");
+  assert.equal(activeViewFromPath("/documents"), "documents");
+  assert.equal(activeViewFromPath("/documents/"), "documents");
+  assert.equal(activeViewPath("unknown"), "/");
+  assert.equal(activeViewFromPath("/unknown"), undefined);
+});
+
+test("active view falls back safely when the destination does not allow it", () => {
+  const actor = {
+    workspaceId: "workspace-b",
+    permissions: [],
+    platformPermissions: [],
+  };
+
+  assert.equal(resolveActiveView(actor, "documents"), "home");
+  assert.equal(resolveActiveView(actor, "unknown"), "home");
 });

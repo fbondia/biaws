@@ -147,6 +147,76 @@ export const GROUPED_VIEWS = NAVIGATION_GROUPS.flatMap(({ sections }) =>
   sections.flatMap(({ views }) => views),
 );
 
+const VIEW_ROUTES = {
+  account: "/account",
+  catalog: "/catalog",
+  documents: "/documents",
+  groups: "/groups",
+  home: "/",
+  issues: "/issues",
+  "option-lists": "/option-lists",
+  procedures: "/procedures",
+  requests: "/requests",
+  secrets: "/secrets",
+  servers: "/servers",
+  skills: "/skills",
+  taxonomy: "/taxonomy",
+  users: "/users",
+  "workspace-admin": "/workspaces",
+};
+
+export function activeViewPath(view) {
+  return VIEW_ROUTES[view] || VIEW_ROUTES.home;
+}
+
+export function activeViewFromPath(pathname) {
+  const normalizedPath = `/${String(pathname || "")
+    .split("/")
+    .filter(Boolean)
+    .join("/")}`;
+  return Object.entries(VIEW_ROUTES).find(
+    ([, route]) => route === normalizedPath,
+  )?.[0];
+}
+
+export function resolveActiveView(actor, preferredView) {
+  const canManageWorkspaces = actor?.platformPermissions?.includes(
+    "platform.workspaces.manage",
+  );
+
+  if (preferredView === "account") return preferredView;
+  if (preferredView === "workspace-admin" && canManageWorkspaces) {
+    return preferredView;
+  }
+
+  if (!actor?.workspaceId) {
+    return canManageWorkspaces ? "workspace-admin" : "account";
+  }
+
+  const preferredNavigationView = [...APP_VIEWS, ...GROUPED_VIEWS].find(
+    ({ key }) => key === preferredView,
+  );
+  if (
+    preferredNavigationView &&
+    (!preferredNavigationView.permission ||
+      actor.permissions?.includes(preferredNavigationView.permission)) &&
+    (!preferredNavigationView.platformPermission ||
+      actor.platformPermissions?.includes(
+        preferredNavigationView.platformPermission,
+      ))
+  ) {
+    return preferredView;
+  }
+
+  return (
+    [...APP_VIEWS, ...GROUPED_VIEWS].find(
+      ({ permission, platformPermission }) =>
+        !platformPermission &&
+        (!permission || actor.permissions?.includes(permission)),
+    )?.key || "account"
+  );
+}
+
 export const ISSUES_PER_PAGE = 25;
 export const DEFAULT_ISSUE_SORT = "-date";
 

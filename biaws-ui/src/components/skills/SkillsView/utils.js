@@ -46,10 +46,65 @@ export function readFileAsBase64(file) {
   });
 }
 
+export function fileSourcePath(file) {
+  return file.relativePath || file.webkitRelativePath || file.name;
+}
+
 export function relativeFilePath(file) {
-  const source = file.webkitRelativePath || file.name;
+  const source = fileSourcePath(file);
   const parts = source.replaceAll("\\", "/").split("/").filter(Boolean);
   return parts.length > 1 ? parts.slice(1).join("/") : parts[0];
+}
+
+function readEntryFile(entry) {
+  return new Promise((resolve, reject) => entry.file(resolve, reject));
+}
+
+function readEntryBatch(reader) {
+  return new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+}
+
+async function readDirectoryEntries(entry) {
+  const reader = entry.createReader();
+  const entries = [];
+  let batch = await readEntryBatch(reader);
+  while (batch.length) {
+    entries.push(...batch);
+    batch = await readEntryBatch(reader);
+  }
+  return entries;
+}
+
+async function filesFromEntry(entry, parentPath = "") {
+  const path = parentPath ? `${parentPath}/${entry.name}` : entry.name;
+  if (entry.isFile) {
+    const file = await readEntryFile(entry);
+    Object.defineProperty(file, "relativePath", {
+      configurable: true,
+      value: path,
+    });
+    return [file];
+  }
+  if (!entry.isDirectory) return [];
+
+  const children = await readDirectoryEntries(entry);
+  const nestedFiles = await Promise.all(
+    children.map((child) => filesFromEntry(child, path)),
+  );
+  return nestedFiles.flat();
+}
+
+export async function filesFromDataTransfer(dataTransfer) {
+  const entries = [...(dataTransfer?.items || [])]
+    .filter((item) => item.kind === "file")
+    .map((item) => item.webkitGetAsEntry?.())
+    .filter(Boolean);
+  if (!entries.length) return [...(dataTransfer?.files || [])];
+
+  const files = await Promise.all(
+    entries.map((entry) => filesFromEntry(entry)),
+  );
+  return files.flat();
 }
 
 export async function buildFiles(fileList) {

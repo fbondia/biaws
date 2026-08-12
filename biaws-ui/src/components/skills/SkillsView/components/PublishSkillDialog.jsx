@@ -3,8 +3,11 @@ import { useState } from "react";
 
 import { publishSkill } from "../../../../api.js";
 import { useLoading } from "../../../shared/LoadingProvider.jsx";
+import { useFileDrop } from "../../../shared/useFileDrop.js";
 import {
   buildFiles,
+  filesFromDataTransfer,
+  fileSourcePath,
   parseSkillFrontmatter,
   relativeFilePath,
 } from "../utils.js";
@@ -21,8 +24,7 @@ export function PublishSkillDialog({ onClose, onPublished }) {
     setDraft((current) => ({ ...current, [field]: value }));
   }
 
-  async function selectDirectory(event) {
-    const selected = [...event.target.files];
+  async function readDirectory(selected) {
     setError("");
     setReading(true);
     try {
@@ -34,8 +36,11 @@ export function PublishSkillDialog({ onClose, onPublished }) {
         if (!skillFile)
           throw new Error("O diretório selecionado não contém SKILL.md");
         const frontmatter = parseSkillFrontmatter(await skillFile.text());
-        const rootName =
-          (skillFile.webkitRelativePath || "").split("/")[0] || "";
+        const sourceParts = fileSourcePath(skillFile)
+          .replaceAll("\\", "/")
+          .split("/")
+          .filter(Boolean);
+        const rootName = sourceParts.length > 1 ? sourceParts[0] : "";
         setDirectoryName(rootName);
         setDraft((current) => ({
           ...current,
@@ -52,6 +57,25 @@ export function PublishSkillDialog({ onClose, onPublished }) {
       setReading(false);
     }
   }
+
+  function selectDirectory(event) {
+    void readDirectory([...(event.target.files || [])]);
+    event.target.value = "";
+  }
+
+  async function dropDirectory(_files, dataTransfer) {
+    try {
+      await readDirectory(await filesFromDataTransfer(dataTransfer));
+    } catch (readError) {
+      setError(readError.message);
+      setDraft((current) => ({ ...current, files: [] }));
+    }
+  }
+
+  const { isDraggingFiles, dropTargetProps } = useFileDrop({
+    disabled: reading || saving,
+    onDropFiles: dropDirectory,
+  });
 
   async function submit(event) {
     event.preventDefault();
@@ -107,7 +131,10 @@ export function PublishSkillDialog({ onClose, onPublished }) {
               {error}
             </div>
           ) : null}
-          <label className="skillDirectoryPicker">
+          <label
+            {...dropTargetProps}
+            className={`skillDirectoryPicker${isDraggingFiles ? " fileDropTargetActive" : ""}`}
+          >
             <FolderOpen size={22} />
             <span>
               <strong>
@@ -116,7 +143,7 @@ export function PublishSkillDialog({ onClose, onPublished }) {
               <small>
                 {draft.files.length
                   ? `${draft.files.length} arquivo(s) selecionado(s)`
-                  : "Inclua SKILL.md, agents, references e demais arquivos"}
+                  : "Arraste a pasta ou clique; inclua SKILL.md e demais arquivos"}
               </small>
             </span>
             <input

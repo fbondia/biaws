@@ -14,6 +14,7 @@ import {
   importEml,
   saveEmlSanitizationConfiguration,
 } from "../../api.js";
+import { useFileDrop } from "../shared/useFileDrop.js";
 
 function RuleEditor({ rules, onChange }) {
   function update(index, patch) {
@@ -135,6 +136,21 @@ export function EmlSanitizationDialog({
     setPreview(null);
   }
 
+  function selectPreviewFiles(files) {
+    const file = files.find(
+      (candidate) =>
+        candidate.name.toLowerCase().endsWith(".eml") ||
+        candidate.type === "message/rfc822",
+    );
+    if (!file && files.length) {
+      setError("Selecione um arquivo EML válido para gerar a prévia.");
+    } else if (file) {
+      setError("");
+    }
+    setPreviewFile(file || null);
+    setPreview(null);
+  }
+
   async function calculatePreview() {
     if (!previewFile || !config || !applicationId) return;
     setPreviewing(true);
@@ -172,6 +188,10 @@ export function EmlSanitizationDialog({
   }
 
   const busy = loading || saving || previewing;
+  const { isDraggingFiles, dropTargetProps } = useFileDrop({
+    disabled: busy,
+    onDropFiles: selectPreviewFiles,
+  });
 
   return (
     <div className="dialogBackdrop sanitizationBackdrop" role="presentation">
@@ -342,12 +362,16 @@ export function EmlSanitizationDialog({
                 </div>
                 <div className="sanitizationPreviewToolbar">
                   <button
-                    className="secondaryButton"
+                    {...dropTargetProps}
+                    className={`secondaryButton${isDraggingFiles ? " fileDropTargetActive" : ""}`}
+                    disabled={busy}
                     onClick={() => previewInputRef.current?.click()}
                     type="button"
                   >
                     <FileSearch size={16} />{" "}
-                    {previewFile ? previewFile.name : "Selecionar EML"}
+                    {previewFile
+                      ? previewFile.name
+                      : "Arraste um EML ou clique para selecionar"}
                   </button>
                   <button
                     className="primaryButton"
@@ -366,8 +390,7 @@ export function EmlSanitizationDialog({
                     accept=".eml,message/rfc822"
                     hidden
                     onChange={(event) => {
-                      setPreviewFile(event.target.files?.[0] || null);
-                      setPreview(null);
+                      selectPreviewFiles([...(event.target.files || [])]);
                       event.target.value = "";
                     }}
                     ref={previewInputRef}

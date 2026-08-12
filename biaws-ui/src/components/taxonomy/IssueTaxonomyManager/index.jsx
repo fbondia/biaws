@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../constants/issues.js";
+import { useFileDrop } from "../../shared/useFileDrop.js";
 import { TaxonomySelector } from "../TaxonomySelector.jsx";
 import { useIssueTaxonomyManager } from "./hooks/useIssueTaxonomyManager.js";
 import { slugify } from "./model.js";
@@ -43,11 +44,16 @@ export function IssueTaxonomyManager() {
     addNode,
     editNode,
     deleteNode,
+    loadTaxonomyFile,
     uploadTaxonomyFile,
     openUploadDialog,
     downloadTaxonomyFile,
     saveCatalog,
   } = useIssueTaxonomyManager();
+  const { isDraggingFiles, dropTargetProps } = useFileDrop({
+    disabled: loading || saving,
+    onDropFiles: (files) => loadTaxonomyFile(files[0]),
+  });
   return (
     <section className="taxonomyPage">
       <div className="taxonomyHero">
@@ -65,13 +71,14 @@ export function IssueTaxonomyManager() {
             Recarregar
           </button>
           <button
-            className="secondaryButton"
+            {...dropTargetProps}
+            className={`secondaryButton${isDraggingFiles ? " fileDropTargetActive" : ""}`}
             disabled={loading || saving}
             type="button"
             onClick={openUploadDialog}
           >
             <Upload size={16} />
-            Enviar arquivo
+            {isDraggingFiles ? "Solte o JSON" : "Enviar ou arrastar JSON"}
           </button>
           <input
             accept="application/json,.json"

@@ -203,8 +203,7 @@ export function useIssueTaxonomyManager() {
     return true;
   }
 
-  async function uploadTaxonomyFile(event) {
-    const file = event.target.files?.[0];
+  async function loadTaxonomyFile(file) {
     if (!file) return;
 
     setError("");
@@ -229,9 +228,12 @@ export function useIssueTaxonomyManager() {
       );
     } catch (uploadError) {
       setError(`Não foi possível carregar o arquivo: ${uploadError.message}`);
-    } finally {
-      event.target.value = "";
     }
+  }
+
+  function uploadTaxonomyFile(event) {
+    void loadTaxonomyFile(event.target.files?.[0]);
+    event.target.value = "";
   }
 
   function openUploadDialog() {
@@ -291,6 +293,7 @@ export function useIssueTaxonomyManager() {
     addNode,
     editNode,
     deleteNode,
+    loadTaxonomyFile,
     uploadTaxonomyFile,
     openUploadDialog,
     downloadTaxonomyFile,

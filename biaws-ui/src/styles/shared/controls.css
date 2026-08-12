@@ -131,6 +131,13 @@
   border-color: var(--palette-neutral-18);
 }
 
+.fileDropTargetActive.fileDropTargetActive {
+  border-color: var(--color-success-action);
+  background: var(--palette-green-02);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+  color: var(--color-success-action-hover);
+}
+
 .dangerButton {
   display: inline-flex;
   align-items: center;

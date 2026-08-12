@@ -1,4 +1,4 @@
-import { Columns3, ListFilter, ListTree } from "lucide-react";
+import { Columns3, Filter, FilterX, ListTree } from "lucide-react";
 
 import { useResourceCollectionNavigator } from "../hooks/useResourceCollectionNavigator.js";
 import { isItemReorderDrop } from "../model.js";
@@ -114,7 +114,12 @@ export function ResourceCollectionNavigator({
             title="Mostrar apenas coleções que possuem itens"
             type="button"
           >
-            <ListFilter aria-hidden="true" size={15} />
+            {navigator.showOnlyPopulated ? (
+              <FilterX aria-hidden="true" size={15} />
+            ) : (
+              <Filter aria-hidden="true" size={15} />
+            )
+            }
           </button>
           <button
             aria-label={

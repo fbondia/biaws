@@ -1,7 +1,8 @@
-import { X } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useState } from "react";
 
 import { createSecret, createSecretFile } from "../../../../api.js";
+import { useFileDrop } from "../../../shared/useFileDrop.js";
 import {
   EMPTY_SECRET_FORM,
   permissionApplicationIds,
@@ -38,9 +39,22 @@ export function CreateSecretDialog({
           (writeScope.workspace || writeScope.applicationIds?.includes(id)),
       );
 
+  function selectFile(files) {
+    setForm((current) => ({ ...current, file: files[0] || null }));
+  }
+
+  const { isDraggingFiles, dropTargetProps } = useFileDrop({
+    disabled: saving,
+    onDropFiles: selectFile,
+  });
+
   async function submit(event) {
     event.preventDefault();
     setError("");
+    if (form.contentKind === "file" && !form.file) {
+      setError("Selecione um arquivo para criar o segredo.");
+      return;
+    }
     setSaving(true);
     try {
       const metadata = {
@@ -166,13 +180,21 @@ export function CreateSecretDialog({
             </select>
           </label>
           {form.contentKind === "file" ? (
-            <label>
-              Arquivo
+            <label
+              {...dropTargetProps}
+              className={`secretFileDropField${isDraggingFiles ? " fileDropTargetActive" : ""}`}
+            >
+              <span>Arquivo</span>
+              <Upload size={18} />
+              <strong>
+                {form.file?.name ||
+                  "Arraste um arquivo ou clique para selecionar"}
+              </strong>
               <input
+                disabled={saving}
                 onChange={(event) =>
-                  setForm({ ...form, file: event.target.files?.[0] || null })
+                  selectFile([...(event.target.files || [])])
                 }
-                required
                 type="file"
               />
               <small>
@@ -203,7 +225,11 @@ export function CreateSecretDialog({
             >
               Cancelar
             </button>
-            <button className="primaryButton" disabled={saving} type="submit">
+            <button
+              className="primaryButton"
+              disabled={saving || (form.contentKind === "file" && !form.file)}
+              type="submit"
+            >
               Criar segredo
             </button>
           </footer>

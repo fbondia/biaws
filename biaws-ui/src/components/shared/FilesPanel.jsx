@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { detailValue, formatBytes, formatDate } from "../../utils/issues.js";
 import { canPreviewFile, FilePreview } from "./FilePreview.jsx";
+import { useFileDrop } from "./useFileDrop.js";
 
 export function FilesPanel({
   canCreate = true,
@@ -36,6 +37,10 @@ export function FilesPanel({
   const [editingTagsId, setEditingTagsId] = useState("");
   const [tagDraft, setTagDraft] = useState("");
   const [savingTagsId, setSavingTagsId] = useState("");
+  const { isDraggingFiles, dropTargetProps } = useFileDrop({
+    disabled: uploading || !canCreate,
+    onDropFiles: upload,
+  });
   const tags = useMemo(() => {
     const counts = new Map();
     for (const file of files) {
@@ -189,13 +194,20 @@ export function FilesPanel({
 
       {canCreate ? (
         <label
-          className={
-            uploading ? "fileUploadBox disabledFileUploadBox" : "fileUploadBox"
-          }
+          {...dropTargetProps}
+          className={[
+            "fileUploadBox",
+            uploading ? "disabledFileUploadBox" : "",
+            isDraggingFiles ? "fileDropTargetActive" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
         >
           <Upload size={20} />
           <strong>
-            {uploading ? "Enviando arquivos..." : "Selecionar arquivos"}
+            {uploading
+              ? "Enviando arquivos..."
+              : "Arraste arquivos ou clique para selecionar"}
           </strong>
           <span>
             Até {maxFiles} arquivos por envio, com até {maxFileSizeMb} MB cada.

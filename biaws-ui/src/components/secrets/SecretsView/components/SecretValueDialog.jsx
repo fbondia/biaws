@@ -1,7 +1,8 @@
-import { X } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useState } from "react";
 
 import { writeSecretFile, writeSecretValue } from "../../../../api.js";
+import { useFileDrop } from "../../../shared/useFileDrop.js";
 
 export function SecretValueDialog({ secret, onClose, onSaved }) {
   const [value, setValue] = useState("");
@@ -10,9 +11,22 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const isPending = secret.provisioningStatus === "pending";
 
+  function selectFile(files) {
+    setFile(files[0] || null);
+  }
+
+  const { isDraggingFiles, dropTargetProps } = useFileDrop({
+    disabled: saving,
+    onDropFiles: selectFile,
+  });
+
   async function submit(event) {
     event.preventDefault();
     setError("");
+    if (secret.contentKind === "file" && !file) {
+      setError("Selecione um arquivo para gravar a nova versão.");
+      return;
+    }
     setSaving(true);
     try {
       const payload =
@@ -55,12 +69,21 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
         <form className="userCreateDialogForm" onSubmit={submit}>
           {error ? <div className="authError">{error}</div> : null}
           {secret.contentKind === "file" ? (
-            <label>
-              {isPending ? "Arquivo" : "Novo arquivo"}
+            <label
+              {...dropTargetProps}
+              className={`secretFileDropField${isDraggingFiles ? " fileDropTargetActive" : ""}`}
+            >
+              <span>{isPending ? "Arquivo" : "Novo arquivo"}</span>
+              <Upload size={18} />
+              <strong>
+                {file?.name || "Arraste um arquivo ou clique para selecionar"}
+              </strong>
               <input
                 autoFocus
-                onChange={(event) => setFile(event.target.files?.[0] || null)}
-                required
+                disabled={saving}
+                onChange={(event) =>
+                  selectFile([...(event.target.files || [])])
+                }
                 type="file"
               />
               <small>
@@ -91,7 +114,11 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
             >
               Cancelar
             </button>
-            <button className="primaryButton" disabled={saving} type="submit">
+            <button
+              className="primaryButton"
+              disabled={saving || (secret.contentKind === "file" && !file)}
+              type="submit"
+            >
               {isPending ? "Provisionar segredo" : "Gravar versão"}
             </button>
           </footer>

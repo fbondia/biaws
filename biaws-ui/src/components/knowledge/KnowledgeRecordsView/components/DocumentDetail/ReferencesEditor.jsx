@@ -63,7 +63,7 @@ export function ReferencesEditor({ disabled, draft, onChange, options }) {
       ))}
       {!disabled ? (
         <button
-          className="secondaryButton"
+          className="primaryButton"
           onClick={() =>
             onChange({
               ...draft,

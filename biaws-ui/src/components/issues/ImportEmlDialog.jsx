@@ -338,7 +338,7 @@ export function ImportEmlDialog({
           <div className="dialogHeaderActions">
             {canConfigureSanitization ? (
               <button
-                className="secondaryButton"
+                className="primaryButton"
                 disabled={busy}
                 onClick={() => setSanitizationOpen(true)}
                 type="button"

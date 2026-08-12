@@ -47,7 +47,7 @@ export function DocumentRevisions({ canUpdate, draft, onSave, revisions }) {
     <div className="dialogForm knowledgeRecordPanel">
       {draft.id && canUpdate ? (
         <button
-          className="secondaryButton"
+          className="primaryButton"
           onClick={() =>
             onSave({
               ...draft,

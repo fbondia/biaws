@@ -52,3 +52,12 @@ export function addDocumentObservation(id, markdown) {
     "POST",
   );
 }
+
+export function replicateDocument(id, destinationWorkspaceId) {
+  return sendJson(
+    `${BASE_PATH}/${encodeURIComponent(id)}/replicate`,
+    { destinationWorkspaceId },
+    undefined,
+    "POST",
+  );
+}

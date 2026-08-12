@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { AuditHistory } from "../../../../shared/AuditHistory.jsx";
 import { MarkdownEditor } from "../../../../shared/MarkdownEditor/index.jsx";
 import { guidelineScope, DOCUMENT_TYPES } from "../../model.js";
@@ -5,6 +7,10 @@ import {
   DocumentObservations,
   DocumentRevisions,
 } from "./DocumentActivityPanels.jsx";
+import {
+  DocumentExportDialog,
+  DocumentReplicationDialog,
+} from "./DocumentActionDialogs.jsx";
 import {
   KnowledgeDocumentReading,
   KnowledgeRecordHeader,
@@ -14,6 +20,7 @@ import { DocumentFilesPanel } from "./DocumentFilesPanel.jsx";
 import { DocumentOverview } from "./DocumentOverview.jsx";
 import { ReferencesEditor } from "./ReferencesEditor.jsx";
 import { useDocumentDetail } from "./hooks/useDocumentDetail.js";
+import { useDocumentExports } from "./hooks/useDocumentExports.js";
 
 export function DocumentDetail({
   canArchive,
@@ -23,14 +30,19 @@ export function DocumentDetail({
   canUpdate,
   canUpdateAttachments,
   catalog,
+  currentWorkspaceId,
   draft,
   onArchive,
   onChange,
   onSave,
   saving,
   taxonomyPackage,
+  workspaces,
 }) {
   const config = DOCUMENT_TYPES[draft.documentType];
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [replicationDialogOpen, setReplicationDialogOpen] = useState(false);
+  const { contentRef, exportMarkdown, exportPdf } = useDocumentExports(draft);
   const {
     addObservation,
     observationDraft,
@@ -75,6 +87,12 @@ export function DocumentDetail({
         draft={draft}
         onArchive={onArchive}
         onClose={() => setShowDetails(false)}
+        onExport={() => setExportDialogOpen(true)}
+        onReplicate={
+          workspaces.some(({ id }) => id !== currentWorkspaceId)
+            ? () => setReplicationDialogOpen(true)
+            : undefined
+        }
         onSave={onSave}
         saving={saving}
         titleId={draft.id ? "knowledgeDetailsDialogTitle" : undefined}
@@ -158,7 +176,14 @@ export function DocumentDetail({
     <>
       <KnowledgeDocumentReading
         config={config}
+        contentRef={contentRef}
         draft={draft}
+        onExport={() => setExportDialogOpen(true)}
+        onReplicate={
+          workspaces.some(({ id }) => id !== currentWorkspaceId)
+            ? () => setReplicationDialogOpen(true)
+            : undefined
+        }
         onShowDetails={() => setShowDetails(true)}
       />
       {showDetails ? (
@@ -172,6 +197,19 @@ export function DocumentDetail({
           {detailsPanel}
         </div>
       ) : null}
+      <DocumentExportDialog
+        onClose={() => setExportDialogOpen(false)}
+        onExportMarkdown={exportMarkdown}
+        onExportPdf={exportPdf}
+        open={exportDialogOpen}
+      />
+      <DocumentReplicationDialog
+        currentWorkspaceId={currentWorkspaceId}
+        documentId={draft.id}
+        onClose={() => setReplicationDialogOpen(false)}
+        open={replicationDialogOpen}
+        workspaces={workspaces}
+      />
     </>
   );
 }

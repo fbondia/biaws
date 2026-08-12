@@ -131,6 +131,32 @@ export function groupItemsByCollection(collections, items) {
   }, new Map());
 }
 
+export function collectionIdsContainingItems(collections = [], items = []) {
+  const byId = new Map(
+    collections.map((collection) => [collection.id, collection]),
+  );
+  const visibleIds = new Set();
+
+  for (const item of items) {
+    let collectionId = String(item.collectionId || "");
+    const visited = new Set();
+    while (collectionId && !visited.has(collectionId)) {
+      visited.add(collectionId);
+      const collection = byId.get(collectionId);
+      if (!collection) break;
+      visibleIds.add(collectionId);
+      collectionId = String(collection.parentId || "");
+    }
+  }
+
+  return visibleIds;
+}
+
+export function populatedCollections(collections = [], items = []) {
+  const visibleIds = collectionIdsContainingItems(collections, items);
+  return collections.filter(({ id }) => visibleIds.has(id));
+}
+
 export function isItemReorderDrop(draggedItem, targetItem, getItemId) {
   if (draggedItem?.type !== "item" || !targetItem) return false;
 

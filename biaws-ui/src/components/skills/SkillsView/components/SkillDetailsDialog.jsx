@@ -3,6 +3,7 @@ import {
   Archive,
   ArrowLeft,
   Code2,
+  CopyPlus,
   Download,
   File,
   X,
@@ -16,12 +17,15 @@ import {
 } from "../../../../api.js";
 import { useLoading } from "../../../shared/LoadingProvider.jsx";
 import { decodePreview, formatBytes, formatDate } from "../utils.js";
+import { SkillReplicationDialog } from "./SkillReplicationDialog.jsx";
 
 export function SkillDetailsDialog({
+  currentWorkspaceId,
   embedded = false,
   skill,
   onClose,
   onChanged,
+  workspaces = [],
 }) {
   const [selectedVersion, setSelectedVersion] = useState(skill.latestVersion);
   const [skillPackage, setSkillPackage] = useState(null);
@@ -29,6 +33,7 @@ export function SkillDetailsDialog({
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState("");
   const [error, setError] = useState("");
+  const [replicationOpen, setReplicationOpen] = useState(false);
   const { runWithLoading } = useLoading();
   const version = skill.versions.find(
     (item) => item.version === selectedVersion,
@@ -158,6 +163,15 @@ export function SkillDetailsDialog({
               >
                 <Download size={15} /> Baixar
               </button>
+              {workspaces.some(({ id }) => id !== currentWorkspaceId) ? (
+                <button
+                  className="secondaryButton"
+                  onClick={() => setReplicationOpen(true)}
+                  type="button"
+                >
+                  <CopyPlus size={15} /> Replicar
+                </button>
+              ) : null}
               {version?.status !== "deprecated" ? (
                 <button
                   className="dangerButton"
@@ -218,7 +232,24 @@ export function SkillDetailsDialog({
     </section>
   );
 
-  if (embedded) return details;
+  const replicationDialog = (
+    <SkillReplicationDialog
+      currentWorkspaceId={currentWorkspaceId}
+      onClose={() => setReplicationOpen(false)}
+      open={replicationOpen}
+      skillId={skill.skillId}
+      version={selectedVersion}
+      workspaces={workspaces}
+    />
+  );
+
+  if (embedded)
+    return (
+      <>
+        {details}
+        {replicationDialog}
+      </>
+    );
 
   return (
     <div
@@ -226,6 +257,7 @@ export function SkillDetailsDialog({
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
     >
       {details}
+      {replicationDialog}
     </div>
   );
 }

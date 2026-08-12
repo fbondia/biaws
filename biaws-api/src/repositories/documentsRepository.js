@@ -146,6 +146,15 @@ export function documentTypeConfig(type) {
   return { ...config, type: normalized };
 }
 
+export function documentReplicationPayload(document = {}) {
+  return {
+    documentType: document.documentType,
+    title: document.title,
+    summary: document.summary,
+    markdown: document.markdown,
+  };
+}
+
 function normalizeStoredDocument(document) {
   if (!document) return null;
   return { ...document, _id: document._id?.toString?.() ?? document._id };
@@ -665,7 +674,8 @@ export async function createDocument(payload = {}, query = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   await ensureIndexes(db);
   const context = await resolveKnowledgeContext(db, payload, null, {
-    applicationRequired: config.applicationRequired,
+    applicationRequired:
+      query.allowWorkspaceContext === true ? false : config.applicationRequired,
     authorizationScope: query.authorizationScope,
     create: true,
   });

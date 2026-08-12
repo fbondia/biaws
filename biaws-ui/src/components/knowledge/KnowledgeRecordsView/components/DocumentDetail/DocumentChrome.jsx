@@ -1,7 +1,22 @@
-import { Archive, Save, Settings2, X } from "lucide-react";
+import { Archive, CopyPlus, Download, Save, Settings2, X } from "lucide-react";
 
 import { MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
 import { DOCUMENT_TABS } from "../../model.js";
+
+function DocumentActionButtons({ onExport, onReplicate }) {
+  return (
+    <>
+      <button className="secondaryButton" onClick={onExport} type="button">
+        <Download size={16} /> Exportar
+      </button>
+      {onReplicate ? (
+        <button className="secondaryButton" onClick={onReplicate} type="button">
+          <CopyPlus size={16} /> Replicar
+        </button>
+      ) : null}
+    </>
+  );
+}
 
 export function KnowledgeRecordHeader({
   canArchive,
@@ -10,6 +25,8 @@ export function KnowledgeRecordHeader({
   draft,
   onArchive,
   onClose,
+  onExport,
+  onReplicate,
   onSave,
   saving,
   titleId,
@@ -29,6 +46,12 @@ export function KnowledgeRecordHeader({
         </div>
       </div>
       <div className="knowledgeRecordActions">
+        {draft.id ? (
+          <DocumentActionButtons
+            onExport={onExport}
+            onReplicate={onReplicate}
+          />
+        ) : null}
         {draft.id && canArchive ? (
           <button className="secondaryButton" onClick={onArchive} type="button">
             <Archive size={16} /> Arquivar
@@ -60,7 +83,14 @@ export function KnowledgeRecordHeader({
   );
 }
 
-export function KnowledgeDocumentReading({ config, draft, onShowDetails }) {
+export function KnowledgeDocumentReading({
+  config,
+  contentRef,
+  draft,
+  onExport,
+  onReplicate,
+  onShowDetails,
+}) {
   const TypeIcon = config.icon;
   return (
     <section className="resourceCollectionContent knowledgeRecordDetail knowledgeDocumentReading">
@@ -76,16 +106,24 @@ export function KnowledgeDocumentReading({ config, draft, onShowDetails }) {
             <h2>{draft.title}</h2>
           </div>
         </div>
-        <button
-          className="knowledgeDetailsButton"
-          onClick={onShowDetails}
-          type="button"
-        >
-          <Settings2 size={15} />
-          Detalhes
-        </button>
+        <div className="knowledgeRecordActions">
+          {/*
+            <DocumentActionButtons
+              onExport={onExport}
+              onReplicate={onReplicate}
+            />
+          */}
+          <button
+            className="knowledgeDetailsButton"
+            onClick={onShowDetails}
+            type="button"
+          >
+            <Settings2 size={15} />
+            Detalhes
+          </button>
+        </div>
       </header>
-      <article className="knowledgeDocumentMarkdown">
+      <article className="knowledgeDocumentMarkdown" ref={contentRef}>
         <MarkdownPreview value={draft.markdown} />
       </article>
     </section>

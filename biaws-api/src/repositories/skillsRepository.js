@@ -181,6 +181,22 @@ export function normalizeSkillPayload(payload = {}) {
   };
 }
 
+export function skillReplicationPayload(skill = {}) {
+  return {
+    skillId: skill.skillId,
+    version: skill.version,
+    name: skill.name,
+    description: skill.description,
+    changelog: skill.changelog,
+    compatibility: skill.compatibility,
+    dependencies: skill.dependencies,
+    files: (skill.files || []).map(({ path, contentBase64 }) => ({
+      path,
+      contentBase64,
+    })),
+  };
+}
+
 async function ensureIndexes(collection) {
   await Promise.all([
     collection.createIndex(
@@ -222,7 +238,10 @@ export async function publishSkill(payload = {}, query = {}) {
     await collection.insertOne({
       ...normalized,
       workspaceId: workspaceId(query),
-      collectionId: String(current?.collectionId || ""),
+      collectionId:
+        query.forceRootCollection === true
+          ? ""
+          : String(current?.collectionId || ""),
       status: "published",
       createdAt: now,
       updatedAt: now,

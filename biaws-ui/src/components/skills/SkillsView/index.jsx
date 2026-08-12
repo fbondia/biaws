@@ -323,10 +323,12 @@ export function SkillsView({ actor }) {
         >
           {selectedSkill ? (
             <SkillDetailsDialog
+              currentWorkspaceId={actor.workspaceId}
               embedded
               onChanged={loadSkills}
               onClose={() => setSelectedSkill(null)}
               skill={selectedSkill}
+              workspaces={actor.workspaces || []}
             />
           ) : (
             <SkillCards

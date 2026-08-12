@@ -217,6 +217,7 @@ export function KnowledgeRecordsView({ actor }) {
             canUpdate={permissions.update || (!draft.id && permissions.create)}
             canUpdateAttachments={permissions.attachments.update}
             catalog={catalog}
+            currentWorkspaceId={actor.workspaceId}
             draft={draft}
             key={draft.id || `new-${draft.documentType}`}
             onArchive={() => archive(draft)}
@@ -224,6 +225,7 @@ export function KnowledgeRecordsView({ actor }) {
             onSave={persist}
             saving={saving}
             taxonomyPackage={taxonomyPackage}
+            workspaces={actor.workspaces || []}
           />
         ) : (
           <KnowledgeRecordList

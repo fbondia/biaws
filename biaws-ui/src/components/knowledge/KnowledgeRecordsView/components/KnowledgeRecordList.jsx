@@ -1,4 +1,4 @@
-import { Archive, BookMarked, Eye, FileText, GripVertical } from "lucide-react";
+import { Archive, BookMarked, FileText, GripVertical } from "lucide-react";
 
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
 import { DOCUMENT_TYPES, statusLabel } from "../model.js";
@@ -7,7 +7,13 @@ function KnowledgeRecordCard({ canArchive, onArchive, onOpen, record }) {
   const config = DOCUMENT_TYPES[record.documentType];
   const TypeIcon = config?.icon || FileText;
   return (
-    <article className="procedureCard draggableProcedureCard">
+    <article className="procedureCard knowledgeRecordCard">
+      <button
+        aria-label={`Abrir ${record.title}`}
+        className="knowledgeRecordOpenButton"
+        onClick={() => onOpen(record)}
+        type="button"
+      />
       <header>
         <div>
           <GripVertical size={15} />
@@ -15,18 +21,13 @@ function KnowledgeRecordCard({ canArchive, onArchive, onOpen, record }) {
           <h2>{record.title}</h2>
         </div>
         <div>
-          <button
-            className="iconButton"
-            onClick={() => onOpen(record)}
-            title="Visualizar"
-            type="button"
-          >
-            <Eye size={16} />
-          </button>
           {canArchive ? (
             <button
               className="iconButton dangerIconButton"
-              onClick={() => onArchive(record)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onArchive(record);
+              }}
               title="Arquivar"
               type="button"
             >

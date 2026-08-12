@@ -151,6 +151,24 @@
   margin-left: auto;
 }
 
+.resourceCollectionHeaderActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+}
+
+.resourceCollectionHeaderActions .iconButton {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+}
+
+.resourceCollectionHeaderActions .activeCollectionHeaderToggle {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
 .resourceCollectionCloseButton {
   width: 30px;
   height: 30px;

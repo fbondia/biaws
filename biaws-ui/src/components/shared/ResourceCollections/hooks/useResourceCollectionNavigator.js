@@ -11,6 +11,7 @@ import {
   buildCollectionTree,
   countItemsByCollection,
   groupItemsByCollection,
+  populatedCollections,
 } from "../model.js";
 
 export function useResourceCollectionNavigator({
@@ -29,6 +30,7 @@ export function useResourceCollectionNavigator({
   const preferenceMutationVersionsRef = useRef(new Map());
   const [dropTargetId, setDropTargetId] = useState(null);
   const [itemDropTargetId, setItemDropTargetId] = useState(null);
+  const [showOnlyPopulated, setShowOnlyPopulated] = useState(false);
   const [viewMode, setViewMode] = useState(() =>
     typeof window !== "undefined" &&
     window.matchMedia("(max-width: 900px)").matches
@@ -39,24 +41,41 @@ export function useResourceCollectionNavigator({
   const [creatingParentId, setCreatingParentId] = useState(null);
   const [creationError, setCreationError] = useState(null);
   const columnsRef = useRef(null);
+  const visibleCollections = useMemo(
+    () =>
+      showOnlyPopulated
+        ? populatedCollections(collections, items)
+        : collections,
+    [collections, items, showOnlyPopulated],
+  );
   const childrenByParent = useMemo(
-    () => buildCollectionTree(collections),
-    [collections],
+    () => buildCollectionTree(visibleCollections),
+    [visibleCollections],
   );
   const itemCounts = useMemo(() => countItemsByCollection(items), [items]);
   const itemsByCollection = useMemo(
-    () => groupItemsByCollection(collections, items),
-    [collections, items],
+    () => groupItemsByCollection(visibleCollections, items),
+    [items, visibleCollections],
   );
   const columnNavigation = useMemo(
     () =>
       buildCollectionColumns(
-        collections,
+        visibleCollections,
         childrenByParent,
         selectedCollectionId,
       ),
-    [childrenByParent, collections, selectedCollectionId],
+    [childrenByParent, selectedCollectionId, visibleCollections],
   );
+
+  useEffect(() => {
+    if (
+      showOnlyPopulated &&
+      selectedCollectionId &&
+      !visibleCollections.some(({ id }) => id === selectedCollectionId)
+    ) {
+      onSelect("");
+    }
+  }, [onSelect, selectedCollectionId, showOnlyPopulated, visibleCollections]);
 
   useEffect(() => {
     const loadVersion = preferenceLoadVersionRef.current + 1;
@@ -214,7 +233,9 @@ export function useResourceCollectionNavigator({
     itemsByCollection,
     setItemDropTargetId,
     setDropTargetId,
+    setShowOnlyPopulated,
     setViewMode,
+    showOnlyPopulated,
     toggleCollection,
     updateCollectionDraft,
     viewMode,

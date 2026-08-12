@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   DOCUMENT_TYPES,
+  documentReplicationPayload,
   documentTypeConfig,
   normalizeDocumentPayload,
 } from "../src/repositories/documentsRepository.js";
@@ -125,4 +126,25 @@ test("document references require unified document ids", () => {
   assert.deepEqual(document.references, [
     { targetDocumentId: "decision-1", relationship: "supported-by" },
   ]);
+});
+
+test("document replication copies only type, title, summary and markdown", () => {
+  const copy = documentReplicationPayload({
+    documentType: "procedure",
+    title: "Publicar API",
+    summary: "Executa a publicação.",
+    markdown: "# Publicação",
+    applicationId: "app-1",
+    affectedComponentIds: ["component-1"],
+    collectionId: "deploy",
+    classification: { primaryTaxonomyId: "operations" },
+    references: [{ targetDocumentId: "doc-2", relationship: "related" }],
+  });
+
+  assert.deepEqual(copy, {
+    documentType: "procedure",
+    title: "Publicar API",
+    summary: "Executa a publicação.",
+    markdown: "# Publicação",
+  });
 });

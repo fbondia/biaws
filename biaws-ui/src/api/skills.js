@@ -39,6 +39,15 @@ export function deprecateSkill(skillId, version, params) {
   );
 }
 
+export function replicateSkill(skillId, version, destinationWorkspaceId) {
+  return sendJson(
+    `/api/skills/${encodeURIComponent(skillId)}/${encodeURIComponent(version)}/replicate`,
+    { destinationWorkspaceId },
+    undefined,
+    "POST",
+  );
+}
+
 export async function downloadSkillPackage(skillId, version) {
   const payload = await fetchSkillPackage(skillId, version);
   const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], {

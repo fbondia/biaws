@@ -95,7 +95,11 @@
 }
 
 .markdownPreview {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 132px;
+  overflow: hidden;
   border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   background: var(--color-surface-subtle);
@@ -168,15 +172,23 @@
 }
 
 .markdownPreview pre {
-  overflow: auto;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-text);
   color: var(--palette-neutral-03);
   padding: 10px;
+  white-space: pre;
 }
 
 .markdownPreview pre code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
   border: 0;
   background: transparent;
   color: inherit;

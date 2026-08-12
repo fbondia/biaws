@@ -1,4 +1,4 @@
-import { Columns3, ListTree } from "lucide-react";
+import { Columns3, ListFilter, ListTree } from "lucide-react";
 
 import { useResourceCollectionNavigator } from "../hooks/useResourceCollectionNavigator.js";
 import { isItemReorderDrop } from "../model.js";
@@ -99,32 +99,50 @@ export function ResourceCollectionNavigator({
           <strong>Coleções</strong>
           <span>Arraste {itemLabel} e coleções para organizar.</span>
         </div>
-        <button
-          aria-label={
-            navigator.viewMode === "tree"
-              ? "Usar navegação em colunas"
-              : "Usar navegação em árvore"
-          }
-          aria-pressed={navigator.viewMode === "columns"}
-          className="iconButton resourceCollectionViewModeToggle"
-          onClick={() =>
-            navigator.setViewMode((current) =>
-              current === "tree" ? "columns" : "tree",
-            )
-          }
-          title={
-            navigator.viewMode === "tree"
-              ? "Visualizar em colunas"
-              : "Visualizar árvore"
-          }
-          type="button"
-        >
-          {navigator.viewMode === "tree" ? (
-            <Columns3 aria-hidden="true" size={15} />
-          ) : (
-            <ListTree aria-hidden="true" size={15} />
-          )}
-        </button>
+        <div className="resourceCollectionHeaderActions">
+          <button
+            aria-label="Mostrar apenas coleções com itens"
+            aria-pressed={navigator.showOnlyPopulated}
+            className={
+              navigator.showOnlyPopulated
+                ? "iconButton activeCollectionHeaderToggle"
+                : "iconButton"
+            }
+            onClick={() =>
+              navigator.setShowOnlyPopulated((current) => !current)
+            }
+            title="Mostrar apenas coleções que possuem itens"
+            type="button"
+          >
+            <ListFilter aria-hidden="true" size={15} />
+          </button>
+          <button
+            aria-label={
+              navigator.viewMode === "tree"
+                ? "Usar navegação em colunas"
+                : "Usar navegação em árvore"
+            }
+            aria-pressed={navigator.viewMode === "columns"}
+            className="iconButton resourceCollectionViewModeToggle"
+            onClick={() =>
+              navigator.setViewMode((current) =>
+                current === "tree" ? "columns" : "tree",
+              )
+            }
+            title={
+              navigator.viewMode === "tree"
+                ? "Visualizar em colunas"
+                : "Visualizar árvore"
+            }
+            type="button"
+          >
+            {navigator.viewMode === "tree" ? (
+              <Columns3 aria-hidden="true" size={15} />
+            ) : (
+              <ListTree aria-hidden="true" size={15} />
+            )}
+          </button>
+        </div>
       </header>
 
       {navigator.viewMode === "tree" ? (

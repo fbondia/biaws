@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   compareSemver,
   normalizeSkillPayload,
+  skillReplicationPayload,
 } from "../src/repositories/skillsRepository.js";
 
 test("normalizes a versioned skill package and calculates checksums", () => {
@@ -51,4 +52,39 @@ test("orders stable, prerelease and major semantic versions", () => {
   assert.ok(compareSemver("1.0.0", "1.0.0-beta.1") > 0);
   assert.ok(compareSemver("2.0.0", "1.99.99") > 0);
   assert.equal(compareSemver("1.2.3", "1.2.3"), 0);
+});
+
+test("skill replication copies the package without operational metadata", () => {
+  const payload = skillReplicationPayload({
+    skillId: "biaws-example",
+    version: "1.2.0",
+    name: "Bondia Example",
+    description: "Example skill",
+    changelog: "Adds replication",
+    compatibility: { codex: ">=1" },
+    dependencies: { tools: ["biaws"] },
+    files: [
+      {
+        path: "SKILL.md",
+        contentBase64: "Y29udGVudA==",
+        sha256: "derived",
+        size: 7,
+      },
+    ],
+    workspaceId: "source",
+    collectionId: "collection",
+    status: "deprecated",
+    createdAt: new Date(),
+  });
+
+  assert.deepEqual(payload, {
+    skillId: "biaws-example",
+    version: "1.2.0",
+    name: "Bondia Example",
+    description: "Example skill",
+    changelog: "Adds replication",
+    compatibility: { codex: ">=1" },
+    dependencies: { tools: ["biaws"] },
+    files: [{ path: "SKILL.md", contentBase64: "Y29udGVudA==" }],
+  });
 });

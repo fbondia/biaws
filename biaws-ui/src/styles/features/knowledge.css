@@ -223,6 +223,65 @@
   gap: 8px;
 }
 
+.knowledgeDocumentModeButton {
+  color: var(--color-text-muted);
+}
+
+.knowledgeDocumentReadingHeader {
+  align-items: flex-start;
+}
+
+.knowledgeDocumentTypeIcon {
+  width: 44px;
+  height: 44px;
+  stroke-width: 1.65;
+}
+
+.knowledgeDetailsButton {
+  display: inline-flex;
+  min-height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.knowledgeDetailsButton:hover,
+.knowledgeDetailsButton:focus-visible {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.knowledgeDetailsButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.knowledgeDocumentMarkdown {
+  width: min(100%, 920px);
+  justify-self: center;
+  padding: clamp(24px, 5vw, 52px);
+}
+
+.knowledgeDocumentMarkdown > .markdownPreview {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
 .knowledgeRecordTabs {
   margin: 0;
   padding: 0 12px;

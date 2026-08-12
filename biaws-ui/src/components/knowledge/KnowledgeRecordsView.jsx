@@ -11,6 +11,7 @@ import {
   Plus,
   Save,
   Scale,
+  Settings2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -253,13 +254,15 @@ function KnowledgeRecordHeader({
   config,
   draft,
   onArchive,
+  onShowDocument,
   onSave,
   saving,
 }) {
+  const TypeIcon = config.icon;
   return (
     <header className="knowledgeRecordHeader">
       <div className="knowledgeRecordTitle">
-        <BookMarked size={20} />
+        <TypeIcon className="knowledgeDocumentTypeIcon" size={44} />
         <div>
           <span
             className={`documentTypeBadge documentType-${draft.documentType}`}
@@ -270,6 +273,16 @@ function KnowledgeRecordHeader({
         </div>
       </div>
       <div className="knowledgeRecordActions">
+        {draft.id ? (
+          <button
+            className="iconButton knowledgeDocumentModeButton"
+            onClick={onShowDocument}
+            title="Voltar ao documento"
+            type="button"
+          >
+            <BookOpen size={16} />
+          </button>
+        ) : null}
         {draft.id && canArchive ? (
           <button className="secondaryButton" onClick={onArchive} type="button">
             <Archive size={16} /> Arquivar
@@ -287,6 +300,38 @@ function KnowledgeRecordHeader({
         ) : null}
       </div>
     </header>
+  );
+}
+
+function KnowledgeDocumentReading({ config, draft, onShowDetails }) {
+  const TypeIcon = config.icon;
+  return (
+    <section className="resourceCollectionContent knowledgeRecordDetail knowledgeDocumentReading">
+      <header className="knowledgeRecordHeader knowledgeDocumentReadingHeader">
+        <div className="knowledgeRecordTitle">
+          <TypeIcon className="knowledgeDocumentTypeIcon" size={44} />
+          <div>
+            <span
+              className={`documentTypeBadge documentType-${draft.documentType}`}
+            >
+              {config.label}
+            </span>
+            <h2>{draft.title}</h2>
+          </div>
+        </div>
+        <button
+          className="knowledgeDetailsButton"
+          onClick={onShowDetails}
+          type="button"
+        >
+          <Settings2 size={15} />
+          Detalhes
+        </button>
+      </header>
+      <article className="knowledgeDocumentMarkdown">
+        <MarkdownPreview value={draft.markdown} />
+      </article>
+    </section>
   );
 }
 
@@ -760,6 +805,7 @@ export function KnowledgeRecordsView({ actor }) {
             canUpdateAttachments={canUpdateAttachments}
             catalog={catalog}
             draft={draft}
+            key={draft.id || `new-${draft.documentType}`}
             onArchive={() => archive(draft)}
             onChange={setDraft}
             onSave={persist}
@@ -798,6 +844,7 @@ function DocumentDetail({
 }) {
   const config = DOCUMENT_TYPES[draft.documentType];
   const [tab, setTab] = useState("overview");
+  const [showDetails, setShowDetails] = useState(!draft.id);
   const [observations, setObservations] = useState([]);
   const [revisions, setRevisions] = useState([]);
   const [observationDraft, setObservationDraft] = useState("");
@@ -870,6 +917,16 @@ function DocumentDetail({
     });
   }
 
+  if (!showDetails) {
+    return (
+      <KnowledgeDocumentReading
+        config={config}
+        draft={draft}
+        onShowDetails={() => setShowDetails(true)}
+      />
+    );
+  }
+
   return (
     <section className="resourceCollectionContent knowledgeRecordDetail">
       <KnowledgeRecordHeader
@@ -878,6 +935,7 @@ function DocumentDetail({
         config={config}
         draft={draft}
         onArchive={onArchive}
+        onShowDocument={() => setShowDetails(false)}
         onSave={onSave}
         saving={saving}
       />

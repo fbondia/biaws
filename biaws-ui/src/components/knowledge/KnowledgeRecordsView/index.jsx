@@ -159,6 +159,7 @@ export function KnowledgeRecordsView({ actor }) {
             itemLabel="documentos"
             items={organizationItems}
             preferenceKey="documents"
+            workspaceId={actor.workspaceId}
             onCreate={collectionsState.createCollection}
             onDelete={collectionsState.removeCollection}
             onArchiveItem={permissions.archive ? archive : undefined}

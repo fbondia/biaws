@@ -1,30 +1,33 @@
 import { runWithGlobalLoading } from "../loadingStore.js";
 
-const API_BASE_URL = (import.meta.env.VITE_ISSUE_API_URL || "").replace(
+const API_BASE_URL = (import.meta.env?.VITE_ISSUE_API_URL || "").replace(
   /\/$/u,
   "",
 );
-const WORKSPACE_STORAGE_KEY = "biaws.currentWorkspaceId";
+const EMPTY_SESSION_CONTEXT = Object.freeze({
+  getWorkspaceId: () => "",
+  onUnauthorized: () => {},
+});
 
-let currentWorkspaceId =
-  window.localStorage.getItem(WORKSPACE_STORAGE_KEY) || "";
+let sessionContext = EMPTY_SESSION_CONTEXT;
 
-export function setCurrentWorkspaceId(workspaceId) {
-  currentWorkspaceId = String(workspaceId || "").trim();
-  if (currentWorkspaceId) {
-    window.localStorage.setItem(WORKSPACE_STORAGE_KEY, currentWorkspaceId);
-  } else {
-    window.localStorage.removeItem(WORKSPACE_STORAGE_KEY);
-  }
-}
+export function configureApiSession({
+  getWorkspaceId = EMPTY_SESSION_CONTEXT.getWorkspaceId,
+  onUnauthorized = EMPTY_SESSION_CONTEXT.onUnauthorized,
+} = {}) {
+  const configuredContext = Object.freeze({ getWorkspaceId, onUnauthorized });
+  sessionContext = configuredContext;
 
-export function getCurrentWorkspaceId() {
-  return currentWorkspaceId;
+  return () => {
+    if (sessionContext === configuredContext) {
+      sessionContext = EMPTY_SESSION_CONTEXT;
+    }
+  };
 }
 
 export function workspaceHeaders(
   headers = {},
-  workspaceId = currentWorkspaceId,
+  workspaceId = sessionContext.getWorkspaceId(),
 ) {
   return {
     ...headers,
@@ -43,9 +46,14 @@ export function buildUrl(path, params = {}) {
   return url;
 }
 
-function reportAuthenticationFailure(response) {
+function reportAuthenticationFailure(response, payload) {
   if (response.status === 401) {
-    window.dispatchEvent(new CustomEvent("biaws:unauthenticated"));
+    sessionContext.onUnauthorized({
+      code: payload.error?.code || payload.code || "UNAUTHENTICATED",
+      reason:
+        payload.error?.message || payload.message || "Authentication required",
+      statusCode: response.status,
+    });
   }
 }
 
@@ -53,7 +61,7 @@ export async function readPayload(response) {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    reportAuthenticationFailure(response);
+    reportAuthenticationFailure(response, payload);
     const deniedPermissions = payload.error?.requiredPermissions || [];
     const error = new Error(
       response.status === 403
@@ -88,15 +96,24 @@ export async function fetchJson(path, params) {
   );
 }
 
-export async function sendJson(path, body, params, method = "PUT") {
+export async function sendJson(
+  path,
+  body,
+  params,
+  method = "PUT",
+  { workspaceId } = {},
+) {
   return runWithGlobalLoading(
     async () => {
       const response = await fetch(buildUrl(path, params), {
         method,
         credentials: "include",
-        headers: workspaceHeaders({
-          "Content-Type": "application/json",
-        }),
+        headers: workspaceHeaders(
+          {
+            "Content-Type": "application/json",
+          },
+          workspaceId,
+        ),
         body: JSON.stringify(body),
       });
       return readPayload(response);

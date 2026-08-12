@@ -16,11 +16,13 @@ export function createRequest(request, params) {
   return sendJson("/api/requests", request, params, "POST");
 }
 
-export function saveRequest(requestId, request, params) {
+export function saveRequest(requestId, request, params, workspaceId) {
   return sendJson(
     `/api/requests/${encodeURIComponent(requestId)}`,
     request,
     params,
+    "PUT",
+    { workspaceId },
   );
 }
 

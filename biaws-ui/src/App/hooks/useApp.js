@@ -24,6 +24,7 @@ import {
   NAVIGATION_GROUPS,
   resolveActiveView,
 } from "../model.js";
+import { createRuntimeOptionListsLoader } from "../runtimeOptionLists.js";
 
 function allowedNavigationView(actor) {
   return ({ permission }) => !permission || hasPermission(actor, permission);
@@ -71,6 +72,7 @@ export function useApp(actor, preferredView) {
   const [runtimeOptionsVersion, setRuntimeOptionsVersion] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const monthTaxonomyRequestId = useRef(0);
+  const runtimeOptionListsLoader = useRef(null);
   const canReadTaxonomy = hasPermission(actor, "taxonomy.read");
   const availableViews = useMemo(
     () =>
@@ -152,17 +154,30 @@ export function useApp(actor, preferredView) {
   }, [activeView, canReadTaxonomy]);
 
   async function loadRuntimeOptionLists() {
-    const payload = await fetchRuntimeOptionLists();
-    configureRequestConstants(payload.items || []);
-    configureIssueConstants(payload.items || []);
-    setRuntimeOptionsVersion((current) => current + 1);
+    return runtimeOptionListsLoader.current?.load() ?? false;
   }
 
   useEffect(() => {
-    loadRuntimeOptionLists().catch(() => {
+    const loader = createRuntimeOptionListsLoader({
+      apply(optionLists) {
+        configureRequestConstants(optionLists);
+        configureIssueConstants(optionLists);
+        setRuntimeOptionsVersion((current) => current + 1);
+      },
+      load: fetchRuntimeOptionLists,
+    });
+    runtimeOptionListsLoader.current = loader;
+    loader.load().catch(() => {
       // Build-time defaults remain available if the runtime catalog cannot be loaded.
     });
-  }, []);
+
+    return () => {
+      loader.dispose();
+      if (runtimeOptionListsLoader.current === loader) {
+        runtimeOptionListsLoader.current = null;
+      }
+    };
+  }, [actor.workspaceId]);
 
   useEffect(() => {
     if (!selectedIssue?.id) return undefined;

@@ -322,6 +322,7 @@ export function ServersView({ actor }) {
             itemLabel="servidores"
             items={servers}
             preferenceKey="servers"
+            workspaceId={actor.workspaceId}
             onCreate={
               canManageCollections
                 ? collectionState.createCollection

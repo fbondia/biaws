@@ -314,6 +314,7 @@ export function SkillsView({ actor }) {
               itemLabel="skills"
               items={result?.items || []}
               preferenceKey="skills"
+              workspaceId={actor.workspaceId}
               onCreate={
                 canManageCollections
                   ? collectionState.createCollection

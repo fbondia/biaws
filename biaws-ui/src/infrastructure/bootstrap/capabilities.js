@@ -1,11 +1,11 @@
 import { defineLoggingAdapter } from "../logging/contract.js";
 import { defineMessagesAdapter } from "../messages/contract.js";
-import { defineSessionAdapter } from "../session/contract.js";
+import { defaultSessionBootstrapAdapter } from "../session/runtime.js";
 
 const defaultAdapters = Object.freeze({
   logging: defineLoggingAdapter(),
   messages: defineMessagesAdapter(),
-  session: defineSessionAdapter(),
+  session: defaultSessionBootstrapAdapter,
 });
 
 function lifecycleCapability({ critical, id, adapter }) {

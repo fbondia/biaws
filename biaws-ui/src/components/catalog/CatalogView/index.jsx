@@ -303,6 +303,7 @@ export function CatalogView({ actor }) {
             itemLabel="aplicações"
             items={applications}
             preferenceKey="applications"
+            workspaceId={actor.workspaceId}
             onCreate={
               canManageCollections
                 ? collectionState.createCollection

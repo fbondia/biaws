@@ -22,7 +22,10 @@ import { hasPermission } from "../../../../permissions.js";
 import { useCatalogOptions } from "../../../catalog/CatalogContextFields.jsx";
 import { useRequestCollaborationActions } from "./useRequestCollaborationActions.js";
 import { useRequestDraftActions } from "./useRequestDraftActions.js";
-import { flushPendingRequestSaves } from "../requestSaveQueue.js";
+import {
+  createPendingRequestSave,
+  flushPendingRequestSaves,
+} from "../requestSaveQueue.js";
 import {
   createDefaultSpecificationSection,
   createSpecificationSection,
@@ -163,7 +166,8 @@ export function useRequestsView(
       void flushPendingRequestSaves({
         timers: saveTimersRef.current,
         pendingRequests: pendingRequestsRef.current,
-        persist: (request) => saveRequest(request.id, request),
+        persist: ({ request, workspaceId }) =>
+          saveRequest(request.id, request, undefined, workspaceId),
       });
     };
   }, []);
@@ -307,7 +311,7 @@ export function useRequestsView(
     setSavingRequestId((current) => (current === requestId ? "" : current));
   }
 
-  async function persistRequest(request, saveVersion) {
+  async function persistRequest(request, saveVersion, workspaceId) {
     if (!request?.id) return;
 
     if (mountedRef.current) {
@@ -316,7 +320,12 @@ export function useRequestsView(
     }
 
     try {
-      const payload = await saveRequest(request.id, request);
+      const payload = await saveRequest(
+        request.id,
+        request,
+        undefined,
+        workspaceId,
+      );
       if (mountedRef.current && payload.request) {
         upsertRequestInList(payload.request);
       }
@@ -336,7 +345,10 @@ export function useRequestsView(
     const existingTimer = saveTimersRef.current.get(request.id);
     if (existingTimer) clearTimeout(existingTimer);
 
-    pendingRequestsRef.current.set(request.id, request);
+    pendingRequestsRef.current.set(
+      request.id,
+      createPendingRequestSave(request, actor.workspaceId),
+    );
     const saveVersion =
       (requestSaveVersionsRef.current.get(request.id) || 0) + 1;
     requestSaveVersionsRef.current.set(request.id, saveVersion);
@@ -345,9 +357,13 @@ export function useRequestsView(
 
     const timeoutId = setTimeout(() => {
       saveTimersRef.current.delete(request.id);
-      const pendingRequest = pendingRequestsRef.current.get(request.id);
+      const pendingSave = pendingRequestsRef.current.get(request.id);
       pendingRequestsRef.current.delete(request.id);
-      void persistRequest(pendingRequest, saveVersion);
+      void persistRequest(
+        pendingSave?.request,
+        saveVersion,
+        pendingSave?.workspaceId,
+      );
     }, REQUEST_SAVE_DEBOUNCE_MS);
 
     saveTimersRef.current.set(request.id, timeoutId);

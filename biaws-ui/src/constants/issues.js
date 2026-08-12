@@ -54,7 +54,15 @@ function replaceOptions(target, items, activeOnly = true) {
   );
 }
 
+export function resetIssueConstants() {
+  replaceOptions(TYPE_OPTIONS, FALLBACK_TYPE_OPTIONS);
+  replaceOptions(ALL_TYPE_OPTIONS, FALLBACK_TYPE_OPTIONS, false);
+  replaceOptions(STATUS_OPTIONS, FALLBACK_STATUS_OPTIONS);
+  replaceOptions(ALL_STATUS_OPTIONS, FALLBACK_STATUS_OPTIONS, false);
+}
+
 export function configureIssueConstants(optionLists = []) {
+  resetIssueConstants();
   const byKey = Object.fromEntries(optionLists.map((list) => [list.key, list]));
 
   if (byKey["issue.type"]) {

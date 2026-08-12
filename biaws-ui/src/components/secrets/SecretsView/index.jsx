@@ -277,6 +277,7 @@ export function SecretsView({ actor }) {
             itemLabel="segredos"
             items={secrets}
             preferenceKey="secrets"
+            workspaceId={actor.workspaceId}
             onCreate={
               permissions.update ? collectionState.createCollection : undefined
             }

@@ -35,7 +35,30 @@ function replaceArray(target, values) {
   target.splice(0, target.length, ...values);
 }
 
+function replaceObject(target, values) {
+  for (const key of Object.keys(target)) delete target[key];
+  Object.assign(target, structuredClone(values));
+}
+
+export function resetRequestConstants() {
+  REQUEST_DEFAULTS.status = FALLBACK_REQUEST_STATUS;
+  REQUEST_DEFAULTS.taskStatus = FALLBACK_TASK_STATUS;
+  replaceArray(REQUEST_CHECKLIST_ITEMS, FALLBACK_CHECKLIST_ITEMS);
+  replaceArray(
+    REQUEST_SPECIFICATION_SECTION_TITLES,
+    FALLBACK_SPECIFICATION_TITLES,
+  );
+  replaceArray(REQUEST_STATUS_OPTIONS, FALLBACK_STATUS_OPTIONS);
+  replaceArray(REQUEST_ALL_STATUS_OPTIONS, FALLBACK_STATUS_OPTIONS);
+  replaceObject(REQUEST_STATUS_COLORS, FALLBACK_STATUS_COLORS);
+  replaceObject(REQUEST_TASK_STATUS_COLORS, FALLBACK_TASK_COLORS);
+  replaceArray(REQUEST_TASK_STATUS_OPTIONS, FALLBACK_TASK_STATUS_OPTIONS);
+  replaceArray(REQUEST_ALL_TASK_STATUS_OPTIONS, FALLBACK_TASK_STATUS_OPTIONS);
+  replaceObject(REQUEST_OPTION_LABELS, {});
+}
+
 export function configureRequestConstants(optionLists = []) {
+  resetRequestConstants();
   const byKey = Object.fromEntries(optionLists.map((list) => [list.key, list]));
   const demandStatuses = activeItems(byKey["demand.status"]);
   const taskStatuses = activeItems(byKey["demand.task-status"]);
@@ -43,8 +66,6 @@ export function configureRequestConstants(optionLists = []) {
   const specificationSections = activeItems(
     byKey["demand.specification-sections"],
   );
-  for (const key of Object.keys(REQUEST_OPTION_LABELS))
-    delete REQUEST_OPTION_LABELS[key];
   for (const list of optionLists) {
     REQUEST_OPTION_LABELS[list.key] = Object.fromEntries(
       (list.items || []).map((item) => [item.value, item.label || item.value]),

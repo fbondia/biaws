@@ -36,6 +36,7 @@ export function ResourceCollectionNavigator({
   onReorderItem,
   preferenceKey,
   renderItem,
+  workspaceId,
 }) {
   const barActionTargets = useResourceCollectionBarActionTargets();
   const navigator = useResourceCollectionNavigator({
@@ -46,6 +47,7 @@ export function ResourceCollectionNavigator({
     onSelect,
     preferenceKey,
     selectedCollectionId,
+    workspaceId,
   });
 
   function canDropOnItem(item) {

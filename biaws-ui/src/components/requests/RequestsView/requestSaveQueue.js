@@ -1,3 +1,10 @@
+export function createPendingRequestSave(request, workspaceId) {
+  return Object.freeze({
+    request,
+    workspaceId: String(workspaceId || "").trim(),
+  });
+}
+
 export function flushPendingRequestSaves({
   timers,
   pendingRequests,

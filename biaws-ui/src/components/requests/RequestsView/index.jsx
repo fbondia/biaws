@@ -234,6 +234,7 @@ export function RequestsView({
               draggedItem.type === "collection" || canManageCollections
             }
             canReorderItem={() => canReorderRequests && !statusFilters.length}
+            workspaceId={actor.workspaceId}
             className="requestCollectionsNavigator"
             collections={collectionState.collections}
             draggedItem={collectionState.draggedItem}

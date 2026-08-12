@@ -1,57 +1,22 @@
 import { LockKeyhole } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import {
-  fetchCurrentActor,
-  getCurrentWorkspaceId,
-  setCurrentWorkspaceId,
-  signIn,
-  signOut,
-} from "../../api.js";
+import { useSession } from "../../infrastructure/session/SessionProvider.jsx";
+import { SESSION_STATUS } from "../../infrastructure/session/service.js";
 
 export function AuthGate({ children }) {
-  const [actor, setActor] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const session = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  async function loadActor() {
-    try {
-      const payload = await fetchCurrentActor();
-      setActor(payload.actor);
-    } catch (loadError) {
-      if (loadError.code === "WORKSPACE_FORBIDDEN" && getCurrentWorkspaceId()) {
-        setCurrentWorkspaceId("");
-        const payload = await fetchCurrentActor();
-        setActor(payload.actor);
-      } else {
-        setActor(null);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadActor();
-    const handleUnauthenticated = () => setActor(null);
-    window.addEventListener("biaws:unauthenticated", handleUnauthenticated);
-    return () =>
-      window.removeEventListener(
-        "biaws:unauthenticated",
-        handleUnauthenticated,
-      );
-  }, []);
 
   async function submit(event) {
     event.preventDefault();
     setSubmitting(true);
     setError("");
     try {
-      await signIn(email, password);
-      await loadActor();
+      await session.signIn({ email, password });
       setPassword("");
     } catch (loginError) {
       setError(loginError.message || "Não foi possível autenticar.");
@@ -60,25 +25,31 @@ export function AuthGate({ children }) {
     }
   }
 
-  async function logout() {
-    try {
-      await signOut();
-    } finally {
-      setActor(null);
-    }
-  }
-
-  async function changeWorkspace(workspaceId) {
-    setCurrentWorkspaceId(workspaceId);
-    setLoading(true);
-    await loadActor();
-  }
-
-  if (loading) {
+  if (session.status === SESSION_STATUS.INITIALIZING) {
     return <div className="authLoading">Validando sessão…</div>;
   }
 
-  if (!actor) {
+  if (session.status === SESSION_STATUS.ERROR) {
+    return (
+      <main className="loginPage">
+        <section className="loginCard" role="alert">
+          <h1>Não foi possível validar a sessão</h1>
+          <p>{session.error.message}</p>
+          <button
+            className="primaryButton"
+            onClick={() => session.refresh()}
+            type="button"
+          >
+            Tentar novamente
+          </button>
+        </section>
+      </main>
+    );
+  }
+
+  if (
+    [SESSION_STATUS.ANONYMOUS, SESSION_STATUS.EXPIRED].includes(session.status)
+  ) {
     return (
       <main className="loginPage">
         <form className="loginCard" onSubmit={submit}>
@@ -89,6 +60,11 @@ export function AuthGate({ children }) {
             <h1>Bondia Workspaces</h1>
             <p>Entre com sua identidade administrativa ou operacional.</p>
           </div>
+          {session.status === SESSION_STATUS.EXPIRED ? (
+            <div className="authError" role="alert">
+              {session.reason || "Sua sessão expirou. Entre novamente."}
+            </div>
+          ) : null}
           <label>
             <span>E-mail</span>
             <input
@@ -123,6 +99,8 @@ export function AuthGate({ children }) {
     );
   }
 
+  const { actor } = session;
+
   if (
     !actor.workspaceId &&
     actor.workspaces?.length > 1 &&
@@ -141,7 +119,7 @@ export function AuthGate({ children }) {
                 className="secondaryButton"
                 key={workspace.id}
                 onClick={async () => {
-                  await changeWorkspace(workspace.id);
+                  await session.switchWorkspace(workspace.id);
                 }}
                 type="button"
               >
@@ -157,7 +135,7 @@ export function AuthGate({ children }) {
 
   return children({
     actor,
-    onSignOut: logout,
-    onWorkspaceChange: changeWorkspace,
+    onSignOut: () => session.signOut().catch(() => {}),
+    onWorkspaceChange: session.switchWorkspace,
   });
 }

@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { flushPendingRequestSaves } from "../src/components/requests/RequestsView/requestSaveQueue.js";
+import {
+  createPendingRequestSave,
+  flushPendingRequestSaves,
+} from "../src/components/requests/RequestsView/requestSaveQueue.js";
 
 test("flushPendingRequestSaves cancela timers e persiste o último rascunho pendente", async () => {
   const timers = new Map([
@@ -54,4 +57,30 @@ test("flushPendingRequestSaves tenta todos os rascunhos mesmo quando uma gravaç
     results.map(({ status }) => status),
     ["rejected", "fulfilled"],
   );
+});
+
+test("pending request save preserves the workspace captured when it was scheduled", async () => {
+  let currentWorkspaceId = "workspace-1";
+  const pendingSave = createPendingRequestSave(
+    { id: "request-1", title: "Rascunho" },
+    currentWorkspaceId,
+  );
+  currentWorkspaceId = "workspace-2";
+  const persisted = [];
+
+  await flushPendingRequestSaves({
+    timers: new Map(),
+    pendingRequests: new Map([["request-1", pendingSave]]),
+    persist: async ({ request, workspaceId }) => {
+      persisted.push({ request, workspaceId });
+    },
+  });
+
+  assert.deepEqual(persisted, [
+    {
+      request: { id: "request-1", title: "Rascunho" },
+      workspaceId: "workspace-1",
+    },
+  ]);
+  assert.equal(currentWorkspaceId, "workspace-2");
 });

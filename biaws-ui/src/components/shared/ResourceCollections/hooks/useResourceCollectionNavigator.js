@@ -4,7 +4,6 @@ import {
   fetchCollectionNavigationPreference,
   updateCollectionNavigationPreference,
 } from "../../../../api/userPreferences.js";
-import { getCurrentWorkspaceId } from "../../../../api/client.js";
 
 import {
   buildCollectionColumns,
@@ -22,6 +21,7 @@ export function useResourceCollectionNavigator({
   onSelect,
   preferenceKey,
   selectedCollectionId,
+  workspaceId,
 }) {
   const [collapsedIds, setCollapsedIds] = useState(() => new Set());
   const collapsedIdsRef = useRef(collapsedIds);
@@ -174,7 +174,6 @@ export function useResourceCollectionNavigator({
     const previousMutation =
       preferenceMutationQueuesRef.current.get(collectionId) ||
       Promise.resolve();
-    const mutationWorkspaceId = getCurrentWorkspaceId();
     const mutation = previousMutation
       .catch(() => undefined)
       .then(() =>
@@ -182,7 +181,7 @@ export function useResourceCollectionNavigator({
           preferenceKey,
           collectionId,
           collapsed,
-          mutationWorkspaceId,
+          workspaceId,
         ),
       );
     preferenceMutationQueuesRef.current.set(collectionId, mutation);

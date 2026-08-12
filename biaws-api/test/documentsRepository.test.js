@@ -33,6 +33,7 @@ test("documents keep type-specific lifecycle states in one model", () => {
 
 test("document payload normalizes its common envelope and typed details", () => {
   const document = normalizeDocumentPayload({
+    identifier: "quality-tests",
     documentType: "guideline",
     title: "Testes semânticos",
     summary: "Orienta a escrita de testes legíveis em termos do domínio.",
@@ -48,6 +49,7 @@ test("document payload normalizes its common envelope and typed details", () => 
   });
 
   assert.equal(document.schemaVersion, 1);
+  assert.equal(document.identifier, "quality-tests");
   assert.equal(document.details.scope, "workspace");
   assert.equal(document.source.mode, "repository");
   assert.deepEqual(document.references, [
@@ -128,8 +130,9 @@ test("document references require unified document ids", () => {
   ]);
 });
 
-test("document replication copies only type, title, summary and markdown", () => {
+test("document replication copies its identifier and replaceable content", () => {
   const copy = documentReplicationPayload({
+    identifier: "publish-api",
     documentType: "procedure",
     title: "Publicar API",
     summary: "Executa a publicação.",
@@ -142,9 +145,37 @@ test("document replication copies only type, title, summary and markdown", () =>
   });
 
   assert.deepEqual(copy, {
-    documentType: "procedure",
+    identifier: "publish-api",
     title: "Publicar API",
     summary: "Executa a publicação.",
     markdown: "# Publicação",
   });
+});
+
+test("document identifier is optional, editable and validated", () => {
+  const current = normalizeDocumentPayload({
+    identifier: "first-identifier",
+    documentType: "guideline",
+    title: "Primeira versão",
+    summary: "Resumo inicial.",
+    markdown: "# Inicial",
+  });
+  const updated = normalizeDocumentPayload(
+    { identifier: "second-identifier" },
+    current,
+  );
+  assert.equal(updated.identifier, "second-identifier");
+  assert.equal(
+    normalizeDocumentPayload({
+      documentType: "guideline",
+      title: "Sem identificador",
+      summary: "Continua sendo um documento válido.",
+      markdown: "# Sem identificador",
+    }).identifier,
+    null,
+  );
+  assert.throws(
+    () => normalizeDocumentPayload({ ...current, identifier: "Inválido id" }),
+    (error) => error.code === "INVALID_RESOURCE_IDENTIFIER",
+  );
 });

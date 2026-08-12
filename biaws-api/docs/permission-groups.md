@@ -42,8 +42,10 @@ reservadas enquanto não existem rotas diretas de anexos de tarefa.
   vínculos de usuários;
 - escopos por aplicação são mapeados pela chave técnica da aplicação e a cópia
   é recusada quando o destino não possui todo o conjunto;
-- grupos de sistema atualizam o grupo correspondente no destino; grupos
-  personalizados preservam a unicidade de nome e não sobrescrevem conflitos.
+- grupos de sistema atualizam o grupo correspondente no destino pelo
+  `systemKey`; grupos personalizados exigem um identificador e são criados ou
+  substituídos por ele. O identificador é opcional para salvar, editável e único
+  dentro do workspace.
 
 A Fase 4 aplica as permissões no backend. A role técnica `admin` permanece apenas
 como requisito interno adicional do Better Auth para administração de

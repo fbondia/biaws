@@ -520,11 +520,15 @@
 }
 
 .knowledgeOverviewTitleField {
-  grid-column: span 8;
+  grid-column: span 5;
+}
+
+.knowledgeOverviewIdentifierField {
+  grid-column: span 4;
 }
 
 .knowledgeOverviewStatusField {
-  grid-column: span 4;
+  grid-column: span 3;
 }
 
 .knowledgeOverviewSummaryField {
@@ -655,6 +659,7 @@
   }
 
   .knowledgeOverviewTitleField,
+  .knowledgeOverviewIdentifierField,
   .knowledgeOverviewStatusField,
   .knowledgeOverviewSummaryField {
     grid-column: 1;

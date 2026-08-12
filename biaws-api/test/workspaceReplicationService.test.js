@@ -120,3 +120,26 @@ test("legacy replication keeps the original top-level response contract", () => 
   assert.equal(response.payload.destinationWorkspace.id, "target");
   assert.equal(response.payload.results[0].data, undefined);
 });
+
+test("destination-specific authorization can choose create or replace context", async () => {
+  const batch = await replicateAcrossWorkspaces({
+    actor: {
+      userId: "user-1",
+      workspaceId: "source",
+      workspaces: [{ id: "target", name: "Target" }],
+    },
+    authorizeDestination: async ({ destinationWorkspaceId }) => ({
+      current: { id: `existing-${destinationWorkspaceId}` },
+    }),
+    payload: { destinationWorkspaceIds: ["target"] },
+    resourceType: "document",
+    resolveAuthorization: async () => ({ workspaceId: "target" }),
+    replicate: async ({ destinationContext }) => ({
+      resource: { id: destinationContext.current.id, type: "document" },
+      status: "replaced",
+    }),
+  });
+
+  assert.equal(batch.results[0].status, "replaced");
+  assert.equal(batch.results[0].resource.id, "existing-target");
+});

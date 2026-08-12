@@ -47,18 +47,28 @@ somente os destinos que falharam.
 
 ## Permissões e regras por recurso
 
-| Recurso              | Leitura na origem | Permissão no destino | Regra de cópia |
-| -------------------- | ----------------- | -------------------- | -------------- |
-| Skill                | `skills.read`     | `skills.publish`     | publica a mesma versão na raiz; nunca sobrescreve versão existente |
-| Documento            | `documents.read`  | `documents.create`   | cria cópia limpa sem coleção, aplicação, classificação ou referências |
-| Grupo de permissões  | `roles.read`      | `roles.manage`       | não copia membros; grupos de sistema atualizam o correspondente e grupos personalizados recusam nome existente |
-| Lista de opções      | `option_lists.read` | `option_lists.manage` | substitui explicitamente a configuração da mesma chave; não altera registros existentes |
+| Recurso             | Leitura na origem   | Permissão no destino                     | Regra de cópia                                                                                                                   |
+| ------------------- | ------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Skill               | `skills.read`       | `skills.publish`                         | publica a mesma versão na raiz; nunca sobrescreve versão existente                                                               |
+| Documento           | `documents.read`    | `documents.create` ou `documents.update` | cria quando o identificador não existe; quando existe, substitui somente título, resumo e Markdown, preservando o contexto local |
+| Grupo de permissões | `roles.read`        | `roles.manage`                           | não copia membros; grupos de sistema usam `systemKey` e grupos personalizados são criados ou substituídos pelo identificador     |
+| Lista de opções     | `option_lists.read` | `option_lists.manage`                    | substitui explicitamente a configuração da mesma chave; não altera registros existentes                                          |
 
-Permissões de destino precisam ter escopo integral de workspace. Em grupos com
-escopo de aplicações, a API mapeia as aplicações pela chave técnica. O destino
-falha sem criar ou ampliar o grupo quando alguma aplicação correspondente não
-existe ou está inativa.
+Documentos e grupos personalizados podem ser salvos sem identificador, mas não
+podem ser replicados enquanto ele não for definido. O identificador é editável,
+único por workspace e segue o formato das chaves do catálogo: letras minúsculas,
+números e hífens simples. Alterá-lo permite associar ou separar manualmente as
+entidades correspondentes entre workspaces.
+
+Novos documentos são criados no escopo geral e sem coleção, classificação ou
+referências. Quando já existe um documento com o mesmo identificador, seu tipo,
+ID interno, contexto, classificação, referências, estado, histórico e demais
+metadados locais são preservados; somente título, resumo e Markdown são
+atualizados.
+
+Em grupos com escopo de aplicações, a API mapeia as aplicações pela chave
+técnica. O destino falha sem criar ou ampliar o grupo quando alguma aplicação
+correspondente não existe ou está inativa.
 
 Listas de opções exigem `conflictPolicy: "replace"` no payload para tornar a
-substituição explícita. Skills e grupos personalizados preservam a política de
-não sobrescrever conflitos.
+substituição explícita. Skills continuam sem sobrescrever versões existentes.

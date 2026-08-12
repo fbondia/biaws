@@ -17,6 +17,7 @@ import {
   replicateAcrossWorkspaces,
   sendReplicationResponse,
 } from "../services/workspaceReplicationService.js";
+import { requireReplicationIdentifier } from "../helpers/resourceIdentifier.js";
 
 export const accessRouter = Router();
 
@@ -97,6 +98,9 @@ accessRouter.post(
         },
       });
       return;
+    }
+    if (!source.system) {
+      requireReplicationIdentifier(source, "grupo personalizado");
     }
     const batch = await replicateAcrossWorkspaces({
       actor: req.actor,

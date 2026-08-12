@@ -154,6 +154,7 @@ test("group replication copies its definition without members or operational met
   assert.deepEqual(
     permissionGroupReplicationPayload({
       id: "group-1",
+      identifier: "support-team",
       name: "Atendimento",
       description: "Acesso aos chamados",
       permissions: ["issues.read"],
@@ -164,11 +165,45 @@ test("group replication copies its definition without members or operational met
       memberIds: ["user-1"],
     }),
     {
+      identifier: "support-team",
       name: "Atendimento",
       description: "Acesso aos chamados",
       permissions: ["issues.read"],
       scope: { type: "workspace", applicationIds: [] },
     },
+  );
+});
+
+test("custom group identifier is optional, editable and validated", () => {
+  const group = normalizeGroupInput({
+    identifier: "support-team",
+    name: "Atendimento",
+    permissions: ["issues.read"],
+  });
+  assert.equal(group.identifier, "support-team");
+  assert.equal(
+    normalizeGroupInput({ name: "Sem chave", permissions: [] }).identifier,
+    null,
+  );
+  assert.equal(
+    normalizeGroupInput(
+      {
+        identifier: "new-team",
+        name: "Atendimento",
+        permissions: ["issues.read"],
+      },
+      { ...group, system: false },
+    ).identifier,
+    "new-team",
+  );
+  assert.throws(
+    () =>
+      normalizeGroupInput({
+        identifier: "Support Team",
+        name: "Inválido",
+        permissions: [],
+      }),
+    (error) => error.code === "INVALID_RESOURCE_IDENTIFIER",
   );
 });
 

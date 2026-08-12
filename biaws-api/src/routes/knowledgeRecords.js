@@ -1,6 +1,9 @@
 import { Router } from "express";
 
 import {
+  actorCanAccessApplication,
+  actorHasPermission,
+  actorHasWorkspaceScope,
   authorizationQuery,
   requireAllPermissions,
 } from "../auth/authorizationMiddleware.js";
@@ -13,6 +16,7 @@ import {
   documentReplicationPayload,
   documentTypeConfig,
   getDocument,
+  getDocumentByIdentifier,
   listDocumentObservations,
   listDocumentRevisions,
   listDocuments,
@@ -26,6 +30,7 @@ import {
   sendReplicationResponse,
 } from "../services/workspaceReplicationService.js";
 import { registerAttachmentRoutes } from "./attachmentRoutes.js";
+import { requireReplicationIdentifier } from "../helpers/resourceIdentifier.js";
 
 export const knowledgeRecordsRouter = Router();
 
@@ -69,6 +74,25 @@ function sendNotFound(res) {
   res.status(404).json({
     error: { code: "DOCUMENT_NOT_FOUND", message: "Documento não encontrado" },
   });
+}
+
+function replicationPermissionError(permission, message) {
+  const error = new Error(message);
+  error.statusCode = 403;
+  error.code = "DESTINATION_DOCUMENT_WRITE_FORBIDDEN";
+  error.requiredPermissions = [permission];
+  return error;
+}
+
+function canUpdateReplicatedDocument(actor, document) {
+  if (!actorHasPermission(actor, "documents.update")) return false;
+  return document.applicationId
+    ? actorCanAccessApplication(
+        actor,
+        "documents.update",
+        document.applicationId,
+      )
+    : actorHasWorkspaceScope(actor, "documents.update");
 }
 
 knowledgeRecordsRouter.get(
@@ -123,31 +147,76 @@ knowledgeRecordsRouter.post(
   asyncHandler(async (req, res) => {
     const source = await currentDocument(req);
     if (!source) return sendNotFound(res);
+    requireReplicationIdentifier(source, "documento");
     const batch = await replicateAcrossWorkspaces({
       actor: req.actor,
+      authorizeDestination: async ({
+        destinationActor,
+        destinationWorkspaceId,
+      }) => {
+        const current = await getDocumentByIdentifier(
+          source.identifier,
+          destinationWorkspaceId,
+        );
+        if (current) {
+          if (!canUpdateReplicatedDocument(destinationActor, current)) {
+            throw replicationPermissionError(
+              "documents.update",
+              "Você não possui permissão para atualizar o documento correspondente neste workspace",
+            );
+          }
+          return { current };
+        }
+        if (
+          !actorHasPermission(destinationActor, "documents.create") ||
+          !actorHasWorkspaceScope(destinationActor, "documents.create")
+        ) {
+          throw replicationPermissionError(
+            "documents.create",
+            "Você não possui permissão para criar documentos gerais neste workspace",
+          );
+        }
+        return { current: null };
+      },
       forbiddenCode: "DESTINATION_DOCUMENT_CREATE_FORBIDDEN",
       forbiddenMessage:
         "Você não possui permissão para criar documentos gerais neste workspace",
       payload: req.body,
       permission: "documents.create",
       resourceType: "document",
-      replicate: async ({ destinationActor }) => {
-        const result = await createDocument(
-          { ...documentReplicationPayload(source), createdBy: actorId(req) },
-          {
-            ...authorizationQuery(destinationActor, "documents.create"),
-            allowWorkspaceContext: true,
-          },
-        );
+      replicate: async ({ destinationActor, destinationContext }) => {
+        const before = destinationContext.current;
+        const result = before
+          ? await updateDocument(
+              before.id,
+              {
+                ...documentReplicationPayload(source),
+                changeSummary: `Conteúdo replicado de ${source.workspaceId}`,
+                updatedBy: actorId(req),
+              },
+              authorizationQuery(destinationActor, "documents.update"),
+            )
+          : await createDocument(
+              {
+                ...documentReplicationPayload(source),
+                documentType: source.documentType,
+                createdBy: actorId(req),
+              },
+              {
+                ...authorizationQuery(destinationActor, "documents.create"),
+                allowWorkspaceContext: true,
+              },
+            );
         const document = result.document;
         await recordAuditEvent({
           actor: destinationActor,
-          action: "created",
+          action: before ? "updated" : "created",
           target: {
             type: "document",
             id: document.id,
             label: document.title,
           },
+          before,
           after: document,
           summary: `Documento replicado de ${source.workspaceId}`,
           metadata: {
@@ -163,7 +232,7 @@ knowledgeRecordsRouter.post(
             label: document.title,
             type: "document",
           },
-          status: "created",
+          status: before ? "replaced" : "created",
         };
       },
     });

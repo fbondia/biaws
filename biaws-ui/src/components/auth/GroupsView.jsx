@@ -25,6 +25,7 @@ function permissionsForScope(permissions, catalog, type) {
 import { useLoading } from "../shared/LoadingProvider.jsx";
 
 const EMPTY_GROUP = {
+  identifier: "",
   name: "",
   description: "",
   permissions: [],
@@ -400,6 +401,22 @@ export function GroupsView({ actor }) {
         </aside>
         {editorOpen ? (
           <form className="securityPanel groupEditor" onSubmit={save}>
+            {!draft.system ? (
+              <label>
+                <span>Identificador</span>
+                <input
+                  disabled={!canManage}
+                  maxLength={80}
+                  onChange={(event) =>
+                    setDraft({ ...draft, identifier: event.target.value })
+                  }
+                  pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  placeholder="exemplo-estavel"
+                  value={draft.identifier || ""}
+                />
+                <small>Usado para localizar o grupo ao replicar.</small>
+              </label>
+            ) : null}
             <label>
               <span>Nome</span>
               <input
@@ -526,8 +543,8 @@ export function GroupsView({ actor }) {
             O nome, a descrição, as permissões e o escopo serão replicados, sem
             copiar membros. Escopos de aplicação são associados por meio do
             identificador das aplicações no destino. Grupos de sistema
-            substituem o grupo correspondente; grupos personalizados não
-            sobrescrevem nomes existentes.
+            substituem o grupo correspondente; grupos personalizados são criados
+            ou substituídos pelo identificador.
           </p>
         }
         eyebrow={draft.name}

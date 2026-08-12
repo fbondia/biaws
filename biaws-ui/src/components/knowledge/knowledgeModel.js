@@ -11,6 +11,7 @@ export function createEmptyDocumentDraft(
   const config = documentTypes[documentType];
   return {
     id: "",
+    identifier: "",
     documentType,
     title: "",
     summary: "",

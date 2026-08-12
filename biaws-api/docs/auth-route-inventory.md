@@ -102,18 +102,18 @@ As rotas atuais não oferecem anexos diretamente em subtarefas; as permissões
 
 ## Documentos
 
-| Método   | Rota                                                                    | Permissão aplicada                                           |
-| -------- | ----------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `GET`    | `/api/knowledge/documents`, `/api/knowledge/documents/:id`              | `documents.read`                                             |
-| `POST`   | `/api/knowledge/documents`, `/api/knowledge/documents/:id/observations` | `documents.create` ou `documents.update`                     |
-| `POST`   | `/api/knowledge/documents/:id/replicate`                                | `documents.read` na origem e `documents.create` nos destinos |
-| `POST`   | `/api/knowledge/documents/:id/attachments`                              | `documents.attachment.create`                                |
-| `GET`    | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.read`                                  |
-| `PATCH`  | `/api/knowledge/documents/:id/attachments/:attachmentId/tags`           | `documents.attachment.update`                                |
-| `DELETE` | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.delete`                                |
-| `PUT`    | `/api/knowledge/documents/:id`                                          | `documents.update`                                           |
-| `PATCH`  | `/api/knowledge/documents/:id/collection`                               | `documents.update`                                           |
-| `DELETE` | `/api/knowledge/documents/:id`                                          | `documents.archive`                                          |
+| Método   | Rota                                                                    | Permissão aplicada                                                                                     |
+| -------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `GET`    | `/api/knowledge/documents`, `/api/knowledge/documents/:id`              | `documents.read`                                                                                       |
+| `POST`   | `/api/knowledge/documents`, `/api/knowledge/documents/:id/observations` | `documents.create` ou `documents.update`                                                               |
+| `POST`   | `/api/knowledge/documents/:id/replicate`                                | `documents.read` na origem; `documents.create` ao criar ou `documents.update` ao substituir no destino |
+| `POST`   | `/api/knowledge/documents/:id/attachments`                              | `documents.attachment.create`                                                                          |
+| `GET`    | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.read`                                                                            |
+| `PATCH`  | `/api/knowledge/documents/:id/attachments/:attachmentId/tags`           | `documents.attachment.update`                                                                          |
+| `DELETE` | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.delete`                                                                          |
+| `PUT`    | `/api/knowledge/documents/:id`                                          | `documents.update`                                                                                     |
+| `PATCH`  | `/api/knowledge/documents/:id/collection`                               | `documents.update`                                                                                     |
+| `DELETE` | `/api/knowledge/documents/:id`                                          | `documents.archive`                                                                                    |
 
 ## Skills
 

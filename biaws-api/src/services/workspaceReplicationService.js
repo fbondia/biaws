@@ -95,6 +95,7 @@ function publicReplicationError(error, context, logger) {
 
 export async function replicateAcrossWorkspaces({
   actor,
+  authorizeDestination,
   forbiddenCode,
   forbiddenMessage,
   logger = apiLogger,
@@ -116,7 +117,19 @@ export async function replicateAcrossWorkspaces({
           workspaceId,
         );
         const destinationActor = { ...actor, ...authorization };
-        if (
+        const workspace = destinationWorkspace(
+          actor,
+          authorization,
+          workspaceId,
+        );
+        let destinationContext = null;
+        if (authorizeDestination) {
+          destinationContext = await authorizeDestination({
+            destinationActor,
+            destinationWorkspace: workspace,
+            destinationWorkspaceId: workspaceId,
+          });
+        } else if (
           !actorHasPermission(destinationActor, permission) ||
           !actorHasWorkspaceScope(destinationActor, permission)
         ) {
@@ -124,13 +137,9 @@ export async function replicateAcrossWorkspaces({
           error.requiredPermissions = [permission];
           throw error;
         }
-        const workspace = destinationWorkspace(
-          actor,
-          authorization,
-          workspaceId,
-        );
         const replicated = await replicate({
           destinationActor,
+          destinationContext,
           destinationWorkspace: workspace,
           destinationWorkspaceId: workspaceId,
         });

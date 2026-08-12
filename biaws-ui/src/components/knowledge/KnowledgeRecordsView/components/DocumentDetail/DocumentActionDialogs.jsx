@@ -85,9 +85,10 @@ export function DocumentReplicationDialog({
       currentWorkspaceId={currentWorkspaceId}
       description={
         <p>
-          Cada cópia levará somente tipo, título, resumo e conteúdo. Ela será
-          criada sem coleção, aplicação, componentes, classificações, tags ou
-          referências.
+          O identificador localiza o documento correspondente em cada destino.
+          Se ele existir, somente título, resumo e conteúdo serão substituídos;
+          tipo, contexto e histórico locais serão preservados. Se não existir,
+          uma nova cópia será criada sem contexto local.
         </p>
       }
       onClose={onClose}

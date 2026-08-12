@@ -21,9 +21,11 @@ podem ser associados quando houver uma aplicação.
 
 ## Contrato
 
-Todos os documentos compartilham título, resumo curto, Markdown, contexto,
-coleção, referências, origem, datas de revisão, autoria e auditoria. Campos
-específicos ficam em `details`, validados por tipo:
+Todos os documentos compartilham um `identifier` técnico opcional e editável,
+título, resumo curto, Markdown, contexto, coleção, referências, origem, datas de
+revisão, autoria e auditoria. O identificador é único dentro do workspace e usa
+letras minúsculas, números e hífens simples. Campos específicos ficam em
+`details`, validados por tipo:
 
 - regra: `ruleCode` e `effectiveFrom`;
 - decisão: `decidedAt`;
@@ -59,9 +61,11 @@ observações são append-only.
 
 As rotas HTTP ficam sob `/api/knowledge/documents` e oferecem listagem, criação,
 leitura, atualização, arquivamento, movimentação, revisões, observações e
-replicação para múltiplos workspaces. A replicação cria uma cópia limpa somente
-com tipo, título, resumo e Markdown; contexto, classificação e referências não
-são transportados. A
+replicação para múltiplos workspaces. Replicar exige um identificador. Quando
+não há correspondência no destino, a API cria uma cópia limpa com o tipo e o
+conteúdo da origem. Quando há correspondência, preserva tipo, ID, contexto,
+classificação, referências, estado e histórico do destino, substituindo somente
+título, resumo e Markdown. A
 permissão `documents.*` é híbrida: pode abranger todo o workspace ou aplicações
 selecionadas.
 

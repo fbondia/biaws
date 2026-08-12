@@ -9,6 +9,10 @@ import {
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
 import { ensureDefaultWorkspace } from "./catalogRepository.js";
+import {
+  normalizeResourceIdentifier,
+  requireReplicationIdentifier,
+} from "../helpers/resourceIdentifier.js";
 
 const GROUPS_COLLECTION = COLLECTION_NAMES.PERMISSION_GROUPS;
 const USER_ACCESS_COLLECTION = COLLECTION_NAMES.WORKSPACE_MEMBERSHIPS;
@@ -266,6 +270,9 @@ export function normalizeGroupInput(payload = {}, current = null) {
 
   const permissions = normalizePermissions(payload.permissions);
   return {
+    identifier: current?.system
+      ? null
+      : normalizeResourceIdentifier(payload.identifier, current?.identifier),
     name,
     normalizedName: normalizedName(name),
     description,
@@ -288,6 +295,7 @@ function normalizeGroup(document) {
   if (!document) return null;
   return {
     id: String(document._id),
+    identifier: document.identifier || null,
     name: document.name,
     description: document.description || "",
     permissions: document.permissions || [],
@@ -387,6 +395,14 @@ async function getCollections() {
       { workspaceId: 1, normalizedName: 1 },
       { unique: true, name: "workspace_group_name_unique" },
     ),
+    groups.createIndex(
+      { workspaceId: 1, identifier: 1 },
+      {
+        unique: true,
+        name: "workspace_group_identifier_unique",
+        partialFilterExpression: { identifier: { $type: "string" } },
+      },
+    ),
     groups.createIndex({ workspaceId: 1, active: 1, name: 1 }),
     userAccess.createIndex(
       { userId: 1, workspaceId: 1 },
@@ -485,6 +501,13 @@ export async function createPermissionGroup(payload, actor) {
     await groups.insertOne(document);
   } catch (error) {
     if (error?.code === 11000) {
+      if (error?.keyPattern?.identifier) {
+        throw createHttpError(
+          409,
+          "GROUP_IDENTIFIER_CONFLICT",
+          "Já existe um grupo com este identificador no workspace",
+        );
+      }
       throw createHttpError(
         409,
         "GROUP_NAME_CONFLICT",
@@ -509,6 +532,7 @@ export function permissionGroupReplicationPayload(
     );
   }
   return {
+    ...(group.identifier ? { identifier: group.identifier } : {}),
     name: group.name,
     description: group.description || "",
     permissions: [...(group.permissions || [])],
@@ -575,12 +599,38 @@ export async function replicatePermissionGroup(group, destinationActor) {
     destinationWorkspaceId,
   );
   const payload = permissionGroupReplicationPayload(group, applicationIds);
-  if (!group.system || !group.systemKey) {
+  if (!group.system) {
+    requireReplicationIdentifier(group, "grupo personalizado");
+    const current = normalizeGroup(
+      await groups.findOne({
+        workspaceId: destinationWorkspaceId,
+        system: { $ne: true },
+        identifier: group.identifier,
+      }),
+    );
+    if (current) {
+      return {
+        before: current,
+        group: await updatePermissionGroup(
+          current.id,
+          payload,
+          destinationActor,
+        ),
+        status: "replaced",
+      };
+    }
     return {
       before: null,
       group: await createPermissionGroup(payload, destinationActor),
       status: "created",
     };
+  }
+  if (!group.systemKey) {
+    throw createHttpError(
+      422,
+      "INVALID_SYSTEM_GROUP",
+      "O grupo de sistema não possui uma chave de correspondência",
+    );
   }
   await ensureWorkspacePermissionGroups(
     destinationWorkspaceId,
@@ -662,6 +712,13 @@ export async function updatePermissionGroup(groupId, payload, actor) {
     return normalizeGroup(result);
   } catch (error) {
     if (error?.code === 11000) {
+      if (error?.keyPattern?.identifier) {
+        throw createHttpError(
+          409,
+          "GROUP_IDENTIFIER_CONFLICT",
+          "Já existe um grupo com este identificador no workspace",
+        );
+      }
       throw createHttpError(
         409,
         "GROUP_NAME_CONFLICT",

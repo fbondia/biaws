@@ -271,6 +271,10 @@ e o mesmo layout mensal `YYYY-MM/<id>/attachments/<arquivo>`.
 Procedimentos, regras de negócio, decisões arquiteturais, guidelines, features e referências
 técnicas compartilham uma coleção e uma API discriminada por `documentType`:
 
+O campo técnico `identifier` é opcional, editável e único por workspace. Ele é
+obrigatório somente para replicação e identifica o documento correspondente em
+outros workspaces.
+
 ```text
 GET    /api/knowledge/documents
 POST   /api/knowledge/documents

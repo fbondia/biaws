@@ -27,6 +27,7 @@ test("createEmptyDocumentDraft cria estado inicial determinístico", () => {
 
   assert.equal(draft.definedAt, "2026-08-10");
   assert.equal(draft.collectionId, "collection-1");
+  assert.equal(draft.identifier, "");
   assert.equal(draft.markdown, "## Regra");
 });
 

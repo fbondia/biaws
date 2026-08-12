@@ -10,6 +10,7 @@ import {
 } from "./knowledgeContextRepository.js";
 import { assertResourceCollection } from "./resourceCollectionsRepository.js";
 import { assertTaxonomyIdsApplicable } from "../helpers/taxonomy.js";
+import { normalizeResourceIdentifier } from "../helpers/resourceIdentifier.js";
 
 export const DOCUMENT_TYPES = Object.freeze({
   "business-rule": Object.freeze({
@@ -148,7 +149,7 @@ export function documentTypeConfig(type) {
 
 export function documentReplicationPayload(document = {}) {
   return {
-    documentType: document.documentType,
+    identifier: document.identifier,
     title: document.title,
     summary: document.summary,
     markdown: document.markdown,
@@ -444,6 +445,10 @@ export function normalizeDocumentPayload(payload = {}, current = null) {
   const reviewChanged =
     lastReviewedAt && lastReviewedAt !== String(current?.lastReviewedAt || "");
   return {
+    identifier: normalizeResourceIdentifier(
+      payload.identifier,
+      current?.identifier,
+    ),
     documentType,
     schemaVersion: 1,
     title,
@@ -483,6 +488,14 @@ async function ensureIndexes(db) {
   const documents = db.collection(COLLECTION_NAMES.DOCUMENTS);
   await Promise.all([
     documents.createIndex({ id: 1 }, { unique: true }),
+    documents.createIndex(
+      { workspaceId: 1, identifier: 1 },
+      {
+        unique: true,
+        name: "workspace_document_identifier_unique",
+        partialFilterExpression: { identifier: { $type: "string" } },
+      },
+    ),
     documents.createIndex({
       workspaceId: 1,
       documentType: 1,
@@ -579,6 +592,7 @@ function textFilter(search) {
   const escaped = search.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   return {
     $or: [
+      { identifier: { $regex: escaped, $options: "i" } },
       { title: { $regex: escaped, $options: "i" } },
       { summary: { $regex: escaped, $options: "i" } },
       { markdown: { $regex: escaped, $options: "i" } },
@@ -668,6 +682,21 @@ export async function getDocument(id, query = {}) {
   };
 }
 
+export async function getDocumentByIdentifier(
+  identifier,
+  workspaceId,
+  query = {},
+) {
+  const db = await getMongoDatabase({ db: query.db, database: query.database });
+  await ensureIndexes(db);
+  return normalizeStoredDocument(
+    await db.collection(COLLECTION_NAMES.DOCUMENTS).findOne({
+      identifier: String(identifier),
+      workspaceId: String(workspaceId),
+    }),
+  );
+}
+
 export async function createDocument(payload = {}, query = {}) {
   const normalized = normalizeDocumentPayload(payload);
   const config = documentTypeConfig(normalized.documentType);
@@ -712,7 +741,18 @@ export async function createDocument(payload = {}, query = {}) {
     updatedAt: now,
     updatedBy: String(payload.createdBy || "biaws-api"),
   };
-  await db.collection(COLLECTION_NAMES.DOCUMENTS).insertOne(document);
+  try {
+    await db.collection(COLLECTION_NAMES.DOCUMENTS).insertOne(document);
+  } catch (error) {
+    if (error?.code === 11000 && error?.keyPattern?.identifier) {
+      throw httpError(
+        409,
+        "DOCUMENT_IDENTIFIER_CONFLICT",
+        "Já existe um documento com este identificador no workspace",
+      );
+    }
+    throw error;
+  }
   await appendRevision(db, document, document.createdBy, "Documento criado");
   return getDocument(document.id, query);
 }
@@ -762,9 +802,20 @@ export async function updateDocument(id, payload = {}, query = {}) {
   );
   const updatedAt = new Date();
   const updatedBy = String(payload.updatedBy || "biaws-api");
-  await db.collection(COLLECTION_NAMES.DOCUMENTS).updateOne(filter, {
-    $set: { ...context, ...normalized, updatedAt, updatedBy },
-  });
+  try {
+    await db.collection(COLLECTION_NAMES.DOCUMENTS).updateOne(filter, {
+      $set: { ...context, ...normalized, updatedAt, updatedBy },
+    });
+  } catch (error) {
+    if (error?.code === 11000 && error?.keyPattern?.identifier) {
+      throw httpError(
+        409,
+        "DOCUMENT_IDENTIFIER_CONFLICT",
+        "Já existe um documento com este identificador no workspace",
+      );
+    }
+    throw error;
+  }
   const document = await db.collection(COLLECTION_NAMES.DOCUMENTS).findOne({
     id: String(id),
     workspaceId: current.workspaceId,

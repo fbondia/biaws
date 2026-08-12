@@ -14,6 +14,20 @@ export function DocumentOverview({
   return (
     <div className="dialogForm knowledgeRecordPanel knowledgeOverviewPanel">
       <section className="knowledgeOverviewCard knowledgeOverviewIdentity">
+        <label className="field knowledgeOverviewIdentifierField">
+          <span>Identificador</span>
+          <input
+            disabled={!canUpdate}
+            maxLength={80}
+            onChange={(event) =>
+              onChange({ ...draft, identifier: event.target.value })
+            }
+            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+            placeholder="exemplo-estavel"
+            value={draft.identifier || ""}
+          />
+          <small>Usado para localizar o documento ao replicar.</small>
+        </label>
         <label className="field knowledgeOverviewTitleField">
           <span>Título</span>
           <input

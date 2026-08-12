@@ -1,6 +1,7 @@
 import { Edit3, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
 import { formatDate, todayDateValue } from "../requestUtils.js";
 import { MarkdownPreview } from "../../shared/MarkdownEditor/index.jsx";
 import { RequestNoteDialog } from "./RequestNoteDialog.jsx";
@@ -19,6 +20,7 @@ export function RequestNotesTab({
   onDeleteNote,
   onUpdateNote,
 }) {
+  const { confirm } = useMessages();
   const [mode, setMode] = useState("");
   const [editingNoteId, setEditingNoteId] = useState("");
   const [draft, setDraft] = useState(draftFromNote({}));
@@ -50,7 +52,10 @@ export function RequestNotesTab({
   }
 
   async function removeNote(note) {
-    const confirmed = window.confirm("Excluir esta anotação?");
+    const confirmed = await confirm({
+      message: "Excluir esta anotação?",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     await onDeleteNote(note.id);

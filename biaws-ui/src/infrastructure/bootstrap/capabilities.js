@@ -1,10 +1,10 @@
 import { defineLoggingAdapter } from "../logging/contract.js";
-import { defineMessagesAdapter } from "../messages/contract.js";
+import { defaultMessagesBootstrapAdapter } from "../messages/runtime.js";
 import { defaultSessionBootstrapAdapter } from "../session/runtime.js";
 
 const defaultAdapters = Object.freeze({
   logging: defineLoggingAdapter(),
-  messages: defineMessagesAdapter(),
+  messages: defaultMessagesBootstrapAdapter,
   session: defaultSessionBootstrapAdapter,
 });
 

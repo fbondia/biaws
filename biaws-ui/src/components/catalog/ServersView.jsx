@@ -26,6 +26,7 @@ import {
   updateServer,
 } from "../../api.js";
 import { hasPermission } from "../../permissions.js";
+import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
 import { AuditHistory } from "../shared/AuditHistory.jsx";
 import { useResourceCollections } from "../shared/useResourceCollections.js";
 import {
@@ -106,6 +107,7 @@ function ServerDialogs({ collectionState, dialog, onPersist, setDialog }) {
 }
 
 export function ServersView({ actor }) {
+  const { confirm } = useMessages();
   const [workspace, setWorkspace] = useState(null);
   const [servers, setServers] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -240,7 +242,7 @@ export function ServersView({ actor }) {
   }
 
   async function archiveServerItem(server) {
-    if (!server || !window.confirm(`Arquivar “${server.name}”?`)) return;
+    if (!server || !(await confirm(`Arquivar “${server.name}”?`))) return;
     try {
       await archiveServer(server.id);
       setSelected(null);
@@ -251,7 +253,7 @@ export function ServersView({ actor }) {
   }
 
   async function restoreServerItem(server) {
-    if (!window.confirm(`Desarquivar “${server.name}”?`)) return;
+    if (!(await confirm(`Desarquivar “${server.name}”?`))) return;
     try {
       await restoreServer(server.id);
       setSelected(null);
@@ -263,9 +265,10 @@ export function ServersView({ actor }) {
 
   async function deleteServerItem(server) {
     if (
-      !window.confirm(
-        `Excluir definitivamente “${server.name}”? Esta ação não pode ser desfeita.`,
-      )
+      !(await confirm({
+        message: `Excluir definitivamente “${server.name}”? Esta ação não pode ser desfeita.`,
+        tone: "danger",
+      }))
     ) {
       return;
     }

@@ -6,7 +6,7 @@ import {
   sendJson,
   workspaceHeaders,
 } from "./client.js";
-import { runWithGlobalLoading } from "../loadingStore.js";
+import { defaultMessagesService } from "../infrastructure/messages/runtime.js";
 
 export function fetchSecrets(params) {
   return fetchJson("/api/secrets", params);
@@ -27,7 +27,7 @@ function secretFileForm(metadata, file) {
 }
 
 async function sendSecretFile(path, method, metadata, file) {
-  return runWithGlobalLoading(
+  return defaultMessagesService.run(
     async () => {
       const response = await fetch(buildUrl(path), {
         method,
@@ -88,7 +88,7 @@ export function copySecretValue(secretId) {
 }
 
 function retrieveSecretValue(secretId, action, loadingLabel) {
-  return runWithGlobalLoading(
+  return defaultMessagesService.run(
     async () => {
       const response = await fetch(
         buildUrl(`/api/secrets/${encodeURIComponent(secretId)}/${action}`),
@@ -108,7 +108,7 @@ function retrieveSecretValue(secretId, action, loadingLabel) {
 }
 
 export function downloadSecretFile(secretId) {
-  return runWithGlobalLoading(
+  return defaultMessagesService.run(
     async () => {
       const response = await fetch(
         buildUrl(`/api/secrets/${encodeURIComponent(secretId)}/download`),

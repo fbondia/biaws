@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
 import {
   createResourceCollection,
   deleteResourceCollection,
@@ -11,6 +12,7 @@ export function useResourceCollections(
   resourceType,
   { onError, onMoved } = {},
 ) {
+  const { confirm } = useMessages();
   const [collections, setCollections] = useState([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState("");
   const [draggedItem, setDraggedItem] = useState(null);
@@ -58,7 +60,13 @@ export function useResourceCollections(
   }
 
   async function removeCollection(collection) {
-    if (!window.confirm(`Excluir a coleção “${collection.name}”?`)) return;
+    if (
+      !(await confirm({
+        message: `Excluir a coleção “${collection.name}”?`,
+        tone: "danger",
+      }))
+    )
+      return;
     try {
       await deleteResourceCollection(resourceType, collection.id);
       if (selectedCollectionId === collection.id) setSelectedCollectionId("");

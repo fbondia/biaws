@@ -1,6 +1,7 @@
 import { CalendarDays, CheckCircle2, Circle, Clock3, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
 import { formatDate, REQUEST_TASK_STATUS_COLORS } from "../requestUtils.js";
 import { REQUEST_DEFAULTS } from "../../../data/requestConstants.js";
 import { RequestTaskDialog } from "./RequestTaskDialog.jsx";
@@ -40,6 +41,7 @@ export function RequestTasksTab({
   onUpdateTaskNote,
   onRequestUpdated,
 }) {
+  const { confirm } = useMessages();
   const [dialogTask, setDialogTask] = useState(null);
 
   useEffect(() => {
@@ -76,7 +78,10 @@ export function RequestTasksTab({
   }
 
   async function deleteTask(task) {
-    const confirmed = window.confirm("Excluir esta tarefa?");
+    const confirmed = await confirm({
+      message: "Excluir esta tarefa?",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     const deleted = await onDeleteTask(task.id);

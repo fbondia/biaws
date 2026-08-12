@@ -11,7 +11,7 @@ import {
   setUserDisabled,
 } from "../../api.js";
 import { hasEveryPermission, hasPermission } from "../../permissions.js";
-import { useLoading } from "../shared/LoadingProvider.jsx";
+import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
 
 function toggleId(values, id) {
   return values.includes(id)
@@ -32,7 +32,7 @@ export function UsersView({ actor }) {
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { runWithLoading } = useLoading();
+  const { prompt, run: runWithLoading } = useMessages();
   const canCreate = hasPermission(actor, "users.create");
   const canDisable = hasPermission(actor, "users.disable");
   const canResetPassword = hasPermission(actor, "users.password.reset");
@@ -103,7 +103,15 @@ export function UsersView({ actor }) {
   }
 
   async function resetPassword(user) {
-    const newPassword = window.prompt(`Nova senha para ${user.email}:`);
+    const newPassword = await prompt({
+      autoComplete: "new-password",
+      confirmLabel: "Redefinir senha",
+      inputLabel: "Nova senha",
+      inputType: "password",
+      message: `Informe a nova senha para ${user.email}.`,
+      required: true,
+      title: "Redefinir senha",
+    });
     if (!newPassword) return;
     try {
       await runWithLoading(async () => {

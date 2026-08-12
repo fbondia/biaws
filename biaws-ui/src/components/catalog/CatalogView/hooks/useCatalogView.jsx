@@ -49,6 +49,7 @@ import {
   updateRuntime,
 } from "../../../../api.js";
 import { hasPermission } from "../../../../permissions.js";
+import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 
 const TABS = [
   { key: "overview", label: "Visão geral", permission: "applications.read" },
@@ -119,6 +120,7 @@ const ENTITY_API = {
 };
 
 export function useCatalogView(actor) {
+  const { confirm } = useMessages();
   const [workspace, setWorkspace] = useState(null);
   const [applications, setApplications] = useState([]);
   const [selectedId, setSelectedId] = useState("");
@@ -329,7 +331,7 @@ export function useCatalogView(actor) {
   }
 
   async function archiveEntity(kind, entity) {
-    if (!window.confirm(`Arquivar “${entity.name}”?`)) return;
+    if (!(await confirm(`Arquivar “${entity.name}”?`))) return;
     setError("");
     try {
       await ENTITY_API[kind].archive(entity.id);
@@ -344,7 +346,7 @@ export function useCatalogView(actor) {
   }
 
   async function restoreEntity(kind, entity) {
-    if (!window.confirm(`Desarquivar “${entity.name}”?`)) return;
+    if (!(await confirm(`Desarquivar “${entity.name}”?`))) return;
     setError("");
     try {
       await ENTITY_API[kind].restore(entity.id);
@@ -360,9 +362,10 @@ export function useCatalogView(actor) {
 
   async function deleteEntity(kind, entity) {
     if (
-      !window.confirm(
-        `Excluir definitivamente “${entity.name}”? Esta ação não pode ser desfeita.`,
-      )
+      !(await confirm({
+        message: `Excluir definitivamente “${entity.name}”? Esta ação não pode ser desfeita.`,
+        tone: "danger",
+      }))
     ) {
       return;
     }
@@ -380,7 +383,7 @@ export function useCatalogView(actor) {
   }
 
   async function archiveApplicationItem(application) {
-    if (!application || !window.confirm(`Arquivar “${application.name}”?`))
+    if (!application || !(await confirm(`Arquivar “${application.name}”?`)))
       return;
     setError("");
     try {
@@ -398,7 +401,7 @@ export function useCatalogView(actor) {
   }
 
   async function restoreArchivedApplication(application) {
-    if (!window.confirm(`Desarquivar “${application.name}”?`)) return;
+    if (!(await confirm(`Desarquivar “${application.name}”?`))) return;
     setError("");
     try {
       await restoreApplication(application.id);
@@ -412,9 +415,10 @@ export function useCatalogView(actor) {
 
   async function deleteArchivedApplication(application) {
     if (
-      !window.confirm(
-        `Excluir definitivamente “${application.name}”? Esta ação não pode ser desfeita.`,
-      )
+      !(await confirm({
+        message: `Excluir definitivamente “${application.name}”? Esta ação não pode ser desfeita.`,
+        tone: "danger",
+      }))
     ) {
       return;
     }

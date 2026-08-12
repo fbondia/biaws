@@ -1,0 +1,128 @@
+.messagesDialogBackdrop {
+  z-index: var(--z-message-dialog);
+}
+
+.messagesDialog {
+  width: min(100%, 480px);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 0 18px 48px var(--color-shadow-medium);
+  color: var(--color-text);
+  padding: 20px;
+}
+
+.messagesDialogHeader,
+.messagesDialogActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.messagesDialogHeader h2,
+.messagesDialog p {
+  margin: 0;
+}
+
+.messagesDialog p {
+  margin-top: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.messagesPromptField {
+  margin-top: 18px;
+}
+
+.messagesDialogActions {
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.messagesNotices {
+  position: fixed;
+  z-index: var(--z-notice);
+  right: 20px;
+  bottom: 20px;
+  display: grid;
+  width: min(380px, calc(100vw - 32px));
+  gap: 10px;
+}
+
+.messagesNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: 0 12px 32px var(--color-shadow-medium);
+  color: var(--color-text-secondary);
+  padding: 12px 14px;
+}
+
+.messagesNotice.is-error {
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
+}
+
+.messagesNotice.is-warning {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-surface-subtle);
+  color: var(--color-warning-text);
+}
+
+.messagesNotice button {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: currentColor;
+  padding: 2px;
+}
+
+.messagesBackgroundStatus {
+  position: fixed;
+  z-index: var(--z-notice);
+  top: 20px;
+  right: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px var(--color-shadow-medium);
+  color: var(--color-text-secondary);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.messagesBackgroundStatus svg {
+  animation: globalLoadingSpin 800ms linear infinite;
+}
+
+@media (max-width: 720px) {
+  .messagesDialog {
+    align-self: center;
+    padding: 18px;
+  }
+
+  .messagesNotices,
+  .messagesBackgroundStatus {
+    right: 16px;
+  }
+
+  .messagesNotices {
+    bottom: 16px;
+  }
+
+  .messagesBackgroundStatus {
+    top: 16px;
+  }
+}

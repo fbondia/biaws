@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
 import { detailValue, formatBytes, formatDate } from "../../utils/issues.js";
 import { canPreviewFile, FilePreview } from "./FilePreview.jsx";
 import { useFileDrop } from "./useFileDrop.js";
@@ -27,6 +28,7 @@ export function FilesPanel({
   onUpdateTags,
   onUpload,
 }) {
+  const { confirm } = useMessages();
   const [uploading, setUploading] = useState(false);
   const [downloadingId, setDownloadingId] = useState("");
   const [message, setMessage] = useState("");
@@ -119,9 +121,10 @@ export function FilesPanel({
 
   async function remove(file) {
     if (
-      !window.confirm(
-        `Excluir permanentemente o arquivo “${file.filename || "anexo"}”?`,
-      )
+      !(await confirm({
+        message: `Excluir permanentemente o arquivo “${file.filename || "anexo"}”?`,
+        tone: "danger",
+      }))
     )
       return;
     const fileId = String(file.id ?? file.index);

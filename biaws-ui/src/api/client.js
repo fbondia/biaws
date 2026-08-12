@@ -1,4 +1,4 @@
-import { runWithGlobalLoading } from "../loadingStore.js";
+import { defaultMessagesService } from "../infrastructure/messages/runtime.js";
 
 const API_BASE_URL = (import.meta.env?.VITE_ISSUE_API_URL || "").replace(
   /\/$/u,
@@ -83,7 +83,7 @@ export async function readPayload(response) {
 }
 
 export async function fetchJson(path, params) {
-  return runWithGlobalLoading(
+  return defaultMessagesService.run(
     async () => {
       const response = await fetch(buildUrl(path, params), {
         credentials: "include",
@@ -103,7 +103,7 @@ export async function sendJson(
   method = "PUT",
   { workspaceId } = {},
 ) {
-  return runWithGlobalLoading(
+  return defaultMessagesService.run(
     async () => {
       const response = await fetch(buildUrl(path, params), {
         method,
@@ -124,7 +124,7 @@ export async function sendJson(
 }
 
 export async function deleteJson(path, params) {
-  return runWithGlobalLoading(
+  return defaultMessagesService.run(
     async () => {
       const response = await fetch(buildUrl(path, params), {
         method: "DELETE",

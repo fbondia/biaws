@@ -19,6 +19,7 @@ import {
   saveRequestTaskNote,
 } from "../../../../api.js";
 import { hasPermission } from "../../../../permissions.js";
+import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 import { useCatalogOptions } from "../../../catalog/CatalogContextFields.jsx";
 import { useRequestCollaborationActions } from "./useRequestCollaborationActions.js";
 import { useRequestDraftActions } from "./useRequestDraftActions.js";
@@ -45,6 +46,7 @@ export function useRequestsView(
   actor,
   { collectionId = "", collections = [] } = {},
 ) {
+  const { confirm } = useMessages();
   const [requests, setRequests] = useState([]);
   const [requestCollectionItems, setRequestCollectionItems] = useState([]);
   const [selectedRequestId, setSelectedRequestId] = useState("");
@@ -471,7 +473,10 @@ export function useRequestsView(
   async function removeSelectedRequest() {
     if (!selectedRequest?.id) return;
 
-    const confirmed = window.confirm("Excluir esta melhoria?");
+    const confirmed = await confirm({
+      message: "Excluir esta melhoria?",
+      tone: "danger",
+    });
     if (!confirmed) return;
 
     const requestId = selectedRequest.id;

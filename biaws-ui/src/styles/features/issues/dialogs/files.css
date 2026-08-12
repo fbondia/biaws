@@ -219,7 +219,7 @@ button.fileTagChip:hover,
 }
 
 .filePreviewBackdrop {
-  z-index: 1200;
+  z-index: var(--z-preview);
 }
 
 .filePreviewDialog {

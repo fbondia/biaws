@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 
+import { dialogKeyboardAction } from "./accessibilityModel.js";
+
 const FOCUSABLE_SELECTOR = [
   "button:not([disabled])",
   "[href]",
@@ -110,6 +112,7 @@ export function AccessibilityProvider({ children }) {
           currentDialog.setAttribute("tabindex", "-1");
         focusFrame = window.requestAnimationFrame(() => {
           const focusTarget =
+            currentDialog.querySelector("[data-dialog-initial-focus]") ||
             currentDialog.querySelector("[autofocus]") ||
             visibleElements(currentDialog, FOCUSABLE_SELECTOR)[0] ||
             currentDialog;
@@ -129,7 +132,7 @@ export function AccessibilityProvider({ children }) {
       const dialog = activeModal();
       if (!dialog) return;
 
-      if (event.key === "Escape") {
+      if (dialogKeyboardAction(event.key) === "cancel") {
         const closeButton = dialog.querySelector(
           '[data-dialog-close], button[aria-label^="Fechar"], button[title="Fechar"]',
         );

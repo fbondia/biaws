@@ -12,12 +12,14 @@ import {
   saveDocument,
 } from "../../../../api.js";
 import { hasPermission } from "../../../../permissions.js";
+import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 import { useCatalogOptions } from "../../../catalog/CatalogContextFields.jsx";
 import { useResourceCollections } from "../../../shared/useResourceCollections.js";
 import { fetchAllDocumentPages } from "../../knowledgeModel.js";
 import { documentPermissions, emptyDraft, normalizedDraft } from "../model.js";
 
 export function useKnowledgeRecordsView(actor) {
+  const { confirm } = useMessages();
   const permissions = documentPermissions(actor);
   const catalog = useCatalogOptions(
     hasPermission(actor, "applications.read") &&
@@ -137,7 +139,7 @@ export function useKnowledgeRecordsView(actor) {
   }
 
   async function archive(record) {
-    if (!window.confirm(`Arquivar “${record.title}”?`)) return;
+    if (!(await confirm(`Arquivar “${record.title}”?`))) return;
     try {
       await archiveDocument(record.id);
       if (draft?.id === record.id) setDraft(null);
@@ -150,9 +152,10 @@ export function useKnowledgeRecordsView(actor) {
   async function remove(record) {
     if (record.status !== "archived") return;
     if (
-      !window.confirm(
-        `Excluir definitivamente “${record.title}”? Esta ação não pode ser desfeita.`,
-      )
+      !(await confirm({
+        message: `Excluir definitivamente “${record.title}”? Esta ação não pode ser desfeita.`,
+        tone: "danger",
+      }))
     ) {
       return;
     }
@@ -167,7 +170,7 @@ export function useKnowledgeRecordsView(actor) {
 
   async function restore(record) {
     if (record.status !== "archived") return;
-    if (!window.confirm(`Desarquivar “${record.title}”?`)) return;
+    if (!(await confirm(`Desarquivar “${record.title}”?`))) return;
     try {
       await restoreDocument(record.id);
       if (draft?.id === record.id) setDraft(null);

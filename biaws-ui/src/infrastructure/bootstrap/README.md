@@ -9,7 +9,7 @@ substitutos em testes.
 1. `logging`: inicializa primeiro e não depende da sessão;
 2. `session`: restaura a identidade antes da aplicação;
 3. `messages`: prepara feedback e loading transversal;
-4. `AccessibilityProvider` → `LoadingProvider` → `SessionProvider` →
+4. `AccessibilityProvider` → `MessagesProvider` → `SessionProvider` →
    `AuthGate`;
 5. aplicação e providers de domínio.
 
@@ -24,8 +24,10 @@ mantém seu próprio contrato, lifecycle e eventual integração com React.
 O adapter padrão de `session` conecta o cliente HTTP ao `SessionService` por
 funções estreitas para workspace e expiração. O service restaura a identidade no
 bootstrap e o `SessionProvider` publica somente o contrato normalizado; o
-`AuthGate` apresenta seus estados. O adapter de `messages` continua como
-placeholder até `CLEAN-03`, e o `LoadingProvider` ainda controla o loading.
+`AuthGate` apresenta seus estados. O adapter padrão de `messages` gerencia o
+lifecycle do serviço usado por `MessagesProvider`, pelo cliente HTTP e pelos
+consumidores de `useMessages`; loading, feedback, confirmação e prompt ficam no
+mesmo contrato sem criar um contexto agregado de infraestrutura.
 
 No descarte, todas as capacidades inicializadas recebem uma tentativa em ordem
 reversa, mesmo quando uma delas falha. O executor agrega essas falhas em um

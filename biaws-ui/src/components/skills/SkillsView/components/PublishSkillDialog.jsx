@@ -2,7 +2,7 @@ import { AlertTriangle, FolderOpen, Upload, X } from "lucide-react";
 import { useState } from "react";
 
 import { publishSkill } from "../../../../api.js";
-import { useLoading } from "../../../shared/LoadingProvider.jsx";
+import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 import { useFileDrop } from "../../../shared/useFileDrop.js";
 import {
   buildFiles,
@@ -18,7 +18,7 @@ export function PublishSkillDialog({ onClose, onPublished }) {
   const [reading, setReading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const { runWithLoading } = useLoading();
+  const { run: runWithLoading } = useMessages();
 
   function update(field, value) {
     setDraft((current) => ({ ...current, [field]: value }));

@@ -11,6 +11,7 @@
 @import "./styles/shared/catalog-context.css";
 @import "./styles/features/issues/filters.css";
 @import "./styles/shared/controls.css";
+@import "./styles/shared/messages.css";
 @import "./styles/shared/replication-dialog.css";
 @import "./styles/features/issues/summary.css";
 @import "./styles/features/issues/list.css";

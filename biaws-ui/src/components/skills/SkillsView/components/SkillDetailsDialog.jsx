@@ -15,7 +15,7 @@ import {
   downloadSkillPackage,
   fetchSkillPackage,
 } from "../../../../api.js";
-import { useLoading } from "../../../shared/LoadingProvider.jsx";
+import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 import { decodePreview, formatBytes, formatDate } from "../utils.js";
 import { SkillReplicationDialog } from "./SkillReplicationDialog.jsx";
 
@@ -34,7 +34,7 @@ export function SkillDetailsDialog({
   const [actionLoading, setActionLoading] = useState("");
   const [error, setError] = useState("");
   const [replicationOpen, setReplicationOpen] = useState(false);
-  const { runWithLoading } = useLoading();
+  const { confirm, run: runWithLoading } = useMessages();
   const version = skill.versions.find(
     (item) => item.version === selectedVersion,
   );
@@ -69,7 +69,7 @@ export function SkillDetailsDialog({
   const preview = useMemo(() => decodePreview(activeFile), [activeFile]);
 
   async function deprecate() {
-    if (!window.confirm(`Descontinuar ${skill.skillId}@${selectedVersion}?`))
+    if (!(await confirm(`Descontinuar ${skill.skillId}@${selectedVersion}?`)))
       return;
     setActionLoading("deprecate");
     setError("");

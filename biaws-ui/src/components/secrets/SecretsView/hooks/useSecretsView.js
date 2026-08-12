@@ -11,9 +11,11 @@ import {
   restoreSecret,
 } from "../../../../api.js";
 import { hasEveryPermission, hasPermission } from "../../../../permissions.js";
+import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 import { canActOnSecret } from "../model.js";
 
 export function useSecretsView(actor) {
+  const { confirm } = useMessages();
   const [secrets, setSecrets] = useState([]);
   const [applications, setApplications] = useState([]);
   const [error, setError] = useState("");
@@ -118,7 +120,7 @@ export function useSecretsView(actor) {
   }
 
   async function archive(secret) {
-    if (!window.confirm(`Arquivar o segredo “${secret.name}”?`)) return false;
+    if (!(await confirm(`Arquivar o segredo “${secret.name}”?`))) return false;
     setError("");
     try {
       await archiveSecret(secret.id);
@@ -132,7 +134,7 @@ export function useSecretsView(actor) {
   }
 
   async function restore(secret) {
-    if (!window.confirm(`Desarquivar o segredo “${secret.name}”?`))
+    if (!(await confirm(`Desarquivar o segredo “${secret.name}”?`)))
       return false;
     setError("");
     try {
@@ -147,9 +149,10 @@ export function useSecretsView(actor) {
 
   async function remove(secret) {
     if (
-      !window.confirm(
-        `Excluir definitivamente o segredo “${secret.name}”? Todas as versões cifradas serão removidas e esta ação não poderá ser desfeita.`,
-      )
+      !(await confirm({
+        message: `Excluir definitivamente o segredo “${secret.name}”? Todas as versões cifradas serão removidas e esta ação não poderá ser desfeita.`,
+        tone: "danger",
+      }))
     ) {
       return false;
     }

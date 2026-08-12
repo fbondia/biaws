@@ -22,7 +22,7 @@ function permissionsForScope(permissions, catalog, type) {
       catalog.find((permission) => permission.id === id)?.scope !== "workspace",
   );
 }
-import { useLoading } from "../shared/LoadingProvider.jsx";
+import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
 
 const EMPTY_GROUP = {
   identifier: "",
@@ -218,7 +218,7 @@ export function GroupsView({ actor }) {
   const [saving, setSaving] = useState(false);
   const [replicationOpen, setReplicationOpen] = useState(false);
   const permissionCategoriesId = useId();
-  const { runWithLoading } = useLoading();
+  const { run: runWithLoading } = useMessages();
   const canManage = hasPermission(actor, "roles.manage");
 
   const domains = useMemo(

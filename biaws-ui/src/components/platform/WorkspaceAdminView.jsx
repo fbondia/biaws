@@ -26,6 +26,7 @@ import {
   setPlatformWorkspaceMember,
   updatePlatformWorkspace,
 } from "../../api.js";
+import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
 
 const EMPTY_FORM = {
   key: "",
@@ -463,6 +464,7 @@ function WorkspaceDetail({ onTabChange, selected, tab, ...tabProps }) {
 }
 
 export function WorkspaceAdminView({ actor }) {
+  const { confirm, prompt } = useMessages();
   const detailRequestId = useRef(0);
   const [workspaces, setWorkspaces] = useState([]);
   const [selectedId, setSelectedId] = useState("");
@@ -580,9 +582,13 @@ export function WorkspaceAdminView({ actor }) {
   async function changeStatus() {
     try {
       if (selected.status === "active") {
-        const confirmation = window.prompt(
-          `Digite “${selected.name}” para arquivar:`,
-        );
+        const confirmation = await prompt({
+          confirmLabel: "Arquivar workspace",
+          inputLabel: "Nome do workspace",
+          message: `Digite “${selected.name}” para arquivar.`,
+          required: true,
+          title: "Arquivar workspace",
+        });
         if (confirmation === null) return;
         await archivePlatformWorkspace(selected.id, confirmation);
       } else {
@@ -612,9 +618,10 @@ export function WorkspaceAdminView({ actor }) {
 
   async function removeMember(member) {
     if (
-      !window.confirm(
-        `Remover ${member.email || member.userId} deste workspace?`,
-      )
+      !(await confirm({
+        message: `Remover ${member.email || member.userId} deste workspace?`,
+        tone: "danger",
+      }))
     )
       return;
     try {

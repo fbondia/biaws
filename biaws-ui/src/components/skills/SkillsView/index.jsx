@@ -24,7 +24,7 @@ import {
   ResourceCollectionNavigator,
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections/index.jsx";
-import { useLoading } from "../../shared/LoadingProvider.jsx";
+import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { PublishSkillDialog } from "./components/PublishSkillDialog.jsx";
 import { SkillDetailsDialog } from "./components/SkillDetailsDialog.jsx";
@@ -193,7 +193,7 @@ export function SkillsView({ actor }) {
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [selectedSkillIds, setSelectedSkillIds] = useState([]);
   const [bulkReplicationOpen, setBulkReplicationOpen] = useState(false);
-  const { runWithLoading } = useLoading();
+  const { run: runWithLoading } = useMessages();
   const collectionState = useResourceCollections("skills", {
     onError: setError,
     onMoved: loadSkills,

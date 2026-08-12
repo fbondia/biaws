@@ -319,8 +319,10 @@
 
   --z-dropdown: 20;
   --z-dialog: 40;
-  --z-preview: 50;
-  --z-loading: 60;
+  --z-preview: 1200;
+  --z-message-dialog: 1210;
+  --z-loading: 1220;
+  --z-notice: 1230;
 
   color: var(--color-text);
   background: var(--color-background);

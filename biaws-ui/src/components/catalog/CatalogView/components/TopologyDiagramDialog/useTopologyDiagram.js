@@ -16,6 +16,7 @@ import {
   updateTopologyDiagram,
 } from "../../../../../api.js";
 import { hasPermission } from "../../../../../permissions.js";
+import { useMessages } from "../../../../../infrastructure/messages/MessagesProvider.jsx";
 import {
   automaticTopologyHandles,
   buildTopologyGraph,
@@ -47,6 +48,7 @@ function diagramSummary(diagram) {
 }
 
 export function useTopologyDiagram({ actor, context, onClose }) {
+  const { confirm } = useMessages();
   const [diagrams, setDiagrams] = useState([]);
   const [diagram, setDiagram] = useState(null);
   const [selectedId, setSelectedId] = useState("");
@@ -370,30 +372,30 @@ export function useTopologyDiagram({ actor, context, onClose }) {
     }
   }
 
-  function requestClose() {
+  async function requestClose() {
     if (
       dirty &&
-      !window.confirm("Descartar as alterações não salvas deste gráfico?")
+      !(await confirm("Descartar as alterações não salvas deste gráfico?"))
     ) {
       return;
     }
     onClose();
   }
 
-  function selectDiagram(diagramId) {
+  async function selectDiagram(diagramId) {
     if (
       dirty &&
-      !window.confirm("Descartar as alterações não salvas deste gráfico?")
+      !(await confirm("Descartar as alterações não salvas deste gráfico?"))
     ) {
       return;
     }
     void openDiagram(diagramId);
   }
 
-  function startCreating() {
+  async function startCreating() {
     if (
       dirty &&
-      !window.confirm("Descartar as alterações não salvas deste gráfico?")
+      !(await confirm("Descartar as alterações não salvas deste gráfico?"))
     ) {
       return;
     }

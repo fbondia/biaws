@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { AuthGate } from "../../components/auth/AuthGate.jsx";
 import { AccessibilityProvider } from "../../components/shared/AccessibilityProvider.jsx";
-import { LoadingProvider } from "../../components/shared/LoadingProvider.jsx";
+import { MessagesProvider } from "../messages/MessagesProvider.jsx";
 import { SessionProvider } from "../session/SessionProvider.jsx";
 import {
   BOOTSTRAP_STATUS,
@@ -71,11 +71,11 @@ export function InfrastructureProvider({
 
   return (
     <AccessibilityProvider>
-      <LoadingProvider>
+      <MessagesProvider>
         <SessionProvider>
           <AuthGate>{children}</AuthGate>
         </SessionProvider>
-      </LoadingProvider>
+      </MessagesProvider>
     </AccessibilityProvider>
   );
 }

@@ -26,7 +26,7 @@ button:disabled {
 
 .globalLoading {
   position: fixed;
-  z-index: 1000;
+  z-index: var(--z-loading);
   inset: 0;
   display: grid;
   place-items: center;

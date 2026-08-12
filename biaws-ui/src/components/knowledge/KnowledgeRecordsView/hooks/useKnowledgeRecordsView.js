@@ -32,6 +32,7 @@ export function useKnowledgeRecordsView(actor) {
   const [search, setSearch] = useState("");
   const [applicationFilter, setApplicationFilter] = useState("");
   const [componentFilter, setComponentFilter] = useState("");
+  const [includeArchived, setIncludeArchived] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -48,6 +49,7 @@ export function useKnowledgeRecordsView(actor) {
     applicationValue = applicationFilter,
     componentValue = componentFilter,
     typeValue = typeFilter,
+    includeArchivedValue = includeArchived,
   ) {
     const loadVersion = loadVersionRef.current + 1;
     loadVersionRef.current = loadVersion;
@@ -59,6 +61,7 @@ export function useKnowledgeRecordsView(actor) {
         documentType: typeValue,
         applicationId: applicationValue,
         componentId: componentValue,
+        includeArchived: includeArchivedValue,
       });
       if (!mountedRef.current || loadVersion !== loadVersionRef.current) return;
       const loaded = payload.items || [];
@@ -87,8 +90,14 @@ export function useKnowledgeRecordsView(actor) {
   }, []);
 
   useEffect(() => {
-    void load("", "", "", typeFilter);
-  }, [typeFilter]);
+    void load(
+      search,
+      applicationFilter,
+      componentFilter,
+      typeFilter,
+      includeArchived,
+    );
+  }, [applicationFilter, componentFilter, includeArchived, typeFilter]);
 
   useEffect(() => {
     if (!hasPermission(actor, "taxonomy.read")) return;
@@ -195,6 +204,7 @@ export function useKnowledgeRecordsView(actor) {
     creating,
     draft,
     error,
+    includeArchived,
     load,
     loading,
     moveItem,
@@ -211,6 +221,7 @@ export function useKnowledgeRecordsView(actor) {
     setComponentFilter,
     setCreateType,
     setDraft,
+    setIncludeArchived,
     setSearch,
     startCreating,
     taxonomyPackage,

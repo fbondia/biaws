@@ -331,19 +331,10 @@ export function ServersView({ actor }) {
         toolbar={
           selected ? null : (
             <ResourceCollectionSearch
-              additionalFilters={
-                <label className="checkItem compactCheckItem">
-                  <input
-                    checked={includeArchived}
-                    onChange={(event) =>
-                      setIncludeArchived(event.target.checked)
-                    }
-                    type="checkbox"
-                  />
-                  <span>Arquivados</span>
-                </label>
-              }
+              archivedItemsLabel="servidores arquivados"
+              includeArchived={includeArchived}
               loading={loading}
+              onIncludeArchivedChange={setIncludeArchived}
               onRefresh={() => loadList()}
               onSearch={() => loadList()}
               onSearchChange={setSearch}

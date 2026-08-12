@@ -348,19 +348,10 @@ export function CatalogView({ actor }) {
         toolbar={
           selectedId ? null : (
             <ResourceCollectionSearch
-              additionalFilters={
-                <label className="checkItem compactCheckItem">
-                  <input
-                    checked={includeArchived}
-                    onChange={(event) =>
-                      setIncludeArchived(event.target.checked)
-                    }
-                    type="checkbox"
-                  />
-                  <span>Arquivadas</span>
-                </label>
-              }
+              archivedItemsLabel="aplicações arquivadas"
+              includeArchived={includeArchived}
               loading={loading}
+              onIncludeArchivedChange={setIncludeArchived}
               onRefresh={() => loadApplications()}
               onSearch={() => loadApplications()}
               onSearchChange={setSearch}

@@ -43,6 +43,7 @@ export function KnowledgeRecordsView({ actor }) {
     creating,
     draft,
     error,
+    includeArchived,
     load,
     loading,
     moveItem,
@@ -59,6 +60,7 @@ export function KnowledgeRecordsView({ actor }) {
     setComponentFilter,
     setCreateType,
     setDraft,
+    setIncludeArchived,
     setSearch,
     startCreating,
     taxonomyPackage,
@@ -68,23 +70,6 @@ export function KnowledgeRecordsView({ actor }) {
 
   return (
     <section className="proceduresView contentBand knowledgeRecordsView">
-      <div aria-label="Tipo de documento" className="documentTypeSelector">
-        {TYPE_FILTERS.map(([value, label, Icon]) => (
-          <button
-            aria-pressed={typeFilter === value}
-            className={
-              typeFilter === value
-                ? "documentTypeOption active"
-                : "documentTypeOption"
-            }
-            key={value || "all"}
-            onClick={() => selectTypeFilter(value)}
-            type="button"
-          >
-            <Icon size={16} /> {label}
-          </button>
-        ))}
-      </div>
       <div className="proceduresToolbar documentCreateToolbar">
         <div />
         {permissions.create ? (
@@ -98,29 +83,6 @@ export function KnowledgeRecordsView({ actor }) {
             </button>
           </div>
         ) : null}
-      </div>
-      <div className="procedureFiltersBox">
-        <div className="procedureFiltersForm">
-          {catalog.applications.length ? (
-            <CatalogFilterFields
-              applicationId={applicationFilter}
-              applications={catalog.applications}
-              componentId={componentFilter}
-              components={catalog.components}
-              onChange={(field, value) => {
-                if (field === "applicationId") setApplicationFilter(value);
-                if (field === "componentId") setComponentFilter(value);
-              }}
-            />
-          ) : null}
-          <button
-            className="secondaryButton"
-            onClick={() => load()}
-            type="button"
-          >
-            Filtrar
-          </button>
-        </div>
       </div>
       {error ? (
         <div className="errorBox" role="alert">
@@ -192,7 +154,45 @@ export function KnowledgeRecordsView({ actor }) {
         toolbar={
           draft || creating ? null : (
             <ResourceCollectionSearch
+              additionalFilters={
+                <>
+                  <label className="documentTypeFilter">
+                    <span className="srOnly">Tipo de documento</span>
+                    <select
+                      aria-label="Tipo de documento"
+                      onChange={(event) => selectTypeFilter(event.target.value)}
+                      value={typeFilter}
+                    >
+                      {TYPE_FILTERS.map(([value, label]) => (
+                        <option key={value || "all"} value={value}>
+                          {value ? label : "Todos os tipos"}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {catalog.applications.length ? (
+                    <CatalogFilterFields
+                      applicationId={applicationFilter}
+                      applications={catalog.applications}
+                      componentId={componentFilter}
+                      components={catalog.components}
+                      onChange={(field, value) => {
+                        if (field === "applicationId") {
+                          setApplicationFilter(value);
+                        }
+                        if (field === "componentId") {
+                          setComponentFilter(value);
+                        }
+                      }}
+                    />
+                  ) : null}
+                </>
+              }
+              archivedItemsLabel="documentos arquivados"
+              className="knowledgeCollectionSearch"
+              includeArchived={includeArchived}
               loading={loading}
+              onIncludeArchivedChange={setIncludeArchived}
               onRefresh={() => load()}
               onSearch={() => load()}
               onSearchChange={setSearch}

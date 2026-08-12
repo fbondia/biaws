@@ -1,29 +1,22 @@
-.documentTypeSelector {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 4px 0 10px;
-}
-
-.documentTypeOption {
+.documentTypeFilter {
   display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  gap: 7px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface);
-  padding: 8px 12px;
-  color: var(--color-text-secondary);
-  font: inherit;
-  cursor: pointer;
+  flex: 0 1 170px;
 }
 
-.documentTypeOption:hover,
-.documentTypeOption.active {
-  border-color: var(--color-accent-border);
-  background: var(--color-accent-soft);
-  color: var(--color-accent-text);
+.documentTypeFilter select {
+  width: 100%;
+  min-width: 160px;
+  height: 38px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 0 30px 0 10px;
+}
+
+.knowledgeCollectionSearch .filterDialogTriggerButton {
+  min-width: min(100%, 170px);
+  flex: 0 1 170px;
 }
 
 .documentCreateActions {

@@ -1,9 +1,86 @@
-import { Columns3, Filter, FilterX, ListTree } from "lucide-react";
+import { Columns3, FolderCheck, FolderSearch, ListTree } from "lucide-react";
+import { createPortal } from "react-dom";
 
 import { useResourceCollectionNavigator } from "../hooks/useResourceCollectionNavigator.js";
 import { isItemReorderDrop } from "../model.js";
 import { CollectionColumns } from "./CollectionColumns.jsx";
 import { CollectionTree } from "./CollectionTree.jsx";
+import { useResourceCollectionBarActionTargets } from "./ResourceCollectionBarActionsContext.js";
+
+function CollectionFilterAction({ navigator }) {
+  const filterLabel = navigator.showOnlyPopulated
+    ? "Mostrar todas as coleções"
+    : "Ocultar coleções sem itens";
+
+  return (
+    <button
+      aria-label={filterLabel}
+      aria-pressed={navigator.showOnlyPopulated}
+      className={
+        navigator.showOnlyPopulated
+          ? "iconButton activeCollectionNavigationToggle"
+          : "iconButton"
+      }
+      onClick={() => navigator.setShowOnlyPopulated((current) => !current)}
+      title={filterLabel}
+      type="button"
+    >
+      {navigator.showOnlyPopulated ? (
+        <FolderCheck aria-hidden="true" size={16} />
+      ) : (
+        <FolderSearch aria-hidden="true" size={16} />
+      )}
+    </button>
+  );
+}
+
+function ViewModeActions({ navigator }) {
+  return (
+    <div
+      aria-label="Modo de visualização das coleções"
+      className="resourceCollectionViewModeGroup"
+      role="group"
+    >
+      <button
+        aria-label="Visualizar em árvore"
+        aria-pressed={navigator.viewMode === "tree"}
+        className={
+          navigator.viewMode === "tree"
+            ? "iconButton activeCollectionNavigationToggle"
+            : "iconButton"
+        }
+        onClick={() => navigator.setViewMode("tree")}
+        title="Visualizar em árvore"
+        type="button"
+      >
+        <ListTree aria-hidden="true" size={16} />
+      </button>
+      <button
+        aria-label="Visualizar em colunas"
+        aria-pressed={navigator.viewMode === "columns"}
+        className={
+          navigator.viewMode === "columns"
+            ? "iconButton activeCollectionNavigationToggle"
+            : "iconButton"
+        }
+        onClick={() => navigator.setViewMode("columns")}
+        title="Visualizar em colunas"
+        type="button"
+      >
+        <Columns3 aria-hidden="true" size={16} />
+      </button>
+    </div>
+  );
+}
+
+function NavigatorActions({ navigator }) {
+  return (
+    <div className="resourceCollectionNavigationActions">
+      <CollectionFilterAction navigator={navigator} />
+      <ViewModeActions navigator={navigator} />
+    </div>
+  );
+}
 
 export function ResourceCollectionNavigator({
   canDragItem = () => true,
@@ -31,6 +108,7 @@ export function ResourceCollectionNavigator({
   preferenceKey,
   renderItem,
 }) {
+  const barActionTargets = useResourceCollectionBarActionTargets();
   const navigator = useResourceCollectionNavigator({
     collections,
     items,
@@ -87,6 +165,14 @@ export function ResourceCollectionNavigator({
       navigator.setDropTargetId(collectionId);
     },
   };
+  const collectionFilterAction = (
+    <CollectionFilterAction navigator={navigator} />
+  );
+  const viewModeActions = <ViewModeActions navigator={navigator} />;
+  const actionsInBar = Boolean(
+    barActionTargets?.collectionFilterTarget ||
+    barActionTargets?.viewModeTarget,
+  );
 
   return (
     <aside
@@ -99,56 +185,18 @@ export function ResourceCollectionNavigator({
           <strong>Coleções</strong>
           <span>Arraste {itemLabel} e coleções para organizar.</span>
         </div>
-        <div className="resourceCollectionHeaderActions">
-          <button
-            aria-label="Mostrar apenas coleções com itens"
-            aria-pressed={navigator.showOnlyPopulated}
-            className={
-              navigator.showOnlyPopulated
-                ? "iconButton activeCollectionHeaderToggle"
-                : "iconButton"
-            }
-            onClick={() =>
-              navigator.setShowOnlyPopulated((current) => !current)
-            }
-            title="Mostrar apenas coleções que possuem itens"
-            type="button"
-          >
-            {navigator.showOnlyPopulated ? (
-              <FilterX aria-hidden="true" size={15} />
-            ) : (
-              <Filter aria-hidden="true" size={15} />
-            )
-            }
-          </button>
-          <button
-            aria-label={
-              navigator.viewMode === "tree"
-                ? "Usar navegação em colunas"
-                : "Usar navegação em árvore"
-            }
-            aria-pressed={navigator.viewMode === "columns"}
-            className="iconButton resourceCollectionViewModeToggle"
-            onClick={() =>
-              navigator.setViewMode((current) =>
-                current === "tree" ? "columns" : "tree",
-              )
-            }
-            title={
-              navigator.viewMode === "tree"
-                ? "Visualizar em colunas"
-                : "Visualizar árvore"
-            }
-            type="button"
-          >
-            {navigator.viewMode === "tree" ? (
-              <Columns3 aria-hidden="true" size={15} />
-            ) : (
-              <ListTree aria-hidden="true" size={15} />
-            )}
-          </button>
-        </div>
+        {actionsInBar ? null : <NavigatorActions navigator={navigator} />}
       </header>
+
+      {barActionTargets?.collectionFilterTarget
+        ? createPortal(
+            collectionFilterAction,
+            barActionTargets.collectionFilterTarget,
+          )
+        : null}
+      {barActionTargets?.viewModeTarget
+        ? createPortal(viewModeActions, barActionTargets.viewModeTarget)
+        : null}
 
       {navigator.viewMode === "tree" ? (
         <CollectionTree {...viewProps} />

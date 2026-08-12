@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { collectionPathLabel, parentCollectionId } from "../model.js";
+import { ResourceCollectionBarActionsProvider } from "./ResourceCollectionBarActionsContext.js";
 
 const COLLECTION_NAVIGATION_MIN_WIDTH = 260;
 const COLLECTION_NAVIGATION_MAX_WIDTH = 600;
@@ -29,7 +30,15 @@ export function ResourceCollectionsShell({
   );
   const [resizingNavigation, setResizingNavigation] = useState(false);
   const [rootDropActive, setRootDropActive] = useState(false);
+  const [collectionFilterTarget, setCollectionFilterTarget] = useState(null);
+  const [resourceActionsTarget, setResourceActionsTarget] = useState(null);
+  const [viewModeTarget, setViewModeTarget] = useState(null);
   const canNavigateBack = Boolean(detailVisible || selectedCollectionId);
+  const displayedPathLabel =
+    pathLabel ??
+    (selectedCollectionId
+      ? collectionPathLabel(collections, selectedCollectionId)
+      : "");
 
   function clampNavigationWidth(width) {
     const bodyWidth = bodyRef.current?.getBoundingClientRect().width;
@@ -57,119 +66,155 @@ export function ResourceCollectionsShell({
   }, [draggedItem]);
 
   return (
-    <div
-      className={[
-        "resourceCollectionsLayout",
-        className,
-        detailVisible ? "resourceCollectionsDetailVisible" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+    <ResourceCollectionBarActionsProvider
+      value={{
+        collectionFilterTarget,
+        resourceActionsTarget,
+        viewModeTarget,
+      }}
     >
-      <div className="resourceCollectionBar">
-        <button
-          className={[
-            "resourceCollectionPath",
-            rootDropActive ? "resourceCollectionDropTarget" : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          onClick={() => {
-            if (detailVisible) onNavigateBack?.();
-            else if (selectedCollectionId) {
-              onSelectCollection?.(
-                parentCollectionId(collections, selectedCollectionId),
-              );
-            }
-          }}
-          onDragLeave={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget)) {
-              setRootDropActive(false);
-            }
-          }}
-          onDragOver={(event) => {
-            if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
-              return;
-            event.preventDefault();
-            event.dataTransfer.dropEffect = "move";
-            setRootDropActive(true);
-          }}
-          onDrop={(event) => {
-            if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
-              return;
-            event.preventDefault();
-            setRootDropActive(false);
-            onDropRoot();
-          }}
-          title={
-            detailVisible
-              ? "Voltar à coleção"
-              : selectedCollectionId
-                ? "Voltar à coleção anterior"
-                : "Raiz"
-          }
-          type="button"
-        >
-          {canNavigateBack ? (
-            <ChevronLeft aria-hidden="true" size={15} />
-          ) : null}
-          {pathLabel || collectionPathLabel(collections, selectedCollectionId)}
-        </button>
-        {toolbar}
-      </div>
       <div
-        className="resourceCollectionsBody"
-        ref={bodyRef}
-        style={{
-          "--resource-collections-navigation-width": `${navigationWidth}px`,
-        }}
+        className={[
+          "resourceCollectionsLayout",
+          className,
+          detailVisible ? "resourceCollectionsDetailVisible" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
-        {navigator}
         <div
-          aria-label="Redimensionar área de navegação"
-          aria-orientation="vertical"
-          aria-valuemax={COLLECTION_NAVIGATION_MAX_WIDTH}
-          aria-valuemin={COLLECTION_NAVIGATION_MIN_WIDTH}
-          aria-valuenow={navigationWidth}
-          className={[
-            "resourceCollectionsResizer",
-            resizingNavigation ? "resourceCollectionsResizing" : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          onKeyDown={(event) => {
-            let nextWidth;
-            if (event.key === "ArrowLeft") nextWidth = navigationWidth - 20;
-            if (event.key === "ArrowRight") nextWidth = navigationWidth + 20;
-            if (event.key === "Home") {
-              nextWidth = COLLECTION_NAVIGATION_MIN_WIDTH;
+          className={
+            displayedPathLabel || canNavigateBack
+              ? "resourceCollectionBar"
+              : "resourceCollectionBar resourceCollectionBarAtRoot"
+          }
+        >
+          <div className="resourceCollectionBarPrimary">{toolbar}</div>
+          <button
+            className={[
+              "resourceCollectionPath",
+              displayedPathLabel || canNavigateBack
+                ? ""
+                : "resourceCollectionPathEmpty",
+              rootDropActive ? "resourceCollectionDropTarget" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            aria-label={displayedPathLabel || "Raiz"}
+            onClick={() => {
+              if (detailVisible) onNavigateBack?.();
+              else if (selectedCollectionId) {
+                onSelectCollection?.(
+                  parentCollectionId(collections, selectedCollectionId),
+                );
+              }
+            }}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) {
+                setRootDropActive(false);
+              }
+            }}
+            onDragOver={(event) => {
+              if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
+                return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              setRootDropActive(true);
+            }}
+            onDrop={(event) => {
+              if (!draggedItem || !onDropRoot || !canDropRoot(draggedItem))
+                return;
+              event.preventDefault();
+              setRootDropActive(false);
+              onDropRoot();
+            }}
+            title={
+              detailVisible
+                ? "Voltar à coleção"
+                : selectedCollectionId
+                  ? "Voltar à coleção anterior"
+                  : "Raiz"
             }
-            if (event.key === "End") {
-              nextWidth = COLLECTION_NAVIGATION_MAX_WIDTH;
-            }
-            if (nextWidth === undefined) return;
-            event.preventDefault();
-            setNavigationWidth(clampNavigationWidth(nextWidth));
+            tabIndex={displayedPathLabel || canNavigateBack ? 0 : -1}
+            type="button"
+          >
+            {canNavigateBack ? (
+              <ChevronLeft aria-hidden="true" size={15} />
+            ) : null}
+            <span className="resourceCollectionPathLabel">
+              {displayedPathLabel}
+            </span>
+          </button>
+          <div className="resourceCollectionBarUtilities">
+            <div
+              className="resourceCollectionBarActionSlot"
+              ref={setCollectionFilterTarget}
+            />
+            <div
+              className="resourceCollectionBarActionSlot"
+              ref={setResourceActionsTarget}
+            />
+            <div
+              className="resourceCollectionBarActionSlot"
+              ref={setViewModeTarget}
+            />
+          </div>
+        </div>
+        <div
+          className="resourceCollectionsBody"
+          ref={bodyRef}
+          style={{
+            "--resource-collections-navigation-width": `${navigationWidth}px`,
           }}
-          onLostPointerCapture={() => setResizingNavigation(false)}
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-            setResizingNavigation(true);
-          }}
-          onPointerMove={(event) => {
-            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
-            resizeNavigation(event.clientX);
-          }}
-          onPointerUp={(event) => {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-            setResizingNavigation(false);
-          }}
-          role="separator"
-          tabIndex={0}
-          title="Arraste para redimensionar a área de navegação"
-        />
-        <div className="resourceCollectionContent">{children}</div>
+        >
+          {navigator}
+          <div
+            aria-label="Redimensionar área de navegação"
+            aria-orientation="vertical"
+            aria-valuemax={COLLECTION_NAVIGATION_MAX_WIDTH}
+            aria-valuemin={COLLECTION_NAVIGATION_MIN_WIDTH}
+            aria-valuenow={navigationWidth}
+            className={[
+              "resourceCollectionsResizer",
+              resizingNavigation ? "resourceCollectionsResizing" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            onKeyDown={(event) => {
+              let nextWidth;
+              if (event.key === "ArrowLeft") nextWidth = navigationWidth - 20;
+              if (event.key === "ArrowRight") nextWidth = navigationWidth + 20;
+              if (event.key === "Home") {
+                nextWidth = COLLECTION_NAVIGATION_MIN_WIDTH;
+              }
+              if (event.key === "End") {
+                nextWidth = COLLECTION_NAVIGATION_MAX_WIDTH;
+              }
+              if (nextWidth === undefined) return;
+              event.preventDefault();
+              setNavigationWidth(clampNavigationWidth(nextWidth));
+            }}
+            onLostPointerCapture={() => setResizingNavigation(false)}
+            onPointerDown={(event) => {
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setResizingNavigation(true);
+            }}
+            onPointerMove={(event) => {
+              if (!event.currentTarget.hasPointerCapture(event.pointerId))
+                return;
+              resizeNavigation(event.clientX);
+            }}
+            onPointerUp={(event) => {
+              event.currentTarget.releasePointerCapture(event.pointerId);
+              setResizingNavigation(false);
+            }}
+            role="separator"
+            tabIndex={0}
+            title="Arraste para redimensionar a área de navegação"
+          />
+          <div className="resourceCollectionContent">{children}</div>
+        </div>
       </div>
-    </div>
+    </ResourceCollectionBarActionsProvider>
   );
 }

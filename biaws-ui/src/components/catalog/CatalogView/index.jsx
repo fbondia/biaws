@@ -11,7 +11,7 @@ import {
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections/index.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
-import { CatalogEntityDialog } from "../CatalogEntityDialog.jsx";
+import { CatalogEntityDialog } from "../CatalogEntityDialog/index.jsx";
 import { HeaderActions } from "./components/CatalogComponents.jsx";
 import { useCatalogView } from "./hooks/useCatalogView.jsx";
 import { CatalogTabContent } from "./tabs/CatalogTabContent.jsx";

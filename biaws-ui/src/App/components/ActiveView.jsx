@@ -2,7 +2,7 @@ import { AccountView } from "../../components/auth/AccountView.jsx";
 import { GroupsView } from "../../components/auth/GroupsView.jsx";
 import { UsersView } from "../../components/auth/UsersView.jsx";
 import { CatalogView } from "../../components/catalog/CatalogView/index.jsx";
-import { ServersView } from "../../components/catalog/ServersView.jsx";
+import { ServersView } from "../../components/catalog/ServersView/index.jsx";
 import { IssuesView } from "../../components/issues/IssuesView.jsx";
 import { RequestsView } from "../../components/requests/RequestsView/index.jsx";
 import { OptionListsView } from "../../components/settings/OptionListsView/index.jsx";

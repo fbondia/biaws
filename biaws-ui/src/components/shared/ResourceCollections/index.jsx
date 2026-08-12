@@ -1,5 +1,6 @@
 export { ResourceCollectionDialog } from "./components/ResourceCollectionDialog.jsx";
-export { ResourceCollectionNavigator } from "./components/ResourceCollectionNavigator.jsx";
-export { ResourceCollectionSearch } from "./components/ResourceCollectionSearch.jsx";
-export { ResourceCollectionsShell } from "./components/ResourceCollectionsShell.jsx";
+export { ResourceCollectionBar } from "./components/ResourceCollectionBar/index.jsx";
+export { ResourceCollectionNavigator } from "./components/ResourceCollectionNavigator/index.jsx";
+export { ResourceCollectionSearch } from "./components/ResourceCollectionSearch/index.jsx";
+export { ResourceCollectionsShell } from "./components/ResourceCollectionsShell/index.jsx";
 export { buildCollectionTree, collectionPathLabel } from "./model.js";

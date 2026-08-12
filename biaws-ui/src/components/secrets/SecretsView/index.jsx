@@ -299,6 +299,7 @@ export function SecretsView({ actor }) {
           selectedSecret ? null : (
             <ResourceCollectionSearch
               loading={loading}
+              onClearFilters={() => setSearch("")}
               onRefresh={load}
               onSearch={load}
               onSearchChange={setSearch}

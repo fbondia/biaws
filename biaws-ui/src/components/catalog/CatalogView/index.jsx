@@ -351,6 +351,7 @@ export function CatalogView({ actor }) {
               archivedItemsLabel="aplicações arquivadas"
               includeArchived={includeArchived}
               loading={loading}
+              onClearFilters={() => setSearch("")}
               onIncludeArchivedChange={setIncludeArchived}
               onRefresh={() => loadApplications()}
               onSearch={() => loadApplications()}

@@ -190,8 +190,18 @@ export function KnowledgeRecordsView({ actor }) {
               }
               archivedItemsLabel="documentos arquivados"
               className="knowledgeCollectionSearch"
+              hasActiveFilters={Boolean(
+                search || typeFilter || applicationFilter || componentFilter,
+              )}
               includeArchived={includeArchived}
               loading={loading}
+              onClearFilters={() => {
+                setSearch("");
+                selectTypeFilter("");
+                setApplicationFilter("");
+                setComponentFilter("");
+                void load("", "", "", "", includeArchived);
+              }}
               onIncludeArchivedChange={setIncludeArchived}
               onRefresh={() => load()}
               onSearch={() => load()}

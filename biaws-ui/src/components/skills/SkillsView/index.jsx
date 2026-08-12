@@ -312,6 +312,7 @@ export function SkillsView({ actor }) {
             selectedSkill ? null : (
               <ResourceCollectionSearch
                 loading={loading}
+                onClearFilters={() => setSearch("")}
                 onRefresh={loadSkills}
                 onSearch={loadSkills}
                 onSearchChange={setSearch}

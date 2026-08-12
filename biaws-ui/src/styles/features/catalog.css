@@ -2245,18 +2245,15 @@
 
   .applicationsCollectionsLayout .resourceCollectionBar,
   .serversCollectionsLayout .resourceCollectionBar {
+    grid-template-areas:
+      "primary"
+      "utilities";
     grid-template-columns: minmax(0, 1fr);
   }
 
   .applicationsCollectionsLayout .resourceCollectionSearch,
   .serversCollectionsLayout .resourceCollectionSearch {
     justify-content: stretch;
-  }
-
-  .applicationsCollectionsLayout .resourceCollectionSearchInput,
-  .serversCollectionsLayout .resourceCollectionSearchInput {
-    width: auto;
-    flex: 1 1 auto;
   }
 }
 

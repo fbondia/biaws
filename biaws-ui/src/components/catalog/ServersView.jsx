@@ -334,6 +334,7 @@ export function ServersView({ actor }) {
               archivedItemsLabel="servidores arquivados"
               includeArchived={includeArchived}
               loading={loading}
+              onClearFilters={() => setSearch("")}
               onIncludeArchivedChange={setIncludeArchived}
               onRefresh={() => loadList()}
               onSearch={() => loadList()}

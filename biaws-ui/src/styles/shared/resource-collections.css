@@ -56,8 +56,8 @@
 .resourceCollectionBar {
   display: grid;
   min-width: 0;
-  grid-template-areas: "primary path utilities";
-  grid-template-columns: minmax(280px, 1fr) minmax(140px, 220px) auto;
+  grid-template-areas: "primary utilities";
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 10px;
   border-bottom: 1px solid var(--color-border);
@@ -103,24 +103,26 @@
 .resourceCollectionSearch {
   display: flex;
   min-width: 0;
+  width: auto;
+  flex: 0 1 auto;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 7px;
 }
 
 .resourceCollectionBarPrimary {
   grid-area: primary;
+  display: flex;
   min-width: 0;
-}
-
-.resourceCollectionBarPrimary > .resourceCollectionSearch {
-  width: 100%;
+  align-items: center;
+  gap: 6px;
 }
 
 .resourceCollectionBarUtilities {
   grid-area: utilities;
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
@@ -132,22 +134,21 @@
   gap: 6px;
 }
 
-.resourceCollectionTextFilter {
+.resourceCollectionAdditionalFilters {
   display: flex;
-  width: min(385px, 40vw);
-  min-width: 220px;
-  max-width: 385px;
-  flex: 1 1 280px;
+  min-width: 0;
   align-items: center;
+  flex-wrap: wrap;
   gap: 7px;
 }
 
 .resourceCollectionSearchInput {
   display: flex;
-  width: auto;
+  width: min(200px, 100%);
   height: 38px;
-  min-width: 0;
-  flex: 1 1 auto;
+  min-width: 160px;
+  max-width: 200px;
+  flex: 0 1 200px;
   align-items: center;
   gap: 7px;
   border: 1px solid var(--color-border-strong);
@@ -180,9 +181,29 @@
 
 .resourceCollectionsPanel > header {
   display: flex;
+  min-height: 64px;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+}
+
+.resourceCollectionsPanel > header.resourceCollectionRootDropZone {
+  background: var(--palette-green-05);
+  box-shadow: inset 0 0 0 1px var(--color-success-action);
+  cursor: move;
+}
+
+.resourceCollectionRootDropPrompt {
+  display: flex;
+  width: 100%;
+  align-self: center;
+  justify-content: center;
+  color: var(--palette-green-27);
+  text-align: center;
 }
 
 .resourceCollectionsBody > .resourceCollectionsPanel {
@@ -200,8 +221,7 @@
   gap: 6px;
 }
 
-.resourceCollectionNavigationActions > .iconButton,
-.resourceCollectionViewModeGroup .iconButton {
+.resourceCollectionNavigationActions > .iconButton {
   width: 38px;
   height: 38px;
   min-height: 38px;
@@ -212,35 +232,6 @@
   border-color: var(--color-accent-border);
   background: var(--color-accent-soft);
   color: var(--color-accent-text);
-}
-
-.resourceCollectionViewModeGroup {
-  display: inline-flex;
-  overflow: visible;
-  border: 0;
-  background: transparent;
-}
-
-.resourceCollectionViewModeGroup .iconButton {
-  border: 1px solid var(--color-border-strong);
-  border-radius: 0;
-}
-
-.resourceCollectionViewModeGroup .iconButton:first-child {
-  border-radius: 6px 0 0 6px;
-}
-
-.resourceCollectionViewModeGroup .iconButton:last-child {
-  border-radius: 0 6px 6px 0;
-}
-
-.resourceCollectionViewModeGroup .iconButton + .iconButton {
-  margin-left: -1px;
-}
-
-.resourceCollectionViewModeGroup .activeCollectionNavigationToggle {
-  position: relative;
-  z-index: 1;
 }
 
 .resourceCollectionCloseButton {
@@ -328,35 +319,33 @@
   .resourceCollectionBar {
     grid-template-areas:
       "primary"
-      "path"
       "utilities";
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .resourceCollectionBarAtRoot {
-    grid-template-areas:
-      "primary"
-      "utilities";
   }
 
   .resourceCollectionPathEmpty {
     display: none;
   }
 
-  .resourceCollectionTextFilter {
-    width: auto;
-    max-width: none;
+  .resourceCollectionSearchInput {
+    width: min(200px, 100%);
   }
 }
 
 @media (max-width: 620px) {
+  .resourceCollectionBarPrimary,
   .resourceCollectionBarUtilities {
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
-  .resourceCollectionTextFilter {
+  .resourceCollectionSearchInput,
+  .resourceCollectionAdditionalFilters {
     width: 100%;
     min-width: 0;
-    flex-basis: 100%;
+  }
+
+  .resourceCollectionSearchInput {
+    max-width: 200px;
+    flex-basis: 200px;
   }
 }

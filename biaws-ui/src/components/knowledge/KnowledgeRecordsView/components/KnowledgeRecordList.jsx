@@ -22,12 +22,20 @@ function KnowledgeRecordCard({
   onDelete,
   onOpen,
   onRestore,
+  onToggleSelection,
   record,
+  selected,
 }) {
   const config = DOCUMENT_TYPES[record.documentType];
   const TypeIcon = config?.icon || FileText;
   return (
-    <article className="procedureCard knowledgeRecordCard">
+    <article
+      className={
+        selected
+          ? "procedureCard knowledgeRecordCard bulkSelectedCard"
+          : "procedureCard knowledgeRecordCard"
+      }
+    >
       <button
         aria-label={`Abrir ${record.title}`}
         className="knowledgeRecordOpenButton"
@@ -36,9 +44,37 @@ function KnowledgeRecordCard({
       />
       <header>
         <div className="knowledgeRecordCardTitle">
+          <input
+            aria-label={
+              record.identifier
+                ? `Selecionar ${record.title} para replicação`
+                : `${record.title} não pode ser replicado sem identificador`
+            }
+            checked={selected}
+            className="bulkSelectionCheckbox knowledgeRecordSelectionCheckbox"
+            disabled={!record.identifier}
+            onChange={() => onToggleSelection(record.id)}
+            onClick={(event) => event.stopPropagation()}
+            title={
+              record.identifier
+                ? undefined
+                : "Defina um identificador antes de replicar este documento"
+            }
+            type="checkbox"
+          />
           <GripVertical aria-hidden="true" size={15} />
           <TypeIcon aria-hidden="true" size={18} />
-          <h2>{record.title}</h2>
+          <div className="knowledgeRecordCardHeading">
+            <h2>{record.title}</h2>
+            <code
+              className={
+                record.identifier ? "" : "knowledgeRecordMissingIdentifier"
+              }
+              title={record.identifier || "Documento sem identificador"}
+            >
+              {record.identifier || "Sem identificador"}
+            </code>
+          </div>
         </div>
         <div className="knowledgeRecordCardHeaderMeta">
           <span
@@ -98,7 +134,9 @@ export function KnowledgeRecordList({
   onDelete,
   onOpen,
   onRestore,
+  onToggleSelection,
   records,
+  selectedRecordIds,
 }) {
   return (
     <section className="resourceCollectionContent">
@@ -120,7 +158,9 @@ export function KnowledgeRecordList({
             onDelete={onDelete}
             onOpen={onOpen}
             onRestore={onRestore}
+            onToggleSelection={onToggleSelection}
             record={record}
+            selected={selectedRecordIds.includes(record.id)}
           />
         ))}
       </div>

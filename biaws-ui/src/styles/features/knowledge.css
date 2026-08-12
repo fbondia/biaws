@@ -478,6 +478,12 @@
   min-width: 0;
 }
 
+.knowledgeRecordCardHeading {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
 .knowledgeRecordCardTitle > svg {
   flex: 0 0 auto;
   color: var(--color-text-subtle);
@@ -488,6 +494,21 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.knowledgeRecordCardHeading code {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knowledgeRecordCardHeading .knowledgeRecordMissingIdentifier {
+  font-family: inherit;
+  font-style: italic;
 }
 
 .knowledgeRecordCardHeaderMeta {
@@ -757,6 +778,21 @@
   .knowledgeCollectionSearch .filterDialogTriggerButton {
     width: 100%;
     flex-basis: auto;
+  }
+
+  .knowledgeRecordCard > header,
+  .knowledgeRecordCardFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .knowledgeRecordCardHeaderMeta {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .knowledgeRecordDefinedAt {
+    margin-left: 0;
   }
 
   .knowledgeDocumentActionOptions {

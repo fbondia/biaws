@@ -49,6 +49,7 @@
 }
 
 .skillCard {
+  position: relative;
   display: grid;
   min-width: 0;
   gap: 14px;
@@ -63,16 +64,24 @@
     transform 120ms ease;
 }
 
+.skillCardOpenButton {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
 .skillCard:hover {
   border-color: var(--color-accent-border);
   box-shadow: 0 8px 22px var(--color-shadow-soft);
   transform: translateY(-1px);
 }
 
-.skillCard:focus-visible {
+.skillCard:has(.skillCardOpenButton:focus-visible) {
   border-color: var(--color-accent-border);
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
 }
 
 .skillCard > header {

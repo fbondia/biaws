@@ -7,9 +7,16 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchSkills, moveSkillToCollection } from "../../../api.js";
+import {
+  fetchSkills,
+  moveSkillToCollection,
+  replicateSkill,
+} from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
+import { BulkReplicationToolbar } from "../../shared/BulkReplicationToolbar.jsx";
 import { IllustratedEmptyState } from "../../shared/IllustratedEmptyState.jsx";
+import { ReplicationDialog } from "../../shared/ReplicationDialog.jsx";
+import { replicateItemsInBulk } from "../../shared/replicationModel.js";
 import {
   collectionPathLabel,
   ResourceCollectionDialog,
@@ -23,28 +30,41 @@ import { PublishSkillDialog } from "./components/PublishSkillDialog.jsx";
 import { SkillDetailsDialog } from "./components/SkillDetailsDialog.jsx";
 import { formatDate } from "./utils.js";
 
-function SkillCard({ canDrag, collectionState, onOpen, skill }) {
+function SkillCard({
+  canDrag,
+  collectionState,
+  onOpen,
+  onToggleSelection,
+  selected,
+  skill,
+}) {
   const published = skill.status === "published";
   return (
     <article
-      aria-label={`Abrir ${skill.name}`}
-      className="skillCard"
+      className={selected ? "skillCard bulkSelectedCard" : "skillCard"}
       data-collection-browser-item-id={skill.skillId}
-      draggable={canDrag}
-      onClick={() => onOpen(skill)}
+      draggable={canDrag && !selected}
       onDragEnd={() => collectionState.setDraggedItem(null)}
       onDragStart={() =>
         collectionState.setDraggedItem({ type: "item", id: skill.skillId })
       }
-      onKeyDown={(event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        event.preventDefault();
-        onOpen(skill);
-      }}
-      role="button"
-      tabIndex={0}
     >
+      <button
+        aria-label={`Abrir ${skill.name}`}
+        className="skillCardOpenButton"
+        onClick={() => onOpen(skill)}
+        type="button"
+      />
       <header>
+        <input
+          aria-label={`Selecionar ${skill.name} para replicação`}
+          checked={selected}
+          className="bulkSelectionCheckbox"
+          onChange={() => onToggleSelection(skill.skillId)}
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+          type="checkbox"
+        />
         <div className="skillCardIcon">
           <Package size={20} />
         </div>
@@ -89,6 +109,8 @@ function SkillCards({
   items,
   loading,
   onOpen,
+  onToggleSelection,
+  selectedSkillIds,
 }) {
   if (!loading && !allItems.length)
     return (
@@ -106,6 +128,8 @@ function SkillCards({
           collectionState={collectionState}
           key={skill.skillId}
           onOpen={onOpen}
+          onToggleSelection={onToggleSelection}
+          selected={selectedSkillIds.includes(skill.skillId)}
           skill={skill}
         />
       ))}
@@ -167,6 +191,8 @@ export function SkillsView({ actor }) {
   const [search, setSearch] = useState("");
   const [publishing, setPublishing] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
+  const [selectedSkillIds, setSelectedSkillIds] = useState([]);
+  const [bulkReplicationOpen, setBulkReplicationOpen] = useState(false);
   const { runWithLoading } = useLoading();
   const collectionState = useResourceCollections("skills", {
     onError: setError,
@@ -208,7 +234,35 @@ export function SkillsView({ actor }) {
         item.description.toLocaleLowerCase("pt-BR").includes(term),
     );
   }, [result, search, collectionState.selectedCollectionId]);
+  const selectedSkills = useMemo(
+    () => items.filter(({ skillId }) => selectedSkillIds.includes(skillId)),
+    [items, selectedSkillIds],
+  );
+  const canReplicate = (actor.workspaces || []).some(
+    ({ id, status }) => id !== actor.workspaceId && status !== "archived",
+  );
   const canManageCollections = hasPermission(actor, "skills.publish");
+
+  useEffect(() => {
+    const visibleIds = new Set(items.map(({ skillId }) => skillId));
+    setSelectedSkillIds((current) => {
+      const next = current.filter((skillId) => visibleIds.has(skillId));
+      return next.length === current.length ? current : next;
+    });
+  }, [items]);
+
+  function toggleSkillSelection(skillId) {
+    setSelectedSkillIds((current) =>
+      current.includes(skillId)
+        ? current.filter((id) => id !== skillId)
+        : [...current, skillId],
+    );
+  }
+
+  function completeBulkReplication() {
+    setBulkReplicationOpen(false);
+    setSelectedSkillIds([]);
+  }
 
   return (
     <section className="skillsView">
@@ -334,19 +388,30 @@ export function SkillsView({ actor }) {
               workspaces={actor.workspaces || []}
             />
           ) : (
-            <SkillCards
-              allItems={result?.items || []}
-              canDrag={canManageCollections}
-              collectionState={collectionState}
-              items={items}
-              loading={loading}
-              onOpen={(skill) => {
-                setSelectedSkill(skill);
-                collectionState.setSelectedCollectionId(
-                  skill.collectionId || "",
-                );
-              }}
-            />
+            <>
+              <BulkReplicationToolbar
+                canReplicate={canReplicate}
+                count={selectedSkills.length}
+                onClear={() => setSelectedSkillIds([])}
+                onReplicate={() => setBulkReplicationOpen(true)}
+              />
+              <SkillCards
+                allItems={result?.items || []}
+                canDrag={canManageCollections}
+                collectionState={collectionState}
+                items={items}
+                loading={loading}
+                onOpen={(skill) => {
+                  setSelectedSkillIds([]);
+                  setSelectedSkill(skill);
+                  collectionState.setSelectedCollectionId(
+                    skill.collectionId || "",
+                  );
+                }}
+                onToggleSelection={toggleSkillSelection}
+                selectedSkillIds={selectedSkillIds}
+              />
+            </>
           )}
         </ResourceCollectionsShell>
       ) : null}
@@ -355,6 +420,41 @@ export function SkillsView({ actor }) {
         onPublished={loadSkills}
         publishing={publishing}
         setPublishing={setPublishing}
+      />
+      <ReplicationDialog
+        currentWorkspaceId={actor.workspaceId}
+        description={
+          <p>
+            A versão atual de cada skill selecionada e todos os seus arquivos
+            serão publicados nos destinos. Versões já existentes não serão
+            sobrescritas.
+          </p>
+        }
+        eyebrow={`${selectedSkills.length} ${
+          selectedSkills.length === 1
+            ? "skill selecionada"
+            : "skills selecionadas"
+        }`}
+        onClose={() => setBulkReplicationOpen(false)}
+        onComplete={completeBulkReplication}
+        onReplicate={(destinationWorkspaceIds) =>
+          replicateItemsInBulk({
+            destinationWorkspaceIds,
+            getItemId: (skill) => skill.skillId,
+            getItemLabel: (skill) => skill.name,
+            items: selectedSkills,
+            replicateItem: (skill, workspaceIds) =>
+              replicateSkill(skill.skillId, skill.latestVersion, workspaceIds),
+            workspaces: actor.workspaces || [],
+          })
+        }
+        open={bulkReplicationOpen}
+        resourceKey={`bulk-skills:${selectedSkills
+          .map(({ skillId, latestVersion }) => `${skillId}@${latestVersion}`)
+          .join("|")}`}
+        retryFailed={false}
+        title="Replicar skills"
+        workspaces={actor.workspaces || []}
       />
     </section>
   );

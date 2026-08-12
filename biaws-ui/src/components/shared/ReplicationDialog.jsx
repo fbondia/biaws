@@ -28,11 +28,12 @@ function ReplicationResults({ results }) {
             <span>
               <strong>{result.workspace.name}</strong>
               <small>
-                {failed
-                  ? result.error?.message || "Não foi possível replicar"
-                  : result.status === "replaced"
-                    ? "Configuração substituída"
-                    : "Item replicado"}
+                {result.message ||
+                  (failed
+                    ? result.error?.message || "Não foi possível replicar"
+                    : result.status === "replaced"
+                      ? "Configuração substituída"
+                      : "Item replicado")}
               </small>
             </span>
           </div>
@@ -47,9 +48,11 @@ export function ReplicationDialog({
   description,
   eyebrow,
   onClose,
+  onComplete,
   onReplicate,
   open,
   resourceKey,
+  retryFailed = true,
   title,
   workspaces = [],
 }) {
@@ -175,7 +178,7 @@ export function ReplicationDialog({
         <footer className="replicationDialogFooter">
           {results ? (
             <>
-              {failedWorkspaceIds.length ? (
+              {retryFailed && failedWorkspaceIds.length ? (
                 <button
                   className="secondaryButton"
                   onClick={() => {
@@ -188,7 +191,11 @@ export function ReplicationDialog({
                   <RotateCcw size={15} /> Repetir falhas
                 </button>
               ) : null}
-              <button className="primaryButton" onClick={onClose} type="button">
+              <button
+                className="primaryButton"
+                onClick={onComplete || onClose}
+                type="button"
+              >
                 Concluir
               </button>
             </>

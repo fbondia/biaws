@@ -45,6 +45,12 @@ menos uma falha:
 Uma falha não desfaz cópias concluídas em outros destinos. A UI permite repetir
 somente os destinos que falharam.
 
+Nas listagens de documentos e skills, checkboxes permitem selecionar vários
+itens de origem e abrir uma única ação **Replicar**. A versão atual de cada
+skill é usada; documentos sem identificador não podem ser selecionados. O
+resultado da operação em massa é consolidado por workspace, com a quantidade de
+itens concluídos e os nomes e motivos das falhas parciais.
+
 ## Permissões e regras por recurso
 
 | Recurso             | Leitura na origem   | Permissão no destino                     | Regra de cópia                                                                                                                   |

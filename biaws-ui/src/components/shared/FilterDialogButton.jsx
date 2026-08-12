@@ -1,6 +1,7 @@
 export function FilterDialogButton({
   className = "",
   count = 0,
+  disabled = false,
   icon: Icon,
   label,
   onClick,
@@ -11,6 +12,7 @@ export function FilterDialogButton({
       className={["secondaryButton", "filterDialogTriggerButton", className]
         .filter(Boolean)
         .join(" ")}
+      disabled={disabled}
       onClick={onClick}
       type="button"
     >

@@ -171,9 +171,9 @@
 
 .emlAssignmentButton {
   display: flex;
-  min-width: min(100%, 250px);
+  min-width: min(100%, 220px);
   min-height: 54px;
-  flex: 1 1 280px;
+  flex: 1 1 220px;
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
@@ -187,22 +187,8 @@
   gap: 2px;
 }
 
-.emlAssignmentButton small,
-.emlAssignmentButton strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.emlAssignmentButton small {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.emlAssignmentButton strong {
-  font-size: 12px;
+.emlAssignmentButton .filterDialogButtonText {
+  gap: 2px;
 }
 
 .emlApplicationButton {
@@ -225,6 +211,17 @@
 .emlClassificationButton:hover:not(:disabled) {
   border-color: var(--palette-blue-26);
   background: var(--palette-blue-06);
+}
+
+.emlTagsButton {
+  border-color: var(--palette-green-14);
+  background: var(--palette-green-02);
+  color: var(--palette-green-24);
+}
+
+.emlTagsButton:hover:not(:disabled) {
+  border-color: var(--palette-green-18);
+  background: var(--palette-green-06);
 }
 
 .emlContextDialog {

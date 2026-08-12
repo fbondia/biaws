@@ -16,7 +16,9 @@ import {
   isValidEmlEntry,
 } from "./ImportEmlItem.jsx";
 import {
+  cloneEmlClassification,
   contextFromPreviewIssue,
+  mergeEmlClassificationSection,
   shouldRetryContextDiscovery,
 } from "./emlImportModel.js";
 
@@ -47,6 +49,8 @@ export function ImportEmlDialog({
     affectedComponentIds: [],
   });
   const [classificationEntryKey, setClassificationEntryKey] = useState("");
+  const [classificationSection, setClassificationSection] =
+    useState("taxonomy");
   const [classificationDraft, setClassificationDraft] =
     useState(EMPTY_CLASSIFICATION);
   const inputRef = useRef(null);
@@ -227,10 +231,11 @@ export function ImportEmlDialog({
     }
   }
 
-  function openClassificationDialog(entry) {
+  function openClassificationDialog(entry, section) {
     setClassificationEntryKey(entry.key);
+    setClassificationSection(section);
     setClassificationDraft(
-      cloneClassification(
+      cloneEmlClassification(
         entry.classification || entry.preview?.issue?.classification,
       ),
     );
@@ -283,9 +288,16 @@ export function ImportEmlDialog({
         canClassifyContext(entry.context, classificationScope) &&
         (applyToAll || entry.key === classificationEntryKey),
     );
-    const nextClassification = cloneClassification(classificationDraft);
     setClassificationEntryKey("");
     for (const entry of targets) {
+      const currentClassification = cloneEmlClassification(
+        entry.classification || entry.preview?.issue?.classification,
+      );
+      const nextClassification = mergeEmlClassificationSection(
+        currentClassification,
+        classificationDraft,
+        classificationSection,
+      );
       const updatedEntry = {
         ...entry,
         classification: nextClassification,
@@ -407,8 +419,11 @@ export function ImportEmlDialog({
                 entry={entry}
                 key={entry.key}
                 onImport={() => void importEntry(entry)}
-                onOpenClassification={() => openClassificationDialog(entry)}
                 onOpenContext={() => openContextDialog(entry)}
+                onOpenTags={() => openClassificationDialog(entry, "tags")}
+                onOpenTaxonomy={() =>
+                  openClassificationDialog(entry, "taxonomy")
+                }
                 onRecalculate={() => void analyzeEntry(entry, entry.overrides)}
                 onRemove={() => removeEntry(entry.key)}
                 onUpdateOverride={(field, value) =>
@@ -483,19 +498,20 @@ export function ImportEmlDialog({
             <footer>
               <button
                 className="secondaryButton clearDialogSelectionButton"
-                disabled={busy || !contextDraft.applicationId}
-                onClick={() => void applyContextToEntries(true)}
-                type="button"
-              >
-                Aplicar a todos os EML
-              </button>
-              <button
-                className="secondaryButton"
                 disabled={busy}
                 onClick={() => setContextEntryKey("")}
                 type="button"
               >
                 Cancelar
+              </button>
+
+              <button
+                className="secondaryButton"
+                disabled={busy || !contextDraft.applicationId}
+                onClick={() => void applyContextToEntries(true)}
+                type="button"
+              >
+                Aplicar a todos os EML
               </button>
               <button
                 className="primaryButton"
@@ -519,14 +535,18 @@ export function ImportEmlDialog({
           }}
         >
           <section
-            aria-label={`Selecionar classificação e tags de ${classificationEntry.file.name}`}
+            aria-label={`${classificationSection === "taxonomy" ? "Selecionar classificação" : "Selecionar tags"} de ${classificationEntry.file.name}`}
             aria-modal="true"
             className="tagFilterDialog emlClassificationDialog"
             role="dialog"
           >
             <header>
               <div>
-                <strong>Classificação e tags</strong>
+                <strong>
+                  {classificationSection === "taxonomy"
+                    ? "Classificação / taxonomia"
+                    : "Tags"}
+                </strong>
                 <span>{classificationEntry.file.name}</span>
               </div>
               <button
@@ -539,93 +559,97 @@ export function ImportEmlDialog({
               </button>
             </header>
             <div className="emlClassificationDialogContent">
-              <section>
-                <div className="emlClassificationSectionTitle">
-                  <strong>Classificação de taxonomia</strong>
-                  <span>
-                    Selecione os assuntos e defina um deles como principal.
-                  </span>
-                </div>
-                <TaxonomySelector
-                  multiple
-                  nodes={filterTaxonomyForApplication(
-                    taxonomyPackage?.taxonomy || [],
-                    classificationEntry.context.applicationId,
-                  )}
-                  onChange={updateTaxonomies}
-                  onPrimaryChange={updatePrimaryTaxonomy}
-                  primaryValue={classificationDraft.primaryTaxonomyId}
-                  value={selectedTaxonomyIds(classificationDraft)}
-                />
-              </section>
-              <section>
-                <div className="emlClassificationSectionTitle">
-                  <strong>Tags</strong>
-                  <span>Selecione as tags que devem ser registradas.</span>
-                </div>
-                <div className="tagFilterGroups emlClassificationTagGroups">
-                  {(taxonomyPackage?.tagGroups || []).map((group) => (
-                    <div className="tagFilterGroup" key={group.id}>
-                      <strong>
-                        <span
-                          className="tagColorSwatch"
-                          style={{
-                            backgroundColor:
-                              group.color || DEFAULT_TAG_GROUP_COLOR,
-                          }}
-                        />
-                        {group.label}
-                      </strong>
-                      <div className="tagFilterOptions">
-                        {(group.tags || []).map((tagId) => {
-                          const checked = (
-                            classificationDraft.tags[group.id] || []
-                          ).includes(tagId);
-                          return (
-                            <label
-                              className={
-                                checked
-                                  ? "tagFilterOption selectedTagFilterOption"
-                                  : "tagFilterOption"
-                              }
-                              key={tagId}
-                              style={{
-                                borderColor: checked
-                                  ? group.color || DEFAULT_TAG_GROUP_COLOR
-                                  : undefined,
-                              }}
-                            >
-                              <input
-                                checked={checked}
-                                onChange={() => toggleTag(group.id, tagId)}
-                                type="checkbox"
-                              />
-                              <span>{tagId}</span>
-                            </label>
-                          );
-                        })}
+              {classificationSection === "taxonomy" ? (
+                <section>
+                  <div className="emlClassificationSectionTitle">
+                    <strong>Classificação de taxonomia</strong>
+                    <span>
+                      Selecione os assuntos e defina um deles como principal.
+                    </span>
+                  </div>
+                  <TaxonomySelector
+                    multiple
+                    nodes={filterTaxonomyForApplication(
+                      taxonomyPackage?.taxonomy || [],
+                      classificationEntry.context.applicationId,
+                    )}
+                    onChange={updateTaxonomies}
+                    onPrimaryChange={updatePrimaryTaxonomy}
+                    primaryValue={classificationDraft.primaryTaxonomyId}
+                    value={selectedTaxonomyIds(classificationDraft)}
+                  />
+                </section>
+              ) : (
+                <section>
+                  <div className="emlClassificationSectionTitle">
+                    <strong>Tags</strong>
+                    <span>Selecione as tags que devem ser registradas.</span>
+                  </div>
+                  <div className="tagFilterGroups emlClassificationTagGroups">
+                    {(taxonomyPackage?.tagGroups || []).map((group) => (
+                      <div className="tagFilterGroup" key={group.id}>
+                        <strong>
+                          <span
+                            className="tagColorSwatch"
+                            style={{
+                              backgroundColor:
+                                group.color || DEFAULT_TAG_GROUP_COLOR,
+                            }}
+                          />
+                          {group.label}
+                        </strong>
+                        <div className="tagFilterOptions">
+                          {(group.tags || []).map((tagId) => {
+                            const checked = (
+                              classificationDraft.tags[group.id] || []
+                            ).includes(tagId);
+                            return (
+                              <label
+                                className={
+                                  checked
+                                    ? "tagFilterOption selectedTagFilterOption"
+                                    : "tagFilterOption"
+                                }
+                                key={tagId}
+                                style={{
+                                  borderColor: checked
+                                    ? group.color || DEFAULT_TAG_GROUP_COLOR
+                                    : undefined,
+                                }}
+                              >
+                                <input
+                                  checked={checked}
+                                  onChange={() => toggleTag(group.id, tagId)}
+                                  type="checkbox"
+                                />
+                                <span>{tagId}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
             <footer>
               <button
                 className="secondaryButton clearDialogSelectionButton"
                 disabled={busy}
-                onClick={() => void applyClassificationToEntries(true)}
-                type="button"
-              >
-                Aplicar a todos os EML
-              </button>
-              <button
-                className="secondaryButton"
-                disabled={busy}
                 onClick={() => setClassificationEntryKey("")}
                 type="button"
               >
                 Cancelar
+              </button>
+
+              <button
+                className="secondaryButton"
+                disabled={busy}
+                onClick={() => void applyClassificationToEntries(true)}
+                type="button"
+              >
+                Aplicar a todos os EML
               </button>
               <button
                 className="primaryButton"
@@ -650,21 +674,6 @@ export function ImportEmlDialog({
       ) : null}
     </div>
   );
-}
-
-function cloneClassification(classification) {
-  const source = classification || EMPTY_CLASSIFICATION;
-  return {
-    primaryTaxonomyId: source.primaryTaxonomyId || "",
-    secondaryTaxonomyIds: [...(source.secondaryTaxonomyIds || [])],
-    summary: source.summary || "",
-    tags: Object.fromEntries(
-      Object.entries(source.tags || {}).map(([groupId, tagIds]) => [
-        groupId,
-        [...tagIds],
-      ]),
-    ),
-  };
 }
 
 function selectedTaxonomyIds(classification) {

@@ -18,3 +18,32 @@ export function shouldRetryContextDiscovery(
     fallbackContext?.applicationId,
   );
 }
+
+export function cloneEmlClassification(classification = {}) {
+  return {
+    primaryTaxonomyId: classification.primaryTaxonomyId || "",
+    secondaryTaxonomyIds: [...(classification.secondaryTaxonomyIds || [])],
+    summary: classification.summary || "",
+    tags: Object.fromEntries(
+      Object.entries(classification.tags || {}).map(([groupId, tagIds]) => [
+        groupId,
+        [...tagIds],
+      ]),
+    ),
+  };
+}
+
+export function mergeEmlClassificationSection(current, draft, section) {
+  const base = cloneEmlClassification(current);
+  const next = cloneEmlClassification(draft);
+
+  if (section === "tags") {
+    return { ...base, tags: next.tags };
+  }
+
+  return {
+    ...base,
+    primaryTaxonomyId: next.primaryTaxonomyId,
+    secondaryTaxonomyIds: next.secondaryTaxonomyIds,
+  };
+}

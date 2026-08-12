@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  cloneEmlClassification,
   contextFromPreviewIssue,
+  mergeEmlClassificationSection,
   shouldRetryContextDiscovery,
 } from "../src/components/issues/emlImportModel.js";
 
@@ -40,4 +42,47 @@ test("new EML issues retry context discovery with the default application", () =
     }),
     false,
   );
+});
+
+test("classification selectors update taxonomy and tags independently", () => {
+  const current = {
+    primaryTaxonomyId: "current-primary",
+    secondaryTaxonomyIds: ["current-secondary"],
+    summary: "Resumo preservado",
+    tags: { urgency: ["high"] },
+  };
+  const draft = {
+    primaryTaxonomyId: "next-primary",
+    secondaryTaxonomyIds: ["next-secondary"],
+    tags: { channel: ["email"] },
+  };
+
+  assert.deepEqual(mergeEmlClassificationSection(current, draft, "taxonomy"), {
+    primaryTaxonomyId: "next-primary",
+    secondaryTaxonomyIds: ["next-secondary"],
+    summary: "Resumo preservado",
+    tags: { urgency: ["high"] },
+  });
+  assert.deepEqual(mergeEmlClassificationSection(current, draft, "tags"), {
+    primaryTaxonomyId: "current-primary",
+    secondaryTaxonomyIds: ["current-secondary"],
+    summary: "Resumo preservado",
+    tags: { channel: ["email"] },
+  });
+});
+
+test("classification cloning does not share taxonomy or tag arrays", () => {
+  const source = {
+    secondaryTaxonomyIds: ["secondary"],
+    tags: { channel: ["email"] },
+  };
+  const clone = cloneEmlClassification(source);
+
+  clone.secondaryTaxonomyIds.push("another");
+  clone.tags.channel.push("chat");
+
+  assert.deepEqual(source, {
+    secondaryTaxonomyIds: ["secondary"],
+    tags: { channel: ["email"] },
+  });
 });

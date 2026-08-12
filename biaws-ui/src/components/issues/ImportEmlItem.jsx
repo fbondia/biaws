@@ -1,5 +1,6 @@
 import {
   CheckCircle2,
+  FolderTree,
   Layers3,
   LoaderCircle,
   Mail,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { TYPE_OPTIONS } from "../../constants/issues.js";
+import { FilterDialogButton } from "../shared/FilterDialogButton.jsx";
 
 function entryStatus(entry) {
   if (entry.status === "analyzing") return "Analisando";
@@ -50,7 +52,7 @@ export function isValidEmlEntry(entry) {
 function selectedTaxonomyIds(classification) {
   return [
     classification.primaryTaxonomyId,
-    ...classification.secondaryTaxonomyIds,
+    ...(classification.secondaryTaxonomyIds || []),
   ].filter(Boolean);
 }
 
@@ -58,7 +60,7 @@ function formatContextSummary(context, applications, components) {
   const application = applications.find(
     ({ id }) => id === context.applicationId,
   );
-  if (!application) return "Selecionar aplicação e componentes";
+  if (!application) return "Selecionar aplicação";
   const selectedComponents = components.filter((component) =>
     context.affectedComponentIds.includes(component.id),
   );
@@ -69,18 +71,23 @@ function formatContextSummary(context, applications, components) {
   return `${application.name} · ${selectedComponents.length} componentes`;
 }
 
-function formatClassificationSummary(classification) {
-  if (!classification) return "Selecionar classificação e tags";
+function formatTaxonomySummary(classification) {
+  if (!classification) return "Nenhuma classificação";
   const taxonomyCount = selectedTaxonomyIds(classification).length;
-  const tagCount = Object.values(classification.tags).reduce(
+  if (!taxonomyCount) return "Nenhuma classificação";
+  return taxonomyCount === 1
+    ? "1 classificação selecionada"
+    : `${taxonomyCount} classificações selecionadas`;
+}
+
+function formatTagsSummary(classification) {
+  if (!classification) return "Nenhuma tag";
+  const tagCount = Object.values(classification.tags || {}).reduce(
     (total, tagIds) => total + tagIds.length,
     0,
   );
-  if (!taxonomyCount && !tagCount) return "Sem classificação ou tags";
-  const taxonomyLabel =
-    taxonomyCount === 1 ? "1 classificação" : `${taxonomyCount} classificações`;
-  const tagLabel = tagCount === 1 ? "1 tag" : `${tagCount} tags`;
-  return `${taxonomyLabel} · ${tagLabel}`;
+  if (!tagCount) return "Nenhuma tag";
+  return tagCount === 1 ? "1 tag selecionada" : `${tagCount} tags selecionadas`;
 }
 
 export function ImportEmlItem({
@@ -91,7 +98,8 @@ export function ImportEmlItem({
   defaultType,
   entry,
   onImport,
-  onOpenClassification,
+  onOpenTags,
+  onOpenTaxonomy,
   onOpenContext,
   onRecalculate,
   onRemove,
@@ -102,6 +110,15 @@ export function ImportEmlItem({
   const locked = working || entry.status === "done";
   const effectiveClassification =
     entry.classification || entry.preview?.issue?.classification;
+  const taxonomyCount = effectiveClassification
+    ? selectedTaxonomyIds(effectiveClassification).length
+    : 0;
+  const tagCount = effectiveClassification
+    ? Object.values(effectiveClassification.tags || {}).reduce(
+        (total, tagIds) => total + tagIds.length,
+        0,
+      )
+    : 0;
 
   return (
     <article
@@ -130,36 +147,41 @@ export function ImportEmlItem({
       </header>
 
       <div className="emlImportAssignmentButtons">
-        <button
-          className="secondaryButton emlAssignmentButton emlApplicationButton"
+        <FilterDialogButton
+          className="emlAssignmentButton emlApplicationButton"
+          count={entry.context?.applicationId ? 1 : 0}
           disabled={locked}
+          icon={Layers3}
+          label="Aplicação"
           onClick={onOpenContext}
-          type="button"
-        >
-          <Layers3 size={16} />
-          <span>
-            <small>Aplicação e componentes</small>
-            <strong>
-              {formatContextSummary(entry.context, applications, components)}
-            </strong>
-          </span>
-        </button>
+          summary={formatContextSummary(
+            entry.context,
+            applications,
+            components,
+          )}
+        />
         {canClassify &&
         canClassifyContext(entry.context, classificationScope) ? (
-          <button
-            className="secondaryButton emlAssignmentButton emlClassificationButton"
-            disabled={locked}
-            onClick={onOpenClassification}
-            type="button"
-          >
-            <Tags size={16} />
-            <span>
-              <small>Classificação e tags</small>
-              <strong>
-                {formatClassificationSummary(effectiveClassification)}
-              </strong>
-            </span>
-          </button>
+          <>
+            <FilterDialogButton
+              className="emlAssignmentButton emlClassificationButton"
+              count={taxonomyCount}
+              disabled={locked}
+              icon={FolderTree}
+              label="Classificação / taxonomia"
+              onClick={onOpenTaxonomy}
+              summary={formatTaxonomySummary(effectiveClassification)}
+            />
+            <FilterDialogButton
+              className="emlAssignmentButton emlTagsButton"
+              count={tagCount}
+              disabled={locked}
+              icon={Tags}
+              label="Tags"
+              onClick={onOpenTags}
+              summary={formatTagsSummary(effectiveClassification)}
+            />
+          </>
         ) : null}
       </div>
 

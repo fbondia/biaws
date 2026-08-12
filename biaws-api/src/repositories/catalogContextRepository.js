@@ -105,8 +105,8 @@ function runtimeSummary(document) {
     monitoringRetentionDays:
       document.monitoringRetentionDays ?? DEFAULT_MONITORING_RETENTION_DAYS,
     observedAt: document.observedAt,
-    procedureIds: document.procedureIds || [],
-    procedureMarkdown: document.procedureMarkdown || "",
+    documentLinks: document.documentLinks || [],
+    operationalNotesMarkdown: document.operationalNotesMarkdown || "",
     updatedAt: document.updatedAt,
   };
 }
@@ -150,17 +150,6 @@ function demandSummary(document) {
   };
 }
 
-function procedureSummary(document) {
-  return {
-    id: document.id,
-    title: document.title,
-    summary: document.summary,
-    affectedComponentIds: document.affectedComponentIds || [],
-    classification: document.classification || null,
-    updatedAt: document.updatedAt,
-  };
-}
-
 function knowledgeRecordSummary(document) {
   return {
     id: document.id,
@@ -173,6 +162,8 @@ function knowledgeRecordSummary(document) {
     definedAt: document.definedAt || "",
     lastReviewedAt: document.lastReviewedAt || "",
     nextReviewAt: document.nextReviewAt || "",
+    classification: document.classification || null,
+    attachments: document.attachments || [],
     updatedAt: document.updatedAt,
   };
 }
@@ -194,7 +185,6 @@ export async function getApplicationContext(applicationId, query = {}) {
   };
   const issues = db.collection(COLLECTION_NAMES.ISSUES);
   const demands = db.collection(COLLECTION_NAMES.REQUESTS);
-  const procedures = db.collection(COLLECTION_NAMES.PROCEDURES);
   const documents = db.collection(COLLECTION_NAMES.DOCUMENTS);
   const includeHistoricalKnowledge =
     String(query.includeArchived || "").toLowerCase() === "true";
@@ -209,7 +199,12 @@ export async function getApplicationContext(applicationId, query = {}) {
             { documentType: "architecture-decision", status: "accepted" },
             {
               documentType: {
-                $in: ["guideline", "feature", "technical-reference"],
+                $in: [
+                  "guideline",
+                  "feature",
+                  "technical-reference",
+                  "procedure",
+                ],
               },
               status: "published",
             },
@@ -228,10 +223,8 @@ export async function getApplicationContext(applicationId, query = {}) {
     runtimeTotal,
     issueDocuments,
     demandDocuments,
-    procedureDocuments,
     issueTotal,
     demandTotal,
-    procedureTotal,
     documentDocuments,
     documentTotal,
     integrationResult,
@@ -258,14 +251,8 @@ export async function getApplicationContext(applicationId, query = {}) {
       .sort({ updatedAt: -1, _id: 1 })
       .limit(limit)
       .toArray(),
-    procedures
-      .find(knowledgeScope)
-      .sort({ updatedAt: -1, id: 1 })
-      .limit(limit)
-      .toArray(),
     issues.countDocuments(knowledgeScope),
     demands.countDocuments(knowledgeScope),
-    procedures.countDocuments(knowledgeScope),
     documents
       .find(documentScope)
       .project({ markdown: 0 })
@@ -315,7 +302,6 @@ export async function getApplicationContext(applicationId, query = {}) {
         referencedServers: serverTotal,
         issues: issueTotal,
         demands: demandTotal,
-        procedures: procedureTotal,
         documents: documentTotal,
         integrations: integrationResult.meta.total,
       },
@@ -327,7 +313,6 @@ export async function getApplicationContext(applicationId, query = {}) {
         referencedServers: serverTotal > serverDocuments.length,
         issues: issueTotal > issueDocuments.length,
         demands: demandTotal > demandDocuments.length,
-        procedures: procedureTotal > procedureDocuments.length,
         documents: documentTotal > documentDocuments.length,
         integrations:
           integrationResult.meta.total > integrationResult.items.length,
@@ -341,7 +326,6 @@ export async function getApplicationContext(applicationId, query = {}) {
     servers: serverDocuments.map(serverSummary),
     issues: issueDocuments.map(issueSummary),
     demands: demandDocuments.map(demandSummary),
-    procedures: procedureDocuments.map(procedureSummary),
     documents: documentDocuments.map(knowledgeRecordSummary),
   };
 }

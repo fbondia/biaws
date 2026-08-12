@@ -9,6 +9,7 @@ import {
   resolveKnowledgeContext,
 } from "./knowledgeContextRepository.js";
 import { assertResourceCollection } from "./resourceCollectionsRepository.js";
+import { assertTaxonomyIdsApplicable } from "../helpers/taxonomy.js";
 
 export const DOCUMENT_TYPES = Object.freeze({
   "business-rule": Object.freeze({
@@ -46,12 +47,84 @@ export const DOCUMENT_TYPES = Object.freeze({
     currentStatuses: ["published"],
     applicationRequired: false,
   }),
+  procedure: Object.freeze({
+    label: "Procedimento",
+    defaultStatus: "draft",
+    statuses: ["draft", "published", "deprecated", "archived"],
+    currentStatuses: ["published"],
+    applicationRequired: false,
+  }),
 });
 
 const MAX_REFERENCES = 100;
 const MAX_RELATIONSHIP = 80;
 const MAX_TITLE = 240;
 const MAX_SUMMARY = 500;
+
+function normalizeStringArray(value, field) {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) {
+    throw httpError(
+      422,
+      "INVALID_DOCUMENT_CLASSIFICATION",
+      `${field} deve ser um array`,
+    );
+  }
+  return [
+    ...new Set(value.map((item) => String(item || "").trim()).filter(Boolean)),
+  ];
+}
+
+function normalizeClassification(value, current = {}) {
+  const classification = value === undefined ? current || {} : value;
+  if (
+    !classification ||
+    typeof classification !== "object" ||
+    Array.isArray(classification)
+  ) {
+    throw httpError(
+      422,
+      "INVALID_DOCUMENT_CLASSIFICATION",
+      "classification deve ser um objeto",
+    );
+  }
+  const primaryTaxonomyId = String(
+    classification.primaryTaxonomyId || "",
+  ).trim();
+  const secondaryTaxonomyIds = normalizeStringArray(
+    classification.secondaryTaxonomyIds,
+    "classification.secondaryTaxonomyIds",
+  ).filter((id) => id !== primaryTaxonomyId);
+  if (
+    classification.tags !== undefined &&
+    (!classification.tags ||
+      typeof classification.tags !== "object" ||
+      Array.isArray(classification.tags))
+  ) {
+    throw httpError(
+      422,
+      "INVALID_DOCUMENT_CLASSIFICATION",
+      "classification.tags deve ser um objeto",
+    );
+  }
+  const tags = Object.fromEntries(
+    Object.entries(classification.tags || {}).flatMap(([groupId, tagIds]) => {
+      const normalizedGroupId = String(groupId || "").trim();
+      return normalizedGroupId
+        ? [
+            [
+              normalizedGroupId,
+              normalizeStringArray(
+                tagIds,
+                `classification.tags.${normalizedGroupId}`,
+              ),
+            ],
+          ]
+        : [];
+    }),
+  );
+  return { primaryTaxonomyId, secondaryTaxonomyIds, tags };
+}
 
 function httpError(statusCode, code, message) {
   const error = new Error(message);
@@ -189,6 +262,7 @@ function normalizeDetails(type, value = {}, current = {}) {
       ),
     };
   }
+  if (type === "procedure") return {};
   return {
     referenceKind: enumValue(
       details.referenceKind ?? previous.referenceKind,
@@ -368,6 +442,10 @@ export function normalizeDocumentPayload(payload = {}, current = null) {
     markdown,
     status,
     details: normalizeDetails(documentType, payload.details, current?.details),
+    classification: normalizeClassification(
+      payload.classification,
+      current?.classification,
+    ),
     source: normalizeSource(payload.source, current?.source),
     collectionId: String(
       payload.collectionId ?? current?.collectionId ?? "",
@@ -408,6 +486,14 @@ async function ensureIndexes(db) {
       affectedComponentIds: 1,
     }),
     documents.createIndex({ workspaceId: 1, collectionId: 1, title: 1 }),
+    documents.createIndex({
+      workspaceId: 1,
+      "classification.primaryTaxonomyId": 1,
+    }),
+    documents.createIndex({
+      workspaceId: 1,
+      "classification.secondaryTaxonomyIds": 1,
+    }),
     db
       .collection(COLLECTION_NAMES.KNOWLEDGE_REVISIONS)
       .createIndex(
@@ -584,6 +670,15 @@ export async function createDocument(payload = {}, query = {}) {
     create: true,
   });
   validateDetailsContext(normalized, context);
+  await assertTaxonomyIdsApplicable(
+    db,
+    [
+      normalized.classification.primaryTaxonomyId,
+      ...normalized.classification.secondaryTaxonomyIds,
+    ],
+    context.workspaceId,
+    context.applicationId,
+  );
   normalized.collectionId = await assertResourceCollection(
     "documents",
     normalized.collectionId,
@@ -601,6 +696,7 @@ export async function createDocument(payload = {}, query = {}) {
     id: randomUUID(),
     ...context,
     ...normalized,
+    attachments: [],
     createdAt: now,
     createdBy: String(payload.createdBy || "biaws-api"),
     updatedAt: now,
@@ -632,6 +728,15 @@ export async function updateDocument(id, payload = {}, query = {}) {
         affectedComponentIds: current.affectedComponentIds || [],
       };
   validateDetailsContext(normalized, context);
+  await assertTaxonomyIdsApplicable(
+    db,
+    [
+      normalized.classification.primaryTaxonomyId,
+      ...normalized.classification.secondaryTaxonomyIds,
+    ],
+    context.workspaceId,
+    context.applicationId,
+  );
   normalized.collectionId = await assertResourceCollection(
     "documents",
     normalized.collectionId,

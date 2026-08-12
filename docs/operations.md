@@ -65,7 +65,7 @@ mounts e registram estes caminhos em `instances/<nome>/.env`:
 BIAWS_MONGO_DATA_PATH=/srv/biaws/meu-projeto/mongo
 BIAWS_ISSUE_FILES_PATH=/srv/biaws/meu-projeto/issues
 BIAWS_REQUEST_FILES_PATH=/srv/biaws/meu-projeto/requests
-BIAWS_PROCEDURE_FILES_PATH=/srv/biaws/meu-projeto/procedures
+BIAWS_DOCUMENT_FILES_PATH=/srv/biaws/meu-projeto/documents
 BIAWS_SECRET_FILES_PATH=/srv/biaws/meu-projeto/secrets
 BIAWS_SECRETS_KEY_PATH=/srv/keys/biaws-meu-projeto.key
 ```

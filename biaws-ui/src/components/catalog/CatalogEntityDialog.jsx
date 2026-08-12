@@ -5,7 +5,7 @@ import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
 import { MonitoringEventDetails } from "../shared/MonitoringEventDetails.jsx";
 import {
   createRuntimeManualMonitoringObservation,
-  fetchProcedure,
+  fetchDocument,
   fetchRuntimeMonitoringTimeline,
 } from "../../api.js";
 import { buildUrl } from "../../api/client.js";
@@ -66,6 +66,14 @@ const RUNTIME_STATUSES = [
   "stopped",
 ];
 const SERVER_STATUSES = ["active", "maintenance", "retired"];
+const DOCUMENT_PURPOSES = [
+  ["operation", "Operação"],
+  ["deployment", "Deployment"],
+  ["rollback", "Rollback"],
+  ["troubleshooting", "Troubleshooting"],
+  ["monitoring", "Monitoramento"],
+  ["reference", "Referência"],
+];
 
 function SelectField({
   className = "",
@@ -196,7 +204,7 @@ function catalogEntitySections(kind) {
       ["basic", "Dados básicos"],
       ["service", "Serviço"],
       ["monitoring", "Monitoramento"],
-      ["procedure", "Procedimento"],
+      ["documents", "Documentação"],
     ];
   return [];
 }
@@ -236,32 +244,32 @@ function CatalogEntityFooter({ error, onClose, saving }) {
 
 function CatalogEntityOverlays({
   options,
-  onConfirmProcedures,
+  onConfirmDocuments,
   runtimeComponent,
-  selectedProcedure,
-  setProcedureSelectorOpen,
-  setSelectedProcedure,
-  procedureSelectorOpen,
+  selectedDocument,
+  setDocumentSelectorOpen,
+  setSelectedDocument,
+  documentSelectorOpen,
   selectedIds,
 }) {
   return (
     <>
-      {procedureSelectorOpen ? (
+      {documentSelectorOpen ? (
         <RuntimeProcedureSelectorDialog
           applicationId={options.application?.id}
           componentId={runtimeComponent?.id}
-          onClose={() => setProcedureSelectorOpen(false)}
-          onConfirm={onConfirmProcedures}
+          onClose={() => setDocumentSelectorOpen(false)}
+          onConfirm={onConfirmDocuments}
           selectedIds={selectedIds}
         />
       ) : null}
-      {selectedProcedure ? (
+      {selectedDocument ? (
         <RuntimeProcedureDetailsDialog
           application={options.application}
           applications={options.applications}
           components={options.components}
-          onClose={() => setSelectedProcedure(null)}
-          procedure={selectedProcedure}
+          document={selectedDocument}
+          onClose={() => setSelectedDocument(null)}
         />
       ) : null}
     </>
@@ -316,11 +324,10 @@ export function CatalogEntityDialog({
   const [monitoringEvents, setMonitoringEvents] = useState([]);
   const [monitoringError, setMonitoringError] = useState("");
   const [addingObservation, setAddingObservation] = useState(false);
-  const [procedureSelectorOpen, setProcedureSelectorOpen] = useState(false);
-  const [relatedProcedures, setRelatedProcedures] = useState([]);
-  const [relatedProceduresLoading, setRelatedProceduresLoading] =
-    useState(false);
-  const [selectedProcedure, setSelectedProcedure] = useState(null);
+  const [documentSelectorOpen, setDocumentSelectorOpen] = useState(false);
+  const [relatedDocuments, setRelatedDocuments] = useState([]);
+  const [relatedDocumentsLoading, setRelatedDocumentsLoading] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
   const label = CATALOG_ENTITY_LABELS[kind];
   const runtimeDeployment = (options.deployments || []).find(
     ({ id }) => id === entity?.deploymentId,
@@ -357,42 +364,53 @@ export function CatalogEntityDialog({
     };
   }, [entity?.id, kind]);
 
-  const relatedProcedureIds = (draft.procedureIds || []).join(",");
+  const relatedDocumentIds = (draft.documentLinks || [])
+    .map(({ documentId }) => documentId)
+    .join(",");
   useEffect(() => {
-    if (kind !== "runtime" || !options.canReadProcedures) return;
-    const procedureIds = relatedProcedureIds.split(",").filter(Boolean);
-    if (!procedureIds.length) {
-      setRelatedProcedures([]);
-      setRelatedProceduresLoading(false);
+    if (kind !== "runtime" || !options.canReadDocuments) return;
+    const documentIds = relatedDocumentIds.split(",").filter(Boolean);
+    if (!documentIds.length) {
+      setRelatedDocuments([]);
+      setRelatedDocumentsLoading(false);
       return;
     }
     let active = true;
-    setRelatedProceduresLoading(true);
-    Promise.allSettled(procedureIds.map((id) => fetchProcedure(id)))
+    setRelatedDocumentsLoading(true);
+    Promise.allSettled(documentIds.map((id) => fetchDocument(id)))
       .then((results) => {
         if (!active) return;
-        setRelatedProcedures(
+        setRelatedDocuments(
           results.map((result, index) =>
             result.status === "fulfilled"
-              ? result.value.procedure
+              ? result.value.document
               : {
-                  id: procedureIds[index],
-                  title: procedureIds[index],
+                  id: documentIds[index],
+                  title: documentIds[index],
                   loadError: result.reason?.message || "Falha ao carregar",
                 },
           ),
         );
       })
       .finally(() => {
-        if (active) setRelatedProceduresLoading(false);
+        if (active) setRelatedDocumentsLoading(false);
       });
     return () => {
       active = false;
     };
-  }, [kind, options.canReadProcedures, relatedProcedureIds]);
+  }, [kind, options.canReadDocuments, relatedDocumentIds]);
 
   function update(field, value) {
     setDraft((current) => ({ ...current, [field]: value }));
+  }
+
+  function updateDocumentPurpose(documentId, purpose) {
+    update(
+      "documentLinks",
+      (draft.documentLinks || []).map((link) =>
+        link.documentId === documentId ? { ...link, purpose } : link,
+      ),
+    );
   }
 
   function addPublication() {
@@ -1129,47 +1147,69 @@ export function CatalogEntityDialog({
             </EntityFieldGroup>
 
             <EntityFieldGroup
-              active={kind === "runtime" && activeSection === "procedure"}
+              active={kind === "runtime" && activeSection === "documents"}
             >
               <>
-                {options.canReadProcedures ? (
+                {options.canReadDocuments ? (
                   <div className="catalogWideField runtimeProcedureSection">
                     <div className="runtimeProcedureSelectionField">
                       <div>
-                        <strong>Procedimentos relacionados</strong>
+                        <strong>Documentos relacionados</strong>
                         <span>
-                          {(draft.procedureIds || []).length
-                            ? `${draft.procedureIds.length} procedimento(s) selecionado(s)`
-                            : "Nenhum procedimento selecionado"}
+                          {(draft.documentLinks || []).length
+                            ? `${draft.documentLinks.length} documento(s) selecionado(s)`
+                            : "Nenhum documento selecionado"}
                         </span>
                       </div>
                       <button
                         className="secondaryButton"
-                        onClick={() => setProcedureSelectorOpen(true)}
+                        onClick={() => setDocumentSelectorOpen(true)}
                         type="button"
                       >
-                        <FolderTree size={16} /> Selecionar procedimentos
+                        <FolderTree size={16} /> Selecionar documentos
                       </button>
                     </div>
-                    {relatedProceduresLoading ? (
+                    {relatedDocumentsLoading ? (
                       <div className="catalogColumnEmpty">Carregando…</div>
                     ) : null}
-                    {!relatedProceduresLoading && relatedProcedures.length ? (
+                    {!relatedDocumentsLoading && relatedDocuments.length ? (
                       <div className="runtimeRelatedProcedureList">
-                        {relatedProcedures.map((procedure) => (
-                          <article key={procedure.id}>
+                        {relatedDocuments.map((document) => (
+                          <article key={document.id}>
                             <div>
-                              <strong>{procedure.title}</strong>
+                              <strong>{document.title}</strong>
                               <span>
-                                {procedure.loadError
-                                  ? procedure.loadError
-                                  : procedure.summary || "Sem sumário"}
+                                {document.loadError
+                                  ? document.loadError
+                                  : document.summary || "Sem sumário"}
                               </span>
                             </div>
+                            <select
+                              aria-label={`Finalidade de ${document.title}`}
+                              disabled={Boolean(document.loadError)}
+                              onChange={(event) =>
+                                updateDocumentPurpose(
+                                  document.id,
+                                  event.target.value,
+                                )
+                              }
+                              value={
+                                (draft.documentLinks || []).find(
+                                  ({ documentId }) =>
+                                    documentId === document.id,
+                                )?.purpose || "reference"
+                              }
+                            >
+                              {DOCUMENT_PURPOSES.map(([value, label]) => (
+                                <option key={value} value={value}>
+                                  {label}
+                                </option>
+                              ))}
+                            </select>
                             <button
                               className="secondaryButton"
-                              disabled={Boolean(procedure.loadError)}
-                              onClick={() => setSelectedProcedure(procedure)}
+                              disabled={Boolean(document.loadError)}
+                              onClick={() => setSelectedDocument(document)}
                               type="button"
                             >
                               <Eye size={16} /> Abrir dados
@@ -1183,12 +1223,14 @@ export function CatalogEntityDialog({
                 <label className="field catalogWideField catalogProcedureField">
                   <span>Instruções complementares (Markdown)</span>
                   <MarkdownEditor
-                    onChange={(value) => update("procedureMarkdown", value)}
-                    value={draft.procedureMarkdown || ""}
+                    onChange={(value) =>
+                      update("operationalNotesMarkdown", value)
+                    }
+                    value={draft.operationalNotesMarkdown || ""}
                   />
                   <small>
                     Use este campo para instruções específicas deste runtime ou
-                    quando não quiser vincular um procedimento existente.
+                    quando não quiser criar um documento reutilizável.
                   </small>
                 </label>
               </>
@@ -1224,16 +1266,30 @@ export function CatalogEntityDialog({
       </section>
       <CatalogEntityOverlays
         options={options}
-        onConfirmProcedures={(procedureIds) => {
-          update("procedureIds", procedureIds);
-          setProcedureSelectorOpen(false);
+        onConfirmDocuments={(documentIds) => {
+          const currentLinks = new Map(
+            (draft.documentLinks || []).map((link) => [link.documentId, link]),
+          );
+          update(
+            "documentLinks",
+            documentIds.map(
+              (documentId) =>
+                currentLinks.get(documentId) || {
+                  documentId,
+                  purpose: "reference",
+                },
+            ),
+          );
+          setDocumentSelectorOpen(false);
         }}
-        procedureSelectorOpen={procedureSelectorOpen}
+        documentSelectorOpen={documentSelectorOpen}
         runtimeComponent={runtimeComponent}
-        selectedIds={draft.procedureIds || []}
-        selectedProcedure={selectedProcedure}
-        setProcedureSelectorOpen={setProcedureSelectorOpen}
-        setSelectedProcedure={setSelectedProcedure}
+        selectedDocument={selectedDocument}
+        selectedIds={(draft.documentLinks || []).map(
+          ({ documentId }) => documentId,
+        )}
+        setDocumentSelectorOpen={setDocumentSelectorOpen}
+        setSelectedDocument={setSelectedDocument}
       />
     </div>
   );

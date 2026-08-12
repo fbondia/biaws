@@ -247,25 +247,25 @@ curl -X PATCH http://127.0.0.1:3100/api/issues/INC1234567/attachments/<attachmen
 
 Anexos legados sem `id` também podem ser obtidos usando seu `index`.
 
-O mesmo contrato está disponível para melhorias e procedimentos:
+O mesmo contrato está disponível para melhorias e documentos:
 
 ```text
 POST /api/requests/:id/attachments
 GET  /api/requests/:id/attachments/:attachmentId
 DELETE /api/requests/:id/attachments/:attachmentId
 PATCH /api/requests/:id/attachments/:attachmentId/tags
-POST /api/procedures/:id/attachments
-GET  /api/procedures/:id/attachments/:attachmentId
-DELETE /api/procedures/:id/attachments/:attachmentId
-PATCH /api/procedures/:id/attachments/:attachmentId/tags
+POST /api/knowledge/documents/:id/attachments
+GET  /api/knowledge/documents/:id/attachments/:attachmentId
+DELETE /api/knowledge/documents/:id/attachments/:attachmentId
+PATCH /api/knowledge/documents/:id/attachments/:attachmentId/tags
 ```
 
-Cada domínio usa sua própria raiz (`ISSUE_DIR`, `REQUEST_DIR` ou `PROCEDURE_DIR`)
+Cada domínio usa sua própria raiz (`ISSUE_DIR`, `REQUEST_DIR` ou `DOCUMENT_DIR`)
 e o mesmo layout mensal `YYYY-MM/<id>/attachments/<arquivo>`.
 
 ## Documentos de conhecimento
 
-Regras de negócio, decisões arquiteturais, guidelines, features e referências
+Procedimentos, regras de negócio, decisões arquiteturais, guidelines, features e referências
 técnicas compartilham uma coleção e uma API discriminada por `documentType`:
 
 ```text

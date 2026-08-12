@@ -177,7 +177,7 @@ function CatalogDialogs({
           options={{
             application: context?.application,
             applications: context?.availableApplications || [],
-            canReadProcedures: hasPermission(actor, "procedures.read"),
+            canReadDocuments: hasPermission(actor, "documents.read"),
             components: context?.components || [],
             deployments: context?.deployments || [],
             repositories: context?.repositories || [],

@@ -18,7 +18,6 @@ import {
 } from "./logging/httpLogging.js";
 import { issuesRouter } from "./routes/issues.js";
 import { requestsRouter } from "./routes/requests.js";
-import { proceduresRouter } from "./routes/procedures.js";
 import { skillsRouter } from "./routes/skills.js";
 import { accessRouter } from "./routes/access.js";
 import { identityRouter } from "./routes/identity.js";
@@ -127,7 +126,6 @@ export function createApp({ logger = apiLogger } = {}) {
   app.use("/api/issues", ...protectedRoute, issuesRouter);
   app.use("/api/home", ...protectedRoute, homeRouter);
   app.use("/api/requests", ...protectedRoute, requestsRouter);
-  app.use("/api/procedures", ...protectedRoute, proceduresRouter);
   app.use("/api/skills", ...protectedRoute, skillsRouter);
   app.use("/api/access", ...protectedRoute, accessRouter);
   app.use("/api/identity", ...protectedRoute, identityRouter);

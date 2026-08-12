@@ -23,8 +23,6 @@ export const COLLECTION_NAMES = Object.freeze({
   HOME_CONFIGURATIONS: "homeConfigurations",
   OPTION_LISTS: "optionLists",
   PERMISSION_GROUPS: "permissionGroups",
-  PROCEDURE_COLLECTIONS: "procedureCollections",
-  PROCEDURES: "procedures",
   REQUEST_JOURNEY_PERIODS: "requestJourneyPeriods",
   REQUEST_NOTES: "requestNotes",
   REQUEST_SPECIFICATIONS: "requestSpecifications",

@@ -14,13 +14,13 @@ export function RuntimeProcedureDetailsDialog({
   application: currentApplication,
   applications = [],
   components = [],
+  document,
   onClose,
-  procedure,
 }) {
   const application = [currentApplication, ...applications]
     .filter(Boolean)
-    .find(({ id }) => id === procedure.applicationId);
-  const componentNames = (procedure.affectedComponentIds || []).map(
+    .find(({ id }) => id === document.applicationId);
+  const componentNames = (document.affectedComponentIds || []).map(
     (componentId) =>
       components.find(({ id }) => id === componentId)?.name || componentId,
   );
@@ -40,8 +40,8 @@ export function RuntimeProcedureDetailsDialog({
       >
         <header>
           <div>
-            <span>Procedimento relacionado</span>
-            <h2 id="runtimeProcedureDetailsTitle">{procedure.title}</h2>
+            <span>Documento relacionado</span>
+            <h2 id="runtimeProcedureDetailsTitle">{document.title}</h2>
           </div>
           <button
             aria-label="Fechar"
@@ -55,7 +55,7 @@ export function RuntimeProcedureDetailsDialog({
         <div className="runtimeProcedureDetailsBody">
           <section className="runtimeProcedureDetailsSummary">
             <span>Sumário</span>
-            <p>{procedure.summary || "Sumário não informado."}</p>
+            <p>{document.summary || "Sumário não informado."}</p>
           </section>
           <div className="runtimeProcedureDetailsMetadata">
             <div>
@@ -74,16 +74,16 @@ export function RuntimeProcedureDetailsDialog({
             </div>
             <div>
               <span>Data de criação</span>
-              <strong>{formatDate(procedure.createdAt)}</strong>
+              <strong>{formatDate(document.createdAt)}</strong>
             </div>
             <div>
               <span>Última revisão</span>
-              <strong>{formatDate(procedure.updatedAt)}</strong>
+              <strong>{formatDate(document.updatedAt)}</strong>
             </div>
           </div>
           <section className="runtimeProcedureDetailsContent">
-            <span>Descrição do procedimento</span>
-            <MarkdownPreview value={procedure.procedure || ""} />
+            <span>Conteúdo do documento</span>
+            <MarkdownPreview value={document.markdown || ""} />
           </section>
         </div>
         <footer>

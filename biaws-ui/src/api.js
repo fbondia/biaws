@@ -5,7 +5,6 @@ export * from "./api/issues.js";
 export * from "./api/attachments.js";
 export * from "./api/eml.js";
 export * from "./api/requests.js";
-export * from "./api/procedures.js";
 export * from "./api/audit.js";
 export * from "./api/catalog.js";
 export * from "./api/skills.js";

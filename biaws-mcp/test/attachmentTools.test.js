@@ -28,7 +28,7 @@ test("attachment tools expose the four supported file operations", () => {
       "issue",
       "demand",
       "task",
-      "procedure",
+      "document",
     ]);
   }
 });
@@ -89,13 +89,13 @@ test("attachments_download returns binary content as Base64 with response metada
 
   try {
     const result = await dispatchTool("attachments_download", {
-      entityType: "procedure",
-      entityId: "PROC-1",
+      entityType: "document",
+      entityId: "DOC-1",
       attachmentId: 3,
     });
     assert.deepEqual(result, {
-      entityType: "procedure",
-      entityId: "PROC-1",
+      entityType: "document",
+      entityId: "DOC-1",
       attachmentId: 3,
       filename: "evidência.txt",
       contentType: "text/plain",
@@ -123,8 +123,8 @@ test("attachment tag updates and deletion use the domain routes", async () => {
       tags: ["Log"],
     });
     await dispatchTool("attachments_delete", {
-      entityType: "procedure",
-      entityId: "PROC-1",
+      entityType: "document",
+      entityId: "DOC-1",
       attachmentId: "attachment-2",
     });
 
@@ -137,7 +137,7 @@ test("attachment tag updates and deletion use the domain routes", async () => {
     assert.equal(calls[1].options.method, "DELETE");
     assert.equal(
       new URL(calls[1].url).pathname,
-      "/api/procedures/PROC-1/attachments/attachment-2",
+      "/api/knowledge/documents/DOC-1/attachments/attachment-2",
     );
   } finally {
     globalThis.fetch = originalFetch;

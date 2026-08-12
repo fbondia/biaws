@@ -38,18 +38,19 @@ function rootDocument(result, entityType) {
       ? "request"
       : entityType === "issues"
         ? "issue"
-        : "procedure";
+        : "document";
   return result?.[key];
 }
 
-export function registerAttachmentRoutes(router, entityType) {
+export function registerAttachmentRoutes(router, entityType, basePath = "") {
+  const path = (suffix) => `${basePath}${suffix}`;
   const permissionPrefix = entityType === "requests" ? "demands" : entityType;
   const rootType =
     entityType === "requests"
       ? "demand"
       : entityType === "issues"
         ? "issue"
-        : "procedure";
+        : "document";
   const scopedQuery = (req, suffix) =>
     authorizationQuery(
       req.actor,
@@ -57,7 +58,7 @@ export function registerAttachmentRoutes(router, entityType) {
       req.query,
     );
   router.post(
-    "/:id/attachments",
+    path("/:id/attachments"),
     requireAllPermissions(`${permissionPrefix}.attachment.create`),
     upload.array("files", 10),
     asyncHandler(async (req, res) => {
@@ -88,7 +89,7 @@ export function registerAttachmentRoutes(router, entityType) {
   );
 
   router.get(
-    "/:id/attachments/:attachmentId",
+    path("/:id/attachments/:attachmentId"),
     requireAllPermissions(`${permissionPrefix}.attachment.read`),
     asyncHandler(async (req, res) => {
       const { attachment, content } = await readAttachment(
@@ -113,7 +114,7 @@ export function registerAttachmentRoutes(router, entityType) {
   );
 
   router.delete(
-    "/:id/attachments/:attachmentId",
+    path("/:id/attachments/:attachmentId"),
     requireAllPermissions(`${permissionPrefix}.attachment.delete`),
     asyncHandler(async (req, res) => {
       const result = await deleteAttachment(
@@ -140,7 +141,7 @@ export function registerAttachmentRoutes(router, entityType) {
   );
 
   router.patch(
-    "/:id/attachments/:attachmentId/tags",
+    path("/:id/attachments/:attachmentId/tags"),
     requireAllPermissions(`${permissionPrefix}.attachment.update`),
     asyncHandler(async (req, res) => {
       const result = await updateAttachmentTags(

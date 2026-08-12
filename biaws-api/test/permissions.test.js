@@ -38,8 +38,8 @@ test("permission sections distinguish resources inside a domain", () => {
 test("permission constants and validation use the canonical catalog", () => {
   assert.equal(PERMISSIONS.ISSUES_IMPORT_EML, "issues.import.eml");
   assert.equal(
-    PERMISSIONS.PROCEDURES_ATTACHMENT_READ,
-    "procedures.attachment.read",
+    PERMISSIONS.DOCUMENTS_ATTACHMENT_READ,
+    "documents.attachment.read",
   );
   assert.equal(isKnownPermission(PERMISSIONS.SKILLS_PUBLISH), true);
   assert.equal(isKnownPermission("issues.superuser"), false);

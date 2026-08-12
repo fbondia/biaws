@@ -250,8 +250,30 @@ const RUNTIME_PROPERTIES = {
     },
   },
   monitoringRetentionDays: { type: "integer", minimum: 0, maximum: 3650 },
-  procedureIds: { ...STRING_ARRAY, maxItems: 100 },
-  procedureMarkdown: STRING,
+  documentLinks: {
+    type: "array",
+    maxItems: 100,
+    items: {
+      type: "object",
+      required: ["documentId", "purpose"],
+      additionalProperties: false,
+      properties: {
+        documentId: ID,
+        purpose: {
+          type: "string",
+          enum: [
+            "operation",
+            "deployment",
+            "rollback",
+            "troubleshooting",
+            "monitoring",
+            "reference",
+          ],
+        },
+      },
+    },
+  },
+  operationalNotesMarkdown: STRING,
   // Campo legado materializado a partir da observação mais recente.
   observedAt: { type: ["string", "null"] },
 };

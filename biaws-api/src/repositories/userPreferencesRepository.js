@@ -5,7 +5,6 @@ export const COLLECTION_NAVIGATION_CONTEXTS = Object.freeze([
   "applications",
   "documents",
   "demands",
-  "procedures",
   "secrets",
   "skills",
   "servers",

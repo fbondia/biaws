@@ -53,8 +53,8 @@ test(
       );
       assert.equal(
         await db
-          .collection(COLLECTION_NAMES.PROCEDURE_COLLECTIONS)
-          .countDocuments({ workspaceId }),
+          .collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS)
+          .countDocuments({ workspaceId, resourceType: "documents" }),
         1,
       );
       assert.equal(
@@ -71,8 +71,8 @@ test(
       );
       assert.equal(
         await db
-          .collection(COLLECTION_NAMES.PROCEDURES)
-          .countDocuments({ workspaceId }),
+          .collection(COLLECTION_NAMES.DOCUMENTS)
+          .countDocuments({ workspaceId, documentType: "procedure" }),
         1,
       );
       const demands = await listRequests({

@@ -13,7 +13,7 @@ const HARD_MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
 const ENTITY_PATHS = {
   issue: "issues",
   demand: "requests",
-  procedure: "procedures",
+  document: "knowledge/documents",
 };
 
 function domainError(message, code = "INVALID_ATTACHMENT_INPUT", status = 422) {

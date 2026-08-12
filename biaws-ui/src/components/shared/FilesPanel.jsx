@@ -14,6 +14,9 @@ import { detailValue, formatBytes, formatDate } from "../../utils/issues.js";
 import { canPreviewFile, FilePreview } from "./FilePreview.jsx";
 
 export function FilesPanel({
+  canCreate = true,
+  canDelete = true,
+  canUpdate = true,
   files = [],
   maxFileSizeMb = 50,
   maxFiles = 10,
@@ -184,28 +187,30 @@ export function FilesPanel({
       {error ? <div className="errorBox dialogError">{error}</div> : null}
       {message ? <div className="infoBox">{message}</div> : null}
 
-      <label
-        className={
-          uploading ? "fileUploadBox disabledFileUploadBox" : "fileUploadBox"
-        }
-      >
-        <Upload size={20} />
-        <strong>
-          {uploading ? "Enviando arquivos..." : "Selecionar arquivos"}
-        </strong>
-        <span>
-          Até {maxFiles} arquivos por envio, com até {maxFileSizeMb} MB cada.
-        </span>
-        <input
-          disabled={uploading}
-          multiple
-          onChange={(event) => {
-            void upload(event.target.files);
-            event.target.value = "";
-          }}
-          type="file"
-        />
-      </label>
+      {canCreate ? (
+        <label
+          className={
+            uploading ? "fileUploadBox disabledFileUploadBox" : "fileUploadBox"
+          }
+        >
+          <Upload size={20} />
+          <strong>
+            {uploading ? "Enviando arquivos..." : "Selecionar arquivos"}
+          </strong>
+          <span>
+            Até {maxFiles} arquivos por envio, com até {maxFileSizeMb} MB cada.
+          </span>
+          <input
+            disabled={uploading}
+            multiple
+            onChange={(event) => {
+              void upload(event.target.files);
+              event.target.value = "";
+            }}
+            type="file"
+          />
+        </label>
+      ) : null}
 
       {tags.length ? (
         <div className="fileTagFilters">
@@ -282,17 +287,19 @@ export function FilesPanel({
                         style={tagColor(tag)}
                       >
                         {tag}
-                        <button
-                          aria-label={`Remover tag ${tag}`}
-                          disabled={savingTags}
-                          onClick={() => removeTag(file, tag)}
-                          type="button"
-                        >
-                          <X size={11} />
-                        </button>
+                        {canUpdate ? (
+                          <button
+                            aria-label={`Remover tag ${tag}`}
+                            disabled={savingTags}
+                            onClick={() => removeTag(file, tag)}
+                            type="button"
+                          >
+                            <X size={11} />
+                          </button>
+                        ) : null}
                       </span>
                     ))}
-                    {editingTagsId === fileId ? (
+                    {canUpdate && editingTagsId === fileId ? (
                       <form
                         className="fileTagForm"
                         onSubmit={(event) => {
@@ -322,7 +329,7 @@ export function FilesPanel({
                           <X size={14} />
                         </button>
                       </form>
-                    ) : (
+                    ) : canUpdate ? (
                       <button
                         className="addFileTagButton"
                         onClick={() => {
@@ -333,7 +340,7 @@ export function FilesPanel({
                       >
                         <Plus size={12} /> Tag
                       </button>
-                    )}
+                    ) : null}
                   </div>
                 </div>
                 <div className="fileAttachmentActions">
@@ -346,16 +353,18 @@ export function FilesPanel({
                     <Download size={15} />
                     {downloading ? "Baixando..." : "Baixar"}
                   </button>
-                  <button
-                    aria-label={`Excluir ${file.filename || "arquivo"}`}
-                    className="dangerButton compactFileButton"
-                    disabled={deleting || downloading || !file.storage}
-                    onClick={() => void remove(file)}
-                    type="button"
-                  >
-                    <Trash2 size={15} />
-                    {deleting ? "Excluindo..." : "Excluir"}
-                  </button>
+                  {canDelete ? (
+                    <button
+                      aria-label={`Excluir ${file.filename || "arquivo"}`}
+                      className="dangerButton compactFileButton"
+                      disabled={deleting || downloading || !file.storage}
+                      onClick={() => void remove(file)}
+                      type="button"
+                    >
+                      <Trash2 size={15} />
+                      {deleting ? "Excluindo..." : "Excluir"}
+                    </button>
+                  ) : null}
                 </div>
               </article>
             );

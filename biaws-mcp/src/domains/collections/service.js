@@ -4,7 +4,6 @@ const RESOURCE_TYPES = new Set([
   "applications",
   "documents",
   "demands",
-  "procedures",
   "secrets",
   "skills",
   "servers",
@@ -25,10 +24,7 @@ function resourceType(args = {}) {
 }
 
 function collectionsPath(type, collectionId = "") {
-  const base =
-    type === "procedures"
-      ? "/api/procedures/collections"
-      : `/api/resource-collections/${encodeURIComponent(type)}`;
+  const base = `/api/resource-collections/${encodeURIComponent(type)}`;
   return collectionId ? `${base}/${encodeURIComponent(collectionId)}` : base;
 }
 
@@ -131,14 +127,6 @@ export async function moveDemandToCollection(args = {}) {
   const id = requiredId(args, "requestId");
   return move(
     `/api/requests/${encodeURIComponent(id)}/collection`,
-    destinationCollectionId(args),
-  );
-}
-
-export async function moveProcedureToCollection(args = {}) {
-  const id = requiredId(args, "procedureId");
-  return move(
-    `/api/procedures/${encodeURIComponent(id)}/collection`,
     destinationCollectionId(args),
   );
 }

@@ -32,8 +32,8 @@ test(
       await import("../src/repositories/issuesRepository.js");
     const { createRequest, createRequestTask } =
       await import("../src/repositories/requestsRepository.js");
-    const { createProcedure } =
-      await import("../src/repositories/proceduresRepository.js");
+    const { createDocument } =
+      await import("../src/repositories/documentsRepository.js");
     const { deleteAttachment, uploadAttachments } =
       await import("../src/services/attachmentService.js");
     const { getApplicationContext } =
@@ -117,17 +117,21 @@ test(
         0,
       );
 
-      const procedure = await createProcedure({
+      const procedure = await createDocument({
+        documentType: "procedure",
         title: "Workspace procedure",
         summary: "General knowledge",
-        procedure: "Run the documented steps.",
+        markdown: "Run the documented steps.",
+        status: "published",
       });
-      assert.equal(procedure.procedure.workspaceId, workspace.id);
-      assert.equal(procedure.procedure.applicationId, null);
-      const relatedProcedure = await createProcedure({
+      assert.equal(procedure.document.workspaceId, workspace.id);
+      assert.equal(procedure.document.applicationId, null);
+      const relatedProcedure = await createDocument({
+        documentType: "procedure",
         title: "Application procedure",
         summary: "Application knowledge",
-        procedure: "Run the application steps.",
+        markdown: "Run the application steps.",
+        status: "published",
         applicationId: application.id,
         affectedComponentIds: [component.id],
       });
@@ -135,8 +139,10 @@ test(
       assert.equal(applicationContext.issues[0].id, issue.issueId);
       assert.equal(applicationContext.demands[0].id, demand.request.id);
       assert.equal(
-        applicationContext.procedures[0].id,
-        relatedProcedure.procedure.id,
+        applicationContext.documents.find(
+          ({ documentType }) => documentType === "procedure",
+        ).id,
+        relatedProcedure.document.id,
       );
       assert.equal(
         Object.hasOwn(applicationContext.issues[0], "attachments"),
@@ -147,7 +153,7 @@ test(
         false,
       );
       assert.equal(
-        Object.hasOwn(applicationContext.procedures[0], "procedure"),
+        Object.hasOwn(applicationContext.documents[0], "markdown"),
         false,
       );
     } finally {

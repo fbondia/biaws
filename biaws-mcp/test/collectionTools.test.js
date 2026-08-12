@@ -25,7 +25,6 @@ test("collection tools expose bounded resource types and explicit destination id
       "skills_move_to_collection",
       "demands_move_to_collection",
       "documents_move_to_collection",
-      "procedures_move_to_collection",
     ],
   );
   const registered = new Map(listTools().map((tool) => [tool.name, tool]));
@@ -36,15 +35,7 @@ test("collection tools expose bounded resource types and explicit destination id
   assert.deepEqual(
     registered.get("resource_collections_list").inputSchema.properties
       .resourceType.enum,
-    [
-      "applications",
-      "demands",
-      "documents",
-      "procedures",
-      "secrets",
-      "skills",
-      "servers",
-    ],
+    ["applications", "demands", "documents", "secrets", "skills", "servers"],
   );
   for (const name of [
     "applications_move_to_collection",
@@ -53,7 +44,6 @@ test("collection tools expose bounded resource types and explicit destination id
     "skills_move_to_collection",
     "demands_move_to_collection",
     "documents_move_to_collection",
-    "procedures_move_to_collection",
   ]) {
     assert.equal(
       registered.get(name).inputSchema.required.includes("collectionId"),
@@ -63,7 +53,7 @@ test("collection tools expose bounded resource types and explicit destination id
   }
 });
 
-test("resource collection tools route generic and procedure trees through the API", async () => {
+test("resource collection tools route generic trees through the API", async () => {
   const originalFetch = globalThis.fetch;
   const originalBaseUrl = process.env.ISSUE_API_URL;
   process.env.ISSUE_API_URL = "http://api.test";
@@ -105,20 +95,6 @@ test("resource collection tools route generic and procedure trees through the AP
       "DELETE",
       "/api/resource-collections/secrets/unused",
       undefined,
-    ],
-    [
-      "resource_collections_list",
-      { resourceType: "procedures" },
-      undefined,
-      "/api/procedures/collections",
-      undefined,
-    ],
-    [
-      "resource_collections_create",
-      { resourceType: "procedures", name: "Runbooks" },
-      "POST",
-      "/api/procedures/collections",
-      { name: "Runbooks" },
     ],
   ];
 
@@ -177,12 +153,6 @@ test("move tools use audited API routes and support moving to root", async () =>
       { requestId: "request-1", collectionId: "roadmap" },
       "/api/requests/request-1/collection",
       "roadmap",
-    ],
-    [
-      "procedures_move_to_collection",
-      { procedureId: "procedure-1", collectionId: "runbooks" },
-      "/api/procedures/procedure-1/collection",
-      "runbooks",
     ],
     [
       "documents_move_to_collection",

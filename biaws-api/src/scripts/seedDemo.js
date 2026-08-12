@@ -17,10 +17,8 @@ import {
   saveIssueClassification,
 } from "../repositories/issuesRepository.js";
 import { listOptionLists } from "../repositories/optionListsRepository.js";
-import {
-  createProcedure,
-  createProcedureCollection,
-} from "../repositories/proceduresRepository.js";
+import { createDocument } from "../repositories/documentsRepository.js";
+import { createResourceCollection } from "../repositories/resourceCollectionsRepository.js";
 import {
   createRequest,
   createRequestTask,
@@ -390,15 +388,17 @@ async function ensureRequest(db, context, query) {
 
 async function ensureProcedure(db, context, query, classification) {
   let collection = await db
-    .collection(COLLECTION_NAMES.PROCEDURE_COLLECTIONS)
+    .collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS)
     .findOne({
       workspaceId: context.workspaceId,
+      resourceType: "documents",
       nameKey: DEMO_COLLECTION_NAME.toLocaleLowerCase("pt-BR"),
       parentId: "",
     });
 
   if (!collection) {
-    const result = await createProcedureCollection(
+    const result = await createResourceCollection(
+      "documents",
       {
         name: DEMO_COLLECTION_NAME,
         createdBy: SEED_ACTOR,
@@ -408,13 +408,14 @@ async function ensureProcedure(db, context, query, classification) {
     collection = result.collection;
   }
 
-  const existing = await db.collection(COLLECTION_NAMES.PROCEDURES).findOne({
+  const existing = await db.collection(COLLECTION_NAMES.DOCUMENTS).findOne({
     title: DEMO_PROCEDURE_TITLE,
     workspaceId: context.workspaceId,
+    documentType: "procedure",
   });
   if (existing) {
     await db
-      .collection(COLLECTION_NAMES.PROCEDURES)
+      .collection(COLLECTION_NAMES.DOCUMENTS)
       .updateOne(
         { id: existing.id, workspaceId: context.workspaceId },
         { $set: { ...context, updatedAt: new Date(), updatedBy: SEED_ACTOR } },
@@ -422,16 +423,17 @@ async function ensureProcedure(db, context, query, classification) {
     return { created: false, id: existing.id };
   }
 
-  const result = await createProcedure(
+  const result = await createDocument(
     {
+      documentType: "procedure",
       title: DEMO_PROCEDURE_TITLE,
       summary: "Como iniciar o ambiente e explorar os dados fictícios.",
-      procedure: [
+      markdown: [
         "# Primeiros passos",
         "",
         "1. Acesse a UI em `http://localhost:4400`.",
         "2. Entre com a credencial criada pelo bootstrap.",
-        "3. Explore Chamados, Melhorias e Procedimentos.",
+        "3. Explore Chamados, Melhorias e Documentação.",
         "4. Crie uma chave de API na área da conta para usar MCP e CLI.",
         "",
         "> Todos os registros deste seed são fictícios e podem ser removidos.",
@@ -444,7 +446,7 @@ async function ensureProcedure(db, context, query, classification) {
     query,
   );
 
-  return { created: true, id: result.procedure.id };
+  return { created: true, id: result.document.id };
 }
 
 export async function seedDemoData() {

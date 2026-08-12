@@ -255,8 +255,13 @@ Filtros adicionais: `serverId` e `kind`.
     "replicas": 2
   },
   "monitoringRetentionDays": 10,
-  "procedureIds": ["procedure-id"],
-  "procedureMarkdown": "# Instruções complementares\n\n1. Atualize a imagem."
+  "documentLinks": [
+    {
+      "documentId": "document-id",
+      "purpose": "operation"
+    }
+  ],
+  "operationalNotesMarkdown": "# Instruções complementares\n\n1. Atualize a imagem."
 }
 ```
 
@@ -273,8 +278,10 @@ recusados.
 
 `monitoringRetentionDays` controla a retenção dos eventos desse runtime, usa 10
 dias por padrão, aceita de 0 a 3.650 e recalcula os eventos existentes quando
-alterado. O valor 0 desativa a expiração. O procedimento aceita até 20.000
-caracteres em Markdown.
+alterado. O valor 0 desativa a expiração. As notas operacionais aceitam até
+20.000 caracteres em Markdown. Cada vínculo documental informa um propósito
+entre `operation`, `deployment`, `rollback`, `troubleshooting`, `monitoring` e
+`reference`.
 
 ## Sinais de monitoramento
 
@@ -307,7 +314,7 @@ Veja o [guia de monitoramento](../../docs/monitoring.md).
 
 `GET /api/catalog/applications/:applicationId/context` retorna a aplicação e
 resumos limitados de integrações, componentes, repositórios, deployments, runtimes,
-servidores referenciados, issues, melhorias e procedimentos.
+servidores referenciados, issues, melhorias e documentos.
 
 - `limit` controla o máximo por coleção, com teto de 100 e padrão 25;
 - `includeArchived=true` inclui recursos arquivados;
@@ -315,13 +322,13 @@ servidores referenciados, issues, melhorias e procedimentos.
 - `meta.truncated` informa quais grupos foram truncados;
 - hostname e endereços de servidores e `metadata` de runtimes não são expostos
   no agregado;
-- anexos e textos extensos de issues, melhorias e procedimentos também são
+- anexos e textos extensos de issues, melhorias e documentos também são
   omitidos.
 
 Como o endpoint combina todos os domínios, ele exige as sete permissões de
 leitura do catálogo — aplicação, integração, componente, repositório, servidor,
 deployment e runtime — e as três permissões `issues.read`, `demands.read` e
-`procedures.read`, além de `documents.read`.
+`documents.read`.
 
 O mesmo contexto está disponível no MCP pela ferramenta
 `applications_get_context`. O MCP não amplia as permissões da chave usada e
@@ -329,7 +336,7 @@ não consulta o banco diretamente.
 
 ## Relação da base de conhecimento com o catálogo
 
-Os documentos de issue, melhoria, procedimento e conhecimento usam os campos:
+Os registros de issue, melhoria e documentação usam os campos:
 
 - `workspaceId`;
 - `applicationId`;

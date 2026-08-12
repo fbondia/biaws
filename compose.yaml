@@ -44,7 +44,7 @@ services:
       ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS: ${ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS:-1000}
       ISSUE_DIR: /data/issues
       REQUEST_DIR: /data/requests
-      PROCEDURE_DIR: /data/procedures
+      DOCUMENT_DIR: /data/documents
       BIAWS_SECRETS_PROVIDER: local
       BIAWS_SECRETS_DIR: /data/secrets
       BIAWS_SECRETS_KEY_FILE: /run/secrets/biaws-master-key
@@ -61,7 +61,7 @@ services:
     volumes:
       - ${BIAWS_ISSUE_FILES_PATH:-issue-files}:/data/issues
       - ${BIAWS_REQUEST_FILES_PATH:-request-files}:/data/requests
-      - ${BIAWS_PROCEDURE_FILES_PATH:-procedure-files}:/data/procedures
+      - ${BIAWS_DOCUMENT_FILES_PATH:-procedure-files}:/data/documents
       - ${BIAWS_SECRET_FILES_PATH:-secret-files}:/data/secrets
     secrets:
       - source: biaws_master_key

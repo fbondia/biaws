@@ -75,8 +75,8 @@ const DEFAULTS = {
     status: "unknown",
     metadataText: "{}",
     monitoringRetentionDays: 10,
-    procedureIds: [],
-    procedureMarkdown: "",
+    documentLinks: [],
+    operationalNotesMarkdown: "",
   },
 };
 
@@ -224,8 +224,8 @@ const PAYLOAD_BUILDERS = {
       status: draft.status,
       metadata,
       monitoringRetentionDays: Number(draft.monitoringRetentionDays),
-      procedureIds: draft.procedureIds || [],
-      procedureMarkdown: text(draft.procedureMarkdown),
+      documentLinks: draft.documentLinks || [],
+      operationalNotesMarkdown: text(draft.operationalNotesMarkdown),
     };
   },
 };

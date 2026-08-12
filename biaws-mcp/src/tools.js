@@ -30,12 +30,6 @@ import {
   updateDemandTaskStatus,
   updateDemandTaskNote,
 } from "./domains/demands/service.js";
-import {
-  createProcedure,
-  getProcedureClassificationCatalog,
-  searchProcedures,
-  updateProcedure,
-} from "./domains/procedures/service.js";
 import { catalogTools } from "./domains/catalog/tools.js";
 import { collectionTools } from "./domains/collections/tools.js";
 import { secretTools } from "./domains/secrets/tools.js";
@@ -128,20 +122,6 @@ const ISSUE_FILTER_PROPERTIES = {
   order: { type: "string", enum: ["asc", "desc"] },
   page: { type: "integer", minimum: 1 },
   limit: { type: "integer", minimum: 1, maximum: 100 },
-};
-
-const PROCEDURE_CLASSIFICATION_PROPERTIES = {
-  primaryTaxonomyId: { type: "string", description: "ID do assunto principal" },
-  secondaryTaxonomyIds: {
-    type: "array",
-    items: { type: "string" },
-    description: "IDs dos assuntos secundários",
-  },
-  tags: {
-    type: "object",
-    description: "Tags por grupo, no mesmo formato da classificação de issues",
-    additionalProperties: { type: "array", items: { type: "string" } },
-  },
 };
 
 const tools = [
@@ -435,115 +415,6 @@ const tools = [
       },
     },
     handler: findIssuesByTaxonomy,
-  },
-  {
-    name: "procedures_search",
-    description:
-      "Pesquisa procedimentos pelo ID ou por texto no título, sumário e conteúdo Markdown.",
-    inputSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        procedureId: {
-          type: "string",
-          description:
-            "Quando informado, retorna diretamente o procedimento pelo ID",
-        },
-        search: {
-          type: "string",
-          description: "Texto pesquisado no título, sumário e conteúdo",
-        },
-        text: { type: "string", description: "Alias de search" },
-        q: { type: "string", description: "Alias de search" },
-        taxonomyId: {
-          type: "string",
-          description:
-            "Assunto principal ou secundário associado ao procedimento, incluindo seus descendentes",
-        },
-        tagGroupId: {
-          type: "string",
-          description:
-            "ID do grupo da tag; obrigatório quando tagId for informado",
-        },
-        tagId: { type: "string", description: "Tag associada ao procedimento" },
-        page: { type: "integer", minimum: 1, default: 1 },
-        limit: { type: "integer", minimum: 1, maximum: 100, default: 25 },
-        ...KNOWLEDGE_CONTEXT_FILTER_PROPERTIES,
-      },
-    },
-    handler: searchProcedures,
-  },
-  {
-    name: "procedures_get_classification_catalog",
-    description:
-      "Obtém a estrutura classificatória compartilhada de taxonomia e tags para orientar pesquisas e classificações de procedimentos.",
-    inputSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        applicationId: {
-          type: "string",
-          description:
-            "Retorna somente assuntos compartilhados e aplicáveis à aplicação",
-        },
-        flatten: {
-          type: "boolean",
-          default: false,
-          description:
-            "Inclui taxonomyOptions e tagOptions achatados, preservando também a árvore original",
-        },
-      },
-    },
-    handler: getProcedureClassificationCatalog,
-  },
-  {
-    name: "procedures_create",
-    description:
-      "Cria um procedimento em Markdown, opcionalmente classificado com os mesmos assuntos e tags das issues.",
-    inputSchema: {
-      type: "object",
-      required: ["title", "summary", "procedure"],
-      additionalProperties: false,
-      properties: {
-        title: { type: "string" },
-        summary: {
-          type: "string",
-          description: "Resumo sucinto exibido na lista de procedimentos",
-        },
-        procedure: {
-          type: "string",
-          description: "Descrição integral do procedimento em Markdown",
-        },
-        ...PROCEDURE_CLASSIFICATION_PROPERTIES,
-        ...KNOWLEDGE_CONTEXT_MUTATION_PROPERTIES,
-      },
-    },
-    handler: createProcedure,
-  },
-  {
-    name: "procedures_update",
-    description:
-      "Atualiza parcialmente título, conteúdo ou classificação de um procedimento existente.",
-    inputSchema: {
-      type: "object",
-      required: ["procedureId"],
-      additionalProperties: false,
-      properties: {
-        procedureId: { type: "string" },
-        title: { type: "string" },
-        summary: {
-          type: "string",
-          description: "Resumo sucinto exibido na lista de procedimentos",
-        },
-        procedure: {
-          type: "string",
-          description: "Descrição integral do procedimento em Markdown",
-        },
-        ...PROCEDURE_CLASSIFICATION_PROPERTIES,
-        ...KNOWLEDGE_CONTEXT_MUTATION_PROPERTIES,
-      },
-    },
-    handler: updateProcedure,
   },
   {
     name: "demands_list",

@@ -19,7 +19,7 @@ test("issue and demand creation schemas require applicationId", () => {
       name,
     );
   }
-  for (const name of ["procedures_create", "procedures_update"]) {
+  for (const name of ["documents_create", "documents_update"]) {
     assert.equal(
       byName.get(name).inputSchema.required.includes("applicationId"),
       false,
@@ -42,7 +42,7 @@ test("improvement tools expose the journey model", () => {
   assert.equal(Object.hasOwn(create.inputSchema.properties, "billing"), false);
 });
 
-test("knowledge searches forward workspace, application and component filters", async () => {
+test("knowledge searches preserve their supported application context", async () => {
   const originalFetch = globalThis.fetch;
   const originalBaseUrl = process.env.ISSUE_API_URL;
   process.env.ISSUE_API_URL = "http://api.test";
@@ -63,13 +63,20 @@ test("knowledge searches forward workspace, application and component filters", 
       ...filters,
     });
     await dispatchTool("demands_list", filters);
-    await dispatchTool("procedures_search", filters);
-    for (const url of urls) {
+    await dispatchTool("documents_search", {
+      applicationId: filters.applicationId,
+      componentId: filters.componentId,
+    });
+    for (const url of urls.slice(0, 3)) {
       const query = new URL(url).searchParams;
       assert.equal(query.get("workspaceId"), filters.workspaceId, url);
       assert.equal(query.get("applicationId"), filters.applicationId, url);
       assert.equal(query.get("componentId"), filters.componentId, url);
     }
+    const documentQuery = new URL(urls.at(-1)).searchParams;
+    assert.equal(documentQuery.get("workspaceId"), null);
+    assert.equal(documentQuery.get("applicationId"), filters.applicationId);
+    assert.equal(documentQuery.get("componentId"), filters.componentId);
   } finally {
     globalThis.fetch = originalFetch;
     if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;
@@ -127,11 +134,13 @@ test("knowledge creation serializes validated application context", async () => 
       ],
       ...context,
     });
-    await dispatchTool("procedures_create", {
+    await dispatchTool("documents_create", {
+      documentType: "procedure",
       title: "Procedure",
       summary: "Summary",
-      procedure: "Steps",
-      ...context,
+      markdown: "Steps",
+      applicationId: context.applicationId,
+      affectedComponentIds: context.affectedComponentIds,
     });
 
     const writes = calls.filter(
@@ -139,11 +148,17 @@ test("knowledge creation serializes validated application context", async () => 
     );
     const bodies = writes.map(({ options }) => JSON.parse(options.body));
     assert.equal(bodies.length, 3);
-    for (const body of bodies) {
+    for (const body of bodies.slice(0, 2)) {
       assert.equal(body.workspaceId, context.workspaceId);
       assert.equal(body.applicationId, context.applicationId);
       assert.deepEqual(body.affectedComponentIds, context.affectedComponentIds);
     }
+    assert.equal(Object.hasOwn(bodies[2], "workspaceId"), false);
+    assert.equal(bodies[2].applicationId, context.applicationId);
+    assert.deepEqual(
+      bodies[2].affectedComponentIds,
+      context.affectedComponentIds,
+    );
   } finally {
     globalThis.fetch = originalFetch;
     if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;

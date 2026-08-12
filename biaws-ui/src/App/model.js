@@ -71,14 +71,8 @@ export const NAVIGATION_GROUPS = [
         label: "Conhecimento",
         views: [
           {
-            key: "procedures",
-            label: "Procedimentos",
-            icon: BookOpen,
-            permission: "procedures.read",
-          },
-          {
             key: "documents",
-            label: "Documentos",
+            label: "Documentação",
             icon: BookOpen,
             permission: "documents.read",
           },
@@ -155,7 +149,6 @@ const VIEW_ROUTES = {
   home: "/",
   issues: "/issues",
   "option-lists": "/option-lists",
-  procedures: "/procedures",
   requests: "/requests",
   secrets: "/secrets",
   servers: "/servers",

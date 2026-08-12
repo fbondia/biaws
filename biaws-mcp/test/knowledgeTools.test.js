@@ -42,6 +42,7 @@ test("document tools expose one bounded discriminated knowledge API", () => {
     "guideline",
     "feature",
     "technical-reference",
+    "procedure",
   ]);
   assert.equal(create.inputSchema.properties.references.maxItems, 100);
 });

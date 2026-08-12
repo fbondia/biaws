@@ -318,23 +318,29 @@ test("runtime defaults monitoring retention and rejects embedded observations", 
     {
       key: "pod-1",
       name: "Pod 1",
-      procedureIds: ["procedure-1", "procedure-1", " procedure-2 "],
-      procedureMarkdown: "# Publicação\n\n1. Atualize a imagem.",
+      documentLinks: [
+        { documentId: "document-1", purpose: "operation" },
+        { documentId: "document-2", purpose: "rollback" },
+      ],
+      operationalNotesMarkdown: "# Publicação\n\n1. Atualize a imagem.",
     },
     null,
     { userId: "monitor-1" },
   );
   assert.equal(runtime.monitoringRetentionDays, 10);
-  assert.deepEqual(runtime.procedureIds, ["procedure-1", "procedure-2"]);
-  assert.match(runtime.procedureMarkdown, /Atualize a imagem/u);
+  assert.deepEqual(runtime.documentLinks, [
+    { documentId: "document-1", purpose: "operation" },
+    { documentId: "document-2", purpose: "rollback" },
+  ]);
+  assert.match(runtime.operationalNotesMarkdown, /Atualize a imagem/u);
   assert.throws(
     () =>
       normalizeRuntimeInput({
         key: "pod-2",
         name: "Pod 2",
-        procedureIds: "procedure-1",
+        documentLinks: [{ documentId: "document-1", purpose: "invalid" }],
       }),
-    (error) => error.code === "INVALID_RUNTIME_PROCEDURES",
+    (error) => error.code === "INVALID_RUNTIME_DOCUMENTS",
   );
   assert.throws(
     () =>

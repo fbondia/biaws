@@ -7,6 +7,7 @@ import {
   FileText,
   GitBranch,
   GripVertical,
+  ListChecks,
   Plus,
   Save,
   Scale,
@@ -17,12 +18,18 @@ import {
   addDocumentObservation,
   archiveDocument,
   createDocument,
+  deleteEntityAttachment,
+  downloadEntityAttachment,
   fetchDocument,
+  fetchEntityAttachment,
   fetchDocumentObservations,
   fetchDocumentRevisions,
   fetchDocuments,
+  fetchIssueTaxonomy,
   moveDocumentToCollection,
   saveDocument,
+  updateEntityAttachmentTags,
+  uploadEntityAttachments,
 } from "../../api.js";
 import { hasPermission } from "../../permissions.js";
 import {
@@ -31,6 +38,7 @@ import {
   useCatalogOptions,
 } from "../catalog/CatalogContextFields.jsx";
 import { AuditHistory } from "../shared/AuditHistory.jsx";
+import { FilesPanel } from "../shared/FilesPanel.jsx";
 import { IllustratedEmptyState } from "../shared/IllustratedEmptyState.jsx";
 import {
   MarkdownEditor,
@@ -44,6 +52,8 @@ import {
   ResourceCollectionsShell,
 } from "../shared/ResourceCollections/index.jsx";
 import { useResourceCollections } from "../shared/useResourceCollections.js";
+import { TaxonomySelector } from "../taxonomy/TaxonomySelector.jsx";
+import { filterTaxonomyForApplication } from "../taxonomy/scope.js";
 import {
   createEmptyDocumentDraft,
   documentStatusLabel,
@@ -128,6 +138,21 @@ const DOCUMENT_TYPES = Object.freeze({
     template:
       "## Objetivo\n\n## Desenho atual\n\n## Interfaces e modelo de dados\n\n## Invariantes\n\n## Modos de falha\n\n## Considerações operacionais\n",
   },
+  procedure: {
+    label: "Procedimento",
+    plural: "Procedimentos",
+    description: "Registre instruções operacionais reutilizáveis.",
+    icon: ListChecks,
+    statuses: [
+      ["draft", "Rascunho"],
+      ["published", "Publicado"],
+      ["deprecated", "Descontinuado"],
+    ],
+    defaultStatus: "draft",
+    details: {},
+    template:
+      "## Objetivo\n\n## Pré-requisitos\n\n## Passos\n\n## Validação\n\n## Rollback\n",
+  },
 });
 
 const TYPE_FILTERS = [
@@ -143,7 +168,9 @@ const TABS = [
   ["overview", "Visão Geral"],
   ["content", "Conteúdo"],
   ["context", "Contexto"],
+  ["classification", "Classificação"],
   ["references", "Referências"],
+  ["files", "Arquivos"],
   ["observations", "Observações"],
   ["revisions", "Revisões"],
   ["history", "Histórico"],
@@ -167,6 +194,13 @@ function guidelineScope(draft, context) {
   return draft.details.scope === "workspace"
     ? "application"
     : draft.details.scope;
+}
+
+function taxonomyIds(nodes = []) {
+  return nodes.flatMap((node) => [
+    node.id,
+    ...taxonomyIds(node.children || []),
+  ]);
 }
 
 function KnowledgeRecordCard({ canArchive, onArchive, onOpen, record }) {
@@ -256,11 +290,17 @@ function KnowledgeRecordHeader({
   );
 }
 
-function KnowledgeRecordTabs({ documentId, onSelect, tab }) {
+function KnowledgeRecordTabs({
+  canReadAttachments,
+  documentId,
+  onSelect,
+  tab,
+}) {
   const visibleTabs = documentId
-    ? TABS
+    ? TABS.filter(([key]) => key !== "files" || canReadAttachments)
     : TABS.filter(
-        ([key]) => !["observations", "revisions", "history"].includes(key),
+        ([key]) =>
+          !["files", "observations", "revisions", "history"].includes(key),
       );
   return (
     <nav
@@ -397,6 +437,19 @@ export function KnowledgeRecordsView({ actor }) {
   const canCreate = hasPermission(actor, "documents.create");
   const canUpdate = hasPermission(actor, "documents.update");
   const canArchive = hasPermission(actor, "documents.archive");
+  const canReadAttachments = hasPermission(actor, "documents.attachment.read");
+  const canCreateAttachments = hasPermission(
+    actor,
+    "documents.attachment.create",
+  );
+  const canUpdateAttachments = hasPermission(
+    actor,
+    "documents.attachment.update",
+  );
+  const canDeleteAttachments = hasPermission(
+    actor,
+    "documents.attachment.delete",
+  );
   const catalog = useCatalogOptions(
     hasPermission(actor, "applications.read") &&
       hasPermission(actor, "components.read"),
@@ -404,6 +457,7 @@ export function KnowledgeRecordsView({ actor }) {
   );
   const [items, setItems] = useState([]);
   const [organizationItems, setOrganizationItems] = useState([]);
+  const [taxonomyPackage, setTaxonomyPackage] = useState(null);
   const [draft, setDraft] = useState(null);
   const [creating, setCreating] = useState(false);
   const [typeFilter, setTypeFilter] = useState("");
@@ -468,6 +522,13 @@ export function KnowledgeRecordsView({ actor }) {
   useEffect(() => {
     void load("", "", "", typeFilter);
   }, [typeFilter]);
+
+  useEffect(() => {
+    if (!hasPermission(actor, "taxonomy.read")) return;
+    fetchIssueTaxonomy()
+      .then((payload) => setTaxonomyPackage(payload.taxonomy || null))
+      .catch(() => setTaxonomyPackage(null));
+  }, [actor]);
 
   async function openRecord(record) {
     setError("");
@@ -692,13 +753,18 @@ export function KnowledgeRecordsView({ actor }) {
         ) : draft ? (
           <DocumentDetail
             canArchive={canArchive}
+            canCreateAttachments={canCreateAttachments}
+            canDeleteAttachments={canDeleteAttachments}
+            canReadAttachments={canReadAttachments}
             canUpdate={canUpdate || (!draft.id && canCreate)}
+            canUpdateAttachments={canUpdateAttachments}
             catalog={catalog}
             draft={draft}
             onArchive={() => archive(draft)}
             onChange={setDraft}
             onSave={persist}
             saving={saving}
+            taxonomyPackage={taxonomyPackage}
           />
         ) : (
           <KnowledgeRecordList
@@ -717,13 +783,18 @@ export function KnowledgeRecordsView({ actor }) {
 
 function DocumentDetail({
   canArchive,
+  canCreateAttachments,
+  canDeleteAttachments,
+  canReadAttachments,
   canUpdate,
+  canUpdateAttachments,
   catalog,
   draft,
   onArchive,
   onChange,
   onSave,
   saving,
+  taxonomyPackage,
 }) {
   const config = DOCUMENT_TYPES[draft.documentType];
   const [tab, setTab] = useState("overview");
@@ -810,7 +881,12 @@ function DocumentDetail({
         onSave={onSave}
         saving={saving}
       />
-      <KnowledgeRecordTabs documentId={draft.id} onSelect={setTab} tab={tab} />
+      <KnowledgeRecordTabs
+        canReadAttachments={canReadAttachments}
+        documentId={draft.id}
+        onSelect={setTab}
+        tab={tab}
+      />
       {tab === "overview" ? (
         <div className="dialogForm knowledgeRecordPanel">
           <label className="field">
@@ -998,12 +1074,30 @@ function DocumentDetail({
           ) : null}
         </div>
       ) : null}
+      {tab === "classification" ? (
+        <DocumentClassificationPanel
+          applications={catalog.applications}
+          disabled={!canUpdate}
+          draft={draft}
+          onChange={onChange}
+          taxonomyPackage={taxonomyPackage}
+        />
+      ) : null}
       {tab === "references" ? (
         <ReferencesEditor
           disabled={!canUpdate}
           draft={draft}
           onChange={onChange}
           options={referenceOptions}
+        />
+      ) : null}
+      {tab === "files" && draft.id && canReadAttachments ? (
+        <DocumentFilesPanel
+          canCreate={canCreateAttachments}
+          canDelete={canDeleteAttachments}
+          canUpdate={canUpdateAttachments}
+          draft={draft}
+          onChange={onChange}
         />
       ) : null}
       {tab === "observations" ? (
@@ -1069,11 +1163,180 @@ function DocumentDetail({
   );
 }
 
+function DocumentClassificationPanel({
+  applications,
+  disabled,
+  draft,
+  onChange,
+  taxonomyPackage,
+}) {
+  const classification = draft.classification || {
+    primaryTaxonomyId: "",
+    secondaryTaxonomyIds: [],
+    tags: {},
+  };
+  const selectedIds = [
+    ...new Set(
+      [
+        classification.primaryTaxonomyId,
+        ...(classification.secondaryTaxonomyIds || []),
+      ].filter(Boolean),
+    ),
+  ];
+  const taxonomyNodes = filterTaxonomyForApplication(
+    taxonomyPackage?.taxonomy || [],
+    draft.applicationId,
+  );
+  const tagGroups = taxonomyPackage?.tagGroups || [];
+
+  function updateClassification(next) {
+    onChange({ ...draft, classification: { ...classification, ...next } });
+  }
+
+  function updateTaxonomies(nextIds) {
+    const primaryTaxonomyId = nextIds.includes(classification.primaryTaxonomyId)
+      ? classification.primaryTaxonomyId
+      : nextIds[0] || "";
+    updateClassification({
+      primaryTaxonomyId,
+      secondaryTaxonomyIds: nextIds.filter((id) => id !== primaryTaxonomyId),
+    });
+  }
+
+  function toggleTag(groupId, tagId) {
+    const selected = classification.tags?.[groupId] || [];
+    updateClassification({
+      tags: {
+        ...(classification.tags || {}),
+        [groupId]: selected.includes(tagId)
+          ? selected.filter((id) => id !== tagId)
+          : [...selected, tagId],
+      },
+    });
+  }
+
+  return (
+    <div className="dialogForm knowledgeRecordPanel documentClassificationPanel">
+      {taxonomyNodes.length ? (
+        <section>
+          <h3>Assuntos</h3>
+          <TaxonomySelector
+            applications={applications}
+            disabledIds={disabled ? taxonomyIds(taxonomyNodes) : []}
+            multiple
+            nodes={taxonomyNodes}
+            onChange={disabled ? () => {} : updateTaxonomies}
+            onPrimaryChange={
+              disabled
+                ? undefined
+                : (primaryTaxonomyId) =>
+                    updateClassification({
+                      primaryTaxonomyId,
+                      secondaryTaxonomyIds: selectedIds.filter(
+                        (id) => id !== primaryTaxonomyId,
+                      ),
+                    })
+            }
+            primaryValue={classification.primaryTaxonomyId}
+            value={selectedIds}
+          />
+        </section>
+      ) : (
+        <div className="emptyState compactEmpty">
+          Nenhuma taxonomia disponível para este contexto.
+        </div>
+      )}
+      {tagGroups.length ? (
+        <section>
+          <h3>Tags</h3>
+          <div className="documentClassificationTags">
+            {tagGroups.map((group) => (
+              <fieldset key={group.id}>
+                <legend>{group.label}</legend>
+                {(group.tags || []).map((tagId) => (
+                  <label className="checkItem compactCheckItem" key={tagId}>
+                    <input
+                      checked={Boolean(
+                        classification.tags?.[group.id]?.includes(tagId),
+                      )}
+                      disabled={disabled}
+                      onChange={() => toggleTag(group.id, tagId)}
+                      type="checkbox"
+                    />
+                    <span>{tagId}</span>
+                  </label>
+                ))}
+              </fieldset>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+function DocumentFilesPanel({
+  canCreate,
+  canDelete,
+  canUpdate,
+  draft,
+  onChange,
+}) {
+  function applyDocument(document) {
+    onChange(normalizedDraft(document));
+  }
+
+  return (
+    <div className="dialogForm knowledgeRecordPanel">
+      <FilesPanel
+        canCreate={canCreate}
+        canDelete={canDelete}
+        canUpdate={canUpdate}
+        files={draft.attachments || []}
+        onDelete={async (attachment) => {
+          const payload = await deleteEntityAttachment(
+            "knowledge/documents",
+            draft.id,
+            attachment,
+          );
+          applyDocument(payload.document);
+          return payload.deleted;
+        }}
+        onDownload={(attachment) =>
+          downloadEntityAttachment("knowledge/documents", draft.id, attachment)
+        }
+        onPreview={(attachment) =>
+          fetchEntityAttachment("knowledge/documents", draft.id, attachment)
+        }
+        onUpdateTags={async (attachment, tags) => {
+          const payload = await updateEntityAttachmentTags(
+            "knowledge/documents",
+            draft.id,
+            attachment,
+            tags,
+          );
+          applyDocument(payload.document);
+        }}
+        onUpload={async (files) => {
+          const payload = await uploadEntityAttachments(
+            "knowledge/documents",
+            draft.id,
+            files,
+          );
+          applyDocument(payload.document);
+          return payload.uploaded?.length;
+        }}
+      />
+    </div>
+  );
+}
+
 function updateDetails(draft, onChange, field, value) {
   onChange({ ...draft, details: { ...draft.details, [field]: value } });
 }
 
 function DocumentDetailsFields({ disabled, draft, onChange }) {
+  if (draft.documentType === "procedure") return null;
   if (draft.documentType === "business-rule")
     return (
       <div className="formGrid">

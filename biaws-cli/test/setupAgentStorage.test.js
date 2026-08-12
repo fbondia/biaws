@@ -188,7 +188,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   assert.match(
     configuredEnv,
     new RegExp(
-      `^BIAWS_PROCEDURE_FILES_PATH=${canonicalStorage}/procedures$`,
+      `^BIAWS_DOCUMENT_FILES_PATH=${canonicalStorage}/documents$`,
       "mu",
     ),
   );
@@ -372,7 +372,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   assert.match(resetEnv, /^BIAWS_MONGO_DATA_PATH=$/mu);
   assert.match(resetEnv, /^BIAWS_ISSUE_FILES_PATH=$/mu);
   assert.match(resetEnv, /^BIAWS_REQUEST_FILES_PATH=$/mu);
-  assert.match(resetEnv, /^BIAWS_PROCEDURE_FILES_PATH=$/mu);
+  assert.match(resetEnv, /^BIAWS_DOCUMENT_FILES_PATH=$/mu);
   assert.match(resetEnv, /^BIAWS_SECRET_FILES_PATH=$/mu);
 
   const overlapping = runSetup({

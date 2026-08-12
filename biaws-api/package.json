@@ -22,6 +22,7 @@
     "seed:demo": "node src/scripts/seedDemo.js",
     "migrate:journeys": "node src/scripts/migrateJourneyModel.js",
     "migrate:monitoring": "node src/scripts/migrateRuntimeMonitoring.js",
+    "migrate:documents": "node src/scripts/migrateProceduresToDocuments.js",
     "format": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --write .",
     "format:check": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --check .",
     "check": "find src test -name '*.js' -type f -exec node --check {} \\;",

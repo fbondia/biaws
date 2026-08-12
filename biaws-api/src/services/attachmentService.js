@@ -8,7 +8,7 @@ import {
 } from "../helpers/issueStorage.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
 import { getIssue } from "../repositories/issuesRepository.js";
-import { getProcedure } from "../repositories/proceduresRepository.js";
+import { getDocument } from "../repositories/documentsRepository.js";
 import { getRequest } from "../repositories/requestsRepository.js";
 import {
   buildKnowledgeContextFilter,
@@ -27,12 +27,13 @@ const ENTITY_CONFIG = {
       writeIssueMirror({}, id, result.issue, result.comments);
     },
   },
-  procedures: {
-    collection: COLLECTION_NAMES.PROCEDURES,
-    directoryEnv: "PROCEDURE_DIR",
+  documents: {
+    collection: COLLECTION_NAMES.DOCUMENTS,
+    directoryEnv: "DOCUMENT_DIR",
+    fallbackDirectoryEnv: "PROCEDURE_DIR",
     filter: (id) => ({ id }),
-    read: (id, query) => getProcedure(id, query),
-    resultKey: "procedure",
+    read: (id, query) => getDocument(id, query),
+    resultKey: "document",
   },
   requests: {
     collection: COLLECTION_NAMES.REQUESTS,
@@ -61,7 +62,11 @@ function entityConfig(entityType) {
 }
 
 function storageOptions(config, provider) {
-  const localDir = String(process.env[config.directoryEnv] || "").trim();
+  const localDir = String(
+    process.env[config.directoryEnv] ||
+      process.env[config.fallbackDirectoryEnv] ||
+      "",
+  ).trim();
   if (!localDir) {
     throw new Error(`Missing attachment directory: set ${config.directoryEnv}`);
   }

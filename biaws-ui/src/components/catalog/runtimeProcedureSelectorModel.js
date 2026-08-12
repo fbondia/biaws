@@ -4,30 +4,30 @@ function compareNames(left, right) {
   });
 }
 
-export function buildRuntimeProcedureTree(collections = [], procedures = []) {
+export function buildRuntimeDocumentTree(collections = [], documents = []) {
   const collectionById = new Map(
     collections.map((collection) => [collection.id, collection]),
   );
-  const proceduresByCollection = new Map();
+  const documentsByCollection = new Map();
 
-  for (const procedure of procedures) {
-    const collectionId = collectionById.has(procedure.collectionId)
-      ? procedure.collectionId
+  for (const document of documents) {
+    const collectionId = collectionById.has(document.collectionId)
+      ? document.collectionId
       : "";
-    const items = proceduresByCollection.get(collectionId) || [];
-    items.push(procedure);
-    proceduresByCollection.set(collectionId, items);
+    const items = documentsByCollection.get(collectionId) || [];
+    items.push(document);
+    documentsByCollection.set(collectionId, items);
   }
 
-  for (const [collectionId, items] of proceduresByCollection) {
-    proceduresByCollection.set(
+  for (const [collectionId, items] of documentsByCollection) {
+    documentsByCollection.set(
       collectionId,
       [...items].sort((left, right) => compareNames(left.title, right.title)),
     );
   }
 
   const relevantCollectionIds = new Set();
-  for (const collectionId of proceduresByCollection.keys()) {
+  for (const collectionId of documentsByCollection.keys()) {
     const visited = new Set();
     let currentId = collectionId;
     while (
@@ -64,7 +64,7 @@ export function buildRuntimeProcedureTree(collections = [], procedures = []) {
     nextVisited.add(collection.id);
     return {
       ...collection,
-      procedures: proceduresByCollection.get(collection.id) || [],
+      documents: documentsByCollection.get(collection.id) || [],
       children: (childrenByParent.get(collection.id) || [])
         .map((child) => materialize(child, nextVisited))
         .filter(Boolean),
@@ -72,7 +72,7 @@ export function buildRuntimeProcedureTree(collections = [], procedures = []) {
   }
 
   return {
-    procedures: proceduresByCollection.get("") || [],
+    documents: documentsByCollection.get("") || [],
     collections: (childrenByParent.get("") || [])
       .map((collection) => materialize(collection))
       .filter(Boolean),

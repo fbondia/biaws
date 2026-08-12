@@ -21,7 +21,13 @@ test("documents keep type-specific lifecycle states in one model", () => {
     "superseded",
     "archived",
   ]);
-  assert.equal(Object.keys(DOCUMENT_TYPES).length, 5);
+  assert.deepEqual(documentTypeConfig("procedure").statuses, [
+    "draft",
+    "published",
+    "deprecated",
+    "archived",
+  ]);
+  assert.equal(Object.keys(DOCUMENT_TYPES).length, 6);
 });
 
 test("document payload normalizes its common envelope and typed details", () => {
@@ -46,6 +52,32 @@ test("document payload normalizes its common envelope and typed details", () => 
   assert.deepEqual(document.references, [
     { targetDocumentId: "doc-1", relationship: "supported-by" },
   ]);
+  assert.deepEqual(document.classification, {
+    primaryTaxonomyId: "",
+    secondaryTaxonomyIds: [],
+    tags: {},
+  });
+});
+
+test("procedures use the document envelope with common classification", () => {
+  const document = normalizeDocumentPayload({
+    documentType: "procedure",
+    title: "Publicar API",
+    summary: "Executa a publicação com validação e rollback.",
+    markdown: "# Publicação",
+    status: "published",
+    classification: {
+      primaryTaxonomyId: "deploy",
+      secondaryTaxonomyIds: ["operation", "deploy"],
+      tags: { criticality: ["high"] },
+    },
+  });
+  assert.deepEqual(document.details, {});
+  assert.deepEqual(document.classification, {
+    primaryTaxonomyId: "deploy",
+    secondaryTaxonomyIds: ["operation"],
+    tags: { criticality: ["high"] },
+  });
 });
 
 test("document type is immutable and validates type-specific status", () => {

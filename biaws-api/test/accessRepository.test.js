@@ -60,7 +60,7 @@ test("agent operator excludes administrative and catalog publication permissions
   );
   assert.ok(agent.permissions.includes("skills.read"));
   assert.ok(agent.permissions.includes("issues.create"));
-  for (const domain of ["issues", "demands", "procedures"]) {
+  for (const domain of ["issues", "demands", "documents"]) {
     for (const operation of ["read", "create", "update", "delete"]) {
       assert.ok(
         agent.permissions.includes(`${domain}.attachment.${operation}`),
@@ -116,7 +116,7 @@ test("group input rejects permissions outside the catalog", () => {
 test("application scope accepts domain permissions and rejects workspace permissions", () => {
   const group = normalizeGroupInput({
     name: "Billing support",
-    permissions: ["issues.read", "procedures.read"],
+    permissions: ["issues.read", "documents.read"],
     scope: {
       type: "applications",
       applicationIds: ["billing", "billing", "ledger"],
@@ -164,7 +164,7 @@ test("permission scopes preserve independent application grants", () => {
       },
       {
         active: true,
-        permissions: ["procedures.read"],
+        permissions: ["documents.read"],
         scope: { type: "workspace", applicationIds: [] },
       },
     ]),
@@ -177,7 +177,7 @@ test("permission scopes preserve independent application grants", () => {
         workspace: false,
         applicationIds: ["app-a"],
       },
-      "procedures.read": {
+      "documents.read": {
         workspace: true,
         applicationIds: [],
       },

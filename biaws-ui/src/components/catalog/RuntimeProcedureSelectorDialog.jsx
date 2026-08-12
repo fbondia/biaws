@@ -8,15 +8,15 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchProcedureCollections, fetchProcedures } from "../../api.js";
-import { buildRuntimeProcedureTree } from "./runtimeProcedureSelectorModel.js";
+import { fetchDocuments, fetchResourceCollections } from "../../api.js";
+import { buildRuntimeDocumentTree } from "./runtimeProcedureSelectorModel.js";
 
-async function fetchAllProcedures(params) {
-  const firstPage = await fetchProcedures({ ...params, limit: 100, page: 1 });
+async function fetchAllDocuments(params) {
+  const firstPage = await fetchDocuments({ ...params, limit: 100, page: 1 });
   const items = [...(firstPage.items || [])];
   const totalPages = firstPage.meta?.totalPages || 1;
   for (let page = 2; page <= totalPages; page += 1) {
-    const payload = await fetchProcedures({ ...params, limit: 100, page });
+    const payload = await fetchDocuments({ ...params, limit: 100, page });
     items.push(...(payload.items || []));
   }
   return items;
@@ -26,15 +26,15 @@ function retainAvailableIds(current, availableIds) {
   return new Set([...current].filter((id) => availableIds.has(id)));
 }
 
-function ProcedureLeaf({ checked, onToggle, procedure }) {
+function DocumentLeaf({ checked, document, onToggle }) {
   return (
     <label className="runtimeProcedureTreeLeaf">
       <span className="runtimeProcedureTreeGuide" />
       <FileText size={15} />
-      <span>{procedure.title}</span>
+      <span>{document.title}</span>
       <input
         checked={checked}
-        onChange={() => onToggle(procedure.id)}
+        onChange={() => onToggle(document.id)}
         type="checkbox"
       />
     </label>
@@ -45,11 +45,11 @@ function CollectionNode({
   collection,
   collapsedIds,
   onToggle,
-  toggleProcedure,
+  toggleDocument,
   selectedIds,
 }) {
   const collapsed = collapsedIds.has(collection.id);
-  const hasContent = collection.children.length || collection.procedures.length;
+  const hasContent = collection.children.length || collection.documents.length;
   return (
     <div className="runtimeProcedureTreeBranch">
       <button
@@ -79,15 +79,15 @@ function CollectionNode({
               key={child.id}
               onToggle={onToggle}
               selectedIds={selectedIds}
-              toggleProcedure={toggleProcedure}
+              toggleDocument={toggleDocument}
             />
           ))}
-          {collection.procedures.map((procedure) => (
-            <ProcedureLeaf
-              checked={selectedIds.has(procedure.id)}
-              key={procedure.id}
-              onToggle={toggleProcedure}
-              procedure={procedure}
+          {collection.documents.map((document) => (
+            <DocumentLeaf
+              checked={selectedIds.has(document.id)}
+              document={document}
+              key={document.id}
+              onToggle={toggleDocument}
             />
           ))}
         </div>
@@ -104,7 +104,7 @@ export function RuntimeProcedureSelectorDialog({
   selectedIds: initialSelectedIds = [],
 }) {
   const [collections, setCollections] = useState([]);
-  const [procedures, setProcedures] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [selectedIds, setSelectedIds] = useState(
     () => new Set(initialSelectedIds),
   );
@@ -112,22 +112,22 @@ export function RuntimeProcedureSelectorDialog({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const tree = useMemo(
-    () => buildRuntimeProcedureTree(collections, procedures),
-    [collections, procedures],
+    () => buildRuntimeDocumentTree(collections, documents),
+    [collections, documents],
   );
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     Promise.all([
-      fetchAllProcedures({ applicationId, componentId }),
-      fetchProcedureCollections(),
+      fetchAllDocuments({ applicationId, componentId, includeWorkspace: true }),
+      fetchResourceCollections("documents"),
     ])
-      .then(([procedureItems, collectionPayload]) => {
+      .then(([documentItems, collectionPayload]) => {
         if (!active) return;
-        setProcedures(procedureItems);
+        setDocuments(documentItems);
         setCollections(collectionPayload.items || []);
-        const availableIds = new Set(procedureItems.map(({ id }) => id));
+        const availableIds = new Set(documentItems.map(({ id }) => id));
         setSelectedIds((current) => retainAvailableIds(current, availableIds));
       })
       .catch((loadError) => {
@@ -150,16 +150,16 @@ export function RuntimeProcedureSelectorDialog({
     });
   }
 
-  function toggleProcedure(procedureId) {
+  function toggleDocument(documentId) {
     setSelectedIds((current) => {
       const next = new Set(current);
-      if (next.has(procedureId)) next.delete(procedureId);
-      else if (next.size < 100) next.add(procedureId);
+      if (next.has(documentId)) next.delete(documentId);
+      else if (next.size < 100) next.add(documentId);
       return next;
     });
   }
 
-  const empty = !tree.collections.length && !tree.procedures.length;
+  const empty = !tree.collections.length && !tree.documents.length;
 
   return (
     <div
@@ -176,8 +176,8 @@ export function RuntimeProcedureSelectorDialog({
       >
         <header>
           <div>
-            <span>Procedimentos relacionados</span>
-            <h2 id="runtimeProcedureSelectorTitle">Selecionar procedimentos</h2>
+            <span>Documentos relacionados</span>
+            <h2 id="runtimeProcedureSelectorTitle">Selecionar documentos</h2>
           </div>
           <button
             aria-label="Fechar"
@@ -190,8 +190,7 @@ export function RuntimeProcedureSelectorDialog({
         </header>
         <div className="runtimeProcedureSelectorBody">
           <p>
-            São exibidos apenas procedimentos vinculados à aplicação e ao
-            componente deste runtime.
+            São exibidos documentos do workspace ou da aplicação deste runtime.
           </p>
           {loading ? (
             <div className="catalogColumnEmpty">Carregando…</div>
@@ -199,7 +198,7 @@ export function RuntimeProcedureSelectorDialog({
           {error ? <div className="errorBox">{error}</div> : null}
           {!loading && !error && empty ? (
             <div className="catalogColumnEmpty">
-              Nenhum procedimento relacionado foi encontrado.
+              Nenhum documento relacionado foi encontrado.
             </div>
           ) : null}
           {!loading && !error && !empty ? (
@@ -211,15 +210,15 @@ export function RuntimeProcedureSelectorDialog({
                   key={collection.id}
                   onToggle={toggleCollection}
                   selectedIds={selectedIds}
-                  toggleProcedure={toggleProcedure}
+                  toggleDocument={toggleDocument}
                 />
               ))}
-              {tree.procedures.map((procedure) => (
-                <ProcedureLeaf
-                  checked={selectedIds.has(procedure.id)}
-                  key={procedure.id}
-                  onToggle={toggleProcedure}
-                  procedure={procedure}
+              {tree.documents.map((document) => (
+                <DocumentLeaf
+                  checked={selectedIds.has(document.id)}
+                  document={document}
+                  key={document.id}
+                  onToggle={toggleDocument}
                 />
               ))}
             </div>

@@ -123,7 +123,6 @@ catalogTopologyRouter.get(
     "runtimes.read",
     "issues.read",
     "demands.read",
-    "procedures.read",
     "documents.read",
   ),
   requireApplicationPermissions(
@@ -135,7 +134,6 @@ catalogTopologyRouter.get(
     "runtimes.read",
     "issues.read",
     "demands.read",
-    "procedures.read",
     "documents.read",
   ),
   asyncHandler(async (req, res) => {

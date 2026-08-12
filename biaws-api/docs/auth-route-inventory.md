@@ -99,25 +99,16 @@ identidades também conserva as verificações internas do Better Auth.
 As rotas atuais não oferecem anexos diretamente em subtarefas; as permissões
 `tasks.attachment.*` ficam reservadas para essa operação futura.
 
-## Procedimentos
-
-| Método   | Rota                                                 | Permissão aplicada             |
-| -------- | ---------------------------------------------------- | ------------------------------ |
-| `GET`    | `/api/procedures` e `/api/procedures/:id`            | `procedures.read`              |
-| `POST`   | `/api/procedures`                                    | `procedures.create`            |
-| `PUT`    | `/api/procedures/:id`                                | `procedures.update`            |
-| `DELETE` | `/api/procedures/:id`                                | `procedures.delete`            |
-| `POST`   | `/api/procedures/:id/attachments`                    | `procedures.attachment.create` |
-| `GET`    | `/api/procedures/:id/attachments/:attachmentId`      | `procedures.attachment.read`   |
-| `PATCH`  | `/api/procedures/:id/attachments/:attachmentId/tags` | `procedures.attachment.update` |
-| `DELETE` | `/api/procedures/:id/attachments/:attachmentId`      | `procedures.attachment.delete` |
-
 ## Documentos
 
 | Método   | Rota                                                                    | Permissão aplicada                       |
 | -------- | ----------------------------------------------------------------------- | ---------------------------------------- |
 | `GET`    | `/api/knowledge/documents`, `/api/knowledge/documents/:id`              | `documents.read`                         |
 | `POST`   | `/api/knowledge/documents`, `/api/knowledge/documents/:id/observations` | `documents.create` ou `documents.update` |
+| `POST`   | `/api/knowledge/documents/:id/attachments`                              | `documents.attachment.create`            |
+| `GET`    | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.read`              |
+| `PATCH`  | `/api/knowledge/documents/:id/attachments/:attachmentId/tags`           | `documents.attachment.update`            |
+| `DELETE` | `/api/knowledge/documents/:id/attachments/:attachmentId`                | `documents.attachment.delete`            |
 | `PUT`    | `/api/knowledge/documents/:id`                                          | `documents.update`                       |
 | `PATCH`  | `/api/knowledge/documents/:id/collection`                               | `documents.update`                       |
 | `DELETE` | `/api/knowledge/documents/:id`                                          | `documents.archive`                      |
@@ -176,7 +167,7 @@ rotas diretas `/api/auth/admin/*` também são filtradas por operação, e
 | ------ | ----------------------------------------------- | ------------------ |
 | `GET`  | `/api/audit/issue/:id`                          | `issues.read`      |
 | `GET`  | `/api/audit/demand/:id` e `/api/audit/task/:id` | `demands.read`     |
-| `GET`  | `/api/audit/procedure/:id`                      | `procedures.read`  |
+| `GET`  | `/api/audit/document/:id`                       | `documents.read`   |
 | `GET`  | `/api/audit/taxonomy/:id`                       | `taxonomy.read`    |
 | `GET`  | `/api/audit/skill/:id`                          | `skills.read`      |
 

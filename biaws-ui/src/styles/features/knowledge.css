@@ -270,6 +270,39 @@
   color: var(--color-text-subtle);
 }
 
+.documentClassificationPanel > section {
+  display: grid;
+  gap: 12px;
+}
+
+.documentClassificationPanel h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 15px;
+}
+
+.documentClassificationTags {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.documentClassificationTags fieldset {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.documentClassificationTags legend {
+  padding: 0 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .knowledgeRecordHistory {
   padding: 20px;
 }
@@ -301,6 +334,10 @@
   }
 
   .documentTypeCreationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .documentClassificationTags {
     grid-template-columns: 1fr;
   }
 

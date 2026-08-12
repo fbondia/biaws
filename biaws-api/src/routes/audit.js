@@ -12,7 +12,6 @@ const readPermissionByType = {
   issue: "issues.read",
   demand: "demands.read",
   task: "demands.read",
-  procedure: "procedures.read",
   document: "documents.read",
   taxonomy: "taxonomy.read",
   skill: "skills.read",

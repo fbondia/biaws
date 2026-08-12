@@ -13,12 +13,11 @@ test("collection navigation preferences cover every collection surface", () => {
     "applications",
     "documents",
     "demands",
-    "procedures",
     "secrets",
     "skills",
     "servers",
   ]);
-  assert.equal(assertCollectionNavigationContext("procedures"), "procedures");
+  assert.equal(assertCollectionNavigationContext("documents"), "documents");
   assert.throws(
     () => assertCollectionNavigationContext("unknown"),
     (error) => error.code === "COLLECTION_NAVIGATION_CONTEXT_NOT_FOUND",

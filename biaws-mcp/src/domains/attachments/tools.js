@@ -8,14 +8,14 @@ import {
 const ENTITY_PROPERTIES = {
   entityType: {
     type: "string",
-    enum: ["issue", "demand", "task", "procedure"],
+    enum: ["issue", "demand", "task", "document"],
     description: "Tipo do registro ao qual o arquivo pertence.",
   },
   entityId: {
     type: "string",
     minLength: 1,
     description:
-      "ID do chamado, melhoria ou procedimento. Para task, informe o ID da melhoria pai.",
+      "ID do chamado, melhoria ou documento. Para task, informe o ID da melhoria pai.",
   },
   taskId: {
     type: "string",
@@ -46,7 +46,7 @@ export const attachmentTools = [
   {
     name: "attachments_upload",
     description:
-      "Envia de um a dez arquivos em Base64 para um chamado, melhoria, tarefa ou procedimento.",
+      "Envia de um a dez arquivos em Base64 para um chamado, melhoria, tarefa ou documento.",
     inputSchema: {
       type: "object",
       required: ["entityType", "entityId", "files"],

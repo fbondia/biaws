@@ -20,6 +20,12 @@ export function createEmptyDocumentDraft(
     collectionId,
     status: config.defaultStatus,
     details: { ...config.details },
+    classification: {
+      primaryTaxonomyId: "",
+      secondaryTaxonomyIds: [],
+      tags: {},
+    },
+    attachments: [],
     source: { mode: "native", repositoryId: "", path: "" },
     references: [],
     definedAt: todayIso(clock),
@@ -37,6 +43,14 @@ export function normalizeDocumentDraft(documentTypes, record = {}) {
       ...documentTypes[documentType].details,
       ...(record.details || {}),
     },
+    classification: {
+      primaryTaxonomyId: "",
+      secondaryTaxonomyIds: [],
+      tags: {},
+      ...(record.classification || {}),
+      secondaryTaxonomyIds: record.classification?.secondaryTaxonomyIds || [],
+      tags: record.classification?.tags || {},
+    },
     source: {
       mode: "native",
       repositoryId: "",
@@ -45,6 +59,7 @@ export function normalizeDocumentDraft(documentTypes, record = {}) {
     },
     affectedComponentIds: record.affectedComponentIds || [],
     references: record.references || [],
+    attachments: record.attachments || [],
   };
 }
 

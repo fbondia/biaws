@@ -16,6 +16,7 @@ const DOCUMENT_TYPE = {
     "guideline",
     "feature",
     "technical-reference",
+    "procedure",
   ],
 };
 const REFERENCES = {
@@ -41,6 +42,17 @@ const COMMON = {
   collectionId: { type: "string" },
   status: { type: "string" },
   details: { type: "object" },
+  classification: {
+    type: "object",
+    properties: {
+      primaryTaxonomyId: { type: "string" },
+      secondaryTaxonomyIds: { type: "array", items: ID },
+      tags: {
+        type: "object",
+        additionalProperties: { type: "array", items: ID },
+      },
+    },
+  },
   source: {
     type: "object",
     properties: {

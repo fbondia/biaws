@@ -52,7 +52,7 @@ export function IssueTaxonomyManager() {
     <section className="taxonomyPage">
       <div className="taxonomyHero">
         <div>
-          <h2>Taxonomia de Chamados e Procedimentos</h2>
+          <h2>Taxonomia de Chamados e Documentação</h2>
         </div>
         <div className="taxonomyHeroActions">
           <button

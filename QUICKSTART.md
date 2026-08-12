@@ -278,7 +278,7 @@ Para escolher cada caminho separadamente:
   --mongo-data-path "$HOME/biaws-data/mongo" \
   --issue-files-path "$HOME/biaws-data/issues" \
   --request-files-path "$HOME/biaws-data/requests" \
-  --procedure-files-path "$HOME/biaws-data/procedures" \
+  --document-files-path "$HOME/biaws-data/documents" \
   --secret-files-path "$HOME/biaws-data/secrets" \
   --client codex \
   --project "$HOME/Source/meu-projeto"

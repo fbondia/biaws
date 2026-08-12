@@ -18,6 +18,7 @@ import {
   updateDocument,
 } from "../repositories/documentsRepository.js";
 import { knowledgeContextMetadata } from "../repositories/knowledgeContextRepository.js";
+import { registerAttachmentRoutes } from "./attachmentRoutes.js";
 
 export const knowledgeRecordsRouter = Router();
 
@@ -106,6 +107,8 @@ knowledgeRecordsRouter.post(
     res.status(201).json(result);
   }),
 );
+
+registerAttachmentRoutes(knowledgeRecordsRouter, "documents", "/documents");
 
 knowledgeRecordsRouter.get(
   "/documents/:id/revisions",

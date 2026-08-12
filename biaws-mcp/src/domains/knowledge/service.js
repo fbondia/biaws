@@ -14,6 +14,12 @@ function documentPayload(args = {}, current = {}) {
     collectionId: args.collectionId ?? current.collectionId ?? "",
     status: args.status ?? current.status,
     details: args.details ?? current.details ?? {},
+    classification: args.classification ??
+      current.classification ?? {
+        primaryTaxonomyId: "",
+        secondaryTaxonomyIds: [],
+        tags: {},
+      },
     source: args.source ?? current.source ?? { mode: "native" },
     references: args.references ?? current.references ?? [],
     definedAt: args.definedAt ?? current.definedAt,

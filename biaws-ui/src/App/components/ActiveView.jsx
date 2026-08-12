@@ -4,7 +4,6 @@ import { UsersView } from "../../components/auth/UsersView.jsx";
 import { CatalogView } from "../../components/catalog/CatalogView/index.jsx";
 import { ServersView } from "../../components/catalog/ServersView.jsx";
 import { IssuesView } from "../../components/issues/IssuesView.jsx";
-import { ProceduresView } from "../../components/procedures/ProceduresView/index.jsx";
 import { RequestsView } from "../../components/requests/RequestsView/index.jsx";
 import { OptionListsView } from "../../components/settings/OptionListsView/index.jsx";
 import { SkillsView } from "../../components/skills/SkillsView/index.jsx";
@@ -46,7 +45,6 @@ export function ActiveView({
         onInitialTaskTargetHandled={onRequestTaskTargetHandled}
       />
     );
-  if (activeView === "procedures") return <ProceduresView actor={actor} />;
   if (activeView === "documents") return <KnowledgeRecordsView actor={actor} />;
   if (activeView === "taxonomy") return <IssueTaxonomyManager />;
   if (activeView === "skills") return <SkillsView actor={actor} />;

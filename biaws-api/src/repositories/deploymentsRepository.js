@@ -41,21 +41,54 @@ const MUTABLE_RUNTIME_STATUSES = RUNTIME_STATUSES.filter(
   (status) => status !== "archived",
 );
 const MAX_HISTORY_ITEMS = 200;
-const MAX_PROCEDURE_LENGTH = 20_000;
-const MAX_RUNTIME_PROCEDURES = 100;
+const MAX_OPERATIONAL_NOTES_LENGTH = 20_000;
+const MAX_RUNTIME_DOCUMENTS = 100;
+export const RUNTIME_DOCUMENT_PURPOSES = Object.freeze([
+  "operation",
+  "deployment",
+  "rollback",
+  "troubleshooting",
+  "monitoring",
+  "reference",
+]);
 
-function normalizeProcedureIds(value, current = []) {
+function normalizeDocumentLinks(value, current = []) {
   if (value === undefined) return [...(current || [])];
-  if (!Array.isArray(value) || value.length > MAX_RUNTIME_PROCEDURES) {
+  if (!Array.isArray(value) || value.length > MAX_RUNTIME_DOCUMENTS) {
     throw createCatalogError(
       422,
-      "INVALID_RUNTIME_PROCEDURES",
-      `procedureIds must be an array with at most ${MAX_RUNTIME_PROCEDURES} items`,
+      "INVALID_RUNTIME_DOCUMENTS",
+      `documentLinks must be an array with at most ${MAX_RUNTIME_DOCUMENTS} items`,
     );
   }
-  return [
-    ...new Set(value.map((id) => String(id || "").trim()).filter(Boolean)),
-  ];
+  const seen = new Set();
+  return value.map((link, index) => {
+    if (!link || typeof link !== "object" || Array.isArray(link)) {
+      throw createCatalogError(
+        422,
+        "INVALID_RUNTIME_DOCUMENTS",
+        `documentLinks[${index}] must be an object`,
+      );
+    }
+    const documentId = String(link.documentId || "").trim();
+    const purpose = String(link.purpose || "reference").trim();
+    if (!documentId || seen.has(documentId)) {
+      throw createCatalogError(
+        422,
+        "INVALID_RUNTIME_DOCUMENTS",
+        `documentLinks[${index}].documentId must be present and unique`,
+      );
+    }
+    if (!RUNTIME_DOCUMENT_PURPOSES.includes(purpose)) {
+      throw createCatalogError(
+        422,
+        "INVALID_RUNTIME_DOCUMENTS",
+        `documentLinks[${index}].purpose is invalid`,
+      );
+    }
+    seen.add(documentId);
+    return { documentId, purpose };
+  });
 }
 
 function normalizeMonitoringRetentionDays(value, current) {
@@ -614,8 +647,8 @@ export function normalizeRuntimeInput(
       "metadata",
       "monitoringRetentionDays",
       "observedAt",
-      "procedureIds",
-      "procedureMarkdown",
+      "documentLinks",
+      "operationalNotesMarkdown",
     ],
     "runtime",
   );
@@ -669,14 +702,14 @@ export function normalizeRuntimeInput(
       "observedAt",
       current?.observedAt,
     ),
-    procedureIds: normalizeProcedureIds(
-      payload.procedureIds,
-      current?.procedureIds,
+    documentLinks: normalizeDocumentLinks(
+      payload.documentLinks,
+      current?.documentLinks,
     ),
-    procedureMarkdown: optionalText(
-      payload.procedureMarkdown ?? current?.procedureMarkdown,
-      "procedureMarkdown",
-      MAX_PROCEDURE_LENGTH,
+    operationalNotesMarkdown: optionalText(
+      payload.operationalNotesMarkdown ?? current?.operationalNotesMarkdown,
+      "operationalNotesMarkdown",
+      MAX_OPERATIONAL_NOTES_LENGTH,
     ),
   };
 }
@@ -698,21 +731,23 @@ async function validateRuntimeServer(deployment, runtime) {
   }
 }
 
-async function validateRuntimeProcedures(deployment, runtime) {
-  if (!runtime.procedureIds.length) return;
+async function validateRuntimeDocuments(deployment, runtime) {
+  if (!runtime.documentLinks.length) return;
   const { db } = await getTopologyCollections();
+  const documentIds = runtime.documentLinks.map(({ documentId }) => documentId);
   const matched = await db
-    .collection(COLLECTION_NAMES.PROCEDURES)
+    .collection(COLLECTION_NAMES.DOCUMENTS)
     .countDocuments({
-      id: { $in: runtime.procedureIds },
+      id: { $in: documentIds },
       workspaceId: deployment.workspaceId,
-      applicationId: deployment.applicationId,
+      applicationId: { $in: [deployment.applicationId, null] },
+      status: { $ne: "archived" },
     });
-  if (matched !== runtime.procedureIds.length) {
+  if (matched !== documentIds.length) {
     throw createCatalogError(
       422,
-      "INVALID_RUNTIME_PROCEDURES",
-      "procedures must belong to the runtime application and workspace",
+      "INVALID_RUNTIME_DOCUMENTS",
+      "documents must be active and belong to the runtime application or workspace",
     );
   }
 }
@@ -856,7 +891,7 @@ export async function createRuntime(deploymentId, payload = {}, actor = {}) {
   });
   const normalized = normalizeRuntimeInput(payload, null, actor);
   await validateRuntimeServer(deployment, normalized);
-  await validateRuntimeProcedures(deployment, normalized);
+  await validateRuntimeDocuments(deployment, normalized);
   const document = {
     id: randomUUID(),
     ...createBaseDocument({
@@ -907,11 +942,11 @@ export async function updateRuntime(runtimeId, payload = {}, actor = {}) {
   const normalized = normalizeRuntimeInput(payload, current, actor);
   await validateRuntimeServer(deployment, normalized);
   if (
-    payload.procedureIds !== undefined &&
-    JSON.stringify(normalized.procedureIds) !==
-      JSON.stringify(current.procedureIds || [])
+    payload.documentLinks !== undefined &&
+    JSON.stringify(normalized.documentLinks) !==
+      JSON.stringify(current.documentLinks || [])
   ) {
-    await validateRuntimeProcedures(deployment, normalized);
+    await validateRuntimeDocuments(deployment, normalized);
   }
   const { runtimes } = await getTopologyCollections();
   let result;

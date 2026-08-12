@@ -100,29 +100,25 @@ const definitions = [
   ["documents.create", "Documentos", "Criar documentos de conhecimento"],
   ["documents.update", "Documentos", "Alterar documentos de conhecimento"],
   ["documents.archive", "Documentos", "Arquivar documentos de conhecimento"],
-  ["procedures.read", "Procedimentos", "Consultar procedimentos"],
-  ["procedures.create", "Procedimentos", "Criar procedimentos"],
-  ["procedures.update", "Procedimentos", "Alterar procedimentos"],
-  ["procedures.delete", "Procedimentos", "Excluir procedimentos"],
   [
-    "procedures.attachment.read",
-    "Procedimentos",
-    "Baixar anexos de procedimentos",
+    "documents.attachment.read",
+    "Documentos",
+    "Baixar anexos de documentos",
   ],
   [
-    "procedures.attachment.create",
-    "Procedimentos",
-    "Adicionar anexos a procedimentos",
+    "documents.attachment.create",
+    "Documentos",
+    "Adicionar anexos a documentos",
   ],
   [
-    "procedures.attachment.update",
-    "Procedimentos",
-    "Alterar metadados de anexos de procedimentos",
+    "documents.attachment.update",
+    "Documentos",
+    "Alterar metadados de anexos de documentos",
   ],
   [
-    "procedures.attachment.delete",
-    "Procedimentos",
-    "Excluir anexos de procedimentos",
+    "documents.attachment.delete",
+    "Documentos",
+    "Excluir anexos de documentos",
   ],
   ["skills.read", "Skills", "Consultar e baixar skills"],
   ["skills.publish", "Skills", "Publicar versões de skills"],
@@ -176,7 +172,7 @@ const permissionSectionRules = [
   ["tasks.attachment", "Anexos"],
   ["tasks.note", "Anotações"],
   ["tasks.status", "Status"],
-  ["procedures.attachment", "Anexos"],
+  ["documents.attachment", "Anexos"],
   ["secrets.metadata", "Metadados"],
   ["secrets.value", "Valores"],
   ["workspaces", "Workspaces"],
@@ -192,7 +188,6 @@ const permissionSectionRules = [
   ["tasks", "Geral"],
   ["taxonomy", "Taxonomia"],
   ["documents", "Geral"],
-  ["procedures", "Geral"],
   ["skills", "Skills"],
   ["option_lists", "Listas de opções"],
   ["secrets.use", "Uso"],
@@ -230,9 +225,7 @@ const workspacePermissionPrefixes = [
 
 function permissionScope(id) {
   if (
-    id.startsWith("documents.") ||
-    id.startsWith("procedures.") ||
-    id.startsWith("secrets.")
+    id.startsWith("documents.") || id.startsWith("secrets.")
   )
     return "hybrid";
   if (

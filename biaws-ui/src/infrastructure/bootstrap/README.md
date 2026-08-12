@@ -21,7 +21,10 @@ declaradas por `dependsOn` são bloqueadas quando a capacidade requerida falha.
 O `InfrastructureProvider` não publica um contexto agregado. Cada capacidade
 mantém seu próprio contrato, lifecycle e eventual integração com React.
 
-O adapter padrão de `session` conecta o cliente HTTP ao `SessionService` por
+O adapter padrão de `logging` disponibiliza o logger estruturado antes das
+demais capacidades, reporta falhas de inicialização e descarte, e habilita o
+transport de console somente em desenvolvimento. O adapter padrão de `session`
+conecta o cliente HTTP ao `SessionService` por
 funções estreitas para workspace e expiração. O service restaura a identidade no
 bootstrap e o `SessionProvider` publica somente o contrato normalizado; o
 `AuthGate` apresenta seus estados. O adapter padrão de `messages` gerencia o

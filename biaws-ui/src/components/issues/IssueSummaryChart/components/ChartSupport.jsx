@@ -1,6 +1,8 @@
 import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { defaultLogger } from "../../../../infrastructure/logging/runtime.js";
+
 export function SummaryTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
 
@@ -134,7 +136,10 @@ export function SummaryChartFrame({ children, className = "" }) {
       await copySvgToClipboard(svgElement);
       setCopyStatus("copied");
     } catch (error) {
-      console.error(error);
+      defaultLogger.warn("issues.summary_chart.copy_failed", {
+        error,
+        message: "Issue summary chart could not be copied",
+      });
       setCopyStatus("failed");
     } finally {
       window.clearTimeout(copyResetTimerRef.current);

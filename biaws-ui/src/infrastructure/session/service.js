@@ -29,6 +29,8 @@ function isWorkspaceForbidden(error) {
 export function createSessionService({
   adapter,
   clearSensitiveState = () => {},
+  eventSink = () => {},
+  now = () => Date.now(),
 }) {
   if (!adapter) throw new TypeError("A session adapter is required");
 
@@ -39,6 +41,14 @@ export function createSessionService({
   let lastAuthenticated = false;
   let confirmedWorkspaceId = adapter.getWorkspaceId();
   const listeners = new Set();
+
+  function emit(event) {
+    try {
+      eventSink(event);
+    } catch {
+      // Optional diagnostics must never change a session transition.
+    }
+  }
 
   function publish(nextState) {
     state = Object.freeze(nextState);
@@ -56,6 +66,13 @@ export function createSessionService({
   function handleUnauthorized({ reason } = {}) {
     operationVersion += 1;
     clear("expired");
+    if (lastAuthenticated) {
+      emit({
+        event: "session.expiration.detected",
+        level: "info",
+        message: "The authenticated session expired",
+      });
+    }
     publish(
       lastAuthenticated
         ? {
@@ -68,31 +85,58 @@ export function createSessionService({
 
   async function restoreForOperation(
     version,
-    { preserveSelection = true } = {},
+    { preserveSelection = true, source = "refresh" } = {},
   ) {
     try {
       const actor = await adapter.restore();
       if (version !== operationVersion) return { applied: false, state };
       confirmedWorkspaceId = adapter.getWorkspaceId();
+      const nextState = publish(
+        actor
+          ? { actor, status: SESSION_STATUS.AUTHENTICATED }
+          : { status: SESSION_STATUS.ANONYMOUS },
+      );
+      if (actor && ["initialize", "refresh"].includes(source)) {
+        emit({
+          context: { source },
+          event: "session.restore.completed",
+          level: "info",
+          message: "Session identity was restored",
+        });
+      }
       return {
         applied: true,
-        state: publish(
-          actor
-            ? { actor, status: SESSION_STATUS.AUTHENTICATED }
-            : { status: SESSION_STATUS.ANONYMOUS },
-        ),
+        state: nextState,
       };
     } catch (error) {
       if (version !== operationVersion) return { applied: false, state };
 
       if (isWorkspaceForbidden(error) && adapter.getWorkspaceId()) {
+        emit({
+          context: { source },
+          error,
+          event: "session.workspace_selection.rejected",
+          level: "warn",
+          message: "The persisted workspace selection was rejected",
+        });
         adapter.setWorkspaceId("");
         clear("workspace-forbidden");
-        return restoreForOperation(version, { preserveSelection: false });
+        return restoreForOperation(version, {
+          preserveSelection: false,
+          source,
+        });
       }
 
       if (isUnauthorized(error)) {
         clear("expired");
+        if (lastAuthenticated) {
+          emit({
+            context: { source },
+            event: "session.expiration.detected",
+            level: "info",
+            message: "The authenticated session expired during restoration",
+          });
+        }
         return {
           applied: true,
           state: publish(
@@ -107,6 +151,15 @@ export function createSessionService({
       }
 
       if (!preserveSelection) adapter.setWorkspaceId("");
+      if (["initialize", "refresh"].includes(source)) {
+        emit({
+          context: { source },
+          error,
+          event: "session.restore.failed",
+          level: "error",
+          message: "Session restoration failed unexpectedly",
+        });
+      }
       return {
         applied: true,
         state: publish({
@@ -132,7 +185,7 @@ export function createSessionService({
     initializePromise = (async () => {
       await adapter.initialize({ onUnauthorized: handleUnauthorized });
       initialized = true;
-      return restore();
+      return restore({ source: "initialize" });
     })().finally(() => {
       initializePromise = undefined;
     });
@@ -141,35 +194,96 @@ export function createSessionService({
   }
 
   async function signIn(credentials) {
+    const startedAt = now();
     clear("sign-in");
+    emit({
+      event: "session.sign_in.started",
+      level: "info",
+      message: "Sign-in started",
+    });
     try {
       await adapter.signIn(credentials);
       lastAuthenticated = false;
-      return await restore();
+      const nextState = await restore({ source: "sign_in" });
+      emit({
+        context: { durationMs: Math.max(0, now() - startedAt) },
+        error:
+          nextState.status === SESSION_STATUS.ERROR
+            ? nextState.error
+            : undefined,
+        event:
+          nextState.status === SESSION_STATUS.AUTHENTICATED
+            ? "session.sign_in.completed"
+            : "session.sign_in.incomplete",
+        level:
+          nextState.status === SESSION_STATUS.AUTHENTICATED
+            ? "info"
+            : nextState.status === SESSION_STATUS.ERROR
+              ? "error"
+              : "warn",
+        message:
+          nextState.status === SESSION_STATUS.AUTHENTICATED
+            ? "Sign-in completed"
+            : "Sign-in did not establish an authenticated session",
+      });
+      return nextState;
     } catch (error) {
       if (isUnauthorized(error)) {
         publish({ status: SESSION_STATUS.ANONYMOUS });
       }
+      emit({
+        context: { durationMs: Math.max(0, now() - startedAt) },
+        error,
+        event: isUnauthorized(error)
+          ? "session.sign_in.rejected"
+          : "session.sign_in.failed",
+        level: isUnauthorized(error) ? "warn" : "error",
+        message: isUnauthorized(error)
+          ? "Sign-in was rejected"
+          : "Sign-in failed unexpectedly",
+      });
       throw error;
     }
   }
 
   async function signOut() {
+    const startedAt = now();
     operationVersion += 1;
     clear("sign-out");
+    emit({
+      event: "session.sign_out.started",
+      level: "info",
+      message: "Sign-out started",
+    });
     publish({ status: SESSION_STATUS.INITIALIZING });
     try {
       await adapter.signOut();
+    } catch (error) {
+      emit({
+        context: { durationMs: Math.max(0, now() - startedAt) },
+        error,
+        event: "session.sign_out.remote_failed",
+        level: "error",
+        message: "Remote sign-out failed; local session cleanup continued",
+      });
+      throw error;
     } finally {
       operationVersion += 1;
       lastAuthenticated = false;
       adapter.setWorkspaceId("");
       confirmedWorkspaceId = "";
       publish({ status: SESSION_STATUS.ANONYMOUS });
+      emit({
+        context: { durationMs: Math.max(0, now() - startedAt) },
+        event: "session.sign_out.completed",
+        level: "info",
+        message: "Local sign-out completed",
+      });
     }
   }
 
   async function switchWorkspace(workspaceId) {
+    const startedAt = now();
     const previousWorkspaceId = adapter.getWorkspaceId();
     const nextWorkspaceId = String(workspaceId || "").trim();
     if (nextWorkspaceId === previousWorkspaceId) return state;
@@ -177,14 +291,70 @@ export function createSessionService({
     const version = operationVersion + 1;
     operationVersion = version;
     const rollbackWorkspaceId = confirmedWorkspaceId;
+    emit({
+      context: {
+        fromWorkspaceId: previousWorkspaceId || undefined,
+        toWorkspaceId: nextWorkspaceId || undefined,
+      },
+      event: "session.workspace_switch.started",
+      level: "info",
+      message: "Workspace switch started",
+    });
     clear("workspace-change");
     adapter.setWorkspaceId(nextWorkspaceId);
     publish({ status: SESSION_STATUS.INITIALIZING });
-    const result = await restoreForOperation(version);
+    const result = await restoreForOperation(version, {
+      source: "workspace_switch",
+    });
 
-    if (!result.applied) return state;
+    if (!result.applied) {
+      emit({
+        context: {
+          durationMs: Math.max(0, now() - startedAt),
+          toWorkspaceId: nextWorkspaceId || undefined,
+        },
+        event: "session.workspace_switch.discarded",
+        level: "warn",
+        message: "An obsolete workspace switch result was discarded",
+      });
+      return state;
+    }
     if (result.state.status === SESSION_STATUS.ERROR) {
       adapter.setWorkspaceId(rollbackWorkspaceId);
+      emit({
+        context: {
+          durationMs: Math.max(0, now() - startedAt),
+          rollbackWorkspaceId: rollbackWorkspaceId || undefined,
+          toWorkspaceId: nextWorkspaceId || undefined,
+        },
+        error: result.state.error,
+        event: "session.workspace_switch.failed",
+        level: "error",
+        message: "Workspace switch failed and selection was rolled back",
+      });
+    } else if (
+      result.state.status === SESSION_STATUS.AUTHENTICATED &&
+      adapter.getWorkspaceId() === nextWorkspaceId
+    ) {
+      emit({
+        context: {
+          durationMs: Math.max(0, now() - startedAt),
+          workspaceId: nextWorkspaceId || undefined,
+        },
+        event: "session.workspace_switch.completed",
+        level: "info",
+        message: "Workspace switch completed",
+      });
+    } else {
+      emit({
+        context: {
+          durationMs: Math.max(0, now() - startedAt),
+          toWorkspaceId: nextWorkspaceId || undefined,
+        },
+        event: "session.workspace_switch.rejected",
+        level: "warn",
+        message: "Workspace switch did not establish the requested workspace",
+      });
     }
     return result.state;
   }
@@ -205,6 +375,10 @@ export function createSessionService({
     getState: () => state,
     initialize,
     refresh: restore,
+    setEventSink(nextEventSink) {
+      eventSink =
+        typeof nextEventSink === "function" ? nextEventSink : () => {};
+    },
     signIn,
     signOut,
     subscribe(listener) {

@@ -93,6 +93,21 @@ function finalStatus(capabilities) {
   return BOOTSTRAP_STATUS.READY;
 }
 
+function reportCapabilityFailure(logger, capability, error) {
+  try {
+    logger?.error?.("infrastructure.bootstrap.capability_failed", {
+      context: {
+        capabilityId: capability.id,
+        critical: Boolean(capability.critical),
+      },
+      error,
+      message: `Infrastructure capability ${capability.id} failed to initialize`,
+    });
+  } catch {
+    // Reporting must not replace the original capability failure.
+  }
+}
+
 async function disposeInitializedCapabilities(initialized) {
   const failures = [];
 
@@ -176,6 +191,7 @@ export async function initializeInfrastructure({
         status: CAPABILITY_STATUS.READY,
       });
     } catch (error) {
+      reportCapabilityFailure(values.get("logging"), capability, error);
       state = replaceCapability(state, capability.id, {
         error: describeError(error),
         status: CAPABILITY_STATUS.FAILED,

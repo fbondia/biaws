@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { AuthGate } from "../../components/auth/AuthGate.jsx";
 import { AccessibilityProvider } from "../../components/shared/AccessibilityProvider.jsx";
 import { MessagesProvider } from "../messages/MessagesProvider.jsx";
+import { defaultLogger } from "../logging/runtime.js";
 import { SessionProvider } from "../session/SessionProvider.jsx";
 import {
   BOOTSTRAP_STATUS,
@@ -11,6 +12,13 @@ import {
   initializeInfrastructure,
 } from "./bootstrap.js";
 import { DEFAULT_INFRASTRUCTURE_CAPABILITIES } from "./capabilities.js";
+
+function reportInfrastructureDisposeError(error) {
+  defaultLogger.error("infrastructure.bootstrap.dispose_failed", {
+    error,
+    message: "Infrastructure cleanup failed",
+  });
+}
 
 function BootstrapStatus({ status }) {
   if (status === BOOTSTRAP_STATUS.FAILED) {
@@ -30,7 +38,7 @@ function BootstrapStatus({ status }) {
 export function InfrastructureProvider({
   capabilities = DEFAULT_INFRASTRUCTURE_CAPABILITIES,
   children,
-  onDisposeError,
+  onDisposeError = reportInfrastructureDisposeError,
   onStateChange,
 }) {
   const [bootstrapState, setBootstrapState] = useState(() =>

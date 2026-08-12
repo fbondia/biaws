@@ -4,6 +4,7 @@ import {
   fetchCollectionNavigationPreference,
   updateCollectionNavigationPreference,
 } from "../../../../api/userPreferences.js";
+import { defaultLogger } from "../../../../infrastructure/logging/runtime.js";
 
 import {
   buildCollectionColumns,
@@ -101,7 +102,11 @@ export function useResourceCollectionNavigator({
         setCollapsedIds(loaded);
       })
       .catch((error) => {
-        console.error("Não foi possível carregar o estado das coleções", error);
+        defaultLogger.warn("resources.collections.preference_load_failed", {
+          context: { preferenceKey, workspaceId },
+          error,
+          message: "Collection navigation preference could not be loaded",
+        });
       });
 
     return () => {
@@ -198,7 +203,11 @@ export function useResourceCollectionNavigator({
         else rolledBack.add(collectionId);
         collapsedIdsRef.current = rolledBack;
         setCollapsedIds(rolledBack);
-        console.error("Não foi possível salvar o estado da coleção", error);
+        defaultLogger.warn("resources.collections.preference_save_failed", {
+          context: { collectionId, preferenceKey, workspaceId },
+          error,
+          message: "Collection navigation preference could not be saved",
+        });
       })
       .finally(() => {
         if (

@@ -14,6 +14,7 @@ import {
 } from "../../constants/issues.js";
 import { configureRequestConstants } from "../../data/requestConstants.js";
 import { hasPermission } from "../../permissions.js";
+import { defaultLogger } from "../../infrastructure/logging/runtime.js";
 import { compactParams } from "../../utils/issues.js";
 import {
   APP_VIEWS,
@@ -167,8 +168,14 @@ export function useApp(actor, preferredView) {
       load: fetchRuntimeOptionLists,
     });
     runtimeOptionListsLoader.current = loader;
-    loader.load().catch(() => {
+    loader.load().catch((loadError) => {
       // Build-time defaults remain available if the runtime catalog cannot be loaded.
+      defaultLogger.warn("application.option_lists.load_failed", {
+        context: { workspaceId: actor.workspaceId },
+        error: loadError,
+        message:
+          "Runtime option lists could not be loaded; defaults remain active",
+      });
     });
 
     return () => {

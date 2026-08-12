@@ -3,7 +3,9 @@ import test from "node:test";
 
 import {
   configureApiSession,
+  executeApiRequest,
   readPayload,
+  reportApiFailure,
   workspaceHeaders,
 } from "../src/api/client.js";
 import {
@@ -68,9 +70,11 @@ test("session restores an actor and transitions an authenticated request to expi
   const actor = { id: "actor-1", workspaceId: "workspace-1" };
   const fake = createFakeSessionAdapter({ actor, workspaceId: "workspace-1" });
   const cleared = [];
+  const events = [];
   const service = createSessionService({
     adapter: fake.adapter,
     clearSensitiveState: (reason) => cleared.push(reason),
+    eventSink: (event) => events.push(event),
   });
 
   await service.initialize();
@@ -85,6 +89,7 @@ test("session restores an actor and transitions an authenticated request to expi
     status: SESSION_STATUS.EXPIRED,
   });
   assert.deepEqual(cleared, ["expired"]);
+  assert.equal(events.at(-1).event, "session.expiration.detected");
 });
 
 test("initial 401 is anonymous while a transient restore failure remains an error", async () => {
@@ -120,9 +125,11 @@ test("sign in restores the compatibility actor and sign out clears local session
   const actor = { id: "actor-2", workspaceId: "workspace-2" };
   const fake = createFakeSessionAdapter();
   const cleared = [];
+  const events = [];
   const service = createSessionService({
     adapter: fake.adapter,
     clearSensitiveState: (reason) => cleared.push(reason),
+    eventSink: (event) => events.push(event),
   });
 
   await service.initialize();
@@ -139,12 +146,27 @@ test("sign in restores the compatibility actor and sign out clears local session
   });
   assert.deepEqual(cleared, ["sign-in", "sign-out"]);
   assert.deepEqual(fake.calls.at(-1), ["setWorkspaceId", ""]);
+  assert.deepEqual(
+    events
+      .filter(({ event }) => event.includes("sign_"))
+      .map(({ event, level }) => [event, level]),
+    [
+      ["session.sign_in.started", "info"],
+      ["session.sign_in.completed", "info"],
+      ["session.sign_out.started", "info"],
+      ["session.sign_out.completed", "info"],
+    ],
+  );
 });
 
 test("workspace switch is deterministic and rolls selection back after a transient failure", async () => {
   const actor = { id: "actor-3", workspaceId: "workspace-1" };
   const fake = createFakeSessionAdapter({ actor, workspaceId: "workspace-1" });
-  const service = createSessionService({ adapter: fake.adapter });
+  const events = [];
+  const service = createSessionService({
+    adapter: fake.adapter,
+    eventSink: (event) => events.push(event),
+  });
   await service.initialize();
 
   fake.setActor({ ...actor, workspaceId: "workspace-2" });
@@ -155,6 +177,17 @@ test("workspace switch is deterministic and rolls selection back after a transie
   await service.switchWorkspace("workspace-3");
   assert.equal(service.getState().status, SESSION_STATUS.ERROR);
   assert.deepEqual(fake.calls.at(-1), ["setWorkspaceId", "workspace-2"]);
+  assert.deepEqual(
+    events
+      .filter(({ event }) => event.includes("workspace_switch"))
+      .map(({ event, level }) => [event, level]),
+    [
+      ["session.workspace_switch.started", "info"],
+      ["session.workspace_switch.completed", "info"],
+      ["session.workspace_switch.started", "info"],
+      ["session.workspace_switch.failed", "error"],
+    ],
+  );
 });
 
 test("an obsolete workspace switch cannot roll back a newer failed switch", async () => {
@@ -182,7 +215,11 @@ test("an obsolete workspace switch cannot roll back a newer failed switch", asyn
     signIn() {},
     signOut() {},
   };
-  const service = createSessionService({ adapter });
+  const events = [];
+  const service = createSessionService({
+    adapter,
+    eventSink: (event) => events.push(event),
+  });
   await service.initialize();
 
   const firstSwitch = service.switchWorkspace("workspace-2");
@@ -193,6 +230,7 @@ test("an obsolete workspace switch cannot roll back a newer failed switch", asyn
   await secondSwitch;
   assert.equal(selectedWorkspaceId, "workspace-1");
   assert.equal(service.getState().status, SESSION_STATUS.ERROR);
+  assert.equal(events.at(-1).event, "session.workspace_switch.failed");
 
   pendingRestores
     .find(({ workspaceId }) => workspaceId === "workspace-2")
@@ -204,6 +242,8 @@ test("an obsolete workspace switch cannot roll back a newer failed switch", asyn
 
   assert.equal(selectedWorkspaceId, "workspace-1");
   assert.equal(service.getState().status, SESSION_STATUS.ERROR);
+  assert.equal(events.at(-1).event, "session.workspace_switch.discarded");
+  assert.equal(events.at(-1).level, "warn");
 });
 
 test("forbidden persisted workspace is cleared before restoring the unscoped actor", async () => {
@@ -217,7 +257,11 @@ test("forbidden persisted workspace is cleared before restoring the unscoped act
     restoreError: (workspaceId) => (workspaceId ? forbidden : null),
     workspaceId: "forbidden-workspace",
   });
-  const service = createSessionService({ adapter: fake.adapter });
+  const events = [];
+  const service = createSessionService({
+    adapter: fake.adapter,
+    eventSink: (event) => events.push(event),
+  });
 
   await service.initialize();
   assert.deepEqual(service.getState(), {
@@ -231,6 +275,11 @@ test("forbidden persisted workspace is cleared before restoring the unscoped act
       ["restore", ""],
     ],
   );
+  assert.equal(
+    events.find(({ event }) => event === "session.workspace_selection.rejected")
+      ?.level,
+    "warn",
+  );
 });
 
 test("failed server sign out still removes the local actor and workspace", async () => {
@@ -239,7 +288,11 @@ test("failed server sign out still removes the local actor and workspace", async
     signOutError: sessionError("Server unavailable"),
     workspaceId: "workspace-5",
   });
-  const service = createSessionService({ adapter: fake.adapter });
+  const events = [];
+  const service = createSessionService({
+    adapter: fake.adapter,
+    eventSink: (event) => events.push(event),
+  });
   await service.initialize();
 
   await assert.rejects(service.signOut(), /Server unavailable/);
@@ -247,4 +300,110 @@ test("failed server sign out still removes the local actor and workspace", async
     status: SESSION_STATUS.ANONYMOUS,
   });
   assert.deepEqual(fake.calls.at(-1), ["setWorkspaceId", ""]);
+  assert.deepEqual(
+    events.slice(-3).map(({ event, level }) => [event, level]),
+    [
+      ["session.sign_out.started", "info"],
+      ["session.sign_out.remote_failed", "error"],
+      ["session.sign_out.completed", "info"],
+    ],
+  );
+});
+
+test("API failure reporting selects only operationally relevant failures", () => {
+  const records = [];
+  const logger = {
+    error: (event, details) => records.push({ details, event, level: "error" }),
+    warn: (event, details) => records.push({ details, event, level: "warn" }),
+  };
+  const report = (statusCode, path = "/api/items?token=must-not-appear") =>
+    reportApiFailure({
+      durationMs: 250,
+      error: Object.assign(new Error("synthetic"), { statusCode }),
+      logger,
+      method: "GET",
+      path,
+      requestId: "request-1",
+    });
+
+  report(404);
+  report(503, "/api/auth/sign-out");
+  report(403);
+  report(429);
+  report(503);
+  report(undefined);
+
+  assert.deepEqual(
+    records.map(({ event, level }) => [event, level]),
+    [
+      ["api.request.denied", "warn"],
+      ["api.request.rejected", "warn"],
+      ["api.request.failed", "error"],
+      ["api.request.failed", "error"],
+    ],
+  );
+  assert.equal(records[0].details.context.path, "/api/items");
+  assert.equal(records[0].details.context.durationMs, 250);
+  assert.doesNotThrow(() =>
+    reportApiFailure({
+      durationMs: 1,
+      error: new Error("network"),
+      logger: {
+        error: () => {
+          throw new Error("logger failed");
+        },
+      },
+      method: "POST",
+      path: "/api/items",
+      requestId: "request-2",
+    }),
+  );
+});
+
+test("API request logging excludes query and request body while preserving duration", async () => {
+  const previousWindow = globalThis.window;
+  const records = [];
+  const times = [100, 145];
+  globalThis.window = { location: { origin: "https://ui.example.test" } };
+
+  try {
+    await assert.rejects(
+      executeApiRequest({
+        body: { password: "must-not-appear" },
+        fetchImpl: async () =>
+          new Response(JSON.stringify({ error: { message: "Unavailable" } }), {
+            headers: { "Content-Type": "application/json" },
+            status: 503,
+          }),
+        logger: {
+          error: (event, details) => records.push({ details, event }),
+          warn() {},
+        },
+        method: "POST",
+        now: () => times.shift(),
+        params: { token: "must-not-appear" },
+        path: "/api/important-operation",
+      }),
+      (error) => error.statusCode === 503,
+    );
+  } finally {
+    globalThis.window = previousWindow;
+  }
+
+  assert.equal(records[0].event, "api.request.failed");
+  assert.deepEqual(
+    {
+      durationMs: records[0].details.context.durationMs,
+      method: records[0].details.context.method,
+      path: records[0].details.context.path,
+      statusCode: records[0].details.context.statusCode,
+    },
+    {
+      durationMs: 45,
+      method: "POST",
+      path: "/api/important-operation",
+      statusCode: 503,
+    },
+  );
+  assert.doesNotMatch(JSON.stringify(records), /must-not-appear/);
 });

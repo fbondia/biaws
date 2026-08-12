@@ -9,6 +9,8 @@ import {
 } from "../src/infrastructure/bootstrap/bootstrap.js";
 import { createInfrastructureCapabilities } from "../src/infrastructure/bootstrap/capabilities.js";
 import { defineLoggingAdapter } from "../src/infrastructure/logging/contract.js";
+import { createLogger } from "../src/infrastructure/logging/service.js";
+import { createFakeLoggingTransport } from "../src/infrastructure/logging/testing.js";
 import { defineMessagesAdapter } from "../src/infrastructure/messages/contract.js";
 import { defineSessionAdapter } from "../src/infrastructure/session/contract.js";
 
@@ -80,6 +82,63 @@ test("a non-critical failure degrades bootstrap without stopping independent cap
     message: "optional unavailable",
     name: "Error",
   });
+});
+
+test("bootstrap reports capability failures through an initialized logger", async () => {
+  const fake = createFakeLoggingTransport();
+  const logger = createLogger({ transports: [fake.transport] });
+
+  const bootstrap = await initializeInfrastructure({
+    capabilities: [
+      { id: "logging", initialize: () => logger },
+      {
+        critical: true,
+        id: "session",
+        initialize() {
+          throw new Error("session unavailable");
+        },
+      },
+    ],
+  });
+
+  assert.equal(bootstrap.state.status, BOOTSTRAP_STATUS.FAILED);
+  assert.equal(fake.records.length, 1);
+  assert.equal(
+    fake.records[0].event,
+    "infrastructure.bootstrap.capability_failed",
+  );
+  assert.deepEqual(fake.records[0].context, {
+    capabilityId: "session",
+    critical: true,
+  });
+});
+
+test("a reporting failure does not replace the original bootstrap result", async () => {
+  const bootstrap = await initializeInfrastructure({
+    capabilities: [
+      {
+        id: "logging",
+        initialize: () => ({
+          error() {
+            throw new Error("logger unavailable");
+          },
+        }),
+      },
+      {
+        critical: true,
+        id: "session",
+        initialize() {
+          throw new Error("original session failure");
+        },
+      },
+    ],
+  });
+
+  assert.equal(bootstrap.state.status, BOOTSTRAP_STATUS.FAILED);
+  assert.equal(
+    bootstrap.state.capabilities[1].error.message,
+    "original session failure",
+  );
 });
 
 test("dispose attempts every capability and aggregates failures without changing order", async () => {

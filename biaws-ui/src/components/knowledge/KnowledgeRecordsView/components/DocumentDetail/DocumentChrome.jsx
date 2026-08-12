@@ -153,7 +153,7 @@ export function KnowledgeDocumentReading({
             />
           */}
           <button
-            className="knowledgeDetailsButton"
+            className="primaryButton"
             onClick={onShowDetails}
             type="button"
           >

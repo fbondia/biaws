@@ -479,12 +479,6 @@ function DocumentTypeSelection({ onContinue, onSelect, selectedType }) {
   );
 }
 
-function ImmutableTypeHint({ documentId }) {
-  return documentId ? (
-    <small>O tipo é imutável depois que o documento é criado.</small>
-  ) : null;
-}
-
 export function KnowledgeRecordsView({ actor }) {
   const canCreate = hasPermission(actor, "documents.create");
   const canUpdate = hasPermission(actor, "documents.update");
@@ -966,18 +960,6 @@ function DocumentDetail({
             />
           </label>
           <label className="field">
-            <span>Resumo</span>
-            <textarea
-              disabled={!canUpdate}
-              maxLength={500}
-              onChange={(event) =>
-                onChange({ ...draft, summary: event.target.value })
-              }
-              rows={3}
-              value={draft.summary}
-            />
-          </label>
-          <label className="field">
             <span>Estado</span>
             <select
               disabled={!canUpdate}
@@ -994,27 +976,19 @@ function DocumentDetail({
             </select>
           </label>
           <label className="field">
-            <span>Tipo de documento</span>
-            <select
-              disabled={!canUpdate || Boolean(draft.id)}
-              onChange={(event) => changeType(event.target.value)}
-              value={draft.documentType}
-            >
-              {Object.entries(DOCUMENT_TYPES).map(([value, typeConfig]) => (
-                <option key={value} value={value}>
-                  {typeConfig.label}
-                </option>
-              ))}
-            </select>
+            <span>Resumo</span>
+            <textarea
+              disabled={!canUpdate}
+              maxLength={500}
+              onChange={(event) =>
+                onChange({ ...draft, summary: event.target.value })
+              }
+              rows={3}
+              value={draft.summary}
+            />
           </label>
-          <ImmutableTypeHint documentId={draft.id} />
-          <DocumentDetailsFields
-            disabled={!canUpdate}
-            draft={draft}
-            onChange={onChange}
-          />
           <section className="knowledgeOverviewSection">
-            <h3>Contexto e classificação</h3>
+            <h3>Contexto</h3>
             <div className="knowledgeOverviewSelectors">
               <CatalogContextDialogField
                 affectedComponentIds={draft.affectedComponentIds}
@@ -1037,6 +1011,14 @@ function DocumentDetail({
                 taxonomyPackage={taxonomyPackage}
               />
             </div>
+          </section>
+          <section className="knowledgeOverviewSection">
+            <h3>Detalhes Adicionais</h3>
+            <DocumentDetailsFields
+              disabled={!canUpdate}
+              draft={draft}
+              onChange={onChange}
+            />
           </section>
           <section className="knowledgeOverviewSection">
             <h3>Governança e origem</h3>

@@ -330,6 +330,8 @@
 .knowledgeOverviewSection {
   display: grid;
   gap: 14px;
+  border-top: 1px solid var(--color-accent-border);
+  padding-top: 1rem;
 }
 
 .knowledgeOverviewSection > h3 {

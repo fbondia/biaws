@@ -40,7 +40,7 @@ test("navigation groups operational and administrative destinations", () => {
       views.map(({ key }) => key),
     ]),
     [
-      ["Classificação", ["option-lists", "taxonomy"]],
+      ["Classificação", ["option-lists", "taxonomy", "monitoring-templates"]],
       ["Acesso", ["secrets", "users", "groups"]],
     ],
   );
@@ -147,6 +147,7 @@ test("active views have stable URL routes", () => {
   assert.equal(activeViewPath("documents"), "/documents");
   assert.equal(activeViewFromPath("/documents"), "documents");
   assert.equal(activeViewFromPath("/documents/"), "documents");
+  assert.equal(activeViewPath("monitoring-templates"), "/monitoring-templates");
   assert.equal(activeViewPath("unknown"), "/");
   assert.equal(activeViewFromPath("/unknown"), undefined);
 });

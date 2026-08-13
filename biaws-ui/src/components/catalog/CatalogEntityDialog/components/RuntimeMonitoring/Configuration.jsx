@@ -102,6 +102,7 @@ export function RuntimeMonitoringConfiguration({
     monitoringError,
     monitoringLoading,
     monitoringNotice,
+    monitoringTemplates,
     openMonitor,
     removeMonitor,
     saveMonitor,
@@ -200,6 +201,7 @@ export function RuntimeMonitoringConfiguration({
           onClose={controller.closeMonitor}
           onSave={saveMonitor}
           saving={monitorSaving}
+          templates={monitoringTemplates}
         />
       ) : null}
     </div>

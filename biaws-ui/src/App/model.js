@@ -13,6 +13,7 @@ import {
   House,
   Settings,
   KeyRound,
+  FileCode2,
 } from "lucide-react";
 
 export const APP_VIEWS = [
@@ -107,6 +108,12 @@ export const NAVIGATION_GROUPS = [
             icon: Tags,
             permission: "taxonomy.read",
           },
+          {
+            key: "monitoring-templates",
+            label: "Templates de monitoramento",
+            icon: FileCode2,
+            permission: "runtimes.read",
+          },
         ],
       },
       {
@@ -149,6 +156,7 @@ const VIEW_ROUTES = {
   home: "/",
   issues: "/issues",
   "option-lists": "/option-lists",
+  "monitoring-templates": "/monitoring-templates",
   requests: "/requests",
   secrets: "/secrets",
   servers: "/servers",

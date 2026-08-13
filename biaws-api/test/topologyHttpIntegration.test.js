@@ -466,6 +466,73 @@ test(
         (await foreignTemplateResponse.json()).error.code,
         "INVALID_MONITORING_TEMPLATE",
       );
+      const templateDefinition = {
+        rules: [
+          {
+            label: "HTTP 200",
+            match: "all",
+            conditions: [
+              {
+                path: "evidence.response.status",
+                operator: "equals",
+                value: 200,
+              },
+            ],
+            result: {
+              status: "healthy",
+              message: "HTTP {{evidence.response.status}}",
+              metadata: { evaluated_by: "template" },
+            },
+          },
+        ],
+        defaultResult: {
+          status: "unavailable",
+          message: "Unexpected response",
+          metadata: {},
+        },
+      };
+      const templateCreateResponse = await request(
+        "/api/monitoring/templates",
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            name: "REST health",
+            description: "Integration template",
+            definition: templateDefinition,
+          },
+          origin: true,
+        },
+      );
+      assert.equal(templateCreateResponse.status, 201);
+      const template = (await templateCreateResponse.json()).template;
+      assert.equal(template.status, "draft");
+      const templatePreviewResponse = await request(
+        "/api/monitoring/templates/preview",
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            definition: templateDefinition,
+            sample: {
+              evidence: { response: { status: 200 } },
+              metadata: {},
+              context: { provider: "rest" },
+            },
+          },
+          origin: true,
+        },
+      );
+      assert.equal(templatePreviewResponse.status, 200);
+      assert.equal(
+        (await templatePreviewResponse.json()).preview.result.status,
+        "healthy",
+      );
+      const templateActivateResponse = await request(
+        `/api/monitoring/templates/${template.id}/versions/${template.version}/activate`,
+        { cookie: adminCookie, method: "POST", body: {}, origin: true },
+      );
+      assert.equal(templateActivateResponse.status, 200);
       const activeMonitorResponse = await request(
         `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
         {
@@ -480,6 +547,7 @@ test(
               target: "https://billing-http.example.test/health",
               expectedStatus: 200,
             },
+            templateRef: { id: template.id, version: template.version },
           },
           origin: true,
         },
@@ -537,6 +605,13 @@ test(
       assert.equal(activeResult.signal.origin, "active");
       assert.equal(activeResult.signal.monitorId, activeMonitor.id);
       assert.equal(activeResult.signal.executionId, lease.executionId);
+      assert.equal(activeResult.signal.status, "healthy");
+      assert.equal(activeResult.signal.message, "HTTP 200");
+      assert.deepEqual(activeResult.signal.templateRef, {
+        id: template.id,
+        version: template.version,
+      });
+      assert.equal(activeResult.signal.templateSnapshot.name, "REST health");
       const duplicateActiveResult = await request(
         `/api/monitoring/executor/leases/${lease.leaseToken}/results`,
         {
@@ -562,6 +637,19 @@ test(
           .length,
         1,
       );
+      const templateUsage = await (
+        await request(
+          `/api/monitoring/templates/${template.id}/versions/${template.version}/usage`,
+          { cookie: adminCookie },
+        )
+      ).json();
+      assert.equal(templateUsage.usage.activeMonitors, 1);
+      assert.equal(templateUsage.usage.observations, 1);
+      const templateDeleteResponse = await request(
+        `/api/monitoring/templates/${template.id}/versions/${template.version}`,
+        { cookie: adminCookie, method: "DELETE", origin: true },
+      );
+      assert.equal(templateDeleteResponse.status, 409);
       const expirationIndex = (
         await database
           .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)

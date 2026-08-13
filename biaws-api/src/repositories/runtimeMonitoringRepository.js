@@ -23,6 +23,7 @@ import {
   monitoringMetadataPresentation,
   normalizeMonitoringMetadataProfile,
 } from "./monitoringMetadataProfiles.js";
+import { evaluateMonitoringTemplateReference } from "./monitoringTemplatesRepository.js";
 
 const SIGNAL_STATUSES = RUNTIME_STATUSES.filter(
   (status) => status !== "archived",
@@ -90,6 +91,7 @@ export function normalizeMonitoringSignal(payload = {}, actor = {}) {
       "metadata",
       "metadataProfile",
       "payload",
+      "templateRef",
     ],
     "monitoring signal",
   );
@@ -275,10 +277,42 @@ export async function recordRuntimeMonitoringSignal(
   if (!runtime || runtime.status === "archived") {
     throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
   }
-  const normalized = normalizeMonitoringSignal(payload, actor);
+  const evaluation = payload.templateRef
+    ? await evaluateMonitoringTemplateReference(
+        payload.templateRef,
+        {
+          context: { origin: "passive", source: payload.source || "" },
+          evidence: payload.payload || {},
+          metadata: payload.metadata || {},
+        },
+        runtime.workspaceId,
+      )
+    : null;
+  const normalized = normalizeMonitoringSignal(
+    evaluation
+      ? {
+          ...payload,
+          status: evaluation.result.status,
+          message: evaluation.result.message,
+          metadata: {
+            ...(payload.metadata || {}),
+            ...evaluation.result.metadata,
+          },
+          templateRef: undefined,
+        }
+      : payload,
+    actor,
+  );
   return recordMonitoringEvent(runtime, normalized, actor, {
     materializeHealth: true,
     origin: "passive",
+    eventContext: evaluation
+      ? {
+          templateRef: evaluation.templateRef,
+          templateSnapshot: evaluation.templateSnapshot,
+          templateMatch: evaluation.matchedRule,
+        }
+      : {},
   });
 }
 
@@ -311,16 +345,33 @@ export async function recordActiveRuntimeMonitoringObservation(
   ) {
     throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
   }
+  const evaluation = monitor.templateRef
+    ? await evaluateMonitoringTemplateReference(
+        monitor.templateRef,
+        {
+          context: {
+            origin: "active",
+            provider: monitor.provider,
+            monitorId: monitor.id,
+          },
+          evidence: payload.payload || {},
+          metadata: payload.metadata || {},
+        },
+        monitor.workspaceId,
+      )
+    : null;
   const normalized = normalizeMonitoringSignal(
     {
       signalId: `active:${monitor.id}:${monitor.lease.executionId}`,
-      status: payload.status,
+      status: evaluation?.result.status || payload.status,
       observedAt: payload.observedAt,
       source:
         optionalText(payload.source, "source", 160) ||
         `${monitor.provider}:${monitor.name}`,
-      message: payload.message,
-      metadata: payload.metadata,
+      message: evaluation?.result.message || payload.message,
+      metadata: evaluation
+        ? { ...(payload.metadata || {}), ...evaluation.result.metadata }
+        : payload.metadata,
       metadataProfile: payload.metadataProfile,
       payload: payload.payload,
     },
@@ -336,6 +387,12 @@ export async function recordActiveRuntimeMonitoringObservation(
       provider: monitor.provider,
       ...(monitor.templateRef
         ? { templateRef: { ...monitor.templateRef } }
+        : {}),
+      ...(evaluation
+        ? {
+            templateSnapshot: evaluation.templateSnapshot,
+            templateMatch: evaluation.matchedRule,
+          }
         : {}),
     },
   });

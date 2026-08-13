@@ -20,7 +20,11 @@ import {
 
 export { ensureRuntimeActiveMonitoringIndexes };
 
-async function validateTemplateRef(templateRef, runtime) {
+async function validateTemplateRef(
+  templateRef,
+  runtime,
+  { allowInactive = false } = {},
+) {
   if (!templateRef) return;
   const database = await getMongoDatabase();
   const template = await database
@@ -29,7 +33,7 @@ async function validateTemplateRef(templateRef, runtime) {
       id: templateRef.id,
       version: templateRef.version,
       workspaceId: runtime.workspaceId,
-      status: { $ne: "archived" },
+      status: allowInactive ? { $ne: "archived" } : "active",
     });
   if (!template) {
     throw createCatalogError(
@@ -181,7 +185,11 @@ export async function updateRuntimeActiveMonitor(
     );
   }
   const normalized = normalizeActiveMonitorInput(payload, current);
-  await validateTemplateRef(normalized.templateRef, runtime);
+  await validateTemplateRef(normalized.templateRef, runtime, {
+    allowInactive:
+      JSON.stringify(normalized.templateRef) ===
+      JSON.stringify(current.templateRef),
+  });
   const scheduleChanged =
     normalized.enabled !== current.enabled ||
     normalized.intervalSeconds !== current.intervalSeconds ||

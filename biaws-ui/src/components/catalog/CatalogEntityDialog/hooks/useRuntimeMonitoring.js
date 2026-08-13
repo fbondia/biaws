@@ -6,6 +6,7 @@ import {
   deleteRuntimeActiveMonitor,
   fetchRuntimeActiveMonitors,
   fetchRuntimeMonitoringTimeline,
+  fetchMonitoringTemplates,
   updateRuntimeActiveMonitor,
 } from "../../../../api.js";
 import {
@@ -25,6 +26,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
   const runtimeId = kind === "runtime" ? entity?.id : "";
   const [activeMonitors, setActiveMonitors] = useState([]);
   const [monitoringEvents, setMonitoringEvents] = useState([]);
+  const [monitoringTemplates, setMonitoringTemplates] = useState([]);
   const [monitoringLoading, setMonitoringLoading] = useState(false);
   const [monitoringError, setMonitoringError] = useState("");
   const [monitoringNotice, setMonitoringNotice] = useState("");
@@ -41,6 +43,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     const results = await Promise.allSettled([
       fetchRuntimeActiveMonitors(runtimeId, { limit: 100 }),
       fetchRuntimeMonitoringTimeline(runtimeId, { limit: 100 }),
+      fetchMonitoringTemplates({ limit: 100 }),
     ]);
     if (results[0].status === "fulfilled") {
       setActiveMonitors(results[0].value.items || []);
@@ -48,7 +51,12 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     if (results[1].status === "fulfilled") {
       setMonitoringEvents(results[1].value.items || []);
     }
-    const failure = results.find(({ status }) => status === "rejected");
+    if (results[2].status === "fulfilled") {
+      setMonitoringTemplates(results[2].value.items || []);
+    }
+    const failure = results
+      .slice(0, 2)
+      .find(({ status }) => status === "rejected");
     if (failure) setMonitoringError(errorMessage(failure.reason));
     setMonitoringLoading(false);
   }, [runtimeId]);
@@ -61,6 +69,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     Promise.allSettled([
       fetchRuntimeActiveMonitors(runtimeId, { limit: 100 }),
       fetchRuntimeMonitoringTimeline(runtimeId, { limit: 100 }),
+      fetchMonitoringTemplates({ limit: 100 }),
     ]).then((results) => {
       if (!active) return;
       if (results[0].status === "fulfilled") {
@@ -69,7 +78,12 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
       if (results[1].status === "fulfilled") {
         setMonitoringEvents(results[1].value.items || []);
       }
-      const failure = results.find(({ status }) => status === "rejected");
+      if (results[2].status === "fulfilled") {
+        setMonitoringTemplates(results[2].value.items || []);
+      }
+      const failure = results
+        .slice(0, 2)
+        .find(({ status }) => status === "rejected");
       if (failure) setMonitoringError(errorMessage(failure.reason));
       setMonitoringLoading(false);
     });
@@ -196,6 +210,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     monitoringEvents,
     monitoringLoading,
     monitoringNotice,
+    monitoringTemplates,
     observationDraft,
     openMonitor,
     openObservation,

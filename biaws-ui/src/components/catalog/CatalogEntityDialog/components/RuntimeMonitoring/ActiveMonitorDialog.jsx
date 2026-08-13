@@ -24,6 +24,7 @@ export function ActiveMonitorDialog({
   onClose,
   onSave,
   saving,
+  templates = [],
 }) {
   const update = (name, value) =>
     onChange((current) => ({ ...current, [name]: value }));
@@ -179,18 +180,58 @@ export function ActiveMonitorDialog({
               />
             </>
           )}
-          <TextField
-            label="ID do template (opcional)"
-            name="templateId"
-            onChange={update}
-            value={draft.templateId}
-          />
-          <TextField
-            label="Versão do template"
-            name="templateVersion"
-            onChange={update}
-            value={draft.templateVersion}
-          />
+          {templates.some(({ versions }) =>
+            versions?.some(({ status }) => status === "active"),
+          ) ? (
+            <label className="field catalogWideField">
+              <span>Template de interpretação (opcional)</span>
+              <select
+                onChange={(event) => {
+                  const [templateId = "", templateVersion = ""] =
+                    event.target.value.split(":");
+                  onChange((current) => ({
+                    ...current,
+                    templateId,
+                    templateVersion,
+                  }));
+                }}
+                value={
+                  draft.templateId
+                    ? `${draft.templateId}:${draft.templateVersion}`
+                    : ""
+                }
+              >
+                <option value="">Sem template</option>
+                {templates.flatMap((template) =>
+                  (template.versions || [])
+                    .filter(({ status }) => status === "active")
+                    .map((version) => (
+                      <option
+                        key={`${template.id}:${version.version}`}
+                        value={`${template.id}:${version.version}`}
+                      >
+                        {template.name} · v{version.version}
+                      </option>
+                    )),
+                )}
+              </select>
+            </label>
+          ) : (
+            <>
+              <TextField
+                label="ID do template (opcional)"
+                name="templateId"
+                onChange={update}
+                value={draft.templateId}
+              />
+              <TextField
+                label="Versão do template"
+                name="templateVersion"
+                onChange={update}
+                value={draft.templateVersion}
+              />
+            </>
+          )}
           <label className="field catalogMonitoringCheck catalogWideField">
             <input
               checked={draft.enabled}

@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { buildLocalDevelopmentCommands } from "../../../model.js";
-import { NavigationButton } from "./AppHeaderUtilities.jsx";
+import { LocalCommandCard, NavigationButton } from "./AppHeaderUtilities.jsx";
 
 const LOCAL_SETUP_TABS = [
   { key: "setup", label: "Setup Agent" },
@@ -119,7 +119,7 @@ export function WorkspaceList({ currentWorkspaceId, onSelect, workspaces }) {
   );
 }
 
-function LocalSetupTabs({ activeTab, onSelect }) {
+export function LocalSetupTabs({ activeTab, onSelect }) {
   return (
     <div
       aria-label="Formas de sincronizar o projeto"

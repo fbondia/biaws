@@ -20,11 +20,13 @@ import {
 } from "../../model.js";
 import {
   LocalSetupPanel,
+  LocalSetupTabs,
   NavigationMenu,
   WorkspaceList,
   WorkspaceSwitcherFooter,
 } from "./components/AppHeaderPanels.jsx";
 import {
+  LocalCommandCard,
   copyPlainText,
   NavigationButton,
 } from "./components/AppHeaderUtilities.jsx";

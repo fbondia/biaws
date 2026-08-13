@@ -1,6 +1,6 @@
 import { Check, Copy } from "lucide-react";
 
-function LocalCommandCard({
+export function LocalCommandCard({
   command,
   commandKey,
   copyStatus,

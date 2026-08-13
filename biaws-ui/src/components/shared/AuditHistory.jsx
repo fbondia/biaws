@@ -1,7 +1,8 @@
-import { Clock3, RefreshCw, UserRound } from "lucide-react";
+import { Clock3, FileDiff, RefreshCw, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { fetchAuditHistory } from "../../api.js";
+import { buildAuditLineDiff, formatAuditValue } from "./auditDiff.js";
 
 const ACTION_LABELS = {
   created: "Criou",
@@ -32,13 +33,6 @@ const ACTION_LABELS = {
   reactivated: "Reativou",
 };
 
-function formatValue(value) {
-  if (value === null || value === undefined || value === "") return "—";
-  if (typeof value === "boolean") return value ? "Sim" : "Não";
-  if (typeof value === "object") return JSON.stringify(value, null, 2);
-  return String(value);
-}
-
 function formatDateTime(value) {
   if (!value) return "Data não informada";
   const parsed = new Date(value);
@@ -47,6 +41,78 @@ function formatDateTime(value) {
     dateStyle: "short",
     timeStyle: "medium",
   }).format(parsed);
+}
+
+function AuditChange({ change, changeId }) {
+  const [expanded, setExpanded] = useState(false);
+  const diffId = `${changeId}-diff`;
+
+  return (
+    <div className={`auditChange${expanded ? " isExpanded" : ""}`}>
+      <div className="auditChangeHeader">
+        <code>{change.field}</code>
+        <button
+          aria-controls={diffId}
+          aria-expanded={expanded}
+          aria-label={`${expanded ? "Recolher" : "Expandir"} diff do campo ${change.field}`}
+          className="auditDiffButton"
+          onClick={() => setExpanded((value) => !value)}
+          title={`${expanded ? "Recolher" : "Visualizar"} alterações`}
+          type="button"
+        >
+          <FileDiff size={16} />
+        </button>
+      </div>
+      {!expanded ? (
+        <div className="auditChangeSummary">
+          <pre className="auditChangeBefore">
+            {formatAuditValue(change.before)}
+          </pre>
+          <span aria-hidden="true">→</span>
+          <pre className="auditChangeAfter">
+            {formatAuditValue(change.after)}
+          </pre>
+        </div>
+      ) : (
+        <div className="auditDiff" id={diffId}>
+          <div className="auditDiffLegend" aria-hidden="true">
+            <span className="auditDiffRemoved">− removido</span>
+            <span className="auditDiffAdded">+ adicionado</span>
+          </div>
+          <div
+            className="auditDiffCode"
+            role="table"
+            aria-label="Comparação das alterações"
+          >
+            {buildAuditLineDiff(change.before, change.after).map(
+              (line, index) => (
+                <div
+                  className={`auditDiffLine auditDiffLine-${line.type}`}
+                  key={`${line.type}-${line.beforeLine}-${line.afterLine}-${index}`}
+                  role="row"
+                >
+                  <span className="auditDiffLineNumber" role="cell">
+                    {line.beforeLine ?? ""}
+                  </span>
+                  <span className="auditDiffLineNumber" role="cell">
+                    {line.afterLine ?? ""}
+                  </span>
+                  <span className="auditDiffMarker" aria-hidden="true">
+                    {line.type === "removed"
+                      ? "−"
+                      : line.type === "added"
+                        ? "+"
+                        : " "}
+                  </span>
+                  <code role="cell">{line.value || " "}</code>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function AuditHistory({ entityType, entityId, refreshKey }) {
@@ -137,19 +203,16 @@ export function AuditHistory({ entityType, entityId, refreshKey }) {
                 ) : null}
                 {event.changes?.length ? (
                   <div className="auditChanges">
-                    {event.changes.map((change, index) => (
-                      <div
-                        className="auditChange"
-                        key={`${event.id}-${change.field}-${index}`}
-                      >
-                        <code>{change.field}</code>
-                        <div>
-                          <pre>{formatValue(change.before)}</pre>
-                          <span aria-hidden="true">→</span>
-                          <pre>{formatValue(change.after)}</pre>
-                        </div>
-                      </div>
-                    ))}
+                    {event.changes.map((change, index) => {
+                      const changeId = `${event.id}-${change.field}-${index}`;
+                      return (
+                        <AuditChange
+                          change={change}
+                          changeId={changeId}
+                          key={changeId}
+                        />
+                      );
+                    })}
                   </div>
                 ) : null}
               </div>

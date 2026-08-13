@@ -1,6 +1,6 @@
 import { Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 
-import { ActiveMonitorDialog } from "./ActiveMonitorDialog.jsx";
+import { ActiveMonitorDialog } from "./ActiveMonitorDialog/index.jsx";
 import { MonitorCreationDialog } from "./MonitorCreationDialog.jsx";
 import { Feedback, formatDate } from "./support.jsx";
 

@@ -86,14 +86,42 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     restChoice.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     dialog = document.querySelector('[role="dialog"]');
-    assert.match(dialog.textContent, /URL HTTP\(S\), sem credenciais/u);
     assert.equal(dialog.querySelector('select[name="provider"]'), null);
     assert.ok(dialog.querySelector("#active-monitor-dialog-title svg"));
+    assert.deepEqual(
+      [...dialog.querySelectorAll('[role="tab"]')].map(
+        (tab) => tab.textContent,
+      ),
+      ["Geral", "API REST", "Interpretação"],
+    );
     assert.deepEqual(
       [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map(
         (heading) => heading.textContent,
       ),
-      ["Identificação", "Agendamento", "Requisição REST", "Interpretação"],
+      ["Identificação", "Agendamento"],
+    );
+    const restTab = [...dialog.querySelectorAll('[role="tab"]')].find(
+      (tab) => tab.textContent === "API REST",
+    );
+    restTab.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.match(dialog.textContent, /URL HTTP\(S\), sem credenciais/u);
+    assert.deepEqual(
+      [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map(
+        (heading) => heading.textContent,
+      ),
+      ["Requisição REST"],
+    );
+    const interpretationTab = [...dialog.querySelectorAll('[role="tab"]')].find(
+      (tab) => tab.textContent === "Interpretação",
+    );
+    interpretationTab.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepEqual(
+      [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map(
+        (heading) => heading.textContent,
+      ),
+      ["Interpretação"],
     );
     const templateSelect = dialog.querySelector('select[name="templateId"]');
     const versionSelect = dialog.querySelector(
@@ -127,9 +155,20 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     shellChoice.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     dialog = document.querySelector('[role="dialog"]');
+    const shellProviderTab = [...dialog.querySelectorAll('[role="tab"]')].find(
+      (tab) => tab.textContent === "Shell Script",
+    );
+    shellProviderTab.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     assert.match(dialog.textContent, /ID do script permitido/u);
     assert.doesNotMatch(dialog.textContent, /URL HTTP\(S\), sem credenciais/u);
     assert.match(dialog.textContent, /Execução do script/u);
+    const shellResultTab = [...dialog.querySelectorAll('[role="tab"]')].find(
+      (tab) => tab.textContent === "Resultado",
+    );
+    shellResultTab.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.match(dialog.textContent, /Resultado Shell/u);
 
     root.unmount();
 

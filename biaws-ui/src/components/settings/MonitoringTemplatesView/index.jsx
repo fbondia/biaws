@@ -13,7 +13,8 @@ import {
 } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
 import "../../../styles/features/monitoring-templates.css";
-import { TemplateDialog, VersionRow } from "./components.jsx";
+import { VersionRow } from "./components.jsx";
+import { TemplateDialog } from "./TemplateDialog/index.jsx";
 import {
   DEFAULT_PREVIEW_SAMPLE,
   monitoringTemplateDraft,

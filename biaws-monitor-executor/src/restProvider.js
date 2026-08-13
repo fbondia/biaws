@@ -44,6 +44,42 @@ async function resolveDestination(url, policy) {
   return addresses[0];
 }
 
+function templateFailure() {
+  const error = new Error("REST response could not be evaluated safely");
+  error.code = "TEMPLATE_EVALUATION_FAILED";
+  return error;
+}
+
+function templatePayload(monitor, response, evidence, referencedValues, limit) {
+  const body = truncateText(
+    sanitizeEvidenceText(evidence.body, referencedValues),
+    limit,
+  );
+  if (!monitor.templateRef) {
+    return {
+      provider: "rest",
+      status_code: response.statusCode,
+      response_body: body,
+    };
+  }
+  const contentType = String(response.headers["content-type"] || "")
+    .split(";", 1)[0]
+    .trim()
+    .toLowerCase();
+  if (
+    evidence.truncated ||
+    evidence.bytes > limit ||
+    !/^application\/(?:[a-z0-9.+-]+\+)?json$/u.test(contentType)
+  ) {
+    throw templateFailure();
+  }
+  try {
+    return JSON.parse(body);
+  } catch {
+    throw templateFailure();
+  }
+}
+
 export function createRestProvider({
   allowedHosts = [],
   allowedMethods = ["GET", "HEAD"],
@@ -158,14 +194,13 @@ export function createRestProvider({
             response_bytes: evidence.bytes,
             evidence_truncated: evidence.bytes > maxEvidenceBytes,
           },
-          payload: {
-            provider: "rest",
-            status_code: response.statusCode,
-            response_body: truncateText(
-              sanitizeEvidenceText(evidence.body, referencedValues),
-              maxEvidenceBytes,
-            ),
-          },
+          payload: templatePayload(
+            monitor,
+            response,
+            evidence,
+            referencedValues,
+            maxEvidenceBytes,
+          ),
         };
       }
     },

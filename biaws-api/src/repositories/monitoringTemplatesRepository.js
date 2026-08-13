@@ -19,7 +19,11 @@ import {
   requireTemplate,
   templateCollection,
 } from "./monitoringTemplatesStorage.js";
-import { unifiedMonitoringTemplateSnapshot } from "./monitoringTemplateUnifiedDefinition.js";
+import {
+  isUnifiedMonitoringTemplateDefinition,
+  unifiedMonitoringTemplateSnapshot,
+} from "./monitoringTemplateUnifiedDefinition.js";
+import { evaluateUnifiedMonitoringTemplate } from "./monitoringUnifiedTemplateEvaluator.js";
 
 export async function createMonitoringTemplate(payload, actor) {
   const normalized = normalizeTemplateInput(payload);
@@ -148,7 +152,16 @@ export async function setMonitoringTemplateStatus(id, version, status, actor) {
     );
   }
   const template = await requireTemplate(id, version, actor.workspaceId);
-  normalizeMonitoringTemplateDefinition(template.definition);
+  const definition = normalizeMonitoringTemplateDefinition(template.definition);
+  if (
+    status === "active" &&
+    isUnifiedMonitoringTemplateDefinition(definition)
+  ) {
+    await evaluateUnifiedMonitoringTemplate(
+      definition,
+      definition.input.sample,
+    );
+  }
   const now = new Date();
   const collection = await templateCollection();
   if (status === "active") {
@@ -244,14 +257,20 @@ export async function archiveMonitoringTemplate(id, version, actor) {
   return publicTemplate(result);
 }
 
-export function previewMonitoringTemplate(payload = {}) {
+export async function previewMonitoringTemplate(payload = {}) {
   assertAllowedFields(
     payload,
     ["definition", "sample"],
     "monitoring template preview",
   );
-  const sample = sanitizeMonitoringTemplateSample(payload.sample || {});
-  return evaluateMonitoringTemplate(payload.definition, sample);
+  const definition = normalizeMonitoringTemplateDefinition(payload.definition);
+  const sample = sanitizeMonitoringTemplateSample(
+    payload.sample ?? definition.input?.sample ?? {},
+  );
+  if (isUnifiedMonitoringTemplateDefinition(definition)) {
+    return evaluateUnifiedMonitoringTemplate(definition, sample);
+  }
+  return evaluateMonitoringTemplate(definition, sample);
 }
 
 export async function evaluateMonitoringTemplateReference(
@@ -265,17 +284,30 @@ export async function evaluateMonitoringTemplateReference(
     templateRef.version,
     workspaceId,
   );
-  const evaluation = evaluateMonitoringTemplate(template.definition, sample);
+  const templateSnapshot = {
+    id: template.id,
+    version: template.version,
+    name: template.name,
+    description: template.description,
+    definition: template.definition,
+    ...unifiedMonitoringTemplateSnapshot(template),
+  };
+  let evaluation;
+  try {
+    evaluation = isUnifiedMonitoringTemplateDefinition(template.definition)
+      ? await evaluateUnifiedMonitoringTemplate(
+          template.definition,
+          sample?.evidence ?? sample,
+        )
+      : evaluateMonitoringTemplate(template.definition, sample);
+  } catch (error) {
+    error.templateRef = { id: template.id, version: template.version };
+    error.templateSnapshot = templateSnapshot;
+    throw error;
+  }
   return {
     ...evaluation,
     templateRef: { id: template.id, version: template.version },
-    templateSnapshot: {
-      id: template.id,
-      version: template.version,
-      name: template.name,
-      description: template.description,
-      definition: template.definition,
-      ...unifiedMonitoringTemplateSnapshot(template),
-    },
+    templateSnapshot,
   };
 }

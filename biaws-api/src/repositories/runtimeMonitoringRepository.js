@@ -294,10 +294,8 @@ export async function recordRuntimeMonitoringSignal(
           ...payload,
           status: evaluation.result.status,
           message: evaluation.result.message,
-          metadata: {
-            ...(payload.metadata || {}),
-            ...evaluation.result.metadata,
-          },
+          metadata: evaluation.result.metadata,
+          metadataProfile: undefined,
           templateRef: undefined,
         }
       : payload,
@@ -345,8 +343,11 @@ export async function recordActiveRuntimeMonitoringObservation(
   ) {
     throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
   }
-  const evaluation = monitor.templateRef
-    ? await evaluateMonitoringTemplateReference(
+  let evaluation = null;
+  let evaluationFailure = null;
+  if (monitor.templateRef) {
+    try {
+      evaluation = await evaluateMonitoringTemplateReference(
         monitor.templateRef,
         {
           context: {
@@ -358,21 +359,40 @@ export async function recordActiveRuntimeMonitoringObservation(
           metadata: payload.metadata || {},
         },
         monitor.workspaceId,
-      )
-    : null;
+      );
+    } catch (error) {
+      if (error?.statusCode !== 422) throw error;
+      evaluationFailure = error;
+    }
+  }
   const normalized = normalizeMonitoringSignal(
     {
       signalId: `active:${monitor.id}:${monitor.lease.executionId}`,
-      status: evaluation?.result.status || payload.status,
+      status: evaluationFailure
+        ? "unknown"
+        : evaluation?.result.status || payload.status,
       observedAt: payload.observedAt,
       source:
         optionalText(payload.source, "source", 160) ||
         `${monitor.provider}:${monitor.name}`,
-      message: evaluation?.result.message || payload.message,
-      metadata: evaluation
-        ? { ...(payload.metadata || {}), ...evaluation.result.metadata }
-        : payload.metadata,
-      metadataProfile: payload.metadataProfile,
+      message: evaluationFailure
+        ? "Monitoring template evaluation failed"
+        : evaluation?.result.message || payload.message,
+      metadata: evaluationFailure
+        ? {
+            failure_kind: "template_evaluation",
+            failure_stage: "template",
+            diagnostic_code: String(
+              evaluationFailure.publicDetails?.diagnostic?.code ||
+                evaluationFailure.code ||
+                "TEMPLATE_EVALUATION_FAILED",
+            ).slice(0, 100),
+          }
+        : evaluation
+          ? evaluation.result.metadata
+          : payload.metadata,
+      metadataProfile:
+        evaluation || evaluationFailure ? undefined : payload.metadataProfile,
       payload: payload.payload,
     },
     actor,
@@ -393,6 +413,9 @@ export async function recordActiveRuntimeMonitoringObservation(
             templateSnapshot: evaluation.templateSnapshot,
             templateMatch: evaluation.matchedRule,
           }
+        : {}),
+      ...(evaluationFailure?.templateSnapshot
+        ? { templateSnapshot: evaluationFailure.templateSnapshot }
         : {}),
     },
   });

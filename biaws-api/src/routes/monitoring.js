@@ -151,7 +151,7 @@ monitoringRouter.post(
   requireAllPermissions("runtimes.read"),
   requireWorkspaceScope("runtimes.read"),
   asyncHandler(async (req, res) => {
-    res.json({ preview: previewMonitoringTemplate(req.body) });
+    res.json({ preview: await previewMonitoringTemplate(req.body) });
   }),
 );
 

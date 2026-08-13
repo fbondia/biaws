@@ -112,3 +112,69 @@ test("REST redirects outside the allowed origin are refused", async () => {
     code: "REST_REDIRECT_REFUSED",
   });
 });
+
+test("REST templates accept only complete JSON responses and publish parsed evidence", async () => {
+  const response = (headers, body, bytes = Buffer.byteLength(body)) =>
+    createRestProvider({
+      allowedHosts: ["rest.test"],
+      allowPrivateAddresses: true,
+      lookup: localLookup,
+      request: async () => ({
+        response: { statusCode: 200, headers },
+        evidence: { body, bytes, truncated: false },
+      }),
+    });
+  const configuration = response({}, "{}").validateConfiguration({
+    url: "http://rest.test/health",
+  });
+  const monitor = {
+    configuration,
+    templateRef: { id: "health", version: "1" },
+  };
+  const valid = response(
+    { "content-type": "application/health+json; charset=utf-8" },
+    '{"service":{"up":true}}',
+  );
+  assert.deepEqual((await valid.execute(monitor, {})).payload, {
+    service: { up: true },
+  });
+  await assert.rejects(
+    response({ "content-type": "text/plain" }, "{}").execute(monitor, {}),
+    {
+      code: "TEMPLATE_EVALUATION_FAILED",
+    },
+  );
+  await assert.rejects(
+    response({ "content-type": "application/json" }, "not-json").execute(
+      monitor,
+      {},
+    ),
+    {
+      code: "TEMPLATE_EVALUATION_FAILED",
+    },
+  );
+  await assert.rejects(
+    response({ "content-type": "application/json" }, "{}", 8_001).execute(
+      monitor,
+      {},
+    ),
+    {
+      code: "TEMPLATE_EVALUATION_FAILED",
+    },
+  );
+  const explicitlyTruncated = createRestProvider({
+    allowedHosts: ["rest.test"],
+    allowPrivateAddresses: true,
+    lookup: localLookup,
+    request: async () => ({
+      response: {
+        statusCode: 200,
+        headers: { "content-type": "application/json" },
+      },
+      evidence: { body: "{}", bytes: 2, truncated: true },
+    }),
+  });
+  await assert.rejects(explicitlyTruncated.execute(monitor, {}), {
+    code: "TEMPLATE_EVALUATION_FAILED",
+  });
+});

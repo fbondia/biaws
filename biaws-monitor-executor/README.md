@@ -17,7 +17,7 @@ persistente, coordenação entre réplicas, tenancy, idempotência e histórico.
 Os providers REST e shell são registrados independentemente do núcleo. Cada um
 expõe schema, valida configuração, executa com cancelamento e normaliza uma
 evidência limitada. Falha do provider/configuração usa `failure_stage: provider`;
-falha futura de avaliação usa `failure_stage: template`; resposta válida mas não
+falha de avaliação usa `failure_stage: template`; resposta válida mas não
 saudável usa `outcome_kind: target_unhealthy`.
 
 ## Políticas dos providers
@@ -46,6 +46,11 @@ REST é deny-by-default. Configure:
 O provider REST fixa cada conexão no endereço DNS validado, desativa reuso de
 socket e limita método, protocolo, headers, corpo e resposta. Headers sensíveis
 inline e redirects entre origens são recusados.
+
+Quando o monitor referencia um template, o payload publicado é o JSON completo
+da resposta REST. Nesse modo, o provider exige `application/json` ou
+`application/*+json` e recusa conteúdo truncado ou JSON inválido; a API executa
+a transformação isolada e decide o estado normalizado.
 
 Shell também é deny-by-default e nunca usa `shell: true`. Configure:
 

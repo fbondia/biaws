@@ -577,6 +577,32 @@ test(
         (await unifiedActivationResponse.json()).template.status,
         "active",
       );
+      const unifiedSignalResponse = await request(signalRoute, {
+        cookie: adminCookie,
+        method: "POST",
+        body: {
+          signalId: "monitor:unified:1",
+          status: "unavailable",
+          observedAt: "2026-07-31T14:30:00.000Z",
+          source: "unified-external-monitor",
+          message: "client result must be ignored",
+          metadata: { client_result: "ignored" },
+          payload: unifiedDefinition.input.sample,
+          templateRef: { id: unifiedTemplate.id, version: "2" },
+        },
+        origin: true,
+      });
+      assert.equal(unifiedSignalResponse.status, 201);
+      const unifiedSignal = (await unifiedSignalResponse.json()).signal;
+      assert.equal(unifiedSignal.status, "healthy");
+      assert.equal(unifiedSignal.message, "Monitoramento concluído.");
+      assert.equal(unifiedSignal.metadata.service_up, true);
+      assert.equal(unifiedSignal.metadata.client_result, undefined);
+      assert.deepEqual(unifiedSignal.templateRef, {
+        id: unifiedTemplate.id,
+        version: "2",
+      });
+      assert.equal(unifiedSignal.templateSnapshot.schemaVersion, "1");
       const persistedUnifiedTemplate = await (
         await request(`/api/monitoring/templates/${unifiedTemplate.id}`, {
           cookie: adminCookie,
@@ -584,6 +610,38 @@ test(
       ).json();
       assert.equal(persistedUnifiedTemplate.template.versions.length, 2);
       assert.equal(persistedUnifiedTemplate.template.version, "2");
+      const invalidJsonataTemplateResponse = await request(
+        "/api/monitoring/templates",
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            name: "Invalid JSONata draft",
+            description: "Compilation must fail before activation",
+            definition: {
+              ...unifiedDefinition,
+              transformation: {
+                language: "jsonata",
+                expression: "not valid [",
+              },
+            },
+          },
+          origin: true,
+        },
+      );
+      assert.equal(invalidJsonataTemplateResponse.status, 201);
+      const invalidJsonataTemplate = (
+        await invalidJsonataTemplateResponse.json()
+      ).template;
+      const invalidJsonataActivation = await request(
+        `/api/monitoring/templates/${invalidJsonataTemplate.id}/versions/1/activate`,
+        { cookie: adminCookie, method: "POST", body: {}, origin: true },
+      );
+      assert.equal(invalidJsonataActivation.status, 422);
+      assert.equal(
+        (await invalidJsonataActivation.json()).error.code,
+        "MONITORING_TEMPLATE_EVALUATION_FAILED",
+      );
       const templateDefinition = {
         rules: [
           {

@@ -139,6 +139,20 @@ avaliáveis durante a transição. Observações produzidas por uma versão unif
 guardam um snapshot do contrato e da apresentação aplicados; observações antigas
 continuam usando `metadataPresentation` derivado de `metadataProfile`.
 
+A expressão JSONata é compilada e executada contra a amostra antes da ativação.
+Pré-visualização, sinais externos e resultados ativos usam o mesmo avaliador em
+worker isolado, com cancelamento real, limite de tempo e memória e sem funções ou
+bindings personalizados. O resultado precisa ser um único objeto com `status`,
+`message` e `metadata` compatíveis com o contrato; tipos, limites, enums e séries
+desalinhadas são recusados. Diagnósticos persistidos são limitados a códigos e
+posições sanitizados, sem stack trace ou conteúdo da expressão.
+
+Ao enviar `templateRef` em um sinal externo, o servidor avalia apenas `payload`
+e ignora `status`, `message` e `metadata` calculados pelo cliente. No provider
+REST, um monitor com template aceita como entrada somente o corpo completo de
+uma resposta com media type JSON (`application/json` ou `application/*+json`);
+corpo truncado, inválido ou de outro tipo produz falha segura do template.
+
 `npm run migrate:monitoring` informa em dry-run quantos templates seriam
 criados. `npm run migrate:monitoring -- --apply` cria somente os ausentes; a
 chave única `(workspaceId, id, version)` torna execuções repetidas idempotentes.

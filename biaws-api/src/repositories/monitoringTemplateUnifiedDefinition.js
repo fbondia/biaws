@@ -164,6 +164,11 @@ export function normalizeUnifiedMonitoringTemplateDefinition(value = {}) {
       20_000,
     ),
   };
+  if (/(?:\bfunction\s*\(|λ|\$eval\s*\()/u.test(transformation.expression)) {
+    throw invalid(
+      "definition.transformation.expression cannot define functions or evaluate expressions dynamically",
+    );
+  }
 
   assertAllowedFields(
     value.output,

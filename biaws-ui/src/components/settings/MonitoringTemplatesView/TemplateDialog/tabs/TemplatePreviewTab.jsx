@@ -1,16 +1,31 @@
+import { Eye } from "lucide-react";
+
 export function TemplatePreviewTab({
+  onPreview,
   preview,
+  previewing,
   previewSample,
+  saving,
   setPreviewSample,
 }) {
   return (
     <section className="monitoringTemplateTabSection">
-      <header>
-        <h3>Teste do template</h3>
-        <p>
-          Ajuste uma amostra sanitizada e use “Testar” para executar sem
-          registrar uma observação.
-        </p>
+      <header className="monitoringTemplateTabHeader">
+        <div>
+          <h3>Teste do template</h3>
+          <p>
+            Ajuste uma amostra sanitizada e execute o template sem registrar uma
+            observação.
+          </p>
+        </div>
+        <button
+          className="secondaryButton"
+          disabled={saving || previewing}
+          onClick={onPreview}
+          type="button"
+        >
+          <Eye size={16} /> {previewing ? "Testando…" : "Testar amostra"}
+        </button>
       </header>
       <div className="monitoringTemplatePreviewGrid">
         <label className="field">
@@ -24,24 +39,40 @@ export function TemplatePreviewTab({
           />
         </label>
         <section aria-live="polite" className="monitoringTemplatePreviewResult">
-          <strong>Pré-visualização</strong>
-          {preview ? (
-            <>
+          <header className="monitoringTemplatePreviewResultHeader">
+            <strong>Pré-visualização</strong>
+            {preview ? (
               <span
-                className={`catalogStatus catalogStatus-${preview.result.status === "healthy" ? "active" : "archived"}`}
+                className={`catalogStatus monitoringTemplatePreviewStatus catalogStatus-${preview.result.status}`}
               >
                 {preview.result.status}
               </span>
-              <p>{preview.result.message || "Sem mensagem"}</p>
-              <small>
-                {preview.matchedRule
-                  ? `Regra: ${preview.matchedRule.label}`
-                  : "Resultado padrão"}
-              </small>
-              <pre>{JSON.stringify(preview.diagnostics, null, 2)}</pre>
+            ) : null}
+          </header>
+          {preview ? (
+            <>
+              <div className="monitoringTemplatePreviewSummary">
+                <span>Mensagem</span>
+                <p>{preview.result.message || "Sem mensagem"}</p>
+              </div>
+              <div className="monitoringTemplatePreviewSummary">
+                <span>Regra aplicada</span>
+                <p>
+                  {preview.matchedRule?.label || "Resultado padrão do template"}
+                </p>
+              </div>
+              <div className="monitoringTemplatePreviewDiagnostics">
+                <span>Diagnóstico</span>
+                <pre>{JSON.stringify(preview.diagnostics, null, 2)}</pre>
+              </div>
             </>
           ) : (
-            <p>Execute o teste para visualizar o resultado e o diagnóstico.</p>
+            <div className="monitoringTemplatePreviewPlaceholder">
+              <Eye size={22} />
+              <p>
+                Execute o teste para visualizar o resultado e o diagnóstico.
+              </p>
+            </div>
           )}
         </section>
       </div>

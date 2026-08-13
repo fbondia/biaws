@@ -123,8 +123,9 @@
   font-size: 12px;
 }
 .monitoringTemplatePreviewGrid {
+  align-items: stretch;
   display: grid;
-  gap: 14px;
+  gap: 18px;
   grid-template-columns: 1fr 1fr;
 }
 .monitoringTemplateTabSection {
@@ -140,6 +141,18 @@
   color: var(--color-text-subtle);
   margin-top: 4px;
 }
+.monitoringTemplateTabHeader {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+.monitoringTemplateTabHeader > div {
+  min-width: 0;
+}
+.monitoringTemplateTabHeader > button {
+  flex: 0 0 auto;
+}
 .monitoringTemplateTabGrid,
 .monitoringTemplateEditorGrid {
   display: grid;
@@ -154,19 +167,67 @@
   resize: vertical;
 }
 .monitoringTemplatePreviewResult {
+  align-content: start;
   background: var(--color-surface-muted);
   border: 1px solid var(--color-border-subtle);
   border-radius: 10px;
   display: grid;
-  gap: 8px;
-  padding: 12px;
+  gap: 18px;
+  min-height: 390px;
+  padding: 18px;
+}
+.monitoringTemplatePreviewResultHeader {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+.monitoringTemplatePreviewStatus {
+  align-self: center;
+  height: fit-content;
+}
+.monitoringTemplatePreviewSummary {
+  display: grid;
+  gap: 5px;
+}
+.monitoringTemplatePreviewSummary > span,
+.monitoringTemplatePreviewDiagnostics > span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.monitoringTemplatePreviewSummary p {
+  margin: 0;
+}
+.monitoringTemplatePreviewDiagnostics {
+  display: grid;
+  gap: 7px;
 }
 .monitoringTemplatePreviewResult pre {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
   font-size: 11px;
   margin: 0;
   max-height: 180px;
   overflow: auto;
+  padding: 12px;
   white-space: pre-wrap;
+}
+.monitoringTemplatePreviewPlaceholder {
+  align-content: center;
+  color: var(--color-text-subtle);
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  min-height: 280px;
+  text-align: center;
+}
+.monitoringTemplatePreviewPlaceholder p {
+  margin: 0;
+  max-width: 320px;
 }
 .monitoringProfilesSection {
   display: grid;
@@ -240,5 +301,12 @@
   }
   .monitoringTemplateDialogBody {
     padding: 16px;
+  }
+  .monitoringTemplateTabHeader {
+    align-items: stretch;
+    display: grid;
+  }
+  .monitoringTemplateTabHeader > button {
+    justify-self: start;
   }
 }

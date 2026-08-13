@@ -1,4 +1,4 @@
-import { Eye, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useState } from "react";
 
 import "../../../../styles/features/monitoring-dialogs.css";
@@ -34,6 +34,7 @@ export function TemplateDialog({
   setPreviewSample,
 }) {
   const [activeTab, setActiveTab] = useState("general");
+  const [previewing, setPreviewing] = useState(false);
   const update = (field, value) =>
     onChange((current) => ({ ...current, [field]: value }));
   const currentTab =
@@ -41,8 +42,12 @@ export function TemplateDialog({
   const ActiveTab = currentTab.component;
 
   async function runPreview() {
-    setActiveTab("preview");
-    await onPreview();
+    setPreviewing(true);
+    try {
+      await onPreview();
+    } finally {
+      setPreviewing(false);
+    }
   }
 
   return (
@@ -99,8 +104,11 @@ export function TemplateDialog({
           >
             <ActiveTab
               draft={draft}
+              onPreview={runPreview}
               preview={preview}
+              previewing={previewing}
               previewSample={previewSample}
+              saving={saving}
               setPreviewSample={setPreviewSample}
               update={update}
             />
@@ -116,16 +124,8 @@ export function TemplateDialog({
             Cancelar
           </button>
           <button
-            className="secondaryButton"
-            disabled={saving}
-            onClick={runPreview}
-            type="button"
-          >
-            <Eye size={16} /> Testar
-          </button>
-          <button
             className="primaryButton"
-            disabled={saving}
+            disabled={saving || previewing}
             onClick={onSave}
             type="button"
           >

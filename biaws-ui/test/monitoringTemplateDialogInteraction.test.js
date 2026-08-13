@@ -76,8 +76,13 @@ test("template dialog exposes each semantic section as an independent tab", asyn
     assert.match(dialog.textContent, /Contrato JSON da saída/u);
     assert.match(dialog.textContent, /Apresentação dos campos e séries/u);
 
-    const testButton = [...dialog.querySelectorAll("button")].find(
-      (button) => button.textContent.trim() === "Testar",
+    const footer = dialog.querySelector("footer");
+    assert.doesNotMatch(footer.textContent, /Testar/u);
+
+    tabs[3].click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const testButton = [...dialog.querySelectorAll("button")].find((button) =>
+      button.textContent.includes("Testar amostra"),
     );
     testButton.click();
     await new Promise((resolve) => setTimeout(resolve, 0));

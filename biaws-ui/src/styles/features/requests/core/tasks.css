@@ -21,6 +21,11 @@
   background: var(--palette-neutral-03);
 }
 
+.requestTaskCard:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .requestTaskCardHeader {
   display: flex;
   align-items: flex-start;

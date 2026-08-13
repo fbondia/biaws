@@ -272,6 +272,11 @@
   background: var(--palette-neutral-03);
 }
 
+.requestListItem:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .requestListItem[draggable="true"] {
   cursor: grab;
 }
@@ -345,6 +350,14 @@
 
 .selectedRequestListItem strong {
   color: var(--color-surface);
+}
+
+.selectedRequestListItem .entityIdentifier {
+  color: var(--color-surface);
+}
+
+.selectedRequestListItem .entityIdentifierCopy {
+  color: var(--palette-blue-20);
 }
 
 .requestListItem > span:not(.requestListItemHeader) {

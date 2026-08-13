@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { fetchRuntimeMonitoringTimeline } from "../../../../api.js";
 import { MonitoringEventDetails } from "../../../shared/MonitoringEventDetails/index.jsx";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { formatMonitoringDate } from "../../widgets/widgetUtils.js";
 import { EMPTY_MONITORING_FILTERS, MONITORING_STATUSES } from "../constants.js";
 
@@ -206,7 +207,15 @@ function MonitoringSignals({ error, loading, signals }) {
           {signal.message ? <p>{signal.message}</p> : null}
           <small>
             Recebido em {formatMonitoringDate(signal.receivedAt)}
-            {signal.signalId ? ` · Sinal ${signal.signalId}` : ""}
+            {signal.signalId ? (
+              <>
+                {" · "}
+                <EntityIdentifier
+                  label="Identificador do sinal"
+                  value={signal.signalId}
+                />
+              </>
+            ) : null}
           </small>
           <MonitoringEventDetails event={signal} />
         </article>

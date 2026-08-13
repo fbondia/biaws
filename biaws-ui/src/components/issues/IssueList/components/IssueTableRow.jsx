@@ -13,6 +13,7 @@ import {
   textPreview,
 } from "../../../../utils/issues.js";
 import { issueTagItems, issueTaxonomyItems, optionLabel } from "../model.js";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
 export function IssueTableRow({
   applicationsById,
@@ -47,7 +48,11 @@ export function IssueTableRow({
       title="Abrir detalhes"
     >
       <td className="codeCell" data-label="Código">
-        {issue.id || "-"}
+        <EntityIdentifier
+          fallback="-"
+          label="Código do issue"
+          value={issue.id}
+        />
       </td>
       <td data-label="Tipo">
         <InlineIssueSelect

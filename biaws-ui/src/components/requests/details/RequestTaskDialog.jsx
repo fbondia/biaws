@@ -16,6 +16,7 @@ import { FilesPanel } from "../../shared/FilesPanel/index.jsx";
 import { AuditHistory } from "../../shared/AuditHistory.jsx";
 import { MarkdownEditor } from "../../shared/MarkdownEditor/index.jsx";
 import { RequestTaskNotesTab } from "./RequestTaskNotesTab.jsx";
+import { EntityIdentifier } from "../../shared/EntityIdentifier/index.jsx";
 
 const TASK_TABS = [
   { key: "main", label: "Dados principais" },
@@ -98,10 +99,15 @@ export function RequestTaskDialog({
           <div>
             <span>Tarefa da melhoria</span>
             <h3 id="requestTaskDialogTitle">
-              {task.id
-                ? [task.code, task.title].filter(Boolean).join(" - ")
-                : "Nova tarefa"}
+              {task.id ? task.title || "Tarefa sem título" : "Nova tarefa"}
             </h3>
+            {task.id ? (
+              <EntityIdentifier
+                label="Código da tarefa"
+                value={task.code}
+                variant="eyebrow"
+              />
+            ) : null}
           </div>
           <button
             className="iconButton"

@@ -2,6 +2,7 @@ import { Layers3 } from "lucide-react";
 
 import { hasPermission } from "../../../../permissions.js";
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import {
   collectionPathLabel,
   ResourceCollectionDialog,
@@ -46,7 +47,11 @@ export function CatalogSelectedDetail({
     <div className="catalogCollectionPanel catalogContent">
       <header className="catalogDetailHeader">
         <div>
-          <span>{context.application.key}</span>
+          <EntityIdentifier
+            label="Identificador da aplicação"
+            value={context.application.key}
+            variant="eyebrow"
+          />
           <h2>{context.application.name}</h2>
           <p>{context.application.description || "Sem descrição."}</p>
         </div>

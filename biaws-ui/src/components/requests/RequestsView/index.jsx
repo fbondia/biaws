@@ -11,6 +11,7 @@ import {
   ResourceCollectionNavigator,
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections/index.jsx";
+import { EntityIdentifier } from "../../shared/EntityIdentifier/index.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { RequestDetails } from "../RequestDetails.jsx";
 import {
@@ -257,7 +258,11 @@ export function RequestsView({
             renderItem={(request) => (
               <span className="requestCollectionItem">
                 <span className="requestCollectionItemHeader">
-                  <strong>{request.clientCode || "Sem código"}</strong>
+                  <EntityIdentifier
+                    fallback="Sem código"
+                    label="Código da melhoria"
+                    value={request.clientCode}
+                  />
                   <span
                     className="requestStatusChip"
                     style={requestStatusStyle(request.status)}

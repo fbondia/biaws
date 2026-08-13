@@ -10,6 +10,7 @@ import {
 
 import { hasPermission } from "../../../../permissions.js";
 import { AuditHistory } from "../../../shared/AuditHistory.jsx";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import {
   collectionPathLabel,
   ResourceCollectionDialog,
@@ -152,7 +153,11 @@ function ServerDetails({
     <div className="catalogCollectionPanel catalogContent">
       <header className="catalogDetailHeader">
         <div>
-          <span>{selected.key}</span>
+          <EntityIdentifier
+            label="Identificador do servidor"
+            value={selected.key}
+            variant="eyebrow"
+          />
           <h2>{selected.name}</h2>
           <p>{selected.description || selected.purpose || "Sem descrição."}</p>
         </div>

@@ -8,6 +8,7 @@ import {
   REQUEST_STATUS_OPTIONS,
 } from "../requestUtils.js";
 import { CatalogContextDialogField } from "../../catalog/CatalogContextFields/index.jsx";
+import { EntityIdentifier } from "../../shared/EntityIdentifier/index.jsx";
 
 export function RequestMainTab({
   request,
@@ -30,9 +31,12 @@ export function RequestMainTab({
         <div className="panelHeader">
           <div>
             <h3>Dados da melhoria</h3>
-            <span>
-              {request.clientCode || "Código do cliente não informado"}
-            </span>
+            <EntityIdentifier
+              fallback="Código do cliente não informado"
+              label="Código da melhoria"
+              value={request.clientCode}
+              variant="eyebrow"
+            />
           </div>
         </div>
 
@@ -164,7 +168,12 @@ export function RequestMainTab({
             </div>
             <div className="requestDetailCard requestCodeField">
               <span>Código da melhoria</span>
-              <strong>{request.clientCode || "-"}</strong>
+              <EntityIdentifier
+                fallback="-"
+                label="Código da melhoria"
+                value={request.clientCode}
+                variant="chip"
+              />
             </div>
             <div className="requestDetailCard requestDetailTitle">
               <span>Título</span>

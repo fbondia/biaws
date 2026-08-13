@@ -6,6 +6,7 @@ import {
   REQUEST_TASK_STATUS_COLORS,
   REQUEST_TASK_STATUS_OPTIONS,
 } from "./requestUtils.js";
+import { EntityIdentifier } from "../shared/EntityIdentifier/index.jsx";
 
 const STATUS_ICON = {
   Pendente: Circle,
@@ -121,20 +122,36 @@ export function RequestTasksOverview({ requests, onSelectRequest }) {
           {tasks.map(({ request, task }) => {
             const StatusIcon = statusIcon(task.status);
             return (
-              <button
+              <article
                 className="requestTasksOverviewItem"
                 key={`${request.id}:${task.id}`}
                 onClick={() => onSelectRequest(request.id)}
-                type="button"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelectRequest(request.id);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
                 <div className="requestTasksOverviewMain">
                   <div className="requestTasksOverviewIdentity">
                     <span>
-                      {request.clientCode || "Sem código"} ·{" "}
+                      <EntityIdentifier
+                        fallback="Sem código"
+                        label="Código da melhoria"
+                        value={request.clientCode}
+                      />
                       {request.title || "Sem título"}
                     </span>
                     <strong>
-                      {task.code ? `${task.code} · ` : ""}
+                      {task.code ? (
+                        <EntityIdentifier
+                          label="Código da tarefa"
+                          value={task.code}
+                        />
+                      ) : null}
                       {task.title || "Tarefa sem título"}
                     </strong>
                   </div>
@@ -156,7 +173,7 @@ export function RequestTasksOverview({ requests, onSelectRequest }) {
                     <p>{task.situation.trim() || task.description}</p>
                   ) : null}
                 </div>
-              </button>
+              </article>
             );
           })}
         </div>

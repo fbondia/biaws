@@ -7,6 +7,7 @@ import {
   getTaxonomyDisplayValue,
   optionLabel,
 } from "./ClassificationControls.jsx";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
 export function IssueDetailsLayout({
   activeTab,
@@ -40,7 +41,12 @@ export function IssueDetailsLayout({
         <header className="dialogHeader">
           <div className="dialogTitleBlock">
             <div className="dialogKicker">
-              <span className="codeCell">{issue.id || "Issue"}</span>
+              <EntityIdentifier
+                fallback="Issue"
+                label="Código do issue"
+                value={issue.id}
+                variant="chip"
+              />
               <span className="typeBadge">
                 <TypeIcon size={14} />
                 {typeLabel}

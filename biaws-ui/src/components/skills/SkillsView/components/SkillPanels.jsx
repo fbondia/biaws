@@ -1,5 +1,6 @@
 import { AlertTriangle, Archive, CheckCircle2, Package } from "lucide-react";
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import {
   collectionPathLabel,
   ResourceCollectionDialog,
@@ -47,7 +48,10 @@ function SkillCard({
         </div>
         <div>
           <h3>{skill.name}</h3>
-          <code>{skill.skillId}</code>
+          <EntityIdentifier
+            label="Identificador da skill"
+            value={skill.skillId}
+          />
         </div>
       </header>
       <p>{skill.description}</p>

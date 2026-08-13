@@ -336,6 +336,7 @@
 }
 
 .resourceCollectionItemContent {
+  position: relative;
   display: flex;
   min-width: 0;
   min-height: 27px;
@@ -349,8 +350,20 @@
   text-align: left;
 }
 
-button.resourceCollectionItemContent {
+.resourceCollectionItemOpenButton {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  padding: 0;
   cursor: pointer;
+}
+
+.resourceCollectionItemOpenButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
 }
 
 .resourceCollectionItemContent > svg {

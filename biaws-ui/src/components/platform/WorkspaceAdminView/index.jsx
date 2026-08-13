@@ -49,7 +49,6 @@ export function WorkspaceAdminView({ actor }) {
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState({ name: "", description: "" });
   const [newMember, setNewMember] = useState({ userId: "", groupIds: [] });
-  const [uuidCopied, setUuidCopied] = useState(false);
   const [error, setError] = useState("");
 
   async function loadWorkspaces() {
@@ -113,10 +112,6 @@ export function WorkspaceAdminView({ actor }) {
     loadDetails(selectedId);
   }, [selectedId, workspaces]);
 
-  useEffect(() => {
-    setUuidCopied(false);
-  }, [selected?.id]);
-
   const availableUsers = useMemo(() => {
     const memberIds = new Set(members.map(({ userId }) => userId));
     return users.filter(({ id }) => !memberIds.has(String(id)));
@@ -135,16 +130,6 @@ export function WorkspaceAdminView({ actor }) {
       await loadWorkspaces();
     } catch (saveError) {
       setError(saveError.message);
-    }
-  }
-
-  async function copyWorkspaceUuid() {
-    try {
-      await copyPlainText(selected.id);
-      setUuidCopied(true);
-    } catch {
-      setUuidCopied(false);
-      setError("Não foi possível copiar o UUID do workspace.");
     }
   }
 
@@ -286,7 +271,6 @@ export function WorkspaceAdminView({ actor }) {
             members={members}
             newMember={newMember}
             onAdd={addMember}
-            onCopyUuid={copyWorkspaceUuid}
             onDraftChange={setDraft}
             onNewMemberChange={setNewMember}
             onRemove={removeMember}
@@ -297,7 +281,6 @@ export function WorkspaceAdminView({ actor }) {
             selectedId={selected?.id}
             summary={summary}
             tab={tab}
-            uuidCopied={uuidCopied}
             {...(tab === "general" ? { onSave: saveGeneral } : {})}
           />
         </div>
@@ -316,19 +299,4 @@ export function WorkspaceAdminView({ actor }) {
       ) : null}
     </section>
   );
-}
-
-async function copyPlainText(value) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return;
-  }
-  const textarea = document.createElement("textarea");
-  textarea.value = value;
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  document.body.appendChild(textarea);
-  textarea.select();
-  document.execCommand("copy");
-  textarea.remove();
 }

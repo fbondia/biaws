@@ -5,6 +5,7 @@ import { useMessages } from "../../../infrastructure/messages/MessagesProvider.j
 import { formatDate, REQUEST_TASK_STATUS_COLORS } from "../requestUtils.js";
 import { REQUEST_DEFAULTS } from "../../../data/requestConstants.js";
 import { RequestTaskDialog } from "./RequestTaskDialog.jsx";
+import { EntityIdentifier } from "../../shared/EntityIdentifier/index.jsx";
 
 const STATUS_ICON = {
   Pendente: Circle,
@@ -111,15 +112,27 @@ export function RequestTasksTab({
           request.tasks.map((task) => {
             const StatusIcon = statusIcon(task.status);
             return (
-              <button
+              <article
                 className="requestTaskCard"
                 key={task.id}
                 onClick={() => setDialogTask(task)}
-                type="button"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setDialogTask(task);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
               >
                 <div className="requestTaskCardHeader">
                   <div className="requestTaskCardTitle">
-                    {task.code ? <span>{task.code}</span> : null}
+                    {task.code ? (
+                      <EntityIdentifier
+                        label="Código da tarefa"
+                        value={task.code}
+                      />
+                    ) : null}
                     <strong>{task.title}</strong>
                   </div>
                   <span
@@ -149,7 +162,7 @@ export function RequestTasksTab({
                     task.description ||
                     "Situação não informada."}
                 </p>
-              </button>
+              </article>
             );
           })
         ) : (

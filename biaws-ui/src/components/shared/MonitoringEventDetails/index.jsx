@@ -9,6 +9,7 @@ import {
 } from "recharts";
 
 import "../../../styles/shared/monitoring-event.css";
+import { EntityIdentifier } from "../EntityIdentifier/index.jsx";
 
 import {
   compactMonitoringValue,
@@ -169,7 +170,11 @@ export function MonitoringEventDetails({ event }) {
           <div>
             <dt>ID do sinal</dt>
             <dd>
-              <code>{event.signalId}</code>
+              <EntityIdentifier
+                label="Identificador do sinal"
+                value={event.signalId}
+                variant="chip"
+              />
             </dd>
           </div>
         ) : null}

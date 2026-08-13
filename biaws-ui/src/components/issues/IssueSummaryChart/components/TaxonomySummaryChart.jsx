@@ -9,6 +9,7 @@ import {
   flattenTaxonomySummary,
   taxonomyItemMap,
 } from "../model.js";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
 export function TaxonomySummaryChart({ items, onOpenIssue, taxonomyPackage }) {
   const [expandedIds, setExpandedIds] = useState(() => new Set());
@@ -140,14 +141,25 @@ function TaxonomySummaryTreeNode({ expandedIds, node, onOpenIssue, onToggle }) {
               style={{ "--depth": node.depth + 1 }}
             >
               {node.issues.map((issue) => (
-                <button
+                <article
                   className="taxonomySummaryIssue"
                   key={issue.id}
                   onClick={() => onOpenIssue?.(issue)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onOpenIssue?.(issue);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                   title={issue.title || issue.id}
-                  type="button"
                 >
-                  <span className="taxonomySummaryIssueCode">{issue.id}</span>
+                  <EntityIdentifier
+                    className="taxonomySummaryIssueCode"
+                    label="Código do issue"
+                    value={issue.id}
+                  />
                   <span className="taxonomySummaryIssueTitle">
                     {issue.title || "-"}
                   </span>
@@ -155,7 +167,7 @@ function TaxonomySummaryTreeNode({ expandedIds, node, onOpenIssue, onToggle }) {
                     {chartLabel(issue.type)} · {chartLabel(issue.status)} ·{" "}
                     {formatDate(issue.date)}
                   </span>
-                </button>
+                </article>
               ))}
             </div>
           ) : null}

@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { useState } from "react";
 
 import { updateSecretMetadata } from "../../../../api.js";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import {
   SecretScopeField,
   SecretTypeEnvironmentFields,
@@ -83,10 +84,14 @@ export function EditSecretDialog({
             />
           </label>
           <div className="secretFormGrid">
-            <label>
-              Identificação
-              <input disabled readOnly value={secret.identifier} />
-            </label>
+            <div className="field">
+              <span>Identificação</span>
+              <EntityIdentifier
+                label="Identificação técnica"
+                value={secret.identifier}
+                variant="chip"
+              />
+            </div>
             <label>
               Formato
               <input

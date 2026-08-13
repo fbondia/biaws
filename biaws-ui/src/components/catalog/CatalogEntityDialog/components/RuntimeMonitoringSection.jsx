@@ -1,4 +1,5 @@
 import { MonitoringEventDetails } from "../../../shared/MonitoringEventDetails/index.jsx";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { RUNTIME_STATUSES } from "../constants.js";
 import { HistoryItems, SelectField, TextField } from "./Fields.jsx";
 
@@ -59,13 +60,20 @@ export function RuntimeMonitoringSection({
           <div>
             <dt>Workspace</dt>
             <dd>
-              <code>{options.workspace?.id}</code>
+              <EntityIdentifier
+                label="Identificador do workspace"
+                value={options.workspace?.id}
+              />
             </dd>
           </div>
           <div>
             <dt>UUID</dt>
             <dd>
-              <code>{entity?.id}</code>
+              <EntityIdentifier
+                fallback="UUID indisponível"
+                label="UUID do runtime"
+                value={entity?.id}
+              />
             </dd>
           </div>
           <div>

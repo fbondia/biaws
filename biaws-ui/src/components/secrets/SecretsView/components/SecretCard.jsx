@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { formatSecretBytes } from "../model.js";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
 function SecretContentActions({
   canReveal,
@@ -129,15 +130,11 @@ function SecretDetail({
     <>
       <div className="secretIdentifier">
         <span>Identificação técnica</span>
-        <code title={secret.identifier}>{secret.identifier}</code>
-        <button
-          aria-label={`Copiar identificação ${secret.identifier}`}
-          className="iconButton"
-          onClick={() => navigator.clipboard.writeText(secret.identifier)}
-          type="button"
-        >
-          <Copy size={14} />
-        </button>
+        <EntityIdentifier
+          label="Identificação técnica"
+          value={secret.identifier}
+          variant="chip"
+        />
       </div>
       <dl className="secretMetadataGrid">
         <div>

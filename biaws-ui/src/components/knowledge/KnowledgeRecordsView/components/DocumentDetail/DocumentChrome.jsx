@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
+import { EntityIdentifier } from "../../../../shared/EntityIdentifier/index.jsx";
 import { DOCUMENT_TABS } from "../../model.js";
 
 function DocumentActionButtons({ onExport, onReplicate }) {
@@ -54,13 +55,19 @@ export function KnowledgeRecordHeader({
   return (
     <header className="knowledgeRecordHeader">
       <div className="knowledgeRecordTitle">
-        <TypeIcon className="knowledgeDocumentTypeIcon" size={44} />
+        <span aria-label={config.label} role="img" title={config.label}>
+          <TypeIcon
+            aria-hidden="true"
+            className="knowledgeDocumentTypeIcon"
+            size={44}
+          />
+        </span>
         <div>
-          <span
-            className={`documentTypeBadge documentType-${draft.documentType}`}
-          >
-            {config.label}
-          </span>
+          <EntityIdentifier
+            label="Identificador do documento"
+            value={draft.identifier}
+            variant="eyebrow"
+          />
           <h2 id={titleId}>{draft.title || config.label}</h2>
         </div>
       </div>
@@ -143,13 +150,19 @@ export function KnowledgeDocumentReading({
     <section className="resourceCollectionContent knowledgeRecordDetail knowledgeDocumentReading">
       <header className="knowledgeRecordHeader knowledgeDocumentReadingHeader">
         <div className="knowledgeRecordTitle">
-          <TypeIcon className="knowledgeDocumentTypeIcon" size={44} />
+          <span aria-label={config.label} role="img" title={config.label}>
+            <TypeIcon
+              aria-hidden="true"
+              className="knowledgeDocumentTypeIcon"
+              size={44}
+            />
+          </span>
           <div>
-            <span
-              className={`documentTypeBadge documentType-${draft.documentType}`}
-            >
-              {config.label}
-            </span>
+            <EntityIdentifier
+              label="Identificador do documento"
+              value={draft.identifier}
+              variant="chip"
+            />
             <h2>{draft.title}</h2>
           </div>
         </div>

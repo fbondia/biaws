@@ -84,14 +84,16 @@ export function CollectionItemNode({
         <span className="resourceCollectionItemSpacer" />
       )}
       {onSelectItem ? (
-        <button
-          className="resourceCollectionItemContent"
-          onClick={() => onSelectItem(item)}
-          type="button"
-        >
+        <div className="resourceCollectionItemContent">
+          <button
+            aria-label={`Abrir ${item.name || item.title || itemId}`}
+            className="resourceCollectionItemOpenButton"
+            onClick={() => onSelectItem(item)}
+            type="button"
+          />
           {content}
           {archivedBadge}
-        </button>
+        </div>
       ) : (
         <div className="resourceCollectionItemContent">
           {content}

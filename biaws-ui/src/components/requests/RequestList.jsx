@@ -12,6 +12,7 @@ import {
   requestStatusLabel,
   requestStatusStyle,
 } from "./requestUtils.js";
+import { EntityIdentifier } from "../shared/EntityIdentifier/index.jsx";
 
 export function RequestList({
   allowManualOrder,
@@ -81,6 +82,15 @@ export function RequestList({
 
     event.preventDefault();
     onMoveRequest(requestId, targetRequest.id);
+  }
+
+  function handleItemKeyDown(event, index, requestId) {
+    handleKeyboardMove(event, index, requestId);
+    if (event.defaultPrevented) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelectRequest(requestId);
+    }
   }
 
   return (
@@ -158,7 +168,7 @@ export function RequestList({
             .join(" ");
 
           return (
-            <button
+            <article
               aria-label={`${requestCode}: ${requestTitle}`}
               aria-pressed={isSelected}
               aria-describedby={
@@ -175,11 +185,10 @@ export function RequestList({
               onDragStart={(event) => handleDragStart(event, request.id)}
               onDrop={(event) => handleDrop(event, request.id)}
               onClick={() => onSelectRequest(request.id)}
-              onKeyDown={(event) =>
-                handleKeyboardMove(event, index, request.id)
-              }
+              onKeyDown={(event) => handleItemKeyDown(event, index, request.id)}
+              role="button"
+              tabIndex={0}
               title={requestTitle}
-              type="button"
             >
               <span className="requestListItemHeader">
                 <span className="requestListItemTitle">
@@ -188,7 +197,11 @@ export function RequestList({
                     className="requestListDragHandle"
                     size={16}
                   />
-                  <strong>{requestCode}</strong>
+                  <EntityIdentifier
+                    fallback="Sem código"
+                    label="Código da melhoria"
+                    value={request.clientCode}
+                  />
                 </span>
                 <span
                   className="requestStatusChip"
@@ -200,7 +213,7 @@ export function RequestList({
                   {request.title}
                 </span>
               </span>
-            </button>
+            </article>
           );
         })}
         {!loadingRequests && !filteredRequests.length ? (

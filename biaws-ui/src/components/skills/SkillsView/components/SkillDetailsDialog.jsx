@@ -8,6 +8,7 @@ import {
   File,
   X,
 } from "lucide-react";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -101,7 +102,11 @@ export function SkillDetailsDialog({
     >
       <header className="skillDialogHeader">
         <div>
-          <span>{skill.skillId}</span>
+          <EntityIdentifier
+            label="Identificador da skill"
+            value={skill.skillId}
+            variant="eyebrow"
+          />
           <h2>{skill.name}</h2>
         </div>
         <button

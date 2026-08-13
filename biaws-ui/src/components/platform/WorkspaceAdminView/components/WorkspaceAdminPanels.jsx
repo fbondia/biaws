@@ -1,13 +1,5 @@
-import {
-  Archive,
-  Check,
-  Copy,
-  Plus,
-  RotateCcw,
-  Save,
-  UserPlus,
-  X,
-} from "lucide-react";
+import { Archive, Plus, RotateCcw, Save, UserPlus, X } from "lucide-react";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
 const TABS = [
   ["general", "Geral"],
@@ -78,12 +70,10 @@ function MemberEditor({ groups, member, onRemove, onSave }) {
 
 function GeneralWorkspaceTab({
   draft,
-  onCopyUuid,
   onDraftChange,
   onSave,
   onStatusChange,
   selected,
-  uuidCopied,
 }) {
   return (
     <form className="platformGeneralForm" onSubmit={onSave}>
@@ -100,20 +90,11 @@ function GeneralWorkspaceTab({
       <label>
         <span>UUID</span>
         <div className="platformUuidField">
-          <input aria-label="UUID do workspace" readOnly value={selected.id} />
-          <button
-            aria-label={
-              uuidCopied
-                ? "UUID do workspace copiado"
-                : "Copiar UUID do workspace"
-            }
-            className="secondaryButton"
-            onClick={onCopyUuid}
-            type="button"
-          >
-            {uuidCopied ? <Check size={16} /> : <Copy size={16} />}
-            {uuidCopied ? "Copiado" : "Copiar"}
-          </button>
+          <EntityIdentifier
+            label="UUID do workspace"
+            value={selected.id}
+            variant="chip"
+          />
         </div>
       </label>
       <label>
@@ -303,7 +284,11 @@ export function WorkspaceDetail({ onTabChange, selected, tab, ...tabProps }) {
       <header className="platformDetailHeader">
         <div>
           <h3>{selected.name}</h3>
-          <p>{selected.key}</p>
+          <EntityIdentifier
+            label="Identificador do workspace"
+            value={selected.key}
+            variant="eyebrow"
+          />
         </div>
         <span className={`platformStatus ${selected.status}`}>
           {selected.status === "active" ? "Ativo" : "Arquivado"}

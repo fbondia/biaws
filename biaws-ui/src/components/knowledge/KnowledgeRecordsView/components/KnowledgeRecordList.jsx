@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { DOCUMENT_TYPES, statusLabel } from "../model.js";
 
 function formatDefinedAt(value) {
@@ -66,14 +67,13 @@ function KnowledgeRecordCard({
           <TypeIcon aria-hidden="true" size={18} />
           <div className="knowledgeRecordCardHeading">
             <h2>{record.title}</h2>
-            <code
+            <EntityIdentifier
               className={
                 record.identifier ? "" : "knowledgeRecordMissingIdentifier"
               }
-              title={record.identifier || "Documento sem identificador"}
-            >
-              {record.identifier || "Sem identificador"}
-            </code>
+              label="Identificador do documento"
+              value={record.identifier}
+            />
           </div>
         </div>
         <div className="knowledgeRecordCardHeaderMeta">

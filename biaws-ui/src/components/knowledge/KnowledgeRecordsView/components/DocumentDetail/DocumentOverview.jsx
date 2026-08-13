@@ -1,4 +1,4 @@
-import { CatalogContextDialogField } from "../../../../catalog/CatalogContextFields.jsx";
+import { CatalogContextDialogField } from "../../../../catalog/CatalogContextFields/index.jsx";
 import { DocumentClassificationSelectors } from "./DocumentClassificationSelectors.jsx";
 import { DocumentDetailsFields } from "./DocumentDetailsFields.jsx";
 

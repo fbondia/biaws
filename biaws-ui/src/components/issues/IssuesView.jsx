@@ -8,7 +8,7 @@ import { IssueFilters } from "./IssueFilters/index.jsx";
 import { IssueList } from "./IssueList.jsx";
 import { IssueSummary } from "./IssueSummary.jsx";
 import { hasPermission } from "../../permissions.js";
-import { useCatalogOptions } from "../catalog/CatalogContextFields.jsx";
+import { useCatalogOptions } from "../catalog/CatalogContextFields/index.jsx";
 
 const ISSUE_TABS = [
   { key: "results", label: "Resultados", icon: Table2 },

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { replicateDocument } from "../../../api.js";
 
-import { CatalogFilterFields } from "../../catalog/CatalogContextFields.jsx";
+import { CatalogFilterFields } from "../../catalog/CatalogContextFields/index.jsx";
 import {
   collectionPathLabel,
   ResourceCollectionDialog,

@@ -13,7 +13,7 @@ import {
 } from "../../../../api.js";
 import { hasPermission } from "../../../../permissions.js";
 import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
-import { useCatalogOptions } from "../../../catalog/CatalogContextFields.jsx";
+import { useCatalogOptions } from "../../../catalog/CatalogContextFields/index.jsx";
 import { useResourceCollections } from "../../../shared/useResourceCollections.js";
 import { fetchAllDocumentPages } from "../../knowledgeModel.js";
 import { documentPermissions, emptyDraft, normalizedDraft } from "../model.js";

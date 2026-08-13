@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { createIssue } from "../../api.js";
 import { STATUS_OPTIONS, TYPE_OPTIONS } from "../../constants/issues.js";
-import { CatalogContextFields } from "../catalog/CatalogContextFields.jsx";
+import { CatalogContextFields } from "../catalog/CatalogContextFields/index.jsx";
 import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
 
 function today() {

@@ -26,7 +26,7 @@ import {
   DEFAULT_TAG_GROUP_COLOR,
 } from "../../../constants/issues.js";
 import { formatDate, statusClass } from "../../../utils/issues.js";
-import { CatalogContextFields } from "../../catalog/CatalogContextFields.jsx";
+import { CatalogContextFields } from "../../catalog/CatalogContextFields/index.jsx";
 import { AuditHistory } from "../../shared/AuditHistory.jsx";
 import { FilesPanel } from "../../shared/FilesPanel.jsx";
 import { MarkdownPreview } from "../../shared/MarkdownEditor/index.jsx";

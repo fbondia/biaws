@@ -7,7 +7,7 @@ import {
   requestStatusStyle,
   REQUEST_STATUS_OPTIONS,
 } from "../requestUtils.js";
-import { CatalogContextDialogField } from "../../catalog/CatalogContextFields.jsx";
+import { CatalogContextDialogField } from "../../catalog/CatalogContextFields/index.jsx";
 
 export function RequestMainTab({
   request,

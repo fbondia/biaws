@@ -12,7 +12,7 @@ import { hasPermission } from "../../../permissions.js";
 import {
   CatalogContextFields,
   CatalogFilterFields,
-} from "../../catalog/CatalogContextFields.jsx";
+} from "../../catalog/CatalogContextFields/index.jsx";
 import { FilterDialogButton } from "../../shared/FilterDialogButton.jsx";
 import {
   collectionPathLabel,

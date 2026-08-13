@@ -20,7 +20,7 @@ import {
 } from "../../../../api.js";
 import { hasPermission } from "../../../../permissions.js";
 import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
-import { useCatalogOptions } from "../../../catalog/CatalogContextFields.jsx";
+import { useCatalogOptions } from "../../../catalog/CatalogContextFields/index.jsx";
 import { useRequestCollaborationActions } from "./useRequestCollaborationActions.js";
 import { useRequestDraftActions } from "./useRequestDraftActions.js";
 import {

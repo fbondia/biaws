@@ -6,7 +6,7 @@ import {
   DEFAULT_TAG_GROUP_COLOR,
   TYPE_OPTIONS,
 } from "../../constants/issues.js";
-import { CatalogContextFields } from "../catalog/CatalogContextFields.jsx";
+import { CatalogContextFields } from "../catalog/CatalogContextFields/index.jsx";
 import { TaxonomySelector } from "../taxonomy/TaxonomySelector.jsx";
 import { filterTaxonomyForApplication } from "../taxonomy/scope.js";
 import { EmlSanitizationDialog } from "./EmlSanitizationDialog.jsx";

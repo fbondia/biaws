@@ -16,7 +16,7 @@ import {
   TYPE_OPTIONS,
 } from "../../../constants/issues.js";
 import { TaxonomySelector } from "../../taxonomy/TaxonomySelector.jsx";
-import { CatalogFilterFields } from "../../catalog/CatalogContextFields.jsx";
+import { CatalogFilterFields } from "../../catalog/CatalogContextFields/index.jsx";
 import { FilterDialogButton } from "../../shared/FilterDialogButton.jsx";
 import { OptionFilterDialog } from "./components/OptionFilterDialog.jsx";
 import {

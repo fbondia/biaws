@@ -33,6 +33,15 @@
   padding: 30px;
 }
 
+.sessionExpiredBackdrop {
+  z-index: var(--z-notice);
+}
+
+.sessionExpiredDialog {
+  max-height: calc(100dvh - 44px);
+  overflow: auto;
+}
+
 .loginCard h1,
 .securityHeader h2 {
   margin: 0;

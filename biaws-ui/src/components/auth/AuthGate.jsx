@@ -1,5 +1,5 @@
 import { LockKeyhole } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useSession } from "../../infrastructure/session/SessionProvider.jsx";
 import { SESSION_STATUS } from "../../infrastructure/session/service.js";
@@ -11,9 +11,16 @@ export function AuthGate({ children }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const authenticatedActor = useRef(null);
+  const reauthenticationAttempt = useRef(false);
+
+  if (session.status === SESSION_STATUS.AUTHENTICATED) {
+    authenticatedActor.current = session.actor;
+  }
 
   async function submit(event) {
     event.preventDefault();
+    reauthenticationAttempt.current = session.status === SESSION_STATUS.EXPIRED;
     setSubmitting(true);
     setError("");
     try {
@@ -22,11 +29,20 @@ export function AuthGate({ children }) {
     } catch (loginError) {
       setError(loginError.message || "Não foi possível autenticar.");
     } finally {
+      reauthenticationAttempt.current = false;
       setSubmitting(false);
     }
   }
 
-  if (session.status === SESSION_STATUS.INITIALIZING) {
+  const reauthenticationVisible =
+    Boolean(authenticatedActor.current) &&
+    (session.status === SESSION_STATUS.EXPIRED ||
+      (submitting && reauthenticationAttempt.current));
+
+  if (
+    session.status === SESSION_STATUS.INITIALIZING &&
+    !reauthenticationVisible
+  ) {
     return <div className="authLoading">Validando sessão…</div>;
   }
 
@@ -48,9 +64,7 @@ export function AuthGate({ children }) {
     );
   }
 
-  if (
-    [SESSION_STATUS.ANONYMOUS, SESSION_STATUS.EXPIRED].includes(session.status)
-  ) {
+  if (session.status === SESSION_STATUS.ANONYMOUS) {
     return (
       <main className="loginPage">
         <form className="loginCard" onSubmit={submit}>
@@ -61,11 +75,6 @@ export function AuthGate({ children }) {
             <h1>Bondia Workspaces</h1>
             <p>Entre com sua identidade administrativa ou operacional.</p>
           </div>
-          {session.status === SESSION_STATUS.EXPIRED ? (
-            <div className="authError" role="alert">
-              {session.reason || "Sua sessão expirou. Entre novamente."}
-            </div>
-          ) : null}
           <label>
             <span>E-mail</span>
             <input
@@ -100,7 +109,7 @@ export function AuthGate({ children }) {
     );
   }
 
-  const { actor } = session;
+  const actor = session.actor || authenticatedActor.current;
 
   if (
     !actor.workspaceId &&
@@ -134,9 +143,72 @@ export function AuthGate({ children }) {
     );
   }
 
-  return children({
-    actor,
-    onSignOut: () => session.signOut().catch(() => {}),
-    onWorkspaceChange: session.switchWorkspace,
-  });
+  return (
+    <>
+      {children({
+        actor,
+        onSignOut: () => session.signOut().catch(() => {}),
+        onWorkspaceChange: session.switchWorkspace,
+      })}
+      {reauthenticationVisible ? (
+        <div className="dialogBackdrop sessionExpiredBackdrop">
+          <form
+            aria-labelledby="sessionExpiredDialogTitle"
+            aria-modal="true"
+            className="loginCard sessionExpiredDialog"
+            onSubmit={submit}
+            role="dialog"
+          >
+            <div className="loginIcon">
+              <LockKeyhole size={28} />
+            </div>
+            <div>
+              <h1 id="sessionExpiredDialogTitle">Sua sessão expirou</h1>
+              <p>
+                Entre novamente para continuar sem perder as alterações desta
+                tela.
+              </p>
+            </div>
+            <div className="authError" role="alert">
+              {session.reason || "Sua sessão expirou. Entre novamente."}
+            </div>
+            <label>
+              <span>E-mail</span>
+              <input
+                autoComplete="username"
+                data-dialog-initial-focus
+                onChange={(event) => setEmail(event.target.value)}
+                required
+                type="email"
+                value={email}
+              />
+            </label>
+            <label>
+              <span>Senha</span>
+              <input
+                autoComplete="current-password"
+                minLength={12}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                type="password"
+                value={password}
+              />
+            </label>
+            {error ? (
+              <div className="authError" role="alert">
+                {error}
+              </div>
+            ) : null}
+            <button
+              className="primaryButton"
+              disabled={submitting}
+              type="submit"
+            >
+              {submitting ? "Entrando…" : "Entrar novamente"}
+            </button>
+          </form>
+        </div>
+      ) : null}
+    </>
+  );
 }

@@ -92,6 +92,49 @@ test("session restores an actor and transitions an authenticated request to expi
   assert.equal(events.at(-1).event, "session.expiration.detected");
 });
 
+test("failed reauthentication keeps the expired state until credentials are accepted", async () => {
+  const actor = { id: "actor-reauth", workspaceId: "workspace-reauth" };
+  const fake = createFakeSessionAdapter({
+    actor,
+    signInError: sessionError("Credenciais inválidas", {
+      code: "INVALID_CREDENTIALS",
+      statusCode: 401,
+    }),
+  });
+  const service = createSessionService({ adapter: fake.adapter });
+
+  await service.initialize();
+  fake.expire("Sessão expirada");
+
+  await assert.rejects(
+    service.signIn({ email: "user@example.test", password: "invalid" }),
+    /Credenciais inválidas/u,
+  );
+  assert.deepEqual(service.getState(), {
+    reason: "Sessão expirada",
+    status: SESSION_STATUS.EXPIRED,
+  });
+});
+
+test("failed identity restoration after reauthentication preserves the expired state", async () => {
+  const actor = { id: "actor-restore", workspaceId: "workspace-restore" };
+  const fake = createFakeSessionAdapter({ actor });
+  const service = createSessionService({ adapter: fake.adapter });
+
+  await service.initialize();
+  fake.expire("Sessão expirada");
+  fake.setRestoreError(sessionError("Serviço de identidade indisponível"));
+
+  await assert.rejects(
+    service.signIn({ email: "user@example.test", password: "valid-password" }),
+    /Serviço de identidade indisponível/u,
+  );
+  assert.deepEqual(service.getState(), {
+    reason: "Sessão expirada",
+    status: SESSION_STATUS.EXPIRED,
+  });
+});
+
 test("initial 401 is anonymous while a transient restore failure remains an error", async () => {
   const unauthenticated = createFakeSessionAdapter({
     restoreError: sessionError("Authentication required", { statusCode: 401 }),

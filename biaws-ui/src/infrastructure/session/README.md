@@ -29,11 +29,13 @@ rejeitado, troca concluída/revertida e resultado concorrente descartado. O sink
 Durante a migração, o estado autenticado mantém `actor` como contrato de
 compatibilidade da aplicação. Permissões, perfil e preferências continuam sendo
 consumidores/dados funcionais externos ao lifecycle da sessão; o service não os
-resolve nem os persiste. Logout, expiração e troca de workspace retiram a árvore
-autenticada de renderização, descartando seu estado local antes de outro escopo
-ser apresentado. Trocas concorrentes seguem `latest wins`: somente a operação
-vigente pode publicar estado ou reverter a seleção para o último workspace cuja
-restauração foi confirmada.
+resolve nem os persiste. Logout e troca de workspace retiram a árvore autenticada
+de renderização antes de outro escopo ser apresentado. Na expiração, o
+`AuthGate` mantém essa árvore montada sob um diálogo bloqueante de
+reautenticação, preservando rascunhos locais; credenciais rejeitadas mantêm o
+estado `expired` para permitir uma nova tentativa. Trocas concorrentes seguem
+`latest wins`: somente a operação vigente pode publicar estado ou reverter a
+seleção para o último workspace cuja restauração foi confirmada.
 
 Testes unitários usam `testing.js`, que oferece um adapter falso sem importar o
 runtime HTTP.

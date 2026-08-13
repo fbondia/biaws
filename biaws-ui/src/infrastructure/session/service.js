@@ -195,6 +195,9 @@ export function createSessionService({
 
   async function signIn(credentials) {
     const startedAt = now();
+    const stateBeforeSignIn = state;
+    const reauthenticating =
+      stateBeforeSignIn.status === SESSION_STATUS.EXPIRED;
     clear("sign-in");
     emit({
       event: "session.sign_in.started",
@@ -203,8 +206,21 @@ export function createSessionService({
     });
     try {
       await adapter.signIn(credentials);
-      lastAuthenticated = false;
+      if (!reauthenticating) lastAuthenticated = false;
       const nextState = await restore({ source: "sign_in" });
+      if (
+        reauthenticating &&
+        nextState.status !== SESSION_STATUS.AUTHENTICATED
+      ) {
+        publish(stateBeforeSignIn);
+        const error = new Error(
+          nextState.error?.message ||
+            nextState.reason ||
+            "Não foi possível restaurar a sessão. Tente novamente.",
+        );
+        error.code = nextState.error?.code || "REAUTHENTICATION_INCOMPLETE";
+        throw error;
+      }
       emit({
         context: { durationMs: Math.max(0, now() - startedAt) },
         error:
@@ -229,7 +245,11 @@ export function createSessionService({
       return nextState;
     } catch (error) {
       if (isUnauthorized(error)) {
-        publish({ status: SESSION_STATUS.ANONYMOUS });
+        publish(
+          reauthenticating
+            ? stateBeforeSignIn
+            : { status: SESSION_STATUS.ANONYMOUS },
+        );
       }
       emit({
         context: { durationMs: Math.max(0, now() - startedAt) },

@@ -4,6 +4,7 @@ export function RequestPagination({
   loadCollections,
   loadRequestCollectionItems,
   loadRequests,
+  loadSelectedRequest,
   loadingRequests,
   requestMeta,
   setRequestPage,
@@ -44,6 +45,7 @@ export function RequestPagination({
             loadRequests(),
             loadRequestCollectionItems(),
             loadCollections(),
+            loadSelectedRequest(),
           ])
         }
         title="Atualizar melhorias"

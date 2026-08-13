@@ -1,5 +1,5 @@
 .replicationDialogBackdrop {
-  z-index: calc(var(--z-dropdown) + 1);
+  z-index: var(--z-nested-dialog);
 }
 
 .bulkReplicationToolbar {

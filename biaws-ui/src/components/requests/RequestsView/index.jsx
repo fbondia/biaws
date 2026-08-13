@@ -63,6 +63,7 @@ export function RequestsView({
     requestCollectionItems,
     loadRequests,
     loadRequestCollectionItems,
+    loadSelectedRequest,
     selectRequest,
     setStatusFilters,
     selectedRequestId,
@@ -303,6 +304,7 @@ export function RequestsView({
             loadCollections={collectionState.loadCollections}
             loadRequestCollectionItems={loadRequestCollectionItems}
             loadRequests={loadRequests}
+            loadSelectedRequest={loadSelectedRequest}
             loadingRequests={loadingRequests}
             requestMeta={requestMeta}
             setRequestPage={setRequestPage}

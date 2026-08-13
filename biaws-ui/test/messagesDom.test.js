@@ -21,6 +21,10 @@ const STYLE_FILES = {
     import.meta.url,
   ),
   messages: new URL("../src/styles/shared/messages.css", import.meta.url),
+  replication: new URL(
+    "../src/styles/shared/replication-dialog.css",
+    import.meta.url,
+  ),
   tokens: new URL("../src/styles/foundations/tokens.css", import.meta.url),
 };
 
@@ -106,6 +110,50 @@ test("nested confirmation stays above consumer dialogs and below loading/notices
   assert.ok(
     resolveZIndex(dom.window, notices) > resolveZIndex(dom.window, loading),
   );
+
+  dom.window.close();
+});
+
+test("replication dialog stays above document details and below previews", async () => {
+  const sources = Object.fromEntries(
+    await Promise.all(
+      Object.entries(STYLE_FILES).map(async ([name, url]) => [
+        name,
+        await readFile(url, "utf8"),
+      ]),
+    ),
+  );
+  const css = [
+    extractRule(sources.tokens, ":root"),
+    extractRule(sources.controls, ".dialogBackdrop"),
+    extractRule(sources.knowledge, ".knowledgeDetailsBackdrop"),
+    extractRule(sources.replication, ".replicationDialogBackdrop"),
+    extractRule(sources.files, ".filePreviewBackdrop"),
+  ].join("\n");
+  const dom = new JSDOM(
+    `<!doctype html><html><head><style>${css}</style></head><body>
+      <div class="dialogBackdrop knowledgeDetailsBackdrop"></div>
+      <div class="dialogBackdrop replicationDialogBackdrop"></div>
+      <div class="dialogBackdrop filePreviewBackdrop"></div>
+    </body></html>`,
+    { virtualConsole: new VirtualConsole() },
+  );
+  const { document } = dom.window;
+  const detailsZIndex = resolveZIndex(
+    dom.window,
+    document.querySelector(".knowledgeDetailsBackdrop"),
+  );
+  const replicationZIndex = resolveZIndex(
+    dom.window,
+    document.querySelector(".replicationDialogBackdrop"),
+  );
+  const previewZIndex = resolveZIndex(
+    dom.window,
+    document.querySelector(".filePreviewBackdrop"),
+  );
+
+  assert.ok(replicationZIndex > detailsZIndex);
+  assert.ok(replicationZIndex < previewZIndex);
 
   dom.window.close();
 });

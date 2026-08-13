@@ -9,6 +9,7 @@ import {
   deleteRequestNote,
   deleteRequestTask,
   deleteRequestTaskNote,
+  fetchRequest,
   fetchRequestCollectionItems,
   fetchRequests,
   saveRequestNote,
@@ -122,6 +123,17 @@ export function useRequestsView(actor, options = {}) {
       );
     } catch (error) {
       if (isActive()) setRequestError(error.message);
+    }
+  }
+
+  async function loadSelectedRequest() {
+    if (!selectedRequestId) return;
+
+    try {
+      const payload = await fetchRequest(selectedRequestId);
+      if (payload.request) upsertRequestInList(payload.request);
+    } catch (error) {
+      setRequestError(error.message);
     }
   }
 
@@ -344,6 +356,7 @@ export function useRequestsView(actor, options = {}) {
     requestCollectionItems,
     loadRequests,
     loadRequestCollectionItems,
+    loadSelectedRequest,
     selectRequest,
     setStatusFilters,
     selectedRequestId,

@@ -126,6 +126,31 @@ jobs:
           ui_port="$(sed -n 's/^ISSUE_UI_PORT=//p' instances/ci/.env)"
           curl --fail --silent --show-error "http://127.0.0.1:${api_port}/api/health"
           curl --fail --silent --show-error "http://127.0.0.1:${ui_port}/" > /dev/null
+      - name: Verify active monitoring profile and telemetry
+        run: |
+          docker compose \
+            --env-file instances/ci/.env \
+            --project-name biaws-ci \
+            --profile active-monitoring \
+            up -d --build --wait monitor-executor
+          docker compose \
+            --env-file instances/ci/.env \
+            --project-name biaws-ci \
+            exec -T monitor-executor node -e \
+            "fetch('http://127.0.0.1:3110/health/ready').then(r=>{if(!r.ok)process.exit(1)})"
+          docker compose \
+            --env-file instances/ci/.env \
+            --project-name biaws-ci \
+            exec -T monitor-executor node -e \
+            "fetch('http://127.0.0.1:3110/metrics').then(r=>r.text()).then(t=>{if(!t.includes('biaws_monitor_executor_polls_total'))process.exit(1)})"
+          executor_key="$(cat instances/ci/monitor-secrets/executor-api-key)"
+          if docker compose \
+            --env-file instances/ci/.env \
+            --project-name biaws-ci \
+            logs --no-color monitor-executor | grep -F -- "${executor_key}"; then
+            echo "Executor API key leaked into logs" >&2
+            exit 1
+          fi
       - name: Collect service logs
         if: failure()
         run: >-

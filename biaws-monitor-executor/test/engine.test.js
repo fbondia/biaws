@@ -221,3 +221,41 @@ test("provider timeout is published even when the provider ignores cancellation"
   assert.equal(published.status, "unknown");
   assert.equal(published.metadata.failure_kind, "timeout");
 });
+
+test("each acquisition executes the latest monitor configuration", async () => {
+  const queue = [
+    monitor({ executionId: "execution-1", configuration: { revision: 1 } }),
+    monitor({
+      executionId: "execution-2",
+      leaseToken: "lease-2",
+      configuration: { revision: 2 },
+    }),
+  ];
+  const executedRevisions = [];
+  const engine = new ExecutorEngine({
+    api: {
+      async acquire() {
+        const item = queue.shift();
+        return { items: item ? [item] : [] };
+      },
+      async publish() {
+        return { created: true };
+      },
+    },
+    providers: new ProviderRegistry().register(
+      "rest",
+      testProvider(async ({ configuration }) => {
+        executedRevisions.push(configuration.revision);
+        return { status: "healthy" };
+      }),
+    ),
+    config: config(),
+    telemetry: createTelemetry(),
+    logger,
+  });
+
+  await engine.pollOnce();
+  await engine.pollOnce();
+
+  assert.deepEqual(executedRevisions, [1, 2]);
+});

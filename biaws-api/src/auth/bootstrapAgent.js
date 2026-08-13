@@ -17,6 +17,7 @@ export async function bootstrapAgent({
   password,
   name,
   keyName = "Bondia Workspaces agent",
+  metadataKind = "bootstrap-agent",
   existingApiKey,
   rateLimit,
   assignAgent,
@@ -86,7 +87,7 @@ export async function bootstrapAgent({
     body: {
       name: keyName,
       userId,
-      metadata: { kind: "bootstrap-agent" },
+      metadata: { kind: metadataKind },
       ...rateLimitFields,
     },
   });

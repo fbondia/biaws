@@ -427,6 +427,7 @@ de ingestão está em [docs/monitoring.md](docs/monitoring.md).
 - [Documentos de conhecimento](docs/knowledge.md)
 - [Guidelines de desenvolvimento](docs/guidelines/INDEX.md)
 - [Operação e recuperação](docs/operations.md)
+- [Operação do monitoramento ativo](docs/active-monitoring-operations.md)
 - [Índices e performance](docs/performance.md)
 - [Como contribuir](CONTRIBUTING.md)
 - [Política de segurança](SECURITY.md)

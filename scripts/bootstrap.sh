@@ -216,6 +216,48 @@ remove_env_value "ISSUE_WORKSPACE_ID"
 chmod 600 "${ENV_FILE}"
 echo "Identidade técnica e rate limit da chave do agente reconciliados."
 
+monitor_secret_files_path="$(read_env_value "BIAWS_MONITOR_SECRET_FILES_PATH")"
+monitor_secret_files_path="${monitor_secret_files_path:-${INSTANCE_DIR}/monitor-secrets}"
+if [[ "${monitor_secret_files_path}" != /* ]]; then
+  monitor_secret_files_path="${ROOT_DIR}/${monitor_secret_files_path}"
+fi
+mkdir -p "${monitor_secret_files_path}"
+chmod 700 "${monitor_secret_files_path}"
+monitor_secret_files_path="$(cd "${monitor_secret_files_path}" && pwd -P)"
+monitor_api_key_path="${monitor_secret_files_path}/executor-api-key"
+existing_monitor_api_key=""
+if [[ -f "${monitor_api_key_path}" ]]; then
+  existing_monitor_api_key="$(<"${monitor_api_key_path}")"
+fi
+monitor_output="$(
+  compose exec -T \
+    -e "BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_API_KEY=${existing_monitor_api_key}" \
+    api npm run --silent bootstrap:monitor-executor
+)"
+monitor_api_key="$(
+  printf '%s\n' "${monitor_output}" |
+    awk -F= '$1 == "BIAWS_MONITOR_EXECUTOR_API_KEY" { print substr($0, index($0, "=") + 1) }' |
+    tail -n 1
+)"
+monitor_workspace_id="$(
+  printf '%s\n' "${monitor_output}" |
+    awk -F= '$1 == "BIAWS_MONITOR_EXECUTOR_WORKSPACE_ID" { print substr($0, index($0, "=") + 1) }' |
+    tail -n 1
+)"
+if [[ -z "${monitor_api_key}" || -z "${monitor_workspace_id}" ]]; then
+  echo "Não foi possível configurar a credencial técnica do executor." >&2
+  exit 1
+fi
+printf '%s' "${monitor_api_key}" > "${monitor_api_key_path}"
+chmod 600 "${monitor_api_key_path}"
+replace_env_value "BIAWS_MONITOR_SECRET_FILES_PATH" "${monitor_secret_files_path}"
+remove_env_value "BIAWS_MONITOR_EXECUTOR_API_KEY_PATH"
+replace_env_value "BIAWS_MONITOR_EXECUTOR_API_KEY" ""
+replace_env_value "BIAWS_MONITOR_EXECUTOR_API_KEY_FILE" "/run/secrets/executor-api-key"
+replace_env_value "BIAWS_MONITOR_EXECUTOR_WORKSPACE_ID" "${monitor_workspace_id}"
+chmod 600 "${ENV_FILE}"
+echo "Identidade técnica exclusiva do executor reconciliada em arquivo protegido."
+
 compose exec -T api npm run seed:skills
 
 if [[ "${BIAWS_SKIP_DEMO_SEED:-0}" != "1" ]]; then
@@ -250,6 +292,7 @@ ${admin_summary}
 
 A credencial técnica do MCP e do CLI foi gravada somente em ${ENV_FILE}.
 Workspace inicial da identidade técnica: ${agent_workspace_id}
+O executor possui identidade exclusiva no workspace ${monitor_workspace_id}; a chave está em ${monitor_api_key_path}.
 O workspace de cada projeto é gravado na configuração MCP pelo setup-agent.
 ${setup_hint}
 EOF

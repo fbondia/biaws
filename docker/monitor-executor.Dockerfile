@@ -12,4 +12,6 @@ COPY biaws-monitor-executor ./biaws-monitor-executor
 WORKDIR /app/biaws-monitor-executor
 EXPOSE 3110
 
+USER node
+
 CMD ["npm", "start"]

@@ -32,11 +32,16 @@ REST é deny-by-default. Configure:
   assim para bloquear loopback, link-local, redes privadas e especiais;
 - `BIAWS_MONITOR_REST_MAX_REDIRECTS`: padrão `3`; cada destino é novamente
   validado e redirects de métodos com efeito colateral são recusados;
-- `BIAWS_MONITOR_REFERENCE_ENV_MAP`: JSON que associa referências públicas a
-  nomes de variáveis de ambiente, por exemplo
+- `BIAWS_MONITOR_REFERENCE_FILE_MAP`: opção preferida; JSON que associa
+  referências públicas a arquivos simples montados em
+  `BIAWS_MONITOR_REFERENCE_FILE_ROOT` (`/run/secrets` por padrão);
+- `BIAWS_MONITOR_REFERENCE_ENV_MAP`: compatibilidade para associar referências
+  públicas a nomes de variáveis de ambiente, por exemplo
   `{"service-auth":"SERVICE_AUTH_HEADER"}`. A configuração usa
   `headerRefs: [{"name":"Authorization","reference":"service-auth"}]`;
-  o valor resolvido nunca entra na evidência ou nos logs.
+  o valor resolvido nunca entra na evidência ou nos logs. Referências por
+  arquivo recusam traversal, symlinks que escapem da raiz, arquivos não
+  regulares, vazios ou maiores que 64 KiB.
 
 O provider REST fixa cada conexão no endereço DNS validado, desativa reuso de
 socket e limita método, protocolo, headers, corpo e resposta. Headers sensíveis
@@ -72,8 +77,11 @@ desconhecidos são recusados. Em cancelamento, o grupo de processos recebe
 
 Obrigatórias quando habilitado:
 
-- `BIAWS_MONITOR_EXECUTOR_API_KEY`: chave de uma identidade técnica com
-  `monitoring.active.execute`;
+- `BIAWS_MONITOR_EXECUTOR_API_KEY_FILE`: arquivo com a chave de uma identidade
+  técnica com somente `monitoring.active.execute`; o bootstrap usa
+  `/run/secrets/executor-api-key`;
+- `BIAWS_MONITOR_EXECUTOR_API_KEY`: fallback para desenvolvimento local; não é
+  recomendado em implantação;
 - `BIAWS_MONITOR_EXECUTOR_WORKSPACE_ID`: workspace fixo da réplica;
 - `BIAWS_MONITOR_EXECUTOR_API_URL`: URL da API, padrão
   `http://127.0.0.1:3100`.

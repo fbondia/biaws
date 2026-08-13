@@ -27,6 +27,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- bootstrap de identidade técnica exclusiva e de menor privilégio para o
+  executor, credencial montada por arquivo, fontes de segredo por arquivo,
+  hardening do container e smoke test do profile real no CI;
+- runbook ponta a ponta do monitoramento ativo com instalação, escala,
+  diagnóstico, atualização, rollback e matriz de evidências automatizadas;
 - executor contínuo e independente de monitoramentos ativos, com leases
   renováveis, concorrência limitada, retry exponencial, desligamento gracioso,
   health/readiness e métricas Prometheus;

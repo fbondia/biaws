@@ -8,6 +8,9 @@ biaws-ui/sonar-project.properties
 .env
 .bootstrap-admin-password
 .secrets-master-key
+.monitor-executor-api-key
+monitor-secrets/
+monitor-scripts/
 secrets-data/
 .DS_Store
 backups/

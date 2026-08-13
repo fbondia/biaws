@@ -17,11 +17,18 @@ function seededField(pipeline, field) {
 
 test("initial groups use only canonical permissions", () => {
   const known = new Set(PERMISSION_CATALOG.map(({ id }) => id));
-  assert.equal(INITIAL_PERMISSION_GROUPS.length, 7);
+  assert.equal(INITIAL_PERMISSION_GROUPS.length, 8);
   for (const group of INITIAL_PERMISSION_GROUPS) {
     assert.ok(group.permissions.length > 0);
     assert.ok(group.permissions.every((permission) => known.has(permission)));
   }
+});
+
+test("monitor executor group has only its execution permission", () => {
+  const executor = INITIAL_PERMISSION_GROUPS.find(
+    ({ id }) => id === "monitor-executor",
+  );
+  assert.deepEqual(executor.permissions, ["monitoring.active.execute"]);
 });
 
 test("administration initial group contains every permission", () => {

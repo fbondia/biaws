@@ -1,5 +1,6 @@
 import os from "node:os";
 import path from "node:path";
+import { readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { loadEnv } from "../../shared/index.js";
@@ -60,12 +61,28 @@ function trimTrailingSlash(value) {
   return String(value).replace(/\/+$/u, "");
 }
 
+function readCredential(env) {
+  const direct = readText(env, "BIAWS_MONITOR_EXECUTOR_API_KEY");
+  if (direct) return direct;
+  const file = readText(env, "BIAWS_MONITOR_EXECUTOR_API_KEY_FILE");
+  if (!file) return "";
+  try {
+    const details = statSync(file);
+    if (!details.isFile() || details.size < 1 || details.size > 64 * 1024) {
+      throw new Error("invalid API key file");
+    }
+    return readFileSync(file, "utf8").replace(/\r?\n$/u, "");
+  } catch {
+    throw new Error("BIAWS_MONITOR_EXECUTOR_API_KEY_FILE is not readable");
+  }
+}
+
 export function getExecutorConfig(env = process.env) {
   const enabled = readBoolean(env, "BIAWS_MONITOR_EXECUTOR_ENABLED", true);
   const apiUrl = trimTrailingSlash(
     readText(env, "BIAWS_MONITOR_EXECUTOR_API_URL", "http://127.0.0.1:3100"),
   );
-  const apiKey = readText(env, "BIAWS_MONITOR_EXECUTOR_API_KEY");
+  const apiKey = readCredential(env);
   const workspaceId = readText(env, "BIAWS_MONITOR_EXECUTOR_WORKSPACE_ID");
   if (enabled && (!apiKey || !workspaceId)) {
     throw new Error(
@@ -177,6 +194,10 @@ export function getExecutorConfig(env = process.env) {
       env,
       "BIAWS_MONITOR_REFERENCE_ENV_MAP",
       {},
+    ),
+    referenceFiles: readJsonObject(env, "BIAWS_MONITOR_REFERENCE_FILE_MAP", {}),
+    referenceFileRoot: path.resolve(
+      readText(env, "BIAWS_MONITOR_REFERENCE_FILE_ROOT", "/run/secrets"),
     ),
   };
 }

@@ -88,6 +88,13 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
     ],
   },
   {
+    id: "monitor-executor",
+    name: "Executor de monitoramento",
+    description:
+      "Identidade técnica isolada que apenas adquire e publica execuções de monitoramento ativo.",
+    permissions: ["monitoring.active.execute"],
+  },
+  {
     id: "agent-operator",
     name: "Agente operacional",
     description:

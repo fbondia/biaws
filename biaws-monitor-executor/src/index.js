@@ -4,7 +4,7 @@ import { ExecutorEngine } from "./engine.js";
 import { createHealthServer } from "./healthServer.js";
 import { createLogger } from "./logger.js";
 import { ProviderRegistry } from "./providers.js";
-import { createEnvironmentReferenceResolver } from "./referenceResolver.js";
+import { createReferenceResolver } from "./referenceResolver.js";
 import { createRestProvider } from "./restProvider.js";
 import { createShellProvider } from "./shellProvider.js";
 import { createTelemetry } from "./telemetry.js";
@@ -12,9 +12,11 @@ import { createTelemetry } from "./telemetry.js";
 const config = loadExecutorConfig();
 const logger = createLogger();
 const telemetry = createTelemetry();
-const resolveReference = createEnvironmentReferenceResolver(
-  config.referenceEnvironment,
-);
+const resolveReference = createReferenceResolver({
+  environment: config.referenceEnvironment,
+  files: config.referenceFiles,
+  fileRoot: config.referenceFileRoot,
+});
 const providers = new ProviderRegistry()
   .register(
     "rest",

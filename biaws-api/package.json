@@ -18,6 +18,7 @@
     "dev": "node --watch src/index.js",
     "bootstrap:admin": "node src/scripts/bootstrapAdmin.js",
     "bootstrap:agent": "node src/scripts/bootstrapAgent.js",
+    "bootstrap:monitor-executor": "node src/scripts/bootstrapMonitorExecutor.js",
     "seed:skills": "node src/scripts/seedStarterSkills.js",
     "seed:demo": "node src/scripts/seedDemo.js",
     "migrate:journeys": "node src/scripts/migrateJourneyModel.js",

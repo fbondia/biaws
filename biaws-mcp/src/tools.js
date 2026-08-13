@@ -35,6 +35,7 @@ import { collectionTools } from "./domains/collections/tools.js";
 import { secretTools } from "./domains/secrets/tools.js";
 import { knowledgeTools } from "./domains/knowledge/tools.js";
 import { attachmentTools } from "./domains/attachments/tools.js";
+import { monitoringTools } from "./domains/monitoring/tools.js";
 
 const DEMAND_TASK_STATUS_SCHEMA = {
   type: "string",
@@ -130,6 +131,7 @@ const tools = [
   ...secretTools,
   ...knowledgeTools,
   ...attachmentTools,
+  ...monitoringTools,
   {
     name: "issues_search",
     description:

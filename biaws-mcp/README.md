@@ -17,6 +17,8 @@ O servidor separa os domínios:
 - `attachments_*`: envio, download, classificação e exclusão de arquivos de
   chamados, melhorias, tarefas e procedimentos.
 - `secrets_*`: consulta e registro de metadados de segredos, sem acesso aos valores.
+- `monitoring_templates_*` e `runtime_active_monitors_*`: administração
+  versionada de templates e configuração de monitoramentos ativos dos runtimes.
 - `resource_collections_*` e `*_move_to_collection`: organização hierárquica
   de aplicações, regras, decisões, procedimentos, segredos, skills e servidores.
 
@@ -108,6 +110,39 @@ suas validações de escopo, relações, permissões e auditoria. Integrações
 apontam para outra aplicação ativa do mesmo workspace e preservam o destino
 imutável. Arquivamento não
 é exposto pelo MCP nesta fase.
+
+### Monitoramento
+
+Templates de monitoramento usam o workspace selecionado na configuração do
+servidor MCP e preservam as permissões, validações e auditoria da API:
+
+- `monitoring_templates_list` e `monitoring_templates_get`: consultam templates
+  e versões;
+- `monitoring_templates_preview`: testa uma definição com uma amostra JSON sem
+  persistir;
+- `monitoring_templates_create` e `monitoring_templates_create_version`: criam
+  a versão inicial ou uma nova versão em rascunho;
+- `monitoring_templates_get_usage` e `monitoring_templates_get_contract`:
+  consultam uso e contrato público;
+- `monitoring_templates_validate`: avalia uma amostra com uma versão persistida
+  sem registrar observação;
+- `monitoring_templates_activate` e `monitoring_templates_deactivate`: alteram
+  o estado da versão;
+- `monitoring_templates_archive`: arquiva somente uma versão sem uso, conforme
+  validação da API.
+
+Monitoramentos ativos são configurados por referência pública ou ID do runtime:
+
+- `runtime_active_monitors_list`;
+- `runtime_active_monitors_create`;
+- `runtime_active_monitors_update`;
+- `runtime_active_monitors_archive`.
+
+As tools não aceitam `workspaceId`; o escopo vem exclusivamente de
+`ISSUE_WORKSPACE_ID`. Configurações REST podem referenciar segredos apenas por
+identificadores públicos em `headerRefs`; valores de credenciais não pertencem
+ao MCP. Templates são permitidos somente para o provider REST. Para preparar um
+monitor antes de provisionar o executor, crie-o com `enabled: false`.
 
 ### Coleções de recursos
 

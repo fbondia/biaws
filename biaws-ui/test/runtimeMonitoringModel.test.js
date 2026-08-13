@@ -52,8 +52,28 @@ test("shell monitor only accepts a script identifier and structured arguments", 
     scriptId: "worker-health",
     arguments: ["--service", "worker"],
     environment: { CHECK_MODE: "read-only" },
+    failureStatus: "unavailable",
+    captureOutput: "none",
   });
   assert.equal(payload.templateRef, null);
+});
+
+test("shell monitor removes a legacy template and exposes result controls", () => {
+  const payload = activeMonitorPayload({
+    ...activeMonitorDraft({
+      id: "legacy-shell",
+      name: "Legacy worker probe",
+      provider: "shell",
+      configuration: { scriptId: "worker-health" },
+      templateRef: { id: "legacy-health", version: "1" },
+    }),
+    shellFailureStatus: "degraded",
+    shellCaptureOutput: "stderr",
+  });
+
+  assert.equal(payload.templateRef, null);
+  assert.equal(payload.configuration.failureStatus, "degraded");
+  assert.equal(payload.configuration.captureOutput, "stderr");
 });
 
 test("monitor validation rejects embedded credentials and incomplete templates", () => {

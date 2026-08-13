@@ -8,6 +8,17 @@ import {
 } from "./topologyRepositorySupport.js";
 
 export const ACTIVE_MONITOR_PROVIDERS = Object.freeze(["rest", "shell"]);
+export const SHELL_FAILURE_STATUSES = Object.freeze([
+  "unknown",
+  "degraded",
+  "unavailable",
+]);
+export const SHELL_CAPTURE_OUTPUTS = Object.freeze([
+  "none",
+  "stdout",
+  "stderr",
+  "both",
+]);
 export const MAX_ACTIVE_MONITORS_PER_RUNTIME = 50;
 const MIN_INTERVAL_SECONDS = 10;
 const MAX_INTERVAL_SECONDS = 86_400;
@@ -59,6 +70,29 @@ function normalizeConfiguration(value, current = {}) {
   return normalized;
 }
 
+function normalizeShellConfiguration(configuration) {
+  assertAllowedFields(
+    configuration,
+    ["scriptId", "arguments", "environment", "failureStatus", "captureOutput"],
+    "shell monitor configuration",
+  );
+  return {
+    ...configuration,
+    failureStatus: normalizeEnum(
+      configuration.failureStatus,
+      "configuration.failureStatus",
+      SHELL_FAILURE_STATUSES,
+      "unavailable",
+    ),
+    captureOutput: normalizeEnum(
+      configuration.captureOutput,
+      "configuration.captureOutput",
+      SHELL_CAPTURE_OUTPUTS,
+      "none",
+    ),
+  };
+}
+
 function normalizeTemplateRef(value, current = null) {
   if (value === undefined) return current;
   if (value === null || value === "") return null;
@@ -107,6 +141,27 @@ export function normalizeActiveMonitorInput(payload = {}, current = null) {
     },
   );
   const name = requiredText(payload.name ?? current?.name, "name", 160);
+  const provider = normalizeEnum(
+    payload.provider,
+    "provider",
+    ACTIVE_MONITOR_PROVIDERS,
+    current?.provider,
+  );
+  const configuration = normalizeConfiguration(
+    payload.configuration,
+    current?.configuration || {},
+  );
+  const templateRef = normalizeTemplateRef(
+    payload.templateRef,
+    current?.templateRef,
+  );
+  if (provider === "shell" && templateRef) {
+    throw createCatalogError(
+      422,
+      "SHELL_TEMPLATE_NOT_SUPPORTED",
+      "Shell monitors do not support templateRef; remove the template reference before saving",
+    );
+  }
   return {
     name,
     nameKey: name.toLocaleLowerCase("pt-BR"),
@@ -115,12 +170,7 @@ export function normalizeActiveMonitorInput(payload = {}, current = null) {
       "description",
       2_000,
     ),
-    provider: normalizeEnum(
-      payload.provider,
-      "provider",
-      ACTIVE_MONITOR_PROVIDERS,
-      current?.provider,
-    ),
+    provider,
     enabled: normalizeBoolean(
       payload.enabled,
       "enabled",
@@ -128,14 +178,11 @@ export function normalizeActiveMonitorInput(payload = {}, current = null) {
     ),
     intervalSeconds,
     timeoutSeconds,
-    configuration: normalizeConfiguration(
-      payload.configuration,
-      current?.configuration || {},
-    ),
-    templateRef: normalizeTemplateRef(
-      payload.templateRef,
-      current?.templateRef,
-    ),
+    configuration:
+      provider === "shell"
+        ? normalizeShellConfiguration(configuration)
+        : configuration,
+    templateRef,
   };
 }
 

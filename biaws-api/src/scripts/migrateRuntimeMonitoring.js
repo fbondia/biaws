@@ -60,12 +60,19 @@ async function migrate() {
     COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS,
   );
   const groups = database.collection(COLLECTION_NAMES.PERMISSION_GROUPS);
+  const activeMonitors = database.collection(
+    COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS,
+  );
   const passiveEventFilter = {
     $or: [{ origin: "external" }, { origin: { $exists: false } }],
   };
   const administrationFilter = {
     $or: [{ systemKey: "administration" }, { _id: "administration" }],
     permissions: { $ne: "monitoring.active.execute" },
+  };
+  const legacyShellTemplateFilter = {
+    provider: "shell",
+    templateRef: { $exists: true, $ne: null },
   };
   const summary = {
     apply,
@@ -79,6 +86,10 @@ async function migrate() {
     passiveEvents: await events.countDocuments(passiveEventFilter),
     administrationGroups: await groups.countDocuments(administrationFilter),
     administrationGroupsUpdated: 0,
+    legacyShellTemplates: await activeMonitors.countDocuments(
+      legacyShellTemplateFilter,
+    ),
+    legacyShellTemplatesRemoved: 0,
     integratedProfileTemplates: null,
   };
 
@@ -140,6 +151,15 @@ async function migrate() {
   }
 
   if (apply) {
+    const shellMigrationResult = await activeMonitors.updateMany(
+      legacyShellTemplateFilter,
+      {
+        $unset: { templateRef: "" },
+        $set: { updatedAt: new Date(), updatedBy: "monitoring-migration" },
+        $inc: { version: 1 },
+      },
+    );
+    summary.legacyShellTemplatesRemoved = shellMigrationResult.modifiedCount;
     await events.updateMany(passiveEventFilter, {
       $set: { origin: "passive" },
     });

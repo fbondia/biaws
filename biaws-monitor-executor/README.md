@@ -78,6 +78,16 @@ scripts não executáveis, argumentos/ambiente fora da política e identificador
 desconhecidos são recusados. Em cancelamento, o grupo de processos recebe
 `SIGTERM` e depois `SIGKILL`.
 
+O monitor Shell não aceita `templateRef`. Código de término `0` produz
+`healthy`; códigos diferentes de zero usam `configuration.failureStatus`, que
+pode ser `unknown`, `degraded` ou `unavailable` (padrão). A saída não é
+persistida por padrão. `configuration.captureOutput` pode ser `none`, `stdout`,
+`stderr` ou `both`; quando habilitada, a saída sanitizada e truncada é publicada
+somente como `metadata.shell_stdout` e/ou `metadata.shell_stderr`. Código de
+término, sinal, duração, contagem de bytes e indicação de truncamento permanecem
+como metadados técnicos. O provider nunca envia payload para avaliação de
+template.
+
 ## Configuração
 
 Obrigatórias quando habilitado:

@@ -73,9 +73,11 @@ function MonitorCard({
         <div>
           <dt>Template</dt>
           <dd>
-            {monitor.templateRef
-              ? `${monitor.templateRef.id} · ${monitor.templateRef.version}`
-              : "Sem template"}
+            {monitor.provider === "shell" && monitor.templateRef
+              ? "Legado incompatível — edite para remover"
+              : monitor.templateRef
+                ? `${monitor.templateRef.id} · ${monitor.templateRef.version}`
+                : "Sem template"}
           </dd>
         </div>
         <div>

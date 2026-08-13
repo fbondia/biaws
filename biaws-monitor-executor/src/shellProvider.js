@@ -31,6 +31,16 @@ export const SHELL_CONFIGURATION_SCHEMA = Object.freeze({
       type: "object",
       additionalProperties: { type: "string", maxLength: 4_000 },
     },
+    failureStatus: {
+      type: "string",
+      enum: ["unknown", "degraded", "unavailable"],
+      default: "unavailable",
+    },
+    captureOutput: {
+      type: "string",
+      enum: ["none", "stdout", "stderr", "both"],
+      default: "none",
+    },
   },
 });
 
@@ -136,7 +146,13 @@ function normalizeScriptPolicies(scripts) {
 
 function validateConfiguration(configuration) {
   assertObject(configuration, "configuration");
-  assertAllowedKeys(configuration, ["scriptId", "arguments", "environment"]);
+  assertAllowedKeys(configuration, [
+    "scriptId",
+    "arguments",
+    "environment",
+    "failureStatus",
+    "captureOutput",
+  ]);
   const scriptId = boundedString(configuration.scriptId, "scriptId", {
     required: true,
     max: 100,
@@ -159,6 +175,20 @@ function validateConfiguration(configuration) {
       "INVALID_SCRIPT_ENVIRONMENT",
       "environment has too many entries",
     );
+  const failureStatus = configuration.failureStatus || "unavailable";
+  if (!["unknown", "degraded", "unavailable"].includes(failureStatus)) {
+    throw new ProviderConfigurationError(
+      "INVALID_SHELL_FAILURE_STATUS",
+      "failureStatus must be unknown, degraded or unavailable",
+    );
+  }
+  const captureOutput = configuration.captureOutput || "none";
+  if (!["none", "stdout", "stderr", "both"].includes(captureOutput)) {
+    throw new ProviderConfigurationError(
+      "INVALID_SHELL_CAPTURE_OUTPUT",
+      "captureOutput must be none, stdout, stderr or both",
+    );
+  }
   return {
     scriptId,
     arguments: args.map((entry, index) =>
@@ -177,6 +207,8 @@ function validateConfiguration(configuration) {
         ];
       }),
     ),
+    failureStatus,
+    captureOutput,
   };
 }
 
@@ -261,8 +293,32 @@ export function createShellProvider({
           Math.max(0, ...redactions.map((value) => value.length)),
       );
       const healthy = result.code === 0;
+      const captureStdout = ["stdout", "both"].includes(
+        configuration.captureOutput,
+      );
+      const captureStderr = ["stderr", "both"].includes(
+        configuration.captureOutput,
+      );
+      const capturedMetadata = {
+        ...(captureStdout
+          ? {
+              shell_stdout: truncateText(
+                sanitizeEvidenceText(result.stdout, redactions),
+                maxEvidenceBytes,
+              ),
+            }
+          : {}),
+        ...(captureStderr
+          ? {
+              shell_stderr: truncateText(
+                sanitizeEvidenceText(result.stderr, redactions),
+                maxEvidenceBytes,
+              ),
+            }
+          : {}),
+      };
       return {
-        status: healthy ? "healthy" : "unavailable",
+        status: healthy ? "healthy" : configuration.failureStatus,
         message: healthy
           ? "Shell target completed successfully"
           : "Shell target returned a non-zero exit status",
@@ -274,19 +330,9 @@ export function createShellProvider({
           stdout_bytes: result.stdoutBytes,
           stderr_bytes: result.stderrBytes,
           evidence_truncated:
-            result.stdoutBytes > maxEvidenceBytes ||
-            result.stderrBytes > maxEvidenceBytes,
-        },
-        payload: {
-          provider: "shell",
-          stdout: truncateText(
-            sanitizeEvidenceText(result.stdout, redactions),
-            maxEvidenceBytes,
-          ),
-          stderr: truncateText(
-            sanitizeEvidenceText(result.stderr, redactions),
-            maxEvidenceBytes,
-          ),
+            (captureStdout && result.stdoutBytes > maxEvidenceBytes) ||
+            (captureStderr && result.stderrBytes > maxEvidenceBytes),
+          ...capturedMetadata,
         },
       };
     },

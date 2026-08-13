@@ -232,8 +232,8 @@ export function MetadataProfilesSection({ profiles }) {
               </span>
             </header>
             <p>
-              {profile.fields.length} campo(s) e {profile.series.length} série(s)
-              de apresentação.
+              {profile.fields.length} campo(s) e {profile.series.length}{" "}
+              série(s) de apresentação.
             </p>
             <small>
               {profile.usage.observations} observação(ões) neste workspace

@@ -110,6 +110,20 @@ export function ShellMonitorFields({ draft, update }) {
         onChange={update}
         value={draft.shellEnvironmentText}
       />
+      <SelectField
+        label="Estado para código diferente de zero"
+        name="shellFailureStatus"
+        onChange={update}
+        options={["unavailable", "degraded", "unknown"]}
+        value={draft.shellFailureStatus}
+      />
+      <SelectField
+        label="Captura de saída"
+        name="shellCaptureOutput"
+        onChange={update}
+        options={["none", "stdout", "stderr", "both"]}
+        value={draft.shellCaptureOutput}
+      />
     </>
   );
 }

@@ -28,6 +28,7 @@ function executorScopeFilter(authorizationScope = {}) {
 function leaseResponse(monitor) {
   const normalized = normalizeDocument(monitor);
   const { lease, nameKey, ...response } = normalized;
+  if (response.provider === "shell") delete response.templateRef;
   return {
     ...response,
     leaseToken: lease.token,

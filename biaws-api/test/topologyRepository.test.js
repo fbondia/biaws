@@ -415,6 +415,38 @@ test("active monitor configuration is bounded and secret-free", () => {
       }),
     (error) => error.code === "INVALID_ACTIVE_MONITOR",
   );
+  const shell = normalizeActiveMonitorInput({
+    name: "Worker health",
+    provider: "shell",
+    configuration: { scriptId: "worker-health" },
+  });
+  assert.deepEqual(shell.configuration, {
+    scriptId: "worker-health",
+    failureStatus: "unavailable",
+    captureOutput: "none",
+  });
+  assert.throws(
+    () =>
+      normalizeActiveMonitorInput({
+        name: "Templated shell",
+        provider: "shell",
+        configuration: { scriptId: "worker-health" },
+        templateRef: { id: "health", version: "1" },
+      }),
+    (error) => error.code === "SHELL_TEMPLATE_NOT_SUPPORTED",
+  );
+  assert.throws(
+    () =>
+      normalizeActiveMonitorInput({
+        name: "Invalid shell capture",
+        provider: "shell",
+        configuration: {
+          scriptId: "worker-health",
+          captureOutput: "everything",
+        },
+      }),
+    (error) => error.code === "INVALID_CATALOG_PAYLOAD",
+  );
 });
 
 test("active monitor lease requests require a bounded executor identity", () => {

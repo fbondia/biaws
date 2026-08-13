@@ -215,7 +215,24 @@ auditadas. `DELETE` arquiva a configuração. O contrato inicial aceita `name`,
 (10 a 86.400), `timeoutSeconds` (1 a 300 e nunca maior que o intervalo),
 `configuration` e `templateRef`. A configuração usa JSON limitado e recusa
 campos associados a credenciais; referências a templates são validadas no
-workspace e na versão informada.
+workspace e na versão informada. `templateRef` é exclusivo do provider REST:
+novos monitores Shell com template são rejeitados com
+`SHELL_TEMPLATE_NOT_SUPPORTED`.
+
+No provider Shell, `configuration` aceita `scriptId`, `arguments`,
+`environment`, `failureStatus` (`unknown`, `degraded` ou `unavailable`, padrão
+`unavailable`) e `captureOutput` (`none`, `stdout`, `stderr` ou `both`, padrão
+`none`). Código de término `0` sempre produz `healthy`; qualquer outro código
+produz o `failureStatus` configurado. Saída capturada é sanitizada, truncada no
+limite do executor e persistida somente nas chaves estáveis `shell_stdout` e
+`shell_stderr` dos metadados. Sem captura, nenhuma saída é persistida.
+
+Monitores Shell legados com `templateRef` continuam legíveis, mas qualquer
+edição deve remover a referência. O executor e a API nunca avaliam esse template
+legado. `npm run migrate:monitoring -- --apply` remove essas referências de
+forma idempotente, incrementa a versão do monitor e informa as contagens
+`legacyShellTemplates` e `legacyShellTemplatesRemoved`; sem `--apply`, apenas
+reporta o plano.
 
 ## Contrato do executor
 
@@ -258,9 +275,10 @@ reinício. REST e shell usam registro extensível com schema, validação, execu
 cancelável e normalização de evidência. O provider REST exige allowlist local de
 hosts, revalida DNS e redirects e bloqueia redes privadas/especiais por padrão.
 O provider shell aceita somente `scriptId` allowlisted localmente, sem shell
-intermediário, e restringe caminho, `cwd`, argumentos e ambiente. Configurações
-recusadas e timeouts produzem `unknown` com diagnóstico sanitizado; respostas
-válidas do alvo são distinguidas por `outcome_kind`.
+intermediário, e restringe caminho, `cwd`, argumentos e ambiente. Seu resultado
+é definido pelo código de término, sem template; captura de saída é opcional e
+limitada. Configurações recusadas e timeouts produzem `unknown` com diagnóstico
+sanitizado; respostas válidas do alvo são distinguidas por `outcome_kind`.
 
 Endpoints locais, por padrão na porta `3110`:
 

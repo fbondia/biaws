@@ -101,6 +101,8 @@ export const EMPTY_ACTIVE_MONITOR_DRAFT = {
   shellScriptId: "",
   shellArgumentsText: "",
   shellEnvironmentText: "{}",
+  shellFailureStatus: "unavailable",
+  shellCaptureOutput: "none",
   templateId: "",
   templateVersion: "",
 };

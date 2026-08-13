@@ -63,6 +63,8 @@ export function activeMonitorDraft(monitor) {
       null,
       2,
     ),
+    shellFailureStatus: configuration.failureStatus || "unavailable",
+    shellCaptureOutput: configuration.captureOutput || "none",
     templateId: monitor.templateRef?.id || "",
     templateVersion: monitor.templateRef?.version || "",
   };
@@ -142,17 +144,30 @@ export function activeMonitorPayload(draft) {
     if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/u.test(scriptId)) {
       throw new Error("Informe um identificador de script permitido válido.");
     }
+    const failureStatus = draft.shellFailureStatus || "unavailable";
+    if (!["unknown", "degraded", "unavailable"].includes(failureStatus)) {
+      throw new Error("Estado de falha Shell inválido.");
+    }
+    const captureOutput = draft.shellCaptureOutput || "none";
+    if (!["none", "stdout", "stderr", "both"].includes(captureOutput)) {
+      throw new Error("Modo de captura Shell inválido.");
+    }
     configuration = {
       scriptId,
       arguments: parseLines(draft.shellArgumentsText),
       environment: parseObject(draft.shellEnvironmentText, "Ambiente"),
+      failureStatus,
+      captureOutput,
     };
   } else {
     throw new Error("Provider de monitoramento inválido.");
   }
   const templateId = text(draft.templateId);
   const templateVersion = text(draft.templateVersion);
-  if (Boolean(templateId) !== Boolean(templateVersion)) {
+  if (
+    draft.provider !== "shell" &&
+    Boolean(templateId) !== Boolean(templateVersion)
+  ) {
     throw new Error("Informe o identificador e a versão do template juntos.");
   }
   return {
@@ -163,9 +178,12 @@ export function activeMonitorPayload(draft) {
     intervalSeconds,
     timeoutSeconds,
     configuration,
-    templateRef: templateId
-      ? { id: templateId, version: templateVersion }
-      : null,
+    templateRef:
+      draft.provider === "shell"
+        ? null
+        : templateId
+          ? { id: templateId, version: templateVersion }
+          : null,
   };
 }
 

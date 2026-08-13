@@ -345,10 +345,12 @@ export async function recordActiveRuntimeMonitoringObservation(
   }
   let evaluation = null;
   let evaluationFailure = null;
-  if (monitor.templateRef) {
+  const templateRef =
+    monitor.provider === "shell" ? null : monitor.templateRef || null;
+  if (templateRef) {
     try {
       evaluation = await evaluateMonitoringTemplateReference(
-        monitor.templateRef,
+        templateRef,
         {
           context: {
             origin: "active",
@@ -393,7 +395,7 @@ export async function recordActiveRuntimeMonitoringObservation(
           : payload.metadata,
       metadataProfile:
         evaluation || evaluationFailure ? undefined : payload.metadataProfile,
-      payload: payload.payload,
+      payload: monitor.provider === "shell" ? undefined : payload.payload,
     },
     actor,
   );
@@ -405,9 +407,7 @@ export async function recordActiveRuntimeMonitoringObservation(
       executionId: monitor.lease.executionId,
       scheduledFor: monitor.lease.scheduledFor,
       provider: monitor.provider,
-      ...(monitor.templateRef
-        ? { templateRef: { ...monitor.templateRef } }
-        : {}),
+      ...(templateRef ? { templateRef: { ...templateRef } } : {}),
       ...(evaluation
         ? {
             templateSnapshot: evaluation.templateSnapshot,

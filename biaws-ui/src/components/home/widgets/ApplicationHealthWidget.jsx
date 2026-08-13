@@ -1,4 +1,4 @@
-import { Clock3, Server } from "lucide-react";
+import { Clock3, Server, History } from "lucide-react";
 import { useState } from "react";
 
 import { MonitoringMetadataPresentation } from "../../shared/MonitoringEventDetails/index.jsx";
@@ -116,7 +116,7 @@ function HealthMetadataExplorer({
             onClick={() => onSelectRuntime(activeRuntime)}
             type="button"
           >
-            Ver histórico
+            <History size={18} />
           </button>
         </header>
         <div className="homeHealthMetadataPanelContext">

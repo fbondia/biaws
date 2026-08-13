@@ -19,6 +19,7 @@ import {
   requireTemplate,
   templateCollection,
 } from "./monitoringTemplatesStorage.js";
+import { unifiedMonitoringTemplateSnapshot } from "./monitoringTemplateUnifiedDefinition.js";
 
 export async function createMonitoringTemplate(payload, actor) {
   const normalized = normalizeTemplateInput(payload);
@@ -272,7 +273,9 @@ export async function evaluateMonitoringTemplateReference(
       id: template.id,
       version: template.version,
       name: template.name,
+      description: template.description,
       definition: template.definition,
+      ...unifiedMonitoringTemplateSnapshot(template),
     },
   };
 }

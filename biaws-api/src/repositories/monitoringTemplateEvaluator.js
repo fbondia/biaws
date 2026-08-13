@@ -7,6 +7,10 @@ import {
   optionalText,
   requiredText,
 } from "./topologyRepositorySupport.js";
+import {
+  isUnifiedMonitoringTemplateDefinition,
+  normalizeUnifiedMonitoringTemplateDefinition,
+} from "./monitoringTemplateUnifiedDefinition.js";
 
 const RESULT_STATUSES = RUNTIME_STATUSES.filter(
   (status) => status !== "archived",
@@ -145,6 +149,9 @@ function normalizeRule(value, index) {
 }
 
 export function normalizeMonitoringTemplateDefinition(value = {}) {
+  if (isUnifiedMonitoringTemplateDefinition(value)) {
+    return normalizeUnifiedMonitoringTemplateDefinition(value);
+  }
   assertAllowedFields(value, ["rules", "defaultResult"], "template definition");
   if (
     !Array.isArray(value.rules) ||
@@ -242,6 +249,12 @@ function renderMessage(message, sample) {
 }
 
 export function evaluateMonitoringTemplate(definition, rawSample = {}) {
+  if (isUnifiedMonitoringTemplateDefinition(definition)) {
+    normalizeUnifiedMonitoringTemplateDefinition(definition);
+    throw invalid(
+      "JSONata template evaluation is not available in this implementation phase",
+    );
+  }
   const normalizedDefinition =
     normalizeMonitoringTemplateDefinition(definition);
   const sample = sanitizeMonitoringTemplateSample(rawSample);

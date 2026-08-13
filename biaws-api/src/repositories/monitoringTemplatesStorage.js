@@ -11,6 +11,21 @@ import {
 
 let collectionPromise;
 
+export async function ensureMonitoringTemplateIndexes(collection) {
+  await Promise.all([
+    collection.createIndex(
+      { workspaceId: 1, id: 1, version: 1 },
+      { unique: true },
+    ),
+    collection.createIndex({
+      workspaceId: 1,
+      nameKey: 1,
+      versionNumber: -1,
+    }),
+    collection.createIndex({ workspaceId: 1, status: 1, updatedAt: -1 }),
+  ]);
+}
+
 export async function templateCollection() {
   if (!collectionPromise) {
     collectionPromise = (async () => {
@@ -18,18 +33,7 @@ export async function templateCollection() {
       const collection = database.collection(
         COLLECTION_NAMES.RUNTIME_MONITORING_TEMPLATES,
       );
-      await Promise.all([
-        collection.createIndex(
-          { workspaceId: 1, id: 1, version: 1 },
-          { unique: true },
-        ),
-        collection.createIndex({
-          workspaceId: 1,
-          nameKey: 1,
-          versionNumber: -1,
-        }),
-        collection.createIndex({ workspaceId: 1, status: 1, updatedAt: -1 }),
-      ]);
+      await ensureMonitoringTemplateIndexes(collection);
       return collection;
     })().catch((error) => {
       collectionPromise = undefined;

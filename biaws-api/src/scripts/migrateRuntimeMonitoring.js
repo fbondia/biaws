@@ -10,6 +10,7 @@ import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
 import { monitoringExpirationDate } from "../repositories/runtimeMonitoringRepository.js";
 import { ensureRuntimeActiveMonitoringIndexes } from "../repositories/runtimeActiveMonitoringRepository.js";
+import { migrateIntegratedMonitoringProfiles } from "../repositories/monitoringMetadataProfileTemplates.js";
 
 const apply = process.argv.slice(2).includes("--apply");
 
@@ -78,6 +79,7 @@ async function migrate() {
     passiveEvents: await events.countDocuments(passiveEventFilter),
     administrationGroups: await groups.countDocuments(administrationFilter),
     administrationGroupsUpdated: 0,
+    integratedProfileTemplates: null,
   };
 
   for await (const runtime of runtimes.find({})) {
@@ -151,6 +153,8 @@ async function migrate() {
     );
     await ensureRuntimeActiveMonitoringIndexes();
   }
+  summary.integratedProfileTemplates =
+    await migrateIntegratedMonitoringProfiles(database, { apply });
   console.log(JSON.stringify(summary));
 }
 

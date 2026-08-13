@@ -67,10 +67,11 @@ automações, acrescentando tempo de resposta do banco e os indicadores do pool
 Hikari: estado, utilização, conexões ativas/ociosas/totais, threads aguardando e
 limites configurados.
 
-Esses perfis integrados são contratos para validar e apresentar metadados de
-sinais externos, como os registrados manualmente pela API ou CLI. Eles são
-diferentes dos templates avaliadores configuráveis usados pelos provedores REST
-e shell para interpretar evidências e produzir uma observação normalizada.
+Esses perfis integrados permanecem aceitos para leitura e envio legado. A
+migração de monitoramento materializa `sgmp-health/v1` e
+`sgmp-api-health/v1` como versões ativas dos templates persistidos
+`sgmp-health` e `sgmp-api-health` em cada workspace que já possui observações
+com perfil integrado. Eventos históricos não são alterados nem reinterpretados.
 
 ```json
 {
@@ -95,6 +96,52 @@ diagnóstico detalhado. O payload é exibido somente nos detalhes do evento.
 
 Sinais fora de ordem permanecem no histórico, mas só atualizam a saúde
 materializada quando `observedAt` é igual ou posterior ao último sinal aplicado.
+
+## Templates unificados
+
+Novas versões podem usar o schema unificado `1`. Cada versão é imutável e
+declara, no mesmo documento, a amostra JSON de entrada, a transformação JSONata,
+o contrato da observação normalizada e o catálogo de apresentação. O contrato
+limita a 100 campos de metadados e 20 séries, recusa chaves sensíveis e aceita
+somente `application/json` e a linguagem `jsonata` nesta versão.
+
+```json
+{
+  "schemaVersion": "1",
+  "input": {
+    "mediaType": "application/json",
+    "sample": { "status": "healthy", "message": "OK", "metadata": {} }
+  },
+  "transformation": {
+    "language": "jsonata",
+    "expression": "{\"status\": status, \"message\": message, \"metadata\": metadata}"
+  },
+  "output": {
+    "status": {
+      "type": "string",
+      "required": true,
+      "enum": ["healthy", "degraded", "unavailable", "unknown"]
+    },
+    "message": { "type": "string", "required": false, "maxLength": 2000 },
+    "metadata": {
+      "type": "object",
+      "required": true,
+      "additionalProperties": false,
+      "fields": []
+    }
+  },
+  "presentation": { "label": "Saúde", "fields": [], "series": [] }
+}
+```
+
+Templates antigos baseados em `rules` e `defaultResult` continuam legíveis e
+avaliáveis durante a transição. Observações produzidas por uma versão unificada
+guardam um snapshot do contrato e da apresentação aplicados; observações antigas
+continuam usando `metadataPresentation` derivado de `metadataProfile`.
+
+`npm run migrate:monitoring` informa em dry-run quantos templates seriam
+criados. `npm run migrate:monitoring -- --apply` cria somente os ausentes; a
+chave única `(workspaceId, id, version)` torna execuções repetidas idempotentes.
 
 ## CLI
 

@@ -5,6 +5,10 @@ import path from "node:path";
 import test from "node:test";
 
 import { COLLECTION_NAMES } from "../src/database/collectionNames.js";
+import {
+  integratedMonitoringTemplateSeeds,
+  migrateIntegratedMonitoringProfiles,
+} from "../src/repositories/monitoringMetadataProfileTemplates.js";
 
 const integrationEnabled =
   Boolean(process.env.BIAWS_INTEGRATION_MONGO_URI) &&
@@ -385,6 +389,47 @@ test(
         profiles[0].usage.lastObservedAt,
         "2026-07-31T15:00:00.000Z",
       );
+      const profileMigration = await migrateIntegratedMonitoringProfiles(
+        database,
+        { apply: true },
+      );
+      const repeatedProfileMigration =
+        await migrateIntegratedMonitoringProfiles(database, { apply: true });
+      assert.equal(profileMigration.eligibleWorkspaces, 1);
+      assert.equal(profileMigration.templatesCreated, 2);
+      assert.equal(repeatedProfileMigration.templatesCreated, 0);
+      assert.equal(repeatedProfileMigration.existingTemplates, 2);
+      const migratedTemplates = await database
+        .collection(COLLECTION_NAMES.RUNTIME_MONITORING_TEMPLATES)
+        .find({ workspaceId: runtime.workspaceId })
+        .sort({ id: 1 })
+        .toArray();
+      assert.deepEqual(
+        migratedTemplates.map(({ id, version, status }) => ({
+          id,
+          version,
+          status,
+        })),
+        [
+          { id: "sgmp-api-health", version: "1", status: "active" },
+          { id: "sgmp-health", version: "1", status: "active" },
+        ],
+      );
+      assert.equal(migratedTemplates[0].definition.schemaVersion, "1");
+      assert.equal(
+        migratedTemplates[0].definition.transformation.language,
+        "jsonata",
+      );
+      assert.equal(
+        await database
+          .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)
+          .countDocuments({
+            workspaceId: runtime.workspaceId,
+            metadataProfile: "sgmp-health/v1",
+            templateRef: { $exists: false },
+          }),
+        1,
+      );
       const filteredSignalsResponse = await request(
         `${signalRoute}?status=healthy&observedFrom=2026-07-31&observedTo=2026-07-31`,
         { cookie: adminCookie },
@@ -481,6 +526,64 @@ test(
         (await foreignTemplateResponse.json()).error.code,
         "INVALID_MONITORING_TEMPLATE",
       );
+      const unifiedDefinition =
+        integratedMonitoringTemplateSeeds()[0].definition;
+      const unifiedTemplateResponse = await request(
+        "/api/monitoring/templates",
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            name: "Unified external health",
+            description: "Unified contract integration template",
+            definition: unifiedDefinition,
+          },
+          origin: true,
+        },
+      );
+      assert.equal(unifiedTemplateResponse.status, 201);
+      const unifiedTemplate = (await unifiedTemplateResponse.json()).template;
+      assert.equal(unifiedTemplate.definition.schemaVersion, "1");
+      const unifiedVersionResponse = await request(
+        `/api/monitoring/templates/${unifiedTemplate.id}`,
+        {
+          cookie: adminCookie,
+          method: "PATCH",
+          body: {
+            name: unifiedTemplate.name,
+            description: "Second immutable unified version",
+            definition: {
+              ...unifiedDefinition,
+              transformation: {
+                ...unifiedDefinition.transformation,
+                expression:
+                  '{"status": status, "message": message, "metadata": metadata}',
+              },
+            },
+          },
+          origin: true,
+        },
+      );
+      assert.equal(unifiedVersionResponse.status, 201);
+      const unifiedVersion = (await unifiedVersionResponse.json()).template;
+      assert.equal(unifiedVersion.version, "2");
+      assert.equal(unifiedVersion.derivedFromVersion, "1");
+      const unifiedActivationResponse = await request(
+        `/api/monitoring/templates/${unifiedTemplate.id}/versions/2/activate`,
+        { cookie: adminCookie, method: "POST", body: {}, origin: true },
+      );
+      assert.equal(unifiedActivationResponse.status, 200);
+      assert.equal(
+        (await unifiedActivationResponse.json()).template.status,
+        "active",
+      );
+      const persistedUnifiedTemplate = await (
+        await request(`/api/monitoring/templates/${unifiedTemplate.id}`, {
+          cookie: adminCookie,
+        })
+      ).json();
+      assert.equal(persistedUnifiedTemplate.template.versions.length, 2);
+      assert.equal(persistedUnifiedTemplate.template.version, "2");
       const templateDefinition = {
         rules: [
           {

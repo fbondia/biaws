@@ -88,6 +88,30 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     dialog = document.querySelector('[role="dialog"]');
     assert.match(dialog.textContent, /URL HTTP\(S\), sem credenciais/u);
     assert.equal(dialog.querySelector('select[name="provider"]'), null);
+    assert.ok(dialog.querySelector("#active-monitor-dialog-title svg"));
+    assert.deepEqual(
+      [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map(
+        (heading) => heading.textContent,
+      ),
+      ["Identificação", "Agendamento", "Requisição REST", "Interpretação"],
+    );
+    const templateSelect = dialog.querySelector('select[name="templateId"]');
+    const versionSelect = dialog.querySelector(
+      'select[name="templateVersion"]',
+    );
+    assert.ok(templateSelect);
+    assert.equal(versionSelect.disabled, true);
+    templateSelect.value = "health-template";
+    templateSelect.dispatchEvent(
+      new dom.window.Event("change", { bubbles: true }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(versionSelect.disabled, false);
+    assert.deepEqual(
+      [...versionSelect.options].map((option) => option.value),
+      ["", "2"],
+    );
+    assert.equal(dialog.querySelector('input[name="templateId"]'), null);
 
     const cancelButton = [...dialog.querySelectorAll("button")].find((button) =>
       button.textContent.includes("Cancelar"),
@@ -105,6 +129,7 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     dialog = document.querySelector('[role="dialog"]');
     assert.match(dialog.textContent, /ID do script permitido/u);
     assert.doesNotMatch(dialog.textContent, /URL HTTP\(S\), sem credenciais/u);
+    assert.match(dialog.textContent, /Execução do script/u);
 
     root.unmount();
 

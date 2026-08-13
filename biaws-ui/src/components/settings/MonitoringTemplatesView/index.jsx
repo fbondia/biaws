@@ -5,6 +5,7 @@ import {
   createMonitoringTemplate,
   createMonitoringTemplateVersion,
   deleteMonitoringTemplateVersion,
+  fetchMonitoringMetadataProfiles,
   fetchMonitoringTemplates,
   fetchMonitoringTemplateUsage,
   previewMonitoringTemplate,
@@ -12,7 +13,11 @@ import {
 } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
 import "../../../styles/features/monitoring-templates.css";
-import { TemplateDialog, VersionRow } from "./components.jsx";
+import {
+  MetadataProfilesSection,
+  TemplateDialog,
+  VersionRow,
+} from "./components.jsx";
 import {
   DEFAULT_PREVIEW_SAMPLE,
   monitoringTemplateDraft,
@@ -22,6 +27,7 @@ import {
 
 export function MonitoringTemplatesView({ actor }) {
   const [templates, setTemplates] = useState([]);
+  const [metadataProfiles, setMetadataProfiles] = useState([]);
   const [draft, setDraft] = useState(null);
   const [previewSample, setPreviewSample] = useState(
     JSON.stringify(DEFAULT_PREVIEW_SAMPLE, null, 2),
@@ -40,8 +46,12 @@ export function MonitoringTemplatesView({ actor }) {
     setLoading(true);
     setError("");
     try {
-      const payload = await fetchMonitoringTemplates({ limit: 100 });
-      setTemplates(payload.items || []);
+      const [templatePayload, profilePayload] = await Promise.all([
+        fetchMonitoringTemplates({ limit: 100 }),
+        fetchMonitoringMetadataProfiles(),
+      ]);
+      setTemplates(templatePayload.items || []);
+      setMetadataProfiles(profilePayload.items || []);
     } catch (loadError) {
       setError(loadError.message);
     } finally {
@@ -226,6 +236,7 @@ export function MonitoringTemplatesView({ actor }) {
           </article>
         ))}
       </div>
+      <MetadataProfilesSection profiles={metadataProfiles} />
       {!canManage ? (
         <div className="catalogPermissionNotice">
           Consulta disponível. A administração exige permissão de atualização no

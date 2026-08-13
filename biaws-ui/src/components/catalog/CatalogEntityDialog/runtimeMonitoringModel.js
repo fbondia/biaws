@@ -198,6 +198,41 @@ export function mergeMonitoringEvents(current = [], incoming = []) {
   );
 }
 
+export function selectableMonitoringTemplates(
+  templates = [],
+  currentReference = {},
+) {
+  const currentId = String(currentReference.id || "");
+  const currentVersion = String(currentReference.version || "");
+  const items = templates
+    .map((template) => {
+      const versions = (template.versions || []).filter(
+        (version) =>
+          version.status === "active" ||
+          (template.id === currentId &&
+            String(version.version) === currentVersion),
+      );
+      if (
+        template.id === currentId &&
+        currentVersion &&
+        !versions.some(({ version }) => String(version) === currentVersion)
+      ) {
+        versions.push({ status: "current", version: currentVersion });
+      }
+      return { ...template, versions };
+    })
+    .filter(({ versions }) => versions.length);
+
+  if (currentId && !items.some(({ id }) => id === currentId)) {
+    items.push({
+      id: currentId,
+      name: currentId,
+      versions: [{ status: "current", version: currentVersion }],
+    });
+  }
+  return items;
+}
+
 export function monitoringCliExample({ runtimeReference, workspaceId } = {}) {
   if (!runtimeReference || !workspaceId) return "";
   return [

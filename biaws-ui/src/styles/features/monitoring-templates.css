@@ -3,6 +3,14 @@
   gap: 18px;
   padding: 24px;
 }
+.monitoringTemplatesPage > .emptyState {
+  display: grid;
+  min-height: 220px;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
 .monitoringTemplatesHero {
   align-items: flex-start;
   display: flex;
@@ -69,7 +77,39 @@
   margin: 0;
 }
 .monitoringTemplateDialog {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(940px, 100%);
+  max-height: min(900px, calc(100dvh - 44px));
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
   max-width: 940px;
+}
+.monitoringTemplateDialog > header,
+.monitoringTemplateDialog > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+}
+.monitoringTemplateDialog > header {
+  border-bottom: 1px solid var(--color-border);
+}
+.monitoringTemplateDialog > header h2,
+.monitoringTemplateDialog > header span {
+  margin: 0;
+}
+.monitoringTemplateDialog > header span {
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+.monitoringTemplateDialog > footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
 }
 .monitoringTemplateDialogBody {
   display: grid;
@@ -100,6 +140,60 @@
   max-height: 180px;
   overflow: auto;
   white-space: pre-wrap;
+}
+.monitoringProfilesSection {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
+}
+.monitoringProfilesSection h3,
+.monitoringProfilesSection p {
+  margin: 0;
+}
+.monitoringProfilesSection > header span {
+  color: var(--color-accent-text);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.monitoringProfilesSection > header p {
+  max-width: 760px;
+  margin-top: 4px;
+  color: var(--color-text-subtle);
+}
+.monitoringProfilesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 14px;
+}
+.monitoringProfileCard {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: 16px;
+}
+.monitoringProfileCard > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.monitoringProfileCard > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+.monitoringProfileCard code,
+.monitoringProfileCard small {
+  color: var(--color-text-subtle);
+  overflow-wrap: anywhere;
+}
+.monitoringProfileCard p {
+  margin: 0;
+  color: var(--color-text-secondary);
 }
 @media (max-width: 720px) {
   .monitoringTemplatesHero {

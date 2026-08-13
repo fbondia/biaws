@@ -28,6 +28,16 @@ export function RuntimeMonitoringHarness() {
     monitoringError: "",
     monitoringLoading: false,
     monitoringNotice: "",
+    monitoringTemplates: [
+      {
+        id: "health-template",
+        name: "Saúde HTTP",
+        versions: [
+          { status: "inactive", version: "1" },
+          { status: "active", version: "2" },
+        ],
+      },
+    ],
     openMonitor: (monitor) => setMonitorDraft(activeMonitorDraft(monitor)),
     removeMonitor() {},
     saveMonitor() {},

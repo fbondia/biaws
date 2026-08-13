@@ -8,6 +8,7 @@ import {
   monitoringCliExample,
   monitoringOriginLabel,
   newObservationDraft,
+  selectableMonitoringTemplates,
 } from "../src/components/catalog/CatalogEntityDialog/runtimeMonitoringModel.js";
 
 test("REST monitor draft produces the provider contract without inline credentials", () => {
@@ -111,5 +112,35 @@ test("monitoring history pages are merged without duplicate observations", () =>
   assert.deepEqual(
     events.map(({ id }) => id),
     ["event-2", "event-1", "event-3"],
+  );
+});
+
+test("template selectors expose active versions and preserve the current reference", () => {
+  const templates = selectableMonitoringTemplates(
+    [
+      {
+        id: "health",
+        name: "Health",
+        versions: [
+          { status: "inactive", version: "1" },
+          { status: "active", version: "2" },
+        ],
+      },
+      {
+        id: "draft-only",
+        name: "Draft only",
+        versions: [{ status: "draft", version: "1" }],
+      },
+    ],
+    { id: "health", version: "1" },
+  );
+
+  assert.deepEqual(
+    templates.map(({ id }) => id),
+    ["health"],
+  );
+  assert.deepEqual(
+    templates[0].versions.map(({ version }) => version),
+    ["1", "2"],
   );
 });

@@ -3,6 +3,8 @@ import { deleteJson, fetchJson, sendJson } from "./client.js";
 const base = "/api/monitoring/templates";
 
 export const fetchMonitoringTemplates = (params) => fetchJson(base, params);
+export const fetchMonitoringMetadataProfiles = () =>
+  fetchJson("/api/monitoring/metadata-profiles");
 export const fetchMonitoringTemplate = (templateId, params) =>
   fetchJson(`${base}/${encodeURIComponent(templateId)}`, params);
 export const createMonitoringTemplate = (template) =>

@@ -370,6 +370,21 @@ test(
         signals.items[0].metadataPresentation.series[0].visualization,
         "line",
       );
+      const profilesResponse = await request(
+        "/api/monitoring/metadata-profiles",
+        { cookie: adminCookie },
+      );
+      assert.equal(profilesResponse.status, 200);
+      const profiles = (await profilesResponse.json()).items;
+      assert.deepEqual(
+        profiles.map(({ id }) => id),
+        ["sgmp-health/v1", "sgmp-api-health/v1"],
+      );
+      assert.equal(profiles[0].usage.observations, 1);
+      assert.equal(
+        profiles[0].usage.lastObservedAt,
+        "2026-07-31T15:00:00.000Z",
+      );
       const filteredSignalsResponse = await request(
         `${signalRoute}?status=healthy&observedFrom=2026-07-31&observedTo=2026-07-31`,
         { cookie: adminCookie },

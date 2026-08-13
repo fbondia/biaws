@@ -292,6 +292,7 @@ entre `operation`, `deployment`, `rollback`, `troubleshooting`, `monitoring` e
 | `GET`    | `/api/monitoring/runtimes/:runtimeReference/signals`                    | `runtimes.read`             |
 | `GET`    | `/api/monitoring/runtimes/:runtimeReference/timeline`                   | `runtimes.read`             |
 | `GET`    | `/api/monitoring/applications/:applicationId/health`                    | `runtimes.read`             |
+| `GET`    | `/api/monitoring/metadata-profiles`                                     | `runtimes.read`             |
 | `GET`    | `/api/monitoring/runtimes/:runtimeReference/active-monitors`            | `runtimes.read`             |
 | `POST`   | `/api/monitoring/runtimes/:runtimeReference/active-monitors`            | `runtimes.update`           |
 | `PATCH`  | `/api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId` | `runtimes.update`           |
@@ -307,6 +308,8 @@ Sinais passivos, execuções ativas e observações manuais são persistidos em
 `metadataProfile` referencia um contrato versionado conhecido pelo serviço. A
 API valida os metadados pelo perfil, persiste apenas sua identificação e expande
 `metadataPresentation` nas respostas para orientar badges, percentuais e séries.
+O catálogo vigente desses contratos integrados, acompanhado da quantidade de
+observações no workspace, é retornado por `/api/monitoring/metadata-profiles`.
 `payload` preserva JSON aninhado de diagnóstico sob os limites e bloqueios de
 segredos documentados. A rota `timeline` retorna ambos na mesma ordenação.
 `runtimeReference` aceita o UUID do runtime ou o caminho de identificadores

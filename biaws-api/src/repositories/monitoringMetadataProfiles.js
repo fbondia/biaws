@@ -309,3 +309,26 @@ export function normalizeMonitoringMetadataProfile(value, metadata) {
 export function monitoringMetadataPresentation(profileId) {
   return PROFILES.get(profileId) || null;
 }
+
+export function monitoringMetadataProfileCatalog() {
+  return [...PROFILES.values()].map((profile) => ({
+    id: profile.id,
+    label: profile.label,
+    fields: profile.fields.map(({ key, label, format, visualization }) => ({
+      key,
+      label,
+      format,
+      visualization,
+    })),
+    series: (profile.series || []).map(
+      ({ label, visualization, xKey, xFormat, yKey, yFormatKey }) => ({
+        label,
+        visualization,
+        xKey,
+        xFormat,
+        yKey,
+        yFormatKey,
+      }),
+    ),
+  }));
+}

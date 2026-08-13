@@ -67,6 +67,11 @@ automações, acrescentando tempo de resposta do banco e os indicadores do pool
 Hikari: estado, utilização, conexões ativas/ociosas/totais, threads aguardando e
 limites configurados.
 
+Esses perfis integrados são contratos para validar e apresentar metadados de
+sinais externos, como os registrados manualmente pela API ou CLI. Eles são
+diferentes dos templates avaliadores configuráveis usados pelos provedores REST
+e shell para interpretar evidências e produzir uma observação normalizada.
+
 ```json
 {
   "metadataProfile": "sgmp-health/v1",

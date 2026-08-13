@@ -9,7 +9,10 @@ import {
 } from "../src/repositories/deploymentsRepository.js";
 import { normalizeRepositoryInput } from "../src/repositories/repositoriesRepository.js";
 import { normalizeServerInput } from "../src/repositories/serversRepository.js";
-import { monitoringMetadataPresentation } from "../src/repositories/monitoringMetadataProfiles.js";
+import {
+  monitoringMetadataPresentation,
+  monitoringMetadataProfileCatalog,
+} from "../src/repositories/monitoringMetadataProfiles.js";
 import {
   normalizeActiveMonitorInput,
   normalizeActiveMonitorLeaseRequest,
@@ -471,6 +474,14 @@ test("monitoring signals validate status, idempotency key and secret-free metada
 });
 
 test("monitoring metadata profiles validate their versioned field contract", () => {
+  const catalog = monitoringMetadataProfileCatalog();
+  assert.deepEqual(
+    catalog.map(({ id }) => id),
+    ["sgmp-health/v1", "sgmp-api-health/v1"],
+  );
+  assert.equal(catalog[0].label, "Saúde do SGMP");
+  assert.equal(catalog[1].fields[2].key, "connection_pool_up");
+
   const signal = normalizeMonitoringSignal({
     status: "healthy",
     source: "sgmp-health-monitor",

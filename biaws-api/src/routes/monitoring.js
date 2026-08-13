@@ -41,6 +41,7 @@ import {
   previewMonitoringTemplate,
   setMonitoringTemplateStatus,
 } from "../repositories/monitoringTemplatesRepository.js";
+import { listMonitoringMetadataProfiles } from "../repositories/monitoringMetadataProfilesRepository.js";
 
 export const monitoringRouter = Router();
 
@@ -131,6 +132,17 @@ monitoringRouter.get(
         workspaceId: req.actor.workspaceId,
       }),
     );
+  }),
+);
+
+monitoringRouter.get(
+  "/metadata-profiles",
+  requireAllPermissions("runtimes.read"),
+  requireWorkspaceScope("runtimes.read"),
+  asyncHandler(async (req, res) => {
+    res.json({
+      items: await listMonitoringMetadataProfiles(req.actor.workspaceId),
+    });
   }),
 );
 

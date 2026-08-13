@@ -1,4 +1,4 @@
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, Trash2, X } from "lucide-react";
 
 import { templateStatusLabel } from "./model.js";
 
@@ -20,16 +20,25 @@ export function TemplateDialog({
       <section
         aria-labelledby="monitoring-template-dialog-title"
         aria-modal="true"
-        className="entityDialog monitoringTemplateDialog"
+        className="monitoringTemplateDialog"
         role="dialog"
       >
-        <header className="entityDialogHeader">
+        <header>
           <div>
             <span>{draft.id ? "Nova versão" : "Novo template"}</span>
             <h2 id="monitoring-template-dialog-title">
               {draft.name || "Template de monitoramento"}
             </h2>
           </div>
+          <button
+            aria-label="Fechar"
+            className="iconButton"
+            disabled={saving}
+            onClick={onClose}
+            type="button"
+          >
+            <X size={18} />
+          </button>
         </header>
         <div className="monitoringTemplateDialogBody">
           <label className="field">
@@ -192,5 +201,49 @@ export function VersionRow({
         </p>
       ) : null}
     </li>
+  );
+}
+
+export function MetadataProfilesSection({ profiles }) {
+  if (!profiles.length) return null;
+  return (
+    <section className="monitoringProfilesSection">
+      <header>
+        <div>
+          <span>Contratos do sistema</span>
+          <h3>Perfis para sinais externos</h3>
+          <p>
+            Validam e apresentam metadata enviada por processos manuais ou
+            passivos. São integrados à API e não substituem templates de
+            interpretação dos providers REST e Shell.
+          </p>
+        </div>
+      </header>
+      <div className="monitoringProfilesGrid">
+        {profiles.map((profile) => (
+          <article className="monitoringProfileCard" key={profile.id}>
+            <header>
+              <div>
+                <strong>{profile.label}</strong>
+                <code>{profile.id}</code>
+              </div>
+              <span className="catalogStatus catalogStatus-active">
+                Integrado
+              </span>
+            </header>
+            <p>
+              {profile.fields.length} campo(s) e {profile.series.length} série(s)
+              de apresentação.
+            </p>
+            <small>
+              {profile.usage.observations} observação(ões) neste workspace
+              {profile.usage.lastObservedAt
+                ? ` · última em ${new Date(profile.usage.lastObservedAt).toLocaleString("pt-BR")}`
+                : ""}
+            </small>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

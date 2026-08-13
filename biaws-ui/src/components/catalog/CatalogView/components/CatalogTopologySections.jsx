@@ -115,7 +115,11 @@ export function TopologyHeader({
             title="Exibir somente componentes com deployment configurado"
             type="button"
           >
-            {deployableOnly ? <PackageCheck size={16} /> : <Package size={16} />}
+            {deployableOnly ? (
+              <PackageCheck size={16} />
+            ) : (
+              <Package size={16} />
+            )}
           </button>
         ) : null}
         {canViewDiagram ? (

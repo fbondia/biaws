@@ -16,7 +16,6 @@ export function CatalogSelectedDetail({
   actor,
   context,
   loading,
-  onArchive,
   onBack,
   onDelete,
   onEdit,
@@ -58,7 +57,6 @@ export function CatalogSelectedDetail({
         <HeaderActions
           actor={actor}
           application={context.application}
-          onArchive={onArchive}
           onBack={onBack}
           onDelete={onDelete}
           onEdit={onEdit}
@@ -146,6 +144,7 @@ export function CatalogDialogs({
   collectionState,
   context,
   dialog,
+  onArchiveApplication,
   onArchiveEntity,
   onPersistApplication,
   onPersistEntity,
@@ -153,11 +152,16 @@ export function CatalogDialogs({
   workspace,
 }) {
   const archivePermissionByKind = {
+    application: "applications.archive",
     component: "components.archive",
     deployment: "deployments.archive",
     runtime: "runtimes.archive",
   };
   const archivePermission = archivePermissionByKind[dialog?.kind];
+  const archiveDialogEntity = () =>
+    dialog.kind === "application"
+      ? onArchiveApplication(dialog.entity, { surfaceError: false })
+      : onArchiveEntity(dialog.kind, dialog.entity, { surfaceError: false });
   return (
     <>
       {collectionState.collectionDialog ? (
@@ -185,10 +189,7 @@ export function CatalogDialogs({
             dialog.entity?.status !== "archived" &&
             archivePermission &&
             hasPermission(actor, archivePermission)
-              ? () =>
-                  onArchiveEntity(dialog.kind, dialog.entity, {
-                    surfaceError: false,
-                  })
+              ? archiveDialogEntity
               : undefined
           }
           onSave={

@@ -39,7 +39,6 @@ export function CatalogView({ actor }) {
     persistEntity,
     archiveEntity,
     archiveApplicationItem,
-    archiveSelectedApplication,
     deleteArchivedApplication,
     editEntity,
     entityActions,
@@ -134,11 +133,6 @@ export function CatalogView({ actor }) {
                 : undefined
             }
             onDelete={collectionState.removeCollection}
-            onArchiveItem={
-              canManageApplicationLifecycle
-                ? (application) => void archiveApplicationItem(application)
-                : undefined
-            }
             onDeleteItem={
               canManageApplicationLifecycle
                 ? (application) => void deleteArchivedApplication(application)
@@ -219,7 +213,6 @@ export function CatalogView({ actor }) {
             actor={actor}
             context={context}
             loading={loading}
-            onArchive={() => void archiveSelectedApplication()}
             onBack={() => setSelectedId("")}
             onDelete={() => void deleteArchivedApplication(context.application)}
             onEdit={() =>
@@ -260,6 +253,7 @@ export function CatalogView({ actor }) {
         collectionState={collectionState}
         context={context}
         dialog={dialog}
+        onArchiveApplication={archiveApplicationItem}
         onPersistApplication={persistApplication}
         onPersistEntity={persistEntity}
         onArchiveEntity={archiveEntity}

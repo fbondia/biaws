@@ -283,22 +283,26 @@ export function useCatalogView(actor) {
     }
   }
 
-  async function archiveApplicationItem(application) {
+  async function archiveApplicationItem(
+    application,
+    { surfaceError = true } = {},
+  ) {
     if (!application || !(await confirm(`Arquivar “${application.name}”?`)))
-      return;
+      return false;
     setError("");
     try {
       await archiveApplication(application.id);
       setSelectedId("");
       setContext(null);
       await loadApplications();
+      return true;
     } catch (archiveError) {
-      setError(archiveError.message);
+      if (surfaceError) {
+        setError(archiveError.message);
+        return false;
+      }
+      throw archiveError;
     }
-  }
-
-  async function archiveSelectedApplication() {
-    await archiveApplicationItem(context?.application);
   }
 
   async function restoreArchivedApplication(application) {
@@ -363,7 +367,6 @@ export function useCatalogView(actor) {
     persistEntity,
     archiveEntity,
     archiveApplicationItem,
-    archiveSelectedApplication,
     deleteArchivedApplication,
     editEntity,
     entityActions,

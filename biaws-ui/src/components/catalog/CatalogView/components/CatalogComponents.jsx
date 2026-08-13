@@ -1,5 +1,4 @@
 import {
-  Archive,
   ArchiveRestore,
   ArrowLeft,
   Inbox,
@@ -64,7 +63,6 @@ export function Status({ value }) {
 export function HeaderActions({
   actor,
   application,
-  onArchive,
   onBack,
   onDelete,
   onEdit,
@@ -76,12 +74,6 @@ export function HeaderActions({
       hasPermission(actor, "applications.update") ? (
         <button className="secondaryButton" onClick={onEdit} type="button">
           <Pencil size={16} /> Editar
-        </button>
-      ) : null}
-      {hasPermission(actor, "applications.archive") &&
-      application.status !== "archived" ? (
-        <button className="dangerButton" onClick={onArchive} type="button">
-          <Archive size={16} /> Arquivar
         </button>
       ) : null}
       {hasPermission(actor, "applications.archive") &&

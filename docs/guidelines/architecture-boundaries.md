@@ -10,6 +10,7 @@ flowchart LR
     UI["biaws-ui"] --> API["biaws-api"]
     MCP["biaws-mcp"] --> API
     CLI["biaws-cli"] --> API
+    Executor["biaws-monitor-executor"] --> API
     API --> Mongo[(MongoDB)]
     API --> Storage["Attachment storage"]
     Shared["shared"] --> UI
@@ -24,6 +25,7 @@ Regras:
 - `shared/` contém contratos portáveis e não importa módulos das aplicações.
 - a API não importa código de UI, MCP ou CLI;
 - MCP e CLI não contornam a API para obter uma operação mais conveniente;
+- o executor de monitoramento usa somente os contratos autenticados da API;
 - chamadas externas e persistência ficam atrás de uma interface com
   responsabilidade identificável.
 

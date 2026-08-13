@@ -148,6 +148,7 @@ flowchart LR
     Browser[UI React] --> API[biaws-api / Express]
     Agent[Cliente MCP] --> MCP[biaws-mcp]
     Monitor[Agente de monitoramento] --> CLI
+    Executor[Executor de monitoramento ativo] --> API
     CLI[biaws-cli] --> API
     MCP --> API
     API --> Mongo[(MongoDB)]
@@ -382,6 +383,7 @@ cd biaws-api && npm run check && npm test
 cd biaws-ui && npm run check:css && npm test && npm run build
 cd biaws-mcp && npm run check && npm test
 cd biaws-cli && npm run check && npm test
+cd biaws-monitor-executor && npm run check && npm test
 ```
 
 ## MCP e CLI

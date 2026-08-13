@@ -82,6 +82,24 @@ jobs:
       - run: npm run check
       - run: npm test
 
+  monitor-executor:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: biaws-monitor-executor
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: biaws-monitor-executor/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run check
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=high
+
   compose:
     runs-on: ubuntu-latest
     timeout-minutes: 15

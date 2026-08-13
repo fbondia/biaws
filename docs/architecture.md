@@ -2,16 +2,17 @@
 
 ## Visão geral
 
-O Bondia Workspaces é um monorepositório leve composto por quatro aplicações Node.js e
-um pacote compartilhado.
+O Bondia Workspaces é um monorepositório leve composto por cinco aplicações
+Node.js e um pacote compartilhado.
 
-| Componente  | Responsabilidade                                                   |
-| ----------- | ------------------------------------------------------------------ |
-| `biaws-api` | HTTP, autenticação, autorização, domínio, auditoria e persistência |
-| `biaws-ui`  | experiência web React                                              |
-| `biaws-mcp` | ferramentas MCP de domínio sobre a API                             |
-| `biaws-cli` | publicação e instalação local de skills                            |
-| `shared`    | permissões, constantes e carregamento de ambiente                  |
+| Componente               | Responsabilidade                                                   |
+| ------------------------ | ------------------------------------------------------------------ |
+| `biaws-api`              | HTTP, autenticação, autorização, domínio, auditoria e persistência |
+| `biaws-ui`               | experiência web React                                              |
+| `biaws-mcp`              | ferramentas MCP de domínio sobre a API                             |
+| `biaws-cli`              | publicação e instalação local de skills                            |
+| `biaws-monitor-executor` | execução coordenada de monitoramentos ativos via API               |
+| `shared`                 | permissões, constantes e carregamento de ambiente                  |
 
 ## Fluxos
 
@@ -34,12 +35,14 @@ sequenceDiagram
     API-->>UI: resposta estruturada
 ```
 
-MCP e CLI usam chaves de API e nunca acessam MongoDB diretamente.
+MCP, CLI e executor usam chaves de API e nunca acessam MongoDB diretamente.
 
-Agentes de monitoramento também usam chave de API. Eles fazem as verificações
-fora da plataforma e enviam sinais ao endpoint de monitoramento, diretamente ou
-pelo CLI. A API guarda o histórico em `runtimeMonitoringSignals` e materializa
-no runtime apenas o último estado cronológico; a plataforma permanece passiva.
+Agentes externos continuam enviando sinais passivos ao endpoint de
+monitoramento, diretamente ou pelo CLI. Separadamente, o executor ativo adquire
+leases persistidos pela API, executa providers e publica resultados
+idempotentes. A API guarda o histórico unificado em
+`runtimeMonitoringSignals`, materializa o último estado cronológico e permanece
+dona de tenancy, agenda, coordenação e persistência.
 
 ## Dados
 

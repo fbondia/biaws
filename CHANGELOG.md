@@ -27,6 +27,9 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- executor contínuo e independente de monitoramentos ativos, com leases
+  renováveis, concorrência limitada, retry exponencial, desligamento gracioso,
+  health/readiness e métricas Prometheus;
 - replicação compartilhada de skills, documentos, grupos de permissões e listas
   de opções para múltiplos workspaces, com autorização por destino, auditoria,
   resultado parcial e repetição seletiva de falhas;

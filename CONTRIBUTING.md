@@ -33,6 +33,7 @@ Para trabalhar sem containers, siga o README de cada módulo.
 - `biaws-ui`: aplicação React;
 - `biaws-mcp`: servidor MCP;
 - `biaws-cli`: gerenciamento local de skills;
+- `biaws-monitor-executor`: execução contínua de monitoramentos ativos via API;
 - `shared`: contratos compartilhados;
 - `docker` e `scripts`: execução reproduzível.
 
@@ -45,6 +46,7 @@ cd biaws-api && npm run format:check && npm run check && npm test
 cd biaws-ui && npm run format:check && npm run check:css && npm test && npm run build
 cd biaws-mcp && npm run format:check && npm run check && npm test
 cd biaws-cli && npm run format:check && npm run check && npm test
+cd biaws-monitor-executor && npm run format:check && npm run check && npm test
 ```
 
 Novos comportamentos devem incluir testes proporcionais ao risco. Alterações de

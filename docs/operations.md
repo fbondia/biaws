@@ -244,6 +244,22 @@ Monitoramento na UI.
 
 ## Logs e correlação
 
+O executor ativo emite logs JSON separados com `service` igual a
+`biaws-monitor-executor`. Os eventos incluem IDs do monitor e da execução,
+atraso, retry e perda de lease, mas não incluem a configuração recebida nem a
+evidência produzida. Consulte `/metrics` e `/health/ready` na porta interna
+`3110` para distinguir indisponibilidade da API, atraso e falha do provider.
+
+Quando o executor for escalado, cada réplica deve possuir
+`BIAWS_MONITOR_EXECUTOR_ID` distinto (hostname e PID são usados por padrão).
+Dimensione também a cota da chave técnica para a soma de polls, renovações e
+publicações de todas as réplicas; respostas `429` acionam backoff, mas uma cota
+permanentemente inferior à carga mantém a readiness indisponível.
+Para pausar aquisições, defina `BIAWS_MONITOR_EXECUTOR_ENABLED=false` e recrie
+somente o serviço. Para rollback, remova o profile ou reduza as réplicas a zero;
+os leases em andamento expiram na API e podem ser retomados posteriormente sem
+remover configurações ou histórico.
+
 A API emite um objeto JSON por linha. Eventos de ciclo de vida usam
 `server_started` e `server_shutdown_*`; cada chamada não relacionada ao health
 check gera `http_request_completed` com método, caminho sem query string, grupo

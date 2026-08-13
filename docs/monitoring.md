@@ -172,6 +172,45 @@ retries idempotentes. Resultados ativos materializam a saúde do runtime e entra
 na timeline com `origin: active`, `monitorId`, `executionId`, provider e a versão
 do template usada.
 
+## Processo executor
+
+`biaws-monitor-executor` é um processo Node.js implantável separadamente. Cada
+réplica usa uma identidade técnica dedicada e um workspace fixo, consulta leases
+continuamente, limita a concorrência local, renova trabalhos longos e publica o
+resultado pelo contrato acima. Como a agenda e o lease ficam persistidos na API,
+reinícios e réplicas concorrentes não dependem de estado local para coordenar a
+mesma ocorrência.
+
+Falhas temporárias de transporte, `408`, `425`, `429` e respostas `5xx` usam
+retry exponencial limitado com jitter. `409` por perda de lease não é repetido.
+Em `SIGTERM` ou `SIGINT`, novas aquisições cessam e os trabalhos recebem um
+período de graça; após o limite, são cancelados e o lease expirado pode ser
+recuperado por outra réplica com o mesmo `executionId`.
+
+O executor percebe alterações de configuração na próxima aquisição, sem
+reinício. Os providers REST e shell são adicionados em fase própria; um provider
+ausente produz `unknown` com diagnóstico sanitizado, sem registrar configuração
+ou segredo.
+
+Endpoints locais, por padrão na porta `3110`:
+
+- `/health/live`: ciclo do processo;
+- `/health/ready`: aquisição recente da API ou modo desabilitado;
+- `/metrics`: métricas Prometheus de atraso, duração, retries, leases e falhas.
+
+O serviço Compose usa o profile `active-monitoring` e não altera a instalação
+padrão. Configure `BIAWS_MONITOR_EXECUTOR_API_KEY` e
+`BIAWS_MONITOR_EXECUTOR_WORKSPACE_ID`, então inicie e escale independentemente:
+
+```bash
+docker compose --profile active-monitoring up -d monitor-executor
+docker compose --profile active-monitoring up -d --scale monitor-executor=2 monitor-executor
+```
+
+Defina `BIAWS_MONITOR_EXECUTOR_ENABLED=false` para manter a réplica disponível
+sem adquirir novas ocorrências. A referência completa de configuração está em
+`biaws-monitor-executor/README.md`.
+
 ## Leitura HTTP
 
 ```http

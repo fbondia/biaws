@@ -7,13 +7,24 @@ import { bootstrapAgent } from "../auth/bootstrapAgent.js";
 import { getServerConfig } from "../config.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
 import { setUserGroups } from "../repositories/accessRepository.js";
-import { ensureDefaultWorkspace } from "../repositories/catalogRepository.js";
+import {
+  ensureDefaultWorkspace,
+  getWorkspace,
+} from "../repositories/catalogRepository.js";
 
 async function run() {
   const serverConfig = getServerConfig();
   const database = await getMongoDatabase();
   const auth = await getAuth();
-  const workspace = await ensureDefaultWorkspace();
+  const requestedWorkspaceId = String(
+    process.env.BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_WORKSPACE_ID || "",
+  ).trim();
+  const workspace = requestedWorkspaceId
+    ? await getWorkspace(requestedWorkspaceId)
+    : await ensureDefaultWorkspace();
+  if (!workspace) {
+    throw new Error("Requested monitor executor workspace was not found");
+  }
   const result = await bootstrapAgent({
     auth,
     database,

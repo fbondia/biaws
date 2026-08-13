@@ -11,11 +11,11 @@ instância possui banco, anexos, portas, usuários e credenciais próprios.
 Todas as rotas terminam no mesmo `setup-agent.sh`. O que muda entre os sistemas
 é a preparação dos pré-requisitos.
 
-| Seu ambiente | Siga esta rota |
-| --- | --- |
-| macOS | [macOS](#macos) |
-| Ubuntu, Debian ou outra distribuição Linux | [Linux](#linux) |
-| Windows 10/11 | [Windows com WSL2](#windows-com-wsl2) |
+| Seu ambiente                                    | Siga esta rota                                                    |
+| ----------------------------------------------- | ----------------------------------------------------------------- |
+| macOS                                           | [macOS](#macos)                                                   |
+| Ubuntu, Debian ou outra distribuição Linux      | [Linux](#linux)                                                   |
+| Windows 10/11                                   | [Windows com WSL2](#windows-com-wsl2)                             |
 | Codex, Claude Code ou outro agente com terminal | [Instalação por um único prompt](#instalação-por-um-único-prompt) |
 
 O BIAWS requer Git, Docker com o plugin Compose, Node.js `20.19.0` ou superior,
@@ -403,6 +403,125 @@ node biaws-cli/src/index.js \
 Abra o runtime na aba Topologia. O estado aparece na lista e o histórico fica
 na seção Monitoramento. Repetir o comando com o mesmo `--signal-id` não cria
 outro evento. Veja [docs/monitoring.md](docs/monitoring.md).
+
+## 8. Executar monitoramentos ativos por workspace
+
+O executor ativo é um processo separado da API e atende exatamente um
+workspace. A agenda, os leases, os templates e o histórico permanecem na API;
+o diretório local guarda somente políticas de execução e credenciais montadas
+como arquivos. A mesma imagem é compartilhada por todos os executores da
+instância.
+
+Inicie a instância antes de configurar seus executores:
+
+```bash
+instances/meu-projeto/start.sh
+```
+
+### Criar a configuração do workspace
+
+Escolha um identificador local legível, como `equipe-a`, e crie a estrutura:
+
+```bash
+mkdir -p \
+  instances/meu-projeto/monitoring/workspaces/equipe-a/secrets \
+  instances/meu-projeto/monitoring/workspaces/equipe-a/scripts
+chmod 700 instances/meu-projeto/monitoring/workspaces/equipe-a/secrets
+```
+
+Crie `instances/meu-projeto/monitoring/workspaces/equipe-a/.env`:
+
+```dotenv
+BIAWS_MONITOR_EXECUTOR_ENABLED=true
+BIAWS_MONITOR_EXECUTOR_API_URL=http://api:3100
+BIAWS_MONITOR_EXECUTOR_API_KEY_FILE=/run/secrets/executor-api-key
+BIAWS_MONITOR_EXECUTOR_WORKSPACE_ID=id-do-workspace
+BIAWS_MONITOR_EXECUTOR_ID=meu-projeto-equipe-a-1
+BIAWS_MONITOR_EXECUTOR_CONCURRENCY=4
+BIAWS_MONITOR_EXECUTOR_POLL_INTERVAL_MS=15000
+BIAWS_MONITOR_EXECUTOR_LEASE_SECONDS=60
+BIAWS_MONITOR_EXECUTOR_RENEW_INTERVAL_MS=20000
+BIAWS_MONITOR_EXECUTOR_REQUEST_TIMEOUT_MS=10000
+BIAWS_MONITOR_EXECUTOR_EVIDENCE_MAX_BYTES=8000
+
+BIAWS_MONITOR_REST_ALLOWED_HOSTS=health.exemplo.com,*.servicos.exemplo.com
+BIAWS_MONITOR_REST_ALLOWED_METHODS=GET,HEAD
+BIAWS_MONITOR_REST_ALLOW_PRIVATE_ADDRESSES=false
+BIAWS_MONITOR_REST_MAX_REDIRECTS=0
+BIAWS_MONITOR_REFERENCE_FILE_MAP='{"servico-auth":"servico-auth"}'
+BIAWS_MONITOR_SHELL_SCRIPTS='{}'
+```
+
+`BIAWS_MONITOR_REST_ALLOWED_HOSTS` deve conter somente os destinos necessários
+ao workspace. Se um nome permitido resolver para uma rede corporativa privada,
+defina `BIAWS_MONITOR_REST_ALLOW_PRIVATE_ADDRESSES=true` conscientemente; a
+allowlist de hosts continua sendo aplicada.
+
+### Provisionar a identidade técnica
+
+Gere uma identidade exclusiva, com somente `monitoring.active.execute`, e
+grave sua chave fora do `.env`:
+
+```bash
+node scripts/provision-monitoring-workspace.mjs \
+  --instance meu-projeto \
+  --workspace equipe-a
+```
+
+O comando cria ou reconcilia a identidade no workspace informado e grava
+`secrets/executor-api-key` com permissão `0600`. A chave existente é enviada ao
+bootstrap por entrada padrão para não aparecer nos argumentos do processo.
+
+Para cada entrada de `BIAWS_MONITOR_REFERENCE_FILE_MAP`, crie um arquivo com o
+valor completo que será usado pelo header. Por exemplo, `servico-auth` pode
+conter `Bearer ...` ou `Basic ...`. Não coloque o valor no `.env`, no monitor,
+no Git ou nos logs. Prefira copiar o arquivo diretamente de um cofre:
+
+```bash
+install -m 600 /caminho/protegido/servico-auth \
+  instances/meu-projeto/monitoring/workspaces/equipe-a/secrets/servico-auth
+```
+
+### Validar e iniciar
+
+Valide a rede da API, a credencial e o Compose:
+
+```bash
+./scripts/manage-monitoring-workspaces.sh \
+  --instance meu-projeto validate equipe-a
+```
+
+Inicie o executor e aguarde seu healthcheck:
+
+```bash
+./scripts/manage-monitoring-workspaces.sh \
+  --instance meu-projeto start equipe-a
+```
+
+Consulte estado e logs sanitizados:
+
+```bash
+./scripts/manage-monitoring-workspaces.sh \
+  --instance meu-projeto status equipe-a
+
+./scripts/manage-monitoring-workspaces.sh \
+  --instance meu-projeto logs equipe-a
+```
+
+Sem informar identificadores após a ação, o script opera todos os diretórios
+`workspaces/*/.env`. Falha em um workspace é reportada sem interromper os
+demais. Para interromper somente um executor:
+
+```bash
+./scripts/manage-monitoring-workspaces.sh \
+  --instance meu-projeto stop equipe-a
+```
+
+Cadastre inicialmente os monitores como desabilitados na UI. Depois que o
+executor estiver saudável, habilite primeiro um destino de teste e confirme a
+primeira observação no histórico antes de habilitar os demais. Para adicionar
+outro workspace, repita a estrutura com outro diretório, ID e identidade
+técnica; não compartilhe o arquivo `executor-api-key` entre workspaces.
 
 ## Diagnóstico
 

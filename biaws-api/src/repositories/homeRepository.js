@@ -707,9 +707,10 @@ function runtimeHealthItem(
   serversById,
 ) {
   const latestSignal = latestSignalsByRuntimeId.get(runtime.id) || null;
-  const metadataPresentation = monitoringMetadataPresentation(
-    latestSignal?.metadataProfile,
-  );
+  const metadataPresentation =
+    latestSignal?.templatePresentation ||
+    latestSignal?.metadataPresentation ||
+    monitoringMetadataPresentation(latestSignal?.metadataProfile);
   return {
     id: runtime.id,
     key: runtime.key,
@@ -885,6 +886,8 @@ async function latestRuntimeMonitoringSignals(
           runtimeId: "$signal.runtimeId",
           metadata: "$signal.metadata",
           metadataProfile: "$signal.metadataProfile",
+          metadataPresentation: "$signal.metadataPresentation",
+          templatePresentation: "$signal.templateSnapshot.presentation",
         },
       },
     ])

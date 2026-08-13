@@ -350,6 +350,18 @@ test("application health groups only monitored runtimes with topology and server
         id: "signal-1",
         runtimeId: "runtime-1",
         metadataProfile: "sgmp-health/v1",
+        templatePresentation: {
+          label: "Saúde configurável",
+          fields: [
+            {
+              key: "disk_usage_percent",
+              label: "Disco do template",
+              format: "percent",
+              visualization: "gauge",
+            },
+          ],
+          series: [],
+        },
         metadata: {
           service_up: true,
           database_up: true,
@@ -389,7 +401,11 @@ test("application health groups only monitored runtimes with topology and server
   assert.equal(runtime.latestSignal.metadata.disk_usage_percent, 72.5);
   assert.equal(runtime.latestSignal.metadataProfile, "sgmp-health/v1");
   assert.equal(
-    runtime.latestSignal.metadataPresentation.fields[2].format,
+    runtime.latestSignal.metadataPresentation.label,
+    "Saúde configurável",
+  );
+  assert.equal(
+    runtime.latestSignal.metadataPresentation.fields[0].format,
     "percent",
   );
 });

@@ -1,6 +1,16 @@
 import http from "node:http";
 import https from "node:https";
 
+export function createPinnedLookup(destination) {
+  return (_hostname, options, callback) => {
+    if (options?.all) {
+      callback(null, [destination]);
+      return;
+    }
+    callback(null, destination.address, destination.family);
+  };
+}
+
 function collectResponse(response, byteLimit, signal) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -63,8 +73,7 @@ export async function requestRestTarget(
         method: configuration.method,
         headers,
         signal,
-        lookup: (_hostname, _options, callback) =>
-          callback(null, destination.address, destination.family),
+        lookup: createPinnedLookup(destination),
         agent: false,
       },
       async (response) => {

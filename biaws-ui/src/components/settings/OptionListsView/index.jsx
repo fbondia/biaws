@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { fetchOptionLists } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
-import { ListEditor } from "./components/ListEditor.jsx";
+import { ListEditor } from "./components/ListEditor/index.jsx";
 import { groupOptionLists, LIST_ICONS } from "./model.js";
 
 function retainActiveGroup(groups, current) {

@@ -10,11 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-import {
-  HOME_WIDGET_SIZES,
-  widgetSubtitle,
-  widgetTitle,
-} from "../../homeModel.js";
+import { HOME_WIDGET_SIZES, widgetSubtitle, widgetTitle } from "../model.js";
 import { WidgetContent } from "../../widgets/WidgetContent.jsx";
 import { HOME_WIDGET_ICONS } from "../constants.js";
 

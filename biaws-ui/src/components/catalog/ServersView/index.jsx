@@ -25,7 +25,7 @@ import {
   ResourceCollectionNavigator,
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections/index.jsx";
-import { buildServerApplicationGroups } from "../serverApplicationModel.js";
+import { buildServerApplicationGroups } from "./model.js";
 import {
   ServerContent,
   ServerDialogs,

@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useResourceCollectionNavigator } from "../../hooks/useResourceCollectionNavigator.js";
 import { isItemReorderDrop } from "../../model.js";
 import { CollectionColumns } from "../CollectionColumns.jsx";
-import { CollectionTree } from "../CollectionTree.jsx";
+import { CollectionTree } from "../CollectionTree/index.jsx";
 import { useResourceCollectionBarActionTargets } from "../ResourceCollectionBar/index.jsx";
 import { CollectionFilterAction } from "./components/CollectionFilterAction.jsx";
 import { ResourceCollectionNavigatorHeader } from "./components/ResourceCollectionNavigatorHeader.jsx";

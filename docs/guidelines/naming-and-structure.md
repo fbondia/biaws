@@ -84,3 +84,23 @@ FeatureView/
 
 Não crie todos esses arquivos antecipadamente. Extraia uma responsabilidade
 quando ela existir e puder ser nomeada.
+
+## Co-localização de acessórios
+
+Um componente com acessórios exclusivos deixa de ser um arquivo isolado. Por
+exemplo, `GroupsView.jsx` acompanhado de `groupsModel.js` deve se tornar:
+
+```text
+GroupsView/
+├── index.jsx
+└── model.js
+```
+
+Use `components/`, `hooks/`, `dialogs/` e `tabs/` para responsabilidades
+correspondentes. Use `models/` somente quando um único `model.js` deixaria de
+ter uma responsabilidade coesa. Helpers internos de um hook podem permanecer
+junto dele em `hooks/`, desde que não sejam apresentados como modelos puros.
+
+A exceção é um acessório consumido por múltiplas features irmãs: ele deve ficar
+no menor diretório comum, com nome de domínio, em vez de ser atribuído
+artificialmente a um único componente.

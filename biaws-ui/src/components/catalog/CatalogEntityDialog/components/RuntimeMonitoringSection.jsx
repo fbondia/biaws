@@ -1,4 +1,4 @@
-import { MonitoringEventDetails } from "../../../shared/MonitoringEventDetails.jsx";
+import { MonitoringEventDetails } from "../../../shared/MonitoringEventDetails/index.jsx";
 import { RUNTIME_STATUSES } from "../constants.js";
 import { HistoryItems, SelectField, TextField } from "./Fields.jsx";
 

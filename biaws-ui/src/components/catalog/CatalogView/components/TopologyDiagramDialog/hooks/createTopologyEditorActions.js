@@ -4,8 +4,8 @@ import {
   automaticTopologyHandles,
   resizeTopologyGroups,
   topologyConnectionLabel,
-} from "../../topologyDiagramModel.js";
-import { edgeDirectionMarkers } from "./topologyDiagramPresentation.js";
+} from "../models/topologyDiagramModel.js";
+import { edgeDirectionMarkers } from "../models/topologyDiagramPresentation.js";
 
 export function createTopologyEditorActions({
   canEdit,

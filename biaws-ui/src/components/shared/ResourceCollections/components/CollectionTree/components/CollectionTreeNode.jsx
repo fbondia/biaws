@@ -10,9 +10,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import { descendantCollectionIds } from "../model.js";
-import { CollectionAddForm } from "./CollectionAddForm.jsx";
-import { CollectionItemNode } from "./CollectionItemNode.jsx";
+import { descendantCollectionIds } from "../../../model.js";
+import { CollectionAddForm } from "../../CollectionAddForm.jsx";
+import { CollectionItemNode } from "../../CollectionItemNode.jsx";
 
 function CollectionRowActions({
   addingSubcollection,

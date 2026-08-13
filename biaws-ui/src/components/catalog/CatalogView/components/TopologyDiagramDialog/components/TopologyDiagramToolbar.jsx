@@ -1,6 +1,6 @@
 import { Box, Layers3, Plus, Save } from "lucide-react";
 
-import { TOPOLOGY_ENVIRONMENTS } from "../../../topologyDiagramModel.js";
+import { TOPOLOGY_ENVIRONMENTS } from "../models/topologyDiagramModel.js";
 import { TopologyVisibilityMenu } from "./TopologyVisibilityMenu.jsx";
 
 export function TopologyDiagramToolbar({ controller }) {

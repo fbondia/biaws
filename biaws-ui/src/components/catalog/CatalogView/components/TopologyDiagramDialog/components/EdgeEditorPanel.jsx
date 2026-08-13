@@ -5,7 +5,7 @@ import {
   TOPOLOGY_CONNECTION_DIRECTIONS,
   TOPOLOGY_CONNECTION_LINE_TYPES,
   TOPOLOGY_CONNECTION_TYPES,
-} from "../../../topologyDiagramModel.js";
+} from "../models/topologyDiagramModel.js";
 
 export function EdgeEditorPanel({ controller }) {
   const { actions, canEdit, selectedEdge } = controller;

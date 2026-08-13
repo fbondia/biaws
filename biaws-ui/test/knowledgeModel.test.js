@@ -6,7 +6,7 @@ import {
   documentStatusLabel,
   fetchAllDocumentPages,
   normalizeDocumentDraft,
-} from "../src/components/knowledge/knowledgeModel.js";
+} from "../src/components/knowledge/KnowledgeRecordsView/models/documentModel.js";
 
 const TYPES = {
   "business-rule": {

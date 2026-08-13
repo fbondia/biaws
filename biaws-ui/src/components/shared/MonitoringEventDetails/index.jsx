@@ -14,7 +14,7 @@ import {
   monitoringPresentationFields,
   monitoringPresentationSeries,
   monitoringStatusTone,
-} from "./monitoringPresentationModel.js";
+} from "./model.js";
 
 function hasProperties(value) {
   return Boolean(

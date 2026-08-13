@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { AuthGate } from "../../components/auth/AuthGate.jsx";
-import { AccessibilityProvider } from "../../components/shared/AccessibilityProvider.jsx";
+import { AccessibilityProvider } from "../../components/shared/AccessibilityProvider/index.jsx";
 import { MessagesProvider } from "../messages/MessagesProvider.jsx";
 import { defaultLogger } from "../logging/runtime.js";
 import { SessionProvider } from "../session/SessionProvider.jsx";

@@ -8,7 +8,8 @@ import {
   Terminal,
   X,
 } from "lucide-react";
-import { buildLocalDevelopmentCommands } from "../model.js";
+import { buildLocalDevelopmentCommands } from "../../../model.js";
+import { NavigationButton } from "./AppHeaderUtilities.jsx";
 
 const LOCAL_SETUP_TABS = [
   { key: "setup", label: "Setup Agent" },

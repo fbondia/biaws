@@ -29,7 +29,7 @@ import {
   updateIntegration,
   updateRepository,
   updateRuntime,
-} from "../../../api.js";
+} from "../../../../api.js";
 
 export const CATALOG_ENTITY_API = {
   integration: {

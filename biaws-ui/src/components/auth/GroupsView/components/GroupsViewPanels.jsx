@@ -1,5 +1,5 @@
 import { ChevronDown, Plus } from "lucide-react";
-import { groupPermissionsBySection } from "./groupsModel.js";
+import { groupPermissionsBySection } from "../model.js";
 
 function PermissionOption({ canManage, draft, onToggle, permission }) {
   const disabled =

@@ -25,10 +25,10 @@ import {
   removePlatformWorkspaceMember,
   setPlatformWorkspaceMember,
   updatePlatformWorkspace,
-} from "../../api.js";
-import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
-import { WorkspaceDetail } from "./WorkspaceAdminPanels.jsx";
-import { WorkspaceFormDialog } from "./WorkspaceFormDialog.jsx";
+} from "../../../api.js";
+import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
+import { WorkspaceDetail } from "./components/WorkspaceAdminPanels.jsx";
+import { WorkspaceFormDialog } from "./components/WorkspaceFormDialog.jsx";
 
 export function WorkspaceAdminView({ actor }) {
   const { confirm, prompt } = useMessages();

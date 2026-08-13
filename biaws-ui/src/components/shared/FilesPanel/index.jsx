@@ -10,11 +10,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
-import { detailValue, formatBytes, formatDate } from "../../utils/issues.js";
-import { canPreviewFile, FilePreview } from "./FilePreview.jsx";
-import { buildFileTagCounts, tagColor } from "./filePanelModel.js";
-import { useFileDrop } from "./useFileDrop.js";
+import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
+import { detailValue, formatBytes, formatDate } from "../../../utils/issues.js";
+import { canPreviewFile, FilePreview } from "../FilePreview.jsx";
+import { useFileDrop } from "../useFileDrop.js";
+import { buildFileTagCounts, tagColor } from "./model.js";
 
 export function FilesPanel({
   canCreate = true,

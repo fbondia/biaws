@@ -1,4 +1,4 @@
-import { TOPOLOGY_ENVIRONMENTS } from "../../../topologyDiagramModel.js";
+import { TOPOLOGY_ENVIRONMENTS } from "../models/topologyDiagramModel.js";
 
 export function CreateTopologyDiagramForm({ controller }) {
   const { actions, diagrams, newEnvironment, newName, saving } = controller;

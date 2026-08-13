@@ -5,17 +5,17 @@ import {
   fetchTopologyDiagram,
   fetchTopologyDiagrams,
   updateTopologyDiagram,
-} from "../../../../../api.js";
-import { useMessages } from "../../../../../infrastructure/messages/MessagesProvider.jsx";
-import { hasPermission } from "../../../../../permissions.js";
+} from "../../../../../../api.js";
+import { useMessages } from "../../../../../../infrastructure/messages/MessagesProvider.jsx";
+import { hasPermission } from "../../../../../../permissions.js";
 import {
   filterTopologyGraph,
   routeTopologyEdges,
   topologyDiagramPayload,
-} from "../../topologyDiagramModel.js";
+} from "../models/topologyDiagramModel.js";
 import { createTopologyEditorActions } from "./createTopologyEditorActions.js";
 import { createTopologyEnvironmentLoader } from "./createTopologyEnvironmentLoader.js";
-import { diagramSummary } from "./topologyDiagramPresentation.js";
+import { diagramSummary } from "../models/topologyDiagramPresentation.js";
 
 export function useTopologyDiagram({ actor, context, onClose }) {
   const { confirm } = useMessages();

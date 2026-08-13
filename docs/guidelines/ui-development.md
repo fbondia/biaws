@@ -28,6 +28,17 @@ FeatureView/
 Extraia apenas responsabilidades existentes. Uma pasta com muitos arquivos
 triviais também prejudica a navegação.
 
+Quando um componente passar a possuir arquivos acessórios exclusivos — por
+exemplo modelo, hook, diálogo, tab ou subcomponente — transforme o componente
+em uma pasta com seu nome e use `index.jsx` como ponto público. Mantenha esses
+arquivos dentro dessa pasta, distribuídos por `components/`, `hooks/`, `tabs/`,
+`dialogs/` ou `models/` quando houver mais de uma responsabilidade do mesmo
+tipo. Um único modelo puro continua preferencialmente em `model.js`.
+
+Não mova para a pasta de um componente um módulo realmente compartilhado por
+múltiplas features do domínio. Nesse caso, mantenha-o no menor ancestral comum
+e use um nome que expresse o contrato compartilhado.
+
 ## Componentes
 
 - use componentes funcionais e hooks;

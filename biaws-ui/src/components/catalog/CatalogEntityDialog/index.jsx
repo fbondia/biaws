@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 
-import { CATALOG_ENTITY_LABELS } from "../catalogModel.js";
+import { CATALOG_ENTITY_LABELS } from "./model.js";
 import { BasicFields } from "./components/BasicFields.jsx";
 import { DeploymentFields } from "./components/DeploymentFields.jsx";
 import { CatalogEntityFooter, EntityFieldGroup } from "./components/Fields.jsx";

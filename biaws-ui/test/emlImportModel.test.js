@@ -7,7 +7,7 @@ import {
   mergeEmlClassificationSection,
   selectedEmlTaxonomyIds,
   shouldRetryContextDiscovery,
-} from "../src/components/issues/emlImportModel.js";
+} from "../src/components/issues/ImportEmlDialog/model.js";
 
 test("EML preview adopts the application and components of an existing issue", () => {
   const fallback = {

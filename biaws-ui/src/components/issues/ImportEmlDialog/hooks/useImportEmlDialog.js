@@ -9,7 +9,7 @@ import {
   mergeEmlClassificationSection,
   selectedEmlTaxonomyIds,
   shouldRetryContextDiscovery,
-} from "../../emlImportModel.js";
+} from "../model.js";
 
 const EMPTY_CLASSIFICATION = {
   primaryTaxonomyId: "",

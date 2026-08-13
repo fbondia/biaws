@@ -2,7 +2,7 @@ import { CreateTopologyDiagramForm } from "./components/CreateTopologyDiagramFor
 import { TopologyDiagramCanvas } from "./components/TopologyDiagramCanvas.jsx";
 import { TopologyDiagramToolbar } from "./components/TopologyDiagramToolbar.jsx";
 import { TopologyDialogHeader } from "./components/TopologyDialogHeader.jsx";
-import { useTopologyDiagram } from "./useTopologyDiagram.js";
+import { useTopologyDiagram } from "./hooks/useTopologyDiagram.js";
 
 export function TopologyDiagramDialog({ actor, context, onClose }) {
   const controller = useTopologyDiagram({ actor, context, onClose });

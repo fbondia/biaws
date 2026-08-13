@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   buildFileTagCounts,
   tagColor,
-} from "../src/components/shared/filePanelModel.js";
+} from "../src/components/shared/FilesPanel/model.js";
 
 test("file tags are normalized, counted and sorted", () => {
   assert.deepEqual(

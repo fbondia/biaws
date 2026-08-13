@@ -5,7 +5,7 @@ import {
   updateEntityAttachmentTags,
   uploadEntityAttachments,
 } from "../../../../../api.js";
-import { FilesPanel } from "../../../../shared/FilesPanel.jsx";
+import { FilesPanel } from "../../../../shared/FilesPanel/index.jsx";
 import { normalizedDraft } from "../../model.js";
 
 export function DocumentFilesPanel({

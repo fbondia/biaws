@@ -11,7 +11,7 @@ import {
   catalogEntityPayload,
   monitoringSignalCurl,
   runtimeMonitoringPath,
-} from "../../catalogModel.js";
+} from "../model.js";
 import {
   EMPTY_OBSERVATION_DRAFT,
   EMPTY_PUBLICATION_DRAFT,

@@ -6,7 +6,7 @@ import {
   catalogEntityPayload,
   monitoringSignalCurl,
   runtimeMonitoringPath,
-} from "../src/components/catalog/catalogModel.js";
+} from "../src/components/catalog/CatalogEntityDialog/model.js";
 
 test("catalog payload includes editable identifiers on updates", () => {
   const payload = catalogEntityPayload(

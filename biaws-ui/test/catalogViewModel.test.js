@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { visibleCatalogTabs } from "../src/components/catalog/CatalogView/catalogViewModel.js";
+import { visibleCatalogTabs } from "../src/components/catalog/CatalogView/model.js";
 
 test("catalog tabs expose topology with either supported read permission", () => {
   const componentReader = visibleCatalogTabs({

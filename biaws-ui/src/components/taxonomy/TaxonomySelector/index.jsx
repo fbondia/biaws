@@ -1,7 +1,7 @@
 import { ChevronRight, Pencil, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { TaxonomyNodeEditDialog } from "./TaxonomyNodeEditDialog.jsx";
+import { TaxonomyNodeEditDialog } from "./components/TaxonomyNodeEditDialog.jsx";
 
 const CAN_MODIFY_CATALOG = true;
 

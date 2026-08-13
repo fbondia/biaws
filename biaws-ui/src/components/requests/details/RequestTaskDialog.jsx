@@ -12,7 +12,7 @@ import {
   updateEntityAttachmentTags,
   uploadEntityAttachments,
 } from "../../../api.js";
-import { FilesPanel } from "../../shared/FilesPanel.jsx";
+import { FilesPanel } from "../../shared/FilesPanel/index.jsx";
 import { AuditHistory } from "../../shared/AuditHistory.jsx";
 import { MarkdownEditor } from "../../shared/MarkdownEditor/index.jsx";
 import { RequestTaskNotesTab } from "./RequestTaskNotesTab.jsx";

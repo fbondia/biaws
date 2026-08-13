@@ -7,7 +7,7 @@ import {
   updateWidgetInstance,
   widgetSubtitle,
   widgetTitle,
-} from "../src/components/home/homeModel.js";
+} from "../src/components/home/HomeView/model.js";
 
 test("home widget sizes describe their twelve-column spans", () => {
   assert.deepEqual(

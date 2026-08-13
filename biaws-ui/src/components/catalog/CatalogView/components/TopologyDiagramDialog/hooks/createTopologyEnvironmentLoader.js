@@ -2,12 +2,12 @@ import {
   fetchComponents,
   fetchDeployments,
   fetchRuntimes,
-} from "../../../../../api.js";
+} from "../../../../../../api.js";
 import {
   buildTopologyGraph,
   topologyDiagramPayload,
-} from "../../topologyDiagramModel.js";
-import { edgeDirectionMarkers } from "./topologyDiagramPresentation.js";
+} from "../models/topologyDiagramModel.js";
+import { edgeDirectionMarkers } from "../models/topologyDiagramPresentation.js";
 
 export function createTopologyEnvironmentLoader({
   comments,

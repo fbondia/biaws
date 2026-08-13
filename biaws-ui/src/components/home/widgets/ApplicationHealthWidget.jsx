@@ -1,7 +1,7 @@
 import { Clock3, Server } from "lucide-react";
 import { useState } from "react";
 
-import { MonitoringMetadataPresentation } from "../../shared/MonitoringEventDetails.jsx";
+import { MonitoringMetadataPresentation } from "../../shared/MonitoringEventDetails/index.jsx";
 import { formatMonitoringDate } from "./widgetUtils.js";
 
 function applicationRuntimes(application) {

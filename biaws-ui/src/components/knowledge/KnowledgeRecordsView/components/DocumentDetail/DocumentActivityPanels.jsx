@@ -2,7 +2,7 @@ import {
   MarkdownEditor,
   MarkdownPreview,
 } from "../../../../shared/MarkdownEditor/index.jsx";
-import { todayIso } from "../../../knowledgeModel.js";
+import { todayIso } from "../../models/documentModel.js";
 
 export function DocumentObservations({
   canUpdate,

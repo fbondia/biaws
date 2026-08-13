@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildServerApplicationGroups } from "../src/components/catalog/serverApplicationModel.js";
+import { buildServerApplicationGroups } from "../src/components/catalog/ServersView/model.js";
 
 test("server applications group components and count local topology references", () => {
   const groups = buildServerApplicationGroups({

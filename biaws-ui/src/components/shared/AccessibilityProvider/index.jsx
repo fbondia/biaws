@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { dialogKeyboardAction } from "./accessibilityModel.js";
+import { dialogKeyboardAction } from "./model.js";
 
 const FOCUSABLE_SELECTOR = [
   "button:not([disabled])",

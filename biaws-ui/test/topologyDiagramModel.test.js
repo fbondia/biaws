@@ -8,7 +8,7 @@ import {
   routeTopologyEdges,
   resizeTopologyGroups,
   topologyDiagramPayload,
-} from "../src/components/catalog/CatalogView/topologyDiagramModel.js";
+} from "../src/components/catalog/CatalogView/components/TopologyDiagramDialog/models/topologyDiagramModel.js";
 
 test("automatic topology handles follow the relative node position", () => {
   const source = {

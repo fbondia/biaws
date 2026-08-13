@@ -1,9 +1,9 @@
 import { X } from "lucide-react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../../constants/issues.js";
-import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector.jsx";
+import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector/index.jsx";
 import { filterTaxonomyForApplication } from "../../../taxonomy/scope.js";
-import { selectedEmlTaxonomyIds } from "../../emlImportModel.js";
+import { selectedEmlTaxonomyIds } from "../model.js";
 
 export function ImportEmlClassificationDialog({
   applyClassificationToEntries,

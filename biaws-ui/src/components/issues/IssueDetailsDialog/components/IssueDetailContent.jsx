@@ -11,7 +11,7 @@ import {
 } from "../../../../api.js";
 import { CatalogContextFields } from "../../../catalog/CatalogContextFields/index.jsx";
 import { AuditHistory } from "../../../shared/AuditHistory.jsx";
-import { FilesPanel } from "../../../shared/FilesPanel.jsx";
+import { FilesPanel } from "../../../shared/FilesPanel/index.jsx";
 import { MarkdownPreview } from "../../../shared/MarkdownEditor/index.jsx";
 import { IssueDescriptionDialog } from "../../IssueDescriptionDialog.jsx";
 import { IssueCommentsTab } from "./IssueCommentsTab.jsx";

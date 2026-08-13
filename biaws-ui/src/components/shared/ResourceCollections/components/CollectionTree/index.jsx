@@ -11,11 +11,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import { IllustratedEmptyState } from "../../IllustratedEmptyState.jsx";
-import { descendantCollectionIds } from "../model.js";
-import { CollectionAddForm } from "./CollectionAddForm.jsx";
-import { CollectionItemNode } from "./CollectionItemNode.jsx";
-import { CollectionTreeNode } from "./CollectionTreeNode.jsx";
+import { IllustratedEmptyState } from "../../../IllustratedEmptyState.jsx";
+import { descendantCollectionIds } from "../../model.js";
+import { CollectionAddForm } from "../CollectionAddForm.jsx";
+import { CollectionItemNode } from "../CollectionItemNode.jsx";
+import { CollectionTreeNode } from "./components/CollectionTreeNode.jsx";
 
 export function CollectionTree({
   canDragItem,

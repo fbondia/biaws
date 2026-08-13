@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { groupPermissionsBySection } from "../src/components/auth/groupsModel.js";
+import { groupPermissionsBySection } from "../src/components/auth/GroupsView/model.js";
 
 test("permissions are grouped by configured section in catalog order", () => {
   const permissions = [

@@ -8,7 +8,7 @@ import { RequestMainTab } from "./details/RequestMainTab.jsx";
 import { RequestNotesTab } from "./details/RequestNotesTab.jsx";
 import { RequestSpecificationTab } from "./details/RequestSpecificationTab.jsx";
 import { RequestTasksTab } from "./details/RequestTasksTab.jsx";
-import { FilesPanel } from "../shared/FilesPanel.jsx";
+import { FilesPanel } from "../shared/FilesPanel/index.jsx";
 import { AuditHistory } from "../shared/AuditHistory.jsx";
 import {
   deleteEntityAttachment,

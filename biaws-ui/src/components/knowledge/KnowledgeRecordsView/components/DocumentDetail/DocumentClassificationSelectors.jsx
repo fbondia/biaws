@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../../../constants/issues.js";
 import { FilterDialogButton } from "../../../../shared/FilterDialogButton.jsx";
-import { TaxonomySelector } from "../../../../taxonomy/TaxonomySelector.jsx";
+import { TaxonomySelector } from "../../../../taxonomy/TaxonomySelector/index.jsx";
 import { filterTaxonomyForApplication } from "../../../../taxonomy/scope.js";
 import { taxonomyIds } from "../../model.js";
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildRuntimeDocumentTree } from "../src/components/catalog/runtimeProcedureSelectorModel.js";
+import { buildRuntimeDocumentTree } from "../src/components/catalog/RuntimeProcedureSelectorDialog/model.js";
 
 test("runtime document tree keeps only collection paths containing filtered documents", () => {
   const tree = buildRuntimeDocumentTree(

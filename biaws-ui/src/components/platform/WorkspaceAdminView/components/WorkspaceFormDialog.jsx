@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 
-import { createPlatformWorkspace } from "../../api.js";
+import { createPlatformWorkspace } from "../../../../api.js";
 
 const EMPTY_FORM = {
   key: "",

@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchDocuments, fetchResourceCollections } from "../../api.js";
-import { buildRuntimeDocumentTree } from "./runtimeProcedureSelectorModel.js";
+import { fetchDocuments, fetchResourceCollections } from "../../../api.js";
+import { buildRuntimeDocumentTree } from "./model.js";
 
 async function fetchAllDocuments(params) {
   const firstPage = await fetchDocuments({ ...params, limit: 100, page: 1 });

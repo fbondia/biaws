@@ -1,5 +1,5 @@
 import { RuntimeProcedureDetailsDialog } from "../../RuntimeProcedureDetailsDialog.jsx";
-import { RuntimeProcedureSelectorDialog } from "../../RuntimeProcedureSelectorDialog.jsx";
+import { RuntimeProcedureSelectorDialog } from "../../RuntimeProcedureSelectorDialog/index.jsx";
 
 export function CatalogEntityOverlays({
   documentSelectorOpen,

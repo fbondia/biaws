@@ -9,15 +9,15 @@ import {
   replicatePermissionGroup,
   setPermissionGroupActive,
   updatePermissionGroup,
-} from "../../api.js";
-import { hasPermission } from "../../permissions.js";
+} from "../../../api.js";
+import { hasPermission } from "../../../permissions.js";
 
-import { groupPermissionsBySection } from "./groupsModel.js";
-import { ReplicationDialog } from "../shared/ReplicationDialog.jsx";
+import { groupPermissionsBySection } from "./model.js";
+import { ReplicationDialog } from "../../shared/ReplicationDialog.jsx";
 import {
   CreateGroupButton,
   PermissionCategories,
-} from "./GroupsViewPanels.jsx";
+} from "./components/GroupsViewPanels.jsx";
 
 function permissionsForScope(permissions, catalog, type) {
   if (type !== "applications") return permissions;
@@ -26,7 +26,7 @@ function permissionsForScope(permissions, catalog, type) {
       catalog.find((permission) => permission.id === id)?.scope !== "workspace",
   );
 }
-import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
+import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
 
 const EMPTY_GROUP = {
   identifier: "",

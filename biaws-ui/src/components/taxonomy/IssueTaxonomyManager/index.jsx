@@ -11,7 +11,7 @@ import {
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../constants/issues.js";
 import { useFileDrop } from "../../shared/useFileDrop.js";
-import { TaxonomySelector } from "../TaxonomySelector.jsx";
+import { TaxonomySelector } from "../TaxonomySelector/index.jsx";
 import { useIssueTaxonomyManager } from "./hooks/useIssueTaxonomyManager.js";
 import { slugify } from "./model.js";
 

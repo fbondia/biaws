@@ -1,5 +1,5 @@
 import { AccountView } from "../../components/auth/AccountView.jsx";
-import { GroupsView } from "../../components/auth/GroupsView.jsx";
+import { GroupsView } from "../../components/auth/GroupsView/index.jsx";
 import { UsersView } from "../../components/auth/UsersView.jsx";
 import { CatalogView } from "../../components/catalog/CatalogView/index.jsx";
 import { ServersView } from "../../components/catalog/ServersView/index.jsx";
@@ -9,7 +9,7 @@ import { OptionListsView } from "../../components/settings/OptionListsView/index
 import { SkillsView } from "../../components/skills/SkillsView/index.jsx";
 import { IssueTaxonomyManager } from "../../components/taxonomy/IssueTaxonomyManager/index.jsx";
 import { HomeView } from "../../components/home/HomeView/index.jsx";
-import { WorkspaceAdminView } from "../../components/platform/WorkspaceAdminView.jsx";
+import { WorkspaceAdminView } from "../../components/platform/WorkspaceAdminView/index.jsx";
 import { SecretsView } from "../../components/secrets/SecretsView/index.jsx";
 import { KnowledgeRecordsView } from "../../components/knowledge/KnowledgeRecordsView/index.jsx";
 

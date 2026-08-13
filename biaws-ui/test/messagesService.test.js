@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { dialogKeyboardAction } from "../src/components/shared/accessibilityModel.js";
+import { dialogKeyboardAction } from "../src/components/shared/AccessibilityProvider/model.js";
 import { createMessagesTestService } from "../src/infrastructure/messages/testing.js";
 import { selectActiveLoading } from "../src/infrastructure/messages/service.js";
 

@@ -18,9 +18,9 @@ import {
 } from "../../../../api.js";
 import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 import { hasPermission } from "../../../../permissions.js";
-import { CATALOG_ENTITY_API } from "../catalogEntityApi.js";
-import { visibleCatalogTabs } from "../catalogViewModel.js";
+import { visibleCatalogTabs } from "../model.js";
 import { createCatalogEntityActions } from "../components/createCatalogEntityActions.jsx";
+import { CATALOG_ENTITY_API } from "./catalogEntityApi.js";
 import { useCatalogRuntimes } from "./useCatalogRuntimes.js";
 
 export function useCatalogView(actor) {

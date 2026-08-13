@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { ActiveView } from "./components/ActiveView.jsx";
-import { AppHeader } from "./components/AppHeader.jsx";
+import { AppHeader } from "./components/AppHeader/index.jsx";
 import { useApp } from "./hooks/useApp.js";
 import {
   activeViewFromPath,

@@ -12,19 +12,22 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import companyLogo from "../../../assets/logo-company.png";
+import companyLogo from "../../../../assets/logo-company.png";
 import {
   buildLocalDevelopmentCommands,
   canOpenWorkspaceSwitcher,
   currentWorkspaceName,
-} from "../model.js";
+} from "../../model.js";
 import {
   LocalSetupPanel,
   NavigationMenu,
   WorkspaceList,
   WorkspaceSwitcherFooter,
-} from "./AppHeaderPanels.jsx";
-import { copyPlainText, NavigationButton } from "./AppHeaderUtilities.jsx";
+} from "./components/AppHeaderPanels.jsx";
+import {
+  copyPlainText,
+  NavigationButton,
+} from "./components/AppHeaderUtilities.jsx";
 
 export function AppHeader({
   activeView,

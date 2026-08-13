@@ -12,7 +12,7 @@ import {
   createEmptyDocumentDraft,
   documentStatusLabel,
   normalizeDocumentDraft,
-} from "../knowledgeModel.js";
+} from "./models/documentModel.js";
 import { hasPermission } from "../../../permissions.js";
 
 export const DOCUMENT_TYPES = Object.freeze({

@@ -8,7 +8,7 @@ import {
   createWidgetInstance,
   moveWidget,
   updateWidgetInstance,
-} from "../../homeModel.js";
+} from "../model.js";
 
 export function useHomeView() {
   const [dashboard, setDashboard] = useState(null);

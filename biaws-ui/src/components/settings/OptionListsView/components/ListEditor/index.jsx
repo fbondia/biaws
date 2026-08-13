@@ -9,8 +9,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import { replicateOptionList, updateOptionList } from "../../../../api.js";
-import { ReplicationDialog } from "../../../shared/ReplicationDialog.jsx";
+import { replicateOptionList, updateOptionList } from "../../../../../api.js";
+import { ReplicationDialog } from "../../../../shared/ReplicationDialog.jsx";
 import {
   clone,
   COLOR_LIST_KEYS,
@@ -18,8 +18,11 @@ import {
   EML_DETECTION_LIST_KEY,
   newItem,
   removeItem,
-} from "../model.js";
-import { EmlDetectionTest, OptionItemRow } from "./ListEditorParts.jsx";
+} from "../../model.js";
+import {
+  EmlDetectionTest,
+  OptionItemRow,
+} from "./components/ListEditorParts.jsx";
 
 export function ListEditor({
   list,

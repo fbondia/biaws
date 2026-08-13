@@ -6,7 +6,7 @@ import {
   fetchDocumentRevisions,
   fetchDocuments,
 } from "../../../../../../api.js";
-import { fetchAllDocumentPages } from "../../../../knowledgeModel.js";
+import { fetchAllDocumentPages } from "../../../models/documentModel.js";
 
 export function useDocumentDetail(draft) {
   const [tab, setTab] = useState("overview");

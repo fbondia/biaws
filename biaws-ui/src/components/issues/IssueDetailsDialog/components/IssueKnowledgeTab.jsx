@@ -1,7 +1,7 @@
 import { Save, Tags } from "lucide-react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../../constants/issues.js";
-import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector.jsx";
+import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector/index.jsx";
 import { filterTaxonomyForApplication } from "../../../taxonomy/scope.js";
 import {
   TagGroupDialog,

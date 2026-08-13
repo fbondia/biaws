@@ -3,7 +3,7 @@ import {
   STATUS_OPTIONS,
   TYPE_OPTIONS,
 } from "../../../../constants/issues.js";
-import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector.jsx";
+import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector/index.jsx";
 import { readSelectedTags, toggleSelectedTag } from "../model.js";
 import { OptionFilterDialog } from "./OptionFilterDialog.jsx";
 

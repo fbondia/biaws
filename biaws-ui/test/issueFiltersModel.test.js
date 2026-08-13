@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   datePeriodRange,
   matchingDatePeriod,
+  selectedOptionSummary,
 } from "../src/components/issues/IssueFilters/model.js";
 
 test("datePeriodRange creates day and calendar-month presets ending today", () => {
@@ -39,4 +40,21 @@ test("matchingDatePeriod identifies presets and keeps other ranges custom", () =
     "3m",
   );
   assert.equal(matchingDatePeriod({ from: "", to: "" }, today), "custom");
+});
+
+test("selectedOptionSummary uses labels for one option and counts larger selections", () => {
+  const options = [
+    { value: "incident", label: "Incidente" },
+    { value: "request", label: "Requisição" },
+  ];
+
+  assert.equal(selectedOptionSummary([], options, "Todos"), "Todos");
+  assert.equal(
+    selectedOptionSummary(["incident"], options, "Todos"),
+    "Incidente",
+  );
+  assert.equal(
+    selectedOptionSummary(["incident", "request"], options, "Todos"),
+    "2 selecionados",
+  );
 });

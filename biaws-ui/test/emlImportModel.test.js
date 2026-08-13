@@ -5,6 +5,7 @@ import {
   cloneEmlClassification,
   contextFromPreviewIssue,
   mergeEmlClassificationSection,
+  selectedEmlTaxonomyIds,
   shouldRetryContextDiscovery,
 } from "../src/components/issues/emlImportModel.js";
 
@@ -85,4 +86,14 @@ test("classification cloning does not share taxonomy or tag arrays", () => {
     secondaryTaxonomyIds: ["secondary"],
     tags: { channel: ["email"] },
   });
+});
+
+test("selected EML taxonomies keep the primary item before secondary items", () => {
+  assert.deepEqual(
+    selectedEmlTaxonomyIds({
+      primaryTaxonomyId: "primary",
+      secondaryTaxonomyIds: ["secondary", ""],
+    }),
+    ["primary", "secondary"],
+  );
 });

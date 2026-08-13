@@ -87,3 +87,12 @@ export function toggleSelectedOption(draftFilters, field, value, onChange) {
     : [...selected, value];
   onChange(field, next.join(","));
 }
+
+export function selectedOptionSummary(selectedValues, options, emptyLabel) {
+  if (!selectedValues.length) return emptyLabel;
+  const selectedLabels = selectedValues
+    .map((value) => options.find((option) => option.value === value)?.label)
+    .filter(Boolean);
+  if (selectedLabels.length === 1) return selectedLabels[0];
+  return `${selectedValues.length} selecionados`;
+}

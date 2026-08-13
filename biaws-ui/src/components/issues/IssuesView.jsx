@@ -3,9 +3,9 @@ import { useState } from "react";
 
 import { IssueDetailsDialog } from "./IssueDetailsDialog/index.jsx";
 import { CreateIssueDialog } from "./CreateIssueDialog.jsx";
-import { ImportEmlDialog } from "./ImportEmlDialog.jsx";
+import { ImportEmlDialog } from "./ImportEmlDialog/index.jsx";
 import { IssueFilters } from "./IssueFilters/index.jsx";
-import { IssueList } from "./IssueList.jsx";
+import { IssueList } from "./IssueList/index.jsx";
 import { IssueSummary } from "./IssueSummary.jsx";
 import { hasPermission } from "../../permissions.js";
 import { useCatalogOptions } from "../catalog/CatalogContextFields/index.jsx";

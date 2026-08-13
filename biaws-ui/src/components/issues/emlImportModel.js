@@ -47,3 +47,10 @@ export function mergeEmlClassificationSection(current, draft, section) {
     secondaryTaxonomyIds: next.secondaryTaxonomyIds,
   };
 }
+
+export function selectedEmlTaxonomyIds(classification) {
+  return [
+    classification.primaryTaxonomyId,
+    ...classification.secondaryTaxonomyIds,
+  ].filter(Boolean);
+}

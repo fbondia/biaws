@@ -170,31 +170,6 @@ export function RequestsView({
         requestError={requestError}
       />
 
-      {!selectedRequest ? (
-        <div className="requestCatalogFilters contentBand">
-          {catalog.applications.length ? (
-            <CatalogFilterFields
-              applicationId={applicationFilter}
-              applications={catalog.applications}
-              componentId={componentFilter}
-              components={catalog.components}
-              onChange={(field, value) => {
-                setRequestPage(1);
-                if (field === "applicationId") setApplicationFilter(value);
-                if (field === "componentId") setComponentFilter(value);
-              }}
-            />
-          ) : null}
-          <RequestStatusFilter
-            onChange={(nextStatuses) => {
-              setRequestPage(1);
-              setStatusFilters(nextStatuses);
-            }}
-            value={statusFilters}
-          />
-        </div>
-      ) : null}
-
       <ResourceCollectionsShell
         canDropRoot={(draggedItem) =>
           draggedItem.type === "collection" || canManageCollections
@@ -300,15 +275,43 @@ export function RequestsView({
           />
         }
         toolbar={
-          <RequestPagination
-            loadCollections={collectionState.loadCollections}
-            loadRequestCollectionItems={loadRequestCollectionItems}
-            loadRequests={loadRequests}
-            loadSelectedRequest={loadSelectedRequest}
-            loadingRequests={loadingRequests}
-            requestMeta={requestMeta}
-            setRequestPage={setRequestPage}
-          />
+          <div className="requestCollectionToolbar">
+            {!selectedRequest ? (
+              <div className="requestCatalogFilters">
+                {catalog.applications.length ? (
+                  <CatalogFilterFields
+                    applicationId={applicationFilter}
+                    applications={catalog.applications}
+                    componentId={componentFilter}
+                    components={catalog.components}
+                    onChange={(field, value) => {
+                      setRequestPage(1);
+                      if (field === "applicationId") {
+                        setApplicationFilter(value);
+                      }
+                      if (field === "componentId") setComponentFilter(value);
+                    }}
+                  />
+                ) : null}
+                <RequestStatusFilter
+                  onChange={(nextStatuses) => {
+                    setRequestPage(1);
+                    setStatusFilters(nextStatuses);
+                  }}
+                  value={statusFilters}
+                />
+              </div>
+            ) : null}
+            <RequestPagination
+              loadCollections={collectionState.loadCollections}
+              loadRequestCollectionItems={loadRequestCollectionItems}
+              loadRequests={loadRequests}
+              loadSelectedRequest={loadSelectedRequest}
+              loadingRequests={loadingRequests}
+              requestMeta={requestMeta}
+              setRequestPage={setRequestPage}
+            />
+          </div>
         }
       >
         {selectedRequest ? (

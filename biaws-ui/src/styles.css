@@ -9,6 +9,7 @@
 @import "./styles/shared/markdown-editor.css";
 @import "./styles/shared/audit-history.css";
 @import "./styles/shared/empty-state.css";
+@import "./styles/shared/filter-dialogs.css";
 @import "./styles/shared/resource-collection-navigator.css";
 @import "./styles/shared/resource-collections.css";
 @import "./styles/foundations/accessibility.css";

@@ -70,3 +70,16 @@ test("shared collection navigation is not owned by the knowledge feature", async
     "legacy navigator rules must load before shared component rules",
   );
 });
+
+test("shared filter dialogs are available before feature styles load", async () => {
+  const source = await loadCssGraph("src/styles.css");
+
+  for (const selector of [
+    "tagFilterDialogBackdrop",
+    "tagFilterDialog",
+    "catalogFilterDialog",
+    "issueOptionFilterDialog",
+  ]) {
+    assertSelector(source, selector);
+  }
+});

@@ -52,6 +52,21 @@
   padding: 14px;
 }
 
+.requestCollectionToolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.requestCollectionToolbar .filterDialogTriggerButton {
+  width: 230px;
+  min-width: 170px;
+  flex: 0 1 230px;
+}
+
 .requestCollectionPagination {
   display: flex;
   min-width: 0;

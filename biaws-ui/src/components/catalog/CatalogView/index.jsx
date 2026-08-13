@@ -13,7 +13,7 @@ import {
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { CatalogEntityDialog } from "../CatalogEntityDialog/index.jsx";
 import { HeaderActions } from "./components/CatalogComponents.jsx";
-import { useCatalogView } from "./hooks/useCatalogView.jsx";
+import { useCatalogView } from "./hooks/useCatalogView.js";
 import { CatalogTabContent } from "./tabs/CatalogTabContent.jsx";
 
 function CatalogSelectedDetail({

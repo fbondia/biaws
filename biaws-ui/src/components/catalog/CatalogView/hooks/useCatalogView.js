@@ -1,123 +1,27 @@
-import { Archive, ArchiveRestore, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   archiveApplication,
-  archiveComponent,
-  archiveDeployment,
-  archiveIntegration,
-  archiveRepository,
-  archiveRuntime,
   createApplication,
-  createComponent,
-  createDeployment,
-  createIntegration,
-  createRepository,
-  createRuntime,
-  deleteComponent,
-  deleteDeployment,
-  deleteIntegration,
-  deleteRepository,
-  deleteRuntime,
   deleteApplication,
   fetchApplication,
   fetchApplicationMonitoringHealth,
   fetchApplications,
-  fetchComponent,
   fetchComponents,
-  fetchDeployment,
   fetchDeployments,
-  fetchIntegration,
   fetchIntegrations,
   fetchRepositories,
-  fetchRepository,
-  fetchRuntime,
-  fetchRuntimes,
   fetchServers,
   fetchWorkspaces,
-  restoreComponent,
-  restoreDeployment,
-  restoreIntegration,
-  restoreRepository,
-  restoreRuntime,
   restoreApplication,
   updateApplication,
-  updateComponent,
-  updateDeployment,
-  updateIntegration,
-  updateRepository,
-  updateRuntime,
 } from "../../../../api.js";
-import { hasPermission } from "../../../../permissions.js";
 import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
-
-const TABS = [
-  { key: "overview", label: "Visão geral", permission: "applications.read" },
-  {
-    key: "topology",
-    label: "Topologia",
-    permission: ["components.read", "deployments.read"],
-  },
-  {
-    key: "repositories",
-    label: "Repositórios",
-    permission: "repositories.read",
-  },
-  {
-    key: "integrations",
-    label: "Integrações",
-    permission: "integrations.read",
-  },
-  { key: "history", label: "Histórico", permission: "applications.read" },
-];
-
-const ENTITY_API = {
-  integration: {
-    create: createIntegration,
-    update: updateIntegration,
-    archive: archiveIntegration,
-    restore: restoreIntegration,
-    remove: deleteIntegration,
-    detail: fetchIntegration,
-    response: "integration",
-  },
-  component: {
-    create: createComponent,
-    update: updateComponent,
-    archive: archiveComponent,
-    restore: restoreComponent,
-    remove: deleteComponent,
-    detail: fetchComponent,
-    response: "component",
-  },
-  repository: {
-    create: createRepository,
-    update: updateRepository,
-    archive: archiveRepository,
-    restore: restoreRepository,
-    remove: deleteRepository,
-    detail: fetchRepository,
-    response: "repository",
-  },
-  deployment: {
-    create: createDeployment,
-    update: updateDeployment,
-    archive: archiveDeployment,
-    restore: restoreDeployment,
-    remove: deleteDeployment,
-    detail: fetchDeployment,
-    response: "deployment",
-  },
-  runtime: {
-    create: createRuntime,
-    update: updateRuntime,
-    archive: archiveRuntime,
-    restore: restoreRuntime,
-    remove: deleteRuntime,
-    detail: fetchRuntime,
-    response: "runtime",
-  },
-};
+import { hasPermission } from "../../../../permissions.js";
+import { CATALOG_ENTITY_API } from "../catalogEntityApi.js";
+import { visibleCatalogTabs } from "../catalogViewModel.js";
+import { createCatalogEntityActions } from "../components/createCatalogEntityActions.jsx";
+import { useCatalogRuntimes } from "./useCatalogRuntimes.js";
 
 export function useCatalogView(actor) {
   const { confirm } = useMessages();
@@ -131,22 +35,16 @@ export function useCatalogView(actor) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dialog, setDialog] = useState(null);
-  const [runtimeByDeployment, setRuntimeByDeployment] = useState({});
-  const [runtimeLoadingByDeployment, setRuntimeLoadingByDeployment] = useState(
-    {},
-  );
-  const [runtimeErrorByDeployment, setRuntimeErrorByDeployment] = useState({});
   const applicationLoadVersionRef = useRef(0);
+  const {
+    loadRuntimes,
+    resetRuntimes,
+    runtimeByDeployment,
+    runtimeErrorByDeployment,
+    runtimeLoadingByDeployment,
+  } = useCatalogRuntimes(actor);
 
-  const visibleTabs = useMemo(
-    () =>
-      TABS.filter(({ permission }) =>
-        (Array.isArray(permission) ? permission : [permission]).some(
-          (candidate) => hasPermission(actor, candidate),
-        ),
-      ),
-    [actor],
-  );
+  const visibleTabs = useMemo(() => visibleCatalogTabs(actor), [actor]);
 
   async function loadApplications(nextWorkspace = workspace, filters = {}) {
     if (!nextWorkspace?.id) return;
@@ -246,9 +144,7 @@ export function useCatalogView(actor) {
         ),
         monitoringHealth: monitoringHealth.health || null,
       });
-      setRuntimeByDeployment({});
-      setRuntimeLoadingByDeployment({});
-      setRuntimeErrorByDeployment({});
+      resetRuntimes();
     } catch (loadError) {
       setError(loadError.message);
       setContext(null);
@@ -296,7 +192,7 @@ export function useCatalogView(actor) {
   }
 
   async function persistEntity(payload) {
-    const api = ENTITY_API[dialog.kind];
+    const api = CATALOG_ENTITY_API[dialog.kind];
     const runtimeDeploymentId =
       dialog.kind === "runtime"
         ? dialog.deploymentId || dialog.entity?.deploymentId
@@ -318,7 +214,7 @@ export function useCatalogView(actor) {
   async function editEntity(kind, entity) {
     setError("");
     try {
-      const api = ENTITY_API[kind];
+      const api = CATALOG_ENTITY_API[kind];
       const payload = await api.detail(entity.id);
       setDialog({
         kind,
@@ -334,7 +230,7 @@ export function useCatalogView(actor) {
     if (!(await confirm(`Arquivar “${entity.name}”?`))) return;
     setError("");
     try {
-      await ENTITY_API[kind].archive(entity.id);
+      await CATALOG_ENTITY_API[kind].archive(entity.id);
       if (kind === "runtime") {
         await loadRuntimes(entity.deploymentId, { force: true });
         return;
@@ -349,7 +245,7 @@ export function useCatalogView(actor) {
     if (!(await confirm(`Desarquivar “${entity.name}”?`))) return;
     setError("");
     try {
-      await ENTITY_API[kind].restore(entity.id);
+      await CATALOG_ENTITY_API[kind].restore(entity.id);
       if (kind === "runtime") {
         await loadRuntimes(entity.deploymentId, { force: true });
         return;
@@ -371,7 +267,7 @@ export function useCatalogView(actor) {
     }
     setError("");
     try {
-      await ENTITY_API[kind].remove(entity.id);
+      await CATALOG_ENTITY_API[kind].remove(entity.id);
       if (kind === "runtime") {
         await loadRuntimes(entity.deploymentId, { force: true });
         return;
@@ -433,97 +329,13 @@ export function useCatalogView(actor) {
     }
   }
 
-  const entityActions =
-    (kind, updatePermission, archivePermission) => (entity) => (
-      <>
-        {entity.status !== "archived" &&
-        hasPermission(actor, updatePermission) ? (
-          <button
-            aria-label={`Editar ${entity.name}`}
-            className="iconButton"
-            onClick={() => void editEntity(kind, entity)}
-            title="Editar"
-            type="button"
-          >
-            <Pencil size={15} />
-          </button>
-        ) : null}
-        {hasPermission(actor, archivePermission) &&
-        entity.status !== "archived" ? (
-          <button
-            aria-label={`Arquivar ${entity.name}`}
-            className="iconButton dangerIconButton"
-            onClick={() => void archiveEntity(kind, entity)}
-            title="Arquivar"
-            type="button"
-          >
-            <Archive size={15} />
-          </button>
-        ) : null}
-        {hasPermission(actor, archivePermission) &&
-        entity.status === "archived" ? (
-          <>
-            <button
-              aria-label={`Desarquivar ${entity.name}`}
-              className="iconButton"
-              onClick={() => void restoreEntity(kind, entity)}
-              title="Desarquivar"
-              type="button"
-            >
-              <ArchiveRestore size={15} />
-            </button>
-            <button
-              aria-label={`Excluir definitivamente ${entity.name}`}
-              className="iconButton dangerIconButton"
-              onClick={() => void deleteEntity(kind, entity)}
-              title="Excluir definitivamente"
-              type="button"
-            >
-              <Trash2 size={15} />
-            </button>
-          </>
-        ) : null}
-      </>
-    );
-
-  async function loadRuntimes(deploymentId, { force = false } = {}) {
-    if (
-      !deploymentId ||
-      !hasPermission(actor, "runtimes.read") ||
-      runtimeLoadingByDeployment[deploymentId] ||
-      (!force && Object.hasOwn(runtimeByDeployment, deploymentId))
-    )
-      return;
-
-    setRuntimeLoadingByDeployment((current) => ({
-      ...current,
-      [deploymentId]: true,
-    }));
-    setRuntimeErrorByDeployment((current) => ({
-      ...current,
-      [deploymentId]: "",
-    }));
-    try {
-      const payload = await fetchRuntimes(deploymentId, {
-        includeArchived: true,
-        limit: 100,
-      });
-      setRuntimeByDeployment((current) => ({
-        ...current,
-        [deploymentId]: payload.items || [],
-      }));
-    } catch (loadError) {
-      setRuntimeErrorByDeployment((current) => ({
-        ...current,
-        [deploymentId]: loadError.message,
-      }));
-    } finally {
-      setRuntimeLoadingByDeployment((current) => ({
-        ...current,
-        [deploymentId]: false,
-      }));
-    }
-  }
+  const entityActions = createCatalogEntityActions({
+    actor,
+    archiveEntity,
+    deleteEntity,
+    editEntity,
+    restoreEntity,
+  });
 
   return {
     workspace,

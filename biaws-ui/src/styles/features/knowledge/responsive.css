@@ -1,0 +1,84 @@
+@media (max-width: 760px) {
+  .documentCreateActions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .knowledgeRecordHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .knowledgeRecordActions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .knowledgeRecordPanel .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .knowledgeOverviewSelectors {
+    grid-template-columns: 1fr;
+  }
+
+  .knowledgeOverviewIdentity {
+    grid-template-columns: 1fr;
+  }
+
+  .knowledgeOverviewTitleField,
+  .knowledgeOverviewIdentifierField,
+  .knowledgeOverviewStatusField,
+  .knowledgeOverviewSummaryField {
+    grid-column: 1;
+  }
+
+  .knowledgeDocumentFilters {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .documentTypeFilter,
+  .knowledgeCollectionSearch .filterDialogTriggerButton {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .knowledgeRecordCard > header,
+  .knowledgeRecordCardFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .knowledgeRecordCardHeaderMeta {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .knowledgeRecordDefinedAt {
+    margin-left: 0;
+  }
+
+  .knowledgeDocumentActionOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .documentTypeCreationStep {
+    gap: 20px;
+    padding: 24px 16px;
+  }
+
+  .documentTypeCreationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .documentClassificationTags {
+    grid-template-columns: 1fr;
+  }
+
+  .documentTypeCreationStep > footer .primaryButton {
+    width: 100%;
+  }
+}

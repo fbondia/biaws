@@ -1,0 +1,262 @@
+.securityView {
+  display: grid;
+  gap: 18px;
+  padding: 24px 28px 34px;
+}
+
+.securityHeader,
+.securityHeader .secondaryButton,
+.securityHeader .primaryButton,
+.securityPanel h3,
+.userRow > div:last-child {
+  display: flex;
+  align-items: center;
+}
+
+.securityHeader {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.accountHeaderActions,
+.securityPanelHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.accountHeaderActions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.securityPanelHeader {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.securityPanel .securityPanelHeader h3 {
+  margin: 0;
+}
+
+.securityHeader .secondaryButton,
+.securityHeader .primaryButton,
+.securityPanel h3,
+.userRow > div:last-child {
+  gap: 8px;
+}
+
+.securityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.securityPanel {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  padding: 18px;
+}
+
+.securityPanel h3 {
+  margin: 0 0 14px;
+}
+
+.inlineCreateForm,
+.userCreateForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 9px;
+  margin-bottom: 16px;
+}
+
+.securityList,
+.userTable {
+  display: grid;
+}
+
+.securityListItem,
+.userRow {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding: 12px 0;
+}
+
+.userRow:first-child {
+  border-top: 0;
+}
+
+.securityListItem > div,
+.userRow > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.securityListItem small,
+.userRow small,
+.emptyText {
+  color: var(--color-text-subtle);
+}
+
+.securityListItem small,
+.userRow small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.securityListItem > .currentSessionLabel {
+  flex: 0 0 auto;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.secretNotice {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--color-warning-border);
+  border-radius: 9px;
+  background: var(--color-warning-surface-subtle);
+  padding: 15px;
+}
+
+.secretNotice code {
+  overflow: auto;
+  border-radius: 5px;
+  background: var(--color-surface);
+  padding: 10px;
+}
+
+.secretNotice .secondaryButton {
+  width: max-content;
+}
+
+.userCreateDialog {
+  width: min(560px, 100%);
+  max-height: calc(100dvh - 44px);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
+}
+
+.changePasswordDialog {
+  width: min(520px, 100%);
+}
+
+.userCreateDialogHeader,
+.userCreateDialogFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+}
+
+.userCreateDialogHeader {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.userCreateDialogHeader span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.userCreateDialogHeader h2 {
+  margin: 3px 0 0;
+  font-size: 19px;
+}
+
+.userCreateDialogForm {
+  display: grid;
+  max-height: calc(100dvh - 132px);
+  gap: 14px;
+  overflow: auto;
+  padding: 18px;
+}
+
+.userCreateDialogForm > label {
+  display: grid;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.userCreateDialogForm input:not([type="checkbox"]) {
+  min-height: 40px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 7px;
+  padding: 8px 10px;
+  outline: 0;
+}
+
+.userCreateDialogForm input:not([type="checkbox"]):focus {
+  border-color: var(--color-accent-border);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.userCreateDialogForm small {
+  color: var(--color-text-subtle);
+  font-weight: 400;
+}
+
+.userCreateGroups {
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.userCreateGroups legend {
+  padding: 0 5px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.userCreateDialogFooter {
+  margin: 2px -18px -18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.userCreateDialogFooter .primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+@media (max-width: 800px) {
+  .securityGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .securityHeader,
+  .securityPanelHeader,
+  .securityListItem,
+  .userRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .accountHeaderActions {
+    width: 100%;
+  }
+
+  .accountHeaderActions button {
+    flex: 1;
+  }
+
+  .securityPanelHeader .secondaryButton {
+    width: 100%;
+  }
+}

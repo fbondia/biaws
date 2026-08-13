@@ -9,6 +9,8 @@ import {
   Upload,
 } from "lucide-react";
 
+import "../../../styles/features/taxonomy.css";
+
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../constants/issues.js";
 import { useFileDrop } from "../../shared/useFileDrop.js";
 import { TaxonomySelector } from "../TaxonomySelector/index.jsx";

@@ -1,0 +1,146 @@
+.monitoringEventHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.monitoringOriginBadge {
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  padding: 2px 7px;
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+.monitoringEventDetails {
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-2);
+}
+
+.monitoringEventDetails summary {
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.monitoringEventDetails dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+
+.monitoringEventDetails dl div {
+  min-width: 0;
+}
+
+.monitoringEventDetails dt {
+  color: var(--color-text-subtle);
+  font-size: 0.66rem;
+}
+
+.monitoringEventDetails dd {
+  overflow-wrap: anywhere;
+  margin: 2px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.74rem;
+}
+
+.monitoringEventJson {
+  margin-top: var(--space-3);
+}
+
+.monitoringEventJson > strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: 0.72rem;
+}
+
+.monitoringEventJson pre {
+  max-height: 300px;
+  overflow: auto;
+  margin: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  padding: var(--space-3);
+  font-size: 0.7rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.monitoringPresentation {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.monitoringMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: var(--space-2);
+}
+
+.monitoringMetric {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-width: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  padding: var(--space-2);
+}
+
+.monitoringMetric > span {
+  color: var(--color-text-subtle);
+  font-size: 0.68rem;
+}
+
+.monitoringMetric > strong {
+  width: fit-content;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.monitoringMetricGauge progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--color-primary);
+}
+
+.monitoringStatusBadge {
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 0.7rem;
+}
+
+.monitoringStatusBadge-healthy {
+  border-color: var(--palette-green-15);
+  background: var(--palette-green-03);
+  color: var(--palette-green-25) !important;
+}
+
+.monitoringStatusBadge-unavailable {
+  border-color: var(--palette-red-07);
+  background: var(--color-danger-surface);
+  color: var(--palette-red-15) !important;
+}
+
+.monitoringSeries {
+  min-width: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: var(--space-2);
+}
+
+.monitoringSeries > strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: 0.74rem;
+}

@@ -1,0 +1,96 @@
+/* Authentication and account */
+
+.authLoading,
+.loginPage {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+}
+
+.authLoading {
+  color: var(--color-text-subtle);
+}
+
+.loginPage {
+  background:
+    radial-gradient(
+      circle at top left,
+      var(--palette-alpha-blue-16),
+      transparent 38%
+    ),
+    var(--color-background);
+  padding: 24px;
+}
+
+.loginCard {
+  display: grid;
+  width: min(420px, 100%);
+  gap: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  box-shadow: 0 22px 60px var(--color-shadow-soft);
+  padding: 30px;
+}
+
+.loginCard h1,
+.securityHeader h2 {
+  margin: 0;
+}
+
+.loginCard p,
+.securityHeader p {
+  margin: 5px 0 0;
+  color: var(--color-text-subtle);
+}
+
+.loginIcon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--palette-blue-11);
+  color: var(--color-accent-text);
+}
+
+.loginCard label {
+  display: grid;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.loginCard input,
+.inlineCreateForm input,
+.userCreateForm input {
+  min-height: 40px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 7px;
+  padding: 8px 10px;
+  outline: 0;
+}
+
+.loginCard input:focus,
+.inlineCreateForm input:focus,
+.userCreateForm input:focus {
+  border-color: var(--color-accent-border);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.authError {
+  border: 1px solid var(--color-danger-border);
+  border-radius: 7px;
+  background: var(--color-danger-surface);
+  color: var(--color-danger-text);
+  padding: 10px 12px;
+}
+
+.authSuccess {
+  border: 1px solid var(--palette-green-16);
+  border-radius: 7px;
+  background: var(--palette-green-05);
+  color: var(--palette-green-27);
+  padding: 10px 12px;
+}

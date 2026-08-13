@@ -1,0 +1,196 @@
+.knowledgeRecordDetail {
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.knowledgeRecordHeader,
+.knowledgeRecordTitle,
+.knowledgeRecordActions {
+  display: flex;
+  align-items: center;
+}
+
+.knowledgeRecordHeader {
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 20px;
+  padding-top: 6px;
+}
+
+.knowledgeRecordTitle {
+  min-width: 0;
+  gap: 10px;
+}
+
+.knowledgeRecordTitle > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.knowledgeRecordTitle svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+}
+
+.knowledgeRecordTitle h2 {
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-text);
+  font-size: 19px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knowledgeRecordActions {
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.knowledgeDocumentModeButton {
+  color: var(--color-text-muted);
+}
+
+.knowledgeDetailsBackdrop {
+  z-index: var(--z-dialog);
+}
+
+.knowledgeDetailsDialog {
+  display: flex;
+  width: min(1120px, calc(100vw - 44px));
+  max-height: min(860px, calc(100dvh - 44px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
+}
+
+.knowledgeDetailsDialog > .knowledgeRecordHeader,
+.knowledgeDetailsDialog > .knowledgeRecordTabs,
+.knowledgeDetailsDialog > .knowledgeRecordFooter {
+  flex: 0 0 auto;
+}
+
+.knowledgeDetailsDialog > .knowledgeRecordPanel,
+.knowledgeDetailsDialog > .knowledgeRecordHistory {
+  min-height: 0;
+  overflow: auto;
+}
+
+.knowledgeDocumentReadingHeader {
+  align-items: flex-start;
+}
+
+.knowledgeDocumentTypeIcon {
+  width: 44px;
+  height: 44px;
+  stroke-width: 1.65;
+}
+
+.knowledgeDetailsButton {
+  display: inline-flex;
+  min-height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.knowledgeDetailsButton:hover,
+.knowledgeDetailsButton:focus-visible {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.knowledgeDocumentActionDialog {
+  width: min(560px, calc(100vw - 40px));
+}
+
+.knowledgeDocumentActionOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+.knowledgeDocumentActionOption {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: 16px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.knowledgeDocumentActionOption:hover,
+.knowledgeDocumentActionOption:focus-visible {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+}
+
+.knowledgeDocumentActionOption > svg {
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+}
+
+.knowledgeDocumentActionOption > span,
+.knowledgeDocumentActionOption strong,
+.knowledgeDocumentActionOption small {
+  display: block;
+}
+
+.knowledgeDocumentActionOption small {
+  margin-top: 4px;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.knowledgeDetailsButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.knowledgeDocumentMarkdown {
+  width: min(100%, 920px);
+  min-width: 0;
+  max-width: 100%;
+  justify-self: center;
+  padding: clamp(24px, 5vw, 52px);
+}
+
+.knowledgeDocumentMarkdown > .markdownPreview {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.knowledgeRecordTabs {
+  margin: 0;
+  padding: 0 12px;
+}

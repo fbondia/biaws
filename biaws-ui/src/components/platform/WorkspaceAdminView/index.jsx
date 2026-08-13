@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import "../../../styles/features/platform.css";
+
 import {
   archivePlatformWorkspace,
   createPlatformWorkspace,

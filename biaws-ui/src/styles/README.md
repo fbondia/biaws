@@ -1,7 +1,9 @@
 # Arquitetura de estilos
 
-`src/styles.css` é apenas o ponto de entrada e define a ordem da cascata. Novas
-regras não devem ser adicionadas diretamente nele.
+`src/styles.css` é o ponto de entrada global e contém somente foundations,
+layout/shell e estilos compartilhados. CSS de domínio é importado pelo root da
+feature correspondente e acompanha o chunk carregado para a visão. Novas regras
+não devem ser adicionadas diretamente ao entrypoint global.
 
 ## Diretórios
 
@@ -10,10 +12,16 @@ regras não devem ser adicionadas diretamente nele.
 - `shared/`: estilos reutilizados por mais de um domínio.
 - `features/`: estilos pertencentes a uma funcionalidade específica.
 
-Issues e Requests são subdivididos por módulo para evitar arquivos monolíticos.
-As media queries ficam junto do módulo que alteram. A exceção atual é
-`features/requests/responsive.css`, porque suas regras coordenam vários módulos
-da tela de melhorias.
+Auth, Catalog, Home, Issues, Knowledge e Requests possuem um `index.css` local
+que preserva explicitamente a ordem dos seus módulos. Os demais domínios usam o
+arquivo CSS único como entrypoint enquanto ele continua coeso. As media queries
+ficam junto do módulo que alteram; arquivos `responsive.css` existem somente
+quando uma regra coordena várias famílias visuais da mesma feature.
+
+Os roots de visão são carregados com `React.lazy`, portanto o build deve produzir
+CSS separado por domínio. Um componente compartilhado que precisa de estilos
+próprios, como `MonitoringEventDetails`, importa seu CSS diretamente e não
+depende de um domínio consumidor.
 
 ## Convenções
 
@@ -35,6 +43,9 @@ da tela de melhorias.
    foco visível.
 7. CSS Modules podem ser usados para componentes autocontidos. Estilos que
    precisam ser compartilhados devem continuar em `shared/`.
+8. Um arquivo dentro de `features/<domínio>/` só pode importar arquivos locais
+   desse mesmo domínio. Dependências visuais compartilhadas pertencem a
+   `shared/` e são importadas pelo componente proprietário.
 
 ## Hierarquia de cores
 

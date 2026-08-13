@@ -1,17 +1,67 @@
-import { AccountView } from "../../components/auth/AccountView.jsx";
-import { GroupsView } from "../../components/auth/GroupsView/index.jsx";
-import { UsersView } from "../../components/auth/UsersView.jsx";
-import { CatalogView } from "../../components/catalog/CatalogView/index.jsx";
-import { ServersView } from "../../components/catalog/ServersView/index.jsx";
-import { IssuesView } from "../../components/issues/IssuesView.jsx";
-import { RequestsView } from "../../components/requests/RequestsView/index.jsx";
-import { OptionListsView } from "../../components/settings/OptionListsView/index.jsx";
-import { SkillsView } from "../../components/skills/SkillsView/index.jsx";
-import { IssueTaxonomyManager } from "../../components/taxonomy/IssueTaxonomyManager/index.jsx";
-import { HomeView } from "../../components/home/HomeView/index.jsx";
-import { WorkspaceAdminView } from "../../components/platform/WorkspaceAdminView/index.jsx";
-import { SecretsView } from "../../components/secrets/SecretsView/index.jsx";
-import { KnowledgeRecordsView } from "../../components/knowledge/KnowledgeRecordsView/index.jsx";
+import { lazy } from "react";
+
+function lazyNamed(loader, exportName) {
+  return lazy(() =>
+    loader().then((module) => ({ default: module[exportName] })),
+  );
+}
+
+const AccountView = lazyNamed(
+  () => import("../../components/auth/AccountView.jsx"),
+  "AccountView",
+);
+const GroupsView = lazyNamed(
+  () => import("../../components/auth/GroupsView/index.jsx"),
+  "GroupsView",
+);
+const UsersView = lazyNamed(
+  () => import("../../components/auth/UsersView.jsx"),
+  "UsersView",
+);
+const CatalogView = lazyNamed(
+  () => import("../../components/catalog/CatalogView/index.jsx"),
+  "CatalogView",
+);
+const ServersView = lazyNamed(
+  () => import("../../components/catalog/ServersView/index.jsx"),
+  "ServersView",
+);
+const IssuesView = lazyNamed(
+  () => import("../../components/issues/IssuesView.jsx"),
+  "IssuesView",
+);
+const RequestsView = lazyNamed(
+  () => import("../../components/requests/RequestsView/index.jsx"),
+  "RequestsView",
+);
+const OptionListsView = lazyNamed(
+  () => import("../../components/settings/OptionListsView/index.jsx"),
+  "OptionListsView",
+);
+const SkillsView = lazyNamed(
+  () => import("../../components/skills/SkillsView/index.jsx"),
+  "SkillsView",
+);
+const IssueTaxonomyManager = lazyNamed(
+  () => import("../../components/taxonomy/IssueTaxonomyManager/index.jsx"),
+  "IssueTaxonomyManager",
+);
+const HomeView = lazyNamed(
+  () => import("../../components/home/HomeView/index.jsx"),
+  "HomeView",
+);
+const WorkspaceAdminView = lazyNamed(
+  () => import("../../components/platform/WorkspaceAdminView/index.jsx"),
+  "WorkspaceAdminView",
+);
+const SecretsView = lazyNamed(
+  () => import("../../components/secrets/SecretsView/index.jsx"),
+  "SecretsView",
+);
+const KnowledgeRecordsView = lazyNamed(
+  () => import("../../components/knowledge/KnowledgeRecordsView/index.jsx"),
+  "KnowledgeRecordsView",
+);
 
 export function ActiveView({
   activeView,

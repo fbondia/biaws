@@ -2,3 +2,8 @@
 @import "./procedures/collections.css";
 @import "./procedures/cards.css";
 @import "./procedures/dialogs.css";
+@import "./filters-and-create.css";
+@import "./details.css";
+@import "./records.css";
+@import "./editor.css";
+@import "./responsive.css";

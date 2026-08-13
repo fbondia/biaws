@@ -1,0 +1,15 @@
+.workspaceChoiceList {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.workspaceChoiceList button {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspaceChoiceList span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}

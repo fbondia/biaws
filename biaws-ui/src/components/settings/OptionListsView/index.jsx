@@ -1,6 +1,8 @@
 import { AlertTriangle, ListChecks } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import "../../../styles/features/settings.css";
+
 import { fetchOptionLists } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
 import { ListEditor } from "./components/ListEditor/index.jsx";

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { ActiveView } from "./components/ActiveView.jsx";
 import { AppHeader } from "./components/AppHeader/index.jsx";
@@ -68,17 +68,25 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
         onViewChange={selectActiveView}
         onWorkspaceChange={onWorkspaceChange}
       />
-      <ActiveView
-        activeView={activeView}
-        actor={actor}
-        issuesProps={issuesProps}
-        loadRuntimeOptionLists={loadRuntimeOptionLists}
-        onOpenRequestTask={openRequestTask}
-        onRequestTaskTargetHandled={() => setRequestTaskTarget(null)}
-        onSignOut={onSignOut}
-        requestTaskTarget={requestTaskTarget}
-        runtimeOptionsVersion={runtimeOptionsVersion}
-      />
+      <Suspense
+        fallback={
+          <div aria-busy="true" className="emptyState" role="status">
+            Carregando visão…
+          </div>
+        }
+      >
+        <ActiveView
+          activeView={activeView}
+          actor={actor}
+          issuesProps={issuesProps}
+          loadRuntimeOptionLists={loadRuntimeOptionLists}
+          onOpenRequestTask={openRequestTask}
+          onRequestTaskTargetHandled={() => setRequestTaskTarget(null)}
+          onSignOut={onSignOut}
+          requestTaskTarget={requestTaskTarget}
+          runtimeOptionsVersion={runtimeOptionsVersion}
+        />
+      </Suspense>
     </main>
   );
 }

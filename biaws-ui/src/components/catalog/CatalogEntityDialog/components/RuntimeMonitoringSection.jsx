@@ -174,7 +174,7 @@ export function RuntimeMonitoringSection({
         items={monitoringEvents}
         renderItem={(event) => (
           <>
-            <div className="catalogMonitoringEventHeading">
+            <div className="catalogMonitoringEventHeading monitoringEventHeading">
               <strong>{event.status}</strong>
               <span className="monitoringOriginBadge">
                 {event.origin === "manual" ? "Manual" : "Externo"}

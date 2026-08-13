@@ -1,6 +1,8 @@
 import { BarChart3, Filter, FilterX, RefreshCw, Table2 } from "lucide-react";
 import { useState } from "react";
 
+import "../../styles/features/issues/index.css";
+
 import { IssueDetailsDialog } from "./IssueDetailsDialog/index.jsx";
 import { CreateIssueDialog } from "./CreateIssueDialog.jsx";
 import { ImportEmlDialog } from "./ImportEmlDialog/index.jsx";

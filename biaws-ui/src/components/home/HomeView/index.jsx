@@ -1,3 +1,5 @@
+import "../../../styles/features/home/index.css";
+
 import { HomeDashboard } from "./components/HomeDashboard.jsx";
 import {
   ConfigurationDialog,

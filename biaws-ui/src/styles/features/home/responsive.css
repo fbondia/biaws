@@ -1,0 +1,51 @@
+@media (max-width: 1100px) {
+  .homeWidget-small,
+  .homeWidget-medium-1 {
+    grid-column: span 6;
+  }
+
+  .homeWidget-medium,
+  .homeWidget-medium-2 {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 720px) {
+  .homePage {
+    padding: var(--space-4);
+  }
+
+  .homeHero {
+    flex-direction: column;
+  }
+
+  .homeHeroActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .homeWidget-small,
+  .homeWidget-medium,
+  .homeWidget-medium-1,
+  .homeWidget-medium-2,
+  .homeWidget-large {
+    grid-column: span 12;
+  }
+
+  .homeWidget > header {
+    align-items: flex-start;
+  }
+
+  .homeWidgetActions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .homeMonitoringFilters {
+    grid-template-columns: 1fr;
+  }
+
+  .homeMonitoringFilterActions {
+    justify-content: flex-end;
+  }
+}

@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { useSession } from "../../infrastructure/session/SessionProvider.jsx";
 import { SESSION_STATUS } from "../../infrastructure/session/service.js";
+import "../../styles/features/auth/index.css";
 
 export function AuthGate({ children }) {
   const session = useSession();

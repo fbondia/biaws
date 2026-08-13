@@ -1,0 +1,215 @@
+@media (max-width: 1120px) {
+  .catalogOverviewGrid {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+
+  .catalogKnowledgeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1120px) {
+  .applicationsCollectionsLayout .resourceCollectionTree,
+  .serversCollectionsLayout .resourceCollectionTree {
+    max-height: 280px;
+  }
+
+  .applicationsCollectionsLayout .resourceCollectionColumns,
+  .serversCollectionsLayout .resourceCollectionColumns {
+    height: 280px;
+    min-height: 0;
+    max-height: 280px;
+  }
+
+  .applicationsCollectionsLayout .resourceCollectionBar,
+  .serversCollectionsLayout .resourceCollectionBar {
+    grid-template-areas:
+      "primary"
+      "utilities";
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .applicationsCollectionsLayout .resourceCollectionSearch,
+  .serversCollectionsLayout .resourceCollectionSearch {
+    justify-content: stretch;
+  }
+}
+
+@media (max-width: 900px) {
+  .catalogPage {
+    padding: var(--space-4);
+  }
+
+  .catalogKnowledgeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogApplicationMonitoringLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .topologyDiagramToolbarPrimary,
+  .topologyDiagramToolbarSecondary,
+  .topologyDiagramCreate {
+    flex-wrap: wrap;
+  }
+
+  .topologyDiagramSelectors {
+    flex-wrap: wrap;
+  }
+
+  .topologyDiagramToolbar .topologyDiagramSelector {
+    width: min(360px, 50vw);
+  }
+
+  .topologyDiagramToolbarActions {
+    min-width: auto;
+  }
+
+  .topologyDiagramVisibility {
+    flex-wrap: wrap;
+  }
+
+  .topologyDiagramCreateNodes {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 620px) {
+  .catalogCollectionItems {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogCollectionItem {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .catalogCollectionItem > :last-child:not(:nth-child(2)) {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 720px) {
+  .catalogHero,
+  .catalogDetailHeader,
+  .catalogSectionHeader,
+  .catalogDeploymentCard > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .catalogHeaderActions {
+    flex-wrap: wrap;
+  }
+
+  .catalogOverviewGrid,
+  .catalogOverviewCard dl,
+  .catalogFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogWideField {
+    grid-column: auto;
+  }
+
+  .catalogRepositoryForm {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogHistoryComposer {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogRepositoryPrimaryField,
+  .catalogRepositorySecondaryField {
+    grid-column: auto;
+  }
+
+  .catalogTabPanel,
+  .catalogDetailHeader {
+    padding: var(--space-4);
+  }
+
+  .topologyDiagramBackdrop {
+    padding: 0;
+  }
+
+  .topologyDiagramDialog {
+    width: 100vw;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .topologyDiagramDialog > header,
+  .topologyDiagramToolbarPrimary,
+  .topologyDiagramToolbarSecondary,
+  .topologyDiagramCreate {
+    padding-inline: var(--space-3);
+  }
+
+  .topologyDiagramToolbarPrimary,
+  .topologyDiagramToolbarSecondary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topologyDiagramSelectors {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .topologyDiagramToolbar .field,
+  .topologyDiagramToolbar .topologyDiagramSelector,
+  .topologyDiagramEnvironment,
+  .topologyDiagramToolbarActions,
+  .topologyDiagramCreate .field:first-child {
+    width: 100%;
+  }
+
+  .topologyDiagramNewButton {
+    width: 100%;
+  }
+
+  .topologyDiagramToolbarActions {
+    justify-content: space-between;
+    margin-left: 0;
+  }
+
+  .topologyDiagramToolbarGroup {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topologyDiagramToolbarGroup + .topologyDiagramToolbarGroup {
+    border-top: 1px solid var(--color-border);
+    border-left: 0;
+    padding-top: var(--space-2);
+    padding-left: 0;
+  }
+
+  .topologyDiagramAddGroup {
+    margin-left: 0;
+  }
+
+  .topologyDiagramVisibility {
+    width: 100%;
+  }
+
+  .topologyDiagramVisibilityMenu,
+  .topologyDiagramVisibilityMenu > summary,
+  .topologyDiagramCreateNodes button {
+    flex: 1;
+  }
+
+  .topologyDiagramVisibilityMenu > summary {
+    justify-content: space-between;
+  }
+
+  .topologyDiagramCreateNodes {
+    width: 100%;
+  }
+}

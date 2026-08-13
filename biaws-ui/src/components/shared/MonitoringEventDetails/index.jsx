@@ -8,6 +8,8 @@ import {
   YAxis,
 } from "recharts";
 
+import "../../../styles/shared/monitoring-event.css";
+
 import {
   compactMonitoringValue,
   formatMonitoringValue,

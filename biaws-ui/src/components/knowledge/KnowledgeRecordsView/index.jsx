@@ -2,6 +2,7 @@ import { FileText, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { replicateDocument } from "../../../api.js";
+import "../../../styles/features/knowledge/index.css";
 
 import { CatalogFilterFields } from "../../catalog/CatalogContextFields/index.jsx";
 import {

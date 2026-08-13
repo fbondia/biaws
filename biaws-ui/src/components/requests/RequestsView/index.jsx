@@ -1,6 +1,8 @@
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import "../../../styles/features/requests/index.css";
+
 import { moveRequestToCollection } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
 import { CatalogFilterFields } from "../../catalog/CatalogContextFields/index.jsx";

@@ -1,0 +1,280 @@
+.catalogKnowledgeGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.catalogKnowledgeCard {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.catalogKnowledgeCard > span {
+  color: var(--color-accent-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.catalogKnowledgeCard h3,
+.catalogKnowledgeCard p {
+  margin: 0;
+}
+
+.catalogKnowledgeCard p {
+  color: var(--color-text-subtle);
+}
+
+.catalogKnowledgeCard > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.serverApplicationList {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.serverApplicationCard {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.serverApplicationCard > header {
+  display: grid;
+  gap: 3px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  padding: var(--space-3) var(--space-4);
+}
+
+.serverApplicationCard > header span {
+  color: var(--color-accent-text);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.serverApplicationCard > header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.serverApplicationCard > div {
+  display: grid;
+}
+
+.serverApplicationComponent {
+  display: grid;
+  gap: 4px;
+  padding: var(--space-3) var(--space-4);
+}
+
+.serverApplicationComponent + .serverApplicationComponent {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.serverApplicationComponent strong {
+  font-size: 0.84rem;
+}
+
+.serverApplicationComponent small {
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+}
+
+.catalogEmptyState {
+  min-height: 150px;
+}
+
+.catalogEntityDialog {
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px var(--color-shadow-deep);
+}
+
+.catalogEntityDialog > header,
+.catalogEntityDialog form > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+
+.catalogEntityDialog > header {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.catalogEntityDialog > header h2,
+.catalogEntityDialog > header span {
+  margin: 0;
+}
+
+.catalogEntityDialog > header span {
+  color: var(--color-text-subtle);
+}
+
+.catalogEntityDialog form > footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+.catalogEntityDialog .errorBox {
+  margin: 0 var(--space-5) var(--space-4);
+}
+
+.catalogEntityDialog .field input:disabled {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text-subtle);
+  cursor: not-allowed;
+}
+
+.catalogEntityTabs {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  padding: 0 var(--space-5);
+}
+
+.catalogEntityTab {
+  flex: 0 0 auto;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-text-subtle);
+  padding: 11px 12px 9px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.catalogEntityTab:hover,
+.activeCatalogEntityTab {
+  color: var(--color-accent-text);
+}
+
+.activeCatalogEntityTab {
+  border-bottom-color: var(--color-accent);
+  background: var(--color-surface);
+}
+
+.catalogFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.catalogHistorySection {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.catalogHistoryComposer {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  padding: var(--space-4);
+}
+
+.catalogHistoryDescription {
+  grid-column: 1 / -1;
+}
+
+.catalogHistoryComposer textarea {
+  min-height: 76px;
+}
+
+.catalogHistoryComposer > button {
+  justify-self: start;
+}
+
+.catalogHistoryItems {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.catalogHistoryItem {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-3) var(--space-4);
+}
+
+.catalogHistoryItem strong {
+  font-size: 0.84rem;
+}
+
+.catalogHistoryItem small {
+  color: var(--color-text-subtle);
+  font-size: 0.7rem;
+}
+
+.catalogHistoryItem p {
+  margin: 3px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  white-space: pre-wrap;
+}
+
+.catalogHistoryEmpty {
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-subtle);
+  padding: var(--space-5);
+  text-align: center;
+}
+
+.catalogProcedureField textarea {
+  min-height: 360px;
+  resize: vertical;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+  line-height: 1.5;
+}
+
+.catalogFormGrid select[multiple] {
+  min-height: 120px;
+}
+
+.catalogRepositoryForm {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.catalogRepositoryPrimaryField {
+  grid-column: span 3;
+}
+
+.catalogRepositorySecondaryField {
+  grid-column: span 2;
+}
+
+.catalogWideField {
+  grid-column: 1 / -1;
+}
+
+.catalogProcedureField .markdownPreview {
+  width: 100%;
+  min-height: 360px;
+}

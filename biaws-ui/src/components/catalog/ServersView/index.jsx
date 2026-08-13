@@ -1,6 +1,8 @@
 import { Archive, Server } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import "../../../styles/features/catalog/index.css";
+
 import {
   archiveServer,
   createServer,

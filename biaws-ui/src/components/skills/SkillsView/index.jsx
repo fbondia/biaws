@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import "../../../styles/features/skills.css";
+
 import {
   fetchSkills,
   moveSkillToCollection,

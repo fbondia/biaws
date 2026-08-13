@@ -190,7 +190,7 @@ function MonitoringSignals({ error, loading, signals }) {
       {signals.map((signal) => (
         <article key={signal.id}>
           <div className="homeMonitoringSignalHeading">
-            <div className="homeMonitoringSignalBadges">
+            <div className="homeMonitoringSignalBadges monitoringEventHeading">
               <span className={`catalogStatus catalogStatus-${signal.status}`}>
                 {signal.status}
               </span>

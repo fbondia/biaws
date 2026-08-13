@@ -1,6 +1,8 @@
 import { KeyRound, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import "../../../styles/features/secrets.css";
+
 import { moveSecretToCollection } from "../../../api.js";
 import { IllustratedEmptyState } from "../../shared/IllustratedEmptyState.jsx";
 import {

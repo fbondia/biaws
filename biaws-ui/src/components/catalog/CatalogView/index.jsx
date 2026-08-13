@@ -2,6 +2,7 @@ import { Layers3, Plus } from "lucide-react";
 
 import { moveApplicationToCollection } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
+import "../../../styles/features/catalog/index.css";
 import {
   collectionPathLabel,
   ResourceCollectionNavigator,

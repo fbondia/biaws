@@ -9,6 +9,7 @@ const tokenFile = new URL(
   "../src/styles/foundations/tokens.css",
   import.meta.url,
 );
+const globalStylesFile = new URL("../src/styles.css", import.meta.url);
 
 function cssFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -72,6 +73,28 @@ const runtimeVariables = new Set([
   "request-status-foreground",
   "resource-collections-navigation-width",
 ]);
+
+const globalStylesSource = readFileSync(globalStylesFile, "utf8");
+for (const match of globalStylesSource.matchAll(
+  /@import\s+["']([^"']+)["']/gu,
+)) {
+  if (match[1].includes("/features/")) {
+    errors.push(`CSS de domínio importado pelo entrypoint global: ${match[1]}`);
+  }
+}
+
+for (const file of styleFiles.filter((candidate) =>
+  candidate.includes(`${join("styles", "features")}/`),
+)) {
+  const source = readFileSync(file, "utf8");
+  for (const match of source.matchAll(/@import\s+["']([^"']+)["']/gu)) {
+    if (match[1].startsWith("../") || match[1].includes("/features/")) {
+      errors.push(
+        `Import CSS cruza fronteira de domínio em ${file}: ${match[1]}`,
+      );
+    }
+  }
+}
 
 for (const file of styleFiles) {
   const source = readFileSync(file, "utf8");

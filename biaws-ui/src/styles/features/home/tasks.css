@@ -1,0 +1,102 @@
+.homeTasksTotal {
+  color: var(--color-accent-text);
+  font-size: 1.2rem;
+}
+
+.homeTaskList {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-border-subtle);
+}
+
+.homeTaskList article {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  padding: 9px 11px;
+}
+
+.homeTaskIdentity {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.homeTaskList article strong,
+.homeTaskList article small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeTaskList article small {
+  color: var(--color-text-subtle);
+  font-size: 0.7rem;
+}
+
+.homeTaskActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.homeTaskStatus {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  padding: 3px 7px;
+  font-size: 0.68rem;
+}
+
+.secondaryButton.homeTaskOpenButton {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  border-color: var(--color-accent-border);
+  background: var(--color-info-surface);
+  color: var(--color-accent-text);
+  padding: 0;
+}
+
+.secondaryButton.homeTaskOpenButton:hover:not(:disabled) {
+  border-color: var(--color-focus);
+  background: var(--palette-blue-11);
+}
+
+.secondaryButton.homeTaskOpenButton > svg {
+  display: block;
+  flex: 0 0 auto;
+  color: var(--color-accent-text);
+  stroke: currentColor;
+}
+
+.secondaryButton.homeTasksLoadMore {
+  width: 100%;
+  border-color: var(--color-accent-border);
+  background: var(--color-info-surface);
+  color: var(--color-accent-text);
+  font-weight: 600;
+}
+
+.secondaryButton.homeTasksLoadMore:hover:not(:disabled) {
+  border-color: var(--color-focus);
+  background: var(--palette-blue-11);
+}
+
+.secondaryButton.homeTasksLoadMore > span {
+  display: inline;
+  color: var(--color-accent-text);
+}
+
+.homeTasksLoadMoreError {
+  color: var(--color-danger-text);
+  font-size: 0.78rem;
+}

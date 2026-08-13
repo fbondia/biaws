@@ -1,0 +1,757 @@
+.catalogPage {
+  position: relative;
+  padding: var(--space-5) var(--space-6) var(--space-6);
+}
+
+.catalogHero,
+.catalogDetailHeader,
+.catalogSectionHeader,
+.catalogDeploymentCard > header,
+.catalogRuntimeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.catalogHero {
+  margin-bottom: var(--space-5);
+}
+
+.catalogHero h2,
+.catalogHero p,
+.catalogHero span,
+.catalogDetailHeader h2,
+.catalogDetailHeader p,
+.catalogDetailHeader span,
+.catalogSectionHeader h3,
+.catalogSectionHeader span {
+  margin: 0;
+}
+
+.catalogHero > div > span,
+.catalogDetailHeader > div > span {
+  color: var(--color-accent-text);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.catalogHero h2 {
+  margin-top: var(--space-1);
+  font-size: 1.65rem;
+}
+
+.catalogHero p,
+.catalogDetailHeader p,
+.catalogSectionHeader span {
+  margin-top: var(--space-1);
+  color: var(--color-text-subtle);
+}
+
+.catalogBackButton {
+  display: inline-flex;
+}
+
+.catalogCollectionPanel {
+  min-height: 520px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.catalogCollectionItems {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-3);
+}
+
+.catalogCollectionItem {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: var(--space-4);
+  text-align: left;
+}
+
+.catalogCollectionItem:hover,
+.catalogCollectionItem:focus-visible {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+}
+
+.catalogCollectionItemIcon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.catalogCollectionItem > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.catalogCollectionItem strong,
+.catalogCollectionItem small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogCollectionItem small {
+  color: var(--color-text-subtle);
+}
+
+.catalogContent {
+  min-width: 0;
+}
+
+.catalogWelcome {
+  display: grid;
+  min-height: 520px;
+  place-content: center;
+  justify-items: center;
+  color: var(--color-text-subtle);
+  text-align: center;
+}
+
+.catalogWelcome h3,
+.catalogWelcome p {
+  margin: 0;
+}
+
+.catalogWelcome h3 {
+  margin-top: var(--space-3);
+  color: var(--color-text-secondary);
+}
+
+.catalogDetailHeader {
+  padding: var(--space-5);
+}
+
+.catalogHeaderActions,
+.catalogTableActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.catalogTabs {
+  overflow-x: auto;
+  border-block: 1px solid var(--color-border);
+  padding: 0 var(--space-4);
+}
+
+.catalogTabPanel {
+  padding: var(--space-5);
+}
+
+.catalogOverviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-3);
+}
+
+.catalogMetricCard,
+.catalogOverviewCard,
+.catalogKnowledgeCard,
+.catalogDeploymentCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.catalogMetricCard {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.catalogMetricCard svg {
+  color: var(--color-accent-text);
+}
+
+.catalogMetricCard span {
+  color: var(--color-text-subtle);
+}
+
+.catalogMetricCard strong {
+  font-size: 1.7rem;
+}
+
+.catalogMetricCard small {
+  color: var(--color-text-subtle);
+}
+
+.catalogHealthText {
+  text-transform: capitalize;
+}
+
+.catalogHealthText-healthy {
+  color: var(--palette-green-25);
+}
+
+.catalogHealthText-degraded,
+.catalogHealthText-stopped {
+  color: var(--palette-orange-16);
+}
+
+.catalogHealthText-unavailable {
+  color: var(--palette-red-15);
+}
+
+.catalogOverviewCard {
+  grid-column: 1 / -1;
+  padding: var(--space-4);
+}
+
+.catalogOverviewCard h3 {
+  margin: 0 0 var(--space-3);
+}
+
+.catalogOverviewCard dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.catalogOverviewCard dl > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.catalogOverviewCard dt {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+}
+
+.catalogOverviewCard dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.catalogAddressList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+}
+
+.catalogLinksCard ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.catalogLinksCard a {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--color-accent-text);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.catalogLinksCard p {
+  margin: 0;
+  color: var(--color-text-subtle);
+}
+
+.catalogApplicationMonitoring {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.catalogApplicationMonitoring > header h3 {
+  margin-bottom: var(--space-1);
+}
+
+.catalogApplicationMonitoring > header p {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+}
+
+.catalogApplicationMonitoringLayout {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.8fr) minmax(360px, 1.2fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.catalogMonitoringTopology {
+  display: grid;
+  max-height: 560px;
+  gap: var(--space-3);
+  overflow-y: auto;
+}
+
+.catalogMonitoringTopology > section {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.catalogMonitoringTopology > section > header {
+  padding: var(--space-3);
+  background: var(--color-surface-muted);
+  font-size: 0.84rem;
+}
+
+.catalogMonitoringDeployment > span {
+  display: block;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-secondary);
+  padding: 7px var(--space-3);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.catalogMonitoringDeployment > div {
+  display: grid;
+  gap: 1px;
+  background: var(--color-border-subtle);
+}
+
+.catalogMonitoringDeployment button {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border: 0;
+  background: var(--color-surface);
+  color: inherit;
+  padding: 9px var(--space-3);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.catalogMonitoringDeployment button:hover,
+.catalogMonitoringDeployment button.isActive {
+  background: var(--color-surface-muted);
+}
+
+.catalogMonitoringDeployment button.isActive {
+  box-shadow: inset 3px 0 var(--color-primary);
+}
+
+.catalogMonitoringDeployment button > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.catalogMonitoringDeployment button strong {
+  overflow: hidden;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogMonitoringDeployment button small {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-subtle);
+  font-size: 0.69rem;
+}
+
+.catalogMonitoringMetadataPanel {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  padding: var(--space-4);
+}
+
+.catalogMonitoringMetadataPanel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.catalogMonitoringMetadataPanel > header > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.catalogMonitoringMetadataPanel > header small {
+  overflow: hidden;
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogMonitoringLastSignal {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--color-text-subtle);
+  font-size: 0.74rem;
+}
+
+.catalogMonitoringLastSignal svg {
+  flex: 0 0 auto;
+}
+
+.catalogMonitoringMetadataPanel .monitoringPresentation,
+.catalogMonitoringMetadataPanel .monitoringEventJson {
+  margin-top: 0;
+}
+
+.catalogSectionHeader {
+  margin-bottom: var(--space-4);
+}
+
+.catalogDeployableFilterButton.isActive {
+  border-color: var(--color-accent-border);
+  background: var(--color-info-surface);
+  color: var(--color-accent-text);
+}
+
+.catalogTableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.catalogTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.catalogTable th,
+.catalogTable td {
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 11px 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.catalogTable th {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.catalogTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.catalogTable a {
+  display: block;
+  max-width: 300px;
+  overflow: hidden;
+  color: var(--color-accent-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogStatus {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.catalogStatus-active,
+.catalogStatus-healthy {
+  border-color: var(--palette-green-15);
+  background: var(--palette-green-03);
+  color: var(--palette-green-25);
+}
+
+.catalogStatus-degraded,
+.catalogStatus-stopped {
+  border-color: var(--palette-orange-09);
+  background: var(--palette-orange-03);
+  color: var(--palette-orange-17);
+}
+
+.catalogStatus-failed,
+.catalogStatus-unavailable,
+.catalogStatus-archived {
+  border-color: var(--palette-red-07);
+  background: var(--color-danger-surface);
+  color: var(--palette-red-15);
+}
+
+.dangerIconButton {
+  color: var(--color-danger-text);
+}
+
+.catalogDeploymentList,
+.catalogKnowledgeGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.catalogDeploymentCard {
+  overflow: hidden;
+}
+
+.catalogDeploymentCard > header,
+.catalogRuntimeHeader {
+  padding: var(--space-4);
+}
+
+.catalogDeploymentCard > header {
+  background: var(--color-surface-muted);
+}
+
+.catalogDeploymentCard h3,
+.catalogDeploymentCard span,
+.catalogDeploymentCard small {
+  margin: 0;
+}
+
+.catalogRuntimeHeader {
+  border-top: 1px solid var(--color-border);
+}
+
+.catalogDeploymentCard .catalogTableWrap {
+  border-width: 1px 0 0;
+  border-radius: 0;
+}
+
+.catalogColumns.catalogTopologyColumns {
+  width: 100%;
+  height: min(520px, calc(100dvh - 330px));
+  min-height: 360px;
+}
+
+.catalogTopologyColumnHeader {
+  justify-content: space-between;
+}
+
+.catalogTopologyColumnTitle {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.catalogTopologyCount {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  padding: 0 6px;
+  font-size: 0.7rem;
+}
+
+.catalogTopologyAddButton {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+}
+
+.catalogTopologyRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+}
+
+.catalogTopologyRow:hover,
+.activeCatalogTopologyRow {
+  background: var(--palette-neutral-03);
+}
+
+.activeCatalogTopologyRow {
+  box-shadow: inset 3px 0 0 var(--color-focus);
+}
+
+.catalogTopologyRowMain {
+  display: grid;
+  width: 100%;
+  min-height: 56px;
+  align-items: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text);
+  padding: 9px 6px 9px 11px;
+  text-align: left;
+}
+
+.catalogTopologyRowMain:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.catalogTopologyRowText {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.catalogTopologyRowText strong,
+.catalogTopologyRowText small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogTopologyRowText .catalogStatus {
+  margin-top: 2px;
+}
+
+.catalogMonitoringSummary {
+  display: grid;
+  gap: var(--space-1);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  padding: var(--space-4);
+}
+
+.catalogMonitoringSummary span,
+.catalogMonitoringSummary small {
+  color: var(--color-text-subtle);
+}
+
+.catalogMonitoringManualTitle {
+  margin: var(--space-4) 0 0;
+  font-size: 0.95rem;
+}
+
+.catalogMonitoringInstructions {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-4);
+}
+
+.catalogMonitoringInstructions h3,
+.catalogMonitoringInstructions p,
+.catalogMonitoringInstructions dl {
+  margin: 0;
+}
+
+.catalogMonitoringInstructions p,
+.catalogMonitoringInstructions dt {
+  color: var(--color-text-subtle);
+  font-size: 0.76rem;
+}
+
+.catalogMonitoringInstructions dl {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.catalogMonitoringInstructions dd {
+  min-width: 0;
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.catalogMonitoringInstructions pre {
+  overflow-x: auto;
+  margin: 0;
+  border-radius: var(--radius-sm);
+  background: var(--palette-neutral-22);
+  color: var(--palette-neutral-05);
+  padding: var(--space-4);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.catalogTopologyRowText strong {
+  font-size: 0.85rem;
+}
+
+.catalogTopologyRowText small {
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+}
+
+.catalogTopologyRowState {
+  display: inline-grid;
+  width: 18px;
+  flex: 0 0 18px;
+  place-items: center;
+  color: var(--color-text-subtle);
+}
+
+.catalogTopologyRowControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 8px;
+}
+
+.catalogTopologyRowActions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.catalogTopologyRow:hover .catalogTopologyRowActions,
+.catalogTopologyRow:focus-within .catalogTopologyRowActions {
+  opacity: 1;
+}
+
+.catalogTopologyRowActions:empty {
+  display: none;
+}
+
+.catalogTopologyRowActions .iconButton {
+  width: 27px;
+  min-width: 27px;
+  height: 27px;
+  background: var(--color-surface);
+}
+
+.catalogTopologyLoadError {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: 14px 12px;
+}
+
+.catalogTopologyLoadError p {
+  margin: 0;
+  color: var(--palette-red-15);
+  font-size: 0.8rem;
+}

@@ -6,14 +6,20 @@ import { JSDOM, VirtualConsole } from "jsdom";
 
 const STYLE_FILES = {
   base: new URL("../src/styles/foundations/base.css", import.meta.url),
-  catalog: new URL("../src/styles/features/catalog.css", import.meta.url),
+  catalog: new URL(
+    "../src/styles/features/catalog/topology.css",
+    import.meta.url,
+  ),
   controls: new URL("../src/styles/shared/controls.css", import.meta.url),
   files: new URL(
     "../src/styles/features/issues/dialogs/files.css",
     import.meta.url,
   ),
-  home: new URL("../src/styles/features/home.css", import.meta.url),
-  knowledge: new URL("../src/styles/features/knowledge.css", import.meta.url),
+  home: new URL("../src/styles/features/home/dialogs.css", import.meta.url),
+  knowledge: new URL(
+    "../src/styles/features/knowledge/details.css",
+    import.meta.url,
+  ),
   messages: new URL("../src/styles/shared/messages.css", import.meta.url),
   tokens: new URL("../src/styles/foundations/tokens.css", import.meta.url),
 };

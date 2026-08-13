@@ -1,7 +1,8 @@
 import {
   Boxes,
   ChevronRight,
-  Filter,
+  Package,
+  PackageCheck,
   Layers3,
   Network,
   Plus,
@@ -114,7 +115,7 @@ export function TopologyHeader({
             title="Exibir somente componentes com deployment configurado"
             type="button"
           >
-            <Filter size={16} /> Somente deployáveis
+            {deployableOnly ? <PackageCheck size={16} /> : <Package size={16} />}
           </button>
         ) : null}
         {canViewDiagram ? (
@@ -123,7 +124,7 @@ export function TopologyHeader({
             onClick={onOpenDiagram}
             type="button"
           >
-            <Network size={16} /> Visualizar topologia
+            <Network size={16} />
           </button>
         ) : null}
       </div>

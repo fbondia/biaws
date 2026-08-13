@@ -37,6 +37,7 @@ export function CatalogView({ actor }) {
     visibleTabs,
     persistApplication,
     persistEntity,
+    archiveEntity,
     archiveApplicationItem,
     archiveSelectedApplication,
     deleteArchivedApplication,
@@ -261,6 +262,7 @@ export function CatalogView({ actor }) {
         dialog={dialog}
         onPersistApplication={persistApplication}
         onPersistEntity={persistEntity}
+        onArchiveEntity={archiveEntity}
         setDialog={setDialog}
         workspace={workspace}
       />

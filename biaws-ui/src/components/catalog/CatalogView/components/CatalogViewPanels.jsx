@@ -146,11 +146,18 @@ export function CatalogDialogs({
   collectionState,
   context,
   dialog,
+  onArchiveEntity,
   onPersistApplication,
   onPersistEntity,
   setDialog,
   workspace,
 }) {
+  const archivePermissionByKind = {
+    component: "components.archive",
+    deployment: "deployments.archive",
+    runtime: "runtimes.archive",
+  };
+  const archivePermission = archivePermissionByKind[dialog?.kind];
   return (
     <>
       {collectionState.collectionDialog ? (
@@ -174,6 +181,16 @@ export function CatalogDialogs({
           entity={dialog.entity}
           kind={dialog.kind}
           onClose={() => setDialog(null)}
+          onArchive={
+            dialog.entity?.status !== "archived" &&
+            archivePermission &&
+            hasPermission(actor, archivePermission)
+              ? () =>
+                  onArchiveEntity(dialog.kind, dialog.entity, {
+                    surfaceError: false,
+                  })
+              : undefined
+          }
           onSave={
             dialog.kind === "application"
               ? onPersistApplication

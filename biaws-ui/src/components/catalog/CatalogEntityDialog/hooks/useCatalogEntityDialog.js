@@ -23,6 +23,7 @@ function runtimeSignalUrl(runtimePath) {
 export function useCatalogEntityDialog({
   entity,
   kind,
+  onArchive,
   onClose,
   onSave,
   options,
@@ -30,6 +31,7 @@ export function useCatalogEntityDialog({
   const editing = Boolean(entity?.id);
   const [draft, setDraft] = useState(() => catalogEntityDraft(kind, entity));
   const [saving, setSaving] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const [error, setError] = useState("");
   const [activeSection, setActiveSection] = useState("basic");
   const [publicationDraft, setPublicationDraft] = useState(
@@ -137,6 +139,20 @@ export function useCatalogEntityDialog({
     }
   }
 
+  async function archive() {
+    if (!onArchive) return;
+    setArchiving(true);
+    setError("");
+    try {
+      const archived = await onArchive();
+      if (archived) onClose();
+    } catch (archiveError) {
+      setError(archiveError.message);
+    } finally {
+      setArchiving(false);
+    }
+  }
+
   function confirmDocuments(documentIds) {
     const currentLinks = new Map(
       (draft.documentLinks || []).map((link) => [link.documentId, link]),
@@ -157,6 +173,8 @@ export function useCatalogEntityDialog({
   return {
     activeSection,
     addPublication,
+    archive,
+    archiving,
     cliExample,
     confirmDocuments,
     curlExample,

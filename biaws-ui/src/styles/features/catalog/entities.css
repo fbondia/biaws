@@ -124,8 +124,13 @@
 }
 
 .catalogEntityDialog form > footer {
-  justify-content: flex-end;
   border-top: 1px solid var(--color-border);
+}
+
+.catalogEntityFooterActions {
+  display: flex;
+  gap: var(--space-3);
+  margin-left: auto;
 }
 
 .catalogEntityDialog .errorBox {

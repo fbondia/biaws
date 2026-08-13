@@ -2,6 +2,12 @@ import { Archive, ArchiveRestore, Pencil, Trash2 } from "lucide-react";
 
 import { hasPermission } from "../../../../permissions.js";
 
+const ARCHIVE_ONLY_IN_EDIT_DIALOG = new Set([
+  "component",
+  "deployment",
+  "runtime",
+]);
+
 export function createCatalogEntityActions({
   actor,
   archiveEntity,
@@ -23,7 +29,8 @@ export function createCatalogEntityActions({
           <Pencil size={15} />
         </button>
       ) : null}
-      {hasPermission(actor, archivePermission) &&
+      {!ARCHIVE_ONLY_IN_EDIT_DIALOG.has(kind) &&
+      hasPermission(actor, archivePermission) &&
       entity.status !== "archived" ? (
         <button
           aria-label={`Arquivar ${entity.name}`}

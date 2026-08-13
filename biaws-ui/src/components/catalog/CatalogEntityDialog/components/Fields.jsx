@@ -1,4 +1,4 @@
-import { Save } from "lucide-react";
+import { Archive, Save } from "lucide-react";
 
 export function SelectField({
   className = "",
@@ -116,23 +116,44 @@ export function EntityFieldGroup({ active, children }) {
   return children;
 }
 
-export function CatalogEntityFooter({ error, onClose, saving }) {
+export function CatalogEntityFooter({
+  archiving,
+  editing,
+  error,
+  onArchive,
+  onClose,
+  saving,
+}) {
+  const busy = archiving || saving;
   return (
     <>
       {error ? <div className="errorBox">{error}</div> : null}
       <footer>
-        <button
-          className="secondaryButton"
-          disabled={saving}
-          onClick={onClose}
-          type="button"
-        >
-          Cancelar
-        </button>
-        <button className="primaryButton" disabled={saving} type="submit">
-          <Save size={16} />
-          {saving ? "Salvando..." : "Salvar"}
-        </button>
+        {editing && onArchive ? (
+          <button
+            className="dangerButton"
+            disabled={busy}
+            onClick={onArchive}
+            type="button"
+          >
+            <Archive size={16} />
+            {archiving ? "Arquivando..." : "Arquivar"}
+          </button>
+        ) : null}
+        <div className="catalogEntityFooterActions">
+          <button
+            className="secondaryButton"
+            disabled={busy}
+            onClick={onClose}
+            type="button"
+          >
+            Cancelar
+          </button>
+          <button className="primaryButton" disabled={busy} type="submit">
+            <Save size={16} />
+            {saving ? "Salvando..." : "Salvar"}
+          </button>
+        </div>
       </footer>
     </>
   );

@@ -226,18 +226,23 @@ export function useCatalogView(actor) {
     }
   }
 
-  async function archiveEntity(kind, entity) {
+  async function archiveEntity(kind, entity, { surfaceError = true } = {}) {
     if (!(await confirm(`Arquivar “${entity.name}”?`))) return;
     setError("");
     try {
       await CATALOG_ENTITY_API[kind].archive(entity.id);
       if (kind === "runtime") {
         await loadRuntimes(entity.deploymentId, { force: true });
-        return;
+        return true;
       }
       await loadContext();
+      return true;
     } catch (archiveError) {
-      setError(archiveError.message);
+      if (surfaceError) {
+        setError(archiveError.message);
+        return false;
+      }
+      throw archiveError;
     }
   }
 
@@ -356,6 +361,7 @@ export function useCatalogView(actor) {
     visibleTabs,
     persistApplication,
     persistEntity,
+    archiveEntity,
     archiveApplicationItem,
     archiveSelectedApplication,
     deleteArchivedApplication,

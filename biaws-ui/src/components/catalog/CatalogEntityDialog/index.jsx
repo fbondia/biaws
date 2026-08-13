@@ -31,6 +31,7 @@ function catalogEntitySections(kind) {
 export function CatalogEntityDialog({
   entity,
   kind,
+  onArchive,
   onClose,
   onSave,
   options = {},
@@ -38,6 +39,7 @@ export function CatalogEntityDialog({
   const controller = useCatalogEntityDialog({
     entity,
     kind,
+    onArchive,
     onClose,
     onSave,
     options,
@@ -45,6 +47,8 @@ export function CatalogEntityDialog({
   const {
     activeSection,
     addPublication,
+    archive,
+    archiving,
     confirmDocuments,
     documentSelectorOpen,
     draft,
@@ -88,7 +92,8 @@ export function CatalogEntityDialog({
     <div
       className="dialogBackdrop"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !saving) onClose();
+        if (event.target === event.currentTarget && !saving && !archiving)
+          onClose();
       }}
     >
       <section
@@ -107,7 +112,7 @@ export function CatalogEntityDialog({
           <button
             aria-label="Fechar"
             className="iconButton"
-            disabled={saving}
+            disabled={saving || archiving}
             onClick={onClose}
             type="button"
           >
@@ -170,7 +175,10 @@ export function CatalogEntityDialog({
             />
           </div>
           <CatalogEntityFooter
+            archiving={archiving}
+            editing={editing}
             error={error}
+            onArchive={onArchive ? archive : undefined}
             onClose={onClose}
             saving={saving}
           />

@@ -1,6 +1,7 @@
 import { Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 
 import { ActiveMonitorDialog } from "./ActiveMonitorDialog.jsx";
+import { MonitorCreationDialog } from "./MonitorCreationDialog.jsx";
 import { Feedback, formatDate } from "./support.jsx";
 
 function MonitorCard({
@@ -97,6 +98,7 @@ export function RuntimeMonitoringConfiguration({
     activeMonitors,
     loadMonitoring,
     monitorDeletingId,
+    monitorCreationMode,
     monitorDraft,
     monitorSaving,
     monitoringError,
@@ -107,6 +109,7 @@ export function RuntimeMonitoringConfiguration({
     removeMonitor,
     saveMonitor,
     setMonitorDraft,
+    startMonitorCreation,
     toggleMonitor,
   } = controller;
   const canUpdate = Boolean(options.canUpdateRuntime);
@@ -135,9 +138,9 @@ export function RuntimeMonitoringConfiguration({
       </section>
       <div className="catalogMonitoringSectionHeader">
         <div>
-          <h3>Monitoramentos ativos</h3>
+          <h3>Monitoramentos</h3>
           <span>
-            Execuções REST ou scripts previamente permitidos pelo operador.
+            Configure execuções ativas ou consulte como enviar sinais externos.
           </span>
         </div>
         <div>
@@ -153,7 +156,7 @@ export function RuntimeMonitoringConfiguration({
           {canUpdate && editing ? (
             <button
               className="primaryButton"
-              onClick={() => openMonitor()}
+              onClick={startMonitorCreation}
               type="button"
             >
               <Plus size={16} /> Novo monitoramento
@@ -202,6 +205,19 @@ export function RuntimeMonitoringConfiguration({
           onSave={saveMonitor}
           saving={monitorSaving}
           templates={monitoringTemplates}
+        />
+      ) : null}
+      {monitorCreationMode ? (
+        <MonitorCreationDialog
+          cliExample={controller.cliExample}
+          curlExample={controller.curlExample}
+          entity={controller.entity}
+          mode={monitorCreationMode}
+          onBack={controller.showMonitorProviderChoice}
+          onChoose={controller.selectMonitorProvider}
+          onClose={controller.closeMonitorCreation}
+          options={options}
+          runtimePath={controller.runtimePath}
         />
       ) : null}
     </div>

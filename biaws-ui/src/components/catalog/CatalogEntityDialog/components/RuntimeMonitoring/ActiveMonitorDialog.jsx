@@ -66,17 +66,12 @@ export function ActiveMonitorDialog({
             required
             value={draft.name}
           />
-          <SelectField
-            label="Provider"
-            name="provider"
-            onChange={update}
-            options={[
-              { value: "rest", label: "REST" },
-              { value: "shell", label: "Shell permitido" },
-            ]}
-            required
-            value={draft.provider}
-          />
+          <div className="catalogMonitoringProviderSummary">
+            <span>Provider</span>
+            <strong>
+              {draft.provider === "rest" ? "API REST" : "Shell Script"}
+            </strong>
+          </div>
           <TextField
             label="Intervalo (segundos)"
             name="intervalSeconds"

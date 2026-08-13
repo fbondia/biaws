@@ -188,6 +188,16 @@ export function monitoringOriginLabel(origin) {
   );
 }
 
+export function mergeMonitoringEvents(current = [], incoming = []) {
+  const events = new Map();
+  for (const event of [...current, ...incoming]) events.set(event.id, event);
+  return [...events.values()].sort(
+    (left, right) =>
+      new Date(right.observedAt).getTime() -
+      new Date(left.observedAt).getTime(),
+  );
+}
+
 export function monitoringCliExample({ runtimeReference, workspaceId } = {}) {
   if (!runtimeReference || !workspaceId) return "";
   return [

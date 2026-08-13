@@ -19,9 +19,7 @@ function catalogEntitySections(kind) {
     return [
       ["basic", "Dados básicos"],
       ["service", "Serviço"],
-      ["monitoring-config", "Configurações"],
-      ["monitoring-instructions", "Instruções"],
-      ["monitoring-history", "Histórico"],
+      ["monitoring", "Monitoramento"],
       ["documents", "Documentação"],
     ];
   }

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   activeMonitorDraft,
   activeMonitorPayload,
+  mergeMonitoringEvents,
   monitoringCliExample,
   monitoringOriginLabel,
   newObservationDraft,
@@ -93,4 +94,22 @@ test("manual observations start with local time and origins stay distinguishable
   assert.equal(monitoringOriginLabel("active"), "Ativo");
   assert.equal(monitoringOriginLabel("passive"), "Passivo");
   assert.equal(monitoringOriginLabel("manual"), "Manual");
+});
+
+test("monitoring history pages are merged without duplicate observations", () => {
+  const events = mergeMonitoringEvents(
+    [
+      { id: "event-2", observedAt: "2026-08-13T12:00:00.000Z" },
+      { id: "event-1", observedAt: "2026-08-13T11:00:00.000Z" },
+    ],
+    [
+      { id: "event-1", observedAt: "2026-08-13T11:00:00.000Z" },
+      { id: "event-3", observedAt: "2026-08-13T10:00:00.000Z" },
+    ],
+  );
+
+  assert.deepEqual(
+    events.map(({ id }) => id),
+    ["event-2", "event-1", "event-3"],
+  );
 });

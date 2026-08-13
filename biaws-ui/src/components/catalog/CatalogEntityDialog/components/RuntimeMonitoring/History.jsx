@@ -113,10 +113,13 @@ export function RuntimeMonitoringHistory({
     addingObservation,
     monitoringError,
     monitoringEvents,
+    monitoringHistoryHasMore,
+    monitoringHistoryLoadingMore,
     monitoringLoading,
     monitoringNotice,
     observationDraft,
     openObservation,
+    loadMoreMonitoringEvents,
     setObservationDraft,
   } = controller;
   return (
@@ -174,6 +177,16 @@ export function RuntimeMonitoringHistory({
           )}
         />
       )}
+      {monitoringHistoryHasMore ? (
+        <button
+          className="secondaryButton catalogMonitoringLoadMore"
+          disabled={monitoringHistoryLoadingMore}
+          onClick={loadMoreMonitoringEvents}
+          type="button"
+        >
+          {monitoringHistoryLoadingMore ? "Carregando…" : "Carregar mais"}
+        </button>
+      ) : null}
       {observationDraft ? (
         <ObservationDialog
           draft={observationDraft}

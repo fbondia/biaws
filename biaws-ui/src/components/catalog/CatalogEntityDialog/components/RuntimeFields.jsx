@@ -10,7 +10,7 @@ import { EntityFieldGroup, SelectField, TextField } from "./Fields.jsx";
 import {
   RuntimeMonitoringConfiguration,
   RuntimeMonitoringHistory,
-  RuntimeMonitoringInstructions,
+  RuntimeMonitoringTabs,
 } from "./RuntimeMonitoring/index.jsx";
 
 export function RuntimeFields({
@@ -21,13 +21,10 @@ export function RuntimeFields({
   options,
 }) {
   const {
-    cliExample,
-    curlExample,
     draft,
     editing,
     relatedDocuments,
     relatedDocumentsLoading,
-    runtimePath,
     setDocumentSelectorOpen,
     setSelectedDocument,
     update,
@@ -110,39 +107,26 @@ export function RuntimeFields({
       </EntityFieldGroup>
 
       <EntityFieldGroup
-        active={kind === "runtime" && activeSection === "monitoring-config"}
+        active={kind === "runtime" && activeSection === "monitoring"}
       >
-        <RuntimeMonitoringConfiguration
-          controller={controller}
-          draft={draft}
-          editing={editing}
-          options={options}
-          update={update}
-        />
-      </EntityFieldGroup>
-
-      <EntityFieldGroup
-        active={
-          kind === "runtime" && activeSection === "monitoring-instructions"
-        }
-      >
-        <RuntimeMonitoringInstructions
-          cliExample={cliExample}
-          curlExample={curlExample}
-          entity={entity}
-          options={options}
-          runtimePath={runtimePath}
-        />
-      </EntityFieldGroup>
-
-      <EntityFieldGroup
-        active={kind === "runtime" && activeSection === "monitoring-history"}
-      >
-        <RuntimeMonitoringHistory
-          controller={controller}
-          editing={editing}
-          entity={entity}
-          options={options}
+        <RuntimeMonitoringTabs
+          configuration={
+            <RuntimeMonitoringConfiguration
+              controller={controller}
+              draft={draft}
+              editing={editing}
+              options={options}
+              update={update}
+            />
+          }
+          history={
+            <RuntimeMonitoringHistory
+              controller={controller}
+              editing={editing}
+              entity={entity}
+              options={options}
+            />
+          }
         />
       </EntityFieldGroup>
 

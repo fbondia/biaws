@@ -181,6 +181,7 @@ export function useCatalogEntityDialog({
     documentSelectorOpen,
     draft,
     editing,
+    entity,
     error,
     publicationDraft,
     relatedDocuments,

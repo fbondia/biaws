@@ -12,8 +12,11 @@ import {
 import {
   activeMonitorDraft,
   activeMonitorPayload,
+  mergeMonitoringEvents,
   newObservationDraft,
 } from "../runtimeMonitoringModel.js";
+
+const MONITORING_HISTORY_PAGE_SIZE = 20;
 
 function errorMessage(error) {
   if (error?.statusCode === 409) {
@@ -26,11 +29,19 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
   const runtimeId = kind === "runtime" ? entity?.id : "";
   const [activeMonitors, setActiveMonitors] = useState([]);
   const [monitoringEvents, setMonitoringEvents] = useState([]);
+  const [monitoringHistoryMeta, setMonitoringHistoryMeta] = useState({
+    limit: MONITORING_HISTORY_PAGE_SIZE,
+    page: 1,
+    total: 0,
+  });
+  const [monitoringHistoryLoadingMore, setMonitoringHistoryLoadingMore] =
+    useState(false);
   const [monitoringTemplates, setMonitoringTemplates] = useState([]);
   const [monitoringLoading, setMonitoringLoading] = useState(false);
   const [monitoringError, setMonitoringError] = useState("");
   const [monitoringNotice, setMonitoringNotice] = useState("");
   const [monitorDraft, setMonitorDraft] = useState(null);
+  const [monitorCreationMode, setMonitorCreationMode] = useState(null);
   const [monitorSaving, setMonitorSaving] = useState(false);
   const [monitorDeletingId, setMonitorDeletingId] = useState("");
   const [observationDraft, setObservationDraft] = useState(null);
@@ -42,7 +53,10 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     setMonitoringError("");
     const results = await Promise.allSettled([
       fetchRuntimeActiveMonitors(runtimeId, { limit: 100 }),
-      fetchRuntimeMonitoringTimeline(runtimeId, { limit: 100 }),
+      fetchRuntimeMonitoringTimeline(runtimeId, {
+        limit: MONITORING_HISTORY_PAGE_SIZE,
+        page: 1,
+      }),
       fetchMonitoringTemplates({ limit: 100 }),
     ]);
     if (results[0].status === "fulfilled") {
@@ -50,6 +64,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     }
     if (results[1].status === "fulfilled") {
       setMonitoringEvents(results[1].value.items || []);
+      setMonitoringHistoryMeta(results[1].value.meta);
     }
     if (results[2].status === "fulfilled") {
       setMonitoringTemplates(results[2].value.items || []);
@@ -68,7 +83,10 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     setMonitoringError("");
     Promise.allSettled([
       fetchRuntimeActiveMonitors(runtimeId, { limit: 100 }),
-      fetchRuntimeMonitoringTimeline(runtimeId, { limit: 100 }),
+      fetchRuntimeMonitoringTimeline(runtimeId, {
+        limit: MONITORING_HISTORY_PAGE_SIZE,
+        page: 1,
+      }),
       fetchMonitoringTemplates({ limit: 100 }),
     ]).then((results) => {
       if (!active) return;
@@ -77,6 +95,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
       }
       if (results[1].status === "fulfilled") {
         setMonitoringEvents(results[1].value.items || []);
+        setMonitoringHistoryMeta(results[1].value.meta);
       }
       if (results[2].status === "fulfilled") {
         setMonitoringTemplates(results[2].value.items || []);
@@ -96,6 +115,21 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     setMonitoringError("");
     setMonitoringNotice("");
     setMonitorDraft(activeMonitorDraft(monitor));
+  }
+
+  function startMonitorCreation() {
+    setMonitoringError("");
+    setMonitoringNotice("");
+    setMonitorCreationMode("choice");
+  }
+
+  function chooseMonitorProvider(provider) {
+    if (provider === "manual") {
+      setMonitorCreationMode("manual");
+      return;
+    }
+    setMonitorCreationMode(null);
+    setMonitorDraft({ ...activeMonitorDraft(), provider });
   }
 
   async function saveMonitor() {
@@ -169,6 +203,32 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     setObservationDraft(newObservationDraft());
   }
 
+  async function loadMoreMonitoringEvents() {
+    if (
+      !runtimeId ||
+      monitoringHistoryLoadingMore ||
+      monitoringEvents.length >= monitoringHistoryMeta.total
+    ) {
+      return;
+    }
+    setMonitoringHistoryLoadingMore(true);
+    setMonitoringError("");
+    try {
+      const result = await fetchRuntimeMonitoringTimeline(runtimeId, {
+        limit: monitoringHistoryMeta.limit || MONITORING_HISTORY_PAGE_SIZE,
+        page: monitoringHistoryMeta.page + 1,
+      });
+      setMonitoringEvents((current) =>
+        mergeMonitoringEvents(current, result.items || []),
+      );
+      setMonitoringHistoryMeta(result.meta);
+    } catch (error) {
+      setMonitoringError(errorMessage(error));
+    } finally {
+      setMonitoringHistoryLoadingMore(false);
+    }
+  }
+
   async function addObservation() {
     if (!editing || !runtimeId || !observationDraft?.observedAt) return;
     setAddingObservation(true);
@@ -182,11 +242,12 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
         metadata: {},
       });
       setMonitoringEvents((current) =>
-        [result.signal, ...current].sort(
-          (left, right) =>
-            new Date(right.observedAt) - new Date(left.observedAt),
-        ),
+        mergeMonitoringEvents([result.signal], current),
       );
+      setMonitoringHistoryMeta((current) => ({
+        ...current,
+        total: current.total + 1,
+      }));
       setObservationDraft(null);
       setMonitoringNotice("Observação manual registrada.");
     } catch (error) {
@@ -201,13 +262,19 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     addObservation,
     addingObservation,
     closeMonitor: () => setMonitorDraft(null),
+    closeMonitorCreation: () => setMonitorCreationMode(null),
     closeObservation: () => setObservationDraft(null),
     loadMonitoring,
+    loadMoreMonitoringEvents,
     monitorDeletingId,
+    monitorCreationMode,
     monitorDraft,
     monitorSaving,
     monitoringError,
     monitoringEvents,
+    monitoringHistoryHasMore:
+      monitoringEvents.length < monitoringHistoryMeta.total,
+    monitoringHistoryLoadingMore,
     monitoringLoading,
     monitoringNotice,
     monitoringTemplates,
@@ -216,8 +283,11 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     openObservation,
     removeMonitor,
     saveMonitor,
+    selectMonitorProvider: chooseMonitorProvider,
     setMonitorDraft,
     setObservationDraft,
+    showMonitorProviderChoice: () => setMonitorCreationMode("choice"),
+    startMonitorCreation,
     toggleMonitor,
   };
 }

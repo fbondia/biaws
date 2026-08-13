@@ -11,6 +11,10 @@ import { normalizeRepositoryInput } from "../src/repositories/repositoriesReposi
 import { normalizeServerInput } from "../src/repositories/serversRepository.js";
 import { monitoringMetadataPresentation } from "../src/repositories/monitoringMetadataProfiles.js";
 import {
+  normalizeActiveMonitorInput,
+  normalizeActiveMonitorLeaseRequest,
+} from "../src/repositories/runtimeActiveMonitoringModel.js";
+import {
   buildRuntimeMonitoringSignalFilter,
   monitoringExpirationDate,
   normalizeManualMonitoringObservation,
@@ -36,6 +40,7 @@ test("topology permissions are part of the canonical catalog", () => {
       assert.equal(permissions.has(`${domain}.${operation}`), true);
     }
   }
+  assert.equal(permissions.has("monitoring.active.execute"), true);
 });
 
 test("component relationships are normalized and duplicate references are rejected", () => {
@@ -358,6 +363,69 @@ test("runtime defaults monitoring retention and rejects embedded observations", 
         monitoringRetentionDays: 3651,
       }),
     (error) => error.code === "INVALID_MONITORING_RETENTION",
+  );
+});
+
+test("active monitor configuration is bounded and secret-free", () => {
+  const monitor = normalizeActiveMonitorInput({
+    name: " Billing health ",
+    provider: "rest",
+    enabled: true,
+    intervalSeconds: 60,
+    timeoutSeconds: 10,
+    configuration: {
+      target: "https://billing.example.test/health",
+      expectedStatus: 200,
+    },
+    templateRef: { id: "template-1", version: "v1" },
+  });
+  assert.equal(monitor.name, "Billing health");
+  assert.equal(monitor.nameKey, "billing health");
+  assert.equal(monitor.provider, "rest");
+  assert.equal(monitor.intervalSeconds, 60);
+  assert.deepEqual(monitor.templateRef, { id: "template-1", version: "v1" });
+  assert.throws(
+    () =>
+      normalizeActiveMonitorInput({
+        name: "Unsafe",
+        provider: "rest",
+        configuration: { authorization: "Bearer secret" },
+      }),
+    (error) => error.code === "INVALID_MONITORING_PAYLOAD",
+  );
+  assert.throws(
+    () =>
+      normalizeActiveMonitorInput({
+        name: "Too frequent",
+        provider: "shell",
+        intervalSeconds: 5,
+      }),
+    (error) => error.code === "INVALID_ACTIVE_MONITOR",
+  );
+  assert.throws(
+    () =>
+      normalizeActiveMonitorInput({
+        name: "Timeout exceeds interval",
+        provider: "rest",
+        intervalSeconds: 30,
+        timeoutSeconds: 31,
+      }),
+    (error) => error.code === "INVALID_ACTIVE_MONITOR",
+  );
+});
+
+test("active monitor lease requests require a bounded executor identity", () => {
+  assert.deepEqual(
+    normalizeActiveMonitorLeaseRequest({ executorId: "runner-1" }),
+    { executorId: "runner-1", limit: 1, leaseSeconds: 60 },
+  );
+  assert.throws(
+    () =>
+      normalizeActiveMonitorLeaseRequest({
+        executorId: "runner-1",
+        limit: 26,
+      }),
+    (error) => error.code === "INVALID_ACTIVE_MONITOR",
   );
 });
 

@@ -278,7 +278,66 @@ export async function recordRuntimeMonitoringSignal(
   const normalized = normalizeMonitoringSignal(payload, actor);
   return recordMonitoringEvent(runtime, normalized, actor, {
     materializeHealth: true,
-    origin: "external",
+    origin: "passive",
+  });
+}
+
+export async function recordActiveRuntimeMonitoringObservation(
+  monitor,
+  payload = {},
+  actor = {},
+) {
+  assertAllowedFields(
+    payload,
+    [
+      "executorId",
+      "status",
+      "observedAt",
+      "source",
+      "message",
+      "metadata",
+      "metadataProfile",
+      "payload",
+    ],
+    "active monitoring observation",
+  );
+  const runtime = await getRuntime(monitor.runtimeId, {
+    workspaceId: monitor.workspaceId,
+  });
+  if (
+    !runtime ||
+    runtime.status === "archived" ||
+    runtime.applicationId !== monitor.applicationId
+  ) {
+    throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
+  }
+  const normalized = normalizeMonitoringSignal(
+    {
+      signalId: `active:${monitor.id}:${monitor.lease.executionId}`,
+      status: payload.status,
+      observedAt: payload.observedAt,
+      source:
+        optionalText(payload.source, "source", 160) ||
+        `${monitor.provider}:${monitor.name}`,
+      message: payload.message,
+      metadata: payload.metadata,
+      metadataProfile: payload.metadataProfile,
+      payload: payload.payload,
+    },
+    actor,
+  );
+  return recordMonitoringEvent(runtime, normalized, actor, {
+    materializeHealth: true,
+    origin: "active",
+    eventContext: {
+      monitorId: monitor.id,
+      executionId: monitor.lease.executionId,
+      scheduledFor: monitor.lease.scheduledFor,
+      provider: monitor.provider,
+      ...(monitor.templateRef
+        ? { templateRef: { ...monitor.templateRef } }
+        : {}),
+    },
   });
 }
 
@@ -304,7 +363,7 @@ async function recordMonitoringEvent(
   runtime,
   normalized,
   actor,
-  { materializeHealth, origin },
+  { materializeHealth, origin, eventContext = {} },
 ) {
   const collection = await monitoringCollection();
   const receivedAt = new Date();
@@ -319,6 +378,7 @@ async function recordMonitoringEvent(
     deploymentId: runtime.deploymentId,
     runtimeId: runtime.id,
     ...normalized,
+    ...eventContext,
     origin,
     receivedAt,
     ...(expiresAt ? { expiresAt } : {}),
@@ -390,7 +450,11 @@ export async function listRuntimeMonitoringSignals(runtimeId, query = {}) {
   const { page, limit, skip } = pagination(query);
   const collection = await monitoringCollection();
   const filter = buildRuntimeMonitoringSignalFilter(runtime, query);
-  filter.$or = [{ origin: "external" }, { origin: { $exists: false } }];
+  filter.$or = [
+    { origin: "passive" },
+    { origin: "external" },
+    { origin: { $exists: false } },
+  ];
   const [items, total] = await Promise.all([
     collection
       .find(filter)
@@ -413,6 +477,8 @@ function monitoringEventResponse(signal) {
   );
   return {
     ...event,
+    origin:
+      !event?.origin || event.origin === "external" ? "passive" : event.origin,
     ...(metadataPresentation ? { metadataPresentation } : {}),
   };
 }
@@ -421,7 +487,6 @@ function timelineEvent(signal) {
   return {
     ...monitoringEventResponse(signal),
     payload: signal.payload ?? null,
-    origin: signal.origin || "external",
   };
 }
 

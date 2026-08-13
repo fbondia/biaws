@@ -1,9 +1,10 @@
-# Recepção passiva de sinais de monitoramento
+# Monitoramento de runtimes
 
-O Bondia Workspaces não executa probes, scrapes ou verificações. Agentes externos
-observam os serviços e enviam sinais de saúde para um runtime cadastrado. A API
-mantém o histórico, atualiza a saúde materializada do runtime e a UI a apresenta
-na topologia e na área de monitoramento.
+O monitoramento passivo continua recebendo sinais de agentes externos. A API
+também mantém as configurações e o protocolo de leases usados pelo componente
+independente de monitoramento ativo. Em ambos os casos, a API é responsável por
+tenancy, autorização, histórico, idempotência, retenção e auditoria; executores
+não acessam o banco diretamente.
 
 ## Estados e contrato
 
@@ -129,13 +130,56 @@ recebe a permissão de envio; o grupo “Administração” recebe todo o catál
 Cada novo sinal gera o evento funcional `monitoring_signal_received` na auditoria
 do runtime. Retentativas idempotentes não geram outro evento.
 
+## Configurações de monitoramento ativo
+
+As configurações ficam em `runtimeActiveMonitors`, separadas do documento do
+runtime para permitir consulta eficiente da agenda e aquisição concorrente. Um
+runtime aceita até 50 configurações não arquivadas.
+
+```http
+GET    /api/monitoring/runtimes/:runtimeReference/active-monitors
+POST   /api/monitoring/runtimes/:runtimeReference/active-monitors
+PATCH  /api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId
+DELETE /api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId
+```
+
+Leitura exige `runtimes.read`; mutações exigem `runtimes.update` e são
+auditadas. `DELETE` arquiva a configuração. O contrato inicial aceita `name`,
+`description`, `provider` (`rest` ou `shell`), `enabled`, `intervalSeconds`
+(10 a 86.400), `timeoutSeconds` (1 a 300 e nunca maior que o intervalo),
+`configuration` e `templateRef`. A configuração usa JSON limitado e recusa
+campos associados a credenciais; referências a templates são validadas no
+workspace e na versão informada.
+
+## Contrato do executor
+
+O executor usa uma identidade técnica com `monitoring.active.execute`. Essa
+permissão pode ser limitada por aplicação e não pertence ao grupo padrão
+“Agente operacional”.
+
+```http
+POST /api/monitoring/executor/leases
+POST /api/monitoring/executor/leases/:leaseToken/renew
+POST /api/monitoring/executor/leases/:leaseToken/results
+```
+
+A aquisição recebe `executorId`, `limit` (até 25) e `leaseSeconds` (10 a 300).
+Cada item inclui configuração, `leaseToken`, `executionId`, `scheduledFor` e
+`leasedUntil`. Apenas o mesmo executor pode renovar ou publicar enquanto o
+lease for válido. Leases expirados preservam o `executionId` da ocorrência ao
+serem retomados; a publicação usa esse ID em um `signalId` estável, tornando
+retries idempotentes. Resultados ativos materializam a saúde do runtime e entram
+na timeline com `origin: active`, `monitorId`, `executionId`, provider e a versão
+do template usada.
+
 ## Leitura HTTP
 
 ```http
 GET /api/monitoring/runtimes/:runtimeReference/signals?page=1&limit=50&status=degraded&observedFrom=2026-07-01&observedTo=2026-07-31
 ```
 
-Para uma linha do tempo única com sinais externos e observações manuais:
+Para uma linha do tempo única com sinais passivos, execuções ativas e
+observações manuais:
 
 ```http
 GET /api/monitoring/runtimes/:runtimeReference/timeline?page=1&limit=50&status=degraded&observedFrom=2026-07-01&observedTo=2026-07-31
@@ -149,7 +193,7 @@ POST /api/monitoring/runtimes/:runtimeReference/manual-observations
 
 O corpo aceita `status`, `observedAt`, `source`, `message` e `metadata`. A
 permissão necessária é `runtimes.update`; observações manuais não alteram a
-saúde materializada pelo último sinal externo.
+saúde materializada pelo último resultado ativo ou sinal passivo.
 
 ```http
 GET /api/monitoring/applications/:applicationId/health

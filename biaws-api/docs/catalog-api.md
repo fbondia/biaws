@@ -283,18 +283,25 @@ alterado. O valor 0 desativa a expiração. As notas operacionais aceitam até
 entre `operation`, `deployment`, `rollback`, `troubleshooting`, `monitoring` e
 `reference`.
 
-## Sinais de monitoramento
+## Monitoramento
 
-| Método | Rota                                                             | Permissão                   |
-| ------ | ---------------------------------------------------------------- | --------------------------- |
-| `POST` | `/api/monitoring/runtimes/:runtimeReference/signals`             | `monitoring.signals.create` |
-| `POST` | `/api/monitoring/runtimes/:runtimeReference/manual-observations` | `runtimes.update`           |
-| `GET`  | `/api/monitoring/runtimes/:runtimeReference/signals`             | `runtimes.read`             |
-| `GET`  | `/api/monitoring/runtimes/:runtimeReference/timeline`            | `runtimes.read`             |
-| `GET`  | `/api/monitoring/applications/:applicationId/health`             | `runtimes.read`             |
+| Método   | Rota                                                                    | Permissão                   |
+| -------- | ----------------------------------------------------------------------- | --------------------------- |
+| `POST`   | `/api/monitoring/runtimes/:runtimeReference/signals`                    | `monitoring.signals.create` |
+| `POST`   | `/api/monitoring/runtimes/:runtimeReference/manual-observations`        | `runtimes.update`           |
+| `GET`    | `/api/monitoring/runtimes/:runtimeReference/signals`                    | `runtimes.read`             |
+| `GET`    | `/api/monitoring/runtimes/:runtimeReference/timeline`                   | `runtimes.read`             |
+| `GET`    | `/api/monitoring/applications/:applicationId/health`                    | `runtimes.read`             |
+| `GET`    | `/api/monitoring/runtimes/:runtimeReference/active-monitors`            | `runtimes.read`             |
+| `POST`   | `/api/monitoring/runtimes/:runtimeReference/active-monitors`            | `runtimes.update`           |
+| `PATCH`  | `/api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId` | `runtimes.update`           |
+| `DELETE` | `/api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId` | `runtimes.update`           |
+| `POST`   | `/api/monitoring/executor/leases`                                       | `monitoring.active.execute` |
+| `POST`   | `/api/monitoring/executor/leases/:leaseToken/renew`                     | `monitoring.active.execute` |
+| `POST`   | `/api/monitoring/executor/leases/:leaseToken/results`                   | `monitoring.active.execute` |
 
-Sinais externos e observações manuais são persistidos em
-`runtimeMonitoringSignals`, diferenciados por `origin`. O sinal externo mais recente por
+Sinais passivos, execuções ativas e observações manuais são persistidos em
+`runtimeMonitoringSignals`, diferenciados por `origin`. O sinal mais recente por
 `observedAt` materializa `status`, `observedAt` e `monitoring` no runtime.
 `signalId`, quando enviado, torna retries idempotentes no escopo do runtime.
 `metadataProfile` referencia um contrato versionado conhecido pelo serviço. A

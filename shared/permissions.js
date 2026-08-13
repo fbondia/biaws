@@ -34,6 +34,11 @@ const definitions = [
     "Monitoramento",
     "Enviar sinais de saúde de runtimes",
   ],
+  [
+    "monitoring.active.execute",
+    "Monitoramento",
+    "Executar monitoramentos ativos de runtimes",
+  ],
 
   ["issues.read", "Chamados", "Consultar chamados"],
   ["issues.create", "Chamados", "Criar chamados"],
@@ -100,11 +105,7 @@ const definitions = [
   ["documents.create", "Documentos", "Criar documentos de conhecimento"],
   ["documents.update", "Documentos", "Alterar documentos de conhecimento"],
   ["documents.archive", "Documentos", "Arquivar documentos de conhecimento"],
-  [
-    "documents.attachment.read",
-    "Documentos",
-    "Baixar anexos de documentos",
-  ],
+  ["documents.attachment.read", "Documentos", "Baixar anexos de documentos"],
   [
     "documents.attachment.create",
     "Documentos",
@@ -115,11 +116,7 @@ const definitions = [
     "Documentos",
     "Alterar metadados de anexos de documentos",
   ],
-  [
-    "documents.attachment.delete",
-    "Documentos",
-    "Excluir anexos de documentos",
-  ],
+  ["documents.attachment.delete", "Documentos", "Excluir anexos de documentos"],
   ["skills.read", "Skills", "Consultar e baixar skills"],
   ["skills.publish", "Skills", "Publicar versões de skills"],
   ["skills.deprecate", "Skills", "Descontinuar versões de skills"],
@@ -160,6 +157,7 @@ const definitions = [
 ];
 
 const permissionSectionRules = [
+  ["monitoring.active", "Execução ativa"],
   ["monitoring.signals", "Sinais"],
   ["issues.classification", "Fluxo e classificação"],
   ["issues.attachment", "Anexos"],
@@ -224,10 +222,7 @@ const workspacePermissionPrefixes = [
 ];
 
 function permissionScope(id) {
-  if (
-    id.startsWith("documents.") || id.startsWith("secrets.")
-  )
-    return "hybrid";
+  if (id.startsWith("documents.") || id.startsWith("secrets.")) return "hybrid";
   if (
     workspacePermissionIds.has(id) ||
     workspacePermissionPrefixes.some((prefix) => id.startsWith(prefix))

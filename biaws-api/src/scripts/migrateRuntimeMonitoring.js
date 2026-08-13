@@ -9,6 +9,7 @@ import {
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
 import { monitoringExpirationDate } from "../repositories/runtimeMonitoringRepository.js";
+import { ensureRuntimeActiveMonitoringIndexes } from "../repositories/runtimeActiveMonitoringRepository.js";
 
 const apply = process.argv.slice(2).includes("--apply");
 
@@ -57,6 +58,14 @@ async function migrate() {
   const events = database.collection(
     COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS,
   );
+  const groups = database.collection(COLLECTION_NAMES.PERMISSION_GROUPS);
+  const passiveEventFilter = {
+    $or: [{ origin: "external" }, { origin: { $exists: false } }],
+  };
+  const administrationFilter = {
+    $or: [{ systemKey: "administration" }, { _id: "administration" }],
+    permissions: { $ne: "monitoring.active.execute" },
+  };
   const summary = {
     apply,
     database: database.databaseName,
@@ -66,6 +75,9 @@ async function migrate() {
     monitoringEvents: await events.countDocuments({}),
     migratedManualObservations: 0,
     recalculatedEvents: 0,
+    passiveEvents: await events.countDocuments(passiveEventFilter),
+    administrationGroups: await groups.countDocuments(administrationFilter),
+    administrationGroupsUpdated: 0,
   };
 
   for await (const runtime of runtimes.find({})) {
@@ -101,10 +113,6 @@ async function migrate() {
       workspaceId: runtime.workspaceId,
       runtimeId: runtime.id,
     };
-    await events.updateMany(
-      { ...eventFilter, origin: { $exists: false } },
-      { $set: { origin: "external" } },
-    );
     const expirationResult = days
       ? await events.updateMany(eventFilter, [
           {
@@ -130,10 +138,18 @@ async function migrate() {
   }
 
   if (apply) {
+    await events.updateMany(passiveEventFilter, {
+      $set: { origin: "passive" },
+    });
+    const permissionResult = await groups.updateMany(administrationFilter, {
+      $addToSet: { permissions: "monitoring.active.execute" },
+    });
+    summary.administrationGroupsUpdated = permissionResult.modifiedCount;
     await events.createIndex(
       { expiresAt: 1 },
       { expireAfterSeconds: 0, name: "monitoring_expiration" },
     );
+    await ensureRuntimeActiveMonitoringIndexes();
   }
   console.log(JSON.stringify(summary));
 }

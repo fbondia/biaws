@@ -531,8 +531,9 @@ npm run migrate:monitoring -- --apply
 ```
 
 O comando é idempotente, define retenção de 10 dias nos runtimes sem
-configuração e cria o índice TTL. Eventos já vencidos podem ser removidos pelo
-MongoDB após a aplicação.
+configuração, normaliza eventos passivos legados, provisiona a permissão de
+execução ativa nos grupos de administração e cria os índices de monitoramento.
+Eventos já vencidos podem ser removidos pelo MongoDB após a aplicação.
 
 A criação define a melhoria no topo da lista atualizando `listRank`. Atualizações de conteúdo não alteram `listRank`; depois da criação, a posição só muda pelo reposicionamento manual.
 

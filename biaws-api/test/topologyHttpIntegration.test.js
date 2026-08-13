@@ -133,6 +133,17 @@ test(
       );
       assert.equal(
         (
+          await request("/api/monitoring/executor/leases", {
+            cookie: readerCookie,
+            method: "POST",
+            body: { executorId: "unauthorized-runner" },
+            origin: true,
+          })
+        ).status,
+        403,
+      );
+      assert.equal(
+        (
           await database
             .collection(COLLECTION_NAMES.PERMISSION_GROUPS)
             .findOne({
@@ -394,7 +405,7 @@ test(
       const timeline = await timelineResponse.json();
       assert.equal(timeline.meta.total, 3);
       assert.equal(timeline.items[0].origin, "manual");
-      assert.equal(timeline.items[1].origin, "external");
+      assert.equal(timeline.items[1].origin, "passive");
       assert.equal(timeline.items[1].payload.probe.durationMs, 850);
       const retentionUpdate = await patch(
         `/api/catalog/runtimes/${runtime.id}`,
@@ -412,6 +423,145 @@ test(
           20 * 86_400_000,
         );
       }
+      const invalidMonitorResponse = await request(
+        `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            name: "Unsafe active monitor",
+            provider: "rest",
+            intervalSeconds: 30,
+            timeoutSeconds: 31,
+            configuration: {},
+          },
+          origin: true,
+        },
+      );
+      assert.equal(invalidMonitorResponse.status, 422);
+      await database
+        .collection(COLLECTION_NAMES.RUNTIME_MONITORING_TEMPLATES)
+        .insertOne({
+          id: "foreign-template",
+          version: "v1",
+          workspaceId: "other-workspace",
+          status: "active",
+        });
+      const foreignTemplateResponse = await request(
+        `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            name: "Foreign template",
+            provider: "rest",
+            configuration: {},
+            templateRef: { id: "foreign-template", version: "v1" },
+          },
+          origin: true,
+        },
+      );
+      assert.equal(foreignTemplateResponse.status, 422);
+      assert.equal(
+        (await foreignTemplateResponse.json()).error.code,
+        "INVALID_MONITORING_TEMPLATE",
+      );
+      const activeMonitorResponse = await request(
+        `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            name: "Billing health",
+            provider: "rest",
+            intervalSeconds: 60,
+            timeoutSeconds: 10,
+            configuration: {
+              target: "https://billing-http.example.test/health",
+              expectedStatus: 200,
+            },
+          },
+          origin: true,
+        },
+      );
+      assert.equal(activeMonitorResponse.status, 201);
+      const activeMonitor = (await activeMonitorResponse.json()).monitor;
+      assert.equal(activeMonitor.runtimeId, runtime.id);
+      assert.equal(activeMonitor.version, 1);
+      const activeMonitorList = await (
+        await request(
+          `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
+          { cookie: adminCookie },
+        )
+      ).json();
+      assert.equal(activeMonitorList.meta.total, 1);
+      assert.equal(activeMonitorList.items[0].id, activeMonitor.id);
+      const leaseResponse = await request("/api/monitoring/executor/leases", {
+        cookie: adminCookie,
+        method: "POST",
+        body: { executorId: "integration-runner", leaseSeconds: 60 },
+        origin: true,
+      });
+      assert.equal(leaseResponse.status, 200);
+      const lease = (await leaseResponse.json()).items[0];
+      assert.equal(lease.id, activeMonitor.id);
+      assert.ok(lease.leaseToken);
+      const renewResponse = await request(
+        `/api/monitoring/executor/leases/${lease.leaseToken}/renew`,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: { executorId: "integration-runner", leaseSeconds: 60 },
+          origin: true,
+        },
+      );
+      assert.equal(renewResponse.status, 200);
+      const activeResultResponse = await request(
+        `/api/monitoring/executor/leases/${lease.leaseToken}/results`,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            executorId: "integration-runner",
+            status: "healthy",
+            observedAt: "2026-07-30T12:00:00.000Z",
+            source: "active-rest",
+            metadata: { duration_ms: 25 },
+            payload: { response: { status: 200 } },
+          },
+          origin: true,
+        },
+      );
+      assert.equal(activeResultResponse.status, 201);
+      const activeResult = await activeResultResponse.json();
+      assert.equal(activeResult.signal.origin, "active");
+      assert.equal(activeResult.signal.monitorId, activeMonitor.id);
+      assert.equal(activeResult.signal.executionId, lease.executionId);
+      const duplicateActiveResult = await request(
+        `/api/monitoring/executor/leases/${lease.leaseToken}/results`,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            executorId: "integration-runner",
+            status: "healthy",
+            source: "active-rest",
+          },
+          origin: true,
+        },
+      );
+      assert.equal(duplicateActiveResult.status, 200);
+      assert.equal((await duplicateActiveResult.json()).created, false);
+      const timelineAfterActive = await (
+        await request(`/api/monitoring/runtimes/${runtime.id}/timeline`, {
+          cookie: adminCookie,
+        })
+      ).json();
+      assert.equal(
+        timelineAfterActive.items.filter(({ origin }) => origin === "active")
+          .length,
+        1,
+      );
       const expirationIndex = (
         await database
           .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)

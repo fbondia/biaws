@@ -868,7 +868,12 @@ async function latestRuntimeMonitoringSignals(
         $match: {
           workspaceId,
           runtimeId: { $in: runtimeIds },
-          $or: [{ origin: "external" }, { origin: { $exists: false } }],
+          $or: [
+            { origin: "passive" },
+            { origin: "active" },
+            { origin: "external" },
+            { origin: { $exists: false } },
+          ],
         },
       },
       { $sort: { observedAt: -1, receivedAt: -1, id: -1 } },

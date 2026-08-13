@@ -21,7 +21,8 @@ body:has([role="dialog"][aria-modal="true"]) {
 .tagFilterDialogBackdrop,
 .tagPickerBackdrop,
 .taxonomyEditBackdrop,
-.markdownFullscreenBackdrop {
+.markdownFullscreenBackdrop,
+.markdownBlockDialogBackdrop {
   overscroll-behavior: contain;
 }
 
@@ -32,6 +33,7 @@ body:has([role="dialog"][aria-modal="true"]) {
 .requestTaskNoteDialog,
 .requestTaskDialog,
 .markdownFullscreenDialog,
+.markdownBlockDialog,
 .filePreviewDialog,
 .tagFilterDialog {
   max-height: calc(100dvh - 40px);

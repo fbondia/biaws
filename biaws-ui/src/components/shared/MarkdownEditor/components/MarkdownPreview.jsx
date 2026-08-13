@@ -3,7 +3,7 @@ import {
   safeMarkdownHref,
   splitTableRow,
 } from "../model.js";
-import { MermaidDiagram } from "./MermaidDiagram.jsx";
+import { MarkdownBlockViewer } from "./MarkdownBlockViewer.jsx";
 
 export function MarkdownPreview({ value }) {
   const blocks = markdownBlocks(value);
@@ -27,12 +27,14 @@ function markdownBlocks(value) {
 
 function MarkdownBlock({ block }) {
   if (block.type === "code" && block.language === "mermaid")
-    return <MermaidDiagram definition={block.text} />;
+    return <MarkdownBlockViewer source={block.text} type="mermaid" />;
   if (block.type === "code")
     return (
-      <pre>
-        <code>{block.text}</code>
-      </pre>
+      <MarkdownBlockViewer
+        language={block.language}
+        source={block.text}
+        type="code"
+      />
     );
   if (block.type === "heading") {
     const Tag = `h${block.level}`;

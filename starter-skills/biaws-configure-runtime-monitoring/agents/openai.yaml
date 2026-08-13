@@ -1,0 +1,4 @@
+interface:
+  display_name: "Configure Biaws Runtime Monitoring"
+  short_description: "Create validated active runtime monitors"
+  default_prompt: "Use $biaws-configure-runtime-monitoring to discover the runtime and configure a validated active monitor."

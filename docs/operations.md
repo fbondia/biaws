@@ -260,6 +260,12 @@ somente o serviço. Para rollback, remova o profile ou reduza as réplicas a zer
 os leases em andamento expiram na API e podem ser retomados posteriormente sem
 remover configurações ou histórico.
 
+Antes de habilitar providers, configure as políticas locais documentadas em
+`biaws-monitor-executor/README.md`. Hosts REST e scripts shell não declarados são
+recusados. Monte o diretório de scripts como somente leitura e execute o
+container sem privilégios adicionais; segredos entram apenas pelas variáveis
+mapeadas em `BIAWS_MONITOR_REFERENCE_ENV_MAP`, nunca na configuração do monitor.
+
 A API emite um objeto JSON por linha. Eventos de ciclo de vida usam
 `server_started` e `server_shutdown_*`; cada chamada não relacionada ao health
 check gera `http_request_completed` com método, caminho sem query string, grupo

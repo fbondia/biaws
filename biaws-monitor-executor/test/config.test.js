@@ -16,6 +16,11 @@ test("enabled executor requires an isolated API credential and workspace", () =>
   });
   assert.equal(config.enabled, true);
   assert.equal(config.concurrency, 3);
+  assert.deepEqual(config.rest.allowedHosts, []);
+  assert.deepEqual(config.rest.allowedMethods, ["GET", "HEAD"]);
+  assert.equal(config.rest.allowPrivateAddresses, false);
+  assert.deepEqual(config.shell.scripts, {});
+  assert.equal(config.providerEvidenceMaxBytes, 8_000);
 });
 
 test("disabled executor can expose health without API credentials", () => {

@@ -4,12 +4,33 @@ import { ExecutorEngine } from "./engine.js";
 import { createHealthServer } from "./healthServer.js";
 import { createLogger } from "./logger.js";
 import { ProviderRegistry } from "./providers.js";
+import { createEnvironmentReferenceResolver } from "./referenceResolver.js";
+import { createRestProvider } from "./restProvider.js";
+import { createShellProvider } from "./shellProvider.js";
 import { createTelemetry } from "./telemetry.js";
 
 const config = loadExecutorConfig();
 const logger = createLogger();
 const telemetry = createTelemetry();
-const providers = new ProviderRegistry();
+const resolveReference = createEnvironmentReferenceResolver(
+  config.referenceEnvironment,
+);
+const providers = new ProviderRegistry()
+  .register(
+    "rest",
+    createRestProvider({
+      ...config.rest,
+      maxEvidenceBytes: config.providerEvidenceMaxBytes,
+      resolveReference,
+    }),
+  )
+  .register(
+    "shell",
+    createShellProvider({
+      ...config.shell,
+      maxEvidenceBytes: config.providerEvidenceMaxBytes,
+    }),
+  );
 const api = createExecutorApiClient(config);
 const engine = new ExecutorEngine({
   api,

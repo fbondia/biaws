@@ -7,6 +7,15 @@ import { createTelemetry } from "../src/telemetry.js";
 
 const logger = { info() {}, warn() {}, error() {} };
 
+function testProvider(execute) {
+  return {
+    configurationSchema: { type: "object" },
+    validateConfiguration: (configuration) => configuration,
+    normalizeEvidence: (evidence) => evidence,
+    execute,
+  };
+}
+
 function config(overrides = {}) {
   return {
     enabled: true,
@@ -53,11 +62,12 @@ test("two replicas sharing the API publish one acquired occurrence", async () =>
       return { created: true };
     },
   };
-  const providers = new ProviderRegistry().register("rest", {
-    async execute() {
+  const providers = new ProviderRegistry().register(
+    "rest",
+    testProvider(async () => {
       return { status: "healthy", metadata: { duration_ms: 5 } };
-    },
-  });
+    }),
+  );
   const engines = ["replica-a", "replica-b"].map(
     (executorId) =>
       new ExecutorEngine({
@@ -128,12 +138,13 @@ test("long executions renew the lease before publishing", async () => {
         return { created: true };
       },
     },
-    providers: new ProviderRegistry().register("rest", {
-      async execute() {
+    providers: new ProviderRegistry().register(
+      "rest",
+      testProvider(async () => {
         await providerPending;
         return { status: "healthy" };
-      },
-    }),
+      }),
+    ),
     config: config({ renewIntervalMs: 500 }),
     telemetry: createTelemetry(),
     logger,
@@ -194,11 +205,12 @@ test("provider timeout is published even when the provider ignores cancellation"
         return { created: true };
       },
     },
-    providers: new ProviderRegistry().register("rest", {
-      async execute() {
+    providers: new ProviderRegistry().register(
+      "rest",
+      testProvider(async () => {
         return new Promise(() => {});
-      },
-    }),
+      }),
+    ),
     config: config(),
     telemetry: createTelemetry(),
     logger,

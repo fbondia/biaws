@@ -14,9 +14,59 @@ persistente, coordenação entre réplicas, tenancy, idempotência e histórico.
 5. interrompe novas aquisições em `SIGTERM`/`SIGINT` e aguarda os trabalhos até
    o limite de desligamento gracioso.
 
-REST e shell são registrados na fase `ACTIVE-MON-03`. Até lá, uma configuração
-com provider não instalado gera uma observação `unknown` sanitizada, sem incluir
-a configuração recebida.
+Os providers REST e shell são registrados independentemente do núcleo. Cada um
+expõe schema, valida configuração, executa com cancelamento e normaliza uma
+evidência limitada. Falha do provider/configuração usa `failure_stage: provider`;
+falha futura de avaliação usa `failure_stage: template`; resposta válida mas não
+saudável usa `outcome_kind: target_unhealthy`.
+
+## Políticas dos providers
+
+REST é deny-by-default. Configure:
+
+- `BIAWS_MONITOR_REST_ALLOWED_HOSTS`: hosts separados por vírgula; `*.example.com`
+  aceita somente subdomínios;
+- `BIAWS_MONITOR_REST_ALLOWED_METHODS`: métodos separados por vírgula; o padrão
+  seguro aceita somente `GET,HEAD`;
+- `BIAWS_MONITOR_REST_ALLOW_PRIVATE_ADDRESSES`: `false` por padrão; mantenha
+  assim para bloquear loopback, link-local, redes privadas e especiais;
+- `BIAWS_MONITOR_REST_MAX_REDIRECTS`: padrão `3`; cada destino é novamente
+  validado e redirects de métodos com efeito colateral são recusados;
+- `BIAWS_MONITOR_REFERENCE_ENV_MAP`: JSON que associa referências públicas a
+  nomes de variáveis de ambiente, por exemplo
+  `{"service-auth":"SERVICE_AUTH_HEADER"}`. A configuração usa
+  `headerRefs: [{"name":"Authorization","reference":"service-auth"}]`;
+  o valor resolvido nunca entra na evidência ou nos logs.
+
+O provider REST fixa cada conexão no endereço DNS validado, desativa reuso de
+socket e limita método, protocolo, headers, corpo e resposta. Headers sensíveis
+inline e redirects entre origens são recusados.
+
+Shell também é deny-by-default e nunca usa `shell: true`. Configure:
+
+- `BIAWS_MONITOR_SHELL_ROOT`: raiz que contém scripts e diretórios de trabalho;
+- `BIAWS_MONITOR_SHELL_SCRIPTS`: JSON indexado por `scriptId`, com `path`,
+  `workingDirectory`, `argumentPatterns`, `environmentPatterns` e
+  `fixedEnvironment`.
+
+Exemplo:
+
+```json
+{
+  "service-health": {
+    "path": "service-health.sh",
+    "workingDirectory": ".",
+    "argumentPatterns": ["[a-z0-9-]+"],
+    "environmentPatterns": { "TARGET": "[a-z0-9.-]+" },
+    "fixedEnvironment": { "MODE": "probe" }
+  }
+}
+```
+
+Caminho e `cwd` são canonicalizados dentro da raiz; symlinks de escape,
+scripts não executáveis, argumentos/ambiente fora da política e identificadores
+desconhecidos são recusados. Em cancelamento, o grupo de processos recebe
+`SIGTERM` e depois `SIGKILL`.
 
 ## Configuração
 
@@ -40,6 +90,8 @@ Controles principais:
 - `BIAWS_MONITOR_EXECUTOR_RETRY_BASE_MS` (`500`);
 - `BIAWS_MONITOR_EXECUTOR_RETRY_MAX_MS` (`15000`);
 - `BIAWS_MONITOR_EXECUTOR_SHUTDOWN_GRACE_MS` (`30000`).
+- `BIAWS_MONITOR_EXECUTOR_EVIDENCE_MAX_BYTES` (`8000`, máximo `8000`, alinhado
+  ao limite de string do contrato de observações da API).
 
 Defina `BIAWS_MONITOR_EXECUTOR_ENABLED=false` para manter o processo saudável
 sem adquirir trabalho. A mudança é aplicada ao reiniciar somente esse componente,

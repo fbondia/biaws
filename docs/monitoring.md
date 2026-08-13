@@ -188,9 +188,13 @@ período de graça; após o limite, são cancelados e o lease expirado pode ser
 recuperado por outra réplica com o mesmo `executionId`.
 
 O executor percebe alterações de configuração na próxima aquisição, sem
-reinício. Os providers REST e shell são adicionados em fase própria; um provider
-ausente produz `unknown` com diagnóstico sanitizado, sem registrar configuração
-ou segredo.
+reinício. REST e shell usam registro extensível com schema, validação, execução
+cancelável e normalização de evidência. O provider REST exige allowlist local de
+hosts, revalida DNS e redirects e bloqueia redes privadas/especiais por padrão.
+O provider shell aceita somente `scriptId` allowlisted localmente, sem shell
+intermediário, e restringe caminho, `cwd`, argumentos e ambiente. Configurações
+recusadas e timeouts produzem `unknown` com diagnóstico sanitizado; respostas
+válidas do alvo são distinguidas por `outcome_kind`.
 
 Endpoints locais, por padrão na porta `3110`:
 

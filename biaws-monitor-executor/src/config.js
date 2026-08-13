@@ -33,6 +33,29 @@ function readInteger(env, name, fallback, { min, max }) {
   return value;
 }
 
+function readJsonObject(env, name, fallback = {}) {
+  const raw = readText(env, name, "");
+  if (!raw) return fallback;
+  let value;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    throw new Error(`${name} must contain valid JSON`);
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${name} must contain a JSON object`);
+  }
+  return value;
+}
+
+function readList(env, name, fallback = []) {
+  const values = readText(env, name, "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return values.length ? values : fallback;
+}
+
 function trimTrailingSlash(value) {
   return String(value).replace(/\/+$/u, "");
 }
@@ -122,6 +145,39 @@ export function getExecutorConfig(env = process.env) {
       min: 0,
       max: 65_535,
     }),
+    providerEvidenceMaxBytes: readInteger(
+      env,
+      "BIAWS_MONITOR_EXECUTOR_EVIDENCE_MAX_BYTES",
+      8_000,
+      { min: 1_024, max: 8_000 },
+    ),
+    rest: {
+      allowedHosts: readList(env, "BIAWS_MONITOR_REST_ALLOWED_HOSTS"),
+      allowedMethods: readList(env, "BIAWS_MONITOR_REST_ALLOWED_METHODS", [
+        "GET",
+        "HEAD",
+      ]),
+      allowPrivateAddresses: readBoolean(
+        env,
+        "BIAWS_MONITOR_REST_ALLOW_PRIVATE_ADDRESSES",
+        false,
+      ),
+      maxRedirects: readInteger(env, "BIAWS_MONITOR_REST_MAX_REDIRECTS", 3, {
+        min: 0,
+        max: 10,
+      }),
+    },
+    shell: {
+      root: path.resolve(
+        readText(env, "BIAWS_MONITOR_SHELL_ROOT", "/opt/biaws-monitor-scripts"),
+      ),
+      scripts: readJsonObject(env, "BIAWS_MONITOR_SHELL_SCRIPTS", {}),
+    },
+    referenceEnvironment: readJsonObject(
+      env,
+      "BIAWS_MONITOR_REFERENCE_ENV_MAP",
+      {},
+    ),
   };
 }
 

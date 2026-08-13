@@ -14,12 +14,28 @@ export class ProviderNotRegisteredError extends Error {
   }
 }
 
+export class ProviderConfigurationError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.name = "ProviderConfigurationError";
+    this.code = code;
+  }
+}
+
 export class ProviderRegistry {
   #providers = new Map();
 
   register(name, provider) {
-    if (!name || typeof provider?.execute !== "function") {
-      throw new TypeError("A provider name and execute function are required");
+    if (
+      !name ||
+      !provider?.configurationSchema ||
+      typeof provider?.validateConfiguration !== "function" ||
+      typeof provider?.execute !== "function" ||
+      typeof provider?.normalizeEvidence !== "function"
+    ) {
+      throw new TypeError(
+        "A provider name, configuration schema, validator, execute and evidence normalizer are required",
+      );
     }
     if (this.#providers.has(name)) {
       throw new Error(`Provider is already registered: ${name}`);
@@ -31,7 +47,23 @@ export class ProviderRegistry {
   async execute(monitor, options) {
     const provider = this.#providers.get(monitor.provider);
     if (!provider) throw new ProviderNotRegisteredError(monitor.provider);
-    return provider.execute(monitor, options);
+    const configuration = provider.validateConfiguration(
+      monitor.configuration || {},
+    );
+    const evidence = await provider.execute(
+      { ...monitor, configuration },
+      options,
+    );
+    return provider.normalizeEvidence(evidence);
+  }
+
+  schemas() {
+    return Object.fromEntries(
+      [...this.#providers].map(([name, provider]) => [
+        name,
+        provider.configurationSchema,
+      ]),
+    );
   }
 }
 
@@ -62,21 +94,35 @@ export function providerFailureResult(error, monitor, observedAt = new Date()) {
   const timeout =
     error?.name === "TimeoutError" || error?.code === "PROVIDER_TIMEOUT";
   const unavailable = error?.code === "PROVIDER_NOT_REGISTERED";
+  const invalidConfiguration = error?.name === "ProviderConfigurationError";
+  const templateFailure = error?.code === "TEMPLATE_EVALUATION_FAILED";
   return {
     status: "unknown",
     observedAt: observedAt.toISOString(),
     source: `active-${monitor.provider}`,
     message: timeout
       ? "Provider execution timed out"
-      : unavailable
-        ? "Provider is not installed in this executor"
-        : "Provider execution failed",
+      : templateFailure
+        ? "Monitoring template evaluation failed"
+        : unavailable
+          ? "Provider is not installed in this executor"
+          : invalidConfiguration
+            ? "Provider configuration was refused by local policy"
+            : "Provider execution failed",
     metadata: {
       failure_kind: timeout
         ? "timeout"
-        : unavailable
-          ? "provider_unavailable"
-          : "provider_failure",
+        : templateFailure
+          ? "template_evaluation"
+          : unavailable
+            ? "provider_unavailable"
+            : invalidConfiguration
+              ? "configuration_refused"
+              : "provider_failure",
+      failure_stage: templateFailure ? "template" : "provider",
+      ...(error?.code
+        ? { diagnostic_code: String(error.code).slice(0, 100) }
+        : {}),
     },
   };
 }

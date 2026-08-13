@@ -211,9 +211,16 @@ test("pending tasks use six-item pages by default", () => {
 
 test("pending tasks metric returns a deterministic page and pagination metadata", async () => {
   const observations = {};
-  const requests = [{ _id: "request-1", title: "Melhoria principal" }];
+  const requests = [
+    {
+      _id: "request-1",
+      clientCode: "MEL-001",
+      title: "Melhoria principal",
+    },
+  ];
   const tasks = Array.from({ length: 8 }, (_, index) => ({
     _id: `task-${index + 1}`,
+    code: `TASK-${index + 1}`,
     requestId: "request-1",
     title: `Tarefa ${index + 1}`,
     status: "Pendente",
@@ -290,6 +297,9 @@ test("pending tasks metric returns a deterministic page and pagination metadata"
     ["task-4", "task-5", "task-6"],
   );
   assert.equal(result.items[0].requestId, "request-1");
+  assert.equal(result.items[0].requestCode, "MEL-001");
+  assert.equal(result.items[0].requestTitle, "Melhoria principal");
+  assert.equal(result.items[0].code, "TASK-4");
   assert.equal(result.value, 8);
   assert.equal(result.page, 2);
   assert.equal(result.limit, 3);

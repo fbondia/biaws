@@ -3,13 +3,70 @@
   font-size: 1.2rem;
 }
 
-.homeTaskList {
+.homeTaskGroups {
   display: grid;
-  gap: 1px;
+  gap: var(--space-2);
+}
+
+.homeTaskGroup {
   overflow: hidden;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.homeTaskGroupHeader {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-surface-muted);
+  padding: 9px 11px;
+}
+
+.homeTaskGroupIdentity {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.homeTaskGroupIdentity > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homeTaskGroupToggle {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 0;
+  cursor: pointer;
+}
+
+.homeTaskGroupToggle:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.homeTaskGroupToggle:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.homeTaskList {
+  display: grid;
   background: var(--color-border-subtle);
+  gap: 1px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-left: var(--space-3);
 }
 
 .homeTaskList article {
@@ -28,16 +85,10 @@
   gap: 2px;
 }
 
-.homeTaskList article strong,
-.homeTaskList article small {
+.homeTaskList article strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.homeTaskList article small {
-  color: var(--color-text-subtle);
-  font-size: 0.7rem;
 }
 
 .homeTaskActions {

@@ -421,6 +421,45 @@ test("monitoring metadata profiles validate their versioned field contract", () 
   assert.equal(presentation.fields[2].format, "percent");
   assert.equal(presentation.series[0].visualization, "line");
 
+  const apiSignal = normalizeMonitoringSignal({
+    status: "healthy",
+    source: "sgmp-health-monitor",
+    metadataProfile: "sgmp-api-health/v1",
+    metadata: {
+      service_up: true,
+      database_up: true,
+      connection_pool_up: true,
+      database_response_time_ms: 31,
+      pool_active_connections: 12,
+      pool_idle_connections: 8,
+      pool_total_connections: 20,
+      pool_awaiting_threads: 0,
+      pool_maximum_size: 20,
+      pool_minimum_idle: 2,
+      pool_utilization_percent: 60,
+    },
+  });
+  const apiPresentation = monitoringMetadataPresentation(
+    apiSignal.metadataProfile,
+  );
+  assert.equal(apiPresentation.label, "Saúde da API de Automações");
+  assert.equal(apiPresentation.fields[2].key, "connection_pool_up");
+  assert.equal(apiPresentation.fields[4].visualization, "gauge");
+
+  assert.throws(
+    () =>
+      normalizeMonitoringSignal({
+        status: "degraded",
+        source: "monitor",
+        metadataProfile: "sgmp-api-health/v1",
+        metadata: {
+          service_up: false,
+          pool_awaiting_threads: -1,
+        },
+      }),
+    (error) => error.code === "INVALID_MONITORING_METADATA_PROFILE",
+  );
+
   assert.throws(
     () =>
       normalizeMonitoringSignal({

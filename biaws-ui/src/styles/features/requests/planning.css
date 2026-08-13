@@ -48,9 +48,73 @@
   font-weight: 700;
 }
 
+.requestTasksOverviewGroups {
+  display: grid;
+  gap: 10px;
+}
+
+.requestTasksOverviewGroup {
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.requestTasksOverviewGroupHeader {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--color-surface-muted);
+  padding: 11px 12px;
+}
+
+.requestTasksOverviewGroupIdentity {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.requestTasksOverviewGroupIdentity > strong {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.requestTasksOverviewGroupToggle {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 0;
+  cursor: pointer;
+}
+
+.requestTasksOverviewGroupToggle:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
+.requestTasksOverviewGroupToggle:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
 .requestTasksOverviewList {
   display: grid;
   gap: 8px;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-subtle);
+  padding: 10px 10px 10px calc(10px + var(--space-3));
 }
 
 .requestTasksOverviewItem {
@@ -59,7 +123,7 @@
   width: 100%;
   border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
-  background: var(--color-surface-subtle);
+  background: var(--color-surface);
   color: var(--color-text-secondary);
   padding: 12px;
   text-align: left;
@@ -88,19 +152,7 @@
   min-width: 0;
 }
 
-.requestTasksOverviewIdentity > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--color-text-subtle);
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .requestTasksOverviewIdentity strong {
-  display: flex;
-  align-items: center;
-  gap: 7px;
   overflow-wrap: anywhere;
   color: var(--color-text);
   font-size: 14px;

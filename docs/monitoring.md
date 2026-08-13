@@ -61,6 +61,11 @@ persiste somente o identificador; nas respostas de leitura a API acrescenta
 `metadataPresentation` com rótulos, formatos e visualizações declarativas para a
 UI. Perfis desconhecidos ou valores incompatíveis retornam `422`.
 
+O perfil `sgmp-api-health/v1` estende essa apresentação para a API de
+automações, acrescentando tempo de resposta do banco e os indicadores do pool
+Hikari: estado, utilização, conexões ativas/ociosas/totais, threads aguardando e
+limites configurados.
+
 ```json
 {
   "metadataProfile": "sgmp-health/v1",

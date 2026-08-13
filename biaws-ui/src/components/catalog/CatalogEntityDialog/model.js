@@ -146,6 +146,36 @@ function compact(payload) {
 
 const text = (value) => String(value || "").trim();
 
+export function appendPublicationDraft(
+  deploymentDraft,
+  publicationDraft,
+  {
+    id = `draft-${crypto.randomUUID()}`,
+    publishedAt = new Date().toISOString(),
+  } = {},
+) {
+  const version = text(publicationDraft?.version);
+  if (!version) return deploymentDraft;
+
+  return {
+    ...deploymentDraft,
+    publications: [
+      ...(deploymentDraft.publications || []),
+      {
+        id,
+        version,
+        revision: text(publicationDraft.revision),
+        repositoryId: deploymentDraft.repositoryId || "",
+        status: publicationDraft.status,
+        publishedAt: publicationDraft.publishedAt
+          ? new Date(publicationDraft.publishedAt).toISOString()
+          : publishedAt,
+        description: text(publicationDraft.description),
+      },
+    ],
+  };
+}
+
 const PAYLOAD_BUILDERS = {
   application: (draft, common) => ({
     ...common,

@@ -31,12 +31,6 @@ export function RequestMainTab({
         <div className="panelHeader">
           <div>
             <h3>Dados da melhoria</h3>
-            <EntityIdentifier
-              fallback="Código do cliente não informado"
-              label="Código da melhoria"
-              value={request.clientCode}
-              variant="eyebrow"
-            />
           </div>
         </div>
 

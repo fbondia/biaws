@@ -606,7 +606,7 @@ export async function buildPendingTasksMetric(database, actor, query = {}) {
   const requests = await database
     .collection(COLLECTION_NAMES.REQUESTS)
     .find(scopedFilter(actor, "demands.read"))
-    .project({ _id: 1, title: 1 })
+    .project({ _id: 1, clientCode: 1, title: 1 })
     .toArray();
   const requestIds = requests.map(({ _id }) => _id);
   if (!requestIds.length) {
@@ -633,8 +633,11 @@ export async function buildPendingTasksMetric(database, actor, query = {}) {
       .limit(pagination.limit)
       .toArray(),
   ]);
-  const requestNames = new Map(
-    requests.map(({ _id, title }) => [_id.toString(), title]),
+  const requestDetails = new Map(
+    requests.map(({ _id, clientCode, title }) => [
+      _id.toString(),
+      { clientCode: clientCode || "", title: title || "Melhoria" },
+    ]),
   );
   return {
     kind: "tasks",
@@ -642,14 +645,19 @@ export async function buildPendingTasksMetric(database, actor, query = {}) {
     page: pagination.page,
     limit: pagination.limit,
     hasMore: pagination.skip + tasks.length < value,
-    items: tasks.map((task) => ({
-      id: task._id.toString(),
-      requestId: task.requestId?.toString() || "",
-      title: task.title,
-      status: task.status,
-      endDate: task.endDate || "",
-      requestTitle: requestNames.get(task.requestId?.toString()) || "Melhoria",
-    })),
+    items: tasks.map((task) => {
+      const request = requestDetails.get(task.requestId?.toString()) || {};
+      return {
+        id: task._id.toString(),
+        code: task.code || "",
+        requestId: task.requestId?.toString() || "",
+        requestCode: request.clientCode || "",
+        title: task.title,
+        status: task.status,
+        endDate: task.endDate || "",
+        requestTitle: request.title || "Melhoria",
+      };
+    }),
   };
 }
 

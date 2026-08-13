@@ -1,7 +1,29 @@
-import { ExternalLink } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { fetchHomePendingTasks } from "../../../api.js";
+import { EntityIdentifier } from "../../shared/EntityIdentifier/index.jsx";
+
+function groupTasksByRequest(items) {
+  const groups = new Map();
+
+  items.forEach((task) => {
+    const groupId = task.requestId || `unlinked:${task.id}`;
+    const current = groups.get(groupId);
+    if (current) {
+      current.tasks.push(task);
+      return;
+    }
+    groups.set(groupId, {
+      id: groupId,
+      code: task.requestCode || "",
+      title: task.requestTitle || "Melhoria",
+      tasks: [task],
+    });
+  });
+
+  return [...groups.values()];
+}
 
 export function PendingTasksWidget({ data, onOpenTask }) {
   const [items, setItems] = useState(data.items || []);
@@ -12,6 +34,8 @@ export function PendingTasksWidget({ data, onOpenTask }) {
   );
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState("");
+  const [collapsedGroupIds, setCollapsedGroupIds] = useState(() => new Set());
+  const groups = useMemo(() => groupTasksByRequest(items), [items]);
 
   useEffect(() => {
     setItems(data.items || []);
@@ -20,7 +44,17 @@ export function PendingTasksWidget({ data, onOpenTask }) {
     setHasMore(data.hasMore ?? (data.items || []).length < (data.value || 0));
     setLoadingMore(false);
     setLoadMoreError("");
+    setCollapsedGroupIds(new Set());
   }, [data]);
+
+  function toggleGroup(groupId) {
+    setCollapsedGroupIds((current) => {
+      const next = new Set(current);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  }
 
   async function loadMore() {
     setLoadingMore(true);
@@ -54,28 +88,74 @@ export function PendingTasksWidget({ data, onOpenTask }) {
         <div className="homeWidgetEmpty">Nenhuma tarefa pendente.</div>
       ) : (
         <>
-          <div className="homeTaskList">
-            {items.map((task) => (
-              <article key={task.id}>
-                <div className="homeTaskIdentity">
-                  <strong>{task.title}</strong>
-                  <small>{task.requestTitle}</small>
-                </div>
-                <div className="homeTaskActions">
-                  <span className="homeTaskStatus">{task.status}</span>
-                  <button
-                    aria-label={`Abrir tarefa ${task.title}`}
-                    className="secondaryButton homeTaskOpenButton"
-                    disabled={!task.requestId || !onOpenTask}
-                    onClick={() => onOpenTask?.(task)}
-                    title="Abrir tarefa"
-                    type="button"
-                  >
-                    <ExternalLink aria-hidden="true" size={15} />
-                  </button>
-                </div>
-              </article>
-            ))}
+          <div className="homeTaskGroups">
+            {groups.map((group) => {
+              const expanded = !collapsedGroupIds.has(group.id);
+              return (
+                <section className="homeTaskGroup" key={group.id}>
+                  <header className="homeTaskGroupHeader">
+                    <div className="homeTaskGroupIdentity">
+                      <EntityIdentifier
+                        fallback="Sem código"
+                        label="Código da melhoria"
+                        value={group.code}
+                        variant="eyebrow"
+                      />
+                      <strong>{group.title}</strong>
+                    </div>
+                    <button
+                      aria-expanded={expanded}
+                      aria-label={`${expanded ? "Recolher" : "Expandir"} tarefas de ${group.title}`}
+                      className="homeTaskGroupToggle"
+                      onClick={() => toggleGroup(group.id)}
+                      title={
+                        expanded ? "Recolher melhoria" : "Expandir melhoria"
+                      }
+                      type="button"
+                    >
+                      {expanded ? (
+                        <ChevronDown aria-hidden="true" size={17} />
+                      ) : (
+                        <ChevronRight aria-hidden="true" size={17} />
+                      )}
+                    </button>
+                  </header>
+                  {expanded ? (
+                    <div className="homeTaskList">
+                      {group.tasks.map((task) => (
+                        <article key={task.id}>
+                          <div className="homeTaskIdentity">
+                            {task.code ? (
+                              <EntityIdentifier
+                                label="Código da tarefa"
+                                value={task.code}
+                                variant="eyebrow"
+                              />
+                            ) : null}
+                            <strong>{task.title}</strong>
+                          </div>
+                          <div className="homeTaskActions">
+                            <span className="homeTaskStatus">
+                              {task.status}
+                            </span>
+                            <button
+                              aria-label={`Abrir tarefa ${task.title}`}
+                              className="secondaryButton homeTaskOpenButton"
+                              disabled={!task.requestId || !onOpenTask}
+                              onClick={() => onOpenTask?.(task)}
+                              title="Abrir tarefa"
+                              type="button"
+                            >
+                              <ExternalLink aria-hidden="true" size={15} />
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : null}
+                </section>
+              );
+            })}
           </div>
           {loadMoreError ? (
             <div className="homeTasksLoadMoreError" role="alert">

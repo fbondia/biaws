@@ -44,8 +44,89 @@ const SGMP_HEALTH_PRESENTATION = Object.freeze({
   ],
 });
 
+const SGMP_API_HEALTH_PRESENTATION = Object.freeze({
+  id: "sgmp-api-health/v1",
+  label: "Saúde da API de Automações",
+  fields: [
+    {
+      key: "service_up",
+      label: "Serviço",
+      format: "status",
+      visualization: "badge",
+    },
+    {
+      key: "database_up",
+      label: "Banco de dados",
+      format: "status",
+      visualization: "badge",
+    },
+    {
+      key: "connection_pool_up",
+      label: "Pool de conexões",
+      format: "status",
+      visualization: "badge",
+    },
+    {
+      key: "database_response_time_ms",
+      label: "Tempo do banco (ms)",
+      format: "number",
+      visualization: "value",
+    },
+    {
+      key: "pool_utilization_percent",
+      label: "Utilização do pool",
+      format: "percent",
+      visualization: "gauge",
+    },
+    {
+      key: "pool_active_connections",
+      label: "Conexões ativas",
+      format: "number",
+      visualization: "value",
+    },
+    {
+      key: "pool_idle_connections",
+      label: "Conexões ociosas",
+      format: "number",
+      visualization: "value",
+    },
+    {
+      key: "pool_total_connections",
+      label: "Total de conexões",
+      format: "number",
+      visualization: "value",
+    },
+    {
+      key: "pool_awaiting_threads",
+      label: "Threads aguardando conexão",
+      format: "number",
+      visualization: "value",
+    },
+    {
+      key: "pool_maximum_size",
+      label: "Limite do pool",
+      format: "number",
+      visualization: "value",
+    },
+    {
+      key: "pool_minimum_idle",
+      label: "Mínimo ocioso",
+      format: "number",
+      visualization: "value",
+    },
+    {
+      key: "disk_usage_percent",
+      label: "Consumo de disco",
+      format: "percent",
+      visualization: "gauge",
+    },
+  ],
+  series: SGMP_HEALTH_PRESENTATION.series,
+});
+
 const PROFILES = new Map([
   [SGMP_HEALTH_PRESENTATION.id, SGMP_HEALTH_PRESENTATION],
+  [SGMP_API_HEALTH_PRESENTATION.id, SGMP_API_HEALTH_PRESENTATION],
 ]);
 const SGMP_HEALTH_KEYS = new Set([
   "service_up",
@@ -56,6 +137,18 @@ const SGMP_HEALTH_KEYS = new Set([
   "error_history_values",
   "error_history_unit",
 ]);
+const SGMP_API_HEALTH_KEYS = new Set([
+  ...SGMP_HEALTH_KEYS,
+  "connection_pool_up",
+  "database_response_time_ms",
+  "pool_active_connections",
+  "pool_idle_connections",
+  "pool_total_connections",
+  "pool_awaiting_threads",
+  "pool_maximum_size",
+  "pool_minimum_idle",
+  "pool_utilization_percent",
+]);
 
 function profileError(message) {
   return createCatalogError(
@@ -65,9 +158,13 @@ function profileError(message) {
   );
 }
 
-function validateBoolean(metadata, key, { required = false } = {}) {
+function validateBoolean(
+  metadata,
+  key,
+  { required = false, profileId = SGMP_HEALTH_PRESENTATION.id } = {},
+) {
   if (metadata[key] === undefined) {
-    if (required) throw profileError(`${key} is required by sgmp-health/v1`);
+    if (required) throw profileError(`${key} is required by ${profileId}`);
     return;
   }
   if (typeof metadata[key] !== "boolean") {
@@ -75,25 +172,44 @@ function validateBoolean(metadata, key, { required = false } = {}) {
   }
 }
 
-function validateSgmpHealth(metadata) {
-  const unknown = Object.keys(metadata).filter(
-    (key) => !SGMP_HEALTH_KEYS.has(key),
-  );
+function validateNonNegativeInteger(metadata, key) {
+  if (metadata[key] === undefined) return;
+  if (!Number.isInteger(metadata[key]) || metadata[key] < 0) {
+    throw profileError(`${key} must be a non-negative integer`);
+  }
+}
+
+function validatePercent(metadata, key) {
+  if (metadata[key] === undefined) return;
+  const value = metadata[key];
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    value < 0 ||
+    value > 100
+  ) {
+    throw profileError(`${key} must be between 0 and 100`);
+  }
+}
+
+function validateSgmpHealth(
+  metadata,
+  {
+    profileId = SGMP_HEALTH_PRESENTATION.id,
+    allowedKeys = SGMP_HEALTH_KEYS,
+  } = {},
+) {
+  const unknown = Object.keys(metadata).filter((key) => !allowedKeys.has(key));
   if (unknown.length) {
     throw profileError(
-      `metadata fields are not supported by sgmp-health/v1: ${unknown.join(", ")}`,
+      `metadata fields are not supported by ${profileId}: ${unknown.join(", ")}`,
     );
   }
 
-  validateBoolean(metadata, "service_up", { required: true });
-  validateBoolean(metadata, "database_up");
+  validateBoolean(metadata, "service_up", { required: true, profileId });
+  validateBoolean(metadata, "database_up", { profileId });
 
-  if (metadata.disk_usage_percent !== undefined) {
-    const value = metadata.disk_usage_percent;
-    if (typeof value !== "number" || value < 0 || value > 100) {
-      throw profileError("disk_usage_percent must be between 0 and 100");
-    }
-  }
+  validatePercent(metadata, "disk_usage_percent");
   if (
     metadata.service_now_status !== undefined &&
     (typeof metadata.service_now_status !== "string" ||
@@ -151,6 +267,26 @@ function validateSgmpHealth(metadata) {
   }
 }
 
+function validateSgmpApiHealth(metadata) {
+  validateSgmpHealth(metadata, {
+    profileId: SGMP_API_HEALTH_PRESENTATION.id,
+    allowedKeys: SGMP_API_HEALTH_KEYS,
+  });
+  validateBoolean(metadata, "connection_pool_up", {
+    profileId: SGMP_API_HEALTH_PRESENTATION.id,
+  });
+  validatePercent(metadata, "pool_utilization_percent");
+  [
+    "database_response_time_ms",
+    "pool_active_connections",
+    "pool_idle_connections",
+    "pool_total_connections",
+    "pool_awaiting_threads",
+    "pool_maximum_size",
+    "pool_minimum_idle",
+  ].forEach((key) => validateNonNegativeInteger(metadata, key));
+}
+
 export function normalizeMonitoringMetadataProfile(value, metadata) {
   if (value === undefined || value === null || value === "") return null;
   if (typeof value !== "string") {
@@ -164,6 +300,9 @@ export function normalizeMonitoringMetadataProfile(value, metadata) {
     throw profileError(`unknown metadataProfile: ${profileId}`);
   }
   if (profileId === SGMP_HEALTH_PRESENTATION.id) validateSgmpHealth(metadata);
+  if (profileId === SGMP_API_HEALTH_PRESENTATION.id) {
+    validateSgmpApiHealth(metadata);
+  }
   return profileId;
 }
 

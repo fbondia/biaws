@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  appendPublicationDraft,
   catalogEntityDraft,
   catalogEntityPayload,
   monitoringSignalCurl,
@@ -45,6 +46,59 @@ test("deployment payload stores repository and publication history", () => {
   assert.equal(payload.publications[0].status, "planned");
   assert.equal(Object.hasOwn(payload, "version"), false);
   assert.equal(Object.hasOwn(payload, "deployedAt"), false);
+});
+
+test("deployment save includes a publication draft that was not added yet", () => {
+  const draft = catalogEntityDraft("deployment", {
+    key: "prod",
+    name: "Produção",
+    repositoryId: "repository-1",
+    publications: [{ id: "publication-1", version: "2.3.0" }],
+  });
+  const draftToSave = appendPublicationDraft(
+    draft,
+    {
+      version: " 2.4.0 ",
+      revision: " abc123 ",
+      status: "planned",
+      publishedAt: "2026-08-13T09:30",
+      description: " Publicação principal ",
+    },
+    {
+      id: "draft-publication-2",
+      publishedAt: "2026-08-13T12:30:00.000Z",
+    },
+  );
+
+  const payload = catalogEntityPayload("deployment", draftToSave, true);
+  assert.equal(payload.publications.length, 2);
+  assert.deepEqual(payload.publications[1], {
+    id: "draft-publication-2",
+    version: "2.4.0",
+    revision: "abc123",
+    repositoryId: "repository-1",
+    status: "planned",
+    publishedAt: new Date("2026-08-13T09:30").toISOString(),
+    description: "Publicação principal",
+  });
+});
+
+test("empty publication draft is ignored when saving a deployment", () => {
+  const draft = catalogEntityDraft("deployment", {
+    key: "prod",
+    name: "Produção",
+  });
+
+  assert.equal(
+    appendPublicationDraft(draft, {
+      version: "  ",
+      revision: "abc123",
+      status: "planned",
+      publishedAt: "",
+      description: "Ainda incompleta",
+    }),
+    draft,
+  );
 });
 
 test("integration payload preserves the target only when creating", () => {

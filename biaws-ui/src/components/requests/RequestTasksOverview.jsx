@@ -1,4 +1,11 @@
-import { CalendarDays, CheckCircle2, Circle, Clock3 } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Circle,
+  Clock3,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -60,6 +67,9 @@ export function RequestTasksOverview({ requests, onSelectRequest }) {
   const [selectedStatuses, setSelectedStatuses] = useState(
     () => new Set(REQUEST_TASK_STATUS_OPTIONS),
   );
+  const [collapsedRequestIds, setCollapsedRequestIds] = useState(
+    () => new Set(),
+  );
   const tasks = useMemo(() => {
     return requests
       .flatMap((request) =>
@@ -68,12 +78,36 @@ export function RequestTasksOverview({ requests, onSelectRequest }) {
       .filter(({ task }) => selectedStatuses.has(task.status))
       .sort(compareTasks);
   }, [requests, selectedStatuses]);
+  const taskGroups = useMemo(() => {
+    const groups = new Map();
+
+    tasks.forEach(({ request, task }) => {
+      const groupId = request.id;
+      const current = groups.get(groupId);
+      if (current) {
+        current.tasks.push(task);
+        return;
+      }
+      groups.set(groupId, { id: groupId, request, tasks: [task] });
+    });
+
+    return [...groups.values()];
+  }, [tasks]);
 
   function toggleStatus(status) {
     setSelectedStatuses((current) => {
       const next = new Set(current);
       if (next.has(status)) next.delete(status);
       else next.add(status);
+      return next;
+    });
+  }
+
+  function toggleRequest(requestId) {
+    setCollapsedRequestIds((current) => {
+      const next = new Set(current);
+      if (next.has(requestId)) next.delete(requestId);
+      else next.add(requestId);
       return next;
     });
   }
@@ -118,62 +152,92 @@ export function RequestTasksOverview({ requests, onSelectRequest }) {
       </div>
 
       {tasks.length ? (
-        <div className="requestTasksOverviewList">
-          {tasks.map(({ request, task }) => {
-            const StatusIcon = statusIcon(task.status);
+        <div className="requestTasksOverviewGroups">
+          {taskGroups.map(({ id, request, tasks: groupTasks }) => {
+            const expanded = !collapsedRequestIds.has(id);
             return (
-              <article
-                className="requestTasksOverviewItem"
-                key={`${request.id}:${task.id}`}
-                onClick={() => onSelectRequest(request.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onSelectRequest(request.id);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="requestTasksOverviewMain">
-                  <div className="requestTasksOverviewIdentity">
-                    <span>
-                      <EntityIdentifier
-                        fallback="Sem código"
-                        label="Código da melhoria"
-                        value={request.clientCode}
-                      />
-                      {request.title || "Sem título"}
-                    </span>
-                    <strong>
-                      {task.code ? (
-                        <EntityIdentifier
-                          label="Código da tarefa"
-                          value={task.code}
-                        />
-                      ) : null}
-                      {task.title || "Tarefa sem título"}
-                    </strong>
+              <section className="requestTasksOverviewGroup" key={id}>
+                <header className="requestTasksOverviewGroupHeader">
+                  <div className="requestTasksOverviewGroupIdentity">
+                    <EntityIdentifier
+                      fallback="Sem código"
+                      label="Código da melhoria"
+                      value={request.clientCode}
+                      variant="eyebrow"
+                    />
+                    <strong>{request.title || "Sem título"}</strong>
                   </div>
-                  <span
-                    className="requestTaskStatus"
-                    style={statusStyle(task.status)}
+                  <button
+                    aria-expanded={expanded}
+                    aria-label={`${expanded ? "Recolher" : "Expandir"} tarefas de ${request.title || "melhoria sem título"}`}
+                    className="requestTasksOverviewGroupToggle"
+                    onClick={() => toggleRequest(id)}
+                    title={expanded ? "Recolher melhoria" : "Expandir melhoria"}
+                    type="button"
                   >
-                    <StatusIcon size={14} />
-                    {task.status}
-                  </span>
-                </div>
+                    {expanded ? (
+                      <ChevronDown aria-hidden="true" size={18} />
+                    ) : (
+                      <ChevronRight aria-hidden="true" size={18} />
+                    )}
+                  </button>
+                </header>
 
-                <div className="requestTasksOverviewMeta">
-                  <span>
-                    <CalendarDays size={14} />
-                    {taskDateLabel(task)}
-                  </span>
-                  {task.situation.trim() || task.description ? (
-                    <p>{task.situation.trim() || task.description}</p>
-                  ) : null}
-                </div>
-              </article>
+                {expanded ? (
+                  <div className="requestTasksOverviewList">
+                    {groupTasks.map((task) => {
+                      const StatusIcon = statusIcon(task.status);
+                      return (
+                        <article
+                          className="requestTasksOverviewItem"
+                          key={`${request.id}:${task.id}`}
+                          onClick={() => onSelectRequest(request.id)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              onSelectRequest(request.id);
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          <div className="requestTasksOverviewMain">
+                            <div className="requestTasksOverviewIdentity">
+                              {task.code ? (
+                                <EntityIdentifier
+                                  label="Código da tarefa"
+                                  value={task.code}
+                                  variant="eyebrow"
+                                />
+                              ) : null}
+                              <strong>
+                                {task.title || "Tarefa sem título"}
+                              </strong>
+                            </div>
+                            <span
+                              className="requestTaskStatus"
+                              style={statusStyle(task.status)}
+                            >
+                              <StatusIcon size={14} />
+                              {task.status}
+                            </span>
+                          </div>
+
+                          <div className="requestTasksOverviewMeta">
+                            <span>
+                              <CalendarDays size={14} />
+                              {taskDateLabel(task)}
+                            </span>
+                            {task.situation.trim() || task.description ? (
+                              <p>{task.situation.trim() || task.description}</p>
+                            ) : null}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </section>
             );
           })}
         </div>

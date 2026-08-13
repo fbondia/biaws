@@ -7,6 +7,7 @@ import {
 } from "../../../../api.js";
 import { buildUrl } from "../../../../api/client.js";
 import {
+  appendPublicationDraft,
   catalogEntityDraft,
   catalogEntityPayload,
   monitoringSignalCurl,
@@ -135,20 +136,7 @@ export function useCatalogEntityDialog({
 
   function addPublication() {
     if (!publicationDraft.version.trim()) return;
-    update("publications", [
-      ...(draft.publications || []),
-      {
-        id: `draft-${crypto.randomUUID()}`,
-        version: publicationDraft.version.trim(),
-        revision: publicationDraft.revision.trim(),
-        repositoryId: draft.repositoryId || "",
-        status: publicationDraft.status,
-        publishedAt: publicationDraft.publishedAt
-          ? new Date(publicationDraft.publishedAt).toISOString()
-          : new Date().toISOString(),
-        description: publicationDraft.description.trim(),
-      },
-    ]);
+    setDraft((current) => appendPublicationDraft(current, publicationDraft));
     setPublicationDraft(EMPTY_PUBLICATION_DRAFT);
   }
 
@@ -183,7 +171,11 @@ export function useCatalogEntityDialog({
     setSaving(true);
     setError("");
     try {
-      await onSave(catalogEntityPayload(kind, draft, editing));
+      const draftToSave =
+        kind === "deployment"
+          ? appendPublicationDraft(draft, publicationDraft)
+          : draft;
+      await onSave(catalogEntityPayload(kind, draftToSave, editing));
       onClose();
     } catch (saveError) {
       setError(saveError.message);

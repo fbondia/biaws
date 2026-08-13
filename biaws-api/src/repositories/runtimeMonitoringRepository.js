@@ -29,7 +29,7 @@ const SIGNAL_STATUSES = RUNTIME_STATUSES.filter(
   (status) => status !== "archived",
 );
 const SIGNAL_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/u;
-const PAYLOAD_KEY_PATTERN = /^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/u;
+const PAYLOAD_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/u;
 const PROHIBITED_PAYLOAD_KEY =
   /(?:password|passwd|pwd|secret|token|credential|authorization|api[-_.]?key|private[-_.]?key|kubeconfig|connection[-_.]?string)/iu;
 const PAYLOAD_LIMITS = Object.freeze({

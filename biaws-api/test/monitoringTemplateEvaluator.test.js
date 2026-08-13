@@ -78,3 +78,12 @@ test("monitoring templates reject invalid expressions and sensitive samples befo
     (error) => error.code === "INVALID_MONITORING_TEMPLATE",
   );
 });
+
+test("monitoring template samples accept date-indexed JSON series", () => {
+  assert.deepEqual(
+    sanitizeMonitoringTemplateSample({
+      evidence: { dailyCounts: { "2026-08-12": 4 } },
+    }),
+    { evidence: { dailyCounts: { "2026-08-12": 4 } } },
+  );
+});

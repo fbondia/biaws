@@ -137,3 +137,20 @@ test("unified definitions reject custom functions and dynamic evaluation", () =>
     );
   }
 });
+
+test("unified definitions accept date-indexed JSON input but keep metadata keys strict", () => {
+  const dateIndexed = definition(
+    '{"status": "healthy", "message": "ok", "metadata": {"average": 1}}',
+  );
+  dateIndexed.input.sample = { dailyCounts: { "2026-08-12": 4 } };
+  assert.doesNotThrow(() => normalizeMonitoringTemplateDefinition(dateIndexed));
+
+  dateIndexed.output.metadata.fields.push({
+    key: "2026-08-12",
+    type: "number",
+    required: false,
+  });
+  assert.throws(() => normalizeMonitoringTemplateDefinition(dateIndexed), {
+    code: "INVALID_MONITORING_TEMPLATE",
+  });
+});

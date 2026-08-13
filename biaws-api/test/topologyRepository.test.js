@@ -596,9 +596,19 @@ test("monitoring metadata profiles validate their versioned field contract", () 
 test("monitoring payload accepts bounded nested JSON and rejects sensitive keys", () => {
   assert.deepEqual(
     normalizeMonitoringPayload({
-      response: { status: 200, headers: ["content-type"] },
+      response: {
+        status: 200,
+        headers: ["content-type"],
+        dailyCounts: { "2026-08-12": 4 },
+      },
     }),
-    { response: { status: 200, headers: ["content-type"] } },
+    {
+      response: {
+        status: 200,
+        headers: ["content-type"],
+        dailyCounts: { "2026-08-12": 4 },
+      },
+    },
   );
   assert.throws(
     () => normalizeMonitoringPayload({ request: { authorization: "value" } }),

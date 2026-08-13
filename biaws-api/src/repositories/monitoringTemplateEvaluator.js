@@ -67,7 +67,7 @@ function safeJson(value, field, depth = 0, state = { nodes: 0 }) {
   const result = {};
   for (const [key, item] of Object.entries(value)) {
     if (
-      !/^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/u.test(key) ||
+      !/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/u.test(key) ||
       PROHIBITED_KEY.test(key) ||
       ["constructor", "prototype", "__proto__"].includes(key.toLowerCase())
     ) {

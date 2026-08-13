@@ -9,6 +9,7 @@ import { normalizeMonitoringTemplatePresentation } from "./monitoringTemplatePre
 
 const FIELD_TYPES = ["boolean", "number", "integer", "string", "array"];
 const KEY_PATTERN = /^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/u;
+const INPUT_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/u;
 const SENSITIVE_KEY =
   /(?:password|passwd|pwd|secret|token|credential|authorization|api[-_.]?key|private[-_.]?key|kubeconfig|connection[-_.]?string)/iu;
 
@@ -20,6 +21,14 @@ function safeKey(value, field) {
   const key = requiredText(value, field, 128);
   if (!KEY_PATTERN.test(key) || SENSITIVE_KEY.test(key)) {
     throw invalid(`${field} must be a safe metadata key`);
+  }
+  return key;
+}
+
+function safeInputKey(value, field) {
+  const key = requiredText(value, field, 128);
+  if (!INPUT_KEY_PATTERN.test(key) || SENSITIVE_KEY.test(key)) {
+    throw invalid(`${field} must be a safe JSON key`);
   }
   return key;
 }
@@ -51,7 +60,7 @@ function safeJson(value, field, depth = 0, state = { nodes: 0 }) {
   }
   const result = {};
   for (const [key, item] of Object.entries(value)) {
-    safeKey(key, `${field} key`);
+    safeInputKey(key, `${field} key`);
     result[key] = safeJson(item, `${field}.${key}`, depth + 1, state);
   }
   return result;

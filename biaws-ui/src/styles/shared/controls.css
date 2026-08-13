@@ -162,6 +162,87 @@
   flex: 0 0 auto;
 }
 
+.dangerIconButton {
+  color: var(--color-danger-text);
+}
+
+.contentBand {
+  padding: 20px 28px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.panelHeader h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.panelHeader span {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.detailTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: 16px;
+}
+
+.detailTab {
+  min-height: 38px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 0 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.detailTab:hover,
+.activeDetailTab {
+  color: var(--color-accent-text);
+}
+
+.activeDetailTab {
+  border-bottom-color: var(--color-focus);
+}
+
+.emptyState {
+  color: var(--color-text-subtle);
+  padding: 22px 0;
+  font-size: 14px;
+  text-align: center;
+}
+
+.compactEmpty {
+  padding: 10px 0 0;
+  text-align: left;
+}
+
+.spinIcon {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 720px) {
   .errorBox {
     margin-left: 16px;
@@ -171,5 +252,9 @@
   .dialogBackdrop {
     align-items: stretch;
     padding: 10px;
+  }
+
+  .contentBand {
+    padding: 16px;
   }
 }

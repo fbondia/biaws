@@ -409,16 +409,6 @@
   box-shadow: 0 1px 2px var(--color-shadow-soft);
 }
 
-.spinIcon {
-  animation: spin 900ms linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .importDialogFooter {
   justify-content: space-between;
   border-top: 1px solid var(--color-border);

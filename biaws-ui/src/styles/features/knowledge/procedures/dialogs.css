@@ -10,57 +10,6 @@
   box-shadow: 0 24px 70px var(--color-shadow-dialog);
 }
 
-.procedureCollectionDialog {
-  width: min(520px, 100%);
-  overflow: hidden;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 10px;
-  background: var(--color-surface);
-  box-shadow: 0 24px 70px var(--color-shadow-dialog);
-}
-
-.procedureCollectionDialogHeader,
-.procedureCollectionDialogFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px;
-}
-
-.procedureCollectionDialogHeader {
-  border-bottom: 1px solid var(--color-border);
-}
-
-.procedureCollectionDialogHeader span {
-  color: var(--color-text-subtle);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.procedureCollectionDialogHeader h2 {
-  margin: 3px 0 0;
-  font-size: 19px;
-}
-
-.procedureCollectionDialogForm {
-  display: grid;
-  gap: 14px;
-  padding: 18px;
-}
-
-.procedureCollectionDialogForm > p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-
-.procedureCollectionDialogFooter {
-  margin: 2px -18px -18px;
-  border-top: 1px solid var(--color-border);
-}
-
 .procedureDialogHeader,
 .procedureDialogFooter {
   justify-content: space-between;
@@ -260,14 +209,6 @@
     width: 100%;
   }
 
-  .resourceCollectionsPanel {
-    position: static;
-  }
-
-  .resourceCollectionTree {
-    max-height: 280px;
-  }
-
   .procedureDates {
     grid-template-columns: 1fr;
   }
@@ -289,15 +230,6 @@
   }
 
   .proceduresToolbar button {
-    width: 100%;
-  }
-
-  .procedureCollectionDialogFooter {
-    align-items: stretch;
-    flex-direction: column-reverse;
-  }
-
-  .procedureCollectionDialogFooter button {
     width: 100%;
   }
 }

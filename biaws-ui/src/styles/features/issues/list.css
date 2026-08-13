@@ -267,15 +267,10 @@
   color: var(--color-warning-text);
 }
 
-.emptyState,
 .emptyTable {
   color: var(--color-text-subtle);
   font-size: 14px;
   text-align: center;
-}
-
-.emptyState {
-  padding: 22px 0;
 }
 
 .emptyTable {

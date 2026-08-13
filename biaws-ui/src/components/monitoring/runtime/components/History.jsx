@@ -1,10 +1,14 @@
 import { Plus, X } from "lucide-react";
 import React from "react";
 
-import { MonitoringEventDetails } from "../../../../shared/MonitoringEventDetails/index.jsx";
-import { RUNTIME_STATUSES } from "../../constants.js";
-import { monitoringOriginLabel } from "../../runtimeMonitoringModel.js";
-import { HistoryItems, SelectField, TextField } from "../Fields.jsx";
+import { MonitoringEventDetails } from "../../../shared/MonitoringEventDetails/index.jsx";
+import { RUNTIME_STATUSES } from "../../../catalog/CatalogEntityDialog/constants.js";
+import { monitoringOriginLabel } from "../model.js";
+import {
+  HistoryItems,
+  SelectField,
+  TextField,
+} from "../../../catalog/CatalogEntityDialog/components/Fields.jsx";
 import { Feedback, formatDate, useNestedDialogKeyboard } from "./support.jsx";
 
 function ObservationDialog({

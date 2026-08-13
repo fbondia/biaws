@@ -9,7 +9,7 @@ import {
   monitoringOriginLabel,
   newObservationDraft,
   selectableMonitoringTemplates,
-} from "../src/components/catalog/CatalogEntityDialog/runtimeMonitoringModel.js";
+} from "../src/components/monitoring/runtime/model.js";
 
 test("REST monitor draft produces the provider contract without inline credentials", () => {
   const payload = activeMonitorPayload({

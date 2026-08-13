@@ -1,7 +1,7 @@
 import { Clipboard } from "lucide-react";
 import React from "react";
 
-import { EntityIdentifier } from "../../../../shared/EntityIdentifier/index.jsx";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
 function CopyBlock({ label, value }) {
   const [copied, setCopied] = React.useState(false);

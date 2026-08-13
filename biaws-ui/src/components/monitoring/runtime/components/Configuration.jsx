@@ -94,6 +94,7 @@ export function RuntimeMonitoringConfiguration({
   draft,
   editing,
   options,
+  showRetention = true,
   update,
 }) {
   const {
@@ -118,26 +119,28 @@ export function RuntimeMonitoringConfiguration({
   return (
     <div className="catalogHistorySection catalogWideField">
       <Feedback error={monitoringError} notice={monitoringNotice} />
-      <section className="catalogMonitoringRetentionPanel">
-        <div>
-          <strong>Retenção do histórico</strong>
-          <span>O novo prazo é aplicado ao salvar o runtime.</span>
-        </div>
-        <label className="field catalogMonitoringRetention">
-          <span>Dias</span>
-          <input
-            disabled={!canUpdate}
-            max="3650"
-            min="0"
-            onChange={(event) =>
-              update("monitoringRetentionDays", event.target.value)
-            }
-            type="number"
-            value={draft.monitoringRetentionDays}
-          />
-          <small>Use 0 para manter sem expiração.</small>
-        </label>
-      </section>
+      {showRetention ? (
+        <section className="catalogMonitoringRetentionPanel">
+          <div>
+            <strong>Retenção do histórico</strong>
+            <span>O novo prazo é aplicado ao salvar o runtime.</span>
+          </div>
+          <label className="field catalogMonitoringRetention">
+            <span>Dias</span>
+            <input
+              disabled={!canUpdate}
+              max="3650"
+              min="0"
+              onChange={(event) =>
+                update("monitoringRetentionDays", event.target.value)
+              }
+              type="number"
+              value={draft.monitoringRetentionDays}
+            />
+            <small>Use 0 para manter sem expiração.</small>
+          </label>
+        </section>
+      ) : null}
       <div className="catalogMonitoringSectionHeader">
         <div>
           <h3>Monitoramentos</h3>

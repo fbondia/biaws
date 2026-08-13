@@ -1,8 +1,11 @@
 import { useState } from "react";
 
-import { validateMonitoringTemplateVersion } from "../../../../../api.js";
-import { SelectField, TextField } from "../Fields.jsx";
-import { selectableMonitoringTemplates } from "../../runtimeMonitoringModel.js";
+import { validateMonitoringTemplateVersion } from "../../../../api.js";
+import {
+  SelectField,
+  TextField,
+} from "../../../catalog/CatalogEntityDialog/components/Fields.jsx";
+import { selectableMonitoringTemplates } from "../model.js";
 
 function JsonField({ label, name, onChange, rows = 4, value }) {
   return (

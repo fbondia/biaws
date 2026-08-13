@@ -1,7 +1,7 @@
 import {
   EMPTY_ACTIVE_MONITOR_DRAFT,
   EMPTY_OBSERVATION_DRAFT,
-} from "./constants.js";
+} from "../../catalog/CatalogEntityDialog/constants.js";
 
 const text = (value) => String(value ?? "").trim();
 

@@ -10,8 +10,10 @@ import {
   runtimeMonitoringPath,
 } from "../model.js";
 import { EMPTY_PUBLICATION_DRAFT } from "../constants.js";
-import { monitoringCliExample } from "../runtimeMonitoringModel.js";
-import { useRuntimeMonitoring } from "./useRuntimeMonitoring.js";
+import {
+  monitoringCliExample,
+  useRuntimeMonitoring,
+} from "../../../monitoring/runtime/index.js";
 
 function runtimeSignalUrl(runtimePath) {
   if (!runtimePath) return "";

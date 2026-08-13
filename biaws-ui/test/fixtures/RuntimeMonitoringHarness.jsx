@@ -6,8 +6,8 @@ import {
   RuntimeMonitoringConfiguration,
   RuntimeMonitoringHistory,
   RuntimeMonitoringTabs,
-} from "../../src/components/catalog/CatalogEntityDialog/components/RuntimeMonitoring/index.jsx";
-import { activeMonitorDraft } from "../../src/components/catalog/CatalogEntityDialog/runtimeMonitoringModel.js";
+} from "../../src/components/monitoring/runtime/index.js";
+import { activeMonitorDraft } from "../../src/components/monitoring/runtime/model.js";
 
 export function RuntimeMonitoringHarness() {
   const [monitorDraft, setMonitorDraft] = useState(null);

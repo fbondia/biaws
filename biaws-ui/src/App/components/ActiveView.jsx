@@ -39,8 +39,12 @@ const OptionListsView = lazyNamed(
   "OptionListsView",
 );
 const MonitoringTemplatesView = lazyNamed(
-  () => import("../../components/settings/MonitoringTemplatesView/index.jsx"),
+  () => import("../../components/monitoring/index.js"),
   "MonitoringTemplatesView",
+);
+const MonitoringRuntimesView = lazyNamed(
+  () => import("../../components/monitoring/index.js"),
+  "MonitoringRuntimesView",
 );
 const SkillsView = lazyNamed(
   () => import("../../components/skills/SkillsView/index.jsx"),
@@ -115,6 +119,9 @@ export function ActiveView({
   }
   if (activeView === "monitoring-templates") {
     return <MonitoringTemplatesView actor={actor} />;
+  }
+  if (activeView === "monitoring-runtimes") {
+    return <MonitoringRuntimesView actor={actor} />;
   }
   return <AccountView actor={actor} onSignOut={onSignOut} />;
 }

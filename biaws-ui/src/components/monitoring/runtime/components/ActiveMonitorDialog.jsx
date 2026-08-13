@@ -1,7 +1,7 @@
 import { Braces, Terminal, X } from "lucide-react";
 import React from "react";
 
-import { TextField } from "../Fields.jsx";
+import { TextField } from "../../../catalog/CatalogEntityDialog/components/Fields.jsx";
 import {
   MonitorFormSection,
   RestMonitorFields,

@@ -8,13 +8,13 @@ import {
   fetchRuntimeMonitoringTimeline,
   fetchMonitoringTemplates,
   updateRuntimeActiveMonitor,
-} from "../../../../api.js";
+} from "../../../api.js";
 import {
   activeMonitorDraft,
   activeMonitorPayload,
   mergeMonitoringEvents,
   newObservationDraft,
-} from "../runtimeMonitoringModel.js";
+} from "./model.js";
 
 const MONITORING_HISTORY_PAGE_SIZE = 20;
 
@@ -37,7 +37,9 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
   const [monitoringHistoryLoadingMore, setMonitoringHistoryLoadingMore] =
     useState(false);
   const [monitoringTemplates, setMonitoringTemplates] = useState([]);
-  const [monitoringLoading, setMonitoringLoading] = useState(false);
+  const [monitoringLoading, setMonitoringLoading] = useState(
+    Boolean(runtimeId),
+  );
   const [monitoringError, setMonitoringError] = useState("");
   const [monitoringNotice, setMonitoringNotice] = useState("");
   const [monitorDraft, setMonitorDraft] = useState(null);
@@ -151,9 +153,11 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
       setMonitoringNotice(
         monitorDraft.id ? "Monitoramento atualizado." : "Monitoramento criado.",
       );
+      return result.monitor;
     } catch (error) {
       setMonitoringError(errorMessage(error));
       if (error?.statusCode === 409) await loadMonitoring();
+      return null;
     } finally {
       setMonitorSaving(false);
     }

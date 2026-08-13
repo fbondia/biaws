@@ -14,6 +14,7 @@ import {
   Settings,
   KeyRound,
   FileCode2,
+  RadioTower,
 } from "lucide-react";
 
 export const APP_VIEWS = [
@@ -68,6 +69,24 @@ export const NAVIGATION_GROUPS = [
         ],
       },
       {
+        key: "monitoring",
+        label: "Monitoramento",
+        views: [
+          {
+            key: "monitoring-runtimes",
+            label: "Runtimes",
+            icon: RadioTower,
+            permission: "runtimes.read",
+          },
+          {
+            key: "monitoring-templates",
+            label: "Templates",
+            icon: FileCode2,
+            permission: "runtimes.read",
+          },
+        ],
+      },
+      {
         key: "knowledge",
         label: "Conhecimento",
         views: [
@@ -107,12 +126,6 @@ export const NAVIGATION_GROUPS = [
             label: "Taxonomia",
             icon: Tags,
             permission: "taxonomy.read",
-          },
-          {
-            key: "monitoring-templates",
-            label: "Templates de monitoramento",
-            icon: FileCode2,
-            permission: "runtimes.read",
           },
         ],
       },
@@ -156,7 +169,8 @@ const VIEW_ROUTES = {
   home: "/",
   issues: "/issues",
   "option-lists": "/option-lists",
-  "monitoring-templates": "/monitoring-templates",
+  "monitoring-runtimes": "/operation/monitoring/runtimes",
+  "monitoring-templates": "/operation/monitoring/templates",
   requests: "/requests",
   secrets: "/secrets",
   servers: "/servers",
@@ -175,6 +189,12 @@ export function activeViewFromPath(pathname) {
     .split("/")
     .filter(Boolean)
     .join("/")}`;
+  if (normalizedPath === "/monitoring-templates") {
+    return "monitoring-templates";
+  }
+  if (normalizedPath === "/operation/monitoring") {
+    return "monitoring-runtimes";
+  }
   return Object.entries(VIEW_ROUTES).find(
     ([, route]) => route === normalizedPath,
   )?.[0];

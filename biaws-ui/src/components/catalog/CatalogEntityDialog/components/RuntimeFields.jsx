@@ -11,7 +11,7 @@ import {
   RuntimeMonitoringConfiguration,
   RuntimeMonitoringHistory,
   RuntimeMonitoringTabs,
-} from "./RuntimeMonitoring/index.jsx";
+} from "../../../monitoring/runtime/index.js";
 
 export function RuntimeFields({
   activeSection,

@@ -32,6 +32,18 @@
   margin: 0;
 }
 
+.monitoringCenterHeroActions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.monitoringRuntimeFilter.active {
+  border-color: var(--color-accent-border);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-text);
+}
+
 .monitoringNavigator {
   background: var(--panel-background, #fff);
   border: 1px solid var(--border-color, #dce3ed);
@@ -312,5 +324,16 @@
 
   .monitoringRuntimeSummary > dl {
     grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .monitoringCenterHero {
+    display: grid;
+    gap: 14px;
+  }
+
+  .monitoringCenterHeroActions {
+    justify-content: space-between;
   }
 }

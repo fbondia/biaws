@@ -19,6 +19,7 @@ import {
 import {
   archiveRuntimeActiveMonitor,
   createRuntimeActiveMonitor,
+  getMonitoredRuntimeTopology,
   getRuntimeActiveMonitor,
   listRuntimeActiveMonitors,
   updateRuntimeActiveMonitor,
@@ -81,6 +82,20 @@ function sendActiveMonitorNotFound(res) {
     },
   });
 }
+
+monitoringRouter.get(
+  "/runtime-topology",
+  requireAllPermissions("runtimes.read"),
+  asyncHandler(async (req, res) => {
+    const { authorizationScope } = authorizationQuery(
+      req.actor,
+      "runtimes.read",
+    );
+    res.json({
+      topology: await getMonitoredRuntimeTopology(authorizationScope),
+    });
+  }),
+);
 
 async function auditActiveMonitorMutation({
   req,

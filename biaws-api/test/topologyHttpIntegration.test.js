@@ -784,6 +784,16 @@ test(
       const activeMonitor = (await activeMonitorResponse.json()).monitor;
       assert.equal(activeMonitor.runtimeId, runtime.id);
       assert.equal(activeMonitor.version, 1);
+      const monitoredTopologyResponse = await request(
+        "/api/monitoring/runtime-topology",
+        { cookie: adminCookie },
+      );
+      assert.equal(monitoredTopologyResponse.status, 200);
+      const monitoredTopology = (await monitoredTopologyResponse.json())
+        .topology;
+      assert.ok(monitoredTopology.applicationIds.includes(application.id));
+      assert.ok(monitoredTopology.deploymentIds.includes(deployment.id));
+      assert.ok(monitoredTopology.runtimeIds.includes(runtime.id));
       const activeMonitorList = await (
         await request(
           `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
@@ -878,6 +888,16 @@ test(
         { cookie: adminCookie, method: "DELETE", origin: true },
       );
       assert.equal(templateDeleteResponse.status, 409);
+      const activeMonitorIndexNames = (
+        await database
+          .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
+          .indexes()
+      ).map(({ name }) => name);
+      assert.ok(
+        activeMonitorIndexNames.includes(
+          "runtime_active_monitor_catalog_filter",
+        ),
+      );
       const expirationIndex = (
         await database
           .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)

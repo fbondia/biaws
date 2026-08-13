@@ -48,3 +48,52 @@ export function latestEventForMonitor(events = [], monitorId = "") {
     ) || null
   );
 }
+
+export function runtimeListParams(monitoredOnly = false) {
+  return {
+    limit: 100,
+    monitoredOnly: monitoredOnly || undefined,
+  };
+}
+
+export function filterMonitoredTopology({
+  applications = [],
+  collections = [],
+  components = [],
+  deployments = [],
+  monitoredOnly = false,
+  topology = {},
+} = {}) {
+  if (!monitoredOnly) {
+    return { applications, collections, components, deployments };
+  }
+  const applicationIds = new Set(topology.applicationIds || []);
+  const componentIds = new Set(topology.componentIds || []);
+  const deploymentIds = new Set(topology.deploymentIds || []);
+  const filteredApplications = applications.filter(({ id }) =>
+    applicationIds.has(id),
+  );
+  const filteredComponents = components.filter(({ id }) =>
+    componentIds.has(id),
+  );
+  const filteredDeployments = deployments.filter(({ id }) =>
+    deploymentIds.has(id),
+  );
+  const collectionById = new Map(collections.map((item) => [item.id, item]));
+  const visibleCollectionIds = new Set();
+  for (const application of filteredApplications) {
+    let collectionId = application.collectionId || "";
+    const visited = new Set();
+    while (collectionId && !visited.has(collectionId)) {
+      visited.add(collectionId);
+      visibleCollectionIds.add(collectionId);
+      collectionId = collectionById.get(collectionId)?.parentId || "";
+    }
+  }
+  return {
+    applications: filteredApplications,
+    collections: collections.filter(({ id }) => visibleCollectionIds.has(id)),
+    components: filteredComponents,
+    deployments: filteredDeployments,
+  };
+}

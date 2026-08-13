@@ -833,7 +833,7 @@ export async function listRuntimes(deploymentId, query = {}) {
       "Deployment not found",
     );
   }
-  const { runtimes } = await getTopologyCollections();
+  const { db, runtimes } = await getTopologyCollections();
   const filter = buildScopedListFilter({
     workspaceId: deployment.workspaceId,
     applicationId: deployment.applicationId,
@@ -842,6 +842,17 @@ export async function listRuntimes(deploymentId, query = {}) {
     searchFields: ["key", "name", "endpoint", "namespace", "runtimeName"],
   });
   filter.deploymentId = deployment.id;
+  if (String(query.monitoredOnly || "").toLowerCase() === "true") {
+    const monitoredRuntimeIds = await db
+      .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
+      .distinct("runtimeId", {
+        workspaceId: deployment.workspaceId,
+        applicationId: deployment.applicationId,
+        deploymentId: deployment.id,
+        archivedAt: { $exists: false },
+      });
+    filter.id = { $in: monitoredRuntimeIds };
+  }
   if (query.serverId) filter.serverId = String(query.serverId);
   if (query.kind) {
     filter.kind = normalizeEnum(query.kind, "kind", RUNTIME_KINDS);

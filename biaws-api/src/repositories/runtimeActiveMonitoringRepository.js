@@ -137,6 +137,70 @@ export async function listRuntimeActiveMonitors(runtimeId, query = {}) {
   };
 }
 
+export async function getMonitoredRuntimeTopology(authorizationScope = {}) {
+  const workspaceId = String(authorizationScope.workspaceId || "");
+  if (!workspaceId) {
+    return {
+      applicationIds: [],
+      componentIds: [],
+      deploymentIds: [],
+      runtimeIds: [],
+    };
+  }
+  const applicationIds = authorizationScope.workspace
+    ? []
+    : (authorizationScope.applicationIds || []).map(String);
+  const collection = await activeMonitorCollection();
+  const monitoredRuntimeIds = await collection.distinct("runtimeId", {
+    workspaceId,
+    archivedAt: { $exists: false },
+    ...(authorizationScope.workspace
+      ? {}
+      : { applicationId: { $in: applicationIds } }),
+  });
+  if (!monitoredRuntimeIds.length) {
+    return {
+      applicationIds: [],
+      componentIds: [],
+      deploymentIds: [],
+      runtimeIds: [],
+    };
+  }
+  const database = await getMongoDatabase();
+  const runtimes = await database
+    .collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES)
+    .find(
+      {
+        workspaceId,
+        id: { $in: monitoredRuntimeIds },
+        status: { $ne: "archived" },
+        ...(authorizationScope.workspace
+          ? {}
+          : { applicationId: { $in: applicationIds } }),
+      },
+      {
+        projection: {
+          _id: 0,
+          id: 1,
+          applicationId: 1,
+          componentId: 1,
+          deploymentId: 1,
+        },
+      },
+    )
+    .toArray();
+  const unique = (field) =>
+    [
+      ...new Set(runtimes.map((runtime) => runtime[field]).filter(Boolean)),
+    ].sort();
+  return {
+    applicationIds: unique("applicationId"),
+    componentIds: unique("componentId"),
+    deploymentIds: unique("deploymentId"),
+    runtimeIds: unique("id"),
+  };
+}
+
 export async function getRuntimeActiveMonitor(
   runtimeId,
   monitorId,

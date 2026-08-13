@@ -286,6 +286,9 @@ export function fetchRuntimeActiveMonitors(runtimeId, params) {
     params,
   );
 }
+export function fetchMonitoredRuntimeTopology() {
+  return fetchJson("/api/monitoring/runtime-topology");
+}
 export function createRuntimeActiveMonitor(runtimeId, monitor) {
   return sendJson(
     `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/active-monitors`,

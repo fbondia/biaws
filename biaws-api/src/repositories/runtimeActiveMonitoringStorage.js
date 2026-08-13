@@ -22,6 +22,16 @@ export async function activeMonitorCollection() {
           enabled: 1,
           nextRunAt: 1,
         }),
+        collection.createIndex(
+          {
+            workspaceId: 1,
+            applicationId: 1,
+            deploymentId: 1,
+            archivedAt: 1,
+            runtimeId: 1,
+          },
+          { name: "runtime_active_monitor_catalog_filter" },
+        ),
         collection.createIndex({
           workspaceId: 1,
           "lease.leasedUntil": 1,

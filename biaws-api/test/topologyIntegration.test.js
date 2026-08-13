@@ -67,6 +67,8 @@ test(
     } = await import("../src/repositories/deploymentsRepository.js");
     const { getApplicationContext } =
       await import("../src/repositories/catalogContextRepository.js");
+    const { getMonitoredRuntimeTopology } =
+      await import("../src/repositories/runtimeActiveMonitoringRepository.js");
     const {
       archiveIntegration,
       createIntegration,
@@ -409,6 +411,38 @@ test(
       assert.deepEqual(
         (await listRuntimes(deployment.id)).items.map(({ id }) => id),
         [runtime.id],
+      );
+      assert.deepEqual(
+        (
+          await listRuntimes(deployment.id, { monitoredOnly: "true" })
+        ).items.map(({ id }) => id),
+        [],
+      );
+      await database.collection("runtimeActiveMonitors").insertOne({
+        id: "runtime-monitor-filter",
+        workspaceId: workspace.id,
+        applicationId: application.id,
+        deploymentId: deployment.id,
+        runtimeId: runtime.id,
+        name: "Runtime monitor filter",
+      });
+      assert.deepEqual(
+        (
+          await listRuntimes(deployment.id, { monitoredOnly: "true" })
+        ).items.map(({ id }) => id),
+        [runtime.id],
+      );
+      assert.deepEqual(
+        await getMonitoredRuntimeTopology({
+          workspace: true,
+          workspaceId: workspace.id,
+        }),
+        {
+          applicationIds: [application.id],
+          componentIds: [component.id],
+          deploymentIds: [deployment.id],
+          runtimeIds: [runtime.id],
+        },
       );
       assert.deepEqual(
         (await listServerRuntimes(server.id)).items.map(({ id }) => id),

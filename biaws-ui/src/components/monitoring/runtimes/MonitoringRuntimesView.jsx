@@ -7,6 +7,7 @@ import {
   Folder,
   FolderOpen,
   Layers3,
+  ListFilter,
   RefreshCw,
   Server,
   Settings2,
@@ -17,6 +18,7 @@ import {
   fetchApplications,
   fetchComponents,
   fetchDeployments,
+  fetchMonitoredRuntimeTopology,
   fetchResourceCollections,
   fetchRuntimes,
   fetchServers,
@@ -37,7 +39,9 @@ import {
   applicationsInCollection,
   collectionColumns,
   deploymentsForComponent,
+  filterMonitoredTopology,
   latestEventForMonitor,
+  runtimeListParams,
 } from "./model.js";
 
 const LEVEL_ICONS = {
@@ -106,7 +110,12 @@ function NavigationColumn({ empty, items, kind, onSelect, selectedId, title }) {
   );
 }
 
-function CollectionNavigation({ collections, onSelect, selectedId }) {
+function CollectionNavigation({
+  collections,
+  onSelect,
+  selectedId,
+  showRoot = true,
+}) {
   const columns = collectionColumns(collections, selectedId);
   return columns.map((column, index) => (
     <section
@@ -118,7 +127,7 @@ function CollectionNavigation({ collections, onSelect, selectedId }) {
         <small>{column.items.length}</small>
       </header>
       <div className="monitoringNavigatorItems">
-        {index === 0 ? (
+        {index === 0 && showRoot ? (
           <button
             aria-current={!selectedId ? "true" : undefined}
             className={
@@ -412,16 +421,51 @@ export function MonitoringRuntimesView({ actor }) {
   const [component, setComponent] = useState(null);
   const [deployment, setDeployment] = useState(null);
   const [runtime, setRuntime] = useState(null);
+  const [monitoredOnly, setMonitoredOnly] = useState(false);
+  const [monitoredTopology, setMonitoredTopology] = useState({
+    applicationIds: [],
+    componentIds: [],
+    deploymentIds: [],
+    runtimeIds: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const filteredTopology = useMemo(
+    () =>
+      filterMonitoredTopology({
+        applications,
+        collections,
+        components,
+        deployments,
+        monitoredOnly,
+        topology: monitoredTopology,
+      }),
+    [
+      applications,
+      collections,
+      components,
+      deployments,
+      monitoredOnly,
+      monitoredTopology,
+    ],
+  );
   const visibleApplications = useMemo(
-    () => applicationsInCollection(applications, selectedCollectionId),
-    [applications, selectedCollectionId],
+    () =>
+      applicationsInCollection(
+        filteredTopology.applications,
+        selectedCollectionId,
+      ),
+    [filteredTopology.applications, selectedCollectionId],
+  );
+  const showRootCollection = useMemo(
+    () =>
+      applicationsInCollection(filteredTopology.applications, "").length > 0,
+    [filteredTopology.applications],
   );
   const visibleDeployments = useMemo(
-    () => deploymentsForComponent(deployments, component?.id),
-    [deployments, component?.id],
+    () => deploymentsForComponent(filteredTopology.deployments, component?.id),
+    [filteredTopology.deployments, component?.id],
   );
 
   async function loadRoot() {
@@ -433,18 +477,24 @@ export function MonitoringRuntimesView({ actor }) {
         ({ id }) => id === actor.workspaceId,
       );
       if (!currentWorkspace) throw new Error("Workspace atual não encontrado.");
-      const [collectionPayload, applicationPayload, serverPayload] =
-        await Promise.all([
-          fetchResourceCollections("applications"),
-          fetchApplications(currentWorkspace.id, { limit: 100 }),
-          hasPermission(actor, "servers.read")
-            ? fetchServers(currentWorkspace.id, { limit: 100 })
-            : Promise.resolve({ items: [] }),
-        ]);
+      const [
+        collectionPayload,
+        applicationPayload,
+        serverPayload,
+        monitoringTopologyPayload,
+      ] = await Promise.all([
+        fetchResourceCollections("applications"),
+        fetchApplications(currentWorkspace.id, { limit: 100 }),
+        hasPermission(actor, "servers.read")
+          ? fetchServers(currentWorkspace.id, { limit: 100 })
+          : Promise.resolve({ items: [] }),
+        fetchMonitoredRuntimeTopology(),
+      ]);
       setWorkspace(currentWorkspace);
       setCollections(collectionPayload.items || []);
       setApplications(applicationPayload.items || []);
       setServers(serverPayload.items || []);
+      setMonitoredTopology(monitoringTopologyPayload.topology || {});
     } catch (loadError) {
       setError(loadError.message);
     } finally {
@@ -485,19 +535,91 @@ export function MonitoringRuntimesView({ actor }) {
     setRuntimes([]);
   }
 
-  async function selectDeployment(nextDeployment) {
+  async function loadDeploymentRuntimes(nextDeployment, onlyMonitored) {
     setDeployment(nextDeployment);
-    setRuntime(null);
-    setRuntimes([]);
     setLoading(true);
     setError("");
     try {
-      const payload = await fetchRuntimes(nextDeployment.id, { limit: 100 });
-      setRuntimes(payload.items || []);
+      const payload = await fetchRuntimes(
+        nextDeployment.id,
+        runtimeListParams(onlyMonitored),
+      );
+      const nextRuntimes = payload.items || [];
+      setRuntimes(nextRuntimes);
+      setRuntime((current) =>
+        current && nextRuntimes.some(({ id }) => id === current.id)
+          ? current
+          : null,
+      );
     } catch (loadError) {
       setError(loadError.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function selectDeployment(nextDeployment) {
+    setRuntime(null);
+    setRuntimes([]);
+    await loadDeploymentRuntimes(nextDeployment, monitoredOnly);
+  }
+
+  async function toggleMonitoredOnly() {
+    const nextValue = !monitoredOnly;
+    if (!nextValue) {
+      setMonitoredOnly(false);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    try {
+      const payload = await fetchMonitoredRuntimeTopology();
+      const nextTopology = payload.topology || {};
+      setMonitoredTopology(nextTopology);
+      setMonitoredOnly(true);
+      const visibleCollectionIds = new Set(
+        filterMonitoredTopology({
+          applications,
+          collections,
+          monitoredOnly: true,
+          topology: nextTopology,
+        }).collections.map(({ id }) => id),
+      );
+      if (
+        selectedCollectionId &&
+        !visibleCollectionIds.has(selectedCollectionId)
+      ) {
+        setSelectedCollectionId("");
+      }
+      setApplication(null);
+      setComponent(null);
+      setDeployment(null);
+      setRuntime(null);
+      setComponents([]);
+      setDeployments([]);
+      setRuntimes([]);
+    } catch (loadError) {
+      setError(loadError.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function refreshNavigation() {
+    await loadRoot();
+    if (monitoredOnly) {
+      setApplication(null);
+      setComponent(null);
+      setDeployment(null);
+      setRuntime(null);
+      setComponents([]);
+      setDeployments([]);
+      setRuntimes([]);
+      return;
+    }
+    if (deployment) {
+      await loadDeploymentRuntimes(deployment, monitoredOnly);
     }
   }
 
@@ -523,15 +645,30 @@ export function MonitoringRuntimesView({ actor }) {
             o catálogo.
           </p>
         </div>
-        <button
-          aria-label="Atualizar navegação"
-          className="iconButton"
-          disabled={loading}
-          onClick={loadRoot}
-          type="button"
-        >
-          <RefreshCw size={17} />
-        </button>
+        <div className="monitoringCenterHeroActions">
+          <button
+            aria-pressed={monitoredOnly}
+            className={
+              monitoredOnly
+                ? "secondaryButton monitoringRuntimeFilter active"
+                : "secondaryButton monitoringRuntimeFilter"
+            }
+            disabled={loading}
+            onClick={toggleMonitoredOnly}
+            type="button"
+          >
+            <ListFilter size={16} /> Somente monitorados
+          </button>
+          <button
+            aria-label="Atualizar navegação"
+            className="iconButton"
+            disabled={loading}
+            onClick={refreshNavigation}
+            type="button"
+          >
+            <RefreshCw size={17} />
+          </button>
+        </div>
       </header>
       {error ? (
         <div className="errorBox" role="alert">
@@ -540,9 +677,10 @@ export function MonitoringRuntimesView({ actor }) {
       ) : null}
       <div className="monitoringNavigator" aria-busy={loading}>
         <CollectionNavigation
-          collections={collections}
+          collections={filteredTopology.collections}
           onSelect={selectCollection}
           selectedId={selectedCollectionId}
+          showRoot={!monitoredOnly || showRootCollection}
         />
         <NavigationColumn
           empty="Nenhuma aplicação nesta coleção."
@@ -555,7 +693,7 @@ export function MonitoringRuntimesView({ actor }) {
         {application ? (
           <NavigationColumn
             empty="Nenhum componente."
-            items={components}
+            items={filteredTopology.components}
             kind="component"
             onSelect={selectComponent}
             selectedId={component?.id}

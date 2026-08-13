@@ -49,6 +49,18 @@ export function createApiClient(baseUrl, apiKey, workspaceId = "") {
     publish: (payload) =>
       request("", { method: "POST", body: JSON.stringify(payload) }),
     monitoring: {
+      describeTemplate: (templateId, version) =>
+        request(
+          `/templates/${encodeURIComponent(templateId)}/versions/${encodeURIComponent(version)}/contract`,
+          {},
+          `${apiRoot}/monitoring`,
+        ),
+      validateTemplate: (templateId, version, sample) =>
+        request(
+          `/templates/${encodeURIComponent(templateId)}/versions/${encodeURIComponent(version)}/validate`,
+          { method: "POST", body: JSON.stringify({ sample }) },
+          `${apiRoot}/monitoring`,
+        ),
       signal: (runtimeReference, payload) =>
         request(
           `/runtimes/${encodeURIComponent(runtimeReference)}/signals`,

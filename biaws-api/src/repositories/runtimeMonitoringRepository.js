@@ -399,6 +399,7 @@ export async function recordActiveRuntimeMonitoringObservation(
     },
     actor,
   );
+  if (monitor.provider === "shell") delete normalized.payload;
   return recordMonitoringEvent(runtime, normalized, actor, {
     materializeHealth: true,
     origin: "active",
@@ -552,9 +553,10 @@ export async function listRuntimeMonitoringSignals(runtimeId, query = {}) {
 
 function monitoringEventResponse(signal) {
   const event = normalizeDocument(signal);
-  const metadataPresentation = monitoringMetadataPresentation(
-    event?.metadataProfile,
-  );
+  const metadataPresentation =
+    event?.templateSnapshot?.presentation ||
+    event?.metadataPresentation ||
+    monitoringMetadataPresentation(event?.metadataProfile);
   return {
     ...event,
     origin:

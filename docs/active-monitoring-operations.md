@@ -136,6 +136,12 @@ alteração válida passa a valer na próxima ocorrência, sem reiniciar o execu
 5. Construa as novas imagens, suba API/UI e depois o profile do executor.
 6. Confirme readiness, métricas, timeline ativa e um sinal passivo idempotente.
 
+Antes de reabilitar aquisições, descreva e valide pelo menos um template
+migrado e execute smoke tests separados para REST, envio externo e Shell. REST e
+externo devem produzir resultado e apresentação equivalentes para a mesma
+amostra; Shell deve operar sem `templateRef` e respeitar `failureStatus` e
+`captureOutput`.
+
 A migração preserva sinais passivos, materializa observações manuais legadas,
 recalcula retenção e cria índices/permite contratos ativos. Ela é repetível e o
 modo padrão é dry-run.
@@ -155,6 +161,13 @@ passivos e inclusões manuais continuam disponíveis. Volte a API/UI para imagen
 anteriores somente se elas forem compatíveis com os campos já persistidos. Não
 remova coleções ou campos manualmente. Para corrupção de dados, restaure primeiro
 em ambiente isolado e siga o procedimento de recuperação geral.
+
+Para rollback de uma alteração de template, desative a versão nova e reative a
+versão anterior já validada; atualize os monitores REST e emissores externos para
+essa referência imutável. Não reescreva snapshots nem observações antigas. O
+catálogo legado de `metadataProfile` permanece apenas como fallback de leitura,
+de modo que uma imagem anterior continue apresentando o histórico sem exigir
+migração destrutiva.
 
 ## Evidência automatizada
 

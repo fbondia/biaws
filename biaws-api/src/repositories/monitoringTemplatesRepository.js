@@ -273,6 +273,54 @@ export async function previewMonitoringTemplate(payload = {}) {
   return evaluateMonitoringTemplate(definition, sample);
 }
 
+function monitoringTemplateContractResponse(template) {
+  const definition = normalizeMonitoringTemplateDefinition(template.definition);
+  const unified = isUnifiedMonitoringTemplateDefinition(definition);
+  return {
+    templateRef: { id: template.id, version: template.version },
+    name: template.name,
+    description: template.description,
+    status: template.status,
+    schemaVersion: unified ? definition.schemaVersion : "legacy",
+    input: unified
+      ? definition.input
+      : {
+          mediaType: "application/json",
+          sample: {},
+        },
+    transformation: unified
+      ? { language: definition.transformation.language }
+      : { language: "declarative-rules" },
+    output: unified ? definition.output : null,
+    presentation: unified ? definition.presentation : null,
+  };
+}
+
+export async function describeMonitoringTemplate(id, version, workspaceId) {
+  const template = await requireTemplate(id, version, workspaceId);
+  return monitoringTemplateContractResponse(template);
+}
+
+export async function validateMonitoringTemplateSample(
+  id,
+  version,
+  payload = {},
+  workspaceId,
+) {
+  assertAllowedFields(payload, ["sample"], "monitoring template validation");
+  const sample = sanitizeMonitoringTemplateSample(payload.sample ?? {});
+  const evaluation = await evaluateMonitoringTemplateReference(
+    { id, version },
+    sample,
+    workspaceId,
+  );
+  return {
+    templateRef: evaluation.templateRef,
+    result: evaluation.result,
+    diagnostics: evaluation.diagnostics,
+  };
+}
+
 export async function evaluateMonitoringTemplateReference(
   templateRef,
   sample,

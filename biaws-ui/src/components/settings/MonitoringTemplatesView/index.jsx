@@ -5,19 +5,15 @@ import {
   createMonitoringTemplate,
   createMonitoringTemplateVersion,
   deleteMonitoringTemplateVersion,
-  fetchMonitoringMetadataProfiles,
   fetchMonitoringTemplates,
   fetchMonitoringTemplateUsage,
   previewMonitoringTemplate,
   setMonitoringTemplateActive,
+  validateMonitoringTemplateVersion,
 } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
 import "../../../styles/features/monitoring-templates.css";
-import {
-  MetadataProfilesSection,
-  TemplateDialog,
-  VersionRow,
-} from "./components.jsx";
+import { TemplateDialog, VersionRow } from "./components.jsx";
 import {
   DEFAULT_PREVIEW_SAMPLE,
   monitoringTemplateDraft,
@@ -27,13 +23,13 @@ import {
 
 export function MonitoringTemplatesView({ actor }) {
   const [templates, setTemplates] = useState([]);
-  const [metadataProfiles, setMetadataProfiles] = useState([]);
   const [draft, setDraft] = useState(null);
   const [previewSample, setPreviewSample] = useState(
     JSON.stringify(DEFAULT_PREVIEW_SAMPLE, null, 2),
   );
   const [preview, setPreview] = useState(null);
   const [usageById, setUsageById] = useState({});
+  const [validatedById, setValidatedById] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -46,12 +42,8 @@ export function MonitoringTemplatesView({ actor }) {
     setLoading(true);
     setError("");
     try {
-      const [templatePayload, profilePayload] = await Promise.all([
-        fetchMonitoringTemplates({ limit: 100 }),
-        fetchMonitoringMetadataProfiles(),
-      ]);
+      const templatePayload = await fetchMonitoringTemplates({ limit: 100 });
       setTemplates(templatePayload.items || []);
-      setMetadataProfiles(profilePayload.items || []);
     } catch (loadError) {
       setError(loadError.message);
     } finally {
@@ -106,6 +98,26 @@ export function MonitoringTemplatesView({ actor }) {
       setError(statusError.message);
     }
   }
+  async function validateVersion(template, version) {
+    setError("");
+    try {
+      const sample = version.definition?.input?.sample || {};
+      const payload = await validateMonitoringTemplateVersion(
+        template.id,
+        version.version,
+        sample,
+      );
+      setValidatedById((current) => ({
+        ...current,
+        [`${template.id}:${version.version}`]: true,
+      }));
+      setNotice(
+        `Teste aprovado: ${payload.validation.result.status}${payload.validation.result.message ? ` · ${payload.validation.result.message}` : ""}`,
+      );
+    } catch (validationError) {
+      setError(validationError.message);
+    }
+  }
   async function showUsage(template, version) {
     setError("");
     try {
@@ -145,8 +157,8 @@ export function MonitoringTemplatesView({ actor }) {
           <span>Monitoramento</span>
           <h2>Templates</h2>
           <p>
-            Interprete evidências REST, shell e sinais passivos com regras
-            versionadas e saídas normalizadas.
+            Interprete respostas REST e sinais externos com JSONata, contrato
+            versionado e apresentação consistente. Shell usa código de término.
           </p>
         </div>
         <div>
@@ -163,7 +175,9 @@ export function MonitoringTemplatesView({ actor }) {
             <button
               className="primaryButton"
               onClick={() => {
-                setDraft(monitoringTemplateDraft());
+                const nextDraft = monitoringTemplateDraft();
+                setDraft(nextDraft);
+                setPreviewSample(nextDraft.inputSampleText);
                 setPreview(null);
               }}
               type="button"
@@ -207,7 +221,9 @@ export function MonitoringTemplatesView({ actor }) {
                   aria-label={`Editar ${template.name}`}
                   className="iconButton"
                   onClick={() => {
-                    setDraft(monitoringTemplateDraft(template));
+                    const nextDraft = monitoringTemplateDraft(template);
+                    setDraft(nextDraft);
+                    setPreviewSample(nextDraft.inputSampleText);
                     setPreview(null);
                   }}
                   type="button"
@@ -227,16 +243,19 @@ export function MonitoringTemplatesView({ actor }) {
                     changeStatus(template, item, active)
                   }
                   onUsage={(item) => showUsage(template, item)}
+                  onValidate={(item) => validateVersion(template, item)}
                   template={template}
                   usage={usageById[`${template.id}:${version.version}`]}
                   version={version}
+                  validated={
+                    validatedById[`${template.id}:${version.version}`] === true
+                  }
                 />
               ))}
             </ul>
           </article>
         ))}
       </div>
-      <MetadataProfilesSection profiles={metadataProfiles} />
       {!canManage ? (
         <div className="catalogPermissionNotice">
           Consulta disponível. A administração exige permissão de atualização no

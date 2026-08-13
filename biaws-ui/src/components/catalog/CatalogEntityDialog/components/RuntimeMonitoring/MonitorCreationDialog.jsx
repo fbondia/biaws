@@ -51,6 +51,7 @@ export function MonitorCreationDialog({
   onClose,
   options,
   runtimePath,
+  templates,
 }) {
   const dialogRef = useNestedDialogKeyboard(onClose, false);
   const manual = mode === "manual";
@@ -92,6 +93,7 @@ export function MonitorCreationDialog({
               entity={entity}
               options={options}
               runtimePath={runtimePath}
+              templates={templates}
             />
           </div>
         ) : (

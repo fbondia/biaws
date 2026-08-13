@@ -28,7 +28,10 @@ Uso:
   biaws agent configure codex|claude [--project <diretório>]
   biaws agent doctor codex|claude [--project <diretório>]
   biaws monitoring signal <runtime> --status <estado> --source <origem> [opções]
+  biaws monitoring signal <runtime> --source <origem> --template <id> --template-version <v> --payload <json>
   biaws monitoring signals <runtime> [--limit <n>] [--json]
+  biaws monitoring describe --template <id> --template-version <v> [--json]
+  biaws monitoring validate --template <id> --template-version <v> --payload <json> [--json]
 
 Opções:
   --api-url <url>       URL da biaws-api; default: ISSUE_API_URL ou http://127.0.0.1:3100
@@ -47,6 +50,8 @@ Opções:
   --observed-at <data>  Data ISO-8601 da observação; default: agora
   --message <texto>     Resumo legível do sinal
   --metadata-profile <id> Perfil versionado dos metadados, como sgmp-health/v1
+  --template <id>      Identificador do template unificado
+  --template-version <v> Versão imutável do template
   --metadata <json>     Metadados escalares, sem segredos
   --payload <json>      Payload JSON aninhado, limitado e sem segredos
   <runtime>             UUID ou caminho aplicação.componente.deployment.runtime

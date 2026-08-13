@@ -220,6 +220,7 @@ export function RuntimeMonitoringConfiguration({
           onClose={controller.closeMonitorCreation}
           options={options}
           runtimePath={controller.runtimePath}
+          templates={monitoringTemplates}
         />
       ) : null}
     </div>

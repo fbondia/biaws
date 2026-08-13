@@ -32,6 +32,12 @@ node src/index.js monitoring signal <aplicação.componente.deployment.runtime> 
   --metadata-profile sgmp-health/v1 \
   --metadata '{"service_up":true,"database_up":true,"disk_usage_percent":73.42}'
 node src/index.js monitoring signals <runtime-uuid-ou-caminho> --limit 20
+node src/index.js monitoring describe --template sgmp-health --template-version 1
+node src/index.js monitoring validate --template sgmp-health --template-version 1 \
+  --payload '{"status":"healthy","message":"OK","metadata":{"service_up":true}}'
+node src/index.js monitoring signal <runtime-uuid-ou-caminho> \
+  --source external-monitor --template sgmp-health --template-version 1 \
+  --payload '{"status":"healthy","message":"OK","metadata":{"service_up":true}}'
 ```
 
 `monitoring signal` envia uma observação passiva para um runtime. A referência
@@ -41,6 +47,11 @@ pode ser o UUID ou o caminho de identificadores
 observação ocorreu antes do envio. Estados aceitos: `unknown`, `healthy`,
 `degraded`, `unavailable` e `stopped`. O contrato completo está em
 [`../docs/monitoring.md`](../docs/monitoring.md).
+
+`monitoring describe` retorna contrato, amostra e apresentação da versão;
+`monitoring validate` executa JSONata sem persistir sinal. Ao enviar
+`--template` e `--template-version`, informe `--payload`; `--status` deixa de ser
+obrigatório porque o resultado é calculado pela API.
 
 Por padrão, as skills são instaladas em `.agents/skills`, considerando o diretório
 corrente. Outro destino pode ser informado com `--target`.

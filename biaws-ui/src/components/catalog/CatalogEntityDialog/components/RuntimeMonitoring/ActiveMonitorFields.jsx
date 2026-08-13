@@ -1,3 +1,6 @@
+import { useState } from "react";
+
+import { validateMonitoringTemplateVersion } from "../../../../../api.js";
 import { SelectField, TextField } from "../Fields.jsx";
 import { selectableMonitoringTemplates } from "../../runtimeMonitoringModel.js";
 
@@ -137,6 +140,9 @@ export function TemplateFields({ draft, onChange, templates }) {
     ({ id }) => id === draft.templateId,
   );
   const hasTemplates = availableTemplates.length > 0;
+  const selectedVersion = selectedTemplate?.versions?.find(
+    ({ version }) => String(version) === String(draft.templateVersion),
+  );
   return (
     <>
       <label className="field">
@@ -192,6 +198,91 @@ export function TemplateFields({ draft, onChange, templates }) {
           Ative um template na administração para associá-lo ao monitoramento.
         </small>
       ) : null}
+      {selectedVersion ? (
+        <TemplateContractPanel
+          key={`${draft.templateId}:${draft.templateVersion}`}
+          template={selectedTemplate}
+          version={selectedVersion}
+        />
+      ) : null}
     </>
+  );
+}
+
+function TemplateContractPanel({ template, version }) {
+  const definition = version.definition || template.definition || {};
+  const [sampleText, setSampleText] = useState(
+    JSON.stringify(definition.input?.sample || {}, null, 2),
+  );
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+  const [testing, setTesting] = useState(false);
+
+  async function testSample() {
+    setTesting(true);
+    setError("");
+    setResult(null);
+    try {
+      const sample = JSON.parse(sampleText);
+      const payload = await validateMonitoringTemplateVersion(
+        template.id,
+        version.version,
+        sample,
+      );
+      setResult(payload.validation.result);
+    } catch (testError) {
+      setError(testError.message || "A resposta JSON não é válida.");
+    } finally {
+      setTesting(false);
+    }
+  }
+
+  return (
+    <section className="catalogMonitorTemplateContract catalogWideField">
+      <header>
+        <strong>Contrato esperado</strong>
+        <code>
+          {template.id}/{version.version}
+        </code>
+      </header>
+      <p>
+        {definition.presentation?.label ||
+          template.description ||
+          "Template JSONata"}
+      </p>
+      <small>
+        Saída: status, message e{" "}
+        {definition.output?.metadata?.fields?.length || 0} campo(s) de metadata.
+      </small>
+      <label className="field">
+        <span>Testar resposta JSON sanitizada</span>
+        <textarea
+          className="monitoringTemplateCode"
+          onChange={(event) => setSampleText(event.target.value)}
+          rows={7}
+          spellCheck="false"
+          value={sampleText}
+        />
+      </label>
+      <button
+        className="secondaryButton"
+        disabled={testing}
+        onClick={testSample}
+        type="button"
+      >
+        {testing ? "Testando…" : "Testar sem salvar"}
+      </button>
+      {result ? (
+        <div className="infoBox" role="status">
+          Resultado: <strong>{result.status}</strong>
+          {result.message ? ` · ${result.message}` : ""}
+        </div>
+      ) : null}
+      {error ? (
+        <div className="errorBox" role="alert">
+          {error}
+        </div>
+      ) : null}
+    </section>
   );
 }

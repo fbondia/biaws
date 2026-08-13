@@ -58,19 +58,62 @@ export function TemplateDialog({
             />
           </label>
           <label className="field">
-            <span>Regras e saídas (JSON declarativo)</span>
+            <span>Amostra JSON de entrada</span>
             <textarea
               className="monitoringTemplateCode"
-              onChange={(event) => update("definitionText", event.target.value)}
-              rows={16}
+              onChange={(event) =>
+                update("inputSampleText", event.target.value)
+              }
+              rows={7}
               spellCheck="false"
-              value={draft.definitionText}
+              value={draft.inputSampleText}
             />
             <small>
-              Campos seguros em evidence, metadata e context; nenhuma expressão
-              ou código é executado.
+              JSON sanitizado usado como documentação e teste padrão da versão.
             </small>
           </label>
+          <label className="field">
+            <span>Expressão JSONata</span>
+            <textarea
+              className="monitoringTemplateCode"
+              onChange={(event) => update("expression", event.target.value)}
+              rows={8}
+              spellCheck="false"
+              value={draft.expression}
+            />
+            <small>
+              Produza um objeto com status, message e metadata. Exemplo:{" "}
+              {`{"status": up ? "healthy" : "unavailable", "metadata": {}}`}.
+            </small>
+          </label>
+          <label className="field">
+            <span>Contrato JSON da saída</span>
+            <textarea
+              className="monitoringTemplateCode"
+              onChange={(event) => update("outputText", event.target.value)}
+              rows={12}
+              spellCheck="false"
+              value={draft.outputText}
+            />
+          </label>
+          <label className="field">
+            <span>Apresentação dos campos e séries</span>
+            <textarea
+              className="monitoringTemplateCode"
+              onChange={(event) =>
+                update("presentationText", event.target.value)
+              }
+              rows={10}
+              spellCheck="false"
+              value={draft.presentationText}
+            />
+          </label>
+          {draft.migratedFromLegacy ? (
+            <div className="infoBox">
+              Esta nova versão parte do contrato unificado. Revise a amostra, a
+              expressão JSONata e a apresentação antes de salvar.
+            </div>
+          ) : null}
           <div className="monitoringTemplatePreviewGrid">
             <label className="field">
               <span>Amostra sanitizada</span>
@@ -151,9 +194,11 @@ export function VersionRow({
   onArchive,
   onStatus,
   onUsage,
+  onValidate,
   template,
   usage,
   version,
+  validated,
 }) {
   return (
     <li>
@@ -174,9 +219,17 @@ export function VersionRow({
         >
           Uso
         </button>
+        <button
+          className="secondaryButton"
+          onClick={() => onValidate(version)}
+          type="button"
+        >
+          {validated ? "Teste aprovado" : "Testar versão"}
+        </button>
         {canManage ? (
           <button
             className="secondaryButton"
+            disabled={version.status !== "active" && !validated}
             onClick={() => onStatus(version, version.status !== "active")}
             type="button"
           >
@@ -201,49 +254,5 @@ export function VersionRow({
         </p>
       ) : null}
     </li>
-  );
-}
-
-export function MetadataProfilesSection({ profiles }) {
-  if (!profiles.length) return null;
-  return (
-    <section className="monitoringProfilesSection">
-      <header>
-        <div>
-          <span>Contratos do sistema</span>
-          <h3>Perfis para sinais externos</h3>
-          <p>
-            Validam e apresentam metadata enviada por processos manuais ou
-            passivos. São integrados à API e não substituem templates de
-            interpretação dos providers REST e Shell.
-          </p>
-        </div>
-      </header>
-      <div className="monitoringProfilesGrid">
-        {profiles.map((profile) => (
-          <article className="monitoringProfileCard" key={profile.id}>
-            <header>
-              <div>
-                <strong>{profile.label}</strong>
-                <code>{profile.id}</code>
-              </div>
-              <span className="catalogStatus catalogStatus-active">
-                Integrado
-              </span>
-            </header>
-            <p>
-              {profile.fields.length} campo(s) e {profile.series.length}{" "}
-              série(s) de apresentação.
-            </p>
-            <small>
-              {profile.usage.observations} observação(ões) neste workspace
-              {profile.usage.lastObservedAt
-                ? ` · última em ${new Date(profile.usage.lastObservedAt).toLocaleString("pt-BR")}`
-                : ""}
-            </small>
-          </article>
-        ))}
-      </div>
-    </section>
   );
 }

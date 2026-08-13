@@ -153,6 +153,18 @@ REST, um monitor com template aceita como entrada somente o corpo completo de
 uma resposta com media type JSON (`application/json` ou `application/*+json`);
 corpo truncado, inválido ou de outro tipo produz falha segura do template.
 
+O contrato e a amostra de uma versão podem ser descobertos sem expor a
+expressão ou registrar uma observação. A validação usa o mesmo avaliador isolado
+de REST e sinais externos:
+
+```http
+GET  /api/monitoring/templates/:templateId/versions/:version/contract
+POST /api/monitoring/templates/:templateId/versions/:version/validate
+```
+
+O `POST` recebe `{ "sample": <json> }`. Ambas as operações exigem
+`runtimes.read`, escopo do workspace e nunca persistem o JSON testado.
+
 `npm run migrate:monitoring` informa em dry-run quantos templates seriam
 criados. `npm run migrate:monitoring -- --apply` cria somente os ausentes; a
 chave única `(workspaceId, id, version)` torna execuções repetidas idempotentes.
@@ -178,6 +190,26 @@ node biaws-cli/src/index.js monitoring signal billing.billing-api.production.pri
 node biaws-cli/src/index.js monitoring signals billing.billing-api.production.primary --workspace id-do-workspace --limit 20
 node biaws-cli/src/index.js monitoring signals <runtime-uuid> --workspace id-do-workspace --limit 20 --json
 ```
+
+Para descobrir um contrato, validar o payload e então registrar um sinal
+calculado pelo servidor:
+
+```bash
+node biaws-cli/src/index.js monitoring describe \
+  --workspace id-do-workspace --template sgmp-health --template-version 1
+
+node biaws-cli/src/index.js monitoring validate \
+  --workspace id-do-workspace --template sgmp-health --template-version 1 \
+  --payload '{"status":"healthy","message":"OK","metadata":{"service_up":true}}'
+
+node biaws-cli/src/index.js monitoring signal billing.billing-api.production.primary \
+  --workspace id-do-workspace --source synthetic-http \
+  --template sgmp-health --template-version 1 \
+  --payload '{"status":"healthy","message":"OK","metadata":{"service_up":true}}'
+```
+
+Com `templateRef`, não envie decisões calculadas pelo cliente: a API deriva
+`status`, `message` e `metadata` exclusivamente do JSON informado em `payload`.
 
 O emissor precisa de `monitoring.signals.create` no escopo da aplicação do
 runtime. A leitura exige `runtimes.read`. O grupo de sistema “Agente operacional”

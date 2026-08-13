@@ -9,21 +9,36 @@ import {
   templateStatusLabel,
 } from "../src/components/settings/MonitoringTemplatesView/model.js";
 
-test("monitoring template drafts preserve immutable version definitions", () => {
+test("monitoring template drafts expose the unified JSONata contract", () => {
   const draft = monitoringTemplateDraft({
     id: "template-1",
     name: "REST health",
     description: "Avalia o status HTTP",
     definition: {
-      rules: [{ label: "ok", conditions: [], result: { status: "healthy" } }],
-      defaultResult: { status: "unknown" },
+      schemaVersion: "1",
+      input: { mediaType: "application/json", sample: { up: true } },
+      transformation: {
+        language: "jsonata",
+        expression: '{"status":"healthy","metadata":{}}',
+      },
+      output: {
+        status: { type: "string", required: true, enum: ["healthy"] },
+        message: { type: "string", required: false, maxLength: 2000 },
+        metadata: {
+          type: "object",
+          required: true,
+          additionalProperties: false,
+          fields: [],
+        },
+      },
+      presentation: { label: "Saúde", fields: [], series: [] },
     },
   });
   assert.equal(draft.id, "template-1");
-  assert.deepEqual(
-    monitoringTemplatePayload(draft).definition.rules[0].label,
-    "ok",
-  );
+  const definition = monitoringTemplatePayload(draft).definition;
+  assert.equal(definition.schemaVersion, "1");
+  assert.deepEqual(definition.input.sample, { up: true });
+  assert.match(definition.transformation.expression, /healthy/u);
 });
 
 test("monitoring template preview parses a sanitized JSON sample", () => {
@@ -32,7 +47,7 @@ test("monitoring template preview parses a sanitized JSON sample", () => {
     draft,
     JSON.stringify(DEFAULT_PREVIEW_SAMPLE),
   );
-  assert.equal(payload.sample.context.provider, "rest");
+  assert.equal(payload.sample.statusCode, 200);
   assert.throws(
     () => monitoringTemplatePreviewPayload(draft, "not-json"),
     /A amostra contém JSON inválido/u,

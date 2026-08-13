@@ -1,40 +1,66 @@
 export const DEFAULT_TEMPLATE_DEFINITION = Object.freeze({
-  rules: [
-    {
-      label: "Resposta saudável",
-      match: "all",
-      conditions: [
-        { path: "evidence.status_code", operator: "equals", value: 200 },
-      ],
-      result: {
-        status: "healthy",
-        message: "Resposta HTTP {{evidence.status_code}}",
-        metadata: {},
-      },
+  schemaVersion: "1",
+  input: {
+    mediaType: "application/json",
+    sample: { statusCode: 200, durationMs: 35 },
+  },
+  transformation: {
+    language: "jsonata",
+    expression:
+      '{"status": statusCode = 200 ? "healthy" : "unavailable", "message": "HTTP " & $string(statusCode), "metadata": {"duration_ms": durationMs}}',
+  },
+  output: {
+    status: {
+      type: "string",
+      required: true,
+      enum: ["healthy", "degraded", "unavailable", "unknown"],
     },
-  ],
-  defaultResult: {
-    status: "unavailable",
-    message: "A evidência não correspondeu às regras esperadas.",
-    metadata: {},
+    message: { type: "string", required: false, maxLength: 2000 },
+    metadata: {
+      type: "object",
+      required: true,
+      additionalProperties: false,
+      fields: [
+        {
+          key: "duration_ms",
+          type: "number",
+          required: false,
+          minimum: 0,
+        },
+      ],
+    },
+  },
+  presentation: {
+    label: "Resultado do monitoramento",
+    fields: [
+      {
+        key: "duration_ms",
+        label: "Duração",
+        format: "number",
+        visualization: "value",
+      },
+    ],
+    series: [],
   },
 });
 
-export const DEFAULT_PREVIEW_SAMPLE = Object.freeze({
-  context: { origin: "active", provider: "rest" },
-  evidence: { status_code: 200, duration_ms: 35 },
-  metadata: {},
-});
+export const DEFAULT_PREVIEW_SAMPLE = DEFAULT_TEMPLATE_DEFINITION.input.sample;
 
 export function monitoringTemplateDraft(template) {
+  const definition =
+    template?.definition?.schemaVersion === "1"
+      ? template.definition
+      : DEFAULT_TEMPLATE_DEFINITION;
   return {
     id: template?.id || "",
     name: template?.name || "",
     description: template?.description || "",
-    definitionText: JSON.stringify(
-      template?.definition || DEFAULT_TEMPLATE_DEFINITION,
-      null,
-      2,
+    inputSampleText: JSON.stringify(definition.input.sample, null, 2),
+    expression: definition.transformation.expression,
+    outputText: JSON.stringify(definition.output, null, 2),
+    presentationText: JSON.stringify(definition.presentation, null, 2),
+    migratedFromLegacy: Boolean(
+      template?.definition && template.definition.schemaVersion !== "1",
     ),
   };
 }
@@ -52,20 +78,44 @@ function parseJson(text, label) {
   }
 }
 
+function parseJsonValue(text, label) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${label} contém JSON inválido.`);
+  }
+}
+
 export function monitoringTemplatePayload(draft) {
   const name = String(draft?.name || "").trim();
   if (!name) throw new Error("Informe o nome do template.");
   return {
     name,
     description: String(draft.description || "").trim(),
-    definition: parseJson(draft.definitionText, "A definição"),
+    definition: monitoringTemplateDefinition(draft),
+  };
+}
+
+function monitoringTemplateDefinition(draft) {
+  return {
+    schemaVersion: "1",
+    input: {
+      mediaType: "application/json",
+      sample: parseJsonValue(draft.inputSampleText, "A amostra de entrada"),
+    },
+    transformation: {
+      language: "jsonata",
+      expression: String(draft.expression || "").trim(),
+    },
+    output: parseJson(draft.outputText, "O contrato de saída"),
+    presentation: parseJson(draft.presentationText, "A apresentação"),
   };
 }
 
 export function monitoringTemplatePreviewPayload(draft, sampleText) {
   return {
-    definition: parseJson(draft.definitionText, "A definição"),
-    sample: parseJson(sampleText, "A amostra"),
+    definition: monitoringTemplateDefinition(draft),
+    sample: parseJsonValue(sampleText, "A amostra"),
   };
 }
 

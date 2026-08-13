@@ -596,6 +596,35 @@ test(
         (await unifiedActivationResponse.json()).template.status,
         "active",
       );
+      const unifiedContractResponse = await request(
+        `/api/monitoring/templates/${unifiedTemplate.id}/versions/2/contract`,
+        { cookie: adminCookie },
+      );
+      assert.equal(unifiedContractResponse.status, 200);
+      const unifiedContract = (await unifiedContractResponse.json()).contract;
+      assert.deepEqual(unifiedContract.templateRef, {
+        id: unifiedTemplate.id,
+        version: "2",
+      });
+      assert.equal(unifiedContract.transformation.language, "jsonata");
+      assert.deepEqual(
+        unifiedContract.input.sample,
+        unifiedDefinition.input.sample,
+      );
+      const unifiedValidationResponse = await request(
+        `/api/monitoring/templates/${unifiedTemplate.id}/versions/2/validate`,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: { sample: unifiedDefinition.input.sample },
+          origin: true,
+        },
+      );
+      assert.equal(unifiedValidationResponse.status, 200);
+      assert.equal(
+        (await unifiedValidationResponse.json()).validation.result.status,
+        "healthy",
+      );
       const unifiedSignalResponse = await request(signalRoute, {
         cookie: adminCookie,
         method: "POST",
@@ -622,6 +651,10 @@ test(
         version: "2",
       });
       assert.equal(unifiedSignal.templateSnapshot.schemaVersion, "1");
+      assert.deepEqual(
+        unifiedSignal.metadataPresentation,
+        unifiedSignal.templateSnapshot.presentation,
+      );
       const persistedUnifiedTemplate = await (
         await request(`/api/monitoring/templates/${unifiedTemplate.id}`, {
           cookie: adminCookie,

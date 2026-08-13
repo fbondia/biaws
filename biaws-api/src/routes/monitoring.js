@@ -35,11 +35,13 @@ import {
   archiveMonitoringTemplate,
   createMonitoringTemplate,
   createMonitoringTemplateVersion,
+  describeMonitoringTemplate,
   getMonitoringTemplate,
   listMonitoringTemplates,
   monitoringTemplateUsage,
   previewMonitoringTemplate,
   setMonitoringTemplateStatus,
+  validateMonitoringTemplateSample,
 } from "../repositories/monitoringTemplatesRepository.js";
 import { listMonitoringMetadataProfiles } from "../repositories/monitoringMetadataProfilesRepository.js";
 
@@ -212,6 +214,37 @@ monitoringRouter.get(
       usage: await monitoringTemplateUsage(
         req.params.templateId,
         req.params.version,
+        req.actor.workspaceId,
+      ),
+    });
+  }),
+);
+
+monitoringRouter.get(
+  "/templates/:templateId/versions/:version/contract",
+  requireAllPermissions("runtimes.read"),
+  requireWorkspaceScope("runtimes.read"),
+  asyncHandler(async (req, res) => {
+    res.json({
+      contract: await describeMonitoringTemplate(
+        req.params.templateId,
+        req.params.version,
+        req.actor.workspaceId,
+      ),
+    });
+  }),
+);
+
+monitoringRouter.post(
+  "/templates/:templateId/versions/:version/validate",
+  requireAllPermissions("runtimes.read"),
+  requireWorkspaceScope("runtimes.read"),
+  asyncHandler(async (req, res) => {
+    res.json({
+      validation: await validateMonitoringTemplateSample(
+        req.params.templateId,
+        req.params.version,
+        req.body,
         req.actor.workspaceId,
       ),
     });

@@ -29,6 +29,21 @@ export const fetchMonitoringTemplateUsage = (templateId, version) =>
   fetchJson(
     `${base}/${encodeURIComponent(templateId)}/versions/${encodeURIComponent(version)}/usage`,
   );
+export const fetchMonitoringTemplateContract = (templateId, version) =>
+  fetchJson(
+    `${base}/${encodeURIComponent(templateId)}/versions/${encodeURIComponent(version)}/contract`,
+  );
+export const validateMonitoringTemplateVersion = (
+  templateId,
+  version,
+  sample,
+) =>
+  sendJson(
+    `${base}/${encodeURIComponent(templateId)}/versions/${encodeURIComponent(version)}/validate`,
+    { sample },
+    undefined,
+    "POST",
+  );
 export const deleteMonitoringTemplateVersion = (templateId, version) =>
   deleteJson(
     `${base}/${encodeURIComponent(templateId)}/versions/${encodeURIComponent(version)}`,

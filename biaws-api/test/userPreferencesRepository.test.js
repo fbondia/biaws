@@ -6,6 +6,7 @@ import {
   buildCollectionNavigationUpdateOperation,
   COLLECTION_NAVIGATION_CONTEXTS,
   normalizeCollectionNavigationMutation,
+  normalizeMonitoringPanelMutation,
 } from "../src/repositories/userPreferencesRepository.js";
 
 test("collection navigation preferences cover every collection surface", () => {
@@ -22,6 +23,27 @@ test("collection navigation preferences cover every collection surface", () => {
     () => assertCollectionNavigationContext("unknown"),
     (error) => error.code === "COLLECTION_NAVIGATION_CONTEXT_NOT_FOUND",
   );
+});
+
+test("monitoring panel preferences normalize a bounded runtime selection", () => {
+  assert.deepEqual(
+    normalizeMonitoringPanelMutation({
+      runtimeIds: [" runtime-1 ", "runtime-2", "runtime-1"],
+    }),
+    { runtimeIds: ["runtime-1", "runtime-2"] },
+  );
+  for (const payload of [
+    null,
+    {},
+    { runtimeIds: "runtime-1" },
+    { runtimeIds: [], extra: true },
+    { runtimeIds: Array.from({ length: 101 }, (_, index) => `r-${index}`) },
+  ]) {
+    assert.throws(
+      () => normalizeMonitoringPanelMutation(payload),
+      (error) => error.code === "INVALID_MONITORING_PANEL_PREFERENCE",
+    );
+  }
 });
 
 test("collection navigation mutations reject malformed input", () => {

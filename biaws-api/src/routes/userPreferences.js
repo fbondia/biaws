@@ -2,7 +2,9 @@ import { Router } from "express";
 
 import {
   getCollectionNavigationPreference,
+  getMonitoringPanelPreference,
   updateCollectionNavigationPreference,
+  updateMonitoringPanelPreference,
 } from "../repositories/userPreferencesRepository.js";
 
 export const userPreferencesRouter = Router();
@@ -36,5 +38,19 @@ userPreferencesRouter.patch(
         req.actor,
       ),
     );
+  }),
+);
+
+userPreferencesRouter.get(
+  "/monitoring-panel",
+  asyncHandler(async (req, res) => {
+    res.json(await getMonitoringPanelPreference(req.actor));
+  }),
+);
+
+userPreferencesRouter.put(
+  "/monitoring-panel",
+  asyncHandler(async (req, res) => {
+    res.json(await updateMonitoringPanelPreference(req.body, req.actor));
   }),
 );

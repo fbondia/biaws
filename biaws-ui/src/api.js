@@ -14,3 +14,4 @@ export * from "./api/secrets.js";
 export * from "./api/resourceCollections.js";
 export * from "./api/knowledge.js";
 export * from "./api/monitoringTemplates.js";
+export * from "./api/userPreferences.js";

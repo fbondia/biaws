@@ -794,6 +794,37 @@ test(
       assert.ok(monitoredTopology.applicationIds.includes(application.id));
       assert.ok(monitoredTopology.deploymentIds.includes(deployment.id));
       assert.ok(monitoredTopology.runtimeIds.includes(runtime.id));
+      const monitoredTargetsResponse = await request(
+        "/api/monitoring/runtime-targets",
+        { cookie: adminCookie },
+      );
+      assert.equal(monitoredTargetsResponse.status, 200);
+      const monitoredTarget = (await monitoredTargetsResponse.json()).items[0];
+      assert.equal(monitoredTarget.id, runtime.id);
+      assert.equal(monitoredTarget.application.id, application.id);
+      assert.equal(monitoredTarget.deployment.id, deployment.id);
+      assert.equal(monitoredTarget.monitorCount, 1);
+      assert.equal(monitoredTarget.enabledMonitorCount, 1);
+      assert.deepEqual(monitoredTarget.monitorNames, ["Billing health"]);
+      const panelPreferenceResponse = await request(
+        "/api/preferences/monitoring-panel",
+        {
+          cookie: adminCookie,
+          method: "PUT",
+          body: { runtimeIds: [runtime.id] },
+          origin: true,
+        },
+      );
+      assert.equal(panelPreferenceResponse.status, 200);
+      assert.deepEqual((await panelPreferenceResponse.json()).runtimeIds, [
+        runtime.id,
+      ]);
+      const savedPanelPreference = await (
+        await request("/api/preferences/monitoring-panel", {
+          cookie: adminCookie,
+        })
+      ).json();
+      assert.deepEqual(savedPanelPreference.runtimeIds, [runtime.id]);
       const activeMonitorList = await (
         await request(
           `/api/monitoring/runtimes/${runtime.id}/active-monitors`,

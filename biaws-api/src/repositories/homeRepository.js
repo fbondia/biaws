@@ -917,6 +917,15 @@ async function applicationHealthMetric(database, actor, config) {
     .sort({ name: 1 })
     .toArray();
   const ids = applications.map(({ id }) => id);
+  const configuredRuntimeIds = config.includeConfigured
+    ? await database
+        .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
+        .distinct("runtimeId", {
+          workspaceId: actor.workspaceId,
+          applicationId: { $in: ids },
+          archivedAt: { $exists: false },
+        })
+    : [];
   const runtimes = ids.length
     ? await database
         .collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES)
@@ -927,7 +936,14 @@ async function applicationHealthMetric(database, actor, config) {
           ...(config.deploymentId ? { deploymentId: config.deploymentId } : {}),
           ...(config.runtimeId ? { id: config.runtimeId } : {}),
           status: { $ne: "archived" },
-          monitoring: { $exists: true, $ne: null },
+          ...(config.includeConfigured
+            ? {
+                $or: [
+                  { monitoring: { $exists: true, $ne: null } },
+                  { id: { $in: configuredRuntimeIds } },
+                ],
+              }
+            : { monitoring: { $exists: true, $ne: null } }),
         })
         .project({
           _id: 0,
@@ -1006,7 +1022,11 @@ async function applicationHealthMetric(database, actor, config) {
     components,
     deployments,
     latestSignals,
-    runtimes: filteredRuntimes,
+    runtimes: filteredRuntimes.map((runtime) =>
+      config.includeConfigured && !runtime.monitoring
+        ? { ...runtime, status: "unknown" }
+        : runtime,
+    ),
     servers,
   });
   return {

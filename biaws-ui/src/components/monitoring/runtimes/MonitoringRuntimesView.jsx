@@ -6,8 +6,10 @@ import {
   CloudCog,
   Folder,
   FolderOpen,
+  LayoutDashboard,
   Layers3,
   ListFilter,
+  Network,
   RefreshCw,
   Server,
   Settings2,
@@ -43,6 +45,7 @@ import {
   latestEventForMonitor,
   runtimeListParams,
 } from "./model.js";
+import { MonitoringDashboard } from "./MonitoringDashboard.jsx";
 
 const LEVEL_ICONS = {
   application: Layers3,
@@ -421,6 +424,7 @@ export function MonitoringRuntimesView({ actor }) {
   const [component, setComponent] = useState(null);
   const [deployment, setDeployment] = useState(null);
   const [runtime, setRuntime] = useState(null);
+  const [viewMode, setViewMode] = useState("navigation");
   const [monitoredOnly, setMonitoredOnly] = useState(false);
   const [monitoredTopology, setMonitoredTopology] = useState({
     applicationIds: [],
@@ -623,6 +627,49 @@ export function MonitoringRuntimesView({ actor }) {
     }
   }
 
+  async function openDashboardTarget(target) {
+    setViewMode("navigation");
+    setMonitoredOnly(true);
+    setSelectedCollectionId(target.application?.collectionId || "");
+    setApplication(target.application);
+    setComponent(null);
+    setDeployment(null);
+    setRuntime(null);
+    setLoading(true);
+    setError("");
+    try {
+      const [componentPayload, deploymentPayload] = await Promise.all([
+        fetchComponents(target.applicationId, { limit: 100 }),
+        fetchDeployments(target.applicationId, { limit: 100 }),
+      ]);
+      const nextComponents = componentPayload.items || [];
+      const nextDeployments = deploymentPayload.items || [];
+      const nextComponent = nextComponents.find(
+        ({ id }) => id === target.componentId,
+      );
+      const nextDeployment = nextDeployments.find(
+        ({ id }) => id === target.deploymentId,
+      );
+      setComponents(nextComponents);
+      setDeployments(nextDeployments);
+      setComponent(nextComponent || null);
+      if (!nextDeployment)
+        throw new Error("Deployment do runtime não encontrado.");
+      const runtimePayload = await fetchRuntimes(
+        nextDeployment.id,
+        runtimeListParams(true),
+      );
+      const nextRuntimes = runtimePayload.items || [];
+      setDeployment(nextDeployment);
+      setRuntimes(nextRuntimes);
+      setRuntime(nextRuntimes.find(({ id }) => id === target.id) || null);
+    } catch (loadError) {
+      setError(loadError.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function selectCollection(collectionId) {
     setSelectedCollectionId(collectionId);
     setApplication(null);
@@ -646,28 +693,52 @@ export function MonitoringRuntimesView({ actor }) {
           </p>
         </div>
         <div className="monitoringCenterHeroActions">
-          <button
-            aria-pressed={monitoredOnly}
-            className={
-              monitoredOnly
-                ? "secondaryButton monitoringRuntimeFilter active"
-                : "secondaryButton monitoringRuntimeFilter"
-            }
-            disabled={loading}
-            onClick={toggleMonitoredOnly}
-            type="button"
+          <div
+            aria-label="Modo da central de monitoramento"
+            className="monitoringCenterModeSwitch"
+            role="group"
           >
-            <ListFilter size={16} /> Somente monitorados
-          </button>
-          <button
-            aria-label="Atualizar navegação"
-            className="iconButton"
-            disabled={loading}
-            onClick={refreshNavigation}
-            type="button"
-          >
-            <RefreshCw size={17} />
-          </button>
+            <button
+              aria-pressed={viewMode === "navigation"}
+              onClick={() => setViewMode("navigation")}
+              type="button"
+            >
+              <Network size={16} /> Navegação
+            </button>
+            <button
+              aria-pressed={viewMode === "dashboard"}
+              onClick={() => setViewMode("dashboard")}
+              type="button"
+            >
+              <LayoutDashboard size={16} /> Painel
+            </button>
+          </div>
+          {viewMode === "navigation" ? (
+            <>
+              <button
+                aria-pressed={monitoredOnly}
+                className={
+                  monitoredOnly
+                    ? "secondaryButton monitoringRuntimeFilter active"
+                    : "secondaryButton monitoringRuntimeFilter"
+                }
+                disabled={loading}
+                onClick={toggleMonitoredOnly}
+                type="button"
+              >
+                <ListFilter size={16} /> Somente monitorados
+              </button>
+              <button
+                aria-label="Atualizar navegação"
+                className="iconButton"
+                disabled={loading}
+                onClick={refreshNavigation}
+                type="button"
+              >
+                <RefreshCw size={17} />
+              </button>
+            </>
+          ) : null}
         </div>
       </header>
       {error ? (
@@ -675,70 +746,78 @@ export function MonitoringRuntimesView({ actor }) {
           {error}
         </div>
       ) : null}
-      <div className="monitoringNavigator" aria-busy={loading}>
-        <CollectionNavigation
-          collections={filteredTopology.collections}
-          onSelect={selectCollection}
-          selectedId={selectedCollectionId}
-          showRoot={!monitoredOnly || showRootCollection}
-        />
-        <NavigationColumn
-          empty="Nenhuma aplicação nesta coleção."
-          items={visibleApplications}
-          kind="application"
-          onSelect={selectApplication}
-          selectedId={application?.id}
-          title="Aplicação"
-        />
-        {application ? (
-          <NavigationColumn
-            empty="Nenhum componente."
-            items={filteredTopology.components}
-            kind="component"
-            onSelect={selectComponent}
-            selectedId={component?.id}
-            title="Componente"
-          />
-        ) : null}
-        {component ? (
-          <NavigationColumn
-            empty="Nenhum deployment."
-            items={visibleDeployments}
-            kind="deployment"
-            onSelect={selectDeployment}
-            selectedId={deployment?.id}
-            title="Deployment"
-          />
-        ) : null}
-        {deployment ? (
-          <NavigationColumn
-            empty="Nenhum runtime."
-            items={runtimes}
-            kind="runtime"
-            onSelect={setRuntime}
-            selectedId={runtime?.id}
-            title="Runtime"
-          />
-        ) : null}
-      </div>
-      {loading ? (
-        <div className="monitoringCenterLoading" role="status">
-          Carregando contexto…
-        </div>
-      ) : null}
-      {runtime && workspace ? (
-        <RuntimeMonitoringWorkspace
-          actor={actor}
-          context={{ application, component, deployment, runtime, servers }}
-          key={runtime.id}
-          workspace={workspace}
-        />
+      {viewMode === "dashboard" ? (
+        <MonitoringDashboard onOpenTarget={openDashboardTarget} />
       ) : (
-        <div className="monitoringCenterEmpty">
-          <Server size={30} />
-          <strong>Selecione um runtime</strong>
-          <span>A configuração e o histórico serão exibidos nesta área.</span>
-        </div>
+        <>
+          <div className="monitoringNavigator" aria-busy={loading}>
+            <CollectionNavigation
+              collections={filteredTopology.collections}
+              onSelect={selectCollection}
+              selectedId={selectedCollectionId}
+              showRoot={!monitoredOnly || showRootCollection}
+            />
+            <NavigationColumn
+              empty="Nenhuma aplicação nesta coleção."
+              items={visibleApplications}
+              kind="application"
+              onSelect={selectApplication}
+              selectedId={application?.id}
+              title="Aplicação"
+            />
+            {application ? (
+              <NavigationColumn
+                empty="Nenhum componente."
+                items={filteredTopology.components}
+                kind="component"
+                onSelect={selectComponent}
+                selectedId={component?.id}
+                title="Componente"
+              />
+            ) : null}
+            {component ? (
+              <NavigationColumn
+                empty="Nenhum deployment."
+                items={visibleDeployments}
+                kind="deployment"
+                onSelect={selectDeployment}
+                selectedId={deployment?.id}
+                title="Deployment"
+              />
+            ) : null}
+            {deployment ? (
+              <NavigationColumn
+                empty="Nenhum runtime."
+                items={runtimes}
+                kind="runtime"
+                onSelect={setRuntime}
+                selectedId={runtime?.id}
+                title="Runtime"
+              />
+            ) : null}
+          </div>
+          {loading ? (
+            <div className="monitoringCenterLoading" role="status">
+              Carregando contexto…
+            </div>
+          ) : null}
+          {runtime && workspace ? (
+            <RuntimeMonitoringWorkspace
+              actor={actor}
+              context={{ application, component, deployment, runtime, servers }}
+              key={runtime.id}
+              workspace={workspace}
+            />
+          ) : (
+            <div className="monitoringCenterEmpty">
+              <Server size={30} />
+              <strong>Selecione um runtime</strong>
+              <span>
+                A configuração e o histórico serão exibidos nesta área.
+              </span>
+            </div>
+          )}
+        </>
       )}
     </section>
   );

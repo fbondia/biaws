@@ -11,6 +11,7 @@ export const COLLECTION_NAVIGATION_CONTEXTS = Object.freeze([
 ]);
 
 const MAX_COLLECTION_ID_LENGTH = 200;
+const MAX_MONITORING_PANEL_RUNTIMES = 100;
 let collectionPromise;
 
 function preferenceError(statusCode, code, message) {
@@ -168,4 +169,80 @@ export async function updateCollectionNavigationPreference(
 
   const document = await collection.findOne(operation.filter);
   return normalizePreference(operation.context, document);
+}
+
+export function normalizeMonitoringPanelMutation(payload = {}) {
+  const source = payload && typeof payload === "object" ? payload : {};
+  const unknown = Object.keys(source).filter((key) => key !== "runtimeIds");
+  if (unknown.length || !Array.isArray(source.runtimeIds)) {
+    throw preferenceError(
+      422,
+      "INVALID_MONITORING_PANEL_PREFERENCE",
+      "runtimeIds deve ser uma lista sem campos adicionais",
+    );
+  }
+  const runtimeIds = [
+    ...new Set(
+      source.runtimeIds.map((id) => String(id || "").trim()).filter(Boolean),
+    ),
+  ];
+  if (
+    runtimeIds.length > MAX_MONITORING_PANEL_RUNTIMES ||
+    runtimeIds.some((id) => id.length > MAX_COLLECTION_ID_LENGTH)
+  ) {
+    throw preferenceError(
+      422,
+      "INVALID_MONITORING_PANEL_PREFERENCE",
+      `runtimeIds aceita no máximo ${MAX_MONITORING_PANEL_RUNTIMES} identificadores válidos`,
+    );
+  }
+  return { runtimeIds };
+}
+
+function normalizeMonitoringPanelPreference(document) {
+  return {
+    runtimeIds: [
+      ...new Set(
+        (document?.monitoringPanel?.runtimeIds || [])
+          .map((id) => String(id || "").trim())
+          .filter(Boolean),
+      ),
+    ],
+    updatedAt: document?.monitoringPanel?.updatedAt || null,
+  };
+}
+
+export async function getMonitoringPanelPreference(actor) {
+  const collection = await preferencesCollection();
+  return normalizeMonitoringPanelPreference(
+    await collection.findOne({
+      workspaceId: actor.workspaceId,
+      userId: actor.userId,
+    }),
+  );
+}
+
+export async function updateMonitoringPanelPreference(payload, actor) {
+  const { runtimeIds } = normalizeMonitoringPanelMutation(payload);
+  const collection = await preferencesCollection();
+  const now = new Date();
+  const filter = { workspaceId: actor.workspaceId, userId: actor.userId };
+  await collection.updateOne(
+    filter,
+    {
+      $set: {
+        "monitoringPanel.runtimeIds": runtimeIds,
+        "monitoringPanel.updatedAt": now,
+        updatedAt: now,
+        updatedBy: actor.userId,
+      },
+      $setOnInsert: {
+        workspaceId: actor.workspaceId,
+        userId: actor.userId,
+        createdAt: now,
+      },
+    },
+    { upsert: true },
+  );
+  return { runtimeIds, updatedAt: now };
 }

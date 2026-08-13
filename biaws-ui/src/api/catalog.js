@@ -289,6 +289,9 @@ export function fetchRuntimeActiveMonitors(runtimeId, params) {
 export function fetchMonitoredRuntimeTopology() {
   return fetchJson("/api/monitoring/runtime-topology");
 }
+export function fetchMonitoredRuntimeTargets() {
+  return fetchJson("/api/monitoring/runtime-targets");
+}
 export function createRuntimeActiveMonitor(runtimeId, monitor) {
   return sendJson(
     `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/active-monitors`,
@@ -321,9 +324,10 @@ export function createRuntimeManualMonitoringObservation(
     "POST",
   );
 }
-export function fetchApplicationMonitoringHealth(applicationId) {
+export function fetchApplicationMonitoringHealth(applicationId, params) {
   return fetchJson(
     `/api/monitoring/applications/${encodeURIComponent(applicationId)}/health`,
+    params,
   );
 }
 

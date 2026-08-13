@@ -21,6 +21,7 @@ import {
   createRuntimeActiveMonitor,
   getMonitoredRuntimeTopology,
   getRuntimeActiveMonitor,
+  listMonitoredRuntimeTargets,
   listRuntimeActiveMonitors,
   updateRuntimeActiveMonitor,
 } from "../repositories/runtimeActiveMonitoringRepository.js";
@@ -93,6 +94,20 @@ monitoringRouter.get(
     );
     res.json({
       topology: await getMonitoredRuntimeTopology(authorizationScope),
+    });
+  }),
+);
+
+monitoringRouter.get(
+  "/runtime-targets",
+  requireAllPermissions("runtimes.read"),
+  asyncHandler(async (req, res) => {
+    const { authorizationScope } = authorizationQuery(
+      req.actor,
+      "runtimes.read",
+    );
+    res.json({
+      items: await listMonitoredRuntimeTargets(authorizationScope),
     });
   }),
 );
@@ -580,6 +595,7 @@ monitoringRouter.get(
       getApplicationMonitoringHealth(application.id, req.actor.workspaceId),
       getApplicationHealthMetric(req.actor, {
         applicationId: application.id,
+        includeConfigured: req.query.includeConfigured === "true",
       }),
     ]);
     res.json({

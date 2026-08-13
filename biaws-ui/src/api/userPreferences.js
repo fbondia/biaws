@@ -1,4 +1,10 @@
-import { buildUrl, readPayload, workspaceHeaders } from "./client.js";
+import {
+  buildUrl,
+  fetchJson,
+  readPayload,
+  sendJson,
+  workspaceHeaders,
+} from "./client.js";
 
 function collectionNavigationPath(context) {
   return `/api/preferences/collection-navigation/${encodeURIComponent(context)}`;
@@ -28,4 +34,17 @@ export async function updateCollectionNavigationPreference(
     body: JSON.stringify({ collectionId, collapsed }),
   });
   return readPayload(response);
+}
+
+export function fetchMonitoringPanelPreference() {
+  return fetchJson("/api/preferences/monitoring-panel");
+}
+
+export function updateMonitoringPanelPreference(runtimeIds) {
+  return sendJson(
+    "/api/preferences/monitoring-panel",
+    { runtimeIds },
+    undefined,
+    "PUT",
+  );
 }

@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
 import { detailValue, formatBytes, formatDate } from "../../utils/issues.js";
 import { canPreviewFile, FilePreview } from "./FilePreview.jsx";
+import { buildFileTagCounts, tagColor } from "./filePanelModel.js";
 import { useFileDrop } from "./useFileDrop.js";
 
 export function FilesPanel({
@@ -43,19 +44,7 @@ export function FilesPanel({
     disabled: uploading || !canCreate,
     onDropFiles: upload,
   });
-  const tags = useMemo(() => {
-    const counts = new Map();
-    for (const file of files) {
-      for (const tag of file.tags || []) {
-        const normalized = String(tag).trim().toLowerCase();
-        if (normalized)
-          counts.set(normalized, (counts.get(normalized) || 0) + 1);
-      }
-    }
-    return [...counts.entries()]
-      .map(([tag, count]) => ({ tag, count }))
-      .sort((first, second) => first.tag.localeCompare(second.tag));
-  }, [files]);
+  const tags = useMemo(() => buildFileTagCounts(files), [files]);
   const visibleFiles = selectedTags.length
     ? files.filter((file) =>
         (file.tags || []).some((tag) =>
@@ -404,17 +393,4 @@ export function FilesPanel({
       ) : null}
     </section>
   );
-}
-
-function tagColor(tag) {
-  let hash = 0;
-  for (const character of String(tag)) {
-    hash = Math.trunc((hash << 5) - hash + character.charCodeAt(0));
-  }
-  const hue = Math.abs(hash) % 360;
-  return {
-    "--file-tag-background": `hsl(${hue} 75% 94%)`,
-    "--file-tag-border": `hsl(${hue} 55% 72%)`,
-    "--file-tag-color": `hsl(${hue} 55% 28%)`,
-  };
 }

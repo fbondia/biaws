@@ -1,22 +1,11 @@
-import {
-  ChevronLeft,
-  ChevronRight,
-  ListChecks,
-  Plus,
-  RefreshCw,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { moveRequestToCollection } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
-import {
-  CatalogContextFields,
-  CatalogFilterFields,
-} from "../../catalog/CatalogContextFields/index.jsx";
-import { FilterDialogButton } from "../../shared/FilterDialogButton.jsx";
+import { CatalogFilterFields } from "../../catalog/CatalogContextFields/index.jsx";
 import {
   collectionPathLabel,
-  ResourceCollectionDialog,
   ResourceCollectionNavigator,
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections/index.jsx";
@@ -26,9 +15,11 @@ import {
   normalizeRequest,
   requestStatusLabel,
   requestStatusStyle,
-  REQUEST_STATUS_OPTIONS,
 } from "../requestUtils.js";
+import { RequestDialogs } from "./components/RequestDialogs.jsx";
+import { RequestPagination } from "./components/RequestPagination.jsx";
 import { RequestsOverview } from "./components/RequestsOverview.jsx";
+import { RequestStatusFilter } from "./components/RequestStatusFilter.jsx";
 import { useRequestsView } from "./hooks/useRequestsView.js";
 
 function RequestError({ collectionError, requestError }) {
@@ -306,53 +297,14 @@ export function RequestsView({
           />
         }
         toolbar={
-          <div className="requestCollectionPagination">
-            <span>
-              {requestMeta.total} melhoria(s) · página {requestMeta.page} de{" "}
-              {requestMeta.totalPages}
-            </span>
-            <button
-              className="iconButton"
-              disabled={loadingRequests || requestMeta.page <= 1}
-              onClick={() =>
-                setRequestPage((current) => Math.max(1, current - 1))
-              }
-              title="Página anterior"
-              type="button"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              className="iconButton"
-              disabled={
-                loadingRequests || requestMeta.page >= requestMeta.totalPages
-              }
-              onClick={() =>
-                setRequestPage((current) =>
-                  Math.min(requestMeta.totalPages, current + 1),
-                )
-              }
-              title="Próxima página"
-              type="button"
-            >
-              <ChevronRight size={16} />
-            </button>
-            <button
-              className="iconButton"
-              disabled={loadingRequests}
-              onClick={() =>
-                void Promise.all([
-                  loadRequests(),
-                  loadRequestCollectionItems(),
-                  collectionState.loadCollections(),
-                ])
-              }
-              title="Atualizar melhorias"
-              type="button"
-            >
-              <RefreshCw size={16} />
-            </button>
-          </div>
+          <RequestPagination
+            loadCollections={collectionState.loadCollections}
+            loadRequestCollectionItems={loadRequestCollectionItems}
+            loadRequests={loadRequests}
+            loadingRequests={loadingRequests}
+            requestMeta={requestMeta}
+            setRequestPage={setRequestPage}
+          />
         }
       >
         {selectedRequest ? (
@@ -428,171 +380,14 @@ export function RequestsView({
           />
         )}
       </ResourceCollectionsShell>
-      {newContext ? (
-        <div
-          className="dialogBackdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setNewContext(null);
-          }}
-        >
-          <section
-            aria-labelledby="new-demand-context-title"
-            aria-modal="true"
-            className="catalogContextDialog"
-            role="dialog"
-          >
-            <header>
-              <div>
-                <span>Nova melhoria</span>
-                <h2 id="new-demand-context-title">Defina o contexto</h2>
-              </div>
-            </header>
-            <p>
-              A melhoria precisa pertencer a uma aplicação. Os componentes
-              afetados podem ser definidos agora ou depois.
-            </p>
-            <CatalogContextFields
-              affectedComponentIds={newContext.affectedComponentIds}
-              applicationId={newContext.applicationId}
-              applications={catalog.applications}
-              components={catalog.components}
-              onChange={setNewContext}
-            />
-            <footer>
-              <button
-                className="secondaryButton"
-                onClick={() => setNewContext(null)}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button
-                className="primaryButton"
-                disabled={
-                  !newContext.applicationId || savingRequestId === "new"
-                }
-                onClick={() => void addRequest(newContext)}
-                type="button"
-              >
-                Criar melhoria
-              </button>
-            </footer>
-          </section>
-        </div>
-      ) : null}
-      {collectionState.collectionDialog ? (
-        <ResourceCollectionDialog
-          collection={
-            collectionState.collectionDialog.id
-              ? collectionState.collectionDialog
-              : null
-          }
-          onClose={() => collectionState.setCollectionDialog(null)}
-          onSave={collectionState.saveCollection}
-          parentLabel={collectionPathLabel(
-            collectionState.collections,
-            collectionState.selectedCollectionId,
-          )}
-          resourceLabel="melhorias"
-        />
-      ) : null}
-    </section>
-  );
-}
-
-function RequestStatusFilter({ onChange, value }) {
-  const [open, setOpen] = useState(false);
-  const summary =
-    value.length === 1
-      ? requestStatusLabel(value[0])
-      : value.length
-        ? `${value.length} selecionados`
-        : "Todos os status";
-
-  function toggleStatus(status) {
-    onChange(
-      value.includes(status)
-        ? value.filter((item) => item !== status)
-        : [...value, status],
-    );
-  }
-
-  return (
-    <>
-      <FilterDialogButton
-        count={value.length}
-        icon={ListChecks}
-        label="Status"
-        onClick={() => setOpen(true)}
-        summary={summary}
+      <RequestDialogs
+        addRequest={addRequest}
+        catalog={catalog}
+        collectionState={collectionState}
+        newContext={newContext}
+        savingRequestId={savingRequestId}
+        setNewContext={setNewContext}
       />
-      {open ? (
-        <div
-          className="tagFilterDialogBackdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setOpen(false);
-          }}
-        >
-          <section
-            aria-label="Filtrar melhorias por status"
-            aria-modal="true"
-            className="tagFilterDialog issueOptionFilterDialog"
-            role="dialog"
-          >
-            <header>
-              <div>
-                <strong>Filtrar melhorias por status</strong>
-                <span>
-                  Selecione um ou mais status para restringir os resultados.
-                </span>
-              </div>
-              {value.length ? (
-                <small>{value.length} selecionado(s)</small>
-              ) : null}
-            </header>
-            <div className="tagFilterGroups issueOptionFilterDialogContent">
-              <div className="tagFilterOptions">
-                {REQUEST_STATUS_OPTIONS.map((status) => (
-                  <label
-                    className={
-                      value.includes(status)
-                        ? "tagFilterOption selectedTagFilterOption"
-                        : "tagFilterOption"
-                    }
-                    key={status}
-                  >
-                    <input
-                      checked={value.includes(status)}
-                      onChange={() => toggleStatus(status)}
-                      type="checkbox"
-                    />
-                    <span>{requestStatusLabel(status)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <footer>
-              {value.length ? (
-                <button
-                  className="secondaryButton clearDialogSelectionButton"
-                  onClick={() => onChange([])}
-                  type="button"
-                >
-                  Limpar seleção
-                </button>
-              ) : null}
-              <button
-                className="primaryButton"
-                data-dialog-close
-                onClick={() => setOpen(false)}
-                type="button"
-              >
-                Concluir
-              </button>
-            </footer>
-          </section>
-        </div>
-      ) : null}
-    </>
+    </section>
   );
 }

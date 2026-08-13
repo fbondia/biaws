@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   createRequest,
@@ -9,11 +9,8 @@ import {
   deleteRequestNote,
   deleteRequestTask,
   deleteRequestTaskNote,
-  fetchRequest,
   fetchRequestCollectionItems,
   fetchRequests,
-  reorderRequest,
-  saveRequest,
   saveRequestNote,
   saveRequestTask,
   saveRequestTaskNote,
@@ -22,30 +19,24 @@ import { hasPermission } from "../../../../permissions.js";
 import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 import { useCatalogOptions } from "../../../catalog/CatalogContextFields/index.jsx";
 import { useRequestCollaborationActions } from "./useRequestCollaborationActions.js";
+import { useRequestDerivedState } from "./useRequestDerivedState.js";
 import { useRequestDraftActions } from "./useRequestDraftActions.js";
-import {
-  createPendingRequestSave,
-  flushPendingRequestSaves,
-} from "../requestSaveQueue.js";
+import { useRequestPersistence } from "./useRequestPersistence.js";
+import { useRequestReorder } from "./useRequestReorder.js";
+import { useRequestSelection } from "./useRequestSelection.js";
 import {
   createDefaultSpecificationSection,
   createSpecificationSection,
   normalizeRequest,
   normalizeSpecification,
   normalizeSpecificationSectionTitle,
-  normalizeRequestStatus,
   newRequest,
   nextTopRequestListRank,
-  REQUEST_SAVE_DEBOUNCE_MS,
-  requestsInCollectionBranch,
-  scheduleSortValue,
   sortRequestsForList,
 } from "../../requestUtils.js";
 
-export function useRequestsView(
-  actor,
-  { collectionId = "", collections = [] } = {},
-) {
+export function useRequestsView(actor, options = {}) {
+  const { collectionId = "", collections = [] } = options;
   const { confirm } = useMessages();
   const [requests, setRequests] = useState([]);
   const [requestCollectionItems, setRequestCollectionItems] = useState([]);
@@ -60,7 +51,6 @@ export function useRequestsView(
   const [statusFilters, setStatusFilters] = useState([]);
   const [activeDetailTab, setActiveDetailTab] = useState("main");
   const [activeOverviewTab, setActiveOverviewTab] = useState("tasks");
-  const [activeMobileSection, setActiveMobileSection] = useState("requests");
   const [applicationFilter, setApplicationFilter] = useState("");
   const [componentFilter, setComponentFilter] = useState("");
   const [requestPage, setRequestPage] = useState(1);
@@ -75,10 +65,6 @@ export function useRequestsView(
       hasPermission(actor, "components.read"),
     actor.workspaceId,
   );
-  const saveTimersRef = useRef(new Map());
-  const pendingRequestsRef = useRef(new Map());
-  const requestSaveVersionsRef = useRef(new Map());
-  const mountedRef = useRef(true);
 
   const selectedRequest =
     (selectedRequestOverride?.id === selectedRequestId
@@ -162,234 +148,40 @@ export function useRequestsView(
     };
   }, [applicationFilter, componentFilter, statusFilters]);
 
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-      void flushPendingRequestSaves({
-        timers: saveTimersRef.current,
-        pendingRequests: pendingRequestsRef.current,
-        persist: ({ request, workspaceId }) =>
-          saveRequest(request.id, request, undefined, workspaceId),
-      });
-    };
-  }, []);
+  const {
+    filteredRequests,
+    scheduleJourneyMonths,
+    scheduleJourneyRequests,
+    scheduleRequests,
+    selectedExecutedTotal,
+    selectedOverExecutedTotal,
+    selectedPendingTotal,
+    selectedPlannedJourneyTotal,
+  } = useRequestDerivedState({
+    collectionId,
+    collections,
+    requestCollectionItems,
+    requests,
+    selectedRequest,
+    statusFilters,
+  });
 
-  const filteredRequests = useMemo(() => {
-    if (!statusFilters.length) return requests;
-
-    return requests.filter((request) =>
-      statusFilters.includes(normalizeRequestStatus(request.status)),
-    );
-  }, [requests, statusFilters]);
-
-  const selectedPlannedJourneyTotal = (selectedRequest?.journeys || []).reduce(
-    (total, item) => total + (Number(item.plannedJourneys) || 0),
-    0,
-  );
-  const selectedExecutedTotal = (selectedRequest?.journeys || []).reduce(
-    (total, item) => total + (Number(item.executedJourneys) || 0),
-    0,
-  );
-  const selectedPendingTotal = Math.max(
-    0,
-    selectedPlannedJourneyTotal - selectedExecutedTotal,
-  );
-  const selectedOverExecutedTotal = Math.max(
-    0,
-    selectedExecutedTotal - selectedPlannedJourneyTotal,
-  );
-
-  const scheduleRequests = useMemo(() => {
-    const branchRequests = requestsInCollectionBranch(
-      collections,
-      requestCollectionItems,
-      collectionId,
-    );
-
-    return [...branchRequests].sort((first, second) => {
-      return (
-        scheduleSortValue(
-          first.estimatedDeliveryDate || first.endDate || first.startDate,
-        ) -
-        scheduleSortValue(
-          second.estimatedDeliveryDate || second.endDate || second.startDate,
-        )
-      );
-    });
-  }, [collectionId, collections, requestCollectionItems]);
-
-  const scheduleJourneyMonths = useMemo(() => {
-    const months = new Set();
-
-    for (const request of filteredRequests) {
-      for (const item of request.journeys) {
-        if (
-          (Number(item.plannedJourneys) || 0) > 0 ||
-          (Number(item.executedJourneys) || 0) > 0
-        ) {
-          months.add(item.month);
-        }
-      }
-    }
-
-    return [...months].sort((first, second) => first.localeCompare(second));
-  }, [filteredRequests]);
-
-  const scheduleJourneyRequests = useMemo(() => {
-    if (!scheduleJourneyMonths.length) return [];
-
-    return scheduleRequests.filter((request) =>
-      request.journeys.some(
-        (item) =>
-          (Number(item.plannedJourneys) || 0) > 0 ||
-          (Number(item.executedJourneys) || 0) > 0,
-      ),
-    );
-  }, [scheduleJourneyMonths.length, scheduleRequests]);
-
-  function upsertRequestInList(nextRequest) {
-    const normalizedRequest = normalizeRequest(nextRequest);
-    if (normalizedRequest.id === selectedRequestId) {
-      setSelectedRequestOverride(normalizedRequest);
-    }
-    setRequests((current) => {
-      const exists = current.some(
-        (request) => request.id === normalizedRequest.id,
-      );
-      const nextRequests = exists
-        ? current.map((request) =>
-            request.id === normalizedRequest.id ? normalizedRequest : request,
-          )
-        : [normalizedRequest, ...current];
-
-      return sortRequestsForList(nextRequests);
-    });
-    setRequestCollectionItems((current) => {
-      const exists = current.some(
-        (request) => request.id === normalizedRequest.id,
-      );
-      return sortRequestsForList(
-        exists
-          ? current.map((request) =>
-              request.id === normalizedRequest.id ? normalizedRequest : request,
-            )
-          : [normalizedRequest, ...current],
-      );
-    });
-  }
-
-  function updateRequest(requestId, updater) {
-    setSelectedRequestOverride((current) =>
-      current?.id === requestId ? normalizeRequest(updater(current)) : current,
-    );
-    setRequests((current) =>
-      sortRequestsForList(
-        current.map((request) => {
-          return request.id === requestId
-            ? normalizeRequest(updater(request))
-            : request;
-        }),
-      ),
-    );
-  }
-
-  async function recoverFailedRequestSave(request, saveVersion) {
-    const isLatestSave =
-      requestSaveVersionsRef.current.get(request.id) === saveVersion;
-    if (!isLatestSave || pendingRequestsRef.current.has(request.id)) return;
-
-    try {
-      const payload = await fetchRequest(request.id);
-      if (mountedRef.current && payload.request) {
-        upsertRequestInList(payload.request);
-      }
-    } catch {
-      // Mantém o erro original da gravação, que é a ação relevante ao usuário.
-    }
-  }
-
-  function finishRequestSave(requestId) {
-    if (!mountedRef.current) return;
-    setSavingRequestId((current) => (current === requestId ? "" : current));
-  }
-
-  async function persistRequest(request, saveVersion, workspaceId) {
-    if (!request?.id) return;
-
-    if (mountedRef.current) {
-      setSavingRequestId(request.id);
-      setRequestError("");
-    }
-
-    try {
-      const payload = await saveRequest(
-        request.id,
-        request,
-        undefined,
-        workspaceId,
-      );
-      if (mountedRef.current && payload.request) {
-        upsertRequestInList(payload.request);
-      }
-    } catch (error) {
-      if (!mountedRef.current) return;
-
-      setRequestError(error.message);
-      await recoverFailedRequestSave(request, saveVersion);
-    } finally {
-      finishRequestSave(request.id);
-    }
-  }
-
-  function schedulePersistRequest(request) {
-    if (!request?.id) return;
-
-    const existingTimer = saveTimersRef.current.get(request.id);
-    if (existingTimer) clearTimeout(existingTimer);
-
-    pendingRequestsRef.current.set(
-      request.id,
-      createPendingRequestSave(request, actor.workspaceId),
-    );
-    const saveVersion =
-      (requestSaveVersionsRef.current.get(request.id) || 0) + 1;
-    requestSaveVersionsRef.current.set(request.id, saveVersion);
-    setSavingRequestId(request.id);
-    setRequestError("");
-
-    const timeoutId = setTimeout(() => {
-      saveTimersRef.current.delete(request.id);
-      const pendingSave = pendingRequestsRef.current.get(request.id);
-      pendingRequestsRef.current.delete(request.id);
-      void persistRequest(
-        pendingSave?.request,
-        saveVersion,
-        pendingSave?.workspaceId,
-      );
-    }, REQUEST_SAVE_DEBOUNCE_MS);
-
-    saveTimersRef.current.set(request.id, timeoutId);
-  }
-
-  function clearScheduledPersist(requestId) {
-    const existingTimer = saveTimersRef.current.get(requestId);
-    if (existingTimer) clearTimeout(existingTimer);
-    saveTimersRef.current.delete(requestId);
-    pendingRequestsRef.current.delete(requestId);
-    requestSaveVersionsRef.current.delete(requestId);
-  }
-
-  function updateSelectedField(field, value) {
-    if (!selectedRequest) return;
-
-    const nextRequest = normalizeRequest({
-      ...selectedRequest,
-      [field]: field === "estimatedJourneys" ? Number(value) : value,
-    });
-    updateRequest(selectedRequest.id, () => nextRequest);
-
-    schedulePersistRequest(nextRequest);
-  }
+  const {
+    clearScheduledPersist,
+    schedulePersistRequest,
+    updateRequest,
+    updateSelectedField,
+    upsertRequestInList,
+  } = useRequestPersistence({
+    actor,
+    selectedRequest,
+    selectedRequestId,
+    setRequestCollectionItems,
+    setRequestError,
+    setRequests,
+    setSavingRequestId,
+    setSelectedRequestOverride,
+  });
 
   const {
     addMissingSpecificationSections,
@@ -432,6 +224,17 @@ export function useRequestsView(
     selectedRequest,
     setRequestError,
     setSavingRequestId,
+    upsertRequestInList,
+  });
+
+  const { moveRequest } = useRequestReorder({
+    requestCollectionItems,
+    requests,
+    setRequestCollectionItems,
+    setRequestError,
+    setRequests,
+    setSavingRequestId,
+    statusFilters,
     upsertRequestInList,
   });
 
@@ -508,140 +311,19 @@ export function useRequestsView(
     }
   }
 
-  async function selectRequest(requestId) {
-    setSelectedRequestId(requestId);
-    setEditingRequestId("");
-    setChecklistDialogLabel("");
-    setNumberDrafts({});
-    setActiveDetailTab("main");
-
-    const loadedRequest = requests.find((request) => request.id === requestId);
-    if (loadedRequest) {
-      setSelectedRequestOverride(loadedRequest);
-      return;
-    }
-
-    try {
-      const payload = await fetchRequest(requestId);
-      if (payload.request) {
-        const request = normalizeRequest(payload.request);
-        setSelectedRequestOverride(request);
-        upsertRequestInList(request);
-      }
-    } catch (error) {
-      setRequestError(error.message);
-      setSelectedRequestId("");
-      setSelectedRequestOverride(null);
-    }
-  }
-
-  async function moveRequest(requestId, targetRequestId) {
-    if (
-      !requestId ||
-      !targetRequestId ||
-      requestId === targetRequestId ||
-      statusFilters.length
-    )
-      return;
-
-    const movedRequest = requestCollectionItems.find(
-      (request) => request.id === requestId,
-    );
-    const targetRequest = requestCollectionItems.find(
-      (request) => request.id === targetRequestId,
-    );
-    if (
-      !movedRequest ||
-      !targetRequest ||
-      String(movedRequest.collectionId || "") !==
-        String(targetRequest.collectionId || "")
-    )
-      return;
-
-    const collectionRequests = requestCollectionItems.filter(
-      (request) =>
-        String(request.collectionId || "") ===
-        String(movedRequest.collectionId || ""),
-    );
-    const currentIndex = collectionRequests.findIndex(
-      (request) => request.id === requestId,
-    );
-    const targetIndex = collectionRequests.findIndex(
-      (request) => request.id === targetRequestId,
-    );
-
-    if (currentIndex < 0 || targetIndex < 0 || currentIndex === targetIndex)
-      return;
-
-    const nextCollectionRequests = [...collectionRequests];
-    nextCollectionRequests.splice(currentIndex, 1);
-    nextCollectionRequests.splice(targetIndex, 0, movedRequest);
-
-    const previousRequest = nextCollectionRequests[targetIndex - 1] || null;
-    const nextRequest = nextCollectionRequests[targetIndex + 1] || null;
-    const previousRank = previousRequest?.listRank;
-    const nextRank = nextRequest?.listRank;
-    const optimisticRank =
-      Number.isFinite(previousRank) && Number.isFinite(nextRank)
-        ? (previousRank + nextRank) / 2
-        : Number.isFinite(nextRank)
-          ? nextRank + 1000
-          : Number.isFinite(previousRank)
-            ? previousRank - 1000
-            : Date.now();
-
-    const requestsBeforeMove = requests;
-    const collectionItemsBeforeMove = requestCollectionItems;
-    const applyOptimisticRank = (items) =>
-      sortRequestsForList(
-        items.map((request) =>
-          request.id === requestId
-            ? { ...request, listRank: optimisticRank }
-            : request,
-        ),
-      );
-
-    setRequests((current) => applyOptimisticRank(current));
-    setRequestCollectionItems((current) => applyOptimisticRank(current));
-    setSavingRequestId(requestId);
-    setRequestError("");
-
-    try {
-      const payload = await reorderRequest(requestId, {
-        previousRequestId: previousRequest?.id || "",
-        nextRequestId: nextRequest?.id || "",
-      });
-
-      if (payload.request) upsertRequestInList(payload.request);
-    } catch (error) {
-      setRequestError(error.message);
-      setRequests(requestsBeforeMove);
-      setRequestCollectionItems(collectionItemsBeforeMove);
-    } finally {
-      setSavingRequestId((current) => (current === requestId ? "" : current));
-    }
-  }
-
-  function closeSelectedRequest() {
-    setSelectedRequestId("");
-    setSelectedRequestOverride(null);
-    setEditingRequestId("");
-    setChecklistDialogLabel("");
-    setNumberDrafts({});
-    setActiveDetailTab("main");
-  }
-
-  function closeChecklistDialog() {
-    setChecklistDialogLabel("");
-  }
-
-  function toggleSelectedEditMode() {
-    if (!selectedRequest) return;
-
-    setEditingRequestId((current) =>
-      current === selectedRequest.id ? "" : selectedRequest.id,
-    );
-  }
+  const { closeSelectedRequest, selectRequest, toggleSelectedEditMode } =
+    useRequestSelection({
+      requests,
+      selectedRequest,
+      setActiveDetailTab,
+      setChecklistDialogLabel,
+      setEditingRequestId,
+      setNumberDrafts,
+      setRequestError,
+      setSelectedRequestId,
+      setSelectedRequestOverride,
+      upsertRequestInList,
+    });
 
   return {
     catalog,
@@ -654,8 +336,6 @@ export function useRequestsView(
     componentFilter,
     setComponentFilter,
     setRequestPage,
-    activeMobileSection,
-    setActiveMobileSection,
     statusFilters,
     filteredRequests,
     loadingRequests,
@@ -666,7 +346,6 @@ export function useRequestsView(
     loadRequestCollectionItems,
     selectRequest,
     setStatusFilters,
-    requests,
     selectedRequestId,
     activeDetailTab,
     selectedExecutedTotal,
@@ -683,7 +362,7 @@ export function useRequestsView(
     addSpecificationSection,
     addMissingSpecificationSections,
     clearNumberDraft,
-    closeChecklistDialog,
+    closeChecklistDialog: () => setChecklistDialogLabel(""),
     closeSelectedRequest,
     commitEstimatedJourneys,
     removeSelectedRequest,

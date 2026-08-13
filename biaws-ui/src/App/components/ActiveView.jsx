@@ -8,7 +8,7 @@ import { RequestsView } from "../../components/requests/RequestsView/index.jsx";
 import { OptionListsView } from "../../components/settings/OptionListsView/index.jsx";
 import { SkillsView } from "../../components/skills/SkillsView/index.jsx";
 import { IssueTaxonomyManager } from "../../components/taxonomy/IssueTaxonomyManager/index.jsx";
-import { HomeView } from "../../components/home/HomeView.jsx";
+import { HomeView } from "../../components/home/HomeView/index.jsx";
 import { WorkspaceAdminView } from "../../components/platform/WorkspaceAdminView.jsx";
 import { SecretsView } from "../../components/secrets/SecretsView/index.jsx";
 import { KnowledgeRecordsView } from "../../components/knowledge/KnowledgeRecordsView/index.jsx";

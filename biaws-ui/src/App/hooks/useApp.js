@@ -26,26 +26,7 @@ import {
   resolveActiveView,
 } from "../model.js";
 import { createRuntimeOptionListsLoader } from "../runtimeOptionLists.js";
-
-function allowedNavigationView(actor) {
-  return ({ permission }) => !permission || hasPermission(actor, permission);
-}
-
-function navigationSection(actor, section) {
-  return {
-    ...section,
-    views: section.views.filter(allowedNavigationView(actor)),
-  };
-}
-
-function navigationGroup(actor, group) {
-  return {
-    ...group,
-    sections: group.sections
-      .map((section) => navigationSection(actor, section))
-      .filter(({ views }) => views.length),
-  };
-}
+import { navigationGroup } from "../navigationModel.js";
 
 export function useApp(actor, preferredView) {
   const [activeView, setActiveView] = useState(() =>

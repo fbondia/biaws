@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 
-import {
-  createRuntimeManualMonitoringObservation,
-  fetchDocument,
-  fetchRuntimeMonitoringTimeline,
-} from "../../../../api.js";
+import { fetchDocument } from "../../../../api.js";
 import { buildUrl } from "../../../../api/client.js";
 import {
   appendPublicationDraft,
@@ -13,10 +9,9 @@ import {
   monitoringSignalCurl,
   runtimeMonitoringPath,
 } from "../model.js";
-import {
-  EMPTY_OBSERVATION_DRAFT,
-  EMPTY_PUBLICATION_DRAFT,
-} from "../constants.js";
+import { EMPTY_PUBLICATION_DRAFT } from "../constants.js";
+import { monitoringCliExample } from "../runtimeMonitoringModel.js";
+import { useRuntimeMonitoring } from "./useRuntimeMonitoring.js";
 
 function runtimeSignalUrl(runtimePath) {
   if (!runtimePath) return "";
@@ -40,12 +35,6 @@ export function useCatalogEntityDialog({
   const [publicationDraft, setPublicationDraft] = useState(
     EMPTY_PUBLICATION_DRAFT,
   );
-  const [observationDraft, setObservationDraft] = useState(
-    EMPTY_OBSERVATION_DRAFT,
-  );
-  const [monitoringEvents, setMonitoringEvents] = useState([]);
-  const [monitoringError, setMonitoringError] = useState("");
-  const [addingObservation, setAddingObservation] = useState(false);
   const [documentSelectorOpen, setDocumentSelectorOpen] = useState(false);
   const [relatedDocuments, setRelatedDocuments] = useState([]);
   const [relatedDocumentsLoading, setRelatedDocumentsLoading] = useState(false);
@@ -68,21 +57,11 @@ export function useCatalogEntityDialog({
     runtimeReference: runtimePath,
     workspaceId: options.workspace?.id,
   });
-
-  useEffect(() => {
-    if (kind !== "runtime" || !entity?.id) return undefined;
-    let active = true;
-    fetchRuntimeMonitoringTimeline(entity.id, { limit: 100 })
-      .then((payload) => {
-        if (active) setMonitoringEvents(payload.items || []);
-      })
-      .catch((loadError) => {
-        if (active) setMonitoringError(loadError.message);
-      });
-    return () => {
-      active = false;
-    };
-  }, [entity?.id, kind]);
+  const cliExample = monitoringCliExample({
+    runtimeReference: runtimePath,
+    workspaceId: options.workspace?.id,
+  });
+  const runtimeMonitoring = useRuntimeMonitoring({ editing, entity, kind });
 
   const relatedDocumentIds = (draft.documentLinks || [])
     .map(({ documentId }) => documentId)
@@ -140,32 +119,6 @@ export function useCatalogEntityDialog({
     setPublicationDraft(EMPTY_PUBLICATION_DRAFT);
   }
 
-  async function addObservation() {
-    if (!entity?.id || !observationDraft.observedAt) return;
-    setAddingObservation(true);
-    setMonitoringError("");
-    try {
-      const result = await createRuntimeManualMonitoringObservation(entity.id, {
-        status: observationDraft.healthStatus,
-        observedAt: new Date(observationDraft.observedAt).toISOString(),
-        source: observationDraft.source.trim(),
-        message: observationDraft.message.trim(),
-        metadata: {},
-      });
-      setMonitoringEvents((current) =>
-        [result.signal, ...current].sort(
-          (left, right) =>
-            new Date(right.observedAt) - new Date(left.observedAt),
-        ),
-      );
-      setObservationDraft(EMPTY_OBSERVATION_DRAFT);
-    } catch (addError) {
-      setMonitoringError(addError.message);
-    } finally {
-      setAddingObservation(false);
-    }
-  }
-
   async function submit(event) {
     event.preventDefault();
     setSaving(true);
@@ -203,18 +156,14 @@ export function useCatalogEntityDialog({
 
   return {
     activeSection,
-    addObservation,
     addPublication,
-    addingObservation,
+    cliExample,
     confirmDocuments,
     curlExample,
     documentSelectorOpen,
     draft,
     editing,
     error,
-    monitoringError,
-    monitoringEvents,
-    observationDraft,
     publicationDraft,
     relatedDocuments,
     relatedDocumentsLoading,
@@ -224,11 +173,11 @@ export function useCatalogEntityDialog({
     selectedDocument,
     setActiveSection,
     setDocumentSelectorOpen,
-    setObservationDraft,
     setPublicationDraft,
     setSelectedDocument,
     submit,
     update,
     updateDocumentPurpose,
+    ...runtimeMonitoring,
   };
 }

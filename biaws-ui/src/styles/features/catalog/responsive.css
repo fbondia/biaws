@@ -120,6 +120,35 @@
     grid-template-columns: 1fr;
   }
 
+  .catalogMonitoringSectionHeader,
+  .catalogActiveMonitorCard > header,
+  .catalogMonitoringCommand > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .catalogMonitoringSectionHeader > div:last-child,
+  .catalogActiveMonitorActions {
+    flex-wrap: wrap;
+  }
+
+  .catalogMonitoringRetentionPanel,
+  .catalogMonitoringDialogBody,
+  .catalogActiveMonitorCard dl {
+    grid-template-columns: 1fr;
+  }
+
+  .catalogMonitoringNestedBackdrop {
+    padding: 0;
+  }
+
+  .catalogMonitoringDialog {
+    width: 100vw;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
   .catalogRepositoryPrimaryField,
   .catalogRepositorySecondaryField {
     grid-column: auto;

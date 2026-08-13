@@ -19,7 +19,9 @@ function catalogEntitySections(kind) {
     return [
       ["basic", "Dados básicos"],
       ["service", "Serviço"],
-      ["monitoring", "Monitoramento"],
+      ["monitoring-config", "Configurações"],
+      ["monitoring-instructions", "Instruções"],
+      ["monitoring-history", "Histórico"],
       ["documents", "Documentação"],
     ];
   }
@@ -62,6 +64,26 @@ export function CatalogEntityDialog({
   const label = CATALOG_ENTITY_LABELS[kind];
   const sections = catalogEntitySections(kind);
 
+  function navigateTabs(event, currentIndex) {
+    const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+    if (!keys.includes(event.key)) return;
+    event.preventDefault();
+    const lastIndex = sections.length - 1;
+    const nextIndex =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? lastIndex
+          : event.key === "ArrowLeft"
+            ? (currentIndex - 1 + sections.length) % sections.length
+            : (currentIndex + 1) % sections.length;
+    const nextKey = sections[nextIndex][0];
+    setActiveSection(nextKey);
+    event.currentTarget.parentElement
+      ?.querySelector(`#catalog-entity-tab-${nextKey}`)
+      ?.focus();
+  }
+
   return (
     <div
       className="dialogBackdrop"
@@ -95,7 +117,7 @@ export function CatalogEntityDialog({
         <form onSubmit={submit}>
           <EntityFieldGroup active={Boolean(sections.length)}>
             <div className="catalogEntityTabs" role="tablist">
-              {sections.map(([key, title]) => (
+              {sections.map(([key, title], index) => (
                 <button
                   aria-selected={activeSection === key}
                   className={
@@ -106,7 +128,10 @@ export function CatalogEntityDialog({
                   disabled={!editing && key !== "basic"}
                   key={key}
                   onClick={() => setActiveSection(key)}
+                  onKeyDown={(event) => navigateTabs(event, index)}
                   role="tab"
+                  id={`catalog-entity-tab-${key}`}
+                  tabIndex={activeSection === key ? 0 : -1}
                   type="button"
                 >
                   {title}

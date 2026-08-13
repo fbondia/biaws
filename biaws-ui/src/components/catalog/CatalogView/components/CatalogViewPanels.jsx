@@ -183,6 +183,7 @@ export function CatalogDialogs({
             application: context?.application,
             applications: context?.availableApplications || [],
             canReadDocuments: hasPermission(actor, "documents.read"),
+            canUpdateRuntime: hasPermission(actor, "runtimes.update"),
             components: context?.components || [],
             deployments: context?.deployments || [],
             repositories: context?.repositories || [],

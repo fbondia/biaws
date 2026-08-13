@@ -1,0 +1,208 @@
+import { useCallback, useEffect, useState } from "react";
+
+import {
+  createRuntimeActiveMonitor,
+  createRuntimeManualMonitoringObservation,
+  deleteRuntimeActiveMonitor,
+  fetchRuntimeActiveMonitors,
+  fetchRuntimeMonitoringTimeline,
+  updateRuntimeActiveMonitor,
+} from "../../../../api.js";
+import {
+  activeMonitorDraft,
+  activeMonitorPayload,
+  newObservationDraft,
+} from "../runtimeMonitoringModel.js";
+
+function errorMessage(error) {
+  if (error?.statusCode === 409) {
+    return "A configuração mudou ou está em execução. Os dados foram recarregados; revise e tente novamente.";
+  }
+  return error?.message || "Não foi possível concluir a operação.";
+}
+
+export function useRuntimeMonitoring({ editing, entity, kind }) {
+  const runtimeId = kind === "runtime" ? entity?.id : "";
+  const [activeMonitors, setActiveMonitors] = useState([]);
+  const [monitoringEvents, setMonitoringEvents] = useState([]);
+  const [monitoringLoading, setMonitoringLoading] = useState(false);
+  const [monitoringError, setMonitoringError] = useState("");
+  const [monitoringNotice, setMonitoringNotice] = useState("");
+  const [monitorDraft, setMonitorDraft] = useState(null);
+  const [monitorSaving, setMonitorSaving] = useState(false);
+  const [monitorDeletingId, setMonitorDeletingId] = useState("");
+  const [observationDraft, setObservationDraft] = useState(null);
+  const [addingObservation, setAddingObservation] = useState(false);
+
+  const loadMonitoring = useCallback(async () => {
+    if (!runtimeId) return;
+    setMonitoringLoading(true);
+    setMonitoringError("");
+    const results = await Promise.allSettled([
+      fetchRuntimeActiveMonitors(runtimeId, { limit: 100 }),
+      fetchRuntimeMonitoringTimeline(runtimeId, { limit: 100 }),
+    ]);
+    if (results[0].status === "fulfilled") {
+      setActiveMonitors(results[0].value.items || []);
+    }
+    if (results[1].status === "fulfilled") {
+      setMonitoringEvents(results[1].value.items || []);
+    }
+    const failure = results.find(({ status }) => status === "rejected");
+    if (failure) setMonitoringError(errorMessage(failure.reason));
+    setMonitoringLoading(false);
+  }, [runtimeId]);
+
+  useEffect(() => {
+    if (!runtimeId) return undefined;
+    let active = true;
+    setMonitoringLoading(true);
+    setMonitoringError("");
+    Promise.allSettled([
+      fetchRuntimeActiveMonitors(runtimeId, { limit: 100 }),
+      fetchRuntimeMonitoringTimeline(runtimeId, { limit: 100 }),
+    ]).then((results) => {
+      if (!active) return;
+      if (results[0].status === "fulfilled") {
+        setActiveMonitors(results[0].value.items || []);
+      }
+      if (results[1].status === "fulfilled") {
+        setMonitoringEvents(results[1].value.items || []);
+      }
+      const failure = results.find(({ status }) => status === "rejected");
+      if (failure) setMonitoringError(errorMessage(failure.reason));
+      setMonitoringLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [runtimeId]);
+
+  function openMonitor(monitor) {
+    setMonitoringError("");
+    setMonitoringNotice("");
+    setMonitorDraft(activeMonitorDraft(monitor));
+  }
+
+  async function saveMonitor() {
+    if (!runtimeId || !monitorDraft) return;
+    setMonitorSaving(true);
+    setMonitoringError("");
+    try {
+      const payload = activeMonitorPayload(monitorDraft);
+      const result = monitorDraft.id
+        ? await updateRuntimeActiveMonitor(runtimeId, monitorDraft.id, payload)
+        : await createRuntimeActiveMonitor(runtimeId, payload);
+      setActiveMonitors((current) =>
+        [
+          ...current.filter(({ id }) => id !== result.monitor.id),
+          result.monitor,
+        ].sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
+      );
+      setMonitorDraft(null);
+      setMonitoringNotice(
+        monitorDraft.id ? "Monitoramento atualizado." : "Monitoramento criado.",
+      );
+    } catch (error) {
+      setMonitoringError(errorMessage(error));
+      if (error?.statusCode === 409) await loadMonitoring();
+    } finally {
+      setMonitorSaving(false);
+    }
+  }
+
+  async function toggleMonitor(monitor) {
+    setMonitoringError("");
+    try {
+      const result = await updateRuntimeActiveMonitor(runtimeId, monitor.id, {
+        enabled: !monitor.enabled,
+      });
+      setActiveMonitors((current) =>
+        current.map((item) => (item.id === monitor.id ? result.monitor : item)),
+      );
+      setMonitoringNotice(
+        result.monitor.enabled
+          ? "Monitoramento ativado."
+          : "Monitoramento desativado.",
+      );
+    } catch (error) {
+      setMonitoringError(errorMessage(error));
+      if (error?.statusCode === 409) await loadMonitoring();
+    }
+  }
+
+  async function removeMonitor(monitor) {
+    if (!window.confirm(`Arquivar o monitoramento “${monitor.name}”?`)) return;
+    setMonitorDeletingId(monitor.id);
+    setMonitoringError("");
+    try {
+      await deleteRuntimeActiveMonitor(runtimeId, monitor.id);
+      setActiveMonitors((current) =>
+        current.filter(({ id }) => id !== monitor.id),
+      );
+      setMonitoringNotice("Monitoramento arquivado.");
+    } catch (error) {
+      setMonitoringError(errorMessage(error));
+      if (error?.statusCode === 409) await loadMonitoring();
+    } finally {
+      setMonitorDeletingId("");
+    }
+  }
+
+  function openObservation() {
+    setMonitoringError("");
+    setMonitoringNotice("");
+    setObservationDraft(newObservationDraft());
+  }
+
+  async function addObservation() {
+    if (!editing || !runtimeId || !observationDraft?.observedAt) return;
+    setAddingObservation(true);
+    setMonitoringError("");
+    try {
+      const result = await createRuntimeManualMonitoringObservation(runtimeId, {
+        status: observationDraft.healthStatus,
+        observedAt: new Date(observationDraft.observedAt).toISOString(),
+        source: observationDraft.source.trim() || "manual",
+        message: observationDraft.message.trim(),
+        metadata: {},
+      });
+      setMonitoringEvents((current) =>
+        [result.signal, ...current].sort(
+          (left, right) =>
+            new Date(right.observedAt) - new Date(left.observedAt),
+        ),
+      );
+      setObservationDraft(null);
+      setMonitoringNotice("Observação manual registrada.");
+    } catch (error) {
+      setMonitoringError(errorMessage(error));
+    } finally {
+      setAddingObservation(false);
+    }
+  }
+
+  return {
+    activeMonitors,
+    addObservation,
+    addingObservation,
+    closeMonitor: () => setMonitorDraft(null),
+    closeObservation: () => setObservationDraft(null),
+    loadMonitoring,
+    monitorDeletingId,
+    monitorDraft,
+    monitorSaving,
+    monitoringError,
+    monitoringEvents,
+    monitoringLoading,
+    monitoringNotice,
+    observationDraft,
+    openMonitor,
+    openObservation,
+    removeMonitor,
+    saveMonitor,
+    setMonitorDraft,
+    setObservationDraft,
+    toggleMonitor,
+  };
+}

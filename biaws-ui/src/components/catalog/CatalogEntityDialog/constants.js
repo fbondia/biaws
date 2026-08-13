@@ -82,3 +82,25 @@ export const EMPTY_OBSERVATION_DRAFT = {
   source: "",
   message: "",
 };
+
+export const EMPTY_ACTIVE_MONITOR_DRAFT = {
+  id: "",
+  name: "",
+  description: "",
+  provider: "rest",
+  enabled: true,
+  intervalSeconds: 60,
+  timeoutSeconds: 10,
+  restMethod: "GET",
+  restUrl: "",
+  restHeadersText: "{}",
+  restHeaderRefsText: "[]",
+  restBody: "",
+  restExpectedStatusesText: "200",
+  restFollowRedirects: false,
+  shellScriptId: "",
+  shellArgumentsText: "",
+  shellEnvironmentText: "{}",
+  templateId: "",
+  templateVersion: "",
+};

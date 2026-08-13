@@ -7,7 +7,11 @@ import {
   RUNTIME_STATUSES,
 } from "../constants.js";
 import { EntityFieldGroup, SelectField, TextField } from "./Fields.jsx";
-import { RuntimeMonitoringSection } from "./RuntimeMonitoringSection.jsx";
+import {
+  RuntimeMonitoringConfiguration,
+  RuntimeMonitoringHistory,
+  RuntimeMonitoringInstructions,
+} from "./RuntimeMonitoring/index.jsx";
 
 export function RuntimeFields({
   activeSection,
@@ -17,19 +21,14 @@ export function RuntimeFields({
   options,
 }) {
   const {
-    addObservation,
-    addingObservation,
+    cliExample,
     curlExample,
     draft,
     editing,
-    monitoringError,
-    monitoringEvents,
-    observationDraft,
     relatedDocuments,
     relatedDocumentsLoading,
     runtimePath,
     setDocumentSelectorOpen,
-    setObservationDraft,
     setSelectedDocument,
     update,
     updateDocumentPurpose,
@@ -111,22 +110,39 @@ export function RuntimeFields({
       </EntityFieldGroup>
 
       <EntityFieldGroup
-        active={kind === "runtime" && activeSection === "monitoring"}
+        active={kind === "runtime" && activeSection === "monitoring-config"}
       >
-        <RuntimeMonitoringSection
-          addObservation={addObservation}
-          addingObservation={addingObservation}
-          curlExample={curlExample}
+        <RuntimeMonitoringConfiguration
+          controller={controller}
           draft={draft}
           editing={editing}
+          options={options}
+          update={update}
+        />
+      </EntityFieldGroup>
+
+      <EntityFieldGroup
+        active={
+          kind === "runtime" && activeSection === "monitoring-instructions"
+        }
+      >
+        <RuntimeMonitoringInstructions
+          cliExample={cliExample}
+          curlExample={curlExample}
           entity={entity}
-          monitoringError={monitoringError}
-          monitoringEvents={monitoringEvents}
-          observationDraft={observationDraft}
           options={options}
           runtimePath={runtimePath}
-          setObservationDraft={setObservationDraft}
-          update={update}
+        />
+      </EntityFieldGroup>
+
+      <EntityFieldGroup
+        active={kind === "runtime" && activeSection === "monitoring-history"}
+      >
+        <RuntimeMonitoringHistory
+          controller={controller}
+          editing={editing}
+          entity={entity}
+          options={options}
         />
       </EntityFieldGroup>
 

@@ -280,6 +280,33 @@ export function fetchRuntimeMonitoringTimeline(runtimeId, params) {
     params,
   );
 }
+export function fetchRuntimeActiveMonitors(runtimeId, params) {
+  return fetchJson(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/active-monitors`,
+    params,
+  );
+}
+export function createRuntimeActiveMonitor(runtimeId, monitor) {
+  return sendJson(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/active-monitors`,
+    monitor,
+    undefined,
+    "POST",
+  );
+}
+export function updateRuntimeActiveMonitor(runtimeId, monitorId, monitor) {
+  return sendJson(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/active-monitors/${encodeURIComponent(monitorId)}`,
+    monitor,
+    undefined,
+    "PATCH",
+  );
+}
+export function deleteRuntimeActiveMonitor(runtimeId, monitorId) {
+  return deleteJson(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/active-monitors/${encodeURIComponent(monitorId)}`,
+  );
+}
 export function createRuntimeManualMonitoringObservation(
   runtimeId,
   observation,

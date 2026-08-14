@@ -7,6 +7,7 @@ export function WidgetContent({
   canRequestMonitoringExecution,
   config,
   data,
+  isMonitoringExecutionPending,
   onOpenRequestTask,
   onRequestMonitoringExecution,
   onSelectRuntime,
@@ -29,6 +30,7 @@ export function WidgetContent({
         canRequestMonitoringExecution={canRequestMonitoringExecution}
         config={config}
         data={data}
+        isMonitoringExecutionPending={isMonitoringExecutionPending}
         onSelectRuntime={onSelectRuntime}
         onRequestExecution={onRequestMonitoringExecution}
       />

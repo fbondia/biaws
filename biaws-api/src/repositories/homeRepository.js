@@ -723,6 +723,8 @@ function runtimeHealthItem(
     latestSignal: latestSignal
       ? {
           id: latestSignal.id,
+          executionId: latestSignal.executionId,
+          trigger: latestSignal.trigger,
           metadata: latestSignal.metadata || {},
           ...(latestSignal.metadataProfile
             ? { metadataProfile: latestSignal.metadataProfile }

@@ -79,6 +79,19 @@ test("home dashboard exposes widget controls while personalizing", async () => {
     assert.equal(requestedRuntime.id, "runtime-1");
     assert.equal(requestedRuntime.applicationId, "application-1");
     monitoringRoot.unmount();
+
+    const pendingRoot = mountMonitoringHomeDashboard(
+      document.getElementById("app"),
+      () => {},
+      true,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const pendingButton = document.querySelector(
+      'button[aria-label="Executar monitor de Principal"]',
+    );
+    assert.equal(pendingButton.disabled, true);
+    assert.ok(pendingButton.querySelector(".spinIcon"));
+    pendingRoot.unmount();
   } finally {
     for (const [name, descriptor] of Object.entries(previous)) {
       if (descriptor) Object.defineProperty(globalThis, name, descriptor);

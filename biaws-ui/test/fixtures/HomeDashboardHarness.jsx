@@ -49,7 +49,11 @@ export function mountEditingHomeDashboard(container) {
   return root;
 }
 
-export function mountMonitoringHomeDashboard(container, onRequestExecution) {
+export function mountMonitoringHomeDashboard(
+  container,
+  onRequestExecution,
+  isExecutionPending = false,
+) {
   const definition = {
     id: "application-health",
     category: "Monitoramento",
@@ -104,6 +108,7 @@ export function mountMonitoringHomeDashboard(container, onRequestExecution) {
       draggingId=""
       editing={false}
       error=""
+      isMonitoringExecutionPending={() => isExecutionPending}
       loading={false}
       onAddWidget={noop}
       onBeginEditing={noop}

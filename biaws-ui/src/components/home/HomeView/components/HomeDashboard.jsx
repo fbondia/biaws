@@ -22,6 +22,7 @@ export function HomeDashboard({
   editing,
   error,
   loading,
+  isMonitoringExecutionPending,
   onAddWidget,
   onBeginEditing,
   onCancel,
@@ -68,6 +69,7 @@ export function HomeDashboard({
         dashboard={dashboard}
         draggingId={draggingId}
         editing={editing}
+        isMonitoringExecutionPending={isMonitoringExecutionPending}
         onBeginEditing={onBeginEditing}
         onConfigure={onConfigure}
         onDragEnd={onDragEnd}
@@ -191,6 +193,7 @@ function HomeWidgetCard({
   draggingId,
   editing,
   instance,
+  isMonitoringExecutionPending,
   onConfigure,
   onDragEnd,
   onDragStart,
@@ -266,6 +269,7 @@ function HomeWidgetCard({
           canRequestMonitoringExecution={canRequestMonitoringExecution}
           config={instance.config}
           data={dashboard.data[instance.id]}
+          isMonitoringExecutionPending={isMonitoringExecutionPending}
           onOpenRequestTask={onOpenRequestTask}
           onRequestMonitoringExecution={onRequestMonitoringExecution}
           onSelectRuntime={onSelectRuntime}

@@ -939,6 +939,16 @@ test(
         duplicateManualExecution.execution.id,
         manualExecution.execution.id,
       );
+      const monitorsWithQueuedExecution = await (
+        await request(
+          `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
+          { cookie: adminCookie },
+        )
+      ).json();
+      assert.equal(
+        monitorsWithQueuedExecution.items[0].pendingExecution.status,
+        "queued",
+      );
       const manualLeaseResponse = await request(
         "/api/monitoring/executor/leases",
         {
@@ -953,6 +963,33 @@ test(
       assert.equal(manualLease.id, activeMonitor.id);
       assert.equal(manualLease.executionId, manualExecution.execution.id);
       assert.equal(manualLease.trigger, "manual");
+      const duplicateWhileRunningResponse = await request(
+        manualExecutionRoute,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {},
+          origin: true,
+        },
+      );
+      assert.equal(duplicateWhileRunningResponse.status, 200);
+      const duplicateWhileRunning = await duplicateWhileRunningResponse.json();
+      assert.equal(duplicateWhileRunning.created, false);
+      assert.equal(
+        duplicateWhileRunning.execution.id,
+        manualExecution.execution.id,
+      );
+      assert.equal(duplicateWhileRunning.execution.status, "running");
+      const monitorsWithRunningExecution = await (
+        await request(
+          `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
+          { cookie: adminCookie },
+        )
+      ).json();
+      assert.equal(
+        monitorsWithRunningExecution.items[0].pendingExecution.status,
+        "running",
+      );
       const monitorAfterManualLease = await database
         .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
         .findOne({ id: activeMonitor.id });
@@ -982,6 +1019,67 @@ test(
         manualExecution.execution.id,
       );
       assert.equal(manualResult.signal.trigger, "manual");
+      const monitorsAfterManualResult = await (
+        await request(
+          `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
+          { cookie: adminCookie },
+        )
+      ).json();
+      assert.equal(
+        monitorsAfterManualResult.items[0].pendingExecution,
+        undefined,
+      );
+      const secondManualExecutionResponse = await request(
+        manualExecutionRoute,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {},
+          origin: true,
+        },
+      );
+      assert.equal(secondManualExecutionResponse.status, 202);
+      const secondManualExecution = await secondManualExecutionResponse.json();
+      assert.equal(secondManualExecution.created, true);
+      assert.notEqual(
+        secondManualExecution.execution.id,
+        manualExecution.execution.id,
+      );
+      await database
+        .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
+        .updateOne(
+          { id: activeMonitor.id },
+          {
+            $set: {
+              lease: {
+                token: "expired-scheduled-lease",
+                executionId: "expired-scheduled-execution",
+                executorId: "previous-runner",
+                scheduledFor: new Date("2026-07-30T11:00:00.000Z"),
+                leasedAt: new Date("2026-07-30T11:00:00.000Z"),
+                leasedUntil: new Date("2026-07-30T11:01:00.000Z"),
+                trigger: "scheduled",
+              },
+            },
+          },
+        );
+      const leaseAfterExpiredExecution = await request(
+        "/api/monitoring/executor/leases",
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: { executorId: "integration-runner", leaseSeconds: 60 },
+          origin: true,
+        },
+      );
+      assert.equal(leaseAfterExpiredExecution.status, 200);
+      const recoveredManualLease = (await leaseAfterExpiredExecution.json())
+        .items[0];
+      assert.equal(
+        recoveredManualLease.executionId,
+        secondManualExecution.execution.id,
+      );
+      assert.equal(recoveredManualLease.trigger, "manual");
       const timelineAfterActive = await (
         await request(`/api/monitoring/runtimes/${runtime.id}/timeline`, {
           cookie: adminCookie,

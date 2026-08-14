@@ -3,6 +3,7 @@ import {
   CheckSquare2,
   GripVertical,
   LayoutDashboard,
+  LoaderCircle,
   Play,
   RefreshCw,
   Settings2,
@@ -258,6 +259,7 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [executionDialog, setExecutionDialog] = useState(null);
+  const [pendingExecutions, setPendingExecutions] = useState({});
   const loadPromiseRef = useRef(null);
   const selectedWidgets = useMemo(
     () => selectedMonitoringWidgets(targets, widgets),
@@ -336,6 +338,30 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
     intervalMs: MONITORING_REFRESH_INTERVAL_MS,
   });
 
+  useEffect(() => {
+    const completed = new Set(
+      Object.values(healthByRuntimeId).flatMap((health) =>
+        (health?.items || []).flatMap((application) =>
+          (application.components || []).flatMap((component) =>
+            (component.deployments || []).flatMap((deployment) =>
+              (deployment.runtimes || [])
+                .map((runtime) => runtime.latestSignal?.executionId)
+                .filter(Boolean),
+            ),
+          ),
+        ),
+      ),
+    );
+    setPendingExecutions((current) => {
+      const entries = Object.entries(current).filter(
+        ([, executionId]) => !completed.has(executionId),
+      );
+      return entries.length === Object.keys(current).length
+        ? current
+        : Object.fromEntries(entries);
+    });
+  }, [healthByRuntimeId]);
+
   async function saveSelection(nextWidgets) {
     setSaving(true);
     setError("");
@@ -356,13 +382,16 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
     }
   }
 
-  function executionRequested({ monitor, result }) {
+  function executionRequested({ monitor, result, target }) {
+    setPendingExecutions((current) => ({
+      ...current,
+      [target.id]: result.execution.id,
+    }));
     setNotice(
       result.created
         ? `Execução de “${monitor.name}” solicitada.`
         : `“${monitor.name}” já possuía uma execução pendente.`,
     );
-    setExecutionDialog(null);
   }
 
   return (
@@ -447,11 +476,16 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
                   <button
                     aria-label={`Executar monitor de ${target.name}`}
                     className="iconButton"
+                    disabled={Boolean(pendingExecutions[target.id])}
                     onClick={() => setExecutionDialog(target)}
                     title="Executar monitor agora"
                     type="button"
                   >
-                    <Play size={16} />
+                    {pendingExecutions[target.id] ? (
+                      <LoaderCircle className="spinIcon" size={16} />
+                    ) : (
+                      <Play size={16} />
+                    )}
                   </button>
                 ) : null}
               </header>
@@ -481,7 +515,10 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
       ) : null}
       {executionDialog ? (
         <MonitoringExecutionDialog
-          onClose={() => setExecutionDialog(null)}
+          onClose={() => {
+            setExecutionDialog(null);
+            void load();
+          }}
           onRequested={executionRequested}
           target={executionDialog}
         />

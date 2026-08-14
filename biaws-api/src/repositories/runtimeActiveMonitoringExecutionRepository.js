@@ -40,13 +40,19 @@ function leaseResponse(monitor) {
   };
 }
 
-function manualExecutionResponse(request) {
+function manualExecutionResponse(request, status = "queued") {
   return {
     id: request.id,
     requestedAt: request.requestedAt,
-    status: "queued",
+    status,
     trigger: "manual",
   };
+}
+
+function activeManualLease(monitor) {
+  return monitor.lease?.trigger === "manual" && !monitor.lease.completedAt
+    ? monitor.lease
+    : null;
 }
 
 export async function requestActiveMonitorExecution(
@@ -83,6 +89,20 @@ export async function requestActiveMonitorExecution(
       execution: manualExecutionResponse(current.manualRunRequest),
     };
   }
+  const runningManualLease = activeManualLease(current);
+  if (runningManualLease) {
+    return {
+      created: false,
+      monitor: { id: current.id, name: current.name },
+      execution: manualExecutionResponse(
+        {
+          id: runningManualLease.executionId,
+          requestedAt: runningManualLease.scheduledFor,
+        },
+        "running",
+      ),
+    };
+  }
 
   const now = new Date();
   const request = {
@@ -95,6 +115,10 @@ export async function requestActiveMonitorExecution(
       ...filter,
       enabled: true,
       manualRunRequest: { $exists: false },
+      $or: [
+        { "lease.trigger": { $ne: "manual" } },
+        { "lease.completedAt": { $exists: true } },
+      ],
     },
     {
       $set: {
@@ -119,6 +143,20 @@ export async function requestActiveMonitorExecution(
       created: false,
       monitor: { id: concurrent.id, name: concurrent.name },
       execution: manualExecutionResponse(concurrent.manualRunRequest),
+    };
+  }
+  const concurrentManualLease = activeManualLease(concurrent || {});
+  if (concurrentManualLease) {
+    return {
+      created: false,
+      monitor: { id: concurrent.id, name: concurrent.name },
+      execution: manualExecutionResponse(
+        {
+          id: concurrentManualLease.executionId,
+          requestedAt: concurrentManualLease.scheduledFor,
+        },
+        "running",
+      ),
     };
   }
   throw createCatalogError(
@@ -224,6 +262,10 @@ async function acquireManualLease(collection, scope, request, now) {
       $or: [
         { lease: { $exists: false } },
         { "lease.completedAt": { $exists: true } },
+        {
+          "lease.completedAt": { $exists: false },
+          "lease.leasedUntil": { $lte: now },
+        },
       ],
     },
     { sort: { "manualRunRequest.requestedAt": 1, id: 1 } },
@@ -231,12 +273,19 @@ async function acquireManualLease(collection, scope, request, now) {
   if (!candidate) return null;
   const manualRequest = candidate.manualRunRequest;
   const leasedUntil = new Date(now.getTime() + request.leaseSeconds * 1_000);
-  const leaseFilter = candidate.lease?.completedAt
-    ? {
-        "lease.token": candidate.lease.token,
-        "lease.completedAt": candidate.lease.completedAt,
-      }
-    : { lease: { $exists: false } };
+  let leaseFilter = { lease: { $exists: false } };
+  if (candidate.lease?.completedAt) {
+    leaseFilter = {
+      "lease.token": candidate.lease.token,
+      "lease.completedAt": candidate.lease.completedAt,
+    };
+  } else if (candidate.lease) {
+    leaseFilter = {
+      "lease.token": candidate.lease.token,
+      "lease.completedAt": { $exists: false },
+      "lease.leasedUntil": candidate.lease.leasedUntil,
+    };
+  }
   return collection.findOneAndUpdate(
     {
       id: candidate.id,
@@ -280,8 +329,8 @@ export async function acquireDueActiveMonitors(
   ) {
     const now = new Date();
     const monitor =
-      (await acquireExpiredLease(collection, scope, request, now)) ||
       (await acquireManualLease(collection, scope, request, now)) ||
+      (await acquireExpiredLease(collection, scope, request, now)) ||
       (await acquireDueLease(collection, scope, request, now));
     if (!monitor) break;
     items.push(leaseResponse(monitor));

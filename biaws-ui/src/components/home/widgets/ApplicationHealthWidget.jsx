@@ -1,4 +1,4 @@
-import { Clock3, History, Play, Server } from "lucide-react";
+import { Clock3, History, LoaderCircle, Play, Server } from "lucide-react";
 import { useState } from "react";
 
 import { MonitoringMetadataPresentation } from "../../shared/MonitoringEventDetails/index.jsx";
@@ -21,6 +21,7 @@ function HealthMetadataExplorer({
   applications,
   canRequestExecution,
   hideTabs,
+  isExecutionPending,
   onRequestExecution,
   onSelectRuntime,
   selectedApplicationId,
@@ -119,11 +120,16 @@ function HealthMetadataExplorer({
               <button
                 aria-label={`Executar monitor de ${activeRuntime.name}`}
                 className="secondaryButton"
+                disabled={isExecutionPending?.(activeRuntime)}
                 onClick={() => onRequestExecution(activeRuntime)}
                 title="Executar monitor agora"
                 type="button"
               >
-                <Play size={16} />
+                {isExecutionPending?.(activeRuntime) ? (
+                  <LoaderCircle className="spinIcon" size={16} />
+                ) : (
+                  <Play size={16} />
+                )}
               </button>
             ) : null}
             <button
@@ -163,6 +169,7 @@ function HealthMetadataExplorer({
 
 function HealthRuntimeCard({
   canRequestExecution,
+  isExecutionPending,
   onRequestExecution,
   onSelectRuntime,
   runtime,
@@ -195,11 +202,16 @@ function HealthRuntimeCard({
         <button
           aria-label={`Executar monitor de ${runtime.name}`}
           className="iconButton homeHealthRuntimeExecution"
+          disabled={isExecutionPending?.(runtime)}
           onClick={() => onRequestExecution(runtime)}
           title="Executar monitor agora"
           type="button"
         >
-          <Play size={15} />
+          {isExecutionPending?.(runtime) ? (
+            <LoaderCircle className="spinIcon" size={15} />
+          ) : (
+            <Play size={15} />
+          )}
         </button>
       ) : null}
     </div>
@@ -210,6 +222,7 @@ function HealthDeploymentSection({
   applicationId,
   canRequestExecution,
   deployment,
+  isExecutionPending,
   onRequestExecution,
   onSelectRuntime,
 }) {
@@ -224,6 +237,7 @@ function HealthDeploymentSection({
         {deployment.runtimes.map((runtime) => (
           <HealthRuntimeCard
             canRequestExecution={canRequestExecution}
+            isExecutionPending={isExecutionPending}
             key={runtime.id}
             onRequestExecution={onRequestExecution}
             onSelectRuntime={onSelectRuntime}
@@ -239,6 +253,7 @@ function HealthComponentSection({
   applicationId,
   canRequestExecution,
   component,
+  isExecutionPending,
   onRequestExecution,
   onSelectRuntime,
 }) {
@@ -253,6 +268,7 @@ function HealthComponentSection({
             applicationId={applicationId}
             canRequestExecution={canRequestExecution}
             deployment={deployment}
+            isExecutionPending={isExecutionPending}
             key={deployment.id}
             onRequestExecution={onRequestExecution}
             onSelectRuntime={onSelectRuntime}
@@ -266,6 +282,7 @@ function HealthComponentSection({
 function HealthApplicationSection({
   application,
   canRequestExecution,
+  isExecutionPending,
   onRequestExecution,
   onSelectRuntime,
 }) {
@@ -285,6 +302,7 @@ function HealthApplicationSection({
             applicationId={application.id}
             canRequestExecution={canRequestExecution}
             component={component}
+            isExecutionPending={isExecutionPending}
             key={component.id}
             onRequestExecution={onRequestExecution}
             onSelectRuntime={onSelectRuntime}
@@ -299,6 +317,7 @@ export function ApplicationHealthWidget({
   canRequestMonitoringExecution,
   config,
   data,
+  isMonitoringExecutionPending,
   onRequestExecution,
   onSelectRuntime,
 }) {
@@ -316,6 +335,7 @@ export function ApplicationHealthWidget({
           applications={data.items}
           canRequestExecution={canRequestMonitoringExecution}
           hideTabs={Boolean(config?.runtimeId)}
+          isExecutionPending={isMonitoringExecutionPending}
           onRequestExecution={onRequestExecution}
           onSelectRuntime={onSelectRuntime}
           selectedApplicationId={config?.applicationId}
@@ -327,6 +347,7 @@ export function ApplicationHealthWidget({
             <HealthApplicationSection
               application={application}
               canRequestExecution={canRequestMonitoringExecution}
+              isExecutionPending={isMonitoringExecutionPending}
               key={application.id}
               onRequestExecution={onRequestExecution}
               onSelectRuntime={onSelectRuntime}

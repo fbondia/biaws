@@ -1,11 +1,12 @@
-import { Play, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { LoaderCircle, Play, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   fetchRuntimeActiveMonitors,
   requestRuntimeActiveMonitorExecution,
 } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
+import { useAutoRefresh } from "../../../hooks/useAutoRefresh.js";
 import "../../../styles/features/monitoring-execution.css";
 
 export function canRequestMonitoringExecution(actor, applicationId) {
@@ -22,14 +23,17 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
   const [error, setError] = useState("");
   const [requestingId, setRequestingId] = useState("");
 
+  const loadMonitors = useCallback(async () => {
+    const payload = await fetchRuntimeActiveMonitors(target.id, { limit: 50 });
+    setMonitors(payload.items || []);
+    setError("");
+  }, [target.id]);
+
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError("");
-    void fetchRuntimeActiveMonitors(target.id, { limit: 50 })
-      .then((payload) => {
-        if (active) setMonitors(payload.items || []);
-      })
+    void loadMonitors()
       .catch((loadError) => {
         if (active) setError(loadError.message);
       })
@@ -39,7 +43,9 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
     return () => {
       active = false;
     };
-  }, [target.id]);
+  }, [loadMonitors]);
+
+  useAutoRefresh(loadMonitors);
 
   async function requestExecution(monitor) {
     setRequestingId(monitor.id);
@@ -48,6 +54,13 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
       const result = await requestRuntimeActiveMonitorExecution(
         target.id,
         monitor.id,
+      );
+      setMonitors((current) =>
+        current.map((item) =>
+          item.id === monitor.id
+            ? { ...item, pendingExecution: result.execution }
+            : item,
+        ),
       );
       onRequested({ monitor, result, target });
     } catch (requestError) {
@@ -105,11 +118,17 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
                     <strong>{monitor.name}</strong>
                     <small>
                       {monitor.pendingExecution
-                        ? "Execução já solicitada"
+                        ? monitor.pendingExecution.status === "running"
+                          ? "Execução manual em andamento"
+                          : "Execução já solicitada"
                         : `${monitor.provider.toUpperCase()} · executar sem alterar a agenda`}
                     </small>
                   </span>
-                  <Play size={16} />
+                  {requestingId === monitor.id || monitor.pendingExecution ? (
+                    <LoaderCircle className="spinIcon" size={16} />
+                  ) : (
+                    <Play size={16} />
+                  )}
                 </button>
               ))}
               {!enabledMonitors.length ? (

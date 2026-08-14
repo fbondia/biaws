@@ -48,18 +48,24 @@ function publicActiveMonitor(document) {
   const monitor = normalizeDocument(document);
   if (!monitor) return null;
   const { lease, nameKey, manualRunRequest, ...publicMonitor } = monitor;
+  const pendingExecution = manualRunRequest
+    ? {
+        id: manualRunRequest.id,
+        requestedAt: manualRunRequest.requestedAt,
+        status: "queued",
+        trigger: "manual",
+      }
+    : lease?.trigger === "manual" && !lease.completedAt
+      ? {
+          id: lease.executionId,
+          requestedAt: lease.scheduledFor,
+          status: "running",
+          trigger: "manual",
+        }
+      : null;
   return {
     ...publicMonitor,
-    ...(manualRunRequest
-      ? {
-          pendingExecution: {
-            id: manualRunRequest.id,
-            requestedAt: manualRunRequest.requestedAt,
-            status: "queued",
-            trigger: "manual",
-          },
-        }
-      : {}),
+    ...(pendingExecution ? { pendingExecution } : {}),
   };
 }
 

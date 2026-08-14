@@ -12,12 +12,43 @@ import {
   MonitoringExecutionDialog,
 } from "../../monitoring/runtime/MonitoringExecutionDialog.jsx";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+function completedExecutionIds(dashboard) {
+  const ids = new Set();
+  for (const widget of Object.values(dashboard?.data || {})) {
+    for (const application of widget?.items || []) {
+      for (const component of application.components || []) {
+        for (const deployment of component.deployments || []) {
+          for (const runtime of deployment.runtimes || []) {
+            if (runtime.latestSignal?.executionId) {
+              ids.add(runtime.latestSignal.executionId);
+            }
+          }
+        }
+      }
+    }
+  }
+  return ids;
+}
 
 export function HomeView({ actor, onOpenRequestTask }) {
   const home = useHomeView();
   const [executionTarget, setExecutionTarget] = useState(null);
   const [executionNotice, setExecutionNotice] = useState("");
+  const [pendingExecutions, setPendingExecutions] = useState({});
+
+  useEffect(() => {
+    const completed = completedExecutionIds(home.dashboard);
+    setPendingExecutions((current) => {
+      const entries = Object.entries(current).filter(
+        ([, executionId]) => !completed.has(executionId),
+      );
+      return entries.length === Object.keys(current).length
+        ? current
+        : Object.fromEntries(entries);
+    });
+  }, [home.dashboard]);
 
   if (home.loading && !home.dashboard) {
     return (
@@ -70,6 +101,9 @@ export function HomeView({ actor, onOpenRequestTask }) {
         canRequestMonitoringExecution={(runtime) =>
           canRequestMonitoringExecution(actor, runtime.applicationId)
         }
+        isMonitoringExecutionPending={(runtime) =>
+          Boolean(pendingExecutions[runtime.id])
+        }
         onRequestMonitoringExecution={setExecutionTarget}
         onRefresh={() => void home.load()}
         onRemove={home.removeWidget}
@@ -101,14 +135,20 @@ export function HomeView({ actor, onOpenRequestTask }) {
       ) : null}
       {executionTarget ? (
         <MonitoringExecutionDialog
-          onClose={() => setExecutionTarget(null)}
-          onRequested={({ monitor, result }) => {
+          onClose={() => {
+            setExecutionTarget(null);
+            void home.load();
+          }}
+          onRequested={({ monitor, result, target }) => {
+            setPendingExecutions((current) => ({
+              ...current,
+              [target.id]: result.execution.id,
+            }));
             setExecutionNotice(
               result.created
                 ? `Execução de “${monitor.name}” solicitada.`
                 : `“${monitor.name}” já possuía uma execução pendente.`,
             );
-            setExecutionTarget(null);
           }}
           target={executionTarget}
         />

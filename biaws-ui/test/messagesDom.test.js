@@ -11,10 +11,7 @@ const STYLE_FILES = {
     import.meta.url,
   ),
   controls: new URL("../src/styles/shared/controls.css", import.meta.url),
-  files: new URL(
-    "../src/styles/features/issues/dialogs/files.css",
-    import.meta.url,
-  ),
+  files: new URL("../src/styles/shared/files-panel.css", import.meta.url),
   home: new URL("../src/styles/features/home/dialogs.css", import.meta.url),
   knowledge: new URL(
     "../src/styles/features/knowledge/details.css",

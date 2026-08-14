@@ -42,6 +42,9 @@ test("requests CSS graph includes its shared collection and UI primitives", asyn
   for (const selector of [
     "contentBand",
     "detailTabs",
+    "fileAttachmentItem",
+    "fileTagFilters",
+    "fileUploadBox",
     "panelHeader",
     "spinIcon",
     "resourceCollectionTreeRow",

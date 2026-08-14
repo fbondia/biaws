@@ -9,6 +9,7 @@ import { createRoot } from "react-dom/client";
 import {
   monitoringRefreshIntervalMs,
   useAutoRefresh,
+  useManualExecutionRefresh,
 } from "../src/hooks/useAutoRefresh.js";
 
 test("monitoring refresh interval has a safe default and lower bound", () => {
@@ -111,6 +112,31 @@ test("auto refresh pauses while hidden and refreshes when visible", async () => 
     visibility = "visible";
     document.dispatchEvent(new window.Event("visibilitychange"));
     await new Promise((resolve) => setTimeout(resolve, 5));
+    assert.equal(calls, 1);
+  } finally {
+    flushSync(() => root.unmount());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    cleanupDom();
+  }
+});
+
+test("manual execution schedules a refresh after the configured delay", async () => {
+  const cleanupDom = installDom();
+  let calls = 0;
+  let scheduleRefresh;
+  function Harness() {
+    scheduleRefresh = useManualExecutionRefresh(() => {
+      calls += 1;
+    }, 5);
+    return null;
+  }
+  const root = createRoot(document.getElementById("app"));
+  try {
+    flushSync(() => root.render(createElement(Harness)));
+    scheduleRefresh();
+    await new Promise((resolve) => setTimeout(resolve, 2));
+    assert.equal(calls, 0);
+    await new Promise((resolve) => setTimeout(resolve, 8));
     assert.equal(calls, 1);
   } finally {
     flushSync(() => root.unmount());

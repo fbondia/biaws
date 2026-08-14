@@ -43,6 +43,15 @@ export function updateWidgetInstance(widgets, instanceId, patch) {
   );
 }
 
+export function mergeHomeMonitoringData(dashboard, payload) {
+  if (!dashboard) return dashboard;
+  return {
+    ...dashboard,
+    data: { ...dashboard.data, ...payload.data },
+    monitoringGeneratedAt: payload.generatedAt,
+  };
+}
+
 export function widgetTitle(definition, instance) {
   if (instance.widgetId !== "issues-period") return definition.label;
   return instance.config?.period === "month"

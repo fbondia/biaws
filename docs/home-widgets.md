@@ -44,6 +44,21 @@ Retorna:
 - `data`: resultado de cada widget, indexado pelo ID da instância;
 - `generatedAt`: instante da leitura.
 
+O carregamento inicial e o botão de atualização usam esse contrato completo. O
+auto-refresh consulta apenas os dados das instâncias de monitoramento:
+
+```http
+GET /api/home/monitoring
+```
+
+A resposta contém `data`, indexado pelos IDs dos widgets
+`application-health`, e `generatedAt`. Assim, métricas de chamados, tarefas,
+catálogo e configuração da home não são recarregados a cada ciclo.
+Cada runtime também informa `pendingExecutions`, contendo somente execuções
+manuais ainda na fila ou em andamento. Após uma solicitação de execução
+imediata, a interface agenda uma atualização adicional em 5 segundos e mantém
+o ciclo periódico configurado para as atualizações seguintes.
+
 O widget de tarefas pendentes carrega inicialmente 6 itens. Os lotes seguintes
 são obtidos pelo endpoint paginado abaixo, sempre preservando o escopo de
 `demands.read` do ator:

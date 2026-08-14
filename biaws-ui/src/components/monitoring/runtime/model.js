@@ -5,6 +5,22 @@ import {
 
 const text = (value) => String(value ?? "").trim();
 
+export function activeManualExecutionIds(metrics = []) {
+  return new Set(
+    metrics.flatMap((metric) =>
+      (metric?.items || []).flatMap((application) =>
+        (application.components || []).flatMap((component) =>
+          (component.deployments || []).flatMap((deployment) =>
+            (deployment.runtimes || []).flatMap((runtime) =>
+              (runtime.pendingExecutions || []).map(({ id }) => id),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 function parseObject(value, label) {
   let parsed;
   try {

@@ -19,6 +19,7 @@ O cadastro público `POST /api/auth/sign-up/email` está desabilitado.
 | Método | Rota                      | Autorização aplicada                                                                  |
 | ------ | ------------------------- | ------------------------------------------------------------------------------------- |
 | `GET`  | `/api/home`               | identidade autenticada; catálogo e métricas filtrados pelas permissões de cada widget |
+| `GET`  | `/api/home/monitoring`    | `runtimes.read`; atualiza somente as instâncias de monitoramento acessíveis           |
 | `PUT`  | `/api/home/configuration` | identidade autenticada; aceita somente widgets disponíveis ao ator                    |
 
 A configuração pertence ao próprio `userId` dentro do workspace selecionado.

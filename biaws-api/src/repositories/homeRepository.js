@@ -704,6 +704,7 @@ function runtimeHealthItem(
   status,
   observedAt,
   latestSignalsByRuntimeId,
+  pendingExecutionsByRuntimeId,
   serversById,
 ) {
   const latestSignal = latestSignalsByRuntimeId.get(runtime.id) || null;
@@ -732,6 +733,7 @@ function runtimeHealthItem(
           ...(metadataPresentation ? { metadataPresentation } : {}),
         }
       : null,
+    pendingExecutions: pendingExecutionsByRuntimeId.get(runtime.id) || [],
     server: runtime.serverId ? serversById.get(runtime.serverId) || null : null,
   };
 }
@@ -787,6 +789,7 @@ export function buildApplicationHealthItems({
   components = [],
   deployments = [],
   latestSignals = [],
+  pendingExecutions = [],
   runtimes = [],
   servers = [],
 } = {}) {
@@ -803,6 +806,12 @@ export function buildApplicationHealthItems({
   const latestSignalsByRuntimeId = new Map(
     latestSignals.map((signal) => [signal.runtimeId, signal]),
   );
+  const pendingExecutionsByRuntimeId = new Map();
+  for (const execution of pendingExecutions) {
+    const current = pendingExecutionsByRuntimeId.get(execution.runtimeId) || [];
+    current.push(execution);
+    pendingExecutionsByRuntimeId.set(execution.runtimeId, current);
+  }
   const grouped = new Map();
 
   for (const runtime of runtimes) {
@@ -848,6 +857,7 @@ export function buildApplicationHealthItems({
         status,
         observedAt,
         latestSignalsByRuntimeId,
+        pendingExecutionsByRuntimeId,
         serversById,
       ),
     );
@@ -886,6 +896,8 @@ async function latestRuntimeMonitoringSignals(
           _id: 0,
           id: "$signal.id",
           runtimeId: "$signal.runtimeId",
+          executionId: "$signal.executionId",
+          trigger: "$signal.trigger",
           metadata: "$signal.metadata",
           metadataProfile: "$signal.metadataProfile",
           metadataPresentation: "$signal.metadataPresentation",
@@ -894,6 +906,43 @@ async function latestRuntimeMonitoringSignals(
       },
     ])
     .toArray();
+}
+
+async function pendingRuntimeManualExecutions(
+  database,
+  workspaceId,
+  runtimeIds,
+) {
+  if (!runtimeIds.length) return [];
+  const monitors = await database
+    .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
+    .find({
+      workspaceId,
+      runtimeId: { $in: runtimeIds },
+      archivedAt: { $exists: false },
+      $or: [
+        { "manualRunRequest.id": { $exists: true } },
+        {
+          "lease.trigger": "manual",
+          "lease.completedAt": { $exists: false },
+        },
+      ],
+    })
+    .project({ _id: 0, runtimeId: 1, manualRunRequest: 1, lease: 1 })
+    .toArray();
+  return monitors.map((monitor) =>
+    monitor.manualRunRequest
+      ? {
+          id: monitor.manualRunRequest.id,
+          runtimeId: monitor.runtimeId,
+          status: "queued",
+        }
+      : {
+          id: monitor.lease.executionId,
+          runtimeId: monitor.runtimeId,
+          status: "running",
+        },
+  );
 }
 
 async function applicationHealthMetric(database, actor, config) {
@@ -1014,16 +1063,17 @@ async function applicationHealthMetric(database, actor, config) {
     deployments,
     config.environment,
   );
-  const latestSignals = await latestRuntimeMonitoringSignals(
-    database,
-    actor.workspaceId,
-    filteredRuntimes.map(({ id }) => id),
-  );
+  const runtimeIds = filteredRuntimes.map(({ id }) => id);
+  const [latestSignals, pendingExecutions] = await Promise.all([
+    latestRuntimeMonitoringSignals(database, actor.workspaceId, runtimeIds),
+    pendingRuntimeManualExecutions(database, actor.workspaceId, runtimeIds),
+  ]);
   const items = buildApplicationHealthItems({
     applications,
     components,
     deployments,
     latestSignals,
+    pendingExecutions,
     runtimes: filteredRuntimes.map((runtime) =>
       config.includeConfigured && !runtime.monitoring
         ? { ...runtime, status: "unknown" }
@@ -1042,6 +1092,27 @@ async function applicationHealthMetric(database, actor, config) {
 export async function getApplicationHealthMetric(actor, config = {}) {
   const database = await getMongoDatabase();
   return applicationHealthMetric(database, actor, config);
+}
+
+async function monitoringWidgetData(database, actor, widgets) {
+  const entries = await Promise.all(
+    widgets
+      .filter(({ widgetId }) => widgetId === "application-health")
+      .map(async (instance) => [
+        instance.id,
+        await applicationHealthMetric(database, actor, instance.config),
+      ]),
+  );
+  return Object.fromEntries(entries);
+}
+
+export async function getHomeMonitoringData(actor, { now = new Date() } = {}) {
+  const database = await getMongoDatabase();
+  const configuration = await getHomeConfiguration(actor);
+  return {
+    data: await monitoringWidgetData(database, actor, configuration.widgets),
+    generatedAt: now,
+  };
 }
 
 async function resolveWidgetMetric(database, actor, instance, now) {

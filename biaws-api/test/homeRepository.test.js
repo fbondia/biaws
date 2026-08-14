@@ -371,6 +371,13 @@ test("application health groups only monitored runtimes with topology and server
         },
       },
     ],
+    pendingExecutions: [
+      {
+        id: "execution-pending",
+        runtimeId: "runtime-1",
+        status: "running",
+      },
+    ],
     runtimes: [
       {
         id: "runtime-1",
@@ -402,6 +409,13 @@ test("application health groups only monitored runtimes with topology and server
   assert.equal(runtime.message, "Latency above threshold");
   assert.equal(runtime.latestSignal.executionId, "execution-1");
   assert.equal(runtime.latestSignal.trigger, "manual");
+  assert.deepEqual(runtime.pendingExecutions, [
+    {
+      id: "execution-pending",
+      runtimeId: "runtime-1",
+      status: "running",
+    },
+  ]);
   assert.equal(runtime.latestSignal.metadata.disk_usage_percent, 72.5);
   assert.equal(runtime.latestSignal.metadataProfile, "sgmp-health/v1");
   assert.equal(

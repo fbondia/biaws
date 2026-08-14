@@ -112,6 +112,14 @@ curl http://127.0.0.1:3100/api/home \
   -H "X-Biaws-Workspace-Id: $ISSUE_WORKSPACE_ID"
 ```
 
+Atualizar somente os widgets de monitoramento da home:
+
+```bash
+curl http://127.0.0.1:3100/api/home/monitoring \
+  -H "Authorization: Bearer $ISSUE_API_KEY" \
+  -H "X-Biaws-Workspace-Id: $ISSUE_WORKSPACE_ID"
+```
+
 O contrato de configuração e extensão está em
 [`../docs/home-widgets.md`](../docs/home-widgets.md).
 

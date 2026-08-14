@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  activeManualExecutionIds,
   activeMonitorDraft,
   activeMonitorPayload,
   mergeMonitoringEvents,
@@ -10,6 +11,36 @@ import {
   newObservationDraft,
   selectableMonitoringTemplates,
 } from "../src/components/monitoring/runtime/model.js";
+
+test("active manual executions are collected from health metrics", () => {
+  const ids = activeManualExecutionIds([
+    {
+      items: [
+        {
+          components: [
+            {
+              deployments: [
+                {
+                  runtimes: [
+                    {
+                      pendingExecutions: [
+                        { id: "queued-1", status: "queued" },
+                        { id: "running-1", status: "running" },
+                      ],
+                    },
+                    { pendingExecutions: [] },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]);
+
+  assert.deepEqual([...ids], ["queued-1", "running-1"]);
+});
 
 test("REST monitor draft produces the provider contract without inline credentials", () => {
   const payload = activeMonitorPayload({

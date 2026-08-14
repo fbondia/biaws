@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   HOME_WIDGET_SIZES,
+  mergeHomeMonitoringData,
   moveWidget,
   updateWidgetInstance,
   widgetSubtitle,
@@ -43,6 +44,29 @@ test("home widget updates preserve the other instances", () => {
   assert.equal(updated[0], widgets[0]);
   assert.equal(updated[2].size, "large");
   assert.equal(updated[2].config.applicationId, "application-1");
+});
+
+test("monitoring refresh only replaces monitoring widget data", () => {
+  const dashboard = {
+    catalog: [{ id: "application-health" }],
+    configuration: { widgets },
+    data: {
+      a: { kind: "stat", value: 12 },
+      c: { kind: "health", items: [{ id: "old" }] },
+    },
+    generatedAt: "2026-08-14T10:00:00.000Z",
+  };
+  const refreshed = mergeHomeMonitoringData(dashboard, {
+    data: { c: { kind: "health", items: [{ id: "new" }] } },
+    generatedAt: "2026-08-14T10:00:30.000Z",
+  });
+
+  assert.equal(refreshed.catalog, dashboard.catalog);
+  assert.equal(refreshed.configuration, dashboard.configuration);
+  assert.equal(refreshed.data.a, dashboard.data.a);
+  assert.equal(refreshed.data.c.items[0].id, "new");
+  assert.equal(refreshed.generatedAt, dashboard.generatedAt);
+  assert.equal(refreshed.monitoringGeneratedAt, "2026-08-14T10:00:30.000Z");
 });
 
 test("period widget title reflects each instance configuration", () => {

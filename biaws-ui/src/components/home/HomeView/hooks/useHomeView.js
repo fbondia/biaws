@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from "react";
 
 import {
   fetchHomeDashboard,
+  fetchHomeMonitoringData,
   updateHomeConfiguration,
 } from "../../../../api.js";
 import {
   createWidgetInstance,
+  mergeHomeMonitoringData,
   moveWidget,
   updateWidgetInstance,
 } from "../model.js";
@@ -26,6 +28,7 @@ export function useHomeView() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const loadPromiseRef = useRef(null);
+  const monitoringLoadPromiseRef = useRef(null);
   const hasMonitoringWidgets = Boolean(
     dashboard?.configuration.widgets?.some(
       ({ widgetId }) => widgetId === "application-health",
@@ -44,6 +47,23 @@ export function useHomeView() {
         setLoading(false);
       });
     loadPromiseRef.current = promise;
+    return promise;
+  }
+
+  async function refreshMonitoring() {
+    if (monitoringLoadPromiseRef.current) {
+      return monitoringLoadPromiseRef.current;
+    }
+    const promise = fetchHomeMonitoringData()
+      .then((payload) => {
+        setDashboard((current) => mergeHomeMonitoringData(current, payload));
+        setError("");
+      })
+      .catch((loadError) => setError(loadError.message))
+      .finally(() => {
+        monitoringLoadPromiseRef.current = null;
+      });
+    monitoringLoadPromiseRef.current = promise;
     return promise;
   }
 
@@ -66,9 +86,10 @@ export function useHomeView() {
     };
   }, []);
 
-  useAutoRefresh(load, {
+  useAutoRefresh(refreshMonitoring, {
     enabled:
       hasMonitoringWidgets &&
+      !loading &&
       !editing &&
       !catalogOpen &&
       !configuration &&
@@ -163,6 +184,7 @@ export function useHomeView() {
     loading,
     monitoringRuntime,
     removeWidget,
+    refreshMonitoring,
     resizeWidget,
     save,
     saving,

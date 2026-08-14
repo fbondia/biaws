@@ -6,7 +6,10 @@ import {
   requestRuntimeActiveMonitorExecution,
 } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
-import { useAutoRefresh } from "../../../hooks/useAutoRefresh.js";
+import {
+  useAutoRefresh,
+  useManualExecutionRefresh,
+} from "../../../hooks/useAutoRefresh.js";
 import "../../../styles/features/monitoring-execution.css";
 
 export function canRequestMonitoringExecution(actor, applicationId) {
@@ -28,6 +31,7 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
     setMonitors(payload.items || []);
     setError("");
   }, [target.id]);
+  const scheduleExecutionRefresh = useManualExecutionRefresh(loadMonitors);
 
   useEffect(() => {
     let active = true;
@@ -63,6 +67,7 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
         ),
       );
       onRequested({ monitor, result, target });
+      scheduleExecutionRefresh();
     } catch (requestError) {
       setError(requestError.message);
     } finally {

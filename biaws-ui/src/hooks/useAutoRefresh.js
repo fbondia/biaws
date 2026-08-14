@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 const DEFAULT_REFRESH_SECONDS = 30;
 const MINIMUM_REFRESH_SECONDS = 5;
@@ -12,6 +12,35 @@ export function monitoringRefreshIntervalMs(env = import.meta.env) {
 }
 
 export const MONITORING_REFRESH_INTERVAL_MS = monitoringRefreshIntervalMs();
+export const MANUAL_EXECUTION_REFRESH_DELAY_MS = 10_000;
+
+export function useManualExecutionRefresh(
+  refresh,
+  delayMs = MANUAL_EXECUTION_REFRESH_DELAY_MS,
+) {
+  const refreshRef = useRef(refresh);
+  const timerRef = useRef();
+  refreshRef.current = refresh;
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(timerRef.current);
+    },
+    [],
+  );
+
+  return useCallback(() => {
+    window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(async () => {
+      timerRef.current = undefined;
+      try {
+        await refreshRef.current();
+      } catch {
+        // The owning view exposes refresh failures.
+      }
+    }, delayMs);
+  }, [delayMs]);
+}
 
 export function useAutoRefresh(
   refresh,

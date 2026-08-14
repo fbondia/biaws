@@ -1,7 +1,11 @@
-import { fetchJson, sendJson } from "./client.js";
+import { executeApiRequest, fetchJson, sendJson } from "./client.js";
 
 export function fetchHomeDashboard() {
   return fetchJson("/api/home");
+}
+
+export function fetchHomeMonitoringData() {
+  return executeApiRequest({ path: "/api/home/monitoring" });
 }
 
 export function fetchHomePendingTasks(params) {

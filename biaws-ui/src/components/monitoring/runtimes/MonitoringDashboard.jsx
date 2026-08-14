@@ -20,6 +20,7 @@ import {
 import {
   MONITORING_REFRESH_INTERVAL_MS,
   useAutoRefresh,
+  useManualExecutionRefresh,
 } from "../../../hooks/useAutoRefresh.js";
 import "../../../styles/features/home/index.css";
 import { HOME_WIDGET_SIZES } from "../../home/HomeView/model.js";
@@ -28,6 +29,7 @@ import {
   canRequestMonitoringExecution,
   MonitoringExecutionDialog,
 } from "../runtime/MonitoringExecutionDialog.jsx";
+import { activeManualExecutionIds } from "../runtime/model.js";
 import {
   groupMonitoringTargets,
   moveMonitoringWidget,
@@ -329,6 +331,12 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
     return promise;
   }
 
+  async function refreshHealth() {
+    await loadHealth(selectedWidgets.map(({ target }) => target));
+  }
+
+  const scheduleExecutionRefresh = useManualExecutionRefresh(refreshHealth);
+
   useEffect(() => {
     void load();
   }, []);
@@ -339,22 +347,10 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
   });
 
   useEffect(() => {
-    const completed = new Set(
-      Object.values(healthByRuntimeId).flatMap((health) =>
-        (health?.items || []).flatMap((application) =>
-          (application.components || []).flatMap((component) =>
-            (component.deployments || []).flatMap((deployment) =>
-              (deployment.runtimes || [])
-                .map((runtime) => runtime.latestSignal?.executionId)
-                .filter(Boolean),
-            ),
-          ),
-        ),
-      ),
-    );
+    const active = activeManualExecutionIds(Object.values(healthByRuntimeId));
     setPendingExecutions((current) => {
-      const entries = Object.entries(current).filter(
-        ([, executionId]) => !completed.has(executionId),
+      const entries = Object.entries(current).filter(([, executionId]) =>
+        active.has(executionId),
       );
       return entries.length === Object.keys(current).length
         ? current
@@ -392,6 +388,7 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
         ? `Execução de “${monitor.name}” solicitada.`
         : `“${monitor.name}” já possuía uma execução pendente.`,
     );
+    scheduleExecutionRefresh();
   }
 
   return (

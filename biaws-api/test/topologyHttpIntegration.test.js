@@ -949,6 +949,20 @@ test(
         monitorsWithQueuedExecution.items[0].pendingExecution.status,
         "queued",
       );
+      const homeWithQueuedExecution = await (
+        await request("/api/home/monitoring", { cookie: adminCookie })
+      ).json();
+      assert.deepEqual(
+        homeWithQueuedExecution.data["default-application-health-6"].items[0]
+          .components[0].deployments[0].runtimes[0].pendingExecutions,
+        [
+          {
+            id: manualExecution.execution.id,
+            runtimeId: runtime.id,
+            status: "queued",
+          },
+        ],
+      );
       const manualLeaseResponse = await request(
         "/api/monitoring/executor/leases",
         {
@@ -1029,6 +1043,18 @@ test(
         monitorsAfterManualResult.items[0].pendingExecution,
         undefined,
       );
+      const homeAfterManualResult = await (
+        await request("/api/home/monitoring", { cookie: adminCookie })
+      ).json();
+      const homeRuntimeAfterManualResult =
+        homeAfterManualResult.data["default-application-health-6"].items[0]
+          .components[0].deployments[0].runtimes[0];
+      assert.equal(
+        homeRuntimeAfterManualResult.latestSignal.executionId,
+        manualExecution.execution.id,
+      );
+      assert.equal(homeRuntimeAfterManualResult.latestSignal.trigger, "manual");
+      assert.deepEqual(homeRuntimeAfterManualResult.pendingExecutions, []);
       const secondManualExecutionResponse = await request(
         manualExecutionRoute,
         {
@@ -1159,6 +1185,20 @@ test(
         homeMonitoringRuntime.latestSignal.metadataPresentation.series[0]
           .visualization,
         "line",
+      );
+      const homeMonitoringResponse = await request("/api/home/monitoring", {
+        cookie: adminCookie,
+      });
+      assert.equal(homeMonitoringResponse.status, 200);
+      const homeMonitoring = await homeMonitoringResponse.json();
+      assert.deepEqual(Object.keys(homeMonitoring.data), [
+        "default-application-health-6",
+      ]);
+      assert.equal(
+        homeMonitoring.data["default-application-health-6"].items[0]
+          .components[0].deployments[0].runtimes[0].latestSignal.metadata
+          .disk_usage_percent,
+        85,
       );
       const invalidHomeResponse = await request("/api/home/configuration", {
         cookie: adminCookie,

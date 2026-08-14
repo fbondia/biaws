@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   getHomeDashboard,
+  getHomeMonitoringData,
   getPendingTasksMetric,
   saveHomeConfiguration,
 } from "../repositories/homeRepository.js";
@@ -23,6 +24,14 @@ homeRouter.get(
   "/",
   asyncHandler(async (req, res) => {
     res.json(await getHomeDashboard(req.actor));
+  }),
+);
+
+homeRouter.get(
+  "/monitoring",
+  requireAllPermissions("runtimes.read"),
+  asyncHandler(async (req, res) => {
+    res.json(await getHomeMonitoringData(req.actor));
   }),
 );
 

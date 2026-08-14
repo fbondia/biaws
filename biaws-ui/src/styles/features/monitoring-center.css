@@ -360,11 +360,18 @@
 }
 
 .monitoringPanelGrid {
+  width: 100%;
+  justify-self: stretch;
   padding: 0;
 }
 
 .monitoringPanelWidget {
   min-height: 380px;
+}
+
+.monitoringPanelWidget.homeWidget-large {
+  width: 100%;
+  grid-column: 1 / -1;
 }
 
 .monitoringPanelEmpty,
@@ -463,25 +470,53 @@
   overflow: hidden;
 }
 
-.monitoringPanelTargetList label {
+.monitoringPanelTarget {
   align-items: center;
   border-bottom: 1px solid var(--color-border-subtle);
-  cursor: pointer;
   display: grid;
   gap: 12px;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 12px 14px;
 }
 
-.monitoringPanelTargetList label:last-child {
+.monitoringPanelTarget:last-child {
   border-bottom: 0;
 }
 
-.monitoringPanelTargetList label:hover {
+.monitoringPanelTarget:hover {
   background: var(--color-surface-muted);
 }
 
-.monitoringPanelTargetList label > span:nth-child(2) {
+.monitoringPanelSelectedTarget {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.monitoringPanelSelectedTarget.isDragging {
+  background: var(--color-accent-soft);
+  opacity: 0.55;
+}
+
+.monitoringPanelDragHandle {
+  align-self: stretch;
+  align-items: center;
+  color: var(--color-text-subtle);
+  cursor: grab;
+  display: flex;
+}
+
+.monitoringPanelDragHandle:active {
+  cursor: grabbing;
+}
+
+.monitoringPanelTarget > label {
+  align-items: center;
+  cursor: pointer;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.monitoringPanelTarget > label > span {
   display: grid;
   gap: 3px;
 }
@@ -494,6 +529,27 @@
   color: var(--color-text-subtle);
   font-size: 12px;
   white-space: nowrap;
+}
+
+.monitoringPanelTargetActions {
+  align-items: end;
+  display: flex;
+  gap: 12px;
+}
+
+.monitoringPanelSizeField {
+  display: grid;
+  gap: 4px;
+}
+
+.monitoringPanelSizeField > span {
+  color: var(--color-text-subtle);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.monitoringPanelSizeField select {
+  min-width: 112px;
 }
 
 @media (max-width: 900px) {
@@ -544,12 +600,22 @@
     justify-content: flex-start;
   }
 
-  .monitoringPanelTargetList label {
+  .monitoringPanelTarget {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .monitoringPanelSelectedTarget {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .monitoringPanelMonitorCount {
+  .monitoringPanelSelectedTarget .monitoringPanelTargetActions {
     grid-column: 2;
+  }
+
+  .monitoringPanelTargetActions {
+    justify-content: space-between;
+    padding-left: 28px;
   }
 
   .monitoringPanelSelector > footer {

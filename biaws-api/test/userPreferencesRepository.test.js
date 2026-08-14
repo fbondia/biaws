@@ -30,13 +30,37 @@ test("monitoring panel preferences normalize a bounded runtime selection", () =>
     normalizeMonitoringPanelMutation({
       runtimeIds: [" runtime-1 ", "runtime-2", "runtime-1"],
     }),
-    { runtimeIds: ["runtime-1", "runtime-2"] },
+    {
+      runtimeIds: ["runtime-1", "runtime-2"],
+      widgets: [
+        { runtimeId: "runtime-1", size: "medium-2" },
+        { runtimeId: "runtime-2", size: "medium-2" },
+      ],
+    },
+  );
+  assert.deepEqual(
+    normalizeMonitoringPanelMutation({
+      widgets: [
+        { runtimeId: " runtime-1 ", size: "small" },
+        { runtimeId: "runtime-2", size: "medium" },
+      ],
+    }),
+    {
+      runtimeIds: ["runtime-1", "runtime-2"],
+      widgets: [
+        { runtimeId: "runtime-1", size: "small" },
+        { runtimeId: "runtime-2", size: "medium-2" },
+      ],
+    },
   );
   for (const payload of [
     null,
     {},
     { runtimeIds: "runtime-1" },
     { runtimeIds: [], extra: true },
+    { runtimeIds: [], widgets: [] },
+    { widgets: [{ runtimeId: "runtime-1", size: "huge" }] },
+    { widgets: [{ runtimeId: "runtime-1", size: "small", extra: true }] },
     { runtimeIds: Array.from({ length: 101 }, (_, index) => `r-${index}`) },
   ]) {
     assert.throws(

@@ -12,6 +12,12 @@ export const COLLECTION_NAVIGATION_CONTEXTS = Object.freeze([
 
 const MAX_COLLECTION_ID_LENGTH = 200;
 const MAX_MONITORING_PANEL_RUNTIMES = 100;
+const MONITORING_PANEL_WIDGET_SIZES = new Set([
+  "small",
+  "medium-1",
+  "medium-2",
+  "large",
+]);
 let collectionPromise;
 
 function preferenceError(statusCode, code, message) {
@@ -173,19 +179,58 @@ export async function updateCollectionNavigationPreference(
 
 export function normalizeMonitoringPanelMutation(payload = {}) {
   const source = payload && typeof payload === "object" ? payload : {};
-  const unknown = Object.keys(source).filter((key) => key !== "runtimeIds");
-  if (unknown.length || !Array.isArray(source.runtimeIds)) {
+  const unknown = Object.keys(source).filter(
+    (key) => !["runtimeIds", "widgets"].includes(key),
+  );
+  const hasRuntimeIds = Array.isArray(source.runtimeIds);
+  const hasWidgets = Array.isArray(source.widgets);
+  if (unknown.length || hasRuntimeIds === hasWidgets) {
     throw preferenceError(
       422,
       "INVALID_MONITORING_PANEL_PREFERENCE",
-      "runtimeIds deve ser uma lista sem campos adicionais",
+      "Informe runtimeIds ou widgets como uma única lista sem campos adicionais",
     );
   }
-  const runtimeIds = [
-    ...new Set(
-      source.runtimeIds.map((id) => String(id || "").trim()).filter(Boolean),
-    ),
+  const candidates = hasWidgets
+    ? source.widgets.map((widget) => {
+        if (!widget || typeof widget !== "object" || Array.isArray(widget)) {
+          return null;
+        }
+        const widgetUnknown = Object.keys(widget).filter(
+          (key) => !["runtimeId", "size"].includes(key),
+        );
+        const runtimeId = String(widget.runtimeId || "").trim();
+        const requestedSize = String(widget.size || "").trim();
+        const size = requestedSize === "medium" ? "medium-2" : requestedSize;
+        if (
+          widgetUnknown.length ||
+          !runtimeId ||
+          runtimeId.length > MAX_COLLECTION_ID_LENGTH ||
+          !MONITORING_PANEL_WIDGET_SIZES.has(size)
+        ) {
+          return null;
+        }
+        return { runtimeId, size };
+      })
+    : source.runtimeIds.map((id) => ({
+        runtimeId: String(id || "").trim(),
+        size: "medium-2",
+      }));
+  if (candidates.some((widget) => !widget)) {
+    throw preferenceError(
+      422,
+      "INVALID_MONITORING_PANEL_PREFERENCE",
+      "Cada widget deve informar runtimeId válido e um tamanho suportado",
+    );
+  }
+  const widgets = [
+    ...new Map(
+      candidates
+        .filter(({ runtimeId }) => runtimeId)
+        .map((widget) => [widget.runtimeId, widget]),
+    ).values(),
   ];
+  const runtimeIds = widgets.map(({ runtimeId }) => runtimeId);
   if (
     runtimeIds.length > MAX_MONITORING_PANEL_RUNTIMES ||
     runtimeIds.some((id) => id.length > MAX_COLLECTION_ID_LENGTH)
@@ -196,18 +241,33 @@ export function normalizeMonitoringPanelMutation(payload = {}) {
       `runtimeIds aceita no máximo ${MAX_MONITORING_PANEL_RUNTIMES} identificadores válidos`,
     );
   }
-  return { runtimeIds };
+  return { runtimeIds, widgets };
 }
 
 function normalizeMonitoringPanelPreference(document) {
+  const storedWidgets = Array.isArray(document?.monitoringPanel?.widgets)
+    ? document.monitoringPanel.widgets
+    : (document?.monitoringPanel?.runtimeIds || []).map((runtimeId) => ({
+        runtimeId,
+        size: "medium-2",
+      }));
+  const widgets = [
+    ...new Map(
+      storedWidgets
+        .map((widget) => {
+          const runtimeId = String(widget?.runtimeId || "").trim();
+          const requestedSize = String(widget?.size || "").trim();
+          const size = requestedSize === "medium" ? "medium-2" : requestedSize;
+          return runtimeId && MONITORING_PANEL_WIDGET_SIZES.has(size)
+            ? [runtimeId, { runtimeId, size }]
+            : null;
+        })
+        .filter(Boolean),
+    ).values(),
+  ];
   return {
-    runtimeIds: [
-      ...new Set(
-        (document?.monitoringPanel?.runtimeIds || [])
-          .map((id) => String(id || "").trim())
-          .filter(Boolean),
-      ),
-    ],
+    runtimeIds: widgets.map(({ runtimeId }) => runtimeId),
+    widgets,
     updatedAt: document?.monitoringPanel?.updatedAt || null,
   };
 }
@@ -223,7 +283,7 @@ export async function getMonitoringPanelPreference(actor) {
 }
 
 export async function updateMonitoringPanelPreference(payload, actor) {
-  const { runtimeIds } = normalizeMonitoringPanelMutation(payload);
+  const { runtimeIds, widgets } = normalizeMonitoringPanelMutation(payload);
   const collection = await preferencesCollection();
   const now = new Date();
   const filter = { workspaceId: actor.workspaceId, userId: actor.userId };
@@ -232,6 +292,7 @@ export async function updateMonitoringPanelPreference(payload, actor) {
     {
       $set: {
         "monitoringPanel.runtimeIds": runtimeIds,
+        "monitoringPanel.widgets": widgets,
         "monitoringPanel.updatedAt": now,
         updatedAt: now,
         updatedBy: actor.userId,
@@ -244,5 +305,5 @@ export async function updateMonitoringPanelPreference(payload, actor) {
     },
     { upsert: true },
   );
-  return { runtimeIds, updatedAt: now };
+  return { runtimeIds, widgets, updatedAt: now };
 }

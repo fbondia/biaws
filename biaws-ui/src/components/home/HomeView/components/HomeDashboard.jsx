@@ -141,7 +141,9 @@ function HomeHeroActions({
 
 function HomeWidgetArea({ editing, onBeginEditing, widgets, ...gridProps }) {
   if (widgets.length)
-    return <HomeWidgetGrid {...gridProps} widgets={widgets} />;
+    return (
+      <HomeWidgetGrid {...gridProps} editing={editing} widgets={widgets} />
+    );
   return (
     <div className="homeEmptyState">
       <LayoutDashboard size={34} />

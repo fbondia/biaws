@@ -3,6 +3,32 @@ export function selectedMonitoringTargets(targets = [], runtimeIds = []) {
   return targets.filter((target) => selected.has(String(target.id)));
 }
 
+export function selectedMonitoringWidgets(targets = [], widgets = []) {
+  const byRuntimeId = new Map(
+    targets.map((target) => [String(target.id), target]),
+  );
+  return widgets.flatMap((widget) => {
+    const target = byRuntimeId.get(String(widget.runtimeId));
+    return target ? [{ target, widget }] : [];
+  });
+}
+
+export function moveMonitoringWidget(widgets, sourceId, targetId) {
+  const sourceIndex = widgets.findIndex(
+    ({ runtimeId }) => runtimeId === sourceId,
+  );
+  const targetIndex = widgets.findIndex(
+    ({ runtimeId }) => runtimeId === targetId,
+  );
+  if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+    return widgets;
+  }
+  const next = [...widgets];
+  const [source] = next.splice(sourceIndex, 1);
+  next.splice(targetIndex, 0, source);
+  return next;
+}
+
 export function groupMonitoringTargets(targets = []) {
   const groups = new Map();
   for (const target of targets) {

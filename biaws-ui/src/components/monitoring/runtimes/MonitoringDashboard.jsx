@@ -1,12 +1,13 @@
 import {
   Activity,
   CheckSquare2,
+  GripVertical,
   LayoutDashboard,
   RefreshCw,
   Settings2,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   fetchApplicationMonitoringHealth,
@@ -15,24 +16,82 @@ import {
   updateMonitoringPanelPreference,
 } from "../../../api.js";
 import "../../../styles/features/home/index.css";
+import { HOME_WIDGET_SIZES } from "../../home/HomeView/model.js";
 import { ApplicationHealthWidget } from "../../home/widgets/ApplicationHealthWidget.jsx";
 import {
   groupMonitoringTargets,
+  moveMonitoringWidget,
   runtimeHealthData,
-  selectedMonitoringTargets,
+  selectedMonitoringWidgets,
 } from "./panelModel.js";
 
-function TargetSelector({ onClose, onSave, saving, selectedIds, targets }) {
-  const [draftIds, setDraftIds] = useState(() => new Set(selectedIds));
-  const groups = groupMonitoringTargets(targets);
+export function TargetSelector({
+  onClose,
+  onSave,
+  saving,
+  selectedWidgets,
+  targets,
+}) {
+  const [draftWidgets, setDraftWidgets] = useState(() =>
+    structuredClone(selectedWidgets),
+  );
+  const [draggingId, setDraggingId] = useState("");
+  const draggingIdRef = useRef("");
+  const selectedEntries = selectedMonitoringWidgets(targets, draftWidgets);
+  const selectedIds = new Set(draftWidgets.map(({ runtimeId }) => runtimeId));
+  const groups = groupMonitoringTargets(
+    targets.filter(({ id }) => !selectedIds.has(id)),
+  );
 
   function toggle(runtimeId) {
-    setDraftIds((current) => {
-      const next = new Set(current);
-      if (next.has(runtimeId)) next.delete(runtimeId);
-      else next.add(runtimeId);
-      return next;
-    });
+    setDraftWidgets((current) =>
+      current.some((widget) => widget.runtimeId === runtimeId)
+        ? current.filter((widget) => widget.runtimeId !== runtimeId)
+        : [...current, { runtimeId, size: "medium-2" }],
+    );
+  }
+
+  function updateSize(runtimeId, size) {
+    setDraftWidgets((current) =>
+      current.map((widget) =>
+        widget.runtimeId === runtimeId ? { ...widget, size } : widget,
+      ),
+    );
+  }
+
+  function dropWidget(targetId) {
+    if (draggingIdRef.current) {
+      setDraftWidgets((current) =>
+        moveMonitoringWidget(current, draggingIdRef.current, targetId),
+      );
+    }
+    draggingIdRef.current = "";
+    setDraggingId("");
+  }
+
+  function finishDragging() {
+    draggingIdRef.current = "";
+    setDraggingId("");
+  }
+
+  function beginDragging(runtimeId) {
+    draggingIdRef.current = runtimeId;
+    setDraggingId(runtimeId);
+  }
+
+  function targetIdentity(target) {
+    return (
+      <span>
+        <strong>{target.name}</strong>
+        <small>
+          {target.component?.name} · {target.deployment?.name}
+          {target.deployment?.environment
+            ? ` · ${target.deployment.environment}`
+            : ""}
+        </small>
+        <small>{target.monitorNames.join(" · ")}</small>
+      </span>
+    );
   }
 
   return (
@@ -59,48 +118,102 @@ function TargetSelector({ onClose, onSave, saving, selectedIds, targets }) {
           </button>
         </header>
         <div className="monitoringPanelSelectorBody">
-          {!groups.length ? (
+          {!targets.length ? (
             <div className="monitoringPanelEmptySelection">
               Nenhum runtime possui monitor ativo configurado.
             </div>
           ) : (
-            groups.map(({ application, targets: applicationTargets }) => (
-              <section key={application.id}>
-                <header>
-                  <strong>{application.name}</strong>
-                  <small>{applicationTargets.length} disponíveis</small>
-                </header>
-                <div className="monitoringPanelTargetList">
-                  {applicationTargets.map((target) => (
-                    <label key={target.id}>
-                      <input
-                        checked={draftIds.has(target.id)}
-                        onChange={() => toggle(target.id)}
-                        type="checkbox"
-                      />
-                      <span>
-                        <strong>{target.name}</strong>
-                        <small>
-                          {target.component?.name} · {target.deployment?.name}
-                          {target.deployment?.environment
-                            ? ` · ${target.deployment.environment}`
-                            : ""}
-                        </small>
-                        <small>{target.monitorNames.join(" · ")}</small>
-                      </span>
-                      <span className="monitoringPanelMonitorCount">
-                        {target.enabledMonitorCount}/{target.monitorCount}{" "}
-                        ativos
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </section>
-            ))
+            <>
+              {selectedEntries.length ? (
+                <section>
+                  <header>
+                    <strong>Widgets selecionados</strong>
+                    <small>Arraste para definir a ordem no painel</small>
+                  </header>
+                  <div className="monitoringPanelTargetList">
+                    {selectedEntries.map(({ target, widget }) => (
+                      <div
+                        className={`monitoringPanelTarget monitoringPanelSelectedTarget${draggingId === target.id ? " isDragging" : ""}`}
+                        key={target.id}
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={() => dropWidget(target.id)}
+                      >
+                        <span
+                          aria-label={`Reordenar ${target.name}`}
+                          className="monitoringPanelDragHandle"
+                          draggable
+                          onDragEnd={finishDragging}
+                          onDragStart={() => beginDragging(target.id)}
+                          role="img"
+                        >
+                          <GripVertical size={17} />
+                        </span>
+                        <label>
+                          <input
+                            checked
+                            onChange={() => toggle(target.id)}
+                            type="checkbox"
+                          />
+                          {targetIdentity(target)}
+                        </label>
+                        <div className="monitoringPanelTargetActions">
+                          <span className="monitoringPanelMonitorCount">
+                            {target.enabledMonitorCount}/{target.monitorCount}{" "}
+                            ativos
+                          </span>
+                          <label className="field monitoringPanelSizeField">
+                            <span>Tamanho</span>
+                            <select
+                              aria-label={`Tamanho de ${target.name}`}
+                              onChange={(event) =>
+                                updateSize(target.id, event.target.value)
+                              }
+                              value={widget.size}
+                            >
+                              {HOME_WIDGET_SIZES.map((size) => (
+                                <option key={size.value} value={size.value}>
+                                  {size.label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+              {groups.map(({ application, targets: applicationTargets }) => (
+                <section key={application.id}>
+                  <header>
+                    <strong>{application.name}</strong>
+                    <small>{applicationTargets.length} disponíveis</small>
+                  </header>
+                  <div className="monitoringPanelTargetList">
+                    {applicationTargets.map((target) => (
+                      <div className="monitoringPanelTarget" key={target.id}>
+                        <label>
+                          <input
+                            checked={false}
+                            onChange={() => toggle(target.id)}
+                            type="checkbox"
+                          />
+                          {targetIdentity(target)}
+                        </label>
+                        <span className="monitoringPanelMonitorCount">
+                          {target.enabledMonitorCount}/{target.monitorCount}{" "}
+                          ativos
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </>
           )}
         </div>
         <footer>
-          <span>{draftIds.size} selecionados</span>
+          <span>{draftWidgets.length} selecionados</span>
           <div>
             <button
               className="secondaryButton"
@@ -113,7 +226,7 @@ function TargetSelector({ onClose, onSave, saving, selectedIds, targets }) {
             <button
               className="primaryButton"
               disabled={saving}
-              onClick={() => onSave([...draftIds])}
+              onClick={() => onSave(draftWidgets)}
               type="button"
             >
               <CheckSquare2 size={16} />
@@ -128,15 +241,15 @@ function TargetSelector({ onClose, onSave, saving, selectedIds, targets }) {
 
 export function MonitoringDashboard({ onOpenTarget }) {
   const [targets, setTargets] = useState([]);
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [widgets, setWidgets] = useState([]);
   const [healthByRuntimeId, setHealthByRuntimeId] = useState({});
   const [selecting, setSelecting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const selectedTargets = useMemo(
-    () => selectedMonitoringTargets(targets, selectedIds),
-    [selectedIds, targets],
+  const selectedWidgets = useMemo(
+    () => selectedMonitoringWidgets(targets, widgets),
+    [targets, widgets],
   );
 
   async function loadHealth(nextTargets) {
@@ -175,12 +288,20 @@ export function MonitoringDashboard({ onOpenTarget }) {
       ]);
       const nextTargets = targetPayload.items || [];
       const availableIds = new Set(nextTargets.map(({ id }) => id));
-      const nextSelectedIds = (preference.runtimeIds || []).filter((id) =>
-        availableIds.has(id),
-      );
+      const nextWidgets = (
+        preference.widgets ||
+        (preference.runtimeIds || []).map((runtimeId) => ({
+          runtimeId,
+          size: "medium-2",
+        }))
+      ).filter(({ runtimeId }) => availableIds.has(runtimeId));
       setTargets(nextTargets);
-      setSelectedIds(nextSelectedIds);
-      await loadHealth(selectedMonitoringTargets(nextTargets, nextSelectedIds));
+      setWidgets(nextWidgets);
+      await loadHealth(
+        selectedMonitoringWidgets(nextTargets, nextWidgets).map(
+          ({ target }) => target,
+        ),
+      );
     } catch (loadError) {
       setError(loadError.message);
     } finally {
@@ -192,14 +313,19 @@ export function MonitoringDashboard({ onOpenTarget }) {
     void load();
   }, []);
 
-  async function saveSelection(runtimeIds) {
+  async function saveSelection(nextWidgets) {
     setSaving(true);
     setError("");
     try {
-      const preference = await updateMonitoringPanelPreference(runtimeIds);
-      setSelectedIds(preference.runtimeIds || []);
+      const preference = await updateMonitoringPanelPreference(nextWidgets);
+      const savedWidgets = preference.widgets || nextWidgets;
+      setWidgets(savedWidgets);
       setSelecting(false);
-      await loadHealth(selectedMonitoringTargets(targets, runtimeIds));
+      await loadHealth(
+        selectedMonitoringWidgets(targets, savedWidgets).map(
+          ({ target }) => target,
+        ),
+      );
     } catch (saveError) {
       setError(saveError.message);
     } finally {
@@ -230,7 +356,7 @@ export function MonitoringDashboard({ onOpenTarget }) {
             onClick={() => setSelecting(true)}
             type="button"
           >
-            <Settings2 size={16} /> Selecionar monitoramentos
+            <Settings2 size={16} /> Configurar painel
           </button>
         </div>
       </header>
@@ -239,7 +365,7 @@ export function MonitoringDashboard({ onOpenTarget }) {
           {error}
         </div>
       ) : null}
-      {!loading && !selectedTargets.length ? (
+      {!loading && !selectedWidgets.length ? (
         <div className="monitoringPanelEmpty">
           <LayoutDashboard size={34} />
           <strong>Seu painel está vazio</strong>
@@ -253,11 +379,11 @@ export function MonitoringDashboard({ onOpenTarget }) {
           </button>
         </div>
       ) : null}
-      {selectedTargets.length ? (
+      {selectedWidgets.length ? (
         <div className="homeWidgetGrid monitoringPanelGrid">
-          {selectedTargets.map((target) => (
+          {selectedWidgets.map(({ target, widget }) => (
             <article
-              className="homeWidget homeWidget-medium-2 monitoringPanelWidget"
+              className={`homeWidget homeWidget-${widget.size} monitoringPanelWidget`}
               key={target.id}
             >
               <header>
@@ -294,7 +420,7 @@ export function MonitoringDashboard({ onOpenTarget }) {
           onClose={() => setSelecting(false)}
           onSave={saveSelection}
           saving={saving}
-          selectedIds={selectedIds}
+          selectedWidgets={widgets}
           targets={targets}
         />
       ) : null}

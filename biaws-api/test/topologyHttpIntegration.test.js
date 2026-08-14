@@ -811,7 +811,9 @@ test(
         {
           cookie: adminCookie,
           method: "PUT",
-          body: { runtimeIds: [runtime.id] },
+          body: {
+            widgets: [{ runtimeId: runtime.id, size: "large" }],
+          },
           origin: true,
         },
       );
@@ -825,6 +827,9 @@ test(
         })
       ).json();
       assert.deepEqual(savedPanelPreference.runtimeIds, [runtime.id]);
+      assert.deepEqual(savedPanelPreference.widgets, [
+        { runtimeId: runtime.id, size: "large" },
+      ]);
       const activeMonitorList = await (
         await request(
           `/api/monitoring/runtimes/${runtime.id}/active-monitors`,

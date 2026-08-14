@@ -40,10 +40,10 @@ export function fetchMonitoringPanelPreference() {
   return fetchJson("/api/preferences/monitoring-panel");
 }
 
-export function updateMonitoringPanelPreference(runtimeIds) {
+export function updateMonitoringPanelPreference(widgets) {
   return sendJson(
     "/api/preferences/monitoring-panel",
-    { runtimeIds },
+    { widgets },
     undefined,
     "PUT",
   );

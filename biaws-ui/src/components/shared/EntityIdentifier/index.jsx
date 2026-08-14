@@ -78,8 +78,9 @@ export function EntityIdentifier({
             <Copy aria-hidden="true" size={13} />
           )}
         </button>
-      ) : (<></>)}
-
+      ) : (
+        <></>
+      )}
     </span>
   );
 }

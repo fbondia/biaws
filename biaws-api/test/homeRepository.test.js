@@ -227,6 +227,19 @@ test("pending tasks metric returns a deterministic page and pagination metadata"
   }));
   const database = {
     collection(name) {
+      if (name === "optionLists") {
+        return {
+          async findOne(filter) {
+            observations.optionListFilter = filter;
+            return {
+              items: [
+                { value: "Andamento", order: 20 },
+                { value: "Pendente", order: 10 },
+              ],
+            };
+          },
+        };
+      }
       if (name === "requests") {
         return {
           find(filter) {
@@ -248,25 +261,12 @@ test("pending tasks metric returns a deterministic page and pagination metadata"
           observations.taskFilter = filter;
           return tasks.length;
         },
-        find(filter) {
-          observations.taskFilter = filter;
-          let skip = 0;
-          let limit = tasks.length;
+        aggregate(pipeline, options) {
+          observations.pipeline = pipeline;
+          observations.aggregateOptions = options;
+          const skip = pipeline.find((stage) => stage.$skip).$skip;
+          const limit = pipeline.find((stage) => stage.$limit).$limit;
           return {
-            sort(value) {
-              observations.sort = value;
-              return this;
-            },
-            skip(value) {
-              skip = value;
-              observations.skip = value;
-              return this;
-            },
-            limit(value) {
-              limit = value;
-              observations.limit = value;
-              return this;
-            },
             async toArray() {
               return tasks.slice(skip, skip + limit);
             },
@@ -285,13 +285,29 @@ test("pending tasks metric returns a deterministic page and pagination metadata"
   );
 
   assert.deepEqual(observations.requestFilter, { workspaceId: "workspace-1" });
-  assert.deepEqual(observations.sort, {
-    endDate: 1,
+  assert.deepEqual(observations.optionListFilter, {
+    workspaceId: "workspace-1",
+    key: "demand.task-status",
+  });
+  assert.deepEqual(observations.pipeline[0], {
+    $match: observations.taskFilter,
+  });
+  assert.deepEqual(
+    observations.pipeline[1].$addFields.__taskStatusOrder.$let.vars.position
+      .$indexOfArray[0],
+    ["Pendente", "Andamento"],
+  );
+  assert.deepEqual(observations.pipeline[2].$sort, {
+    __taskStatusOrder: 1,
+    __taskIdentifier: 1,
     createdAt: -1,
     _id: 1,
   });
-  assert.equal(observations.skip, 3);
-  assert.equal(observations.limit, 3);
+  assert.deepEqual(observations.aggregateOptions, {
+    collation: { locale: "pt", numericOrdering: true, strength: 1 },
+  });
+  assert.deepEqual(observations.pipeline[3], { $skip: 3 });
+  assert.deepEqual(observations.pipeline[4], { $limit: 3 });
   assert.deepEqual(
     result.items.map(({ id }) => id),
     ["task-4", "task-5", "task-6"],

@@ -7,9 +7,11 @@ import {
   Clock3,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { compareRequestTasks } from "../../../../shared/requestTaskSorting.js";
 
 import {
   formatDate,
+  REQUEST_ALL_TASK_STATUS_OPTIONS,
   REQUEST_TASK_STATUS_COLORS,
   REQUEST_TASK_STATUS_OPTIONS,
 } from "./requestUtils.js";
@@ -37,21 +39,6 @@ function statusStyle(status) {
   };
 }
 
-function taskCreatedAtSortValue(task) {
-  if (!task.createdAt) return Number.NEGATIVE_INFINITY;
-
-  const timestamp = new Date(task.createdAt).getTime();
-  return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
-}
-
-function compareTasks(first, second) {
-  return (
-    taskCreatedAtSortValue(second.task) - taskCreatedAtSortValue(first.task) ||
-    first.request.title.localeCompare(second.request.title, "pt-BR") ||
-    first.task.title.localeCompare(second.task.title, "pt-BR")
-  );
-}
-
 function taskDateLabel(task) {
   if (task.startDate && task.endDate) {
     return `${formatDate(task.startDate)} → ${formatDate(task.endDate)}`;
@@ -76,7 +63,13 @@ export function RequestTasksOverview({ requests, onSelectRequest }) {
         (request.tasks || []).map((task) => ({ request, task })),
       )
       .filter(({ task }) => selectedStatuses.has(task.status))
-      .sort(compareTasks);
+      .sort((first, second) =>
+        compareRequestTasks(
+          first.task,
+          second.task,
+          REQUEST_ALL_TASK_STATUS_OPTIONS,
+        ),
+      );
   }, [requests, selectedStatuses]);
   const taskGroups = useMemo(() => {
     const groups = new Map();

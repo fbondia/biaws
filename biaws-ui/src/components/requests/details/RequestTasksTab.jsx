@@ -1,9 +1,13 @@
 import { CalendarDays, CheckCircle2, Circle, Clock3, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { compareRequestTasks } from "../../../../../shared/requestTaskSorting.js";
 
 import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
 import { formatDate, REQUEST_TASK_STATUS_COLORS } from "../requestUtils.js";
-import { REQUEST_DEFAULTS } from "../../../data/requestConstants.js";
+import {
+  REQUEST_ALL_TASK_STATUS_OPTIONS,
+  REQUEST_DEFAULTS,
+} from "../../../data/requestConstants.js";
 import { RequestTaskDialog } from "./RequestTaskDialog.jsx";
 import { EntityIdentifier } from "../../shared/EntityIdentifier/index.jsx";
 
@@ -44,6 +48,13 @@ export function RequestTasksTab({
 }) {
   const { confirm } = useMessages();
   const [dialogTask, setDialogTask] = useState(null);
+  const tasks = useMemo(
+    () =>
+      [...request.tasks].sort((first, second) =>
+        compareRequestTasks(first, second, REQUEST_ALL_TASK_STATUS_OPTIONS),
+      ),
+    [request.tasks],
+  );
 
   useEffect(() => {
     setDialogTask(null);
@@ -108,8 +119,8 @@ export function RequestTasksTab({
       </div>
 
       <div className="requestTaskList">
-        {request.tasks.length ? (
-          request.tasks.map((task) => {
+        {tasks.length ? (
+          tasks.map((task) => {
             const StatusIcon = statusIcon(task.status);
             return (
               <article

@@ -8,6 +8,7 @@ import {
   REQUEST_STATUS_OPTIONS,
   REQUEST_TASK_STATUS_OPTIONS,
 } from "../../../shared/requestConstants.js";
+import { compareRequestTasks } from "../../../shared/requestTaskSorting.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getPagination } from "../helpers/query.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
@@ -682,8 +683,10 @@ async function readTasks(db, requestIds) {
   const rows = await db
     .collection(TASKS_COLLECTION)
     .find({ requestId: { $in: requestIds } })
-    .sort({ createdAt: -1 })
     .toArray();
+  rows.sort((first, second) =>
+    compareRequestTasks(first, second, allTaskStatusOptions),
+  );
   const taskIds = rows.map((row) => row._id);
   const noteRows = taskIds.length
     ? await db

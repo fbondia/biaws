@@ -1,11 +1,16 @@
 import { randomUUID } from "node:crypto";
 
 import { DEPLOYMENT_ENVIRONMENTS } from "../../../shared/index.js";
+import { REQUEST_TASK_STATUS_OPTIONS } from "../../../shared/requestConstants.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
 import { getPagination } from "../helpers/query.js";
 import { actorCanAccessApplication } from "../auth/authorizationMiddleware.js";
 import { monitoringMetadataPresentation } from "./monitoringMetadataProfiles.js";
+import {
+  OPTION_LIST_KEYS,
+  OPTION_LISTS_COLLECTION,
+} from "./optionListsRepository.js";
 
 const MAX_WIDGETS = 30;
 const DEFAULT_PENDING_TASKS_LIMIT = 6;
@@ -601,8 +606,27 @@ export function pendingTasksPagination(query = {}) {
   return getPagination({ ...query, limit: requestedLimit });
 }
 
+async function pendingTaskStatusOptions(database, actor) {
+  const optionList = await database.collection(OPTION_LISTS_COLLECTION).findOne(
+    {
+      workspaceId: String(actor.workspaceId || ""),
+      key: OPTION_LIST_KEYS.TASK_STATUS,
+    },
+    { projection: { items: 1 } },
+  );
+  const configuredStatuses = [...(optionList?.items || [])]
+    .sort((first, second) => Number(first.order) - Number(second.order))
+    .map(({ value }) => value)
+    .filter(Boolean);
+
+  return configuredStatuses.length
+    ? configuredStatuses
+    : REQUEST_TASK_STATUS_OPTIONS;
+}
+
 export async function buildPendingTasksMetric(database, actor, query = {}) {
   const pagination = pendingTasksPagination(query);
+  const statusOptions = await pendingTaskStatusOptions(database, actor);
   const requests = await database
     .collection(COLLECTION_NAMES.REQUESTS)
     .find(scopedFilter(actor, "demands.read"))
@@ -627,10 +651,48 @@ export async function buildPendingTasksMetric(database, actor, query = {}) {
     database.collection(COLLECTION_NAMES.REQUEST_TASKS).countDocuments(filter),
     database
       .collection(COLLECTION_NAMES.REQUEST_TASKS)
-      .find(filter)
-      .sort({ endDate: 1, createdAt: -1, _id: 1 })
-      .skip(pagination.skip)
-      .limit(pagination.limit)
+      .aggregate(
+        [
+          { $match: filter },
+          {
+            $addFields: {
+              __taskStatusOrder: {
+                $let: {
+                  vars: {
+                    position: { $indexOfArray: [statusOptions, "$status"] },
+                  },
+                  in: {
+                    $cond: [
+                      { $gte: ["$$position", 0] },
+                      "$$position",
+                      statusOptions.length,
+                    ],
+                  },
+                },
+              },
+              __taskIdentifier: {
+                $cond: [
+                  { $gt: [{ $strLenCP: { $ifNull: ["$code", ""] } }, 0] },
+                  "$code",
+                  { $toString: "$_id" },
+                ],
+              },
+            },
+          },
+          {
+            $sort: {
+              __taskStatusOrder: 1,
+              __taskIdentifier: 1,
+              createdAt: -1,
+              _id: 1,
+            },
+          },
+          { $skip: pagination.skip },
+          { $limit: pagination.limit },
+          { $unset: ["__taskStatusOrder", "__taskIdentifier"] },
+        ],
+        { collation: { locale: "pt", numericOrdering: true, strength: 1 } },
+      )
       .toArray(),
   ]);
   const requestDetails = new Map(

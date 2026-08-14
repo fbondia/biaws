@@ -36,6 +36,11 @@ function config(overrides = {}) {
 function monitor(overrides = {}) {
   return {
     id: "monitor-1",
+    name: "Health endpoint",
+    workspaceId: "workspace-1",
+    applicationId: "application-1",
+    deploymentId: "deployment-1",
+    runtimeId: "runtime-1",
     executionId: "execution-1",
     leaseToken: "lease-1",
     provider: "rest",
@@ -45,6 +50,57 @@ function monitor(overrides = {}) {
     ...overrides,
   };
 }
+
+test("execution logs carry monitor and catalog context", async () => {
+  const entries = [];
+  const contextualLogger = Object.fromEntries(
+    ["info", "warn", "error"].map((level) => [
+      level,
+      (event, fields) => entries.push({ level, event, fields }),
+    ]),
+  );
+  const engine = new ExecutorEngine({
+    api: {
+      async acquire() {
+        return { items: [monitor()] };
+      },
+      async publish() {
+        return { created: true };
+      },
+    },
+    providers: new ProviderRegistry().register(
+      "rest",
+      testProvider(async () => ({ status: "healthy" })),
+    ),
+    config: config(),
+    telemetry: createTelemetry(),
+    logger: contextualLogger,
+    now: () => new Date("2026-08-13T12:00:05.000Z"),
+  });
+
+  await engine.pollOnce();
+
+  const started = entries.find(
+    ({ event }) => event === "executor_execution_started",
+  );
+  const completed = entries.find(
+    ({ event }) => event === "executor_execution_completed",
+  );
+  assert.deepEqual(started.fields, {
+    workspaceId: "workspace-1",
+    applicationId: "application-1",
+    deploymentId: "deployment-1",
+    runtimeId: "runtime-1",
+    monitorId: "monitor-1",
+    monitorName: "Health endpoint",
+    executionId: "execution-1",
+    provider: "rest",
+    scheduledFor: "2026-08-13T12:00:00.000Z",
+  });
+  assert.equal(completed.fields.runtimeId, "runtime-1");
+  assert.equal(completed.fields.status, "healthy");
+  assert.equal(completed.fields.durationMs, 0);
+});
 
 test("two replicas sharing the API publish one acquired occurrence", async () => {
   const queue = [monitor()];

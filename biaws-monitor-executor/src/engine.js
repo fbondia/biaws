@@ -2,6 +2,24 @@ import { abortableSleep, retryWithBackoff } from "./retry.js";
 import { normalizeProviderResult, providerFailureResult } from "./providers.js";
 import { runWithSignal, timeoutSignal } from "./executionControl.js";
 
+function executionLogContext(monitor) {
+  return Object.fromEntries(
+    Object.entries({
+      workspaceId: monitor.workspaceId,
+      applicationId: monitor.applicationId,
+      componentId: monitor.componentId,
+      deploymentId: monitor.deploymentId,
+      runtimeId: monitor.runtimeId,
+      monitorId: monitor.id,
+      monitorName: monitor.name,
+      executionId: monitor.executionId,
+      provider: monitor.provider,
+      trigger: monitor.trigger,
+      scheduledFor: monitor.scheduledFor,
+    }).filter(([, value]) => value !== undefined && value !== null),
+  );
+}
+
 export class ExecutorEngine {
   #activeJobs = new Set();
   #jobControllers = new Set();
@@ -164,8 +182,7 @@ export class ExecutorEngine {
         if (!controller.signal.aborted) {
           this.telemetry.increment("lease_losses");
           this.logger.warn("executor_lease_lost", {
-            monitorId: monitor.id,
-            executionId: monitor.executionId,
+            ...executionLogContext(monitor),
             code: error?.code,
           });
           controller.abort(error);
@@ -176,6 +193,8 @@ export class ExecutorEngine {
 
   async #executeMonitor(monitor) {
     const startedAt = this.now();
+    const logContext = executionLogContext(monitor);
+    this.logger.info("executor_execution_started", logContext);
     const scheduledAt = new Date(monitor.scheduledFor);
     if (Number.isFinite(scheduledAt.getTime())) {
       this.telemetry.observe(
@@ -210,9 +229,7 @@ export class ExecutorEngine {
         this.telemetry.increment("provider_failures");
         result = providerFailureResult(error, monitor, this.now());
         this.logger.warn("executor_provider_failed", {
-          monitorId: monitor.id,
-          executionId: monitor.executionId,
-          provider: monitor.provider,
+          ...logContext,
           code: error?.code,
         });
       }
@@ -229,17 +246,16 @@ export class ExecutorEngine {
         );
         this.telemetry.increment("executions_completed");
         this.logger.info("executor_execution_completed", {
-          monitorId: monitor.id,
-          executionId: monitor.executionId,
-          provider: monitor.provider,
+          ...logContext,
           status: result.status,
+          durationMs: Math.max(0, this.now().getTime() - startedAt.getTime()),
         });
       } catch (error) {
         this.telemetry.increment("execution_failures");
         this.logger.error("executor_execution_failed", {
-          monitorId: monitor.id,
-          executionId: monitor.executionId,
+          ...logContext,
           code: error?.code,
+          durationMs: Math.max(0, this.now().getTime() - startedAt.getTime()),
         });
       }
     } finally {

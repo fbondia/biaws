@@ -25,3 +25,4 @@ debug-ui.sh
 .agents/skills/biaws-operate-workspace/SKILL.md
 .agents/skills/biaws-operate-workspace/agents/openai.yaml
 update-starter-skills.sh
+update-monitoring-workspaces.sh

@@ -16,7 +16,7 @@ Ações:
   start       inicia e aguarda os executores selecionados
   stop        interrompe os executores selecionados
   status      mostra o estado dos executores selecionados
-  logs        mostra os últimos logs dos executores selecionados
+  logs        acompanha continuamente os logs dos executores selecionados
 EOF
 }
 
@@ -96,6 +96,7 @@ if [[ "${ACTION}" == "start" ]] && ! docker image inspect "${IMAGE}" >/dev/null 
 fi
 
 failures=0
+log_pids=()
 for workspace_dir in "${workspace_directories[@]}"; do
   workspace="$(basename "${workspace_dir}")"
   env_file="${workspace_dir}/.env"
@@ -141,10 +142,17 @@ for workspace_dir in "${workspace_directories[@]}"; do
       env "${exported[@]}" "${compose[@]}" ps executor || failures=$((failures + 1))
       ;;
     logs)
-      env "${exported[@]}" "${compose[@]}" logs --tail "${BIAWS_MONITOR_LOG_TAIL:-200}" executor || failures=$((failures + 1))
+      env "${exported[@]}" "${compose[@]}" logs --follow --tail "${BIAWS_MONITOR_LOG_TAIL:-200}" executor &
+      log_pids+=("$!")
       ;;
   esac
 done
+
+if [[ "${ACTION}" == "logs" ]]; then
+  for pid in "${log_pids[@]}"; do
+    wait "${pid}" || failures=$((failures + 1))
+  done
+fi
 
 if [[ "${failures}" -gt 0 ]]; then
   echo "A operação terminou com falha em ${failures} workspace(s)." >&2

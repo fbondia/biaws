@@ -83,7 +83,7 @@ export function ActiveView({
   runtimeOptionsVersion,
 }) {
   if (activeView === "home") {
-    return <HomeView onOpenRequestTask={onOpenRequestTask} />;
+    return <HomeView actor={actor} onOpenRequestTask={onOpenRequestTask} />;
   }
   if (activeView === "workspace-admin") {
     return <WorkspaceAdminView actor={actor} />;

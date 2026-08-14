@@ -36,6 +36,12 @@ export async function activeMonitorCollection() {
           workspaceId: 1,
           "lease.leasedUntil": 1,
         }),
+        collection.createIndex({
+          workspaceId: 1,
+          applicationId: 1,
+          enabled: 1,
+          "manualRunRequest.requestedAt": 1,
+        }),
       ]);
       return collection;
     })().catch((error) => {

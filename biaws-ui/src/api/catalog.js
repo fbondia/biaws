@@ -308,6 +308,14 @@ export function updateRuntimeActiveMonitor(runtimeId, monitorId, monitor) {
     "PATCH",
   );
 }
+export function requestRuntimeActiveMonitorExecution(runtimeId, monitorId) {
+  return sendJson(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/active-monitors/${encodeURIComponent(monitorId)}/executions`,
+    {},
+    undefined,
+    "POST",
+  );
+}
 export function deleteRuntimeActiveMonitor(runtimeId, monitorId) {
   return deleteJson(
     `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/active-monitors/${encodeURIComponent(monitorId)}`,

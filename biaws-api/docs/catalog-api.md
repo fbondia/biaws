@@ -285,21 +285,22 @@ entre `operation`, `deployment`, `rollback`, `troubleshooting`, `monitoring` e
 
 ## Monitoramento
 
-| Método   | Rota                                                                    | Permissão                   |
-| -------- | ----------------------------------------------------------------------- | --------------------------- |
-| `POST`   | `/api/monitoring/runtimes/:runtimeReference/signals`                    | `monitoring.signals.create` |
-| `POST`   | `/api/monitoring/runtimes/:runtimeReference/manual-observations`        | `runtimes.update`           |
-| `GET`    | `/api/monitoring/runtimes/:runtimeReference/signals`                    | `runtimes.read`             |
-| `GET`    | `/api/monitoring/runtimes/:runtimeReference/timeline`                   | `runtimes.read`             |
-| `GET`    | `/api/monitoring/applications/:applicationId/health`                    | `runtimes.read`             |
-| `GET`    | `/api/monitoring/metadata-profiles`                                     | `runtimes.read`             |
-| `GET`    | `/api/monitoring/runtimes/:runtimeReference/active-monitors`            | `runtimes.read`             |
-| `POST`   | `/api/monitoring/runtimes/:runtimeReference/active-monitors`            | `runtimes.update`           |
-| `PATCH`  | `/api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId` | `runtimes.update`           |
-| `DELETE` | `/api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId` | `runtimes.update`           |
-| `POST`   | `/api/monitoring/executor/leases`                                       | `monitoring.active.execute` |
-| `POST`   | `/api/monitoring/executor/leases/:leaseToken/renew`                     | `monitoring.active.execute` |
-| `POST`   | `/api/monitoring/executor/leases/:leaseToken/results`                   | `monitoring.active.execute` |
+| Método   | Rota                                                                               | Permissão                   |
+| -------- | ---------------------------------------------------------------------------------- | --------------------------- |
+| `POST`   | `/api/monitoring/runtimes/:runtimeReference/signals`                               | `monitoring.signals.create` |
+| `POST`   | `/api/monitoring/runtimes/:runtimeReference/manual-observations`                   | `runtimes.update`           |
+| `GET`    | `/api/monitoring/runtimes/:runtimeReference/signals`                               | `runtimes.read`             |
+| `GET`    | `/api/monitoring/runtimes/:runtimeReference/timeline`                              | `runtimes.read`             |
+| `GET`    | `/api/monitoring/applications/:applicationId/health`                               | `runtimes.read`             |
+| `GET`    | `/api/monitoring/metadata-profiles`                                                | `runtimes.read`             |
+| `GET`    | `/api/monitoring/runtimes/:runtimeReference/active-monitors`                       | `runtimes.read`             |
+| `POST`   | `/api/monitoring/runtimes/:runtimeReference/active-monitors`                       | `runtimes.update`           |
+| `PATCH`  | `/api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId`            | `runtimes.update`           |
+| `DELETE` | `/api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId`            | `runtimes.update`           |
+| `POST`   | `/api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId/executions` | `monitoring.active.request` |
+| `POST`   | `/api/monitoring/executor/leases`                                                  | `monitoring.active.execute` |
+| `POST`   | `/api/monitoring/executor/leases/:leaseToken/renew`                                | `monitoring.active.execute` |
+| `POST`   | `/api/monitoring/executor/leases/:leaseToken/results`                              | `monitoring.active.execute` |
 
 Sinais passivos, execuções ativas e observações manuais são persistidos em
 `runtimeMonitoringSignals`, diferenciados por `origin`. O sinal mais recente por

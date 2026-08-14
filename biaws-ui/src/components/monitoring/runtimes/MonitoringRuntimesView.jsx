@@ -747,7 +747,7 @@ export function MonitoringRuntimesView({ actor }) {
         </div>
       ) : null}
       {viewMode === "dashboard" ? (
-        <MonitoringDashboard onOpenTarget={openDashboardTarget} />
+        <MonitoringDashboard actor={actor} onOpenTarget={openDashboardTarget} />
       ) : (
         <>
           <div className="monitoringNavigator" aria-busy={loading}>

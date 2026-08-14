@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   fetchHomeDashboard,
@@ -9,6 +9,10 @@ import {
   moveWidget,
   updateWidgetInstance,
 } from "../model.js";
+import {
+  MONITORING_REFRESH_INTERVAL_MS,
+  useAutoRefresh,
+} from "../../../../hooks/useAutoRefresh.js";
 
 export function useHomeView() {
   const [dashboard, setDashboard] = useState(null);
@@ -21,17 +25,26 @@ export function useHomeView() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const loadPromiseRef = useRef(null);
+  const hasMonitoringWidgets = Boolean(
+    dashboard?.configuration.widgets?.some(
+      ({ widgetId }) => widgetId === "application-health",
+    ),
+  );
 
   async function load() {
+    if (loadPromiseRef.current) return loadPromiseRef.current;
     setLoading(true);
     setError("");
-    try {
-      setDashboard(await fetchHomeDashboard());
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      setLoading(false);
-    }
+    const promise = fetchHomeDashboard()
+      .then((payload) => setDashboard(payload))
+      .catch((loadError) => setError(loadError.message))
+      .finally(() => {
+        loadPromiseRef.current = null;
+        setLoading(false);
+      });
+    loadPromiseRef.current = promise;
+    return promise;
   }
 
   useEffect(() => {
@@ -52,6 +65,17 @@ export function useHomeView() {
       active = false;
     };
   }, []);
+
+  useAutoRefresh(load, {
+    enabled:
+      hasMonitoringWidgets &&
+      !editing &&
+      !catalogOpen &&
+      !configuration &&
+      !monitoringRuntime &&
+      !saving,
+    intervalMs: MONITORING_REFRESH_INTERVAL_MS,
+  });
 
   function beginEditing() {
     setDraftWidgets(structuredClone(dashboard.configuration.widgets));

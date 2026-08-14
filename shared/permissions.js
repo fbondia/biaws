@@ -39,6 +39,11 @@ const definitions = [
     "Monitoramento",
     "Executar monitoramentos ativos de runtimes",
   ],
+  [
+    "monitoring.active.request",
+    "Monitoramento",
+    "Solicitar a execução imediata de monitoramentos ativos",
+  ],
 
   ["issues.read", "Chamados", "Consultar chamados"],
   ["issues.create", "Chamados", "Criar chamados"],

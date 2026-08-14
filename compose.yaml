@@ -135,6 +135,8 @@ services:
     build:
       context: .
       dockerfile: docker/ui.Dockerfile
+      args:
+        VITE_MONITORING_REFRESH_SECONDS: ${BIAWS_UI_MONITORING_REFRESH_SECONDS:-30}
     restart: unless-stopped
     depends_on:
       api:

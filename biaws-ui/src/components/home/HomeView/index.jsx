@@ -7,9 +7,17 @@ import {
 } from "./components/HomeDialogs.jsx";
 import { RuntimeMonitoringDialog } from "./components/RuntimeMonitoringDialog.jsx";
 import { useHomeView } from "./hooks/useHomeView.js";
+import {
+  canRequestMonitoringExecution,
+  MonitoringExecutionDialog,
+} from "../../monitoring/runtime/MonitoringExecutionDialog.jsx";
+import { X } from "lucide-react";
+import { useState } from "react";
 
-export function HomeView({ onOpenRequestTask }) {
+export function HomeView({ actor, onOpenRequestTask }) {
   const home = useHomeView();
+  const [executionTarget, setExecutionTarget] = useState(null);
+  const [executionNotice, setExecutionNotice] = useState("");
 
   if (home.loading && !home.dashboard) {
     return (
@@ -37,6 +45,18 @@ export function HomeView({ onOpenRequestTask }) {
 
   return (
     <section className="homePage">
+      {executionNotice ? (
+        <div className="monitoringExecutionNotice" role="status">
+          {executionNotice}
+          <button
+            aria-label="Fechar aviso"
+            onClick={() => setExecutionNotice("")}
+            type="button"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      ) : null}
       <HomeDashboard
         {...home}
         onAddWidget={() => home.setCatalogOpen(true)}
@@ -47,6 +67,10 @@ export function HomeView({ onOpenRequestTask }) {
         onDragStart={home.setDraggingId}
         onDrop={home.dropWidget}
         onOpenRequestTask={onOpenRequestTask}
+        canRequestMonitoringExecution={(runtime) =>
+          canRequestMonitoringExecution(actor, runtime.applicationId)
+        }
+        onRequestMonitoringExecution={setExecutionTarget}
         onRefresh={() => void home.load()}
         onRemove={home.removeWidget}
         onResize={home.resizeWidget}
@@ -73,6 +97,20 @@ export function HomeView({ onOpenRequestTask }) {
         <RuntimeMonitoringDialog
           onClose={() => home.setMonitoringRuntime(null)}
           runtime={home.monitoringRuntime}
+        />
+      ) : null}
+      {executionTarget ? (
+        <MonitoringExecutionDialog
+          onClose={() => setExecutionTarget(null)}
+          onRequested={({ monitor, result }) => {
+            setExecutionNotice(
+              result.created
+                ? `Execução de “${monitor.name}” solicitada.`
+                : `“${monitor.name}” já possuía uma execução pendente.`,
+            );
+            setExecutionTarget(null);
+          }}
+          target={executionTarget}
         />
       ) : null}
     </section>

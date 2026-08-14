@@ -408,6 +408,7 @@ export async function recordActiveRuntimeMonitoringObservation(
       executionId: monitor.lease.executionId,
       scheduledFor: monitor.lease.scheduledFor,
       provider: monitor.provider,
+      trigger: monitor.lease.trigger || "scheduled",
       ...(templateRef ? { templateRef: { ...templateRef } } : {}),
       ...(evaluation
         ? {

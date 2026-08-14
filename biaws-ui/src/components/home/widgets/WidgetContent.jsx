@@ -4,9 +4,11 @@ import { PendingTasksWidget } from "./PendingTasksWidget.jsx";
 import { StatWidget } from "./StatWidget.jsx";
 
 export function WidgetContent({
+  canRequestMonitoringExecution,
   config,
   data,
   onOpenRequestTask,
+  onRequestMonitoringExecution,
   onSelectRuntime,
 }) {
   if (!data) {
@@ -24,9 +26,11 @@ export function WidgetContent({
   if (data.kind === "health") {
     return (
       <ApplicationHealthWidget
+        canRequestMonitoringExecution={canRequestMonitoringExecution}
         config={config}
         data={data}
         onSelectRuntime={onSelectRuntime}
+        onRequestExecution={onRequestMonitoringExecution}
       />
     );
   }

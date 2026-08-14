@@ -47,8 +47,20 @@ async function validateTemplateRef(
 function publicActiveMonitor(document) {
   const monitor = normalizeDocument(document);
   if (!monitor) return null;
-  const { lease, nameKey, ...publicMonitor } = monitor;
-  return publicMonitor;
+  const { lease, nameKey, manualRunRequest, ...publicMonitor } = monitor;
+  return {
+    ...publicMonitor,
+    ...(manualRunRequest
+      ? {
+          pendingExecution: {
+            id: manualRunRequest.id,
+            requestedAt: manualRunRequest.requestedAt,
+            status: "queued",
+            trigger: "manual",
+          },
+        }
+      : {}),
+  };
 }
 
 function duplicateMonitorName(error) {
@@ -400,7 +412,10 @@ export async function updateRuntimeActiveMonitor(
           updatedAt: now,
           updatedBy: actorId(actor),
         },
-        $unset: { lease: "" },
+        $unset: {
+          lease: "",
+          ...(normalized.enabled ? {} : { manualRunRequest: "" }),
+        },
       },
       { returnDocument: "after" },
     );
@@ -465,7 +480,7 @@ export async function archiveRuntimeActiveMonitor(
         updatedBy: actorId(actor),
         version: current.version + 1,
       },
-      $unset: { lease: "" },
+      $unset: { lease: "", manualRunRequest: "" },
     },
     { returnDocument: "after" },
   );

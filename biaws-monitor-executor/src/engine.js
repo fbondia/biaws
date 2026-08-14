@@ -56,7 +56,7 @@ export class ExecutorEngine {
     });
     while (!this.#loopController.signal.aborted) {
       try {
-        await this.pollOnce();
+        await this.pollOnce({ waitForJobs: false });
       } catch (error) {
         if (!this.#loopController.signal.aborted) {
           this.telemetry.increment("poll_failures");
@@ -95,7 +95,7 @@ export class ExecutorEngine {
     });
   }
 
-  async pollOnce() {
+  async pollOnce({ waitForJobs = true } = {}) {
     if (!this.config.enabled || this.#stopping) return [];
     const available = this.config.concurrency - this.#activeJobs.size;
     if (available <= 0) return [];
@@ -121,7 +121,7 @@ export class ExecutorEngine {
     const items = Array.isArray(response?.items) ? response.items : [];
     this.telemetry.increment("leases_acquired", items.length);
     const jobs = items.map((monitor) => this.#trackJob(monitor));
-    await Promise.allSettled(jobs);
+    if (waitForJobs) await Promise.allSettled(jobs);
     return items;
   }
 

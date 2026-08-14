@@ -29,6 +29,7 @@ import {
   acquireDueActiveMonitors,
   claimActiveMonitorResult,
   completeActiveMonitorExecution,
+  requestActiveMonitorExecution,
   renewActiveMonitorLease,
 } from "../repositories/runtimeActiveMonitoringExecutionRepository.js";
 import { recordAuditEvent } from "../repositories/auditRepository.js";
@@ -426,6 +427,41 @@ monitoringRouter.delete(
       after,
     });
     res.json({ monitor: after });
+  }),
+);
+
+monitoringRouter.post(
+  "/runtimes/:runtimeReference/active-monitors/:monitorId/executions",
+  requireAllPermissions("monitoring.active.request"),
+  asyncHandler(async (req, res) => {
+    const runtime = await scopedRuntime(req, "monitoring.active.request");
+    if (!runtime) return sendRuntimeNotFound(res);
+    const result = await requestActiveMonitorExecution(
+      runtime,
+      req.params.monitorId,
+      req.actor,
+    );
+    if (result.created) {
+      await recordAuditEvent({
+        actor: req.actor,
+        action: "monitoring_active_execution_requested",
+        target: {
+          type: "active-monitor",
+          id: result.monitor.id,
+          label: result.monitor.name,
+        },
+        after: result.execution,
+        metadata: {
+          workspaceId: runtime.workspaceId,
+          applicationId: runtime.applicationId,
+          deploymentId: runtime.deploymentId,
+          runtimeId: runtime.id,
+          executionId: result.execution.id,
+        },
+        summary: `active monitor execution requested: ${result.monitor.name}`,
+      });
+    }
+    res.status(result.created ? 202 : 200).json(result);
   }),
 );
 

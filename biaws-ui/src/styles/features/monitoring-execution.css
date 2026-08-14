@@ -1,0 +1,140 @@
+.monitoringExecutionNotice {
+  align-items: center;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 10px;
+  color: var(--color-accent-text);
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.monitoringExecutionNotice button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  display: inline-flex;
+  padding: 3px;
+}
+
+.monitoringExecutionDialog {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: min(780px, calc(100dvh - 48px));
+  overflow: hidden;
+  width: min(620px, calc(100vw - 32px));
+}
+
+.monitoringExecutionDialog > header,
+.monitoringExecutionDialog > footer {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+
+.monitoringExecutionDialog > header {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.monitoringExecutionDialog > header span,
+.monitoringExecutionDialog > footer {
+  color: var(--color-text-subtle);
+}
+
+.monitoringExecutionDialog > header span {
+  font-size: 12px;
+}
+
+.monitoringExecutionDialog h2 {
+  margin: 3px 0 0;
+}
+
+.monitoringExecutionDialog > footer {
+  border-top: 1px solid var(--color-border);
+}
+
+.monitoringExecutionDialog > footer > div {
+  display: flex;
+  gap: 10px;
+}
+
+.monitoringExecutionDialogBody {
+  display: grid;
+  gap: 20px;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.monitoringExecutionList {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.monitoringExecutionList > button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: inherit;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 13px 14px;
+  text-align: left;
+  width: 100%;
+}
+
+.monitoringExecutionList > button:last-of-type {
+  border-bottom: 0;
+}
+
+.monitoringExecutionList > button:not(:disabled):hover {
+  background: var(--color-surface-muted);
+}
+
+.monitoringExecutionList > button:disabled {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.monitoringExecutionList > button span {
+  display: grid;
+  gap: 3px;
+}
+
+.monitoringExecutionList > button small {
+  color: var(--color-text-subtle);
+}
+
+.monitoringExecutionDialog .monitoringPanelEmptySelection {
+  align-items: center;
+  background: var(--color-surface-muted);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  min-height: 130px;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .monitoringExecutionDialog > footer {
+    align-items: stretch;
+    display: grid;
+  }
+
+  .monitoringExecutionDialog > footer > div {
+    justify-content: flex-end;
+  }
+}

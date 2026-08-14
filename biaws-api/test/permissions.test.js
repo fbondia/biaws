@@ -42,6 +42,10 @@ test("permission constants and validation use the canonical catalog", () => {
     "documents.attachment.read",
   );
   assert.equal(isKnownPermission(PERMISSIONS.SKILLS_PUBLISH), true);
+  assert.equal(
+    PERMISSIONS.MONITORING_ACTIVE_REQUEST,
+    "monitoring.active.request",
+  );
   assert.equal(isKnownPermission("issues.superuser"), false);
   assert.doesNotThrow(() =>
     assertKnownPermissions([PERMISSIONS.ISSUES_READ, PERMISSIONS.DEMANDS_READ]),

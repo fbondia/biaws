@@ -44,6 +44,7 @@ test("topology permissions are part of the canonical catalog", () => {
     }
   }
   assert.equal(permissions.has("monitoring.active.execute"), true);
+  assert.equal(permissions.has("monitoring.active.request"), true);
 });
 
 test("component relationships are normalized and duplicate references are rejected", () => {

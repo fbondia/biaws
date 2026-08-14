@@ -239,6 +239,7 @@ GET    /api/monitoring/runtimes/:runtimeReference/active-monitors
 POST   /api/monitoring/runtimes/:runtimeReference/active-monitors
 PATCH  /api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId
 DELETE /api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId
+POST   /api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId/executions
 ```
 
 As mesmas operações de administração estão disponíveis para agentes pelas
@@ -257,6 +258,17 @@ campos associados a credenciais; referências a templates são validadas no
 workspace e na versão informada. `templateRef` é exclusivo do provider REST:
 novos monitores Shell com template são rejeitados com
 `SHELL_TEMPLATE_NOT_SUPPORTED`.
+
+A execução imediata exige `monitoring.active.request` e retorna
+`202 Accepted`. A solicitação é persistida e consumida pelo mesmo contrato de
+leases do executor; pedidos repetidos são coalescidos, execuções em andamento
+não são interrompidas e a agenda periódica em `nextRunAt` não é deslocada.
+
+Os widgets de saúde da Home e do painel de monitoramento atualizam seus dados
+automaticamente. O intervalo padrão é 30 segundos e pode ser definido no build
+da UI por `BIAWS_UI_MONITORING_REFRESH_SECONDS` (mínimo de 5 segundos). O ciclo
+não sobrepõe requisições, pausa com a aba oculta e é suspenso enquanto diálogos
+ou a personalização da Home estiverem abertos.
 
 No provider Shell, `configuration` aceita `scriptId`, `arguments`,
 `environment`, `failureStatus` (`unknown`, `degraded` ou `unavailable`, padrão

@@ -15,6 +15,7 @@ import { WidgetContent } from "../../widgets/WidgetContent.jsx";
 import { HOME_WIDGET_ICONS } from "../constants.js";
 
 export function HomeDashboard({
+  canRequestMonitoringExecution,
   catalogById,
   dashboard,
   draggingId,
@@ -29,6 +30,7 @@ export function HomeDashboard({
   onDragStart,
   onDrop,
   onOpenRequestTask,
+  onRequestMonitoringExecution,
   onRefresh,
   onRemove,
   onResize,
@@ -72,6 +74,8 @@ export function HomeDashboard({
         onDragStart={onDragStart}
         onDrop={onDrop}
         onOpenRequestTask={onOpenRequestTask}
+        canRequestMonitoringExecution={canRequestMonitoringExecution}
+        onRequestMonitoringExecution={onRequestMonitoringExecution}
         onRemove={onRemove}
         onResize={onResize}
         onSelectRuntime={onSelectRuntime}
@@ -181,6 +185,7 @@ function HomeWidgetGrid({ catalogById, widgets, ...cardProps }) {
 }
 
 function HomeWidgetCard({
+  canRequestMonitoringExecution,
   dashboard,
   definition,
   draggingId,
@@ -191,6 +196,7 @@ function HomeWidgetCard({
   onDragStart,
   onDrop,
   onOpenRequestTask,
+  onRequestMonitoringExecution,
   onRemove,
   onResize,
   onSelectRuntime,
@@ -257,9 +263,11 @@ function HomeWidgetCard({
       </header>
       <div className="homeWidgetBody">
         <WidgetContent
+          canRequestMonitoringExecution={canRequestMonitoringExecution}
           config={instance.config}
           data={dashboard.data[instance.id]}
           onOpenRequestTask={onOpenRequestTask}
+          onRequestMonitoringExecution={onRequestMonitoringExecution}
           onSelectRuntime={onSelectRuntime}
         />
       </div>

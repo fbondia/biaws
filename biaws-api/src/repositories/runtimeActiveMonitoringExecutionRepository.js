@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { normalizeActiveMonitorLeaseRequest } from "./runtimeActiveMonitoringModel.js";
 import { activeMonitorCollection } from "./runtimeActiveMonitoringStorage.js";
 import {
+  actorId,
   createCatalogError,
   normalizeDocument,
   requiredText,
@@ -35,7 +36,96 @@ function leaseResponse(monitor) {
     executionId: lease.executionId,
     scheduledFor: lease.scheduledFor,
     leasedUntil: lease.leasedUntil,
+    trigger: lease.trigger || "scheduled",
   };
+}
+
+function manualExecutionResponse(request) {
+  return {
+    id: request.id,
+    requestedAt: request.requestedAt,
+    status: "queued",
+    trigger: "manual",
+  };
+}
+
+export async function requestActiveMonitorExecution(
+  runtime,
+  monitorId,
+  actor = {},
+) {
+  const collection = await activeMonitorCollection();
+  const filter = {
+    id: String(monitorId),
+    workspaceId: runtime.workspaceId,
+    runtimeId: runtime.id,
+    archivedAt: { $exists: false },
+  };
+  const current = await collection.findOne(filter);
+  if (!current) {
+    throw createCatalogError(
+      404,
+      "ACTIVE_MONITOR_NOT_FOUND",
+      "Active monitor not found",
+    );
+  }
+  if (!current.enabled) {
+    throw createCatalogError(
+      409,
+      "ACTIVE_MONITOR_DISABLED",
+      "Active monitor must be enabled before execution can be requested",
+    );
+  }
+  if (current.manualRunRequest) {
+    return {
+      created: false,
+      monitor: { id: current.id, name: current.name },
+      execution: manualExecutionResponse(current.manualRunRequest),
+    };
+  }
+
+  const now = new Date();
+  const request = {
+    id: randomUUID(),
+    requestedAt: now,
+    requestedBy: actorId(actor),
+  };
+  const updated = await collection.findOneAndUpdate(
+    {
+      ...filter,
+      enabled: true,
+      manualRunRequest: { $exists: false },
+    },
+    {
+      $set: {
+        manualRunRequest: request,
+        updatedAt: now,
+        updatedBy: actorId(actor),
+      },
+    },
+    { returnDocument: "after" },
+  );
+  if (updated) {
+    return {
+      created: true,
+      monitor: { id: updated.id, name: updated.name },
+      execution: manualExecutionResponse(request),
+    };
+  }
+
+  const concurrent = await collection.findOne(filter);
+  if (concurrent?.manualRunRequest) {
+    return {
+      created: false,
+      monitor: { id: concurrent.id, name: concurrent.name },
+      execution: manualExecutionResponse(concurrent.manualRunRequest),
+    };
+  }
+  throw createCatalogError(
+    409,
+    "ACTIVE_MONITOR_CONCURRENT_UPDATE",
+    "Active monitor changed concurrently; reload and try again",
+  );
 }
 
 async function acquireExpiredLease(collection, scope, request, now) {
@@ -115,9 +205,61 @@ async function acquireDueLease(collection, scope, request, now) {
           scheduledFor,
           leasedAt: now,
           leasedUntil,
+          trigger: "scheduled",
         },
         updatedAt: now,
       },
+    },
+    { returnDocument: "after" },
+  );
+}
+
+async function acquireManualLease(collection, scope, request, now) {
+  const candidate = await collection.findOne(
+    {
+      ...scope,
+      enabled: true,
+      archivedAt: { $exists: false },
+      "manualRunRequest.requestedAt": { $lte: now },
+      $or: [
+        { lease: { $exists: false } },
+        { "lease.completedAt": { $exists: true } },
+      ],
+    },
+    { sort: { "manualRunRequest.requestedAt": 1, id: 1 } },
+  );
+  if (!candidate) return null;
+  const manualRequest = candidate.manualRunRequest;
+  const leasedUntil = new Date(now.getTime() + request.leaseSeconds * 1_000);
+  const leaseFilter = candidate.lease?.completedAt
+    ? {
+        "lease.token": candidate.lease.token,
+        "lease.completedAt": candidate.lease.completedAt,
+      }
+    : { lease: { $exists: false } };
+  return collection.findOneAndUpdate(
+    {
+      id: candidate.id,
+      workspaceId: candidate.workspaceId,
+      enabled: true,
+      archivedAt: { $exists: false },
+      "manualRunRequest.id": manualRequest.id,
+      ...leaseFilter,
+    },
+    {
+      $set: {
+        lease: {
+          token: randomUUID(),
+          executionId: manualRequest.id,
+          executorId: request.executorId,
+          scheduledFor: manualRequest.requestedAt,
+          leasedAt: now,
+          leasedUntil,
+          trigger: "manual",
+        },
+        updatedAt: now,
+      },
+      $unset: { manualRunRequest: "" },
     },
     { returnDocument: "after" },
   );
@@ -139,6 +281,7 @@ export async function acquireDueActiveMonitors(
     const now = new Date();
     const monitor =
       (await acquireExpiredLease(collection, scope, request, now)) ||
+      (await acquireManualLease(collection, scope, request, now)) ||
       (await acquireDueLease(collection, scope, request, now));
     if (!monitor) break;
     items.push(leaseResponse(monitor));
@@ -240,6 +383,7 @@ export async function completeActiveMonitorExecution(
           status: event.status,
           eventId: event.id,
           completedAt: now,
+          trigger: monitor.lease.trigger || "scheduled",
         },
         "lease.completedAt": now,
         updatedAt: now,

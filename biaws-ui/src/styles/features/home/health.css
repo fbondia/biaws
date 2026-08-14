@@ -139,7 +139,18 @@
 }
 
 .homeHealthRuntimeCard {
+  align-items: center;
   background: var(--color-surface);
+  display: flex;
+}
+
+.homeHealthRuntimeCard > .homeHealthRuntime {
+  flex: 1 1 auto;
+}
+
+.homeHealthRuntimeExecution {
+  flex: 0 0 auto;
+  margin-right: 8px;
 }
 
 .homeHealthMetadataExplorer {
@@ -232,6 +243,16 @@
   display: grid;
   min-width: 0;
   gap: 2px;
+}
+
+.homeHealthMetadataPanel > header > .homeHealthMetadataActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.homeHealthMetadataActions .secondaryButton {
+  padding: 7px 9px;
 }
 
 .homeHealthMetadataPanel > header small {

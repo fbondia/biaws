@@ -3,6 +3,7 @@ import {
   CheckSquare2,
   GripVertical,
   LayoutDashboard,
+  Play,
   RefreshCw,
   Settings2,
   X,
@@ -15,9 +16,17 @@ import {
   fetchMonitoringPanelPreference,
   updateMonitoringPanelPreference,
 } from "../../../api.js";
+import {
+  MONITORING_REFRESH_INTERVAL_MS,
+  useAutoRefresh,
+} from "../../../hooks/useAutoRefresh.js";
 import "../../../styles/features/home/index.css";
 import { HOME_WIDGET_SIZES } from "../../home/HomeView/model.js";
 import { ApplicationHealthWidget } from "../../home/widgets/ApplicationHealthWidget.jsx";
+import {
+  canRequestMonitoringExecution,
+  MonitoringExecutionDialog,
+} from "../runtime/MonitoringExecutionDialog.jsx";
 import {
   groupMonitoringTargets,
   moveMonitoringWidget,
@@ -239,7 +248,7 @@ export function TargetSelector({
   );
 }
 
-export function MonitoringDashboard({ onOpenTarget }) {
+export function MonitoringDashboard({ actor, onOpenTarget }) {
   const [targets, setTargets] = useState([]);
   const [widgets, setWidgets] = useState([]);
   const [healthByRuntimeId, setHealthByRuntimeId] = useState({});
@@ -247,6 +256,9 @@ export function MonitoringDashboard({ onOpenTarget }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [executionDialog, setExecutionDialog] = useState(null);
+  const loadPromiseRef = useRef(null);
   const selectedWidgets = useMemo(
     () => selectedMonitoringWidgets(targets, widgets),
     [targets, widgets],
@@ -279,39 +291,50 @@ export function MonitoringDashboard({ onOpenTarget }) {
   }
 
   async function load() {
+    if (loadPromiseRef.current) return loadPromiseRef.current;
     setLoading(true);
     setError("");
-    try {
-      const [targetPayload, preference] = await Promise.all([
-        fetchMonitoredRuntimeTargets(),
-        fetchMonitoringPanelPreference(),
-      ]);
-      const nextTargets = targetPayload.items || [];
-      const availableIds = new Set(nextTargets.map(({ id }) => id));
-      const nextWidgets = (
-        preference.widgets ||
-        (preference.runtimeIds || []).map((runtimeId) => ({
-          runtimeId,
-          size: "medium-2",
-        }))
-      ).filter(({ runtimeId }) => availableIds.has(runtimeId));
-      setTargets(nextTargets);
-      setWidgets(nextWidgets);
-      await loadHealth(
-        selectedMonitoringWidgets(nextTargets, nextWidgets).map(
-          ({ target }) => target,
-        ),
-      );
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      setLoading(false);
-    }
+    const promise = (async () => {
+      try {
+        const [targetPayload, preference] = await Promise.all([
+          fetchMonitoredRuntimeTargets(),
+          fetchMonitoringPanelPreference(),
+        ]);
+        const nextTargets = targetPayload.items || [];
+        const availableIds = new Set(nextTargets.map(({ id }) => id));
+        const nextWidgets = (
+          preference.widgets ||
+          (preference.runtimeIds || []).map((runtimeId) => ({
+            runtimeId,
+            size: "medium-2",
+          }))
+        ).filter(({ runtimeId }) => availableIds.has(runtimeId));
+        setTargets(nextTargets);
+        setWidgets(nextWidgets);
+        await loadHealth(
+          selectedMonitoringWidgets(nextTargets, nextWidgets).map(
+            ({ target }) => target,
+          ),
+        );
+      } catch (loadError) {
+        setError(loadError.message);
+      } finally {
+        loadPromiseRef.current = null;
+        setLoading(false);
+      }
+    })();
+    loadPromiseRef.current = promise;
+    return promise;
   }
 
   useEffect(() => {
     void load();
   }, []);
+
+  useAutoRefresh(load, {
+    enabled: !selecting && !executionDialog,
+    intervalMs: MONITORING_REFRESH_INTERVAL_MS,
+  });
 
   async function saveSelection(nextWidgets) {
     setSaving(true);
@@ -331,6 +354,15 @@ export function MonitoringDashboard({ onOpenTarget }) {
     } finally {
       setSaving(false);
     }
+  }
+
+  function executionRequested({ monitor, result }) {
+    setNotice(
+      result.created
+        ? `Execução de “${monitor.name}” solicitada.`
+        : `“${monitor.name}” já possuía uma execução pendente.`,
+    );
+    setExecutionDialog(null);
   }
 
   return (
@@ -363,6 +395,18 @@ export function MonitoringDashboard({ onOpenTarget }) {
       {error ? (
         <div className="errorBox" role="alert">
           {error}
+        </div>
+      ) : null}
+      {notice ? (
+        <div className="monitoringExecutionNotice" role="status">
+          {notice}
+          <button
+            aria-label="Fechar aviso"
+            onClick={() => setNotice("")}
+            type="button"
+          >
+            <X size={15} />
+          </button>
         </div>
       ) : null}
       {!loading && !selectedWidgets.length ? (
@@ -399,6 +443,17 @@ export function MonitoringDashboard({ onOpenTarget }) {
                     </small>
                   </div>
                 </div>
+                {canRequestMonitoringExecution(actor, target.applicationId) ? (
+                  <button
+                    aria-label={`Executar monitor de ${target.name}`}
+                    className="iconButton"
+                    onClick={() => setExecutionDialog(target)}
+                    title="Executar monitor agora"
+                    type="button"
+                  >
+                    <Play size={16} />
+                  </button>
+                ) : null}
               </header>
               <div className="homeWidgetBody">
                 {healthByRuntimeId[target.id] ? (
@@ -422,6 +477,13 @@ export function MonitoringDashboard({ onOpenTarget }) {
           saving={saving}
           selectedWidgets={widgets}
           targets={targets}
+        />
+      ) : null}
+      {executionDialog ? (
+        <MonitoringExecutionDialog
+          onClose={() => setExecutionDialog(null)}
+          onRequested={executionRequested}
+          target={executionDialog}
         />
       ) : null}
     </section>

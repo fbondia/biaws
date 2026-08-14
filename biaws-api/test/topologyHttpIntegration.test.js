@@ -901,6 +901,87 @@ test(
       );
       assert.equal(duplicateActiveResult.status, 200);
       assert.equal((await duplicateActiveResult.json()).created, false);
+      const monitorBeforeManualRequest = await database
+        .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
+        .findOne({ id: activeMonitor.id });
+      const manualExecutionRoute = `/api/monitoring/runtimes/${runtime.id}/active-monitors/${activeMonitor.id}/executions`;
+      const unauthorizedManualExecution = await request(manualExecutionRoute, {
+        cookie: readerCookie,
+        method: "POST",
+        body: {},
+        origin: true,
+      });
+      assert.equal(unauthorizedManualExecution.status, 403);
+      const manualExecutionResponse = await request(manualExecutionRoute, {
+        cookie: adminCookie,
+        method: "POST",
+        body: {},
+        origin: true,
+      });
+      assert.equal(manualExecutionResponse.status, 202);
+      const manualExecution = await manualExecutionResponse.json();
+      assert.equal(manualExecution.created, true);
+      assert.equal(manualExecution.execution.trigger, "manual");
+      const duplicateManualExecutionResponse = await request(
+        manualExecutionRoute,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {},
+          origin: true,
+        },
+      );
+      assert.equal(duplicateManualExecutionResponse.status, 200);
+      const duplicateManualExecution =
+        await duplicateManualExecutionResponse.json();
+      assert.equal(duplicateManualExecution.created, false);
+      assert.equal(
+        duplicateManualExecution.execution.id,
+        manualExecution.execution.id,
+      );
+      const manualLeaseResponse = await request(
+        "/api/monitoring/executor/leases",
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: { executorId: "integration-runner", leaseSeconds: 60 },
+          origin: true,
+        },
+      );
+      assert.equal(manualLeaseResponse.status, 200);
+      const manualLease = (await manualLeaseResponse.json()).items[0];
+      assert.equal(manualLease.id, activeMonitor.id);
+      assert.equal(manualLease.executionId, manualExecution.execution.id);
+      assert.equal(manualLease.trigger, "manual");
+      const monitorAfterManualLease = await database
+        .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
+        .findOne({ id: activeMonitor.id });
+      assert.deepEqual(
+        monitorAfterManualLease.nextRunAt,
+        monitorBeforeManualRequest.nextRunAt,
+      );
+      const manualResultResponse = await request(
+        `/api/monitoring/executor/leases/${manualLease.leaseToken}/results`,
+        {
+          cookie: adminCookie,
+          method: "POST",
+          body: {
+            executorId: "integration-runner",
+            status: "healthy",
+            observedAt: "2026-07-30T12:05:00.000Z",
+            source: "active-rest",
+            payload: { response: { status: 200 } },
+          },
+          origin: true,
+        },
+      );
+      assert.equal(manualResultResponse.status, 201);
+      const manualResult = await manualResultResponse.json();
+      assert.equal(
+        manualResult.signal.executionId,
+        manualExecution.execution.id,
+      );
+      assert.equal(manualResult.signal.trigger, "manual");
       const timelineAfterActive = await (
         await request(`/api/monitoring/runtimes/${runtime.id}/timeline`, {
           cookie: adminCookie,
@@ -909,7 +990,7 @@ test(
       assert.equal(
         timelineAfterActive.items.filter(({ origin }) => origin === "active")
           .length,
-        1,
+        2,
       );
       const templateUsage = await (
         await request(
@@ -918,7 +999,7 @@ test(
         )
       ).json();
       assert.equal(templateUsage.usage.activeMonitors, 1);
-      assert.equal(templateUsage.usage.observations, 1);
+      assert.equal(templateUsage.usage.observations, 2);
       const templateDeleteResponse = await request(
         `/api/monitoring/templates/${template.id}/versions/${template.version}`,
         { cookie: adminCookie, method: "DELETE", origin: true },

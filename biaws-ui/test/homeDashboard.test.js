@@ -42,9 +42,10 @@ test("home dashboard exposes widget controls while personalizing", async () => {
         outDir: outputDirectory,
       },
     });
-    const { mountEditingHomeDashboard } = await import(
-      pathToFileURL(join(outputDirectory, "home-dashboard-harness.js"))
-    );
+    const { mountEditingHomeDashboard, mountMonitoringHomeDashboard } =
+      await import(
+        pathToFileURL(join(outputDirectory, "home-dashboard-harness.js"))
+      );
     const root = mountEditingHomeDashboard(document.getElementById("app"));
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -63,6 +64,21 @@ test("home dashboard exposes widget controls while personalizing", async () => {
     );
     assert.equal(document.querySelector(".homeWidget").draggable, true);
     root.unmount();
+
+    let requestedRuntime;
+    const monitoringRoot = mountMonitoringHomeDashboard(
+      document.getElementById("app"),
+      (runtime) => {
+        requestedRuntime = runtime;
+      },
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    document
+      .querySelector('button[aria-label="Executar monitor de Principal"]')
+      .click();
+    assert.equal(requestedRuntime.id, "runtime-1");
+    assert.equal(requestedRuntime.applicationId, "application-1");
+    monitoringRoot.unmount();
   } finally {
     for (const [name, descriptor] of Object.entries(previous)) {
       if (descriptor) Object.defineProperty(globalThis, name, descriptor);

@@ -66,9 +66,13 @@ async function migrate() {
   const passiveEventFilter = {
     $or: [{ origin: "external" }, { origin: { $exists: false } }],
   };
+  const requiredAdministrationPermissions = [
+    "monitoring.active.execute",
+    "monitoring.active.request",
+  ];
   const administrationFilter = {
     $or: [{ systemKey: "administration" }, { _id: "administration" }],
-    permissions: { $ne: "monitoring.active.execute" },
+    permissions: { $not: { $all: requiredAdministrationPermissions } },
   };
   const legacyShellTemplateFilter = {
     provider: "shell",
@@ -164,7 +168,7 @@ async function migrate() {
       $set: { origin: "passive" },
     });
     const permissionResult = await groups.updateMany(administrationFilter, {
-      $addToSet: { permissions: "monitoring.active.execute" },
+      $addToSet: { permissions: { $each: requiredAdministrationPermissions } },
     });
     summary.administrationGroupsUpdated = permissionResult.modifiedCount;
     await events.createIndex(

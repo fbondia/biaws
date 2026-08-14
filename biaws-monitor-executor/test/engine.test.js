@@ -116,6 +116,54 @@ test("temporary API failures use bounded exponential backoff", async () => {
   assert.ok(delays[1] <= 20);
 });
 
+test("continuous polling can acquire again while an earlier job is running", async () => {
+  let releaseFirst;
+  const firstPending = new Promise((resolve) => {
+    releaseFirst = resolve;
+  });
+  const queue = [
+    monitor({ configuration: { wait: true } }),
+    monitor({
+      id: "monitor-2",
+      executionId: "execution-2",
+      leaseToken: "lease-2",
+      configuration: { wait: false },
+    }),
+  ];
+  const published = [];
+  const engine = new ExecutorEngine({
+    api: {
+      async acquire() {
+        const item = queue.shift();
+        return { items: item ? [item] : [] };
+      },
+      async publish(leaseToken) {
+        published.push(leaseToken);
+        return { created: true };
+      },
+    },
+    providers: new ProviderRegistry().register(
+      "rest",
+      testProvider(async ({ configuration }) => {
+        if (configuration.wait) await firstPending;
+        return { status: "healthy" };
+      }),
+    ),
+    config: config(),
+    telemetry: createTelemetry(),
+    logger,
+  });
+
+  await engine.pollOnce({ waitForJobs: false });
+  await engine.pollOnce({ waitForJobs: false });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(published, ["lease-2"]);
+
+  releaseFirst();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(published.sort(), ["lease-1", "lease-2"]);
+});
+
 test("long executions renew the lease before publishing", async () => {
   let releaseProvider;
   const providerPending = new Promise((resolve) => {

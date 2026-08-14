@@ -251,6 +251,8 @@ fi
 printf '%s' "${monitor_api_key}" > "${monitor_api_key_path}"
 chmod 600 "${monitor_api_key_path}"
 replace_env_value "BIAWS_MONITOR_SECRET_FILES_PATH" "${monitor_secret_files_path}"
+replace_env_value "BIAWS_MONITOR_EXECUTOR_UID" "$(id -u)"
+replace_env_value "BIAWS_MONITOR_EXECUTOR_GID" "$(id -g)"
 remove_env_value "BIAWS_MONITOR_EXECUTOR_API_KEY_PATH"
 replace_env_value "BIAWS_MONITOR_EXECUTOR_API_KEY" ""
 replace_env_value "BIAWS_MONITOR_EXECUTOR_API_KEY_FILE" "/run/secrets/executor-api-key"

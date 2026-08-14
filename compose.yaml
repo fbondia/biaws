@@ -84,6 +84,7 @@ services:
     build:
       context: .
       dockerfile: docker/monitor-executor.Dockerfile
+    user: "${BIAWS_MONITOR_EXECUTOR_UID:-1000}:${BIAWS_MONITOR_EXECUTOR_GID:-1000}"
     init: true
     restart: unless-stopped
     depends_on:
@@ -115,8 +116,8 @@ services:
     tmpfs:
       - /tmp:size=16m,mode=1777
     volumes:
-      - ${BIAWS_MONITOR_SECRET_FILES_PATH:-./monitor-secrets}:/run/secrets:ro
-      - ${BIAWS_MONITOR_SHELL_FILES_PATH:-./monitor-scripts}:/opt/biaws-monitor-scripts:ro
+      - ${BIAWS_MONITOR_SECRET_FILES_PATH:-./monitoring/secrets}:/run/secrets:ro
+      - ${BIAWS_MONITOR_SHELL_FILES_PATH:-./monitoring/scripts}:/opt/biaws-monitor-scripts:ro
     healthcheck:
       test:
         [

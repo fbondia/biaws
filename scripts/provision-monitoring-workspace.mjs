@@ -54,6 +54,29 @@ function readEnv(file) {
   );
 }
 
+function replaceEnvValues(file, values) {
+  const pending = new Map(Object.entries(values));
+  const lines = readFileSync(file, "utf8")
+    .split(/\r?\n/u)
+    .filter((line, index, all) => line || index < all.length - 1)
+    .map((line) => {
+      const match = line.match(/^([A-Z0-9_]+)=/u);
+      if (!match || !pending.has(match[1])) return line;
+      const value = pending.get(match[1]);
+      pending.delete(match[1]);
+      return `${match[1]}=${value}`;
+    });
+  for (const [key, value] of pending) lines.push(`${key}=${value}`);
+
+  const temporaryPath = `${file}.${process.pid}.tmp`;
+  writeFileSync(temporaryPath, `${lines.join("\n")}\n`, {
+    mode: 0o600,
+    flag: "wx",
+  });
+  renameSync(temporaryPath, file);
+  chmodSync(file, 0o600);
+}
+
 const { instance, workspace } = parseArguments(process.argv.slice(2));
 const instanceDir = path.join(ROOT_DIR, "instances", instance);
 const instanceEnv = path.join(instanceDir, ".env");
@@ -133,4 +156,8 @@ const temporaryPath = path.join(
 writeFileSync(temporaryPath, apiKey, { mode: 0o600, flag: "wx" });
 renameSync(temporaryPath, apiKeyPath);
 chmodSync(apiKeyPath, 0o600);
+replaceEnvValues(workspaceEnv, {
+  BIAWS_MONITOR_EXECUTOR_UID: process.getuid?.() ?? 1000,
+  BIAWS_MONITOR_EXECUTOR_GID: process.getgid?.() ?? 1000,
+});
 console.log(`Identidade técnica do executor provisionada para ${workspace}.`);

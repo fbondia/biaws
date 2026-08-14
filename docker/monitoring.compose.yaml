@@ -1,6 +1,7 @@
 services:
   executor:
     image: ${BIAWS_MONITOR_EXECUTOR_IMAGE:?Configure BIAWS_MONITOR_EXECUTOR_IMAGE}
+    user: "${BIAWS_MONITOR_EXECUTOR_UID:-1000}:${BIAWS_MONITOR_EXECUTOR_GID:-1000}"
     init: true
     restart: unless-stopped
     environment:

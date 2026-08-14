@@ -40,8 +40,10 @@ e apenas um `tmpfs` limitado em `/tmp`.
 ## Configuração mínima e políticas locais
 
 O bootstrap preenche `BIAWS_MONITOR_EXECUTOR_WORKSPACE_ID` e configura
-`BIAWS_MONITOR_EXECUTOR_API_KEY_FILE`. Revise os limites antes de habilitar
-monitores:
+`BIAWS_MONITOR_EXECUTOR_API_KEY_FILE`. Ele também grava
+`BIAWS_MONITOR_EXECUTOR_UID` e `BIAWS_MONITOR_EXECUTOR_GID` com a identidade do
+proprietário da chave, para que o bind mount permaneça legível com permissão
+`0600` em hosts Linux. Revise os limites antes de habilitar monitores:
 
 ```dotenv
 BIAWS_MONITOR_EXECUTOR_CONCURRENCY=4

@@ -259,6 +259,7 @@ export function RequestsView({
               <span className="requestCollectionItem">
                 <span className="requestCollectionItemHeader">
                   <EntityIdentifier
+                    showCopyButton={false}
                     fallback="Sem código"
                     label="Código da melhoria"
                     value={request.clientCode}

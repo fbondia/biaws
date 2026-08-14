@@ -11,6 +11,7 @@ export function EntityIdentifier({
   fallback = "Sem identificador",
   label = "Identificador",
   value,
+  showCopyButton = true,
   variant = "subtitle",
 }) {
   const [copied, setCopied] = useState(false);
@@ -56,25 +57,29 @@ export function EntityIdentifier({
   return (
     <span className={classes} title={`${label}: ${displayValue}`}>
       <code>{displayValue}</code>
-      <button
-        aria-live="polite"
-        aria-label={
-          copied ? `${label} copiado` : `Copiar ${label.toLowerCase()}`
-        }
-        className="entityIdentifierCopy"
-        disabled={!identifier}
-        onClick={handleCopy}
-        onKeyDown={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-        title={copied ? "Copiado" : `Copiar ${label.toLowerCase()}`}
-        type="button"
-      >
-        {copied ? (
-          <Check aria-hidden="true" size={13} />
-        ) : (
-          <Copy aria-hidden="true" size={13} />
-        )}
-      </button>
+
+      {showCopyButton ? (
+        <button
+          aria-live="polite"
+          aria-label={
+            copied ? `${label} copiado` : `Copiar ${label.toLowerCase()}`
+          }
+          className="entityIdentifierCopy"
+          disabled={!identifier}
+          onClick={handleCopy}
+          onKeyDown={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+          title={copied ? "Copiado" : `Copiar ${label.toLowerCase()}`}
+          type="button"
+        >
+          {copied ? (
+            <Check aria-hidden="true" size={13} />
+          ) : (
+            <Copy aria-hidden="true" size={13} />
+          )}
+        </button>
+      ) : (<></>)}
+
     </span>
   );
 }

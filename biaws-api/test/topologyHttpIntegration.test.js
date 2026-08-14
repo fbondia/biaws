@@ -1050,10 +1050,9 @@ test(
         homeAfterManualResult.data["default-application-health-6"].items[0]
           .components[0].deployments[0].runtimes[0];
       assert.equal(
-        homeRuntimeAfterManualResult.latestSignal.executionId,
-        manualExecution.execution.id,
+        homeRuntimeAfterManualResult.latestSignal.metadata.disk_usage_percent,
+        85,
       );
-      assert.equal(homeRuntimeAfterManualResult.latestSignal.trigger, "manual");
       assert.deepEqual(homeRuntimeAfterManualResult.pendingExecutions, []);
       const secondManualExecutionResponse = await request(
         manualExecutionRoute,

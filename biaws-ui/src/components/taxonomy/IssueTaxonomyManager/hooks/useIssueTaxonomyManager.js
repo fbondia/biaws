@@ -9,12 +9,12 @@ import {
   EMPTY_CATALOG,
   exportFileName,
   findTreeNode,
-  hasNode,
   removeNode,
   serializeCatalog,
   slugify,
   updateNode,
 } from "../model.js";
+import { buildUniqueTaxonomyId } from "../../nodeIds.js";
 
 function updateGroup(groups, selectedGroupId, update) {
   return groups.map((group) =>
@@ -152,10 +152,15 @@ export function useIssueTaxonomyManager() {
 
   function addNode(parentId, nodeLabel) {
     const label = nodeLabel.trim();
-    const id = slugify(label);
-    if (!id || hasNode(catalog.taxonomy, id)) return null;
+    if (!label) return null;
 
-    const parent = findTreeNode(catalog.taxonomy, parentId);
+    const parent = parentId ? findTreeNode(catalog.taxonomy, parentId) : null;
+    if (parentId && !parent) {
+      setError("Não foi possível adicionar o nó: nó pai não encontrado.");
+      return null;
+    }
+
+    const id = buildUniqueTaxonomyId(catalog.taxonomy, parentId, label);
     const node = {
       id,
       label,
@@ -166,6 +171,7 @@ export function useIssueTaxonomyManager() {
       taxonomy: appendChild(current.taxonomy, parentId, node),
     }));
     setSelectedNodeId(id);
+    setError("");
     return node;
   }
 

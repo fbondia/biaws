@@ -152,7 +152,7 @@ export function ListEditor({
     try {
       const payload = {
         ...draft,
-        items: draft.items.map(({ _new, ...item }) => ({
+        items: draft.items.map(({ _draftId, _new, ...item }) => ({
           ...item,
           ...(hasEmlDetection
             ? {
@@ -259,7 +259,7 @@ export function ListEditor({
                   index={index}
                   isOnlyItem={draft.items.length === 1}
                   item={item}
-                  key={`${item.value}-${index}`}
+                  key={item._draftId || item.value}
                   onDragEnd={stopDragging}
                   onDragOver={dragOver}
                   onDragStart={startDragging}

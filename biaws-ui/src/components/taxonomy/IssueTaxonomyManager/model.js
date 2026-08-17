@@ -1,3 +1,7 @@
+import { hasTaxonomyNode, slugifyTaxonomyNode } from "../nodeIds.js";
+
+export { slugifyTaxonomyNode as slugify } from "../nodeIds.js";
+
 export const EMPTY_CATALOG = {
   schemaVersion: 1,
   source: null,
@@ -78,15 +82,6 @@ export function exportFileName(catalog) {
   return "issue-taxonomy-catalog.json";
 }
 
-export function slugify(value) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/gu, "-")
-    .replace(/^-|-$/gu, "");
-}
-
 export function normalizeTagGroups(tagGroups) {
   if (Array.isArray(tagGroups)) {
     return tagGroups.map((group) => ({
@@ -104,7 +99,7 @@ export function normalizeTagGroups(tagGroups) {
     .filter(([groupId]) => groupId !== "assuntos")
     .map(([groupId, tags]) => {
       const alias = TAG_GROUP_ALIASES[groupId] || {
-        id: slugify(groupId),
+        id: slugifyTaxonomyNode(groupId),
         label: groupId,
         description: "",
       };
@@ -254,9 +249,7 @@ export function removeNode(nodes, nodeId) {
 }
 
 export function hasNode(nodes, nodeId) {
-  return nodes.some(
-    (node) => node.id === nodeId || hasNode(node.children || [], nodeId),
-  );
+  return hasTaxonomyNode(nodes, nodeId);
 }
 
 export function countNodes(nodes) {

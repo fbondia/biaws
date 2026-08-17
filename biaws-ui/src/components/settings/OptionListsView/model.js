@@ -15,6 +15,13 @@ export const DEFAULT_STATUS_COLORS = {
   border: "#d0d5dd",
 };
 
+let draftItemSequence = 0;
+
+function nextDraftItemId() {
+  draftItemSequence += 1;
+  return `option-draft-${draftItemSequence}`;
+}
+
 export function clone(value) {
   return structuredClone(value);
 }
@@ -28,7 +35,15 @@ export function newItem(list) {
     : list.key === EML_DETECTION_LIST_KEY
       ? { emlImport: { enabled: false, subjectPatterns: [] } }
       : {};
-  return { value: "", label: "", active: true, order, metadata, _new: true };
+  return {
+    value: "",
+    label: "",
+    active: true,
+    order,
+    metadata,
+    _new: true,
+    _draftId: nextDraftItemId(),
+  };
 }
 
 export function removeItem(list, index) {

@@ -173,6 +173,13 @@
   color: var(--color-accent-text);
 }
 
+.taxonomyColumnAddError {
+  grid-column: 1 / -1;
+  color: var(--color-danger-text);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
 .taxonomyEditBackdrop {
   position: fixed;
   z-index: 35;

@@ -17,6 +17,7 @@ test("new issue types start with EML detection disabled", () => {
     enabled: false,
     subjectPatterns: [],
   });
+  assert.match(item._draftId, /^option-draft-\d+$/u);
 });
 
 test("EML tester detects type and named code capture", () => {

@@ -79,6 +79,7 @@ export function TaxonomySelector({
     findNodePath(nodes, controlledActiveValue),
   );
   const [draftLabels, setDraftLabels] = useState({});
+  const [addErrors, setAddErrors] = useState({});
   const [editingNode, setEditingNode] = useState(null);
   const [editLabel, setEditLabel] = useState("");
   const [editScopeMode, setEditScopeMode] = useState("workspace");
@@ -180,10 +181,24 @@ export function TaxonomySelector({
     const label = (draftLabels[columnKey] || "").trim();
     if (!label || !onAddNode) return;
 
-    const newNode = await onAddNode(parentId, label);
-    if (newNode?.id) {
+    try {
+      const newNode = await onAddNode(parentId, label);
+      if (!newNode?.id) {
+        setAddErrors((current) => ({
+          ...current,
+          [columnKey]: "Não foi possível adicionar o nó.",
+        }));
+        return;
+      }
+
       setDraftLabels((current) => ({ ...current, [columnKey]: "" }));
+      setAddErrors((current) => ({ ...current, [columnKey]: "" }));
       setActivePath(findNodePath(nodes, parentId).concat(newNode.id));
+    } catch (addError) {
+      setAddErrors((current) => ({
+        ...current,
+        [columnKey]: addError?.message || "Não foi possível adicionar o nó.",
+      }));
     }
   }
 
@@ -300,12 +315,16 @@ export function TaxonomySelector({
                 }
               >
                 <input
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setDraftLabels((current) => ({
                       ...current,
                       [column.parentId]: event.target.value,
-                    }))
-                  }
+                    }));
+                    setAddErrors((current) => ({
+                      ...current,
+                      [column.parentId]: "",
+                    }));
+                  }}
                   placeholder="Novo nó"
                   value={draftLabels[column.parentId] || ""}
                 />
@@ -316,6 +335,11 @@ export function TaxonomySelector({
                 >
                   <Plus size={14} />
                 </button>
+                {addErrors[column.parentId] ? (
+                  <span className="taxonomyColumnAddError" role="alert">
+                    {addErrors[column.parentId]}
+                  </span>
+                ) : null}
               </form>
             ) : null}
           </div>

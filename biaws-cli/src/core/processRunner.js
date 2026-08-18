@@ -25,7 +25,8 @@ export class ProcessRunner {
       throw new TypeError("ProcessRunner exige comando e array de argumentos.");
     }
     const secrets = options.secrets || [];
-    const shouldBuffer = secrets.some((secret) => String(secret || ""));
+    const shouldBuffer =
+      Boolean(options.silent) || secrets.some((secret) => String(secret || ""));
     const stdoutChunks = [];
     const stderrChunks = [];
     let child;
@@ -73,7 +74,7 @@ export class ProcessRunner {
         stderr: redactText(stderrChunks.join(""), secrets),
       });
       const flush = (result) => {
-        if (!shouldBuffer) return;
+        if (!shouldBuffer || options.silent) return;
         if (result.stdout && this.stdout) this.stdout.write(result.stdout);
         if (result.stderr && this.stderr) this.stderr.write(result.stderr);
       };

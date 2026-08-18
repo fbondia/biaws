@@ -126,6 +126,18 @@ Segredos podem ser acessados pelo executor com `plan.get(campo)`, mas aparecem
 como `[REDACTED]` em `plan.values`, `toJSON()` e no resumo. Cancelamento, EOF e
 sinais abortam antes da chamada do executor com código estável.
 
+## Instâncias locais
+
+`biaws instance setup`, `list`, `show`, `status`, `start` e `stop` cobrem o
+setup e o ciclo de vida local sem exigir chave da API. O setup valida nomes,
+URL, portas e storage antes de chamar Docker, preserva segredos existentes e
+alerta quando uma reexecução muda os destinos persistentes sem mover dados.
+
+A senha administrativa não possui flag: informe-a no prompt mascarado ou em
+`BIAWS_BOOTSTRAP_ADMIN_PASSWORD` num ambiente privado. Consulte o fluxo de
+automação e o smoke test Docker em
+[`docs/instance-lifecycle.md`](docs/instance-lifecycle.md).
+
 ## Desenvolvimento
 
 ```bash

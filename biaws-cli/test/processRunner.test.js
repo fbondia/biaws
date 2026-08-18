@@ -76,3 +76,28 @@ test("ProcessRunner forwards parent signals and reports child signal", async () 
   });
   assert.equal(signalSource.listenerCount("SIGTERM"), 0);
 });
+
+test("ProcessRunner silent mode captures output without writing streams", async () => {
+  const child = fakeChild();
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  let renderedOut = "";
+  let renderedError = "";
+  stdout.on("data", (chunk) => (renderedOut += chunk));
+  stderr.on("data", (chunk) => (renderedError += chunk));
+  const runner = new ProcessRunner({
+    spawn: () => child,
+    signalSource: new EventEmitter(),
+    stdout,
+    stderr,
+  });
+  const promise = runner.run("docker", ["compose", "ps"], { silent: true });
+  child.stdout.write("services");
+  child.stderr.write("diagnostic");
+  child.emit("close", 0, null);
+  const result = await promise;
+  assert.equal(result.stdout, "services");
+  assert.equal(result.stderr, "diagnostic");
+  assert.equal(renderedOut, "");
+  assert.equal(renderedError, "");
+});

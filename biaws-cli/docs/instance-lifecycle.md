@@ -1,0 +1,61 @@
+# Ciclo de vida de instâncias
+
+## Setup
+
+O setup interativo coleta entradas ausentes, mostra um plano redigido e pede
+confirmação antes de mutar arquivos ou chamar Docker:
+
+```bash
+biaws instance setup --interactive
+```
+
+Em automação, defaults precisam ser autorizados e a senha deve vir de um
+ambiente privado, nunca de argv:
+
+```bash
+BIAWS_BOOTSTRAP_ADMIN_PASSWORD='...' \
+  biaws instance setup --name local --defaults --non-interactive --yes
+```
+
+Use `--storage volumes` ou `--storage directories --storage-root /srv/biaws`.
+Uma mudança de estratégia apenas atualiza a configuração e emite um alerta; o
+CLI não move dados existentes implicitamente.
+
+## Operação
+
+```bash
+biaws instance list
+biaws instance show local
+biaws instance status local
+biaws instance start local
+biaws instance stop local
+```
+
+`list` e `show` omitem o conteúdo integral do `.env`. `start`, `stop` e
+`status` invocam Docker Compose sem shell e com projeto, arquivo Compose e env
+da instância resolvidos explicitamente.
+
+## Smoke test Docker real
+
+Em um checkout descartável com Docker e OpenSSL disponíveis:
+
+1. Reserve as portas `27117`, `3110` e `4410`.
+2. Execute o setup não interativo abaixo.
+3. Confirme que `status` lista `mongo`, `api` e `ui` saudáveis.
+4. Pare e reinicie a instância, verificando que o mesmo `.env`, chave mestra e
+   volumes são reutilizados.
+
+```bash
+BIAWS_BOOTSTRAP_ADMIN_PASSWORD='smoke-only-change-me' \
+  node src/index.js instance setup \
+  --name smoke --mongo-port 27117 --api-port 3110 --ui-port 4410 \
+  --public-url http://localhost:4410 --storage volumes \
+  --admin-email smoke@example.test --admin-name Smoke \
+  --api-rate-limit-max 300 --api-rate-limit-window 60 \
+  --auth-rate-limit-max 100 --auth-rate-limit-window 10 \
+  --api-key-rate-limit-max 1000 --api-key-rate-limit-window 3600 \
+  --no-demo-seed --non-interactive --yes
+node src/index.js instance status smoke
+node src/index.js instance stop smoke
+node src/index.js instance start smoke
+```

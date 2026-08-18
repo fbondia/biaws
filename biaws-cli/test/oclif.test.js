@@ -35,6 +35,16 @@ test("oclif gera ajuda contextual para um domínio", () => {
   const result = run("instance", "--help");
   assert.equal(result.status, 0);
   assert.match(result.stdout, /Instala, configura e opera instâncias locais/);
+  for (const command of ["setup", "list", "show", "status", "start", "stop"]) {
+    assert.match(result.stdout, new RegExp(`instance ${command}`));
+  }
+});
+
+test("setup não aceita password em argv e documenta o ambiente privado", () => {
+  const result = run("instance", "setup", "--help");
+  assert.equal(result.status, 0);
+  assert.doesNotMatch(result.stdout, /admin-password/u);
+  assert.match(result.stdout, /BIAWS_BOOTSTRAP_ADMIN_PASSWORD/u);
 });
 
 test("comando desconhecido retorna diagnóstico e código de uso", () => {

@@ -1,4 +1,11 @@
-import { readFile } from "node:fs/promises";
+import {
+  access,
+  mkdir,
+  readFile,
+  readdir,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,7 +31,14 @@ export const TOOL_DIRECTORY = path.resolve(
 
 export function createCommandAdapters(overrides = {}) {
   const environment = overrides.environment || { ...process.env };
-  const filesystem = overrides.filesystem || { readFile };
+  const filesystem = overrides.filesystem || {
+    access,
+    mkdir,
+    readFile,
+    readdir,
+    stat,
+    writeFile,
+  };
   const terminal = overrides.terminal || createTerminalAdapter({ environment });
   const processRunner =
     overrides.processRunner ||

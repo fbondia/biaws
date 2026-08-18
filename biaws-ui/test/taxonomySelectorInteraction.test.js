@@ -33,6 +33,14 @@ async function enterAndSubmitLastNodeLabel(container, label) {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function getColumnLabels(container, columnIndex) {
+  return [
+    ...container.querySelectorAll(
+      `.taxonomyColumn:nth-child(${columnIndex + 1}) .taxonomyColumnRow > span`,
+    ),
+  ].map((element) => element.textContent);
+}
+
 test("taxonomy selector creates repeated child labels and reports rejected additions", async () => {
   const outputDirectory = await mkdtemp(join(tmpdir(), "biaws-taxonomy-ui-"));
   const dom = new JSDOM("<!doctype html><body></body>", {
@@ -74,9 +82,21 @@ test("taxonomy selector creates repeated child labels and reports rejected addit
     );
 
     const successful = await renderSelector(mountTaxonomySelector);
+    assert.deepEqual(getColumnLabels(successful.container, 0), [
+      "Produto",
+      "Serviço",
+    ]);
+    successful.container
+      .querySelector('[title="Produto"]')
+      .dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepEqual(getColumnLabels(successful.container, 1), [
+      "Detalhes",
+      "Zebra",
+    ]);
     await enterAndSubmitLastNodeLabel(successful.container, "Detalhes");
     assert.ok(
-      successful.container.querySelector('[title="Serviço / Detalhes"]'),
+      successful.container.querySelector('[title="Produto / Detalhes"]'),
     );
     successful.harness.root.unmount();
     successful.container.remove();

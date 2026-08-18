@@ -6,12 +6,15 @@ import { TaxonomySelector } from "../../src/components/taxonomy/TaxonomySelector
 import { buildUniqueTaxonomyId } from "../../src/components/taxonomy/nodeIds.js";
 
 const INITIAL_NODES = [
+  { id: "servico", label: "Serviço" },
   {
     id: "produto",
     label: "Produto",
-    children: [{ id: "produto-detalhes", label: "Detalhes" }],
+    children: [
+      { id: "produto-zebra", label: "Zebra" },
+      { id: "produto-detalhes", label: "Detalhes" },
+    ],
   },
-  { id: "servico", label: "Serviço" },
 ];
 
 export function mountTaxonomySelector(container, { rejectAdd = false } = {}) {

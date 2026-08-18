@@ -5,6 +5,14 @@ import { TaxonomyNodeEditDialog } from "./components/TaxonomyNodeEditDialog.jsx"
 
 const CAN_MODIFY_CATALOG = true;
 
+function sortNodesByLabel(nodes = []) {
+  return [...nodes].sort((left, right) =>
+    String(left.label || "").localeCompare(String(right.label || ""), "pt-BR", {
+      sensitivity: "base",
+    }),
+  );
+}
+
 function findNodePath(nodes = [], targetId, currentPath = []) {
   for (const node of nodes) {
     const nextPath = [...currentPath, node.id];
@@ -29,7 +37,7 @@ function findNodeById(nodes = [], targetId) {
 }
 
 function buildColumns(nodes, activePath, canAddNodes) {
-  const columns = [{ parentId: "root", nodes }];
+  const columns = [{ parentId: "root", nodes: sortNodesByLabel(nodes) }];
   let currentNodes = nodes;
 
   for (const nodeId of activePath) {
@@ -44,7 +52,10 @@ function buildColumns(nodes, activePath, canAddNodes) {
     }
 
     currentNodes = currentNode.children;
-    columns.push({ parentId: currentNode.id, nodes: currentNodes });
+    columns.push({
+      parentId: currentNode.id,
+      nodes: sortNodesByLabel(currentNodes),
+    });
   }
 
   return columns;

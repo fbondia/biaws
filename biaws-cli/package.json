@@ -15,6 +15,12 @@
   "bin": {
     "biaws": "src/index.js"
   },
+  "oclif": {
+    "bin": "biaws",
+    "dirname": "biaws",
+    "commands": "./src/commands",
+    "topicSeparator": " "
+  },
   "scripts": {
     "start": "node src/index.js",
     "format": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --write .",
@@ -24,5 +30,8 @@
   },
   "devDependencies": {
     "prettier": "^3.7.4"
+  },
+  "dependencies": {
+    "@oclif/core": "^4.13.5"
   }
 }

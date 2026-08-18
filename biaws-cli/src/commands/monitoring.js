@@ -1,3 +1,5 @@
+import { LegacyCommand } from "../legacyCommand.js";
+
 function parseMetadata(value) {
   if (!value) return {};
   let metadata;
@@ -149,4 +151,15 @@ export async function runMonitoringCommand(api, action, positional, options) {
   if (!runtimeReference)
     throw new Error("Informe o UUID ou caminho do runtime.");
   return handler(api, runtimeReference, options);
+}
+
+export default class Monitoring extends LegacyCommand {
+  static description =
+    "Envia e consulta sinais de monitoramento (compatibilidade legada)";
+  static usage = "monitoring <ação> [argumentos] [opções]";
+
+  async run() {
+    const { action, api, positional, options } = await this.legacyContext();
+    await runMonitoringCommand(api, action, positional, options);
+  }
 }

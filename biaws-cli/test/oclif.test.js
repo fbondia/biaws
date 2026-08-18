@@ -54,3 +54,22 @@ test("versão vem dos metadados do pacote", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /0\.1\.0/);
 });
+
+test("comando remoto valida autenticação antes da operação", () => {
+  const result = spawnSync(
+    process.execPath,
+    ["src/index.js", "skills", "list"],
+    {
+      cwd: CLI_DIRECTORY,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        BIAWS_ROOT: "/private/tmp/biaws-cli-test-no-auth",
+        ISSUE_API_KEY: undefined,
+      },
+    },
+  );
+  assert.equal(result.status, 2);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /Chave da API ausente/u);
+});

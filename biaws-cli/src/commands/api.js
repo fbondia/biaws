@@ -1,6 +1,8 @@
-import { Command, Help } from "@oclif/core";
+import { Help } from "@oclif/core";
 
-export default class Api extends Command {
+import { AuthenticatedApiCommand } from "../baseCommands.js";
+
+export default class Api extends AuthenticatedApiCommand {
   static description =
     "Executa operações autenticadas nos recursos da API do Bondia Workspaces";
   static examples = [

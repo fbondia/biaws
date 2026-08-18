@@ -388,9 +388,7 @@ export default class Agent extends LegacyCommand {
       {
         apiKey: context.apiKey,
         apiUrl: context.apiUrl,
-        envFile: process.env.BIAWS_ENV_FILE
-          ? path.resolve(process.env.BIAWS_ENV_FILE)
-          : "",
+        envFile: context.envFile,
         toolDirectory: TOOL_DIR,
         workspaceId: context.workspaceId,
       },

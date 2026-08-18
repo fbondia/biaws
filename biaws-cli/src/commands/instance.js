@@ -1,6 +1,8 @@
-import { Command, Help } from "@oclif/core";
+import { Help } from "@oclif/core";
 
-export default class Instance extends Command {
+import { LocalInstanceCommand } from "../baseCommands.js";
+
+export default class Instance extends LocalInstanceCommand {
   static description =
     "Instala, configura e opera instâncias locais do Bondia Workspaces";
   static examples = [

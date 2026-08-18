@@ -1,18 +1,11 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { Args } from "@oclif/core";
 
-import { Args, Command } from "@oclif/core";
-
-import { loadEnv } from "../../shared/index.js";
-import { createApiClient } from "./apiClient.js";
+import { AuthenticatedApiCommand, TOOL_DIRECTORY } from "./baseCommands.js";
 import { parseArgs } from "./args.js";
 
-export const TOOL_DIR = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-);
+export const TOOL_DIR = TOOL_DIRECTORY;
 
-export class LegacyCommand extends Command {
+export class LegacyCommand extends AuthenticatedApiCommand {
   static args = {
     arguments: Args.string({
       description: "Argumentos e opções aceitos pelo comando legado",
@@ -23,33 +16,19 @@ export class LegacyCommand extends Command {
   static strict = false;
 
   async legacyContext() {
-    loadEnv(TOOL_DIR);
     const [action, ...rawArgs] = this.argv;
     const { positional, options } = parseArgs(rawArgs);
-    const apiUrl =
-      options["api-url"] ||
-      process.env.ISSUE_API_URL ||
-      process.env.ISSUE_API_BASE_URL ||
-      "http://127.0.0.1:3100";
-    const apiKey = options["api-key"] || process.env.ISSUE_API_KEY;
-    const workspaceId =
-      options.workspace || process.env.ISSUE_WORKSPACE_ID || "";
-
-    if (!apiKey) {
-      this.error(
-        "Chave da API ausente. Defina ISSUE_API_KEY ou informe --api-key.",
-        { exit: 2 },
-      );
-    }
+    const context = await this.authenticatedContext({
+      apiKey: options["api-key"],
+      apiUrl: options["api-url"],
+      workspace: options.workspace,
+    });
 
     return {
       action,
-      api: createApiClient(apiUrl, apiKey, workspaceId),
-      apiKey,
-      apiUrl: apiUrl.replace(/\/+$/u, ""),
+      ...context,
       options,
       positional,
-      workspaceId,
     };
   }
 }

@@ -1,6 +1,8 @@
-import { Command, Help } from "@oclif/core";
+import { Help } from "@oclif/core";
 
-export default class Configure extends Command {
+import { ProjectCommand } from "../baseCommands.js";
+
+export default class Configure extends ProjectCommand {
   static description =
     "Configura projetos, clientes de agentes e skills de desenvolvimento";
   static examples = [

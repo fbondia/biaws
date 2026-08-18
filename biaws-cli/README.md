@@ -91,6 +91,21 @@ configuração e skills.
 
 O valor padrão é `http://127.0.0.1:3100`.
 
+## Fundação de comandos
+
+Os novos comandos usam bases separadas por contexto:
+
+- `LocalInstanceCommand` resolve raiz, diretório de instâncias e `.env` sem
+  exigir credenciais;
+- `AuthenticatedApiCommand` valida a autenticação antes de criar o cliente HTTP;
+- `ProjectCommand` acrescenta a resolução explícita do diretório do projeto.
+
+Filesystem, processos, API e terminal ficam atrás de adapters injetáveis. A
+resolução cria um snapshot do ambiente e não altera `process.env`. Subprocessos
+são executados sem shell, recebem argumentos separados e encaminham sinais; ao
+receber segredos para redaction, sua saída é sanitizada antes de chegar ao
+terminal ou a erros.
+
 ## Desenvolvimento
 
 ```bash

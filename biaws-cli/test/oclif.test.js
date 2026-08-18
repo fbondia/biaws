@@ -39,8 +39,8 @@ test("recursos remotos expõem list/get e tarefas com help contextual", () => {
   const expectations = [
     ["workspaces", ["list", "get"]],
     ["applications", ["list", "get"]],
-    ["demands", ["list", "get", "tasks"]],
-    ["issues", ["list", "get"]],
+    ["demands", ["list", "get", "tasks", "task-status", "complete-task"]],
+    ["issues", ["list", "get", "transition"]],
   ];
   for (const [topic, commands] of expectations) {
     const result = run(topic, "--help");

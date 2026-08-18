@@ -26,7 +26,10 @@ feita incrementalmente.
 biaws
 ├── instance setup|list|show|status|start|stop|backup|restore|remove
 ├── configure codex|claude|skills|doctor
-├── api workspaces|applications|demands|tasks|issues ...
+├── workspaces list|get
+├── applications list|get
+├── demands list|get|tasks|task-status|complete-task
+├── issues list|get|transition
 ├── skills ...       (compatibilidade)
 ├── agent ...        (compatibilidade)
 └── monitoring ...   (compatibilidade)

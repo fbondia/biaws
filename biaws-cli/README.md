@@ -49,12 +49,19 @@ ampliar o escopo. A saída humana sempre informa escopo e paginação. `--json`
 emite somente o envelope versionado `biaws.read.v1` em stdout; diagnósticos
 permanecem em stderr.
 
+As escritas remotas são restritas às ações `demands task-status`,
+`demands complete-task` e `issues transition`. Elas resolvem a entidade antes
+da alteração, exigem confirmação (`--yes` em CI), enviam somente o novo status
+e retornam `biaws.write.v1`. Repetir o status atual não envia outra escrita.
+
 ```bash
 node src/index.js workspaces list --json
 node src/index.js applications list --workspace "$ISSUE_WORKSPACE_ID" --page 1 --limit 20
 node src/index.js demands get CLI-OCLIF-2026-08-18 --workspace "$ISSUE_WORKSPACE_ID"
 node src/index.js demands tasks CLI-OCLIF-2026-08-18 --status Pendente --json
 node src/index.js issues list --application APPLICATION_ID --status open --json
+node src/index.js demands complete-task CLI-OCLIF-2026-08-18 CLI-OCLIF-09 --yes --json
+node src/index.js issues transition ISSUE_ID --status Resolvido --yes --json
 ```
 
 `monitoring signal` envia uma observação passiva para um runtime. A referência

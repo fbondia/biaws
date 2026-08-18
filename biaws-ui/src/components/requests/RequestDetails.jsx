@@ -59,6 +59,8 @@ export function RequestDetails({
   onUpdateSpecificationSection,
   onRequestUpdated,
   onContextChange,
+  onChangeStatus,
+  onChangeTaskStatus,
   applications,
   components,
 }) {
@@ -118,6 +120,7 @@ export function RequestDetails({
           onReadDraftedNumber={onReadDraftedNumber}
           onUpdateNumberDraft={onUpdateNumberDraft}
           onContextChange={onContextChange}
+          onChangeStatus={onChangeStatus}
           applications={applications}
           components={components}
           request={request}
@@ -151,6 +154,11 @@ export function RequestDetails({
         <RequestTasksTab
           initialTaskId={initialTaskId}
           onCreateTask={onCreateTask}
+          onChangeStatus={
+            onChangeTaskStatus
+              ? (task, status) => onChangeTaskStatus(request, task, status)
+              : undefined
+          }
           onCreateTaskNote={onCreateTaskNote}
           onDeleteTask={onDeleteTask}
           onDeleteTaskNote={onDeleteTaskNote}

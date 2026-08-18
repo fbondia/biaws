@@ -182,6 +182,12 @@
   -webkit-line-clamp: 2;
 }
 
+.requestTaskStatusSelect,
+.requestStatusSelect {
+  cursor: pointer;
+  font: inherit;
+}
+
 .requestScheduleList {
   display: grid;
   gap: 8px;

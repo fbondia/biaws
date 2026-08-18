@@ -11,6 +11,7 @@ export function RequestsOverview({
   journeyMonths,
   journeyRequests,
   loading,
+  onChangeTaskStatus,
   onSelectRequest,
   onTabChange,
   scheduleRequests,
@@ -81,6 +82,7 @@ export function RequestsOverview({
 
         {!loading && activeTab === "tasks" ? (
           <RequestTasksOverview
+            onChangeStatus={onChangeTaskStatus}
             onSelectRequest={onSelectRequest}
             requests={taskRequests}
           />

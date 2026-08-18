@@ -12,6 +12,7 @@ import {
   fetchRequest,
   fetchRequestCollectionItems,
   fetchRequests,
+  saveRequest,
   saveRequestNote,
   saveRequestTask,
   saveRequestTaskNote,
@@ -323,6 +324,71 @@ export function useRequestsView(actor, options = {}) {
     }
   }
 
+  async function changeRequestStatus(requestId, status, content = "") {
+    if (!requestId) return false;
+    setSavingRequestId(requestId);
+    setRequestError("");
+
+    try {
+      const current = await fetchRequest(requestId);
+      const payload = await saveRequest(
+        requestId,
+        { ...current.request, status },
+        undefined,
+        actor.workspaceId,
+      );
+      if (payload.request) upsertRequestInList(payload.request);
+      if (content.trim()) {
+        const note = await createRequestNote(requestId, {
+          date: new Date().toISOString().slice(0, 10),
+          content: content.trim(),
+        });
+        if (note.request) upsertRequestInList(note.request);
+      }
+      return true;
+    } catch (error) {
+      setRequestError(error.message);
+      return false;
+    } finally {
+      setSavingRequestId((current) => (current === requestId ? "" : current));
+    }
+  }
+
+  async function changeRequestTaskStatus(
+    requestId,
+    taskId,
+    status,
+    content = "",
+  ) {
+    if (!requestId || !taskId) return false;
+    setSavingRequestId(requestId);
+    setRequestError("");
+
+    try {
+      const current = await fetchRequest(requestId);
+      const task = current.request?.tasks?.find((item) => item.id === taskId);
+      if (!task) throw new Error("Tarefa não encontrada.");
+      const payload = await saveRequestTask(requestId, taskId, {
+        ...task,
+        status,
+      });
+      if (payload.request) upsertRequestInList(payload.request);
+      if (content.trim()) {
+        const note = await createRequestTaskNote(requestId, taskId, {
+          date: new Date().toISOString().slice(0, 10),
+          content: content.trim(),
+        });
+        if (note.request) upsertRequestInList(note.request);
+      }
+      return true;
+    } catch (error) {
+      setRequestError(error.message);
+      return false;
+    } finally {
+      setSavingRequestId((current) => (current === requestId ? "" : current));
+    }
+  }
+
   const { closeSelectedRequest, selectRequest, toggleSelectedEditMode } =
     useRequestSelection({
       requests,
@@ -398,6 +464,8 @@ export function useRequestsView(actor, options = {}) {
     updateRequestNote,
     updateRequestTask,
     updateRequestTaskNote,
+    changeRequestStatus,
+    changeRequestTaskStatus,
     updateSpecificationSection,
     selectedChecklistItem,
     activeOverviewTab,

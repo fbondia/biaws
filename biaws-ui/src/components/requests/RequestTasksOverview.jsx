@@ -50,7 +50,11 @@ function taskDateLabel(task) {
   return "Sem data";
 }
 
-export function RequestTasksOverview({ requests, onSelectRequest }) {
+export function RequestTasksOverview({
+  onChangeStatus,
+  requests,
+  onSelectRequest,
+}) {
   const [selectedStatuses, setSelectedStatuses] = useState(
     () => new Set(REQUEST_TASK_STATUS_OPTIONS),
   );
@@ -207,13 +211,42 @@ export function RequestTasksOverview({ requests, onSelectRequest }) {
                                 {task.title || "Tarefa sem título"}
                               </strong>
                             </div>
-                            <span
-                              className="requestTaskStatus"
-                              style={statusStyle(task.status)}
-                            >
-                              <StatusIcon size={14} />
-                              {task.status}
-                            </span>
+                            {onChangeStatus ? (
+                              <select
+                                aria-label={`Status da tarefa ${task.title || "sem título"}`}
+                                className="requestTaskStatus requestTaskStatusSelect"
+                                onClick={(event) => event.stopPropagation()}
+                                onKeyDown={(event) => event.stopPropagation()}
+                                onChange={(event) =>
+                                  onChangeStatus(
+                                    request,
+                                    task,
+                                    event.target.value,
+                                  )
+                                }
+                                style={statusStyle(task.status)}
+                                value={task.status}
+                              >
+                                {[
+                                  ...new Set([
+                                    ...REQUEST_TASK_STATUS_OPTIONS,
+                                    task.status,
+                                  ]),
+                                ].map((status) => (
+                                  <option key={status} value={status}>
+                                    {status}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <span
+                                className="requestTaskStatus"
+                                style={statusStyle(task.status)}
+                              >
+                                <StatusIcon size={14} />
+                                {task.status}
+                              </span>
+                            )}
                           </div>
 
                           <div className="requestTasksOverviewMeta">

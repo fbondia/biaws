@@ -22,6 +22,7 @@ export function RequestMainTab({
   onReadDraftedNumber,
   onCommitEstimatedJourneys,
   onContextChange,
+  onChangeStatus,
   applications = [],
   components = [],
 }) {
@@ -96,27 +97,6 @@ export function RequestMainTab({
                   )}
                 />
               </label>
-              <label className="field requestStatusField">
-                <span>Status</span>
-                <select
-                  onChange={(event) =>
-                    onFieldChange("status", event.target.value)
-                  }
-                  value={normalizeRequestStatus(request.status)}
-                >
-                  {!REQUEST_STATUS_OPTIONS.includes(request.status) &&
-                  request.status ? (
-                    <option value={request.status}>
-                      {requestStatusLabel(request.status)} (inativo)
-                    </option>
-                  ) : null}
-                  {REQUEST_STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>
-                      {requestStatusLabel(status)}
-                    </option>
-                  ))}
-                </select>
-              </label>
               <label className="field requestMetaField">
                 <span>Prazo estimado</span>
                 <input
@@ -175,14 +155,34 @@ export function RequestMainTab({
             </div>
             <div className="requestDetailCard requestStatusField">
               <span>Status</span>
-              <strong>
-                <span
-                  className="requestStatusChip"
+              {onChangeStatus ? (
+                <select
+                  aria-label="Status da melhoria"
+                  className="requestStatusChip requestStatusSelect"
+                  onChange={(event) =>
+                    onChangeStatus(request, event.target.value)
+                  }
                   style={requestStatusStyle(request.status)}
+                  value={request.status}
                 >
-                  {requestStatusLabel(normalizeRequestStatus(request.status))}
-                </span>
-              </strong>
+                  {[
+                    ...new Set([...REQUEST_STATUS_OPTIONS, request.status]),
+                  ].map((status) => (
+                    <option key={status} value={status}>
+                      {requestStatusLabel(status)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <strong>
+                  <span
+                    className="requestStatusChip"
+                    style={requestStatusStyle(request.status)}
+                  >
+                    {requestStatusLabel(normalizeRequestStatus(request.status))}
+                  </span>
+                </strong>
+              )}
             </div>
             <div className="requestDetailCard requestMetaField">
               <span>Prazo estimado</span>

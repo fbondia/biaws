@@ -14,6 +14,7 @@ import {
 import { EntityIdentifier } from "../../shared/EntityIdentifier/index.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { RequestDetails } from "../RequestDetails.jsx";
+import { RequestStatusChangeDialog } from "../RequestStatusChangeDialog.jsx";
 import {
   normalizeRequest,
   requestStatusLabel,
@@ -42,6 +43,7 @@ export function RequestsView({
 }) {
   const [collectionError, setCollectionError] = useState("");
   const [taskToOpenId, setTaskToOpenId] = useState("");
+  const [statusChange, setStatusChange] = useState(null);
   const collectionState = useResourceCollections("demands", {
     onError: setCollectionError,
   });
@@ -106,6 +108,8 @@ export function RequestsView({
     updateRequestNote,
     updateRequestTask,
     updateRequestTaskNote,
+    changeRequestStatus,
+    changeRequestTaskStatus,
     updateSpecificationSection,
     selectedChecklistItem,
     activeOverviewTab,
@@ -121,6 +125,38 @@ export function RequestsView({
   });
   const canManageCollections = hasPermission(actor, "demands.update");
   const canReorderRequests = hasPermission(actor, "demands.reorder");
+  const canChangeRequestStatus = hasPermission(actor, "demands.update");
+  const canAddRequestNote = hasPermission(actor, "demands.note.create");
+  const canChangeTaskStatus = hasPermission(actor, "tasks.status.update");
+  const canAddTaskNote = hasPermission(actor, "tasks.note.create");
+
+  function requestStatusChange(request, status) {
+    if (status === request.status) return;
+    setStatusChange({ type: "request", request, status, content: "" });
+  }
+
+  function taskStatusChange(request, task, status) {
+    if (status === task.status) return;
+    setStatusChange({ type: "task", request, task, status, content: "" });
+  }
+
+  async function saveStatusChange() {
+    if (!statusChange) return;
+    const saved =
+      statusChange.type === "request"
+        ? await changeRequestStatus(
+            statusChange.request.id,
+            statusChange.status,
+            statusChange.content,
+          )
+        : await changeRequestTaskStatus(
+            statusChange.request.id,
+            statusChange.task.id,
+            statusChange.status,
+            statusChange.content,
+          );
+    if (saved) setStatusChange(null);
+  }
 
   useEffect(() => {
     if (!initialTaskTarget?.requestId || !initialTaskTarget?.taskId) return;
@@ -362,6 +398,12 @@ export function RequestsView({
               updateRequest(selectedRequest.id, () => nextRequest);
               schedulePersistRequest(nextRequest);
             }}
+            onChangeStatus={
+              canChangeRequestStatus ? requestStatusChange : undefined
+            }
+            onChangeTaskStatus={
+              canChangeTaskStatus ? taskStatusChange : undefined
+            }
             onRemoveSpecificationSection={removeSpecificationSection}
             onRemoveChecklistItem={removeChecklistItem}
             onTabChange={setActiveDetailTab}
@@ -386,6 +428,9 @@ export function RequestsView({
             journeyMonths={scheduleJourneyMonths}
             journeyRequests={scheduleJourneyRequests}
             loading={loadingRequests}
+            onChangeTaskStatus={
+              canChangeTaskStatus ? taskStatusChange : undefined
+            }
             onSelectRequest={selectRequest}
             onTabChange={setActiveOverviewTab}
             scheduleRequests={scheduleRequests}
@@ -400,6 +445,24 @@ export function RequestsView({
         newContext={newContext}
         savingRequestId={savingRequestId}
         setNewContext={setNewContext}
+      />
+      <RequestStatusChangeDialog
+        canAddNote={
+          statusChange?.type === "request" ? canAddRequestNote : canAddTaskNote
+        }
+        draft={statusChange}
+        onChange={setStatusChange}
+        onClose={() => setStatusChange(null)}
+        onSave={() => void saveStatusChange()}
+        saving={Boolean(
+          statusChange && savingRequestId === statusChange.request.id,
+        )}
+        subjectLabel={statusChange?.type === "request" ? "Melhoria" : "Tarefa"}
+        title={
+          statusChange?.type === "request"
+            ? statusChange.request.title
+            : statusChange?.task.title
+        }
       />
     </section>
   );

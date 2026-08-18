@@ -3,7 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { compareRequestTasks } from "../../../../../shared/requestTaskSorting.js";
 
 import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
-import { formatDate, REQUEST_TASK_STATUS_COLORS } from "../requestUtils.js";
+import {
+  formatDate,
+  REQUEST_TASK_STATUS_COLORS,
+  REQUEST_TASK_STATUS_OPTIONS,
+} from "../requestUtils.js";
 import {
   REQUEST_ALL_TASK_STATUS_OPTIONS,
   REQUEST_DEFAULTS,
@@ -38,6 +42,7 @@ export function RequestTasksTab({
   saving,
   initialTaskId,
   onCreateTask,
+  onChangeStatus,
   onCreateTaskNote,
   onDeleteTask,
   onDeleteTaskNote,
@@ -146,13 +151,38 @@ export function RequestTasksTab({
                     ) : null}
                     <strong>{task.title}</strong>
                   </div>
-                  <span
-                    className="requestTaskStatus"
-                    style={statusStyle(task.status)}
-                  >
-                    <StatusIcon size={14} />
-                    {task.status}
-                  </span>
+                  {onChangeStatus ? (
+                    <select
+                      aria-label={`Status da tarefa ${task.title || "sem título"}`}
+                      className="requestTaskStatus requestTaskStatusSelect"
+                      onClick={(event) => event.stopPropagation()}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      onChange={(event) =>
+                        onChangeStatus(task, event.target.value)
+                      }
+                      style={statusStyle(task.status)}
+                      value={task.status}
+                    >
+                      {[
+                        ...new Set([
+                          ...REQUEST_TASK_STATUS_OPTIONS,
+                          task.status,
+                        ]),
+                      ].map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span
+                      className="requestTaskStatus"
+                      style={statusStyle(task.status)}
+                    >
+                      <StatusIcon size={14} />
+                      {task.status}
+                    </span>
+                  )}
                 </div>
                 {task.startDate || task.endDate ? (
                   <div className="requestTaskDates">

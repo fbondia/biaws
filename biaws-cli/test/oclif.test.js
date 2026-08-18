@@ -51,6 +51,15 @@ test("recursos remotos expõem list/get e tarefas com help contextual", () => {
   }
 });
 
+test("recursos remotos exibem ajuda quando chamados sem subcomando", () => {
+  for (const topic of ["workspaces", "applications", "demands", "issues"]) {
+    const result = run(topic);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.match(result.stdout, new RegExp(`${topic} list`));
+  }
+});
+
 test("oclif gera ajuda contextual para um domínio", () => {
   const result = run("instance", "--help");
   assert.equal(result.status, 0);

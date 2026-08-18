@@ -164,10 +164,10 @@ O runtime usa containers e a integração do agente roda na máquina que contém
 projeto consumidor. As duas responsabilidades podem ficar na mesma máquina ou
 em máquinas distintas:
 
-| Topologia | Comando | Responsabilidade |
-| --- | --- | --- |
-| Local | `scripts/setup-local.sh` | Cria a instância e configura um cliente local |
-| Servidor | `scripts/setup-server.sh` | Cria ou atualiza somente API, UI, MongoDB e dados |
+| Topologia      | Comando                   | Responsabilidade                                       |
+| -------------- | ------------------------- | ------------------------------------------------------ |
+| Local          | `scripts/setup-local.sh`  | Cria a instância e configura um cliente local          |
+| Servidor       | `scripts/setup-server.sh` | Cria ou atualiza somente API, UI, MongoDB e dados      |
 | Cliente remoto | `scripts/setup-client.sh` | Configura MCP e skills para consumir uma API existente |
 
 As ferramentas de baixo nível permanecem separadas: `bootstrap.sh` inicializa
@@ -193,6 +193,17 @@ ou outro agente com terminal, copie o
 [prompt de instalação assistida](docs/agent-assisted-installation.md): o agente
 poderá instalar o BIAWS sem pedir que você digite comandos, solicitando apenas
 as aprovações necessárias.
+
+O CLI também pode ser instalado pelo npm para consultas e operações remotas:
+
+```bash
+npm install --global biaws
+biaws --help
+```
+
+Comandos de instância, MCP e skills locais precisam do checkout completo. Ao
+usar o binário global fora dele, defina `BIAWS_ROOT=/caminho/para/biaws`. O
+checkout também pode expor o mesmo comando com `npm --prefix biaws-cli link`.
 
 ### Pré-requisitos
 
@@ -472,10 +483,10 @@ node "$PWD/biaws-mcp/src/index.js"
 CLI:
 
 ```bash
-node biaws-cli/src/index.js skills list
-node biaws-cli/src/index.js skills status
-node biaws-cli/src/index.js agent doctor codex --project /caminho/do/projeto --workspace id-do-workspace
-node biaws-cli/src/index.js monitoring signal <aplicação.componente.deployment.runtime> --status healthy --source synthetic-http
+biaws skills list
+biaws skills status
+biaws agent doctor codex --project /caminho/do/projeto --workspace id-do-workspace
+biaws monitoring signal <aplicação.componente.deployment.runtime> --status healthy --source synthetic-http
 ```
 
 Consulte [biaws-mcp/README.md](biaws-mcp/README.md) e

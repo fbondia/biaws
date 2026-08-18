@@ -62,25 +62,59 @@ jobs:
       - run: npm run build
       - run: npm audit --audit-level=high
 
-  mcp-and-cli:
+  mcp:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        module: [biaws-mcp, biaws-cli]
     defaults:
       run:
-        working-directory: ${{ matrix.module }}
+        working-directory: biaws-mcp
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: ${{ matrix.module }}/package-lock.json
+          cache-dependency-path: biaws-mcp/package-lock.json
       - run: npm ci
       - run: npm run format:check
       - run: npm run check
       - run: npm test
+
+  cli:
+    name: CLI (Node ${{ matrix.node-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node-version: [20.19.0, 22]
+    defaults:
+      run:
+        working-directory: biaws-cli
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: biaws-cli/package-lock.json
+      - run: npm ci
+      - run: npm run release:check
+      - run: npm audit --omit=dev --audit-level=high
+      - name: Install the packed CLI and exercise the shebang
+        shell: bash
+        run: |
+          package_file="$(npm pack --pack-destination "${RUNNER_TEMP}")"
+          install_prefix="${RUNNER_TEMP}/biaws-global"
+          npm install --global --prefix "${install_prefix}" "${RUNNER_TEMP}/${package_file}"
+          "${install_prefix}/bin/biaws" --help >"${RUNNER_TEMP}/biaws-help.txt" 2>"${RUNNER_TEMP}/biaws-help.err"
+          "${install_prefix}/bin/biaws" --version >"${RUNNER_TEMP}/biaws-version.txt" 2>"${RUNNER_TEMP}/biaws-version.err"
+          test ! -s "${RUNNER_TEMP}/biaws-help.err"
+          test ! -s "${RUNNER_TEMP}/biaws-version.err"
+          for command in agent skills monitoring instance demands issues; do
+            grep -Eq "^  ${command}[[:space:]]" "${RUNNER_TEMP}/biaws-help.txt"
+          done
+          expected_version="$(node -p "require('./package.json').version")"
+          grep -F "biaws/${expected_version}" "${RUNNER_TEMP}/biaws-version.txt"
 
   monitor-executor:
     runs-on: ubuntu-latest

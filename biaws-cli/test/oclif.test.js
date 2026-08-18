@@ -8,9 +8,10 @@ const CLI_DIRECTORY = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
+const CLI_ENTRYPOINT = path.join(CLI_DIRECTORY, "bin", "biaws.js");
 
 function run(...args) {
-  return spawnSync(process.execPath, ["src/index.js", ...args], {
+  return spawnSync(CLI_ENTRYPOINT, args, {
     cwd: CLI_DIRECTORY,
     encoding: "utf8",
     env: { ...process.env, ISSUE_API_KEY: "test-key" },
@@ -142,19 +143,15 @@ test("versão vem dos metadados do pacote", () => {
 });
 
 test("comando remoto valida autenticação antes da operação", () => {
-  const result = spawnSync(
-    process.execPath,
-    ["src/index.js", "skills", "list"],
-    {
-      cwd: CLI_DIRECTORY,
-      encoding: "utf8",
-      env: {
-        ...process.env,
-        BIAWS_ROOT: "/private/tmp/biaws-cli-test-no-auth",
-        ISSUE_API_KEY: undefined,
-      },
+  const result = spawnSync(CLI_ENTRYPOINT, ["skills", "list"], {
+    cwd: CLI_DIRECTORY,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      BIAWS_ROOT: "/private/tmp/biaws-cli-test-no-auth",
+      ISSUE_API_KEY: undefined,
     },
-  );
+  });
   assert.equal(result.status, 2);
   assert.equal(result.stdout, "");
   assert.match(result.stderr, /Chave da API ausente/u);

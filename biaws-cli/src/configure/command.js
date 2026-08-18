@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { Args, Flags } from "@oclif/core";
 
 export const configureContextFlags = Object.freeze({
@@ -40,7 +42,9 @@ export function legacyAgentContext(context) {
     apiKey: context.apiKey,
     apiUrl: context.apiUrl,
     envFile: context.envFile,
-    toolDirectory: context.toolDirectory,
+    toolDirectory: context.repositoryRoot
+      ? path.join(context.repositoryRoot, "biaws-cli")
+      : context.toolDirectory,
     workspaceId: context.workspaceId,
   };
 }

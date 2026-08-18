@@ -47,7 +47,7 @@ Em um checkout descartável com Docker e OpenSSL disponíveis:
 
 ```bash
 BIAWS_BOOTSTRAP_ADMIN_PASSWORD='smoke-only-change-me' \
-  node src/index.js instance setup \
+  biaws instance setup \
   --name smoke --mongo-port 27117 --api-port 3110 --ui-port 4410 \
   --public-url http://localhost:4410 --storage volumes \
   --admin-email smoke@example.test --admin-name Smoke \
@@ -55,9 +55,9 @@ BIAWS_BOOTSTRAP_ADMIN_PASSWORD='smoke-only-change-me' \
   --auth-rate-limit-max 100 --auth-rate-limit-window 10 \
   --api-key-rate-limit-max 1000 --api-key-rate-limit-window 3600 \
   --no-demo-seed --non-interactive --yes
-node src/index.js instance status smoke
-node src/index.js instance stop smoke
-node src/index.js instance start smoke
+biaws instance status smoke
+biaws instance stop smoke
+biaws instance start smoke
 ```
 
 ## Backup, restore e remoção

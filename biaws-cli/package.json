@@ -1,5 +1,5 @@
 {
-  "name": "@bondia/biaws-cli",
+  "name": "biaws",
   "version": "0.1.0",
   "description": "CLI do Bondia Workspaces para configuração do ambiente local",
   "license": "Apache-2.0",
@@ -8,12 +8,33 @@
     "url": "git+https://github.com/fbondia/biaws.git",
     "directory": "biaws-cli"
   },
+  "homepage": "https://github.com/fbondia/biaws#readme",
+  "bugs": {
+    "url": "https://github.com/fbondia/biaws/issues"
+  },
+  "keywords": [
+    "biaws",
+    "bondia-workspaces",
+    "cli",
+    "oclif"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20.19.0"
   },
   "bin": {
-    "biaws": "src/index.js"
+    "biaws": "bin/biaws.js"
+  },
+  "files": [
+    "bin",
+    "docs",
+    "LICENSE",
+    "shared",
+    "src",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "oclif": {
     "bin": "biaws",
@@ -22,11 +43,15 @@
     "topicSeparator": " "
   },
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node bin/biaws.js",
     "format": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --write .",
     "format:check": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --check .",
-    "check": "find src test -name '*.js' -type f -exec node --check {} \\;",
-    "test": "node --test"
+    "check": "node scripts/check-syntax.mjs",
+    "test": "node --test",
+    "package:verify": "node scripts/verify-package.mjs",
+    "release:check": "npm run format:check && npm run check && npm test && npm run package:verify",
+    "publish:npm": "../scripts/publish-biaws-cli.sh",
+    "prepack": "npm run package:verify"
   },
   "devDependencies": {
     "prettier": "^3.7.4"

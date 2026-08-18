@@ -21,6 +21,19 @@ conecta um agente a uma API existente; `setup-local.sh` orienta o fluxo co-local
 O BIAWS requer Git, Docker com o plugin Compose, Node.js `20.19.0` ou superior,
 `curl`, `openssl` e Bash. Node.js 22 LTS é recomendado.
 
+O comando `biaws` pode ser instalado separadamente para ajuda e operações de
+API remota:
+
+```bash
+npm install --global biaws
+biaws --help
+```
+
+O runtime Docker, a configuração MCP e as operações de instância continuam
+usando os assets do checkout. Para combinar o binário npm com eles, exporte
+`BIAWS_ROOT=/caminho/absoluto/para/biaws`; durante desenvolvimento, use
+`npm --prefix biaws-cli link` para criar o mesmo comando a partir do checkout.
+
 ### macOS
 
 1. Instale o [Docker Desktop para Mac](https://docs.docker.com/desktop/setup/install/mac-install/).
@@ -134,7 +147,7 @@ Para desenvolvimento individual ou avaliação, siga as etapas abaixo e use
 
 ## 1. Baixar o Bondia Workspaces
 
-Enquanto não houver uma release pública, clone o branch principal:
+Clone o branch principal para obter o runtime Docker, scripts e catálogo:
 
 ```bash
 git clone https://github.com/fbondia/biaws.git
@@ -434,7 +447,7 @@ a chave técnica criada pelo setup:
 
 ```bash
 BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
-node biaws-cli/src/index.js \
+biaws \
   monitoring signal <aplicação.componente.deployment.runtime> \
   --workspace id-do-workspace \
   --status healthy \
@@ -572,7 +585,7 @@ Para Codex:
 
 ```bash
 BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
-node biaws-cli/src/index.js \
+biaws \
   agent doctor codex \
   --project "$HOME/Source/meu-projeto" \
   --workspace id-do-workspace
@@ -582,7 +595,7 @@ Para Claude Code:
 
 ```bash
 BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
-node biaws-cli/src/index.js \
+biaws \
   agent doctor claude \
   --project "$HOME/Source/meu-projeto" \
   --workspace id-do-workspace
@@ -687,7 +700,7 @@ Para atualizar as skills já instaladas:
 
 ```bash
 BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
-node biaws-cli/src/index.js \
+biaws \
   skills update \
   --workspace id-do-workspace \
   --target "$HOME/Source/meu-projeto/.agents/skills"

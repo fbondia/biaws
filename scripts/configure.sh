@@ -83,5 +83,5 @@ if [[ "${FORCE}" == "1" ]]; then
   args+=(--force)
 fi
 
-BIAWS_ENV_FILE="${ENV_FILE}" node "${ROOT_DIR}/biaws-cli/src/index.js" "${args[@]}"
-BIAWS_ENV_FILE="${ENV_FILE}" node "${ROOT_DIR}/biaws-cli/src/index.js" "${doctor[@]}"
+BIAWS_ENV_FILE="${ENV_FILE}" "${ROOT_DIR}/scripts/run-biaws-cli.sh" "${args[@]}"
+BIAWS_ENV_FILE="${ENV_FILE}" "${ROOT_DIR}/scripts/run-biaws-cli.sh" "${doctor[@]}"

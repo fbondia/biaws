@@ -3,39 +3,66 @@
 CLI do Bondia Workspaces para configurar capacidades locais e integrar agentes
 externos aos contratos operacionais da plataforma.
 
+## Instalação
+
+O pacote público usa o nome `biaws` e expõe um binário com shebang portátil:
+
+```bash
+npm install --global biaws
+biaws --help
+biaws --version
+```
+
+Para uma execução descartável, use `npx biaws --help`. Em um checkout para
+desenvolvimento, `npm --prefix biaws-cli link` cria o mesmo comando global; a
+rota direta equivalente é `./biaws-cli/bin/biaws.js`.
+
+Consultas e escritas na API funcionam somente com o pacote npm. Operações de
+instância e a configuração completa de MCP/skills também precisam dos assets
+Docker e scripts do repositório. Nesse caso, execute a partir do checkout ou
+defina sua raiz explicitamente:
+
+```bash
+export BIAWS_ROOT=/caminho/absoluto/para/biaws
+biaws instance list
+```
+
+Windows é suportado por WSL2; o binário e os scripts não têm suporte em Windows
+nativo.
+
 ## Uso
 
 Com a `biaws-api` em execução:
 
 ```bash
-node src/index.js skills list
-node src/index.js skills publish \
+biaws skills list
+biaws skills publish \
   --dir ../../.agents/skills/biaws-example \
   --version 1.0.0 \
   --changelog "Publicação inicial"
-node src/index.js skills publish-all \
+biaws skills publish-all \
   --dir ../../.agents/skills \
   --initial-version 1.0.0 \
   --changelog "Publicação inicial do catálogo"
-node src/index.js skills install biaws-example
-node src/index.js skills install-all
-node src/index.js skills status
-node src/index.js skills update
-node src/index.js agent configure codex --project /caminho/do/projeto --workspace id-do-workspace
-node src/index.js agent configure claude --project /caminho/do/projeto --workspace id-do-workspace
-node src/index.js agent doctor codex --project /caminho/do/projeto --workspace id-do-workspace
-node src/index.js monitoring signal <aplicação.componente.deployment.runtime> \
+biaws skills install biaws-example
+biaws skills install-all
+biaws skills status
+biaws skills update
+biaws agent configure codex --project /caminho/do/projeto --workspace id-do-workspace
+biaws agent configure claude --project /caminho/do/projeto --workspace id-do-workspace
+biaws agent doctor codex --project /caminho/do/projeto --workspace id-do-workspace
+biaws monitoring signal <aplicação.componente.deployment.runtime> \
   --status healthy \
   --source zabbix \
   --signal-id zabbix:event:18492 \
   --message "Serviço saudável" \
   --metadata-profile sgmp-health/v1 \
   --metadata '{"service_up":true,"database_up":true,"disk_usage_percent":73.42}'
-node src/index.js monitoring signals <runtime-uuid-ou-caminho> --limit 20
-node src/index.js monitoring describe --template sgmp-health --template-version 1
-node src/index.js monitoring validate --template sgmp-health --template-version 1 \
+biaws monitoring signals <runtime-uuid-ou-caminho> --limit 20
+biaws monitoring describe --template sgmp-health --template-version 1
+biaws monitoring validate --template sgmp-health --template-version 1 \
   --payload '{"status":"healthy","message":"OK","metadata":{"service_up":true}}'
-node src/index.js monitoring signal <runtime-uuid-ou-caminho> \
+biaws monitoring signal <runtime-uuid-ou-caminho> \
   --source external-monitor --template sgmp-health --template-version 1 \
   --payload '{"status":"healthy","message":"OK","metadata":{"service_up":true}}'
 ```
@@ -55,13 +82,13 @@ da alteração, exigem confirmação (`--yes` em CI), enviam somente o novo stat
 e retornam `biaws.write.v1`. Repetir o status atual não envia outra escrita.
 
 ```bash
-node src/index.js workspaces list --json
-node src/index.js applications list --workspace "$ISSUE_WORKSPACE_ID" --page 1 --limit 20
-node src/index.js demands get CLI-OCLIF-2026-08-18 --workspace "$ISSUE_WORKSPACE_ID"
-node src/index.js demands tasks CLI-OCLIF-2026-08-18 --status Pendente --json
-node src/index.js issues list --application APPLICATION_ID --status open --json
-node src/index.js demands complete-task CLI-OCLIF-2026-08-18 CLI-OCLIF-09 --yes --json
-node src/index.js issues transition ISSUE_ID --status Resolvido --yes --json
+biaws workspaces list --json
+biaws applications list --workspace "$ISSUE_WORKSPACE_ID" --page 1 --limit 20
+biaws demands get CLI-OCLIF-2026-08-18 --workspace "$ISSUE_WORKSPACE_ID"
+biaws demands tasks CLI-OCLIF-2026-08-18 --status Pendente --json
+biaws issues list --application APPLICATION_ID --status open --json
+biaws demands complete-task CLI-OCLIF-2026-08-18 CLI-OCLIF-09 --yes --json
+biaws issues transition ISSUE_ID --status Resolvido --yes --json
 ```
 
 `monitoring signal` envia uma observação passiva para um runtime. A referência
@@ -171,9 +198,15 @@ automação e o smoke test Docker em
 ## Desenvolvimento
 
 ```bash
+npm ci
 npm run check
 npm test
+npm run package:verify
 ```
+
+O roteiro de publicação, migração dos wrappers e rollback está em
+[`docs/releasing.md`](docs/releasing.md). O comando de publicação é dry-run por
+padrão e nunca publica sem `--publish` explícito.
 
 ### Configuração de clientes e skills
 

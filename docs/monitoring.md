@@ -175,7 +175,7 @@ Com `ISSUE_API_URL` e `ISSUE_API_KEY` configurados, selecione o workspace com
 `--workspace` (ou `ISSUE_WORKSPACE_ID` em uma execução direta do CLI):
 
 ```bash
-node biaws-cli/src/index.js monitoring signal billing.billing-api.production.primary \
+biaws monitoring signal billing.billing-api.production.primary \
   --workspace id-do-workspace \
   --status healthy \
   --source synthetic-http \
@@ -187,22 +187,22 @@ node biaws-cli/src/index.js monitoring signal billing.billing-api.production.pri
 ```
 
 ```bash
-node biaws-cli/src/index.js monitoring signals billing.billing-api.production.primary --workspace id-do-workspace --limit 20
-node biaws-cli/src/index.js monitoring signals <runtime-uuid> --workspace id-do-workspace --limit 20 --json
+biaws monitoring signals billing.billing-api.production.primary --workspace id-do-workspace --limit 20
+biaws monitoring signals <runtime-uuid> --workspace id-do-workspace --limit 20 --json
 ```
 
 Para descobrir um contrato, validar o payload e então registrar um sinal
 calculado pelo servidor:
 
 ```bash
-node biaws-cli/src/index.js monitoring describe \
+biaws monitoring describe \
   --workspace id-do-workspace --template sgmp-health --template-version 1
 
-node biaws-cli/src/index.js monitoring validate \
+biaws monitoring validate \
   --workspace id-do-workspace --template sgmp-health --template-version 1 \
   --payload '{"status":"healthy","message":"OK","metadata":{"service_up":true}}'
 
-node biaws-cli/src/index.js monitoring signal billing.billing-api.production.primary \
+biaws monitoring signal billing.billing-api.production.primary \
   --workspace id-do-workspace --source synthetic-http \
   --template sgmp-health --template-version 1 \
   --payload '{"status":"healthy","message":"OK","metadata":{"service_up":true}}'

@@ -1,4 +1,4 @@
 export {
   buildSkillPayload,
   checksumPackageFiles,
-} from "../../shared/skillPackage.js";
+} from "../shared/skillPackage.js";

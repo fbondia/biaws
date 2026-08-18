@@ -106,6 +106,26 @@ são executados sem shell, recebem argumentos separados e encaminham sinais; ao
 receber segredos para redaction, sua saída é sanitizada antes de chegar ao
 terminal ou a erros.
 
+## Wizards e planos
+
+Fluxos interativos usam `@inquirer/prompts` somente por meio de um
+`PromptAdapter`. Há adapters real, não interativo e programável para testes. A
+camada de wizard resolve flags e ambiente, coleta apenas campos ausentes, valida
+o conjunto, cria um plano imutável, apresenta um resumo redigido, confirma e só
+então chama o executor.
+
+- `--interactive` habilita perguntas quando há TTY;
+- `--non-interactive` nunca pergunta e lista todos os campos obrigatórios
+  ausentes;
+- `--defaults` aplica defaults declarados explicitamente e é sempre opt-in;
+- `--yes` pula somente a confirmação, sem preencher campos;
+- `--json` não muda coleta ou confirmação e reserva o resumo serializado para
+  saída estruturada.
+
+Segredos podem ser acessados pelo executor com `plan.get(campo)`, mas aparecem
+como `[REDACTED]` em `plan.values`, `toJSON()` e no resumo. Cancelamento, EOF e
+sinais abortam antes da chamada do executor com código estável.
+
 ## Desenvolvimento
 
 ```bash

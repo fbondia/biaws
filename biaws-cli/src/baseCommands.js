@@ -10,6 +10,7 @@ import {
   resolveCommandContext,
 } from "./core/context.js";
 import { ProcessRunner } from "./core/processRunner.js";
+import { createPromptAdapter } from "./core/prompts.js";
 import {
   CliLogger,
   CliOutput,
@@ -32,12 +33,15 @@ export function createCommandAdapters(overrides = {}) {
       stdout: terminal.stdout,
       stderr: terminal.stderr,
     });
+  const prompts =
+    overrides.prompts || createPromptAdapter(terminal, overrides.promptOptions);
   return Object.freeze({
     apiFactory: overrides.apiFactory || createApiClient,
     cwd: overrides.cwd || (() => process.cwd()),
     environment,
     filesystem,
     processRunner,
+    prompts,
     terminal,
   });
 }

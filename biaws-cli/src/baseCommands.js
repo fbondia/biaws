@@ -1,9 +1,12 @@
 import {
   access,
+  chmod,
+  mkdtemp,
   mkdir,
   readFile,
   readdir,
   stat,
+  rm,
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
@@ -33,10 +36,13 @@ export function createCommandAdapters(overrides = {}) {
   const environment = overrides.environment || { ...process.env };
   const filesystem = overrides.filesystem || {
     access,
+    chmod,
+    mkdtemp,
     mkdir,
     readFile,
     readdir,
     stat,
+    rm,
     writeFile,
   };
   const terminal = overrides.terminal || createTerminalAdapter({ environment });

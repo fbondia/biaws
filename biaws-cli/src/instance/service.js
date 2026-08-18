@@ -1,4 +1,5 @@
 import path from "node:path";
+import os from "node:os";
 
 import { CliError } from "../core/errors.js";
 import { parseEnv } from "../core/context.js";
@@ -411,6 +412,104 @@ export async function operateInstance(
     { cwd: context.repositoryRoot, silent: true },
   );
   return { instance: instance.name, operation, output: result.stdout.trim() };
+}
+
+export function validateArchivePath(value) {
+  const archive = path.resolve(String(value || ""));
+  if (!value || archive === path.parse(archive).root) {
+    usageError("Informe um arquivo de backup válido.", "INVALID_ARCHIVE_PATH");
+  }
+  return archive;
+}
+
+export function backupArguments(instance, context, options = {}) {
+  const args = [
+    path.join(context.repositoryRoot, "scripts", "backup-instance.sh"),
+    "--instance",
+    instance.name,
+    "--instances-dir",
+    context.instancesDirectory,
+  ];
+  if (options.output)
+    args.push("--output", validateArchivePath(options.output));
+  if (options.passwordFile)
+    args.push("--password-file", path.resolve(options.passwordFile));
+  return args;
+}
+
+export function restoreArguments(instance, context, options) {
+  const args = [
+    path.join(context.repositoryRoot, "scripts", "restore-instance.sh"),
+    "--instance",
+    instance.name,
+    "--instances-dir",
+    context.instancesDirectory,
+    "--archive",
+    validateArchivePath(options.archive),
+    "--yes",
+  ];
+  if (options.passwordFile)
+    args.push("--password-file", path.resolve(options.passwordFile));
+  return args;
+}
+
+export function removeArguments(instance, context, options = {}) {
+  const args = [
+    path.join(context.repositoryRoot, "scripts", "remove-instance.sh"),
+    "--instance",
+    instance.name,
+    "--instances-dir",
+    context.instancesDirectory,
+    "--yes",
+  ];
+  if (options.deleteExternalData) args.push("--delete-external-data");
+  return args;
+}
+
+export async function withPasswordFile(
+  filesystem,
+  password,
+  suppliedFile,
+  operation,
+) {
+  if (suppliedFile) return operation(path.resolve(suppliedFile));
+  if (!password) {
+    usageError(
+      "Informe --password-file ou forneça a senha em modo interativo.",
+      "BACKUP_PASSWORD_REQUIRED",
+    );
+  }
+  if (String(password).length < 12) {
+    usageError(
+      "A senha do backup deve ter pelo menos 12 caracteres.",
+      "WEAK_BACKUP_PASSWORD",
+    );
+  }
+  const directory = await filesystem.mkdtemp(
+    path.join(os.tmpdir(), "biaws-password-"),
+  );
+  const passwordFile = path.join(directory, "password");
+  try {
+    await filesystem.writeFile(passwordFile, `${password}\n`, { mode: 0o600 });
+    await filesystem.chmod(passwordFile, 0o600);
+    return await operation(passwordFile);
+  } finally {
+    await filesystem.rm(directory, { recursive: true, force: true });
+  }
+}
+
+export async function executeInstanceScript(
+  args,
+  context,
+  processRunner,
+  options = {},
+) {
+  const result = await processRunner.run("bash", args, {
+    cwd: context.repositoryRoot,
+    secrets: options.secrets || [],
+    silent: Boolean(options.silent),
+  });
+  return result.stdout.trim();
 }
 
 export { PORT_FIELDS, STORAGE_FIELDS };

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  chmod,
   mkdtemp,
   mkdir,
   readFile,
@@ -12,17 +13,21 @@ import path from "node:path";
 import test from "node:test";
 
 import {
+  backupArguments,
   buildSetupConfiguration,
   composeArguments,
   executeSetup,
   getInstance,
   listInstances,
+  removeArguments,
+  restoreArguments,
   setupArguments,
   validatePublicUrl,
   validateStoragePath,
+  withPasswordFile,
 } from "../src/instance/service.js";
 
-const filesystem = { mkdir, readFile, readdir, writeFile };
+const filesystem = { chmod, mkdir, mkdtemp, readFile, readdir, rm, writeFile };
 
 async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "biaws-instance-"));
@@ -174,5 +179,59 @@ test("argumentos Compose são determinísticos e injetáveis", async (t) => {
   assert.equal(
     composeArguments(instance, setup.context, "status").at(-1),
     "json",
+  );
+});
+
+test("backup, restore e remoção constroem argv separado e seguro", async (t) => {
+  const setup = await fixture();
+  t.after(setup.cleanup);
+  const instance = await getInstance(setup.context, filesystem, "alpha");
+  const passwordFile = path.join(setup.root, "password");
+  const archive = path.join(setup.root, "alpha.tar.gz.enc");
+  const backup = backupArguments(instance, setup.context, {
+    output: archive,
+    passwordFile,
+  });
+  assert.deepEqual(backup.slice(-4), [
+    "--output",
+    archive,
+    "--password-file",
+    passwordFile,
+  ]);
+  const restore = restoreArguments(instance, setup.context, {
+    archive,
+    passwordFile,
+  });
+  assert.equal(restore.includes("--yes"), true);
+  assert.equal(restore.includes(archive), true);
+  const remove = removeArguments(instance, setup.context, {
+    deleteExternalData: false,
+  });
+  assert.equal(remove.includes("--delete-external-data"), false);
+  assert.equal(remove.includes("--yes"), true);
+});
+
+test("senha temporária é privada e removida após a operação", async (t) => {
+  const setup = await fixture();
+  t.after(setup.cleanup);
+  let temporaryFile;
+  const result = await withPasswordFile(
+    filesystem,
+    "long-private-password",
+    "",
+    async (passwordFile) => {
+      temporaryFile = passwordFile;
+      assert.equal(
+        await readFile(passwordFile, "utf8"),
+        "long-private-password\n",
+      );
+      return "ok";
+    },
+  );
+  assert.equal(result, "ok");
+  await assert.rejects(readFile(temporaryFile, "utf8"), { code: "ENOENT" });
+  await assert.rejects(
+    withPasswordFile(filesystem, "short", "", async () => undefined),
+    { code: "WEAK_BACKUP_PASSWORD", exitCode: 2 },
   );
 });

@@ -59,3 +59,24 @@ node src/index.js instance status smoke
 node src/index.js instance stop smoke
 node src/index.js instance start smoke
 ```
+
+## Backup, restore e remoção
+
+Os comandos oclif usam o archive portátil existente sem colocar a senha em
+`argv`:
+
+```bash
+biaws instance backup alpha --password-file /caminho/privado/senha
+biaws instance restore beta --archive ./alpha.tar.gz.enc --password-file /caminho/privado/senha --yes
+biaws instance remove beta --yes
+```
+
+Em TTY, a senha pode ser solicitada de forma mascarada. Restore e remove
+exigem o nome da instância como confirmação; em automação, `--yes` é
+obrigatório. A remoção preserva bind mounts externos por padrão e só os apaga
+com `--delete-external-data`.
+
+O restore valida checksum, descriptografia, versão e entradas do tar antes de
+substituir dados. Portas, URLs e caminhos de storage do destino são
+preservados. Em falhas após a pausa, o mecanismo tenta recompor os serviços e
+mantém o erro original como evidência.

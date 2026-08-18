@@ -943,6 +943,8 @@ export async function listRequests(query = {}) {
   await ensureRequestListRanks(db);
 
   const filter = buildKnowledgeContextFilter(query);
+  const clientCode = readString(query.code).trim();
+  if (clientCode) filter.clientCode = clientCode;
   if (Object.hasOwn(query, "collectionId")) {
     const collectionId = readString(query.collectionId).trim();
     filter.collectionId =

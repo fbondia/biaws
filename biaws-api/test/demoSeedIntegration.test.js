@@ -90,6 +90,25 @@ test(
         },
         { page: 1, limit: 1, returned: 1, total: 1, totalPages: 1 },
       );
+      const demandsByCode = await listRequests({
+        workspaceId,
+        code: "DEMO-001",
+        page: 1,
+        limit: 2,
+      });
+      assert.equal(demandsByCode.items.length, 1);
+      assert.equal(demandsByCode.items[0].clientCode, "DEMO-001");
+      assert.equal(
+        (
+          await listRequests({
+            workspaceId,
+            code: "DEMO-404",
+            page: 1,
+            limit: 2,
+          })
+        ).items.length,
+        0,
+      );
     } finally {
       await db.dropDatabase();
       await closeMongoClient();

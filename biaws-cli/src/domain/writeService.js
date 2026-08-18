@@ -81,8 +81,25 @@ export class DomainWriteService {
     this.api = api;
   }
 
-  demand(id) {
-    return this.api.request(`/requests/${encodeURIComponent(id)}`);
+  async demand(id) {
+    try {
+      return await this.api.request(`/requests/${encodeURIComponent(id)}`);
+    } catch (error) {
+      if (error?.statusCode !== 404) throw error;
+      const query = new URLSearchParams({ code: String(id), limit: "2" });
+      const payload = await this.api.request(`/requests?${query}`);
+      const matches = (payload.items || []).filter(
+        (item) => String(item.clientCode || "") === String(id),
+      );
+      if (matches.length === 1) return { request: matches[0] };
+      if (matches.length > 1) {
+        throw new CliError(`Código de melhoria ambíguo: ${id}.`, {
+          code: "AMBIGUOUS_DEMAND_CODE",
+          exitCode: 2,
+        });
+      }
+      throw error;
+    }
   }
 
   issue(id) {

@@ -96,10 +96,26 @@ export class DomainReadService {
   demands(filters) {
     return this.api.request(`/requests${queryString(filters)}`);
   }
-  demand(id, filters = {}) {
-    return this.api.request(
-      `/requests/${encodeURIComponent(id)}${queryString(filters)}`,
-    );
+  async demand(id, filters = {}) {
+    try {
+      return await this.api.request(
+        `/requests/${encodeURIComponent(id)}${queryString(filters)}`,
+      );
+    } catch (error) {
+      if (error?.statusCode !== 404) throw error;
+      const payload = await this.demands({ ...filters, code: id, limit: 2 });
+      const matches = (payload.items || []).filter(
+        (item) => String(item.clientCode || "") === String(id),
+      );
+      if (matches.length === 1) return { request: matches[0] };
+      if (matches.length > 1) {
+        throw new CliError(`Código de melhoria ambíguo: ${id}.`, {
+          code: "AMBIGUOUS_DEMAND_CODE",
+          exitCode: 2,
+        });
+      }
+      throw error;
+    }
   }
   issues(filters) {
     return this.api.request(`/issues${queryString(filters)}`);

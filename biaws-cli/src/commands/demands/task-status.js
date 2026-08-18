@@ -43,7 +43,7 @@ export default class DemandTaskStatus extends WriteCommand {
         };
       },
       (service, plan) =>
-        service.updateTaskStatus(args.demand, plan.taskId, plan.status),
+        service.updateTaskStatus(plan.requestId, plan.taskId, plan.status),
     );
   }
 }

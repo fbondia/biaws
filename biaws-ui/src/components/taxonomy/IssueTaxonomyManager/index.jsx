@@ -63,8 +63,8 @@ export function IssueTaxonomyManager() {
           <span>Administração</span>
           <h2>Taxonomia de Chamados e Documentação</h2>
           <p>
-            Estruture categorias, grupos e marcadores para organizar chamados
-            e documentos.
+            Estruture categorias, grupos e marcadores para organizar chamados e
+            documentos.
           </p>
         </div>
         <div className="taxonomyHeroActions">

@@ -33,6 +33,29 @@ test("DomainReadService repassa filtros, paginação e escopo sem ampliá-los", 
   ]);
 });
 
+test("DomainReadService resolve código exato de melhoria sem ampliar escopo", async () => {
+  const calls = [];
+  const service = new DomainReadService({
+    async request(path) {
+      calls.push(path);
+      if (path.startsWith("/requests/")) {
+        throw Object.assign(new Error("não encontrado"), { statusCode: 404 });
+      }
+      return {
+        items: [{ id: "request-1", clientCode: "DEMO-001" }],
+      };
+    },
+  });
+  const result = await service.demand("DEMO-001", {
+    workspaceId: "workspace-a",
+  });
+  assert.equal(result.request.id, "request-1");
+  assert.deepEqual(calls, [
+    "/requests/DEMO-001?workspaceId=workspace-a",
+    "/requests?workspaceId=workspace-a&code=DEMO-001&limit=2",
+  ]);
+});
+
 test("envelope JSON v1 explicita escopo, paginação e truncamento", () => {
   const envelope = readEnvelope(
     "issues",

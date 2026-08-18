@@ -29,6 +29,27 @@ test("DomainWriteService envia somente status aos endpoints específicos", async
   ]);
 });
 
+test("DomainWriteService resolve código da melhoria antes da escrita", async () => {
+  const calls = [];
+  const service = new DomainWriteService({
+    async request(path) {
+      calls.push(path);
+      if (path === "/requests/DEMO-001") {
+        throw Object.assign(new Error("não encontrado"), { statusCode: 404 });
+      }
+      return {
+        items: [{ id: "request-1", clientCode: "DEMO-001", tasks: [] }],
+      };
+    },
+  });
+  const result = await service.demand("DEMO-001");
+  assert.equal(result.request.id, "request-1");
+  assert.deepEqual(calls, [
+    "/requests/DEMO-001",
+    "/requests?code=DEMO-001&limit=2",
+  ]);
+});
+
 test("findTask resolve código ou ID e rejeita referência ausente", () => {
   const payload = { request: { tasks: [{ id: "1", code: "TASK-1" }] } };
   assert.equal(findTask(payload, "TASK-1").task.id, "1");

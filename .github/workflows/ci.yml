@@ -112,7 +112,7 @@ jobs:
           BIAWS_BOOTSTRAP_ADMIN_PASSWORD: ci-validation-password
         run: |
           mkdir -p /tmp/biaws-codex-project
-          ./scripts/setup-agent.sh \
+          ./scripts/setup-local.sh \
             --instance ci \
             --client codex \
             --project /tmp/biaws-codex-project

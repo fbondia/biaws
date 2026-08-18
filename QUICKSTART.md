@@ -1,15 +1,15 @@
 # Início rápido
 
-Este guia mostra como iniciar uma instância local do **Bondia Workspaces** e
-conectá-la ao Codex ou ao Claude Code.
+Este guia mostra como iniciar uma instância local do **Bondia Workspaces** ou
+conectar Codex e Claude Code a um servidor compartilhado.
 
 Uma única cópia do repositório pode manter várias instâncias isoladas. Cada
 instância possui banco, anexos, portas, usuários e credenciais próprios.
 
 ## Escolha como instalar
 
-Todas as rotas terminam no mesmo `setup-agent.sh`. O que muda entre os sistemas
-é a preparação dos pré-requisitos.
+Há três rotas explícitas: `setup-server.sh` cria uma instância; `setup-client.sh`
+conecta um agente a uma API existente; `setup-local.sh` orienta o fluxo co-localizado.
 
 | Seu ambiente                                    | Siga esta rota                                                    |
 | ----------------------------------------------- | ----------------------------------------------------------------- |
@@ -102,6 +102,36 @@ sistema, clonar o repositório, executar o setup e validar o MCP. O usuário só
 precisa aprovar essas ações e, quando o sistema operacional exigir, concluir
 uma janela do Docker Desktop, reinicialização ou autenticação administrativa.
 
+## Escolher a topologia
+
+### Servidor compartilhado
+
+No servidor, crie somente a instância. Não configure Codex ou Claude Code nele:
+
+```bash
+./scripts/setup-server.sh --instance default --public-url https://ci.exemplo.com
+```
+
+Em cada máquina de desenvolvedor, mantenha uma cópia local do repositório e um
+arquivo de ambiente privado com `ISSUE_API_URL=https://ci.exemplo.com/api` e
+`ISSUE_API_KEY=<chave individual>`. Em seguida execute:
+
+```bash
+chmod 600 ~/.config/biaws/default.env
+./scripts/setup-client.sh \
+  --client codex \
+  --project /caminho/do/projeto \
+  --env-file ~/.config/biaws/default.env
+```
+
+Os detalhes de proxy, credenciais e isolamento estão em
+[docs/shared-server.md](docs/shared-server.md).
+
+### Instância local
+
+Para desenvolvimento individual ou avaliação, siga as etapas abaixo e use
+`setup-local.sh`. Ele cria os containers e configura o agente na mesma máquina.
+
 ## 1. Baixar o Bondia Workspaces
 
 Enquanto não houver uma release pública, clone o branch principal:
@@ -141,7 +171,7 @@ mkdir -p "$HOME/Source/meu-projeto"
 Para Codex:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --client codex \
   --project "$HOME/Source/meu-projeto"
@@ -150,7 +180,7 @@ Para Codex:
 Para Claude Code:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --client claude \
   --project "$HOME/Source/meu-projeto"
@@ -176,7 +206,7 @@ a workspaces diferentes da mesma instância. Se a chave acessar mais de um,
 selecione-o explicitamente:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --client codex \
   --project "$HOME/Source/meu-projeto" \
@@ -221,7 +251,7 @@ nome da instância seja digitado antes de executar `mongorestore --drop`. Use
 Para escolher portas específicas:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --mongo-port 27018 \
   --api-port 3101 \
@@ -234,7 +264,7 @@ Para iniciar sem registros de demonstração:
 
 ```bash
 BIAWS_SKIP_DEMO_SEED=1 \
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --client codex \
   --project "$HOME/Source/meu-projeto"
@@ -243,8 +273,8 @@ BIAWS_SKIP_DEMO_SEED=1 \
 ### Escolher onde os dados serão armazenados
 
 Sem opções adicionais, cada instância usa cinco volumes nomeados gerenciados
-pelo Docker: MongoDB, anexos de issues, arquivos de requests, arquivos de
-procedures e o cofre criptografado de segredos. A chave mestra do cofre fica
+pelo Docker: MongoDB, anexos de issues, arquivos de requests, documentos e o
+cofre criptografado de segredos. A chave mestra do cofre fica
 fora desses volumes, no diretório da instância. O nome efetivo recebe o prefixo
 do projeto Compose da instância.
 
@@ -252,7 +282,7 @@ Para armazenar tudo em diretórios visíveis no host, informe uma raiz absoluta
 ao criar a instância:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --storage-dir "$HOME/.local/share/biaws/meu-projeto" \
   --client codex \
@@ -266,14 +296,14 @@ O setup cria:
 ├── mongo/
 ├── issues/
 ├── requests/
-├── procedures/
+├── documents/
 └── secrets/
 ```
 
 Para escolher cada caminho separadamente:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --mongo-data-path "$HOME/biaws-data/mongo" \
   --issue-files-path "$HOME/biaws-data/issues" \
@@ -289,7 +319,7 @@ graváveis pelo Docker. Eles ficam registrados no `.env` da instância. Para
 voltar aos volumes nomeados:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --use-docker-volumes \
   --client codex \
@@ -593,12 +623,12 @@ diretórios configurados como bind mounts.
 Crie outras instâncias usando o mesmo clone:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance cliente-a \
   --client codex \
   --project "$HOME/Source/cliente-a"
 
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance cliente-b \
   --client codex \
   --project "$HOME/Source/cliente-b"
@@ -607,7 +637,7 @@ Crie outras instâncias usando o mesmo clone:
 Liste as instâncias:
 
 ```bash
-./scripts/setup-agent.sh --list-instances
+./scripts/setup-server.sh --list-instances
 ```
 
 Sem `--instance`, o setup oferece um seletor quando executado em um terminal
@@ -619,13 +649,15 @@ Para garantir as skills ausentes e reaplicar a configuração MCP sem repetir o
 bootstrap:
 
 ```bash
-./scripts/setup-agent.sh \
-  --instance meu-projeto \
+./scripts/configure.sh \
   --client codex \
   --project "$HOME/Source/meu-projeto" \
-  --workspace id-do-workspace \
-  --skip-bootstrap
+  --env-file "$PWD/instances/meu-projeto/.env" \
+  --workspace id-do-workspace
 ```
+
+Se já existir uma configuração `biaws` não gerenciada que deva passar ao
+controle do CLI, revise-a e acrescente `--force`.
 
 Para atualizar as skills já instaladas:
 
@@ -658,7 +690,7 @@ git switch --detach vX.Y.Z
 Depois, execute novamente o setup para cada instância que desejar reconstruir:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --client codex \
   --project "$HOME/Source/meu-projeto"

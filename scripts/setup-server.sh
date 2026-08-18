@@ -4,9 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTANCES_DIR="${BIAWS_INSTANCES_DIR:-${ROOT_DIR}/instances}"
-PROJECT_DIR="${PWD}"
-CLIENT=""
-WORKSPACE_ID=""
+PUBLIC_URL=""
 INSTANCE=""
 MONGO_PORT=""
 API_PORT=""
@@ -26,20 +24,17 @@ DOCUMENT_FILES_PATH=""
 SECRET_FILES_PATH=""
 USE_DOCKER_VOLUMES=0
 SKIP_BOOTSTRAP=0
-PUBLISH_STARTER_SKILLS=0
 LIST_INSTANCES=0
 
 usage() {
   cat <<'EOF'
 Uso:
-  ./scripts/setup-agent.sh --instance <nome> --client codex|claude [opções]
-  ./scripts/setup-agent.sh --list-instances
+  ./scripts/setup-server.sh --instance <nome> [--public-url <https://host>] [opções]
+  ./scripts/setup-server.sh --list-instances
 
 Opções:
   --instance <nome>          Instância a criar ou selecionar
-  --client codex|claude      Cliente que receberá MCP e skills
-  --project <diretório>      Projeto consumidor; default: diretório atual
-  --workspace <id>           Workspace associado a este projeto
+  --public-url <url>         Origem pública da UI; default: http://localhost:<porta-ui>
   --mongo-port <porta>       Porta externa do MongoDB; automática para instância nova
   --api-port <porta>         Porta da API; automática para instância nova
   --ui-port <porta>          Porta da UI; automática para instância nova
@@ -58,12 +53,20 @@ Opções:
   --secret-files-path <dir>  Diretório do cofre criptografado no host
   --use-docker-volumes       Usa volumes nomeados gerenciados pelo Docker
   --instances-dir <diretório> Diretório de dados; default: ./instances
-  --skip-bootstrap           Configura apenas o cliente
-  --publish-starter-skills   Publica as starter skills no --workspace informado
+  --skip-bootstrap           Atualiza apenas a configuração da instância
   --list-instances           Lista instâncias sem mostrar credenciais
+  --help                     Exibe esta ajuda
 
 Sem --instance, um seletor interativo é exibido quando o terminal permitir.
 EOF
+}
+
+require_value() {
+  if [[ "$#" -lt 2 || -z "${2}" ]]; then
+    echo "A opção ${1} exige um valor." >&2
+    usage >&2
+    exit 2
+  fi
 }
 
 read_env_value() {
@@ -330,6 +333,17 @@ validate_positive_integer() {
   fi
 }
 
+validate_public_url() {
+  local value="$1"
+  local port=""
+  if [[ ! "${value}" =~ ^https?://(\[[0-9A-Fa-f:]+\]|[A-Za-z0-9.-]+)(:([0-9]+))?$ ]]; then
+    echo "URL pública inválida: informe apenas a origem HTTP(S), sem caminho, query ou fragmento." >&2
+    exit 2
+  fi
+  port="${BASH_REMATCH[3]:-}"
+  [[ -z "${port}" ]] || validate_port "${port}" "Porta da URL pública"
+}
+
 normalize_storage_path() {
   local value="$1"
   local label="$2"
@@ -458,20 +472,17 @@ select_instance() {
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+    --instance|--public-url|--mongo-port|--api-port|--ui-port|--api-rate-limit-max|--api-rate-limit-window-seconds|--auth-rate-limit-max|--auth-rate-limit-window-seconds|--api-key-rate-limit-max|--api-key-rate-limit-window-seconds|--storage-dir|--mongo-data-path|--issue-files-path|--request-files-path|--document-files-path|--secret-files-path|--instances-dir)
+      require_value "$@"
+      ;;
+  esac
+  case "$1" in
     --instance)
       INSTANCE="${2:-}"
       shift 2
       ;;
-    --client)
-      CLIENT="${2:-}"
-      shift 2
-      ;;
-    --project)
-      PROJECT_DIR="${2:-}"
-      shift 2
-      ;;
-    --workspace)
-      WORKSPACE_ID="${2:-}"
+    --public-url)
+      PUBLIC_URL="${2:-}"
       shift 2
       ;;
     --mongo-port)
@@ -550,10 +561,6 @@ while [[ "$#" -gt 0 ]]; do
       SKIP_BOOTSTRAP=1
       shift
       ;;
-    --publish-starter-skills)
-      PUBLISH_STARTER_SKILLS=1
-      shift
-      ;;
     --list-instances)
       LIST_INSTANCES=1
       shift
@@ -589,14 +596,6 @@ if [[ -z "${INSTANCE}" ]]; then
 fi
 validate_instance "${INSTANCE}"
 
-if [[ "${CLIENT}" != "codex" && "${CLIENT}" != "claude" ]]; then
-  echo "Informe --client codex ou --client claude." >&2
-  exit 2
-fi
-if [[ ! -d "${PROJECT_DIR}" ]]; then
-  echo "Diretório de projeto inexistente: ${PROJECT_DIR}" >&2
-  exit 2
-fi
 "${ROOT_DIR}/scripts/check-prerequisites.sh" --quiet
 
 INSTANCE_DIR="${INSTANCES_DIR}/${INSTANCE}"
@@ -615,12 +614,7 @@ fi
 
 # Migração: versões anteriores armazenavam o workspace no arquivo da instância.
 # Ele agora pertence à configuração MCP de cada projeto consumidor.
-legacy_workspace_id="$(read_env_value "${ENV_FILE}" "ISSUE_WORKSPACE_ID")"
-WORKSPACE_ID="${WORKSPACE_ID:-${legacy_workspace_id}}"
-if [[ "${PUBLISH_STARTER_SKILLS}" == "1" && -z "${WORKSPACE_ID}" ]]; then
-  echo "Informe --workspace <id> ao usar --publish-starter-skills." >&2
-  exit 2
-fi
+remove_env_value "${ENV_FILE}" "ISSUE_WORKSPACE_ID"
 
 existing_mongo_data_path="$(read_env_value "${ENV_FILE}" "BIAWS_MONGO_DATA_PATH")"
 existing_issue_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_ISSUE_FILES_PATH")"
@@ -632,6 +626,7 @@ fi
 existing_secret_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_SECRET_FILES_PATH")"
 existing_secrets_key_path="$(read_env_value "${ENV_FILE}" "BIAWS_SECRETS_KEY_PATH")"
 existing_secrets_key_file="$(read_env_value "${ENV_FILE}" "BIAWS_SECRETS_KEY_FILE")"
+existing_public_url="$(read_env_value "${ENV_FILE}" "BIAWS_PUBLIC_URL")"
 
 if [[ "${USE_DOCKER_VOLUMES}" == "1" ]] &&
   [[ -n "${STORAGE_DIR}${MONGO_DATA_PATH}${ISSUE_FILES_PATH}${REQUEST_FILES_PATH}${DOCUMENT_FILES_PATH}${SECRET_FILES_PATH}" ]]; then
@@ -711,6 +706,15 @@ MONGO_PORT="${MONGO_PORT:-27017}"
 validate_port "${MONGO_PORT}" "Porta do MongoDB"
 validate_port "${API_PORT}" "Porta da API"
 validate_port "${UI_PORT}" "Porta da UI"
+if [[ -z "${PUBLIC_URL}" ]]; then
+  if [[ -n "${existing_public_url}" && "${existing_public_url}" != "http://localhost:"* ]]; then
+    PUBLIC_URL="${existing_public_url}"
+  else
+    PUBLIC_URL="http://localhost:${UI_PORT}"
+  fi
+fi
+PUBLIC_URL="${PUBLIC_URL%/}"
+validate_public_url "${PUBLIC_URL}"
 for rate_limit_setting in \
   "${API_RATE_LIMIT_MAX}:Máximo geral" \
   "${API_RATE_LIMIT_WINDOW}:Janela geral" \
@@ -757,11 +761,22 @@ else
 fi
 replace_env_value "${ENV_FILE}" "BIAWS_SECRETS_KEY_PATH" "${secrets_key_path}"
 replace_env_value "${ENV_FILE}" "BIAWS_SECRETS_KEY_FILE" "${secrets_key_path}"
-replace_env_value "${ENV_FILE}" "BIAWS_PUBLIC_URL" "http://localhost:${UI_PORT}"
+replace_env_value "${ENV_FILE}" "BIAWS_PUBLIC_URL" "${PUBLIC_URL}"
 replace_env_value \
   "${ENV_FILE}" \
   "BIAWS_TRUSTED_ORIGINS" \
-  "http://localhost:${UI_PORT},http://127.0.0.1:${UI_PORT}"
+  "${PUBLIC_URL}"
+if [[ "${PUBLIC_URL}" == "http://localhost:${UI_PORT}" ]]; then
+  replace_env_value \
+    "${ENV_FILE}" \
+    "BIAWS_TRUSTED_ORIGINS" \
+    "http://localhost:${UI_PORT},http://127.0.0.1:${UI_PORT}"
+fi
+if [[ "${PUBLIC_URL}" == https://* ]]; then
+  replace_env_value "${ENV_FILE}" "BETTER_AUTH_SECURE_COOKIES" "true"
+else
+  replace_env_value "${ENV_FILE}" "BETTER_AUTH_SECURE_COOKIES" "false"
+fi
 if [[ "${DISABLE_RATE_LIMIT}" == "1" ]]; then
   replace_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_ENABLED" "false"
   replace_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_ENABLED" "false"
@@ -779,7 +794,6 @@ fi
   replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS" "${API_KEY_RATE_LIMIT_MAX}"
 [[ -z "${API_KEY_RATE_LIMIT_WINDOW}" ]] || \
   replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS" "${API_KEY_RATE_LIMIT_WINDOW}"
-remove_env_value "${ENV_FILE}" "ISSUE_WORKSPACE_ID"
 chmod 600 "${ENV_FILE}"
 write_instance_control_scripts
 
@@ -795,57 +809,23 @@ elif [[ "${DISABLE_RATE_LIMIT}" == "1" ||
   echo "Aviso: rate limiting atualizado no .env; reinicie a API para aplicar a configuração." >&2
 fi
 
-if [[ "${PUBLISH_STARTER_SKILLS}" == "1" ]]; then
-  docker compose \
-    --project-directory "${ROOT_DIR}" \
-    --file "${ROOT_DIR}/compose.yaml" \
-    --env-file "${ENV_FILE}" \
-    --project-name "biaws-${INSTANCE}" \
-    exec -T \
-      -e "BIAWS_STARTER_SKILLS_WORKSPACE_ID=${WORKSPACE_ID}" \
-      api npm run seed:skills
-fi
-
-if [[ -n "${WORKSPACE_ID}" ]]; then
-  BIAWS_ENV_FILE="${ENV_FILE}" \
-    node "${ROOT_DIR}/biaws-cli/src/index.js" \
-      agent configure "${CLIENT}" \
-      --project "${PROJECT_DIR}" \
-      --workspace "${WORKSPACE_ID}"
-  BIAWS_ENV_FILE="${ENV_FILE}" \
-    node "${ROOT_DIR}/biaws-cli/src/index.js" \
-      agent doctor "${CLIENT}" \
-      --project "${PROJECT_DIR}" \
-      --workspace "${WORKSPACE_ID}"
-else
-  BIAWS_ENV_FILE="${ENV_FILE}" \
-    node "${ROOT_DIR}/biaws-cli/src/index.js" \
-      agent configure "${CLIENT}" \
-      --project "${PROJECT_DIR}"
-  BIAWS_ENV_FILE="${ENV_FILE}" \
-    node "${ROOT_DIR}/biaws-cli/src/index.js" \
-      agent doctor "${CLIENT}" \
-      --project "${PROJECT_DIR}"
-fi
-
 cat <<EOF
 
 Configuração concluída:
   Instância: ${INSTANCE}
   Dados:     ${INSTANCE_DIR}
   Storage:   ${STORAGE_DESCRIPTION}
-  Projeto:   ${PROJECT_DIR}
-  Workspace: ${WORKSPACE_ID:-detectado automaticamente pela identidade}
   MongoDB:   mongodb://127.0.0.1:${MONGO_PORT}/biaws
   API:       http://localhost:${API_PORT}
-  UI:        http://localhost:${UI_PORT}
+  UI local:  http://localhost:${UI_PORT}
+  UI pública: ${PUBLIC_URL}
 
 Rate limiting:
   API protegida: $(read_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_WINDOW_SECONDS")s por ator
   Autenticação:   $(read_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS")s por IP e rota
   API key:        $(read_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS")s por chave
 
-Reabra o cliente no projeto e aprove o servidor MCP quando solicitado.
+Configure cada cliente com scripts/setup-client.sh e uma chave própria.
 Operação Docker:
   Iniciar: "${INSTANCE_DIR}/start.sh"
   Parar:   "${INSTANCE_DIR}/stop.sh"

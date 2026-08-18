@@ -274,12 +274,11 @@ export function buildLocalWorkspaceSetupCommand({
   workspaceId,
 }) {
   const normalizedClient = client === "claude" ? "claude" : "codex";
-  return `./scripts/setup-agent.sh \\
-  --instance ${shellQuote(instance || "nome-da-instancia")} \\
+  return `./scripts/configure.sh \\
   --client ${normalizedClient} \\
   --project ${shellQuote(projectDirectory || "/caminho/absoluto/do/projeto")} \\
-  --workspace ${shellQuote(workspaceId)} \\
-  --skip-bootstrap`;
+  --env-file ${shellQuote(localInstanceEnvPath(instance))} \\
+  --workspace ${shellQuote(workspaceId)}`;
 }
 
 function localInstanceEnvPath(instance) {

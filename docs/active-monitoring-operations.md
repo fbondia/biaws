@@ -20,10 +20,9 @@ gravada no ambiente do container nem deve ser copiada para a configuração de u
 monitor.
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-server.sh \
   --instance producao \
-  --client codex \
-  --project /caminho/do/projeto
+  --public-url https://biaws.exemplo.com
 
 docker compose \
   --env-file instances/producao/.env \

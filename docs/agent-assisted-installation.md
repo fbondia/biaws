@@ -33,10 +33,11 @@ para a instalação.
 4. Leia README.md e QUICKSTART.md do clone antes de continuar. Execute
    ./scripts/check-prerequisites.sh --include-git e corrija os problemas encontrados.
 5. Use o cliente de agente desta conversa (codex ou claude), derive um nome de
-   instância válido a partir do projeto atual e execute ./scripts/setup-agent.sh
-   com --instance, --client e o caminho absoluto de --project. Use volumes Docker
-   gerenciados, portas automáticas e dados de demonstração, salvo se o contexto do
-   projeto indicar claramente outra escolha.
+   instância válido a partir do projeto atual e execute ./scripts/setup-local.sh
+   com --instance, --client e o caminho absoluto de --project. Use volumes
+   Docker gerenciados, portas automáticas e dados de demonstração, salvo se o
+   contexto do projeto indicar claramente outra escolha. Não transforme esta
+   instalação local em um servidor compartilhado; essa é uma rota separada.
 6. Não exiba nem copie a chave técnica do .env. Preserve os arquivos de credenciais
    fora do Git. Não desabilite controles de segurança e não use opções destrutivas.
 7. Confirme o health check da API, a UI, os containers e o diagnóstico/handshake MCP.
@@ -60,3 +61,5 @@ ou abertura inicial do Docker Desktop. Essas interações não devem ser contorn
 
 O prompt autoriza a instalação local do BIAWS; não autoriza publicação, exposição
 na internet, remoção de dados, alteração de firewall ou uso de credenciais externas.
+Para uma implantação compartilhada, siga [shared-server.md](shared-server.md) e
+trate proxy, DNS, TLS e provisionamento de identidades como decisões explícitas.

@@ -267,9 +267,9 @@ if [[ "${BIAWS_SKIP_DEMO_SEED:-0}" != "1" ]]; then
 fi
 
 if [[ -n "${INSTANCE}" ]]; then
-  setup_hint="Execute ./scripts/setup-agent.sh --instance ${INSTANCE} --client codex|claude para configurar outro projeto."
+  setup_hint="Use scripts/configure.sh com --env-file ${ENV_FILE} neste host; para clientes remotos, use setup-client.sh com um env privado."
 else
-  setup_hint="Modo legado ativo. Prefira ./scripts/setup-agent.sh --instance <nome> em novas instalações."
+  setup_hint="Modo legado ativo. Prefira ./scripts/setup-server.sh --instance <nome> em novas instalações."
 fi
 
 if [[ "${admin_created}" == "true" ]]; then
@@ -295,6 +295,6 @@ ${admin_summary}
 A credencial técnica do MCP e do CLI foi gravada somente em ${ENV_FILE}.
 Workspace inicial da identidade técnica: ${agent_workspace_id}
 O executor possui identidade exclusiva no workspace ${monitor_workspace_id}; a chave está em ${monitor_api_key_path}.
-O workspace de cada projeto é gravado na configuração MCP pelo setup-agent.
+O workspace de cada projeto é gravado na configuração MCP pelo setup-client.
 ${setup_hint}
 EOF

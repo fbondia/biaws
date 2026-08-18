@@ -160,9 +160,21 @@ Detalhes de responsabilidades e fluxos estão em
 
 ## Instalação
 
-O runtime usa containers, mas o setup também configura o MCP e as skills no
-projeto que será operado pelo agente. Estas são as rotas oficialmente
-documentadas:
+O runtime usa containers e a integração do agente roda na máquina que contém o
+projeto consumidor. As duas responsabilidades podem ficar na mesma máquina ou
+em máquinas distintas:
+
+| Topologia | Comando | Responsabilidade |
+| --- | --- | --- |
+| Local | `scripts/setup-local.sh` | Cria a instância e configura um cliente local |
+| Servidor | `scripts/setup-server.sh` | Cria ou atualiza somente API, UI, MongoDB e dados |
+| Cliente remoto | `scripts/setup-client.sh` | Configura MCP e skills para consumir uma API existente |
+
+As ferramentas de baixo nível permanecem separadas: `bootstrap.sh` inicializa
+os serviços e dados, enquanto `configure.sh` grava a configuração MCP, instala
+as skills e executa o diagnóstico do cliente.
+
+Estas são as plataformas oficialmente documentadas:
 
 | Ambiente | Rota suportada                                                        |
 | -------- | --------------------------------------------------------------------- |
@@ -182,7 +194,7 @@ ou outro agente com terminal, copie o
 poderá instalar o BIAWS sem pedir que você digite comandos, solicitando apenas
 as aprovações necessárias.
 
-### Fluxo comum após instalar os pré-requisitos
+### Pré-requisitos
 
 Pré-requisitos:
 
@@ -196,16 +208,19 @@ Valide o ambiente antes do primeiro setup:
 ./scripts/check-prerequisites.sh --include-git
 ```
 
-Crie ou selecione uma instância e configure o projeto consumidor:
+### Instalação local
+
+Use esta rota para desenvolvimento individual ou avaliação. Ela cria os
+serviços e configura o agente no mesmo computador:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --client codex \
   --project /caminho/do/projeto
 ```
 
-O script:
+O fluxo:
 
 1. cria `instances/meu-projeto/.env`, se necessário;
 2. cria os comandos de start, stop, backup e restore em
@@ -234,35 +249,54 @@ A chave técnica fica somente no `.env` da instância, também ignorado pelo Git
 Ela não é exibida no resumo do bootstrap.
 
 O workspace é uma escolha do projeto consumidor, não da instância. Quando a
-identidade técnica tiver acesso a mais de um, informe-o ao setup:
+identidade técnica tiver acesso a mais de um, informe-o ao setup local:
 
 ```bash
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --client codex \
   --project /caminho/do/projeto \
   --workspace id-do-workspace
 ```
 
-Sem `--workspace`, o setup seleciona automaticamente quando a chave acessa um
-único workspace. A opção não concede acesso: a identidade técnica precisa ser
-membro ativo do workspace selecionado.
+Sem `--workspace`, a configuração seleciona automaticamente quando a chave
+acessa um único workspace. A opção não concede acesso: a identidade técnica
+precisa ser membro ativo do workspace selecionado.
 
-Para publicar também as starter skills no workspace selecionado, execute o setup
-com `--publish-starter-skills`:
+### Servidor compartilhado
+
+No host dos serviços, informe a origem HTTPS pela qual a UI será publicada:
 
 ```bash
-./scripts/setup-agent.sh \
-  --instance meu-projeto \
-  --client codex \
-  --project /caminho/do/projeto \
-  --workspace id-do-workspace \
-  --publish-starter-skills
+./scripts/setup-server.sh \
+  --instance equipe \
+  --public-url https://biaws.exemplo.com
 ```
 
-O workspace informado deve existir e estar ativo. O comando publica as skills
-ausentes e ignora versões que já existem. Versões publicadas são imutáveis; para
-distribuir conteúdo alterado, publique uma nova versão.
+Publique UI e API por um proxy HTTPS, encaminhando `/api` para a API. Não exponha
+o MongoDB. Em cada máquina cliente, crie um arquivo privado com uma chave
+individual:
+
+```dotenv
+ISSUE_API_URL=https://biaws.exemplo.com/api
+ISSUE_API_KEY=biaws_chave_individual
+```
+
+Então configure o projeto consumidor:
+
+```bash
+chmod 600 ~/.config/biaws/equipe.env
+./scripts/setup-client.sh \
+  --client codex \
+  --project /caminho/do/projeto \
+  --env-file ~/.config/biaws/equipe.env \
+  --workspace id-do-workspace
+```
+
+Veja os requisitos de proxy, credenciais e isolamento em
+[docs/shared-server.md](docs/shared-server.md).
+
+### Operação e opções
 
 Inicie e pare a instância com:
 
@@ -283,7 +317,7 @@ Para informar sua própria credencial:
 BIAWS_BOOTSTRAP_ADMIN_EMAIL=voce@example.com \
 BIAWS_BOOTSTRAP_ADMIN_NAME="Seu Nome" \
 BIAWS_BOOTSTRAP_ADMIN_PASSWORD="uma-senha-segura-com-12-ou-mais-caracteres" \
-./scripts/setup-agent.sh \
+./scripts/setup-local.sh \
   --instance meu-projeto \
   --client codex \
   --project /caminho/do/projeto
@@ -292,7 +326,7 @@ BIAWS_BOOTSTRAP_ADMIN_PASSWORD="uma-senha-segura-com-12-ou-mais-caracteres" \
 Para iniciar sem dados de demonstração:
 
 ```bash
-BIAWS_SKIP_DEMO_SEED=1 ./scripts/setup-agent.sh \
+BIAWS_SKIP_DEMO_SEED=1 ./scripts/setup-local.sh \
   --instance meu-projeto \
   --client codex \
   --project /caminho/do/projeto
@@ -301,7 +335,7 @@ BIAWS_SKIP_DEMO_SEED=1 ./scripts/setup-agent.sh \
 Liste as instâncias:
 
 ```bash
-./scripts/setup-agent.sh --list-instances
+./scripts/setup-server.sh --list-instances
 ```
 
 O seed nunca apaga registros e não substitui uma taxonomia já existente. Veja
@@ -318,15 +352,13 @@ projeto Compose, os volumes, as portas, o banco e a chave técnica permanecem
 isolados.
 
 ```bash
-./scripts/setup-agent.sh \
-  --instance cliente-a \
-  --client codex \
-  --project /projetos/cliente-a
+./scripts/setup-server.sh --instance cliente-a --public-url https://a.exemplo.com
+./scripts/setup-server.sh --instance cliente-b --public-url https://b.exemplo.com
 
-./scripts/setup-agent.sh \
-  --instance cliente-b \
-  --client claude \
-  --project /projetos/cliente-b
+./scripts/setup-client.sh \
+  --client codex \
+  --project /projetos/cliente-a \
+  --env-file ~/.config/biaws/cliente-a.env
 ```
 
 Portas são alocadas automaticamente para instâncias novas. Use `--mongo-port`,
@@ -336,11 +368,10 @@ seletor em terminais interativos.
 Para repetir somente a configuração do cliente:
 
 ```bash
-./scripts/setup-agent.sh \
-  --instance cliente-a \
+./scripts/configure.sh \
   --client codex \
   --project /caminho/do/projeto \
-  --skip-bootstrap
+  --env-file ~/.config/biaws/cliente-a.env
 ```
 
 O MCP recebe `BIAWS_ENV_FILE` e `ISSUE_WORKSPACE_ID` na configuração local do
@@ -399,7 +430,8 @@ export ISSUE_WORKSPACE_ID=id-do-workspace
 
 Na configuração MCP, mantenha `BIAWS_ENV_FILE` apontando para o `.env` da
 instância e grave `ISSUE_WORKSPACE_ID` no bloco `env` do servidor `biaws`. O
-`setup-agent.sh` faz isso automaticamente.
+`setup-local.sh` e `setup-client.sh` fazem isso automaticamente por meio de
+`configure.sh`.
 
 Servidor MCP:
 

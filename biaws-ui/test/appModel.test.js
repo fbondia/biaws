@@ -59,12 +59,11 @@ test("local setup command scopes the selected workspace and project", () => {
       projectDirectory: "/Users/example/Source/project's app",
       workspaceId: "workspace-a",
     }),
-    `./scripts/setup-agent.sh \\
-  --instance 'cliente-a' \\
+    `./scripts/configure.sh \\
   --client claude \\
   --project '/Users/example/Source/project'"'"'s app' \\
-  --workspace 'workspace-a' \\
-  --skip-bootstrap`,
+  --env-file 'instances/cliente-a/.env' \\
+  --workspace 'workspace-a'`,
   );
 });
 

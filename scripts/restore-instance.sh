@@ -13,6 +13,7 @@ SERVICES_STOPPED=0
 RUNNING_SERVICES=()
 ASSUME_YES=0
 PBKDF2_ITERATIONS=600000
+CRYPTO_HELPER="${ROOT_DIR}/scripts/instance-archive-crypto.mjs"
 
 usage() {
   cat <<'EOF'
@@ -283,7 +284,7 @@ if [[ ! -d "${INSTANCE_DIR}" || ! -f "${ENV_FILE}" ]]; then
   echo "Crie-a primeiro com scripts/setup-server.sh." >&2
   exit 1
 fi
-for command in docker openssl tar; do
+for command in docker node tar; do
   command -v "${command}" >/dev/null 2>&1 || { echo "Comando obrigatório ausente: ${command}" >&2; exit 1; }
 done
 command -v sha256sum >/dev/null 2>&1 || command -v shasum >/dev/null 2>&1 || {
@@ -308,12 +309,11 @@ WORK_DIR="$(mktemp -d)"
 PLAIN_ARCHIVE="${WORK_DIR}/payload.tar.gz"
 chmod 700 "${WORK_DIR}"
 echo "Descriptografando e validando o backup..."
-if ! openssl enc -d -aes-256-cbc -pbkdf2 \
-  -iter "${PBKDF2_ITERATIONS}" \
-  -md sha256 \
-  -pass "file:${PASSWORD_FILE}" \
-  -in "${ARCHIVE}" \
-  -out "${PLAIN_ARCHIVE}"; then
+if ! node "${CRYPTO_HELPER}" decrypt \
+  --input "${ARCHIVE}" \
+  --output "${PLAIN_ARCHIVE}" \
+  --password-file "${PASSWORD_FILE}" \
+  --iterations "${PBKDF2_ITERATIONS}"; then
   echo "Não foi possível descriptografar o backup; confira a senha e o arquivo." >&2
   exit 1
 fi

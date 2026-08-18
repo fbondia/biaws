@@ -14,6 +14,7 @@ TEMP_OUTPUT=""
 SERVICES_STOPPED=0
 RUNNING_SERVICES=()
 PBKDF2_ITERATIONS=600000
+CRYPTO_HELPER="${ROOT_DIR}/scripts/instance-archive-crypto.mjs"
 
 usage() {
   cat <<'EOF'
@@ -194,7 +195,7 @@ if [[ ! -d "${INSTANCE_DIR}" || ! -f "${ENV_FILE}" ]]; then
   echo "Instância não encontrada: ${INSTANCE}" >&2
   exit 1
 fi
-for command in docker openssl tar; do
+for command in docker node tar; do
   command -v "${command}" >/dev/null 2>&1 || { echo "Comando obrigatório ausente: ${command}" >&2; exit 1; }
 done
 command -v sha256sum >/dev/null 2>&1 || command -v shasum >/dev/null 2>&1 || {
@@ -298,12 +299,11 @@ restart_services
 echo "Compactando e criptografando o backup..."
 tar -C "${STAGING_DIR}" -czf "${PLAIN_ARCHIVE}" biaws-instance-backup
 TEMP_OUTPUT="${OUTPUT}.tmp"
-openssl enc -aes-256-cbc -salt -pbkdf2 \
-  -iter "${PBKDF2_ITERATIONS}" \
-  -md sha256 \
-  -pass "file:${PASSWORD_FILE}" \
-  -in "${PLAIN_ARCHIVE}" \
-  -out "${TEMP_OUTPUT}"
+node "${CRYPTO_HELPER}" encrypt \
+  --input "${PLAIN_ARCHIVE}" \
+  --output "${TEMP_OUTPUT}" \
+  --password-file "${PASSWORD_FILE}" \
+  --iterations "${PBKDF2_ITERATIONS}"
 chmod 600 "${TEMP_OUTPUT}"
 mv "${TEMP_OUTPUT}" "${OUTPUT}"
 TEMP_OUTPUT=""

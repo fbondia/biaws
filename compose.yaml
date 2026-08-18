@@ -5,7 +5,7 @@ services:
     image: mongo:8.0
     restart: unless-stopped
     ports:
-      - "${MONGO_PORT:-27017}:27017"
+      - "127.0.0.1:${MONGO_PORT:-27017}:27017"
     volumes:
       - ${BIAWS_MONGO_DATA_PATH:-mongo-data}:/data/db
     healthcheck:
@@ -57,7 +57,7 @@ services:
       BETTER_AUTH_SECURE_COOKIES: ${BETTER_AUTH_SECURE_COOKIES:-false}
       ISSUE_API_LOG_HEALTH_REQUESTS: ${ISSUE_API_LOG_HEALTH_REQUESTS:-false}
     ports:
-      - "${ISSUE_API_PORT:-3100}:3100"
+      - "127.0.0.1:${ISSUE_API_PORT:-3100}:3100"
     volumes:
       - ${BIAWS_ISSUE_FILES_PATH:-issue-files}:/data/issues
       - ${BIAWS_REQUEST_FILES_PATH:-request-files}:/data/requests

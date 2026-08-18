@@ -307,6 +307,17 @@ instances/meu-projeto/backup-mongo.sh
 instances/meu-projeto/restore-mongo.sh backups/biaws-<data>.archive.gz
 ```
 
+Para remover uma instância, incluindo containers, rede, volumes Docker e seu
+diretório local:
+
+```bash
+./scripts/remove-instance.sh --instance meu-projeto
+```
+
+Bind mounts configurados fora do diretório da instância são preservados por
+padrão. Use `--delete-external-data` somente quando também quiser apagar esses
+dados de forma definitiva.
+
 O backup lógico do MongoDB recebe timestamp e checksum SHA-256. O restore
 confere o checksum, quando presente, e solicita confirmação explícita antes de
 substituir o banco da instância.

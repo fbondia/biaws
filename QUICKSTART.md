@@ -618,6 +618,17 @@ diretórios configurados como bind mounts.
 
 > Não execute `down --volumes` se desejar manter banco e anexos.
 
+Para eliminar uma instância, seus containers, rede, volumes nomeados e arquivos
+mantidos dentro do diretório da instância, use:
+
+```bash
+./scripts/remove-instance.sh --instance meu-projeto
+```
+
+O comando exige a confirmação pelo nome. Dados configurados em bind mounts fora
+da instância são preservados, salvo quando `--delete-external-data` também for
+informado.
+
 ## Usar mais de uma instância
 
 Crie outras instâncias usando o mesmo clone:

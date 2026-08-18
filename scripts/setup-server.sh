@@ -831,5 +831,6 @@ Operação Docker:
   Parar:   "${INSTANCE_DIR}/stop.sh"
   Backup:  "${INSTANCE_DIR}/backup-mongo.sh"
   Restore: "${INSTANCE_DIR}/restore-mongo.sh" <arquivo.archive.gz>
+  Remover: "${ROOT_DIR}/scripts/remove-instance.sh" --instance "${INSTANCE}" --instances-dir "${INSTANCES_DIR}"
   Status:  docker compose --env-file "${ENV_FILE}" --project-name "biaws-${INSTANCE}" ps
 EOF

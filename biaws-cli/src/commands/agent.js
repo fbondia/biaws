@@ -2,7 +2,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import path from "node:path";
 
-import { LegacyCommand, TOOL_DIR } from "../legacyCommand.js";
+import { BaseCommand, TOOL_DIRECTORY } from "../baseCommands.js";
+import { showTopic } from "../compatibilityCommands.js";
 import { readLock } from "../localSkills.js";
 import { runSkillsCommand } from "./skills.js";
 
@@ -373,25 +374,13 @@ export async function runAgentCommand(
   throw new Error(`Ação de agente desconhecida: ${action || "(ausente)"}`);
 }
 
-export default class Agent extends LegacyCommand {
+export default class Agent extends BaseCommand {
   static description =
     "Configura e diagnostica clientes de agentes (compatibilidade legada)";
-  static usage = "agent <configure|doctor> <codex|claude> [opções]";
 
   async run() {
-    const context = await this.legacyContext();
-    await runAgentCommand(
-      context.api,
-      context.action,
-      context.positional,
-      context.options,
-      {
-        apiKey: context.apiKey,
-        apiUrl: context.apiUrl,
-        envFile: context.envFile,
-        toolDirectory: TOOL_DIR,
-        workspaceId: context.workspaceId,
-      },
-    );
+    await showTopic(this, "agent");
   }
 }
+
+export const TOOL_DIR = TOOL_DIRECTORY;

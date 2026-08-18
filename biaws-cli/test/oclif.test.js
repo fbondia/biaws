@@ -48,6 +48,43 @@ test("configure expõe clientes, skills e doctor como comandos oclif", () => {
   }
 });
 
+test("rotas compatíveis de skills, agent e monitoring são subcomandos oclif", () => {
+  const expectations = [
+    [
+      "skills",
+      [
+        "list",
+        "install",
+        "install-all",
+        "status",
+        "update",
+        "publish",
+        "publish-all",
+      ],
+    ],
+    ["agent", ["configure", "doctor"]],
+    ["monitoring", ["signal", "signals", "describe", "validate"]],
+  ];
+  for (const [topic, commands] of expectations) {
+    const result = run(topic, "--help");
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    for (const command of commands) {
+      assert.match(result.stdout, new RegExp(`${topic} ${command}`));
+    }
+  }
+});
+
+test("rotas migradas validam argumentos e flags pelo oclif", () => {
+  const missingArgument = run("skills", "install");
+  assert.equal(missingArgument.status, 2);
+  assert.match(missingArgument.stderr, /Missing 1 required arg|SKILL/u);
+
+  const invalidFlag = run("monitoring", "signals", "runtime-1", "--bad-flag");
+  assert.equal(invalidFlag.status, 2);
+  assert.match(invalidFlag.stderr, /Nonexistent flag: --bad-flag/u);
+});
+
 test("configure doctor sem cliente falha de forma explícita fora de TTY", () => {
   const result = run("configure", "doctor", "--non-interactive");
   assert.equal(result.status, 2);

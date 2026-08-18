@@ -74,6 +74,12 @@ do projeto; informe `--workspace` quando a chave acessar mais de um workspace.
 Use `agent doctor` para verificar Node.js, API, autenticação, workspace,
 configuração e skills.
 
+As rotas `skills`, `agent` e `monitoring` são subcomandos oclif nativos: seus
+argumentos, flags, ajuda e erros de uso são descobertos e validados pelo
+framework. `agent configure` e `agent doctor` permanecem como aliases de
+compatibilidade; para novas automações, prefira `configure codex|claude` e
+`configure doctor`.
+
 ## Configuração
 
 - `ISSUE_API_URL` ou `ISSUE_API_BASE_URL`: endereço da API.

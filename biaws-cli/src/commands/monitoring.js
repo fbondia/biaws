@@ -1,4 +1,5 @@
-import { LegacyCommand } from "../legacyCommand.js";
+import { BaseCommand } from "../baseCommands.js";
+import { showTopic } from "../compatibilityCommands.js";
 
 function parseMetadata(value) {
   if (!value) return {};
@@ -153,13 +154,10 @@ export async function runMonitoringCommand(api, action, positional, options) {
   return handler(api, runtimeReference, options);
 }
 
-export default class Monitoring extends LegacyCommand {
-  static description =
-    "Envia e consulta sinais de monitoramento (compatibilidade legada)";
-  static usage = "monitoring <ação> [argumentos] [opções]";
+export default class Monitoring extends BaseCommand {
+  static description = "Envia e consulta sinais de monitoramento";
 
   async run() {
-    const { action, api, positional, options } = await this.legacyContext();
-    await runMonitoringCommand(api, action, positional, options);
+    await showTopic(this, "monitoring");
   }
 }

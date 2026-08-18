@@ -1,7 +1,8 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 
-import { LegacyCommand } from "../legacyCommand.js";
+import { BaseCommand } from "../baseCommands.js";
+import { showTopic } from "../compatibilityCommands.js";
 import { buildSkillPayload } from "../skillPackage.js";
 import {
   checksumInstalledSkill,
@@ -292,13 +293,11 @@ export async function runSkillsCommand(api, action, positional, options) {
   return handler(api, positional, options);
 }
 
-export default class Skills extends LegacyCommand {
+export default class Skills extends BaseCommand {
   static description =
-    "Gerencia publicação, instalação e atualização de skills (compatibilidade legada)";
-  static usage = "skills <ação> [argumentos] [opções]";
+    "Gerencia publicação, instalação e atualização de skills";
 
   async run() {
-    const { action, api, positional, options } = await this.legacyContext();
-    await runSkillsCommand(api, action, positional, options);
+    await showTopic(this, "skills");
   }
 }

@@ -1,0 +1,125 @@
+.publicationWorkspace {
+  margin-top: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.publicationWorkspaceHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+.publicationWorkspaceHeader span,
+.publicationWorkspace header > span,
+.publicationHistory header > div > span,
+.publicationComposer header > span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+.publicationWorkspace h2,
+.publicationWorkspace h3 {
+  margin: 4px 0;
+}
+.publicationWorkspace p {
+  margin: 5px 0 0;
+  color: var(--color-text-muted);
+}
+.publicationWorkspaceGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
+}
+.publicationHistory,
+.publicationComposer {
+  padding: 22px 24px;
+}
+.publicationComposer {
+  border-left: 1px solid var(--color-border);
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+.publicationHistory > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.publicationHistory > header > small {
+  color: var(--color-text-muted);
+}
+.publicationHistory ol {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.publicationHistory li {
+  padding: 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+.publicationHistory li > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.publicationHistory li small {
+  display: block;
+  color: var(--color-text-muted);
+  margin-top: 5px;
+}
+.publicationHistory li p {
+  font-size: 0.9rem;
+}
+.publicationStatus,
+.publicationDeploymentStatus {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+.publicationStatus.deployed {
+  background: var(--palette-green-01);
+  color: var(--palette-green-23);
+}
+.publicationStatus.canceled,
+.publicationDeploymentStatus.failed {
+  background: var(--palette-red-01);
+  color: var(--color-danger-text);
+}
+.publicationDeploymentStatus.active {
+  background: var(--palette-green-01);
+  color: var(--palette-green-23);
+  height: fit-content;
+  text-transform: capitalize;
+}
+.publicationReadOnly {
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--color-surface-muted);
+}
+.monitoringCenterEmpty.compact {
+  min-height: 180px;
+  margin-top: 16px;
+}
+@media (max-width: 800px) {
+  .publicationWorkspaceGrid {
+    grid-template-columns: 1fr;
+  }
+  .publicationComposer {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+  }
+  .publicationWorkspaceHeader {
+    padding: 18px;
+  }
+  .publicationHistory,
+  .publicationComposer {
+    padding: 18px;
+  }
+}

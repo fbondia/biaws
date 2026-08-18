@@ -46,6 +46,10 @@ const MonitoringRuntimesView = lazyNamed(
   () => import("../../components/monitoring/index.js"),
   "MonitoringRuntimesView",
 );
+const PublicationsView = lazyNamed(
+  () => import("../../components/publications/PublicationsView.jsx"),
+  "PublicationsView",
+);
 const SkillsView = lazyNamed(
   () => import("../../components/skills/SkillsView/index.jsx"),
   "SkillsView",
@@ -123,5 +127,6 @@ export function ActiveView({
   if (activeView === "monitoring-runtimes") {
     return <MonitoringRuntimesView actor={actor} />;
   }
+  if (activeView === "publications") return <PublicationsView actor={actor} />;
   return <AccountView actor={actor} onSignOut={onSignOut} />;
 }

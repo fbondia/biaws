@@ -30,7 +30,7 @@ test("navigation groups operational and administrative destinations", () => {
     ]),
     [
       ["Trabalho", ["issues", "requests"]],
-      ["Ambiente", ["catalog", "servers"]],
+      ["Ambiente", ["catalog", "servers", "publications"]],
       ["Monitoramento", ["monitoring-runtimes", "monitoring-templates"]],
       ["Conhecimento", ["documents", "skills"]],
     ],
@@ -159,6 +159,14 @@ test("active views have stable URL routes", () => {
   assert.equal(
     activeViewPath("monitoring-runtimes"),
     "/operation/monitoring/runtimes",
+  );
+  assert.equal(
+    activeViewPath("publications"),
+    "/operation/environment/publications",
+  );
+  assert.equal(
+    activeViewFromPath("/operation/environment/publications"),
+    "publications",
   );
   assert.equal(activeViewPath("unknown"), "/");
   assert.equal(activeViewFromPath("/unknown"), undefined);

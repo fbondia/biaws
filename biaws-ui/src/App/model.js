@@ -15,6 +15,7 @@ import {
   KeyRound,
   FileCode2,
   RadioTower,
+  Send,
 } from "lucide-react";
 
 export const APP_VIEWS = [
@@ -65,6 +66,12 @@ export const NAVIGATION_GROUPS = [
             label: "Servidores",
             icon: Server,
             permission: "servers.read",
+          },
+          {
+            key: "publications",
+            label: "Publicações",
+            icon: Send,
+            permission: "deployments.read",
           },
         ],
       },
@@ -171,6 +178,7 @@ const VIEW_ROUTES = {
   "option-lists": "/option-lists",
   "monitoring-runtimes": "/operation/monitoring/runtimes",
   "monitoring-templates": "/operation/monitoring/templates",
+  publications: "/operation/environment/publications",
   requests: "/requests",
   secrets: "/secrets",
   servers: "/servers",

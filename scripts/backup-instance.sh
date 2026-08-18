@@ -148,7 +148,7 @@ archive_optional_directory() {
   local source="$1"
   local destination="$2"
   [[ -d "${source}" ]] || return 0
-  tar -C "${source}" -cf "${destination}" .
+  COPYFILE_DISABLE=1 tar --no-xattrs -C "${source}" -cf "${destination}" .
 }
 
 normalized_args=()
@@ -297,7 +297,8 @@ EOF
 restart_services
 
 echo "Compactando e criptografando o backup..."
-tar -C "${STAGING_DIR}" -czf "${PLAIN_ARCHIVE}" biaws-instance-backup
+COPYFILE_DISABLE=1 tar --no-xattrs \
+  -C "${STAGING_DIR}" -czf "${PLAIN_ARCHIVE}" biaws-instance-backup
 TEMP_OUTPUT="${OUTPUT}.tmp"
 node "${CRYPTO_HELPER}" encrypt \
   --input "${PLAIN_ARCHIVE}" \

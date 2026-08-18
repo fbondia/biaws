@@ -319,14 +319,29 @@ if ! node "${CRYPTO_HELPER}" decrypt \
 fi
 chmod 600 "${PLAIN_ARCHIVE}"
 
+tar_warning_args=()
+if tar --version 2>/dev/null | grep -q "GNU tar"; then
+  tar_warning_args+=(--warning=no-unknown-keyword)
+fi
+archive_entries="${WORK_DIR}/archive-entries.txt"
+if ! tar "${tar_warning_args[@]}" -tzf "${PLAIN_ARCHIVE}" > "${archive_entries}"; then
+  echo "O conteúdo descriptografado não é um arquivo tar válido." >&2
+  exit 1
+fi
 while IFS= read -r entry; do
+  if [[ "${entry}" == "._biaws-instance-backup" ]]; then
+    continue
+  fi
   if [[ "${entry}" == /* || "${entry}" == ".." || "${entry}" == ../* ||
-    "${entry}" == *"/../"* || "${entry}" != biaws-instance-backup/* ]]; then
+    "${entry}" == *"/../"* ||
+    ( "${entry}" != "biaws-instance-backup" &&
+      "${entry}" != biaws-instance-backup/* ) ]]; then
     echo "Entrada insegura ou inesperada no backup: ${entry}" >&2
     exit 1
   fi
-done < <(tar -tzf "${PLAIN_ARCHIVE}")
-tar -C "${WORK_DIR}" -xzf "${PLAIN_ARCHIVE}"
+done < "${archive_entries}"
+tar "${tar_warning_args[@]}" --exclude="._*" \
+  -C "${WORK_DIR}" -xzf "${PLAIN_ARCHIVE}"
 PAYLOAD_DIR="${WORK_DIR}/biaws-instance-backup"
 MANIFEST="${PAYLOAD_DIR}/manifest"
 SOURCE_ENV="${PAYLOAD_DIR}/instance/environment.env"

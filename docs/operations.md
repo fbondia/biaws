@@ -144,6 +144,7 @@ ou a senha inicial.
 - documentos e procedimentos;
 - arquivos criptografados do cofre e sua chave mestra;
 - `.env`, senha inicial ainda disponível e credenciais do executor;
+- diretórios `monitoring/` e `data/monitoring/` da instância;
 - scripts locais usados pelo monitoramento ativo, quando configurados;
 - manifesto de formato, origem, data e banco.
 
@@ -194,11 +195,12 @@ Depois restaure o pacote:
 ```
 
 A restauração exige confirmação pelo nome da instância e substitui MongoDB,
-volumes, chave mestra e credenciais. Ela combina a configuração da origem com o
-`.env` do destino: segredos e identidades são recuperados, enquanto caminhos de
-storage, portas, URLs públicas, proxies confiáveis e UID/GID permanecem os do
-novo host. Use `--yes --password-file <arquivo>` apenas em automações que já
-tenham confirmação externa.
+volumes, diretórios locais de monitoramento, chave mestra e credenciais. Ela
+combina a configuração da origem com o `.env` do destino: segredos e identidades
+são recuperados, enquanto caminhos de storage, portas, URLs públicas, proxies
+confiáveis e UID/GID permanecem os do novo host. Use
+`--yes --password-file <arquivo>` apenas em automações que já tenham confirmação
+externa.
 
 Depois da migração, execute novamente `setup-client.sh` nos projetos consumidores
 se a URL, o arquivo de ambiente ou o caminho do clone tiver mudado.

@@ -28,9 +28,10 @@ Opções:
   --yes, -y               Não solicita confirmação pelo nome da instância
   --help, -h              Exibe esta ajuda
 
-A restauração substitui MongoDB, anexos, documentos, cofre e segredos da
-instância de destino. Portas, URLs e caminhos de armazenamento do novo host são
-preservados. Crie primeiro a instância de destino com setup-server.sh.
+A restauração substitui MongoDB, anexos, documentos, monitoramentos, cofre e
+segredos da instância de destino. Portas, URLs e caminhos de armazenamento do
+novo host são preservados. Crie primeiro a instância de destino com
+setup-server.sh.
 EOF
 }
 
@@ -209,7 +210,8 @@ replace_host_directory() {
   validate_restore_target "${destination}"
   mkdir -p "${destination}"
   find "${destination}" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} \;
-  tar -C "${destination}" -xf "${archive}"
+  COPYFILE_DISABLE=1 tar "${tar_warning_args[@]}" --no-xattrs --exclude="._*" \
+    -C "${destination}" -xf "${archive}"
 }
 
 restore_volume() {
@@ -396,6 +398,13 @@ if [[ -f "${PAYLOAD_DIR}/instance/bootstrap-admin-password" ]]; then
 else
   rm -f -- "${INSTANCE_DIR}/.bootstrap-admin-password"
 fi
+
+replace_host_directory \
+  "${PAYLOAD_DIR}/instance/monitoring.tar" \
+  "${INSTANCE_DIR}/monitoring"
+replace_host_directory \
+  "${PAYLOAD_DIR}/instance/data-monitoring.tar" \
+  "${INSTANCE_DIR}/data/monitoring"
 
 monitor_secrets_target="$(read_env_value_from "${destination_env_snapshot}" BIAWS_MONITOR_SECRET_FILES_PATH)"
 monitor_secrets_target="${monitor_secrets_target:-${INSTANCE_DIR}/monitor-secrets}"

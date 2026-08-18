@@ -148,7 +148,8 @@ archive_optional_directory() {
   local source="$1"
   local destination="$2"
   [[ -d "${source}" ]] || return 0
-  COPYFILE_DISABLE=1 tar --no-xattrs -C "${source}" -cf "${destination}" .
+  COPYFILE_DISABLE=1 tar --no-xattrs --exclude="._*" \
+    -C "${source}" -cf "${destination}" .
 }
 
 normalized_args=()
@@ -269,6 +270,13 @@ if [[ ! -f "${secrets_key_path}" ]]; then
 fi
 cp -p "${secrets_key_path}" "${PAYLOAD_DIR}/instance/secrets-master-key"
 
+archive_optional_directory \
+  "${INSTANCE_DIR}/monitoring" \
+  "${PAYLOAD_DIR}/instance/monitoring.tar"
+archive_optional_directory \
+  "${INSTANCE_DIR}/data/monitoring" \
+  "${PAYLOAD_DIR}/instance/data-monitoring.tar"
+
 monitor_secrets_path="$(read_env_value BIAWS_MONITOR_SECRET_FILES_PATH)"
 monitor_secrets_path="${monitor_secrets_path:-${INSTANCE_DIR}/monitor-secrets}"
 monitor_secrets_path="$(resolve_host_path "${monitor_secrets_path}")"
@@ -297,7 +305,7 @@ EOF
 restart_services
 
 echo "Compactando e criptografando o backup..."
-COPYFILE_DISABLE=1 tar --no-xattrs \
+COPYFILE_DISABLE=1 tar --no-xattrs --exclude="._*" \
   -C "${STAGING_DIR}" -czf "${PLAIN_ARCHIVE}" biaws-instance-backup
 TEMP_OUTPUT="${OUTPUT}.tmp"
 node "${CRYPTO_HELPER}" encrypt \

@@ -208,6 +208,7 @@ async function mcpStatus(entrypoint, envFile, workspaceId) {
     let output = "";
     let errorOutput = "";
     let settled = false;
+    let toolsRequested = false;
     const finish = (result) => {
       if (settled) return;
       settled = true;
@@ -234,6 +235,21 @@ async function mcpStatus(entrypoint, envFile, workspaceId) {
         if (!line.trim()) continue;
         try {
           const message = JSON.parse(line);
+          if (message.id === 1 && message.result && !toolsRequested) {
+            toolsRequested = true;
+            child.stdin.write(
+              `${JSON.stringify({
+                jsonrpc: "2.0",
+                method: "notifications/initialized",
+                params: {},
+              })}\n${JSON.stringify({
+                jsonrpc: "2.0",
+                id: 2,
+                method: "tools/list",
+                params: {},
+              })}\n`,
+            );
+          }
           if (message.id === 2 && Array.isArray(message.result?.tools)) {
             finish({ ok: true, toolCount: message.result.tools.length });
           }
@@ -243,6 +259,9 @@ async function mcpStatus(entrypoint, envFile, workspaceId) {
       }
     });
     child.on("error", (error) => finish({ ok: false, detail: error.message }));
+    child.stdin.on("error", (error) =>
+      finish({ ok: false, detail: error.message }),
+    );
     child.on("exit", (code) => {
       if (!settled && code !== null) {
         finish({
@@ -251,17 +270,12 @@ async function mcpStatus(entrypoint, envFile, workspaceId) {
         });
       }
     });
-    child.stdin.end(
+    child.stdin.write(
       `${JSON.stringify({
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
         params: { protocolVersion: "2024-11-05", capabilities: {} },
-      })}\n${JSON.stringify({
-        jsonrpc: "2.0",
-        id: 2,
-        method: "tools/list",
-        params: {},
       })}\n`,
     );
   });

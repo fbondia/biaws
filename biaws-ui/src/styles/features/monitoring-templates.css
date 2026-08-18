@@ -22,11 +22,19 @@
   gap: 8px;
 }
 .monitoringTemplatesHero h2 {
-  margin: 3px 0;
+  margin: var(--space-1) 0 0;
+  font-size: 1.65rem;
+}
+.monitoringTemplatesHero span {
+  color: var(--color-accent-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .monitoringTemplatesHero p {
   color: var(--color-text-muted);
-  margin: 0;
+  margin: var(--space-1) 0 0;
 }
 .monitoringTemplatesGrid {
   display: grid;

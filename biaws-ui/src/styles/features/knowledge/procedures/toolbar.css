@@ -36,6 +36,30 @@
   justify-content: space-between;
 }
 
+.knowledgeRecordsHero h2,
+.knowledgeRecordsHero p,
+.knowledgeRecordsHero span {
+  margin: 0;
+}
+
+.knowledgeRecordsHero span {
+  color: var(--color-accent-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.knowledgeRecordsHero h2 {
+  margin-top: var(--space-1);
+  font-size: 1.65rem;
+}
+
+.knowledgeRecordsHero p {
+  margin-top: var(--space-1);
+  color: var(--color-text-subtle);
+}
+
 .procedureToolbarActions {
   flex-wrap: wrap;
   justify-content: flex-end;

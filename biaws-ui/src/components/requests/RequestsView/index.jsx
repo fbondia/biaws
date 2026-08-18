@@ -189,7 +189,12 @@ export function RequestsView({
     <section className="requestsPage">
       <header className="requestsHero">
         <div>
+          <span>Operação</span>
           <h2>Projetos e Melhorias</h2>
+          <p>
+            Organize melhorias e acompanhe sua evolução no contexto das
+            aplicações.
+          </p>
         </div>
         <button
           className="primaryButton"

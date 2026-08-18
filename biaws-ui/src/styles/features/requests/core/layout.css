@@ -11,14 +11,22 @@
 }
 
 .requestsHero h2 {
-  margin: 0;
-  font-size: 20px;
+  margin: var(--space-1) 0 0;
+  font-size: 1.65rem;
   letter-spacing: 0;
+}
+
+.requestsHero span {
+  color: var(--color-accent-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .requestsHero p {
   max-width: 780px;
-  margin: 5px 0 0;
+  margin: var(--space-1) 0 0;
   color: var(--color-text-subtle);
   font-size: 14px;
   line-height: 1.45;

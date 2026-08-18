@@ -117,7 +117,13 @@ export function KnowledgeRecordsView({ actor }) {
   return (
     <section className="proceduresView contentBand knowledgeRecordsView">
       <div className="proceduresToolbar documentCreateToolbar">
-        <div />
+        <div className="knowledgeRecordsHero">
+          <span>Conhecimento</span>
+          <h2>Documentação</h2>
+          <p>
+            Centralize documentos e referências operacionais das aplicações.
+          </p>
+        </div>
         {permissions.create ? (
           <div className="documentCreateActions">
             <button

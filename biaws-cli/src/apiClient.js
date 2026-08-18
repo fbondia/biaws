@@ -24,17 +24,23 @@ export function createApiClient(baseUrl, apiKey, workspaceId = "") {
       );
       error.statusCode = response.status;
       error.code =
-        response.status === 401
+        data?.error?.code ||
+        (response.status === 401
           ? "UNAUTHENTICATED"
           : response.status === 403
             ? "FORBIDDEN"
-            : "ISSUE_API_ERROR";
+            : response.status === 404
+              ? "NOT_FOUND"
+              : response.status === 409
+                ? "CONFLICT"
+                : "ISSUE_API_ERROR");
       throw error;
     }
     return data;
   }
 
   return {
+    request: (path, options = {}) => request(path, options, apiRoot),
     identity: () => request("/auth/me", {}, apiRoot),
     list: (options = {}) =>
       request(options.includeDeprecated ? "?includeDeprecated=true" : ""),

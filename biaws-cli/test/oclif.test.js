@@ -26,8 +26,27 @@ test("oclif gera a ajuda raiz com taxonomia e rotas legadas", () => {
     "api",
     "skills",
     "monitoring",
+    "workspaces",
+    "applications",
+    "demands",
+    "issues",
   ]) {
     assert.match(result.stdout, new RegExp(command));
+  }
+});
+
+test("recursos remotos expõem list/get e tarefas com help contextual", () => {
+  const expectations = [
+    ["workspaces", ["list", "get"]],
+    ["applications", ["list", "get"]],
+    ["demands", ["list", "get", "tasks"]],
+    ["issues", ["list", "get"]],
+  ];
+  for (const [topic, commands] of expectations) {
+    const result = run(topic, "--help");
+    assert.equal(result.status, 0, result.stderr);
+    for (const command of commands)
+      assert.match(result.stdout, new RegExp(`${topic} ${command}`));
   }
 });
 

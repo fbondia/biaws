@@ -40,6 +40,23 @@ node src/index.js monitoring signal <runtime-uuid-ou-caminho> \
   --payload '{"status":"healthy","message":"OK","metadata":{"service_up":true}}'
 ```
 
+### Consultas de domínio
+
+As rotas `workspaces`, `applications`, `demands` e `issues` oferecem `list` e
+`get`; `demands tasks <melhoria>` lista tarefas por ID ou código. Filtros de
+workspace/aplicação, busca, status, página e limite são enviados à API sem
+ampliar o escopo. A saída humana sempre informa escopo e paginação. `--json`
+emite somente o envelope versionado `biaws.read.v1` em stdout; diagnósticos
+permanecem em stderr.
+
+```bash
+node src/index.js workspaces list --json
+node src/index.js applications list --workspace "$ISSUE_WORKSPACE_ID" --page 1 --limit 20
+node src/index.js demands get CLI-OCLIF-2026-08-18 --workspace "$ISSUE_WORKSPACE_ID"
+node src/index.js demands tasks CLI-OCLIF-2026-08-18 --status Pendente --json
+node src/index.js issues list --application APPLICATION_ID --status open --json
+```
+
 `monitoring signal` envia uma observação passiva para um runtime. A referência
 pode ser o UUID ou o caminho de identificadores
 `<aplicação>.<componente>.<deployment>.<runtime>`. Use

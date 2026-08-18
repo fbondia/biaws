@@ -76,7 +76,12 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
     <section className="taxonomyPage optionListsView">
       <header className="taxonomyHero">
         <div>
+          <span>Administração</span>
           <h2>Listas de Opções</h2>
+          <p>
+            Gerencie os valores disponíveis nos campos de configuração do
+            workspace.
+          </p>
         </div>
       </header>
       {loading ? <p>Carregando listas…</p> : null}

@@ -60,7 +60,12 @@ export function IssueTaxonomyManager() {
     <section className="taxonomyPage">
       <div className="taxonomyHero">
         <div>
+          <span>Administração</span>
           <h2>Taxonomia de Chamados e Documentação</h2>
+          <p>
+            Estruture categorias, grupos e marcadores para organizar chamados
+            e documentos.
+          </p>
         </div>
         <div className="taxonomyHeroActions">
           <button

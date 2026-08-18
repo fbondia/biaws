@@ -318,6 +318,25 @@ Bind mounts configurados fora do diretório da instância são preservados por
 padrão. Use `--delete-external-data` somente quando também quiser apagar esses
 dados de forma definitiva.
 
+Para migrar uma instância completa, incluindo MongoDB, anexos, documentos,
+cofre, chave mestra e configuração sensível, gere um pacote criptografado:
+
+```bash
+./scripts/backup-instance.sh --instance meu-projeto
+```
+
+No host de destino, crie primeiro uma instância com os caminhos, portas e URL
+corretos e restaure o pacote:
+
+```bash
+./scripts/restore-instance.sh \
+  --instance meu-projeto \
+  --archive /caminho/meu-projeto-<data>.tar.gz.enc
+```
+
+Os comandos solicitam a senha sem expô-la na linha de comando. Para automações,
+use `--password-file` com um arquivo protegido por permissão `0600`.
+
 O backup lógico do MongoDB recebe timestamp e checksum SHA-256. O restore
 confere o checksum, quando presente, e solicita confirmação explícita antes de
 substituir o banco da instância.

@@ -37,6 +37,27 @@ require_value() {
   fi
 }
 
+normalized_args=()
+for argument in "$@"; do
+  case "${argument}" in
+    --instance=*|--client=*|--project=*|--workspace=*|--instances-dir=*|--public-url=*|--mongo-port=*|--api-port=*|--ui-port=*|--api-rate-limit-max=*|--api-rate-limit-window-seconds=*|--auth-rate-limit-max=*|--auth-rate-limit-window-seconds=*|--api-key-rate-limit-max=*|--api-key-rate-limit-window-seconds=*|--storage-dir=*|--mongo-data-path=*|--issue-files-path=*|--request-files-path=*|--document-files-path=*|--secret-files-path=*)
+      option="${argument%%=*}"
+      value="${argument#*=}"
+      if [[ -z "${value}" ]]; then
+        echo "A opção ${option} exige um valor." >&2
+        usage >&2
+        exit 2
+      fi
+      normalized_args+=("${option}" "${value}")
+      ;;
+    *)
+      normalized_args+=("${argument}")
+      ;;
+  esac
+done
+set -- "${normalized_args[@]}"
+unset normalized_args argument option value
+
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
     --instance|--client|--project|--workspace|--instances-dir)

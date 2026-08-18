@@ -248,6 +248,19 @@ aceita outro diretório como argumento. Ele também gera um checksum SHA-256. O
 nome da instância seja digitado antes de executar `mongorestore --drop`. Use
 `--yes` somente em automações que já tenham confirmação externa.
 
+Para uma cópia completa e portável da instância, use os scripts globais:
+
+```bash
+./scripts/backup-instance.sh --instance meu-projeto
+./scripts/restore-instance.sh \
+  --instance meu-projeto \
+  --archive instances/meu-projeto/backups/meu-projeto-<data>.tar.gz.enc
+```
+
+O pacote completo é criptografado com senha e inclui MongoDB, arquivos, cofre,
+chave mestra, `.env` e credenciais auxiliares. A restauração exige uma instância
+de destino previamente criada e preserva seus caminhos, portas e URLs.
+
 Para escolher portas específicas:
 
 ```bash

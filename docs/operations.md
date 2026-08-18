@@ -23,6 +23,15 @@ comando Compose, por exemplo `instances/meu-projeto/start.sh --build`.
 Os dois últimos executam o backup lógico e o restore do MongoDB no container da
 instância correta.
 
+Para backup e migração completos, use:
+
+```bash
+./scripts/backup-instance.sh --instance meu-projeto
+./scripts/restore-instance.sh \
+  --instance meu-projeto \
+  --archive /srv/backups/meu-projeto-<data>.tar.gz.enc
+```
+
 Cada instância executa um container MongoDB próprio. `MONGO_PORT`, no `.env`,
 define apenas a porta publicada no host; a comunicação entre API e MongoDB usa
 sempre `mongo:27017` na rede interna do Compose. O setup reserva portas externas
@@ -125,6 +134,74 @@ Guarde banco, volumes, checksums, versão da aplicação e `.env` sanitizado no
 mesmo conjunto de recuperação. Preserve a chave do cofre em outro sistema de
 backup, com controle de acesso próprio. Nunca versione segredos, a chave mestra
 ou a senha inicial.
+
+## Backup completo criptografado
+
+`backup-instance.sh` automatiza o conjunto necessário para migrar uma instância:
+
+- dump lógico compactado do MongoDB;
+- anexos de issues e requests;
+- documentos e procedimentos;
+- arquivos criptografados do cofre e sua chave mestra;
+- `.env`, senha inicial ainda disponível e credenciais do executor;
+- scripts locais usados pelo monitoramento ativo, quando configurados;
+- manifesto de formato, origem, data e banco.
+
+O script pausa API, UI e executores que estiverem ativos, mantém apenas o MongoDB
+em execução para o `mongodump` e reinicia os mesmos serviços ao final, inclusive
+quando uma etapa posterior falha. O resultado usa `tar.gz` criptografado com
+AES-256-CBC, PBKDF2-HMAC-SHA256, salt aleatório e 600.000 iterações. Um checksum
+SHA-256 acompanha o arquivo para detectar corrupção antes da descriptografia.
+
+```bash
+./scripts/backup-instance.sh \
+  --instance meu-projeto \
+  --output /srv/backups/meu-projeto.tar.gz.enc
+```
+
+A senha é solicitada duas vezes e não aparece na linha de comando. Para uma
+automação, coloque uma senha de pelo menos 12 caracteres na primeira linha de
+um arquivo protegido e use:
+
+```bash
+chmod 600 /srv/keys/biaws-backup-password
+./scripts/backup-instance.sh \
+  --instance meu-projeto \
+  --password-file /srv/keys/biaws-backup-password
+```
+
+Não armazene o arquivo de senha junto do backup. Sem essa senha, o pacote não
+pode ser recuperado.
+
+## Migração e restauração completa
+
+No host de destino, use uma versão compatível do código e crie primeiro a
+instância. Essa etapa define os caminhos, portas e URL próprios do novo host:
+
+```bash
+./scripts/setup-server.sh \
+  --instance meu-projeto \
+  --storage-dir /srv/biaws/meu-projeto \
+  --public-url https://biaws.novo.exemplo.com
+```
+
+Depois restaure o pacote:
+
+```bash
+./scripts/restore-instance.sh \
+  --instance meu-projeto \
+  --archive /srv/backups/meu-projeto.tar.gz.enc
+```
+
+A restauração exige confirmação pelo nome da instância e substitui MongoDB,
+volumes, chave mestra e credenciais. Ela combina a configuração da origem com o
+`.env` do destino: segredos e identidades são recuperados, enquanto caminhos de
+storage, portas, URLs públicas, proxies confiáveis e UID/GID permanecem os do
+novo host. Use `--yes --password-file <arquivo>` apenas em automações que já
+tenham confirmação externa.
+
+Depois da migração, execute novamente `setup-client.sh` nos projetos consumidores
+se a URL, o arquivo de ambiente ou o caminho do clone tiver mudado.
 
 ## Restauração ensaiada
 

@@ -470,6 +470,27 @@ select_instance() {
   exit 2
 }
 
+normalized_args=()
+for argument in "$@"; do
+  case "${argument}" in
+    --instance=*|--public-url=*|--mongo-port=*|--api-port=*|--ui-port=*|--api-rate-limit-max=*|--api-rate-limit-window-seconds=*|--auth-rate-limit-max=*|--auth-rate-limit-window-seconds=*|--api-key-rate-limit-max=*|--api-key-rate-limit-window-seconds=*|--storage-dir=*|--mongo-data-path=*|--issue-files-path=*|--request-files-path=*|--document-files-path=*|--secret-files-path=*|--instances-dir=*)
+      option="${argument%%=*}"
+      value="${argument#*=}"
+      if [[ -z "${value}" ]]; then
+        echo "A opção ${option} exige um valor." >&2
+        usage >&2
+        exit 2
+      fi
+      normalized_args+=("${option}" "${value}")
+      ;;
+    *)
+      normalized_args+=("${argument}")
+      ;;
+  esac
+done
+set -- "${normalized_args[@]}"
+unset normalized_args argument option value
+
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
     --instance|--public-url|--mongo-port|--api-port|--ui-port|--api-rate-limit-max|--api-rate-limit-window-seconds|--auth-rate-limit-max|--auth-rate-limit-window-seconds|--api-key-rate-limit-max|--api-key-rate-limit-window-seconds|--storage-dir|--mongo-data-path|--issue-files-path|--request-files-path|--document-files-path|--secret-files-path|--instances-dir)
@@ -831,6 +852,8 @@ Operação Docker:
   Parar:   "${INSTANCE_DIR}/stop.sh"
   Backup:  "${INSTANCE_DIR}/backup-mongo.sh"
   Restore: "${INSTANCE_DIR}/restore-mongo.sh" <arquivo.archive.gz>
+  Backup completo:  "${ROOT_DIR}/scripts/backup-instance.sh" --instance "${INSTANCE}" --instances-dir "${INSTANCES_DIR}"
+  Restore completo: "${ROOT_DIR}/scripts/restore-instance.sh" --instance "${INSTANCE}" --instances-dir "${INSTANCES_DIR}" --archive <backup.tar.gz.enc>
   Remover: "${ROOT_DIR}/scripts/remove-instance.sh" --instance "${INSTANCE}" --instances-dir "${INSTANCES_DIR}"
   Status:  docker compose --env-file "${ENV_FILE}" --project-name "biaws-${INSTANCE}" ps
 EOF

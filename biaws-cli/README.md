@@ -144,3 +144,23 @@ automação e o smoke test Docker em
 npm run check
 npm test
 ```
+
+### Configuração de clientes e skills
+
+Os comandos nativos de projeto mantêm a chave exclusivamente no ambiente privado
+(`ISSUE_API_KEY` ou `--env-file`) e gravam no projeto apenas a URL indireta do
+runtime, o workspace e a configuração MCP gerenciada:
+
+```bash
+biaws configure codex --project . --workspace <workspace-id>
+biaws configure claude --project . --workspace <workspace-id>
+biaws configure skills list --json
+biaws configure skills install <skill-id>
+biaws configure skills update [skill-id]
+biaws configure skills verify
+biaws configure doctor codex
+```
+
+Configurações preexistentes de terceiros são preservadas. Um bloco `biaws`
+conflitante só é assumido pelo CLI com `--force`. Sem TTY, cliente, workspace e
+seleção de skill devem ser informados explicitamente; `--all` instala o catálogo.

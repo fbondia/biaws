@@ -8,7 +8,8 @@ export default class Configure extends ProjectCommand {
   static examples = [
     "<%= config.bin %> configure codex",
     "<%= config.bin %> configure claude",
-    "<%= config.bin %> configure doctor",
+    "<%= config.bin %> configure skills list",
+    "<%= config.bin %> configure doctor codex",
   ];
 
   async run() {

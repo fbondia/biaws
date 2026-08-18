@@ -40,6 +40,26 @@ test("oclif gera ajuda contextual para um domínio", () => {
   }
 });
 
+test("configure expõe clientes, skills e doctor como comandos oclif", () => {
+  const result = run("configure", "--help");
+  assert.equal(result.status, 0, result.stderr);
+  for (const command of ["codex", "claude", "skills", "doctor"]) {
+    assert.match(result.stdout, new RegExp(`configure ${command}`));
+  }
+});
+
+test("configure doctor sem cliente falha de forma explícita fora de TTY", () => {
+  const result = run("configure", "doctor", "--non-interactive");
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Campos obrigatórios ausentes: client/u);
+});
+
+test("configure skills exige seleção explícita fora de TTY", () => {
+  const result = run("configure", "skills", "install");
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Informe o ID da skill ou use --all/u);
+});
+
 test("setup não aceita password em argv e documenta o ambiente privado", () => {
   const result = run("instance", "setup", "--help");
   assert.equal(result.status, 0);

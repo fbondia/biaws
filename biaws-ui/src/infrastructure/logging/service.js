@@ -100,6 +100,25 @@ function redactText(value, maxLength, options = {}) {
   return truncate(redacted, maxLength);
 }
 
+function sanitizeObject(value, limits, depth, seen) {
+  const sanitized = {};
+  const entries = Object.entries(value).slice(0, limits.maxObjectKeys);
+  for (const [key, item] of entries) {
+    const comparableKey = normalizedKey(key);
+    if (isSensitiveKey(key)) {
+      sanitized[key] = REDACTED;
+      continue;
+    }
+    if (PAYLOAD_KEYS.has(comparableKey)) {
+      sanitized[key] = OMITTED;
+      continue;
+    }
+    const sanitizedItem = sanitizeValue(item, limits, depth + 1, seen);
+    if (sanitizedItem !== undefined) sanitized[key] = sanitizedItem;
+  }
+  return sanitized;
+}
+
 function sanitizeValue(value, limits, depth, seen) {
   if (value === null || value === undefined) return value;
   if (typeof value === "string") {
@@ -119,22 +138,7 @@ function sanitizeValue(value, limits, depth, seen) {
         .map((item) => sanitizeValue(item, limits, depth + 1, seen));
     }
 
-    const sanitized = {};
-    const entries = Object.entries(value).slice(0, limits.maxObjectKeys);
-    for (const [key, item] of entries) {
-      const comparableKey = normalizedKey(key);
-      if (isSensitiveKey(key)) {
-        sanitized[key] = REDACTED;
-        continue;
-      }
-      if (PAYLOAD_KEYS.has(comparableKey)) {
-        sanitized[key] = OMITTED;
-        continue;
-      }
-      const sanitizedItem = sanitizeValue(item, limits, depth + 1, seen);
-      if (sanitizedItem !== undefined) sanitized[key] = sanitizedItem;
-    }
-    return sanitized;
+    return sanitizeObject(value, limits, depth, seen);
   } catch {
     return "[UNSERIALIZABLE]";
   } finally {

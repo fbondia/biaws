@@ -57,7 +57,7 @@ export function RequestDialogs({
                 disabled={
                   !newContext.applicationId || savingRequestId === "new"
                 }
-                onClick={() => void addRequest(newContext)}
+                onClick={() => addRequest(newContext)}
                 type="button"
               >
                 Criar melhoria

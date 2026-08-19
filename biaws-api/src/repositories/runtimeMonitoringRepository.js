@@ -314,6 +314,97 @@ export async function recordRuntimeMonitoringSignal(
   });
 }
 
+async function evaluateActiveMonitoringTemplate(monitor, payload, templateRef) {
+  if (!templateRef) return { evaluation: null, evaluationFailure: null };
+  try {
+    const evaluation = await evaluateMonitoringTemplateReference(
+      templateRef,
+      {
+        context: {
+          origin: "active",
+          provider: monitor.provider,
+          monitorId: monitor.id,
+        },
+        evidence: payload.payload || {},
+        metadata: payload.metadata || {},
+      },
+      monitor.workspaceId,
+    );
+    return { evaluation, evaluationFailure: null };
+  } catch (error) {
+    if (error?.statusCode !== 422) throw error;
+    return { evaluation: null, evaluationFailure: error };
+  }
+}
+
+function failedTemplateMetadata(evaluationFailure) {
+  return {
+    failure_kind: "template_evaluation",
+    failure_stage: "template",
+    diagnostic_code: String(
+      evaluationFailure.publicDetails?.diagnostic?.code ||
+        evaluationFailure.code ||
+        "TEMPLATE_EVALUATION_FAILED",
+    ).slice(0, 100),
+  };
+}
+
+function activeObservationMetadata(payload, evaluation, evaluationFailure) {
+  if (evaluationFailure) return failedTemplateMetadata(evaluationFailure);
+  if (evaluation) return evaluation.result.metadata;
+  return payload.metadata;
+}
+
+function activeObservationPayload(
+  monitor,
+  payload,
+  evaluation,
+  evaluationFailure,
+) {
+  return {
+    signalId: `active:${monitor.id}:${monitor.lease.executionId}`,
+    status: evaluationFailure
+      ? "unknown"
+      : evaluation?.result.status || payload.status,
+    observedAt: payload.observedAt,
+    source:
+      optionalText(payload.source, "source", 160) ||
+      `${monitor.provider}:${monitor.name}`,
+    message: evaluationFailure
+      ? "Monitoring template evaluation failed"
+      : evaluation?.result.message || payload.message,
+    metadata: activeObservationMetadata(payload, evaluation, evaluationFailure),
+    metadataProfile:
+      evaluation || evaluationFailure ? undefined : payload.metadataProfile,
+    payload: monitor.provider === "shell" ? undefined : payload.payload,
+  };
+}
+
+function activeObservationEventContext(
+  monitor,
+  templateRef,
+  evaluation,
+  evaluationFailure,
+) {
+  return {
+    monitorId: monitor.id,
+    executionId: monitor.lease.executionId,
+    scheduledFor: monitor.lease.scheduledFor,
+    provider: monitor.provider,
+    trigger: monitor.lease.trigger || "scheduled",
+    ...(templateRef ? { templateRef: { ...templateRef } } : {}),
+    ...(evaluation
+      ? {
+          templateSnapshot: evaluation.templateSnapshot,
+          templateMatch: evaluation.matchedRule,
+        }
+      : {}),
+    ...(evaluationFailure?.templateSnapshot
+      ? { templateSnapshot: evaluationFailure.templateSnapshot }
+      : {}),
+  };
+}
+
 export async function recordActiveRuntimeMonitoringObservation(
   monitor,
   payload = {},
@@ -343,83 +434,24 @@ export async function recordActiveRuntimeMonitoringObservation(
   ) {
     throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
   }
-  let evaluation = null;
-  let evaluationFailure = null;
   const templateRef =
     monitor.provider === "shell" ? null : monitor.templateRef || null;
-  if (templateRef) {
-    try {
-      evaluation = await evaluateMonitoringTemplateReference(
-        templateRef,
-        {
-          context: {
-            origin: "active",
-            provider: monitor.provider,
-            monitorId: monitor.id,
-          },
-          evidence: payload.payload || {},
-          metadata: payload.metadata || {},
-        },
-        monitor.workspaceId,
-      );
-    } catch (error) {
-      if (error?.statusCode !== 422) throw error;
-      evaluationFailure = error;
-    }
-  }
+  const { evaluation, evaluationFailure } =
+    await evaluateActiveMonitoringTemplate(monitor, payload, templateRef);
   const normalized = normalizeMonitoringSignal(
-    {
-      signalId: `active:${monitor.id}:${monitor.lease.executionId}`,
-      status: evaluationFailure
-        ? "unknown"
-        : evaluation?.result.status || payload.status,
-      observedAt: payload.observedAt,
-      source:
-        optionalText(payload.source, "source", 160) ||
-        `${monitor.provider}:${monitor.name}`,
-      message: evaluationFailure
-        ? "Monitoring template evaluation failed"
-        : evaluation?.result.message || payload.message,
-      metadata: evaluationFailure
-        ? {
-            failure_kind: "template_evaluation",
-            failure_stage: "template",
-            diagnostic_code: String(
-              evaluationFailure.publicDetails?.diagnostic?.code ||
-                evaluationFailure.code ||
-                "TEMPLATE_EVALUATION_FAILED",
-            ).slice(0, 100),
-          }
-        : evaluation
-          ? evaluation.result.metadata
-          : payload.metadata,
-      metadataProfile:
-        evaluation || evaluationFailure ? undefined : payload.metadataProfile,
-      payload: monitor.provider === "shell" ? undefined : payload.payload,
-    },
+    activeObservationPayload(monitor, payload, evaluation, evaluationFailure),
     actor,
   );
   if (monitor.provider === "shell") delete normalized.payload;
   return recordMonitoringEvent(runtime, normalized, actor, {
     materializeHealth: true,
     origin: "active",
-    eventContext: {
-      monitorId: monitor.id,
-      executionId: monitor.lease.executionId,
-      scheduledFor: monitor.lease.scheduledFor,
-      provider: monitor.provider,
-      trigger: monitor.lease.trigger || "scheduled",
-      ...(templateRef ? { templateRef: { ...templateRef } } : {}),
-      ...(evaluation
-        ? {
-            templateSnapshot: evaluation.templateSnapshot,
-            templateMatch: evaluation.matchedRule,
-          }
-        : {}),
-      ...(evaluationFailure?.templateSnapshot
-        ? { templateSnapshot: evaluationFailure.templateSnapshot }
-        : {}),
-    },
+    eventContext: activeObservationEventContext(
+      monitor,
+      templateRef,
+      evaluation,
+      evaluationFailure,
+    ),
   });
 }
 

@@ -23,6 +23,105 @@ import { ReferencesEditor } from "./ReferencesEditor.jsx";
 import { useDocumentDetail } from "./hooks/useDocumentDetail.js";
 import { useDocumentExports } from "./hooks/useDocumentExports.js";
 
+function DocumentTabContent({
+  addObservation,
+  canCreateAttachments,
+  canDeleteAttachments,
+  canReadAttachments,
+  canUpdate,
+  canUpdateAttachments,
+  catalog,
+  changeContext,
+  config,
+  draft,
+  observationDraft,
+  observations,
+  onChange,
+  onSave,
+  referenceOptions,
+  refreshKey,
+  revisions,
+  setObservationDraft,
+  tab,
+  taxonomyPackage,
+}) {
+  switch (tab) {
+    case "overview":
+      return (
+        <DocumentOverview
+          canUpdate={canUpdate}
+          catalog={catalog}
+          config={config}
+          draft={draft}
+          onChange={onChange}
+          onContextChange={changeContext}
+          taxonomyPackage={taxonomyPackage}
+        />
+      );
+    case "content":
+      return (
+        <div className="dialogForm knowledgeRecordPanel">
+          <div className="field">
+            <MarkdownEditor
+              onChange={(markdown) => onChange({ ...draft, markdown })}
+              value={draft.markdown}
+            />
+          </div>
+        </div>
+      );
+    case "references":
+      return (
+        <ReferencesEditor
+          disabled={!canUpdate}
+          draft={draft}
+          onChange={onChange}
+          options={referenceOptions}
+        />
+      );
+    case "files":
+      return draft.id && canReadAttachments ? (
+        <DocumentFilesPanel
+          canCreate={canCreateAttachments}
+          canDelete={canDeleteAttachments}
+          canUpdate={canUpdateAttachments}
+          draft={draft}
+          onChange={onChange}
+        />
+      ) : null;
+    case "observations":
+      return (
+        <DocumentObservations
+          canUpdate={canUpdate}
+          observationDraft={observationDraft}
+          observations={observations}
+          onAdd={addObservation}
+          onDraftChange={setObservationDraft}
+        />
+      );
+    case "revisions":
+      return (
+        <DocumentRevisions
+          canUpdate={canUpdate}
+          draft={draft}
+          onSave={onSave}
+          revisions={revisions}
+        />
+      );
+    case "history":
+      return (
+        <div className="knowledgeRecordHistory">
+          <AuditHistory
+            entityId={draft.id}
+            entityType="document"
+            refreshKey={refreshKey}
+          />
+        </div>
+      );
+    default:
+      return null;
+  }
+}
+
 export function DocumentDetail({
   canArchive,
   canDelete,
@@ -106,70 +205,28 @@ export function DocumentDetail({
         onSelect={setTab}
         tab={tab}
       />
-      {tab === "overview" ? (
-        <DocumentOverview
-          canUpdate={canUpdate}
-          catalog={catalog}
-          config={config}
-          draft={draft}
-          onChange={onChange}
-          onContextChange={changeContext}
-          taxonomyPackage={taxonomyPackage}
-        />
-      ) : null}
-      {tab === "content" ? (
-        <div className="dialogForm knowledgeRecordPanel">
-          <div className="field">
-            <MarkdownEditor
-              onChange={(markdown) => onChange({ ...draft, markdown })}
-              value={draft.markdown}
-            />
-          </div>
-        </div>
-      ) : null}
-      {tab === "references" ? (
-        <ReferencesEditor
-          disabled={!canUpdate}
-          draft={draft}
-          onChange={onChange}
-          options={referenceOptions}
-        />
-      ) : null}
-      {tab === "files" && draft.id && canReadAttachments ? (
-        <DocumentFilesPanel
-          canCreate={canCreateAttachments}
-          canDelete={canDeleteAttachments}
-          canUpdate={canUpdateAttachments}
-          draft={draft}
-          onChange={onChange}
-        />
-      ) : null}
-      {tab === "observations" ? (
-        <DocumentObservations
-          canUpdate={canUpdate}
-          observationDraft={observationDraft}
-          observations={observations}
-          onAdd={addObservation}
-          onDraftChange={setObservationDraft}
-        />
-      ) : null}
-      {tab === "revisions" ? (
-        <DocumentRevisions
-          canUpdate={canUpdate}
-          draft={draft}
-          onSave={onSave}
-          revisions={revisions}
-        />
-      ) : null}
-      {tab === "history" ? (
-        <div className="knowledgeRecordHistory">
-          <AuditHistory
-            entityId={draft.id}
-            entityType="document"
-            refreshKey={refreshKey}
-          />
-        </div>
-      ) : null}
+      <DocumentTabContent
+        addObservation={addObservation}
+        canCreateAttachments={canCreateAttachments}
+        canDeleteAttachments={canDeleteAttachments}
+        canReadAttachments={canReadAttachments}
+        canUpdate={canUpdate}
+        canUpdateAttachments={canUpdateAttachments}
+        catalog={catalog}
+        changeContext={changeContext}
+        config={config}
+        draft={draft}
+        observationDraft={observationDraft}
+        observations={observations}
+        onChange={onChange}
+        onSave={onSave}
+        referenceOptions={referenceOptions}
+        refreshKey={refreshKey}
+        revisions={revisions}
+        setObservationDraft={setObservationDraft}
+        tab={tab}
+        taxonomyPackage={taxonomyPackage}
+      />
       <KnowledgeRecordFooter
         canArchive={canArchive}
         canDelete={canDelete}

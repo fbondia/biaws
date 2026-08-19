@@ -51,62 +51,86 @@ export function MarkdownBlockViewer({ language, source, type }) {
 
       <MarkdownBlockContent language={language} source={source} type={type} />
 
-      {open
-        ? createPortal(
-            <div
-              className="dialogBackdrop markdownBlockDialogBackdrop"
-              onMouseDown={(event) => {
-                if (event.target === event.currentTarget) setOpen(false);
-              }}
-            >
-              <section
-                aria-labelledby={dialogTitleId}
-                aria-modal="true"
-                className="markdownBlockDialog"
-                role="dialog"
-              >
-                <header className="markdownBlockDialogHeader">
-                  <div>
-                    <h3 id={dialogTitleId}>{title}</h3>
-                    {!isMermaid && language ? <span>{language}</span> : null}
-                  </div>
-                  <div className="markdownBlockDialogActions">
-                    {!isMermaid ? (
-                      <button
-                        aria-label={copied ? "Código copiado" : "Copiar código"}
-                        className="secondaryButton"
-                        onClick={copyCode}
-                        title={copied ? "Copiado" : "Copiar código"}
-                        type="button"
-                      >
-                        {copied ? <Check size={16} /> : <Copy size={16} />}
-                        {copied ? "Copiado" : "Copiar"}
-                      </button>
-                    ) : null}
-                    <button
-                      aria-label={`Fechar ${title.toLocaleLowerCase("pt-BR")}`}
-                      className="iconButton"
-                      onClick={() => setOpen(false)}
-                      title="Fechar"
-                      type="button"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                </header>
-                <div className="markdownBlockDialogBody">
-                  <MarkdownBlockContent
-                    language={language}
-                    source={source}
-                    type={type}
-                  />
-                </div>
-              </section>
-            </div>,
-            document.body,
-          )
-        : null}
+      {open ? (
+        <MarkdownBlockDialog
+          copied={copied}
+          dialogTitleId={dialogTitleId}
+          isMermaid={isMermaid}
+          language={language}
+          onClose={() => setOpen(false)}
+          onCopy={copyCode}
+          source={source}
+          title={title}
+          type={type}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function MarkdownBlockDialog({
+  copied,
+  dialogTitleId,
+  isMermaid,
+  language,
+  onClose,
+  onCopy,
+  source,
+  title,
+  type,
+}) {
+  return createPortal(
+    <div
+      className="dialogBackdrop markdownBlockDialogBackdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        aria-labelledby={dialogTitleId}
+        aria-modal="true"
+        className="markdownBlockDialog"
+        role="dialog"
+      >
+        <header className="markdownBlockDialogHeader">
+          <div>
+            <h3 id={dialogTitleId}>{title}</h3>
+            {!isMermaid && language ? <span>{language}</span> : null}
+          </div>
+          <div className="markdownBlockDialogActions">
+            {!isMermaid ? (
+              <button
+                aria-label={copied ? "Código copiado" : "Copiar código"}
+                className="secondaryButton"
+                onClick={onCopy}
+                title={copied ? "Copiado" : "Copiar código"}
+                type="button"
+              >
+                {copied ? <Check size={16} /> : <Copy size={16} />}
+                {copied ? "Copiado" : "Copiar"}
+              </button>
+            ) : null}
+            <button
+              aria-label={`Fechar ${title.toLocaleLowerCase("pt-BR")}`}
+              className="iconButton"
+              onClick={onClose}
+              title="Fechar"
+              type="button"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </header>
+        <div className="markdownBlockDialogBody">
+          <MarkdownBlockContent
+            language={language}
+            source={source}
+            type={type}
+          />
+        </div>
+      </section>
+    </div>,
+    document.body,
   );
 }
 

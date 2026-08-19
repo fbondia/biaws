@@ -36,6 +36,73 @@ const EMPTY_GROUP = {
   scope: { type: "workspace", applicationIds: [] },
 };
 
+function GroupsList({ groups, onSelect, selectedId }) {
+  return (
+    <aside className="securityPanel groupList">
+      <div className="groupListHeader">
+        <span>Grupos disponíveis</span>
+        <strong>{groups.length}</strong>
+      </div>
+      {groups.map((group) => (
+        <button
+          className={
+            selectedId === group.id ? "groupListItem selected" : "groupListItem"
+          }
+          key={group.id}
+          onClick={() => onSelect(group)}
+          type="button"
+        >
+          <span>
+            <ShieldCheck size={16} /> {group.name}
+          </span>
+          <small>
+            {group.system ? "Sistema" : "Personalizado"} ·{" "}
+            {group.permissions.length} permissões
+            {!group.active ? " · Inativo" : ""}
+          </small>
+        </button>
+      ))}
+    </aside>
+  );
+}
+
+function GroupActions({
+  actor,
+  canManage,
+  draft,
+  onReplicate,
+  onToggleActive,
+  saving,
+  selectedId,
+}) {
+  const hasReplicationTarget = actor.workspaces?.some(
+    ({ id }) => id !== actor.workspaceId,
+  );
+  return (
+    <div className="securityActions">
+      {canManage ? (
+        <button className="primaryButton" disabled={saving} type="submit">
+          <Save size={16} /> {saving ? "Salvando…" : "Salvar grupo"}
+        </button>
+      ) : null}
+      {canManage && selectedId ? (
+        <button
+          className="secondaryButton"
+          onClick={onToggleActive}
+          type="button"
+        >
+          {draft.active ? "Desativar" : "Reativar"}
+        </button>
+      ) : null}
+      {selectedId && hasReplicationTarget ? (
+        <button className="secondaryButton" onClick={onReplicate} type="button">
+          <CopyPlus size={16} /> Replicar
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function GroupsView({ actor }) {
   const [groups, setGroups] = useState([]);
   const [catalog, setCatalog] = useState([]);
@@ -202,33 +269,11 @@ export function GroupsView({ actor }) {
       </header>
       {error ? <div className="authError">{error}</div> : null}
       <div className="groupAdminLayout">
-        <aside className="securityPanel groupList">
-          <div className="groupListHeader">
-            <span>Grupos disponíveis</span>
-            <strong>{groups.length}</strong>
-          </div>
-          {groups.map((group) => (
-            <button
-              className={
-                selectedId === group.id
-                  ? "groupListItem selected"
-                  : "groupListItem"
-              }
-              key={group.id}
-              onClick={() => selectGroup(group)}
-              type="button"
-            >
-              <span>
-                <ShieldCheck size={16} /> {group.name}
-              </span>
-              <small>
-                {group.system ? "Sistema" : "Personalizado"} ·{" "}
-                {group.permissions.length} permissões
-                {!group.active ? " · Inativo" : ""}
-              </small>
-            </button>
-          ))}
-        </aside>
+        <GroupsList
+          groups={groups}
+          onSelect={selectGroup}
+          selectedId={selectedId}
+        />
         {editorOpen ? (
           <form className="securityPanel groupEditor" onSubmit={save}>
             {!draft.system ? (
@@ -329,36 +374,15 @@ export function GroupsView({ actor }) {
               onToggleDomain={setActivePermissionDomain}
               onTogglePermission={togglePermission}
             />
-            <div className="securityActions">
-              {canManage ? (
-                <button
-                  className="primaryButton"
-                  disabled={saving}
-                  type="submit"
-                >
-                  <Save size={16} /> {saving ? "Salvando…" : "Salvar grupo"}
-                </button>
-              ) : null}
-              {canManage && selectedId ? (
-                <button
-                  className="secondaryButton"
-                  onClick={toggleActive}
-                  type="button"
-                >
-                  {draft.active ? "Desativar" : "Reativar"}
-                </button>
-              ) : null}
-              {selectedId &&
-              actor.workspaces?.some(({ id }) => id !== actor.workspaceId) ? (
-                <button
-                  className="secondaryButton"
-                  onClick={() => setReplicationOpen(true)}
-                  type="button"
-                >
-                  <CopyPlus size={16} /> Replicar
-                </button>
-              ) : null}
-            </div>
+            <GroupActions
+              actor={actor}
+              canManage={canManage}
+              draft={draft}
+              onReplicate={() => setReplicationOpen(true)}
+              onToggleActive={toggleActive}
+              saving={saving}
+              selectedId={selectedId}
+            />
           </form>
         ) : (
           <div className="securityPanel groupEditor">

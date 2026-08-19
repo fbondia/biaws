@@ -5,20 +5,26 @@ import {
 
 const text = (value) => String(value ?? "").trim();
 
+function collectPendingExecutionIds(target, values) {
+  for (const execution of target.pendingExecutions || []) {
+    values.push(execution.id);
+  }
+}
+
 export function activeManualExecutionIds(metrics = []) {
-  return new Set(
-    metrics.flatMap((metric) =>
-      (metric?.items || []).flatMap((application) =>
-        (application.components || []).flatMap((component) =>
-          (component.deployments || []).flatMap((deployment) =>
-            (deployment.runtimes || []).flatMap((runtime) =>
-              (runtime.pendingExecutions || []).map(({ id }) => id),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
+  const values = [];
+  for (const metric of metrics) {
+    for (const application of metric?.items || []) {
+      for (const component of application.components || []) {
+        for (const deployment of component.deployments || []) {
+          for (const runtime of deployment.runtimes || []) {
+            collectPendingExecutionIds(runtime, values);
+          }
+        }
+      }
+    }
+  }
+  return new Set(values);
 }
 
 function parseObject(value, label) {
@@ -86,9 +92,7 @@ export function activeMonitorDraft(monitor) {
   };
 }
 
-export function activeMonitorPayload(draft) {
-  const name = text(draft.name);
-  if (!name) throw new Error("Informe o nome do monitoramento.");
+function validatedSchedule(draft) {
   const intervalSeconds = Number(draft.intervalSeconds);
   const timeoutSeconds = Number(draft.timeoutSeconds);
   if (
@@ -107,77 +111,88 @@ export function activeMonitorPayload(draft) {
       "O timeout deve ser inteiro, positivo e não superar o intervalo ou 300 segundos.",
     );
   }
-  let configuration;
-  if (draft.provider === "rest") {
-    const url = text(draft.restUrl);
-    let parsedUrl;
-    try {
-      parsedUrl = new URL(url);
-    } catch {
-      throw new Error("Informe uma URL REST absoluta válida.");
-    }
-    if (
-      !["http:", "https:"].includes(parsedUrl.protocol) ||
-      parsedUrl.username ||
-      parsedUrl.password
-    ) {
-      throw new Error(
-        "A URL REST deve usar HTTP(S) e não pode conter credenciais.",
-      );
-    }
-    const method = text(draft.restMethod).toUpperCase();
-    if (["GET", "HEAD"].includes(method) && text(draft.restBody)) {
-      throw new Error(`${method} não pode enviar corpo.`);
-    }
-    const expectedStatuses = String(draft.restExpectedStatusesText || "")
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter(Boolean)
-      .map(Number);
-    if (
-      expectedStatuses.some(
-        (status) => !Number.isInteger(status) || status < 100 || status > 599,
-      )
-    ) {
-      throw new Error(
-        "Status HTTP esperado deve conter códigos entre 100 e 599.",
-      );
-    }
-    configuration = {
-      method,
-      url: parsedUrl.toString(),
-      headers: parseObject(draft.restHeadersText, "Headers"),
-      headerRefs: parseArray(
-        draft.restHeaderRefsText,
-        "Referências de headers",
-      ),
-      body: String(draft.restBody || ""),
-      followRedirects: draft.restFollowRedirects === true,
-      expectedStatuses: [...new Set(expectedStatuses)],
-    };
-  } else if (draft.provider === "shell") {
-    const scriptId = text(draft.shellScriptId);
-    if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/u.test(scriptId)) {
-      throw new Error("Informe um identificador de script permitido válido.");
-    }
-    const failureStatus = draft.shellFailureStatus || "unavailable";
-    if (!["unknown", "degraded", "unavailable"].includes(failureStatus)) {
-      throw new Error("Estado de falha Shell inválido.");
-    }
-    const captureOutput = draft.shellCaptureOutput || "none";
-    if (!["none", "stdout", "stderr", "both"].includes(captureOutput)) {
-      throw new Error("Modo de captura Shell inválido.");
-    }
-    configuration = {
-      scriptId,
-      arguments: parseLines(draft.shellArgumentsText),
-      environment: parseObject(draft.shellEnvironmentText, "Ambiente"),
-      failureStatus,
-      captureOutput,
-    };
-  } else {
-    throw new Error("Provider de monitoramento inválido.");
+  return { intervalSeconds, timeoutSeconds };
+}
+
+function restMonitorConfiguration(draft) {
+  const url = text(draft.restUrl);
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    throw new Error("Informe uma URL REST absoluta válida.");
   }
+  if (
+    !["http:", "https:"].includes(parsedUrl.protocol) ||
+    parsedUrl.username ||
+    parsedUrl.password
+  ) {
+    throw new Error(
+      "A URL REST deve usar HTTP(S) e não pode conter credenciais.",
+    );
+  }
+  const method = text(draft.restMethod).toUpperCase();
+  if (["GET", "HEAD"].includes(method) && text(draft.restBody)) {
+    throw new Error(`${method} não pode enviar corpo.`);
+  }
+  const expectedStatuses = String(draft.restExpectedStatusesText || "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map(Number);
+  if (
+    expectedStatuses.some(
+      (status) => !Number.isInteger(status) || status < 100 || status > 599,
+    )
+  ) {
+    throw new Error(
+      "Status HTTP esperado deve conter códigos entre 100 e 599.",
+    );
+  }
+  return {
+    method,
+    url: parsedUrl.toString(),
+    headers: parseObject(draft.restHeadersText, "Headers"),
+    headerRefs: parseArray(draft.restHeaderRefsText, "Referências de headers"),
+    body: String(draft.restBody || ""),
+    followRedirects: draft.restFollowRedirects === true,
+    expectedStatuses: [...new Set(expectedStatuses)],
+  };
+}
+
+function shellMonitorConfiguration(draft) {
+  const scriptId = text(draft.shellScriptId);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/u.test(scriptId)) {
+    throw new Error("Informe um identificador de script permitido válido.");
+  }
+  const failureStatus = draft.shellFailureStatus || "unavailable";
+  if (!["unknown", "degraded", "unavailable"].includes(failureStatus)) {
+    throw new Error("Estado de falha Shell inválido.");
+  }
+  const captureOutput = draft.shellCaptureOutput || "none";
+  if (!["none", "stdout", "stderr", "both"].includes(captureOutput)) {
+    throw new Error("Modo de captura Shell inválido.");
+  }
+  return {
+    scriptId,
+    arguments: parseLines(draft.shellArgumentsText),
+    environment: parseObject(draft.shellEnvironmentText, "Ambiente"),
+    failureStatus,
+    captureOutput,
+  };
+}
+
+function monitorConfiguration(draft) {
+  if (draft.provider === "rest") return restMonitorConfiguration(draft);
+  if (draft.provider === "shell") return shellMonitorConfiguration(draft);
+  throw new Error("Provider de monitoramento inválido.");
+}
+
+export function activeMonitorPayload(draft) {
+  const name = text(draft.name);
+  if (!name) throw new Error("Informe o nome do monitoramento.");
+  const { intervalSeconds, timeoutSeconds } = validatedSchedule(draft);
+  const configuration = monitorConfiguration(draft);
   const templateId = text(draft.templateId);
   const templateVersion = text(draft.templateVersion);
   if (

@@ -37,7 +37,7 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
     let active = true;
     setLoading(true);
     setError("");
-    void loadMonitors()
+    loadMonitors()
       .catch((loadError) => {
         if (active) setError(loadError.message);
       })

@@ -411,6 +411,99 @@ function RuntimeMonitoringWorkspace({ actor, context, workspace }) {
   );
 }
 
+function RuntimeNavigation({
+  actor,
+  application,
+  component,
+  deployment,
+  filteredTopology,
+  loading,
+  monitoredOnly,
+  onSelectApplication,
+  onSelectCollection,
+  onSelectComponent,
+  onSelectDeployment,
+  runtime,
+  runtimes,
+  selectedCollectionId,
+  servers,
+  setRuntime,
+  showRootCollection,
+  visibleApplications,
+  visibleDeployments,
+  workspace,
+}) {
+  return (
+    <>
+      <div className="monitoringNavigator" aria-busy={loading}>
+        <CollectionNavigation
+          collections={filteredTopology.collections}
+          onSelect={onSelectCollection}
+          selectedId={selectedCollectionId}
+          showRoot={!monitoredOnly || showRootCollection}
+        />
+        <NavigationColumn
+          empty="Nenhuma aplicação nesta coleção."
+          items={visibleApplications}
+          kind="application"
+          onSelect={onSelectApplication}
+          selectedId={application?.id}
+          title="Aplicação"
+        />
+        {application ? (
+          <NavigationColumn
+            empty="Nenhum componente."
+            items={filteredTopology.components}
+            kind="component"
+            onSelect={onSelectComponent}
+            selectedId={component?.id}
+            title="Componente"
+          />
+        ) : null}
+        {component ? (
+          <NavigationColumn
+            empty="Nenhum deployment."
+            items={visibleDeployments}
+            kind="deployment"
+            onSelect={onSelectDeployment}
+            selectedId={deployment?.id}
+            title="Deployment"
+          />
+        ) : null}
+        {deployment ? (
+          <NavigationColumn
+            empty="Nenhum runtime."
+            items={runtimes}
+            kind="runtime"
+            onSelect={setRuntime}
+            selectedId={runtime?.id}
+            title="Runtime"
+          />
+        ) : null}
+      </div>
+      {loading ? (
+        <div className="monitoringCenterLoading" role="status">
+          Carregando contexto…
+        </div>
+      ) : null}
+      {runtime && workspace ? (
+        <RuntimeMonitoringWorkspace
+          actor={actor}
+          context={{ application, component, deployment, runtime, servers }}
+          key={runtime.id}
+          workspace={workspace}
+        />
+      ) : (
+        <div className="monitoringCenterEmpty">
+          <Server size={30} />
+          <strong>Selecione um runtime</strong>
+          <span>A configuração e o histórico serão exibidos nesta área.</span>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function MonitoringRuntimesView({ actor }) {
   const [workspace, setWorkspace] = useState(null);
   const [collections, setCollections] = useState([]);
@@ -749,75 +842,28 @@ export function MonitoringRuntimesView({ actor }) {
       {viewMode === "dashboard" ? (
         <MonitoringDashboard actor={actor} onOpenTarget={openDashboardTarget} />
       ) : (
-        <>
-          <div className="monitoringNavigator" aria-busy={loading}>
-            <CollectionNavigation
-              collections={filteredTopology.collections}
-              onSelect={selectCollection}
-              selectedId={selectedCollectionId}
-              showRoot={!monitoredOnly || showRootCollection}
-            />
-            <NavigationColumn
-              empty="Nenhuma aplicação nesta coleção."
-              items={visibleApplications}
-              kind="application"
-              onSelect={selectApplication}
-              selectedId={application?.id}
-              title="Aplicação"
-            />
-            {application ? (
-              <NavigationColumn
-                empty="Nenhum componente."
-                items={filteredTopology.components}
-                kind="component"
-                onSelect={selectComponent}
-                selectedId={component?.id}
-                title="Componente"
-              />
-            ) : null}
-            {component ? (
-              <NavigationColumn
-                empty="Nenhum deployment."
-                items={visibleDeployments}
-                kind="deployment"
-                onSelect={selectDeployment}
-                selectedId={deployment?.id}
-                title="Deployment"
-              />
-            ) : null}
-            {deployment ? (
-              <NavigationColumn
-                empty="Nenhum runtime."
-                items={runtimes}
-                kind="runtime"
-                onSelect={setRuntime}
-                selectedId={runtime?.id}
-                title="Runtime"
-              />
-            ) : null}
-          </div>
-          {loading ? (
-            <div className="monitoringCenterLoading" role="status">
-              Carregando contexto…
-            </div>
-          ) : null}
-          {runtime && workspace ? (
-            <RuntimeMonitoringWorkspace
-              actor={actor}
-              context={{ application, component, deployment, runtime, servers }}
-              key={runtime.id}
-              workspace={workspace}
-            />
-          ) : (
-            <div className="monitoringCenterEmpty">
-              <Server size={30} />
-              <strong>Selecione um runtime</strong>
-              <span>
-                A configuração e o histórico serão exibidos nesta área.
-              </span>
-            </div>
-          )}
-        </>
+        <RuntimeNavigation
+          actor={actor}
+          application={application}
+          component={component}
+          deployment={deployment}
+          filteredTopology={filteredTopology}
+          loading={loading}
+          monitoredOnly={monitoredOnly}
+          onSelectApplication={selectApplication}
+          onSelectCollection={selectCollection}
+          onSelectComponent={selectComponent}
+          onSelectDeployment={selectDeployment}
+          runtime={runtime}
+          runtimes={runtimes}
+          selectedCollectionId={selectedCollectionId}
+          servers={servers}
+          setRuntime={setRuntime}
+          showRootCollection={showRootCollection}
+          visibleApplications={visibleApplications}
+          visibleDeployments={visibleDeployments}
+          workspace={workspace}
+        />
       )}
     </section>
   );

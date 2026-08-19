@@ -37,6 +37,66 @@ import {
   SkillError,
 } from "./components/SkillPanels.jsx";
 
+function SkillsNavigator({
+  actor,
+  canManageCollections,
+  collectionState,
+  items,
+  onOpen,
+  selectedSkillId,
+}) {
+  return (
+    <ResourceCollectionNavigator
+      canDragItem={() => canManageCollections}
+      collections={collectionState.collections}
+      draggedItem={collectionState.draggedItem}
+      getItemId={(skill) => skill.skillId}
+      itemLabel="skills"
+      items={items}
+      preferenceKey="skills"
+      workspaceId={actor.workspaceId}
+      onCreate={
+        canManageCollections ? collectionState.createCollection : undefined
+      }
+      onDelete={collectionState.removeCollection}
+      onDragCollection={
+        canManageCollections
+          ? (collection) =>
+              collectionState.setDraggedItem({
+                type: "collection",
+                id: collection.id,
+              })
+          : undefined
+      }
+      onDragEnd={() => collectionState.setDraggedItem(null)}
+      onDragItem={(skill) =>
+        collectionState.setDraggedItem({ type: "item", id: skill.skillId })
+      }
+      onDrop={(collectionId) =>
+        collectionState.dropItem(collectionId, moveSkillToCollection)
+      }
+      onRename={(collection) => collectionState.setCollectionDialog(collection)}
+      onSelect={(collectionId) => {
+        onOpen(null);
+        collectionState.setSelectedCollectionId(collectionId);
+      }}
+      onSelectItem={(skill) => {
+        onOpen(skill);
+        collectionState.setSelectedCollectionId(skill.collectionId || "");
+      }}
+      renderItem={(skill) => (
+        <>
+          <Package size={13} />
+          <span>{skill.name}</span>
+          <small>{skill.latestVersion}</small>
+        </>
+      )}
+      selectedCollectionId={collectionState.selectedCollectionId}
+      selectedItemId={selectedSkillId}
+    />
+  );
+}
+
 export function SkillsView({ actor }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -159,63 +219,16 @@ export function SkillsView({ actor }) {
           }
           selectedCollectionId={collectionState.selectedCollectionId}
           navigator={
-            <ResourceCollectionNavigator
-              canDragItem={() => canManageCollections}
-              collections={collectionState.collections}
-              draggedItem={collectionState.draggedItem}
-              getItemId={(skill) => skill.skillId}
-              itemLabel="skills"
+            <SkillsNavigator
+              actor={actor}
+              canManageCollections={canManageCollections}
+              collectionState={collectionState}
               items={result?.items || []}
-              preferenceKey="skills"
-              workspaceId={actor.workspaceId}
-              onCreate={
-                canManageCollections
-                  ? collectionState.createCollection
-                  : undefined
-              }
-              onDelete={collectionState.removeCollection}
-              onDragCollection={
-                canManageCollections
-                  ? (collection) =>
-                      collectionState.setDraggedItem({
-                        type: "collection",
-                        id: collection.id,
-                      })
-                  : undefined
-              }
-              onDragEnd={() => collectionState.setDraggedItem(null)}
-              onDragItem={(skill) =>
-                collectionState.setDraggedItem({
-                  type: "item",
-                  id: skill.skillId,
-                })
-              }
-              onDrop={(collectionId) =>
-                collectionState.dropItem(collectionId, moveSkillToCollection)
-              }
-              onRename={(collection) =>
-                collectionState.setCollectionDialog(collection)
-              }
-              onSelect={(collectionId) => {
-                setSelectedSkill(null);
-                collectionState.setSelectedCollectionId(collectionId);
-              }}
-              onSelectItem={(skill) => {
+              onOpen={(skill) => {
                 setSearch("");
                 setSelectedSkill(skill);
-                collectionState.setSelectedCollectionId(
-                  skill.collectionId || "",
-                );
               }}
-              renderItem={(skill) => (
-                <>
-                  <Package size={13} />
-                  <span>{skill.name}</span>
-                  <small>{skill.latestVersion}</small>
-                </>
-              )}
-              selectedCollectionId={collectionState.selectedCollectionId}
-              selectedItemId={selectedSkill?.skillId}
+              selectedSkillId={selectedSkill?.skillId}
             />
           }
           toolbar={

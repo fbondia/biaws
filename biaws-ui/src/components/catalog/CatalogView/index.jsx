@@ -17,6 +17,79 @@ import {
 } from "./components/CatalogViewPanels.jsx";
 import { useCatalogView } from "./hooks/useCatalogView.js";
 
+function CatalogNavigator({
+  actor,
+  applications,
+  canManageApplicationLifecycle,
+  canManageCollections,
+  canMoveApplication,
+  collectionState,
+  deleteArchivedApplication,
+  restoreArchivedApplication,
+  selectedId,
+  setActiveTab,
+  setSelectedId,
+}) {
+  return (
+    <ResourceCollectionNavigator
+      canDragItem={canMoveApplication}
+      collections={collectionState.collections}
+      draggedItem={collectionState.draggedItem}
+      itemLabel="aplicações"
+      items={applications}
+      preferenceKey="applications"
+      workspaceId={actor.workspaceId}
+      onCreate={
+        canManageCollections ? collectionState.createCollection : undefined
+      }
+      onDelete={collectionState.removeCollection}
+      onDeleteItem={
+        canManageApplicationLifecycle ? deleteArchivedApplication : undefined
+      }
+      onDragCollection={
+        canManageCollections
+          ? (collection) =>
+              collectionState.setDraggedItem({
+                type: "collection",
+                id: collection.id,
+              })
+          : undefined
+      }
+      onDragEnd={() => collectionState.setDraggedItem(null)}
+      onDragItem={(application) =>
+        collectionState.setDraggedItem({
+          type: "item",
+          id: application.id,
+        })
+      }
+      onDrop={(collectionId) =>
+        collectionState.dropItem(collectionId, moveApplicationToCollection)
+      }
+      onRename={(collection) => collectionState.setCollectionDialog(collection)}
+      onRestoreItem={
+        canManageApplicationLifecycle ? restoreArchivedApplication : undefined
+      }
+      onSelect={(collectionId) => {
+        collectionState.setSelectedCollectionId(collectionId);
+        setSelectedId("");
+      }}
+      onSelectItem={(application) => {
+        collectionState.setSelectedCollectionId(application.collectionId || "");
+        setSelectedId(application.id);
+        setActiveTab("overview");
+      }}
+      renderItem={(application) => (
+        <>
+          <Layers3 size={13} />
+          <span>{application.name}</span>
+        </>
+      )}
+      selectedCollectionId={collectionState.selectedCollectionId}
+      selectedItemId={selectedId}
+    />
+  );
+}
+
 export function CatalogView({ actor }) {
   const {
     workspace,
@@ -119,75 +192,18 @@ export function CatalogView({ actor }) {
         }
         selectedCollectionId={collectionState.selectedCollectionId}
         navigator={
-          <ResourceCollectionNavigator
-            canDragItem={canMoveApplication}
-            collections={collectionState.collections}
-            draggedItem={collectionState.draggedItem}
-            itemLabel="aplicações"
-            items={applications}
-            preferenceKey="applications"
-            workspaceId={actor.workspaceId}
-            onCreate={
-              canManageCollections
-                ? collectionState.createCollection
-                : undefined
-            }
-            onDelete={collectionState.removeCollection}
-            onDeleteItem={
-              canManageApplicationLifecycle
-                ? (application) => void deleteArchivedApplication(application)
-                : undefined
-            }
-            onDragCollection={
-              canManageCollections
-                ? (collection) =>
-                    collectionState.setDraggedItem({
-                      type: "collection",
-                      id: collection.id,
-                    })
-                : undefined
-            }
-            onDragEnd={() => collectionState.setDraggedItem(null)}
-            onDragItem={(application) =>
-              collectionState.setDraggedItem({
-                type: "item",
-                id: application.id,
-              })
-            }
-            onDrop={(collectionId) =>
-              collectionState.dropItem(
-                collectionId,
-                moveApplicationToCollection,
-              )
-            }
-            onRename={(collection) =>
-              collectionState.setCollectionDialog(collection)
-            }
-            onRestoreItem={
-              canManageApplicationLifecycle
-                ? (application) => void restoreArchivedApplication(application)
-                : undefined
-            }
-            onSelect={(collectionId) => {
-              collectionState.setSelectedCollectionId(collectionId);
-              setSelectedId("");
-            }}
-            onSelectItem={(application) => {
-              collectionState.setSelectedCollectionId(
-                application.collectionId || "",
-              );
-              setSelectedId(application.id);
-              setActiveTab("overview");
-            }}
-            renderItem={(application) => (
-              <>
-                <Layers3 size={13} />
-                <span>{application.name}</span>
-                {/*<small>{application.key}</small>*/}
-              </>
-            )}
-            selectedCollectionId={collectionState.selectedCollectionId}
-            selectedItemId={selectedId}
+          <CatalogNavigator
+            actor={actor}
+            applications={applications}
+            canManageApplicationLifecycle={canManageApplicationLifecycle}
+            canManageCollections={canManageCollections}
+            canMoveApplication={canMoveApplication}
+            collectionState={collectionState}
+            deleteArchivedApplication={deleteArchivedApplication}
+            restoreArchivedApplication={restoreArchivedApplication}
+            selectedId={selectedId}
+            setActiveTab={setActiveTab}
+            setSelectedId={setSelectedId}
           />
         }
         toolbar={
@@ -214,13 +230,11 @@ export function CatalogView({ actor }) {
             context={context}
             loading={loading}
             onBack={() => setSelectedId("")}
-            onDelete={() => void deleteArchivedApplication(context.application)}
+            onDelete={() => deleteArchivedApplication(context.application)}
             onEdit={() =>
               setDialog({ kind: "application", entity: context.application })
             }
-            onRestore={() =>
-              void restoreArchivedApplication(context.application)
-            }
+            onRestore={() => restoreArchivedApplication(context.application)}
             onSelectTab={setActiveTab}
             tabProps={{
               editEntity,

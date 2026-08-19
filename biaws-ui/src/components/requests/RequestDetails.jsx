@@ -18,17 +18,13 @@ import {
   uploadEntityAttachments,
 } from "../../api.js";
 
-export function RequestDetails({
+function RequestDetailContent({
   request,
   isEditing,
   activeTab,
   initialTaskId,
   savingRequestId,
-  selectedChecklistItem,
   journeyTotals,
-  onTabChange,
-  onToggleEditMode,
-  onClose,
   onFieldChange,
   onDelete,
   onBeginNumberDraft,
@@ -37,8 +33,6 @@ export function RequestDetails({
   onReadDraftedNumber,
   onCommitEstimatedJourneys,
   onToggleChecklistItem,
-  onUpdateChecklistItem,
-  onCloseChecklistDialog,
   onJourneyMonthCommit,
   onJourneyCommentChange,
   onInitialTaskHandled,
@@ -64,13 +58,161 @@ export function RequestDetails({
   applications,
   components,
 }) {
+  switch (activeTab) {
+    case "main":
+      return (
+        <RequestMainTab
+          isEditing={isEditing}
+          onBeginNumberDraft={onBeginNumberDraft}
+          onClearNumberDraft={onClearNumberDraft}
+          onCommitEstimatedJourneys={onCommitEstimatedJourneys}
+          onDelete={onDelete}
+          onFieldChange={onFieldChange}
+          onReadDraftedNumber={onReadDraftedNumber}
+          onUpdateNumberDraft={onUpdateNumberDraft}
+          onContextChange={onContextChange}
+          onChangeStatus={onChangeStatus}
+          applications={applications}
+          components={components}
+          request={request}
+          savingRequestId={savingRequestId}
+        />
+      );
+    case "notes":
+      return (
+        <RequestNotesTab
+          onCreateNote={onCreateNote}
+          onDeleteNote={onDeleteNote}
+          onUpdateNote={onUpdateNote}
+          request={request}
+          saving={savingRequestId === request.id}
+        />
+      );
+    case "specification":
+      return (
+        <RequestSpecificationTab
+          isEditing={isEditing}
+          onAddSpecificationSection={onAddSpecificationSection}
+          onAddMissingSpecificationSections={onAddMissingSpecificationSections}
+          onMoveSpecificationSection={onMoveSpecificationSection}
+          onRemoveSpecificationSection={onRemoveSpecificationSection}
+          onUpdateSpecificationSection={onUpdateSpecificationSection}
+          request={request}
+        />
+      );
+    case "tasks":
+      return (
+        <RequestTasksTab
+          initialTaskId={initialTaskId}
+          onCreateTask={onCreateTask}
+          onChangeStatus={
+            onChangeTaskStatus
+              ? (task, status) => onChangeTaskStatus(request, task, status)
+              : undefined
+          }
+          onCreateTaskNote={onCreateTaskNote}
+          onDeleteTask={onDeleteTask}
+          onDeleteTaskNote={onDeleteTaskNote}
+          onInitialTaskHandled={onInitialTaskHandled}
+          onUpdateTask={onUpdateTask}
+          onUpdateTaskNote={onUpdateTaskNote}
+          onRequestUpdated={onRequestUpdated}
+          request={request}
+          saving={savingRequestId === request.id}
+        />
+      );
+    case "checklist":
+      return (
+        <RequestChecklistTab
+          isEditing={isEditing}
+          onRemoveChecklistItem={onRemoveChecklistItem}
+          onToggleChecklistItem={onToggleChecklistItem}
+          request={request}
+        />
+      );
+    case "journeys":
+      return (
+        <RequestJourneyTab
+          journeyTotals={journeyTotals}
+          isEditing={isEditing}
+          onBeginNumberDraft={onBeginNumberDraft}
+          onJourneyCommentChange={onJourneyCommentChange}
+          onJourneyMonthCommit={onJourneyMonthCommit}
+          onClearNumberDraft={onClearNumberDraft}
+          onReadDraftedNumber={onReadDraftedNumber}
+          onUpdateNumberDraft={onUpdateNumberDraft}
+          request={request}
+        />
+      );
+    case "files":
+      return (
+        <FilesPanel
+          files={request.attachments || []}
+          onDelete={async (attachment) => {
+            const payload = await deleteEntityAttachment(
+              "requests",
+              request.id,
+              attachment,
+            );
+            onRequestUpdated(payload.request);
+            return payload.deleted;
+          }}
+          onDownload={(attachment) =>
+            downloadEntityAttachment("requests", request.id, attachment)
+          }
+          onPreview={(attachment) =>
+            fetchEntityAttachment("requests", request.id, attachment)
+          }
+          onUpdateTags={async (attachment, tags) => {
+            const payload = await updateEntityAttachmentTags(
+              "requests",
+              request.id,
+              attachment,
+              tags,
+            );
+            onRequestUpdated(payload.request);
+          }}
+          onUpload={async (files) => {
+            const payload = await uploadEntityAttachments(
+              "requests",
+              request.id,
+              files,
+            );
+            onRequestUpdated(payload.request);
+            return payload.uploaded?.length;
+          }}
+        />
+      );
+    case "history":
+      return (
+        <AuditHistory
+          entityId={request.id}
+          entityType="demand"
+          refreshKey={request.updatedAt}
+        />
+      );
+    default:
+      return null;
+  }
+}
+
+export function RequestDetails(props) {
+  const {
+    activeTab,
+    isEditing,
+    onClose,
+    onCloseChecklistDialog,
+    onTabChange,
+    onToggleEditMode,
+    selectedChecklistItem,
+  } = props;
   return (
     <div className="requestWorkArea">
       <div className="requestDetailTabsBar">
         <div
+          aria-label="Detalhes da melhoria"
           className="detailTabs requestDetailTabs"
           role="tablist"
-          aria-label="Detalhes da melhoria"
         >
           {REQUEST_DETAIL_TABS.map((tab) => (
             <button
@@ -109,137 +251,7 @@ export function RequestDetails({
         </div>
       </div>
 
-      {activeTab === "main" ? (
-        <RequestMainTab
-          isEditing={isEditing}
-          onBeginNumberDraft={onBeginNumberDraft}
-          onClearNumberDraft={onClearNumberDraft}
-          onCommitEstimatedJourneys={onCommitEstimatedJourneys}
-          onDelete={onDelete}
-          onFieldChange={onFieldChange}
-          onReadDraftedNumber={onReadDraftedNumber}
-          onUpdateNumberDraft={onUpdateNumberDraft}
-          onContextChange={onContextChange}
-          onChangeStatus={onChangeStatus}
-          applications={applications}
-          components={components}
-          request={request}
-          savingRequestId={savingRequestId}
-        />
-      ) : null}
-
-      {activeTab === "notes" ? (
-        <RequestNotesTab
-          onCreateNote={onCreateNote}
-          onDeleteNote={onDeleteNote}
-          onUpdateNote={onUpdateNote}
-          request={request}
-          saving={savingRequestId === request.id}
-        />
-      ) : null}
-
-      {activeTab === "specification" ? (
-        <RequestSpecificationTab
-          isEditing={isEditing}
-          onAddSpecificationSection={onAddSpecificationSection}
-          onAddMissingSpecificationSections={onAddMissingSpecificationSections}
-          onMoveSpecificationSection={onMoveSpecificationSection}
-          onRemoveSpecificationSection={onRemoveSpecificationSection}
-          onUpdateSpecificationSection={onUpdateSpecificationSection}
-          request={request}
-        />
-      ) : null}
-
-      {activeTab === "tasks" ? (
-        <RequestTasksTab
-          initialTaskId={initialTaskId}
-          onCreateTask={onCreateTask}
-          onChangeStatus={
-            onChangeTaskStatus
-              ? (task, status) => onChangeTaskStatus(request, task, status)
-              : undefined
-          }
-          onCreateTaskNote={onCreateTaskNote}
-          onDeleteTask={onDeleteTask}
-          onDeleteTaskNote={onDeleteTaskNote}
-          onInitialTaskHandled={onInitialTaskHandled}
-          onUpdateTask={onUpdateTask}
-          onUpdateTaskNote={onUpdateTaskNote}
-          onRequestUpdated={onRequestUpdated}
-          request={request}
-          saving={savingRequestId === request.id}
-        />
-      ) : null}
-
-      {activeTab === "checklist" ? (
-        <RequestChecklistTab
-          isEditing={isEditing}
-          onRemoveChecklistItem={onRemoveChecklistItem}
-          onToggleChecklistItem={onToggleChecklistItem}
-          request={request}
-        />
-      ) : null}
-
-      {activeTab === "journeys" ? (
-        <RequestJourneyTab
-          journeyTotals={journeyTotals}
-          isEditing={isEditing}
-          onBeginNumberDraft={onBeginNumberDraft}
-          onJourneyCommentChange={onJourneyCommentChange}
-          onJourneyMonthCommit={onJourneyMonthCommit}
-          onClearNumberDraft={onClearNumberDraft}
-          onReadDraftedNumber={onReadDraftedNumber}
-          onUpdateNumberDraft={onUpdateNumberDraft}
-          request={request}
-        />
-      ) : null}
-
-      {activeTab === "files" ? (
-        <FilesPanel
-          files={request.attachments || []}
-          onDelete={async (attachment) => {
-            const payload = await deleteEntityAttachment(
-              "requests",
-              request.id,
-              attachment,
-            );
-            onRequestUpdated(payload.request);
-            return payload.deleted;
-          }}
-          onDownload={(attachment) =>
-            downloadEntityAttachment("requests", request.id, attachment)
-          }
-          onPreview={(attachment) =>
-            fetchEntityAttachment("requests", request.id, attachment)
-          }
-          onUpdateTags={async (attachment, tags) => {
-            const payload = await updateEntityAttachmentTags(
-              "requests",
-              request.id,
-              attachment,
-              tags,
-            );
-            onRequestUpdated(payload.request);
-          }}
-          onUpload={async (files) => {
-            const payload = await uploadEntityAttachments(
-              "requests",
-              request.id,
-              files,
-            );
-            onRequestUpdated(payload.request);
-            return payload.uploaded?.length;
-          }}
-        />
-      ) : null}
-
-      {activeTab === "history" ? (
-        <AuditHistory
-          entityId={request.id}
-          entityType="demand"
-          refreshKey={request.updatedAt}
-        />
-      ) : null}
+      <RequestDetailContent {...props} />
 
       <RequestChecklistDialog
         item={selectedChecklistItem}

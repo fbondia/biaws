@@ -16,6 +16,29 @@ import { canPreviewFile, FilePreview } from "../FilePreview.jsx";
 import { useFileDrop } from "../useFileDrop.js";
 import { buildFileTagCounts, tagColor } from "./model.js";
 
+function filterFilesByTags(files, selectedTags) {
+  if (!selectedTags.length) return files;
+  return files.filter((file) =>
+    (file.tags || []).some((tag) =>
+      selectedTags.includes(String(tag).toLowerCase()),
+    ),
+  );
+}
+
+function retainAvailableTags(current, tags) {
+  const available = new Set(tags.map((item) => item.tag));
+  return current.filter((tag) => available.has(tag));
+}
+
+function FilesFeedback({ error, message }) {
+  return (
+    <>
+      {error ? <div className="errorBox dialogError">{error}</div> : null}
+      {message ? <div className="infoBox">{message}</div> : null}
+    </>
+  );
+}
+
 export function FilesPanel({
   canCreate = true,
   canDelete = true,
@@ -45,17 +68,10 @@ export function FilesPanel({
     onDropFiles: upload,
   });
   const tags = useMemo(() => buildFileTagCounts(files), [files]);
-  const visibleFiles = selectedTags.length
-    ? files.filter((file) =>
-        (file.tags || []).some((tag) =>
-          selectedTags.includes(String(tag).toLowerCase()),
-        ),
-      )
-    : files;
+  const visibleFiles = filterFilesByTags(files, selectedTags);
 
   useEffect(() => {
-    const available = new Set(tags.map((item) => item.tag));
-    setSelectedTags((current) => current.filter((tag) => available.has(tag)));
+    setSelectedTags((current) => retainAvailableTags(current, tags));
   }, [tags]);
 
   async function upload(fileList) {
@@ -153,7 +169,7 @@ export function FilesPanel({
   function addTag(file) {
     const nextTag = tagDraft.trim().toLowerCase();
     if (!nextTag) return;
-    void saveTags(file, [...(file.tags || []), nextTag]);
+    saveTags(file, [...(file.tags || []), nextTag]);
   }
 
   function toggleFilter(tag) {
@@ -165,7 +181,7 @@ export function FilesPanel({
   }
 
   function removeTag(file, tag) {
-    void saveTags(
+    saveTags(
       file,
       file.tags.filter((item) => item !== tag),
     );
@@ -181,8 +197,7 @@ export function FilesPanel({
         </span>
       </div>
 
-      {error ? <div className="errorBox dialogError">{error}</div> : null}
-      {message ? <div className="infoBox">{message}</div> : null}
+      <FilesFeedback error={error} message={message} />
 
       {canCreate ? (
         <label
@@ -208,7 +223,7 @@ export function FilesPanel({
             disabled={uploading}
             multiple
             onChange={(event) => {
-              void upload(event.target.files);
+              upload(event.target.files);
               event.target.value = "";
             }}
             type="file"
@@ -268,7 +283,7 @@ export function FilesPanel({
                 <div className="fileAttachmentContent">
                   <button
                     className="filePreviewButton"
-                    onClick={() => void openFile(file)}
+                    onClick={() => openFile(file)}
                     type="button"
                   >
                     <File aria-hidden="true" size={20} />
@@ -351,7 +366,7 @@ export function FilesPanel({
                   <button
                     className="secondaryButton compactFileButton"
                     disabled={downloading || deleting || !file.storage}
-                    onClick={() => void download(file)}
+                    onClick={() => download(file)}
                     type="button"
                   >
                     <Download size={15} />
@@ -362,7 +377,7 @@ export function FilesPanel({
                       aria-label={`Excluir ${file.filename || "arquivo"}`}
                       className="dangerButton compactFileButton"
                       disabled={deleting || downloading || !file.storage}
-                      onClick={() => void remove(file)}
+                      onClick={() => remove(file)}
                       type="button"
                     >
                       <Trash2 size={15} />
@@ -388,7 +403,7 @@ export function FilesPanel({
           file={preview.file}
           loading={preview.loading}
           onClose={() => setPreview(null)}
-          onDownload={() => void download(preview.file)}
+          onDownload={() => download(preview.file)}
         />
       ) : null}
     </section>

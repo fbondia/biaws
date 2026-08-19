@@ -22,7 +22,7 @@ export function DocumentObservations({
           <button
             className="primaryButton"
             disabled={!observationDraft.trim()}
-            onClick={() => void onAdd()}
+            onClick={() => onAdd()}
             type="button"
           >
             Adicionar observação

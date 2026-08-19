@@ -62,7 +62,7 @@ export function ImportEmlContextDialog({
           <button
             className="secondaryButton"
             disabled={busy || !contextDraft.applicationId}
-            onClick={() => void applyContextToEntries(true)}
+            onClick={() => applyContextToEntries(true)}
             type="button"
           >
             Aplicar a todos os EML
@@ -70,7 +70,7 @@ export function ImportEmlContextDialog({
           <button
             className="primaryButton"
             disabled={busy || !contextDraft.applicationId}
-            onClick={() => void applyContextToEntries(false)}
+            onClick={() => applyContextToEntries(false)}
             type="button"
           >
             Aplicar neste EML

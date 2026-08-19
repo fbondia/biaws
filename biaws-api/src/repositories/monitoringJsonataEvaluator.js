@@ -34,7 +34,7 @@ export function evaluateJsonataIsolated(
       settled = true;
       clearTimeout(timer);
       signal?.removeEventListener("abort", abort);
-      void worker.terminate();
+      worker.terminate().catch(() => undefined);
       callback(value);
     };
     const abort = () =>

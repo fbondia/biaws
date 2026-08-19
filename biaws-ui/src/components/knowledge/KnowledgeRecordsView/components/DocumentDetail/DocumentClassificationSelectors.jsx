@@ -7,6 +7,196 @@ import { TaxonomySelector } from "../../../../taxonomy/TaxonomySelector/index.js
 import { filterTaxonomyForApplication } from "../../../../taxonomy/scope.js";
 import { taxonomyIds } from "../../model.js";
 
+function TaxonomyDialog({
+  applications,
+  classification,
+  disabled,
+  nodes,
+  onClose,
+  onUpdateClassification,
+  onUpdateTaxonomies,
+  selectedIds,
+}) {
+  return (
+    <div
+      className="tagFilterDialogBackdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        aria-label="Selecionar classificações do documento"
+        aria-modal="true"
+        className="tagFilterDialog taxonomyFilterDialog"
+        role="dialog"
+      >
+        <header>
+          <div>
+            <strong>Selecionar classificações</strong>
+            <span>Selecione os assuntos e defina um deles como principal.</span>
+          </div>
+          {selectedIds.length ? (
+            <small>{selectedIds.length} selecionada(s)</small>
+          ) : null}
+        </header>
+        <div className="taxonomyFilterDialogContent">
+          {nodes.length ? (
+            <TaxonomySelector
+              applications={applications}
+              disabledIds={disabled ? taxonomyIds(nodes) : []}
+              multiple
+              nodes={nodes}
+              onChange={disabled ? () => {} : onUpdateTaxonomies}
+              onPrimaryChange={
+                disabled
+                  ? undefined
+                  : (primaryTaxonomyId) =>
+                      onUpdateClassification({
+                        primaryTaxonomyId,
+                        secondaryTaxonomyIds: selectedIds.filter(
+                          (id) => id !== primaryTaxonomyId,
+                        ),
+                      })
+              }
+              primaryValue={classification.primaryTaxonomyId}
+              value={selectedIds}
+            />
+          ) : (
+            <div className="emptyState compactEmpty">
+              Nenhuma taxonomia disponível para este contexto.
+            </div>
+          )}
+        </div>
+        <footer>
+          {!disabled && selectedIds.length ? (
+            <button
+              className="secondaryButton clearDialogSelectionButton"
+              onClick={() => onUpdateTaxonomies([])}
+              type="button"
+            >
+              Limpar seleção
+            </button>
+          ) : null}
+          <button
+            className="primaryButton"
+            data-dialog-close
+            onClick={onClose}
+            type="button"
+          >
+            Concluir
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function TagOption({ checked, color, disabled, onChange, tagId }) {
+  return (
+    <label
+      className={
+        checked ? "tagFilterOption selectedTagFilterOption" : "tagFilterOption"
+      }
+      style={{ borderColor: checked ? color : undefined }}
+    >
+      <input
+        checked={checked}
+        disabled={disabled}
+        onChange={onChange}
+        type="checkbox"
+      />
+      <span>{tagId}</span>
+    </label>
+  );
+}
+
+function TagsDialog({
+  classification,
+  disabled,
+  groups,
+  onClear,
+  onClose,
+  onToggleTag,
+  selectedCount,
+}) {
+  return (
+    <div
+      className="tagFilterDialogBackdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        aria-label="Selecionar tags do documento"
+        aria-modal="true"
+        className="tagFilterDialog"
+        role="dialog"
+      >
+        <header>
+          <div>
+            <strong>Selecionar tags</strong>
+            <span>Marque as tags que devem identificar o documento.</span>
+          </div>
+          {selectedCount ? <small>{selectedCount} selecionada(s)</small> : null}
+        </header>
+        {groups.length ? (
+          <div className="tagFilterGroups">
+            {groups.map((group) => {
+              const color = group.color || DEFAULT_TAG_GROUP_COLOR;
+              return (
+                <div className="tagFilterGroup" key={group.id}>
+                  <strong>
+                    <span
+                      className="tagColorSwatch"
+                      style={{ backgroundColor: color }}
+                    />
+                    {group.label}
+                  </strong>
+                  <div className="tagFilterOptions">
+                    {(group.tags || []).map((tagId) => (
+                      <TagOption
+                        checked={Boolean(
+                          classification.tags?.[group.id]?.includes(tagId),
+                        )}
+                        color={color}
+                        disabled={disabled}
+                        key={tagId}
+                        onChange={() => onToggleTag(group.id, tagId)}
+                        tagId={tagId}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="emptyState compactEmpty">Nenhuma tag disponível.</div>
+        )}
+        <footer>
+          {!disabled && selectedCount ? (
+            <button
+              className="secondaryButton clearDialogSelectionButton"
+              onClick={onClear}
+              type="button"
+            >
+              Limpar seleção
+            </button>
+          ) : null}
+          <button
+            className="primaryButton"
+            data-dialog-close
+            onClick={onClose}
+            type="button"
+          >
+            Concluir
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
 export function DocumentClassificationSelectors({
   applications,
   disabled,
@@ -91,176 +281,28 @@ export function DocumentClassificationSelectors({
       />
 
       {taxonomyDialogOpen ? (
-        <div
-          className="tagFilterDialogBackdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget)
-              setTaxonomyDialogOpen(false);
-          }}
-        >
-          <section
-            aria-label="Selecionar classificações do documento"
-            aria-modal="true"
-            className="tagFilterDialog taxonomyFilterDialog"
-            role="dialog"
-          >
-            <header>
-              <div>
-                <strong>Selecionar classificações</strong>
-                <span>
-                  Selecione os assuntos e defina um deles como principal.
-                </span>
-              </div>
-              {selectedIds.length ? (
-                <small>{selectedIds.length} selecionada(s)</small>
-              ) : null}
-            </header>
-            <div className="taxonomyFilterDialogContent">
-              {taxonomyNodes.length ? (
-                <TaxonomySelector
-                  applications={applications}
-                  disabledIds={disabled ? taxonomyIds(taxonomyNodes) : []}
-                  multiple
-                  nodes={taxonomyNodes}
-                  onChange={disabled ? () => {} : updateTaxonomies}
-                  onPrimaryChange={
-                    disabled
-                      ? undefined
-                      : (primaryTaxonomyId) =>
-                          updateClassification({
-                            primaryTaxonomyId,
-                            secondaryTaxonomyIds: selectedIds.filter(
-                              (id) => id !== primaryTaxonomyId,
-                            ),
-                          })
-                  }
-                  primaryValue={classification.primaryTaxonomyId}
-                  value={selectedIds}
-                />
-              ) : (
-                <div className="emptyState compactEmpty">
-                  Nenhuma taxonomia disponível para este contexto.
-                </div>
-              )}
-            </div>
-            <footer>
-              {!disabled && selectedIds.length ? (
-                <button
-                  className="secondaryButton clearDialogSelectionButton"
-                  onClick={() => updateTaxonomies([])}
-                  type="button"
-                >
-                  Limpar seleção
-                </button>
-              ) : null}
-              <button
-                className="primaryButton"
-                data-dialog-close
-                onClick={() => setTaxonomyDialogOpen(false)}
-                type="button"
-              >
-                Concluir
-              </button>
-            </footer>
-          </section>
-        </div>
+        <TaxonomyDialog
+          applications={applications}
+          classification={classification}
+          disabled={disabled}
+          nodes={taxonomyNodes}
+          onClose={() => setTaxonomyDialogOpen(false)}
+          onUpdateClassification={updateClassification}
+          onUpdateTaxonomies={updateTaxonomies}
+          selectedIds={selectedIds}
+        />
       ) : null}
 
       {tagsDialogOpen ? (
-        <div
-          className="tagFilterDialogBackdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setTagsDialogOpen(false);
-          }}
-        >
-          <section
-            aria-label="Selecionar tags do documento"
-            aria-modal="true"
-            className="tagFilterDialog"
-            role="dialog"
-          >
-            <header>
-              <div>
-                <strong>Selecionar tags</strong>
-                <span>Marque as tags que devem identificar o documento.</span>
-              </div>
-              {selectedTagCount ? (
-                <small>{selectedTagCount} selecionada(s)</small>
-              ) : null}
-            </header>
-            {tagGroups.length ? (
-              <div className="tagFilterGroups">
-                {tagGroups.map((group) => (
-                  <div className="tagFilterGroup" key={group.id}>
-                    <strong>
-                      <span
-                        className="tagColorSwatch"
-                        style={{
-                          backgroundColor:
-                            group.color || DEFAULT_TAG_GROUP_COLOR,
-                        }}
-                      />
-                      {group.label}
-                    </strong>
-                    <div className="tagFilterOptions">
-                      {(group.tags || []).map((tagId) => {
-                        const checked = Boolean(
-                          classification.tags?.[group.id]?.includes(tagId),
-                        );
-                        return (
-                          <label
-                            className={
-                              checked
-                                ? "tagFilterOption selectedTagFilterOption"
-                                : "tagFilterOption"
-                            }
-                            key={tagId}
-                            style={{
-                              borderColor: checked
-                                ? group.color || DEFAULT_TAG_GROUP_COLOR
-                                : undefined,
-                            }}
-                          >
-                            <input
-                              checked={checked}
-                              disabled={disabled}
-                              onChange={() => toggleTag(group.id, tagId)}
-                              type="checkbox"
-                            />
-                            <span>{tagId}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="emptyState compactEmpty">
-                Nenhuma tag disponível.
-              </div>
-            )}
-            <footer>
-              {!disabled && selectedTagCount ? (
-                <button
-                  className="secondaryButton clearDialogSelectionButton"
-                  onClick={() => updateClassification({ tags: {} })}
-                  type="button"
-                >
-                  Limpar seleção
-                </button>
-              ) : null}
-              <button
-                className="primaryButton"
-                data-dialog-close
-                onClick={() => setTagsDialogOpen(false)}
-                type="button"
-              >
-                Concluir
-              </button>
-            </footer>
-          </section>
-        </div>
+        <TagsDialog
+          classification={classification}
+          disabled={disabled}
+          groups={tagGroups}
+          onClear={() => updateClassification({ tags: {} })}
+          onClose={() => setTagsDialogOpen(false)}
+          onToggleTag={toggleTag}
+          selectedCount={selectedTagCount}
+        />
       ) : null}
     </>
   );

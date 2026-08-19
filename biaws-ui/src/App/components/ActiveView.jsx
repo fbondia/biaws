@@ -86,47 +86,54 @@ export function ActiveView({
   requestTaskTarget,
   runtimeOptionsVersion,
 }) {
-  if (activeView === "home") {
-    return <HomeView actor={actor} onOpenRequestTask={onOpenRequestTask} />;
+  switch (activeView) {
+    case "home":
+      return <HomeView actor={actor} onOpenRequestTask={onOpenRequestTask} />;
+    case "workspace-admin":
+      return <WorkspaceAdminView actor={actor} />;
+    case "catalog":
+      return <CatalogView actor={actor} />;
+    case "servers":
+      return <ServersView actor={actor} />;
+    case "issues":
+      return (
+        <IssuesView key={`issues-${runtimeOptionsVersion}`} {...issuesProps} />
+      );
+    case "requests":
+      return (
+        <RequestsView
+          actor={actor}
+          initialTaskTarget={requestTaskTarget}
+          key={`requests-${runtimeOptionsVersion}`}
+          onInitialTaskTargetHandled={onRequestTaskTargetHandled}
+        />
+      );
+    case "documents":
+      return <KnowledgeRecordsView actor={actor} />;
+    case "taxonomy":
+      return <IssueTaxonomyManager />;
+    case "skills":
+      return <SkillsView actor={actor} />;
+    case "users":
+      return <UsersView actor={actor} />;
+    case "groups":
+      return <GroupsView actor={actor} />;
+    case "secrets":
+      return <SecretsView actor={actor} />;
+    case "option-lists":
+      return (
+        <OptionListsView
+          actor={actor}
+          onRuntimeChanged={loadRuntimeOptionLists}
+        />
+      );
+    case "monitoring-templates":
+      return <MonitoringTemplatesView actor={actor} />;
+    case "monitoring-runtimes":
+      return <MonitoringRuntimesView actor={actor} />;
+    case "publications":
+      return <PublicationsView actor={actor} />;
+    default:
+      return <AccountView actor={actor} onSignOut={onSignOut} />;
   }
-  if (activeView === "workspace-admin") {
-    return <WorkspaceAdminView actor={actor} />;
-  }
-  if (activeView === "catalog") return <CatalogView actor={actor} />;
-  if (activeView === "servers") return <ServersView actor={actor} />;
-  if (activeView === "issues")
-    return (
-      <IssuesView key={`issues-${runtimeOptionsVersion}`} {...issuesProps} />
-    );
-  if (activeView === "requests")
-    return (
-      <RequestsView
-        actor={actor}
-        initialTaskTarget={requestTaskTarget}
-        key={`requests-${runtimeOptionsVersion}`}
-        onInitialTaskTargetHandled={onRequestTaskTargetHandled}
-      />
-    );
-  if (activeView === "documents") return <KnowledgeRecordsView actor={actor} />;
-  if (activeView === "taxonomy") return <IssueTaxonomyManager />;
-  if (activeView === "skills") return <SkillsView actor={actor} />;
-  if (activeView === "users") return <UsersView actor={actor} />;
-  if (activeView === "groups") return <GroupsView actor={actor} />;
-  if (activeView === "secrets") return <SecretsView actor={actor} />;
-  if (activeView === "option-lists") {
-    return (
-      <OptionListsView
-        actor={actor}
-        onRuntimeChanged={loadRuntimeOptionLists}
-      />
-    );
-  }
-  if (activeView === "monitoring-templates") {
-    return <MonitoringTemplatesView actor={actor} />;
-  }
-  if (activeView === "monitoring-runtimes") {
-    return <MonitoringRuntimesView actor={actor} />;
-  }
-  if (activeView === "publications") return <PublicationsView actor={actor} />;
-  return <AccountView actor={actor} onSignOut={onSignOut} />;
 }

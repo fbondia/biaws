@@ -22,7 +22,7 @@ export function createCatalogEntityActions({
         <button
           aria-label={`Editar ${entity.name}`}
           className="iconButton"
-          onClick={() => void editEntity(kind, entity)}
+          onClick={() => editEntity(kind, entity)}
           title="Editar"
           type="button"
         >
@@ -35,7 +35,7 @@ export function createCatalogEntityActions({
         <button
           aria-label={`Arquivar ${entity.name}`}
           className="iconButton dangerIconButton"
-          onClick={() => void archiveEntity(kind, entity)}
+          onClick={() => archiveEntity(kind, entity)}
           title="Arquivar"
           type="button"
         >
@@ -48,7 +48,7 @@ export function createCatalogEntityActions({
           <button
             aria-label={`Desarquivar ${entity.name}`}
             className="iconButton"
-            onClick={() => void restoreEntity(kind, entity)}
+            onClick={() => restoreEntity(kind, entity)}
             title="Desarquivar"
             type="button"
           >
@@ -57,7 +57,7 @@ export function createCatalogEntityActions({
           <button
             aria-label={`Excluir definitivamente ${entity.name}`}
             className="iconButton dangerIconButton"
-            onClick={() => void deleteEntity(kind, entity)}
+            onClick={() => deleteEntity(kind, entity)}
             title="Excluir definitivamente"
             type="button"
           >

@@ -210,7 +210,7 @@ export async function getMonitoredRuntimeTopology(authorizationScope = {}) {
   const unique = (field) =>
     [
       ...new Set(runtimes.map((runtime) => runtime[field]).filter(Boolean)),
-    ].sort();
+    ].sort((left, right) => left.localeCompare(right));
   return {
     applicationIds: unique("applicationId"),
     componentIds: unique("componentId"),

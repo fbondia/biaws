@@ -91,7 +91,7 @@ export function ImportEmlClassificationDialog({
           <button
             className="secondaryButton"
             disabled={busy}
-            onClick={() => void applyClassificationToEntries(true)}
+            onClick={() => applyClassificationToEntries(true)}
             type="button"
           >
             Aplicar a todos os EML
@@ -99,7 +99,7 @@ export function ImportEmlClassificationDialog({
           <button
             className="primaryButton"
             disabled={busy}
-            onClick={() => void applyClassificationToEntries(false)}
+            onClick={() => applyClassificationToEntries(false)}
             type="button"
           >
             Aplicar neste EML

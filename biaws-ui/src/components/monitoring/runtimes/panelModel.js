@@ -45,23 +45,20 @@ export function groupMonitoringTargets(targets = []) {
 }
 
 export function runtimeHealthData(healthDetails, runtimeId) {
-  const items = (healthDetails?.items || [])
-    .map((application) => ({
-      ...application,
-      components: (application.components || [])
-        .map((component) => ({
-          ...component,
-          deployments: (component.deployments || [])
-            .map((deployment) => ({
-              ...deployment,
-              runtimes: (deployment.runtimes || []).filter(
-                (runtime) => String(runtime.id) === String(runtimeId),
-              ),
-            }))
-            .filter((deployment) => deployment.runtimes.length),
-        }))
-        .filter((component) => component.deployments.length),
-    }))
-    .filter((application) => application.components.length);
+  const items = [];
+  for (const application of healthDetails?.items || []) {
+    const components = [];
+    for (const component of application.components || []) {
+      const deployments = [];
+      for (const deployment of component.deployments || []) {
+        const runtimes = (deployment.runtimes || []).filter(
+          (runtime) => String(runtime.id) === String(runtimeId),
+        );
+        if (runtimes.length) deployments.push({ ...deployment, runtimes });
+      }
+      if (deployments.length) components.push({ ...component, deployments });
+    }
+    if (components.length) items.push({ ...application, components });
+  }
   return { kind: "health", items };
 }

@@ -78,7 +78,7 @@ export function ImportEmlMainDialog({
           onDrop={(event) => {
             event.preventDefault();
             setDragging(false);
-            void addFiles(event.dataTransfer.files);
+            addFiles(event.dataTransfer.files);
           }}
           type="button"
         >
@@ -93,7 +93,7 @@ export function ImportEmlMainDialog({
           hidden
           multiple
           onChange={(event) => {
-            void addFiles(event.target.files);
+            addFiles(event.target.files);
             event.target.value = "";
           }}
           ref={inputRef}
@@ -110,11 +110,11 @@ export function ImportEmlMainDialog({
               defaultType={defaultType}
               entry={entry}
               key={entry.key}
-              onImport={() => void importEntry(entry)}
+              onImport={() => importEntry(entry)}
               onOpenContext={() => openContextDialog(entry)}
               onOpenTags={() => openClassificationDialog(entry, "tags")}
               onOpenTaxonomy={() => openClassificationDialog(entry, "taxonomy")}
-              onRecalculate={() => void analyzeEntry(entry, entry.overrides)}
+              onRecalculate={() => analyzeEntry(entry, entry.overrides)}
               onRemove={() => removeEntry(entry.key)}
               onUpdateOverride={(field, value) =>
                 updateOverride(entry.key, field, value)
@@ -141,7 +141,7 @@ export function ImportEmlMainDialog({
           <button
             className="primaryButton"
             disabled={busy || !readyCount}
-            onClick={() => void importReady()}
+            onClick={() => importReady()}
             type="button"
           >
             Importar arquivos válidos

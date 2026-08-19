@@ -38,6 +38,89 @@ function KnowledgeCollectionDialog({ collectionsState }) {
   );
 }
 
+function documentPathLabel({
+  collectionsState,
+  creating,
+  draft,
+  searchActive,
+}) {
+  if (draft) {
+    const typeLabel =
+      DOCUMENT_TYPES[draft.documentType].label.toLocaleLowerCase("pt-BR");
+    const title = draft.title || `Novo ${typeLabel}`;
+    return `${collectionPathLabel(collectionsState.collections, draft.collectionId)} / ${title}`;
+  }
+  if (creating) {
+    const collectionId = searchActive
+      ? ""
+      : collectionsState.selectedCollectionId;
+    return `${collectionPathLabel(collectionsState.collections, collectionId)} / Novo documento`;
+  }
+  return searchActive ? "Resultados da busca" : undefined;
+}
+
+function KnowledgeNavigator({
+  actor,
+  collectionsState,
+  draft,
+  items,
+  moveItem,
+  onArchive,
+  onDelete,
+  onOpen,
+  onRestore,
+  onSelectCollection,
+  permissions,
+}) {
+  return (
+    <ResourceCollectionNavigator
+      canDragItem={() => permissions.update}
+      collections={collectionsState.collections}
+      draggedItem={collectionsState.draggedItem}
+      itemLabel="documentos"
+      items={items}
+      preferenceKey="documents"
+      workspaceId={actor.workspaceId}
+      onCreate={collectionsState.createCollection}
+      onDelete={collectionsState.removeCollection}
+      onArchiveItem={permissions.archive ? onArchive : undefined}
+      onDeleteItem={permissions.archive ? onDelete : undefined}
+      onDragCollection={(collection) =>
+        collectionsState.setDraggedItem({
+          type: "collection",
+          id: collection.id,
+          parentId: collection.parentId || "",
+        })
+      }
+      onDragEnd={() => collectionsState.setDraggedItem(null)}
+      onDragItem={(record) =>
+        collectionsState.setDraggedItem({
+          type: "record",
+          id: record.id,
+          collectionId: record.collectionId || "",
+        })
+      }
+      onDrop={(collectionId) =>
+        collectionsState.dropItem(collectionId, moveItem)
+      }
+      onRename={collectionsState.setCollectionDialog}
+      onRestoreItem={permissions.archive ? onRestore : undefined}
+      onSelect={onSelectCollection}
+      onSelectItem={onOpen}
+      renderItem={(record) => {
+        const TypeIcon = DOCUMENT_TYPES[record.documentType]?.icon || FileText;
+        return (
+          <>
+            <TypeIcon size={13} /> <span>{record.title}</span>
+          </>
+        );
+      }}
+      selectedCollectionId={collectionsState.selectedCollectionId}
+      selectedItemId={draft?.id}
+    />
+  );
+}
+
 export function KnowledgeRecordsView({ actor }) {
   const [selectedRecordIds, setSelectedRecordIds] = useState([]);
   const [bulkReplicationOpen, setBulkReplicationOpen] = useState(false);
@@ -148,62 +231,26 @@ export function KnowledgeRecordsView({ actor }) {
         onDropRoot={() => collectionsState.dropItem("", moveItem)}
         onNavigateBack={closeDetail}
         onSelectCollection={collectionsState.setSelectedCollectionId}
-        pathLabel={
-          draft
-            ? `${collectionPathLabel(collectionsState.collections, draft.collectionId)} / ${draft.title || `Novo ${DOCUMENT_TYPES[draft.documentType].label.toLocaleLowerCase("pt-BR")}`}`
-            : creating
-              ? `${collectionPathLabel(collectionsState.collections, searchActive ? "" : collectionsState.selectedCollectionId)} / Novo documento`
-              : searchActive
-                ? "Resultados da busca"
-                : undefined
-        }
+        pathLabel={documentPathLabel({
+          collectionsState,
+          creating,
+          draft,
+          searchActive,
+        })}
         selectedCollectionId={collectionsState.selectedCollectionId}
         navigator={
-          <ResourceCollectionNavigator
-            canDragItem={() => permissions.update}
-            collections={collectionsState.collections}
-            draggedItem={collectionsState.draggedItem}
-            itemLabel="documentos"
+          <KnowledgeNavigator
+            actor={actor}
+            collectionsState={collectionsState}
+            draft={draft}
             items={organizationItems}
-            preferenceKey="documents"
-            workspaceId={actor.workspaceId}
-            onCreate={collectionsState.createCollection}
-            onDelete={collectionsState.removeCollection}
-            onArchiveItem={permissions.archive ? archive : undefined}
-            onDeleteItem={permissions.archive ? remove : undefined}
-            onDragCollection={(collection) =>
-              collectionsState.setDraggedItem({
-                type: "collection",
-                id: collection.id,
-                parentId: collection.parentId || "",
-              })
-            }
-            onDragEnd={() => collectionsState.setDraggedItem(null)}
-            onDragItem={(record) =>
-              collectionsState.setDraggedItem({
-                type: "record",
-                id: record.id,
-                collectionId: record.collectionId || "",
-              })
-            }
-            onDrop={(collectionId) =>
-              collectionsState.dropItem(collectionId, moveItem)
-            }
-            onRename={collectionsState.setCollectionDialog}
-            onRestoreItem={permissions.archive ? restore : undefined}
-            onSelect={selectCollection}
-            onSelectItem={openRecord}
-            renderItem={(record) => {
-              const TypeIcon =
-                DOCUMENT_TYPES[record.documentType]?.icon || FileText;
-              return (
-                <>
-                  <TypeIcon size={13} /> <span>{record.title}</span>
-                </>
-              );
-            }}
-            selectedCollectionId={collectionsState.selectedCollectionId}
-            selectedItemId={draft?.id}
+            moveItem={moveItem}
+            onArchive={archive}
+            onDelete={remove}
+            onOpen={openRecord}
+            onRestore={restore}
+            onSelectCollection={selectCollection}
+            permissions={permissions}
           />
         }
         toolbar={

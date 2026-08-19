@@ -217,7 +217,9 @@ export function normalizeUnifiedMonitoringTemplateDefinition(value = {}) {
       "definition.output.metadata.fields must be an array with at most 100 fields",
     );
   }
-  const metadataFields = rawFields.map(normalizeMetadataField);
+  const metadataFields = rawFields.map((field, index) =>
+    normalizeMetadataField(field, index),
+  );
   const contractKeys = new Set(metadataFields.map(({ key }) => key));
   if (contractKeys.size !== metadataFields.length)
     throw invalid("definition.output.metadata.fields contains duplicate keys");

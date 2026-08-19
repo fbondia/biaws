@@ -35,6 +35,103 @@ import {
   ServerList,
 } from "./components/ServerPanels.jsx";
 
+async function loadServerApplicationGroups({
+  actor,
+  deployments,
+  runtimes,
+  workspaceId,
+}) {
+  const applicationIds = [
+    ...new Set(deployments.map(({ applicationId }) => applicationId)),
+  ];
+  const canReadTopology =
+    hasPermission(actor, "applications.read") &&
+    hasPermission(actor, "components.read");
+  if (!applicationIds.length || !canReadTopology) return [];
+  const [applicationsPayload, componentPayloads] = await Promise.all([
+    fetchApplications(workspaceId, { limit: 100 }),
+    Promise.all(
+      applicationIds.map((applicationId) =>
+        fetchComponents(applicationId, { limit: 100 }),
+      ),
+    ),
+  ]);
+  return buildServerApplicationGroups({
+    applications: (applicationsPayload.items || []).filter(({ id }) =>
+      applicationIds.includes(id),
+    ),
+    components: componentPayloads.flatMap(({ items }) => items || []),
+    deployments,
+    runtimes,
+  });
+}
+
+function ServersNavigator({
+  actor,
+  canManageCollections,
+  canManageServerLifecycle,
+  collectionState,
+  onArchive,
+  onDelete,
+  onOpen,
+  onRestore,
+  servers,
+  setSelected,
+  selectedId,
+}) {
+  return (
+    <ResourceCollectionNavigator
+      canDragItem={() => canManageCollections}
+      collections={collectionState.collections}
+      draggedItem={collectionState.draggedItem}
+      itemLabel="servidores"
+      items={servers}
+      preferenceKey="servers"
+      workspaceId={actor.workspaceId}
+      onCreate={
+        canManageCollections ? collectionState.createCollection : undefined
+      }
+      onDelete={collectionState.removeCollection}
+      onArchiveItem={canManageServerLifecycle ? onArchive : undefined}
+      onDeleteItem={canManageServerLifecycle ? onDelete : undefined}
+      onDragCollection={
+        canManageCollections
+          ? (collection) =>
+              collectionState.setDraggedItem({
+                type: "collection",
+                id: collection.id,
+              })
+          : undefined
+      }
+      onDragEnd={() => collectionState.setDraggedItem(null)}
+      onDragItem={(server) =>
+        collectionState.setDraggedItem({ type: "item", id: server.id })
+      }
+      onDrop={(collectionId) =>
+        collectionState.dropItem(collectionId, moveServerToCollection)
+      }
+      onRename={(collection) => collectionState.setCollectionDialog(collection)}
+      onRestoreItem={canManageServerLifecycle ? onRestore : undefined}
+      onSelect={(collectionId) => {
+        collectionState.setSelectedCollectionId(collectionId);
+        setSelected(null);
+      }}
+      onSelectItem={(server) => {
+        collectionState.setSelectedCollectionId(server.collectionId || "");
+        onOpen(server);
+      }}
+      renderItem={(server) => (
+        <>
+          <Server size={13} />
+          <span>{server.name}</span>
+        </>
+      )}
+      selectedCollectionId={collectionState.selectedCollectionId}
+      selectedItemId={selectedId}
+    />
+  );
+}
+
 export function ServersView({ actor }) {
   const { confirm } = useMessages();
   const [workspace, setWorkspace] = useState(null);
@@ -99,37 +196,14 @@ export function ServersView({ actor }) {
       ]);
       setSelected(detail.server);
       const relatedDeployments = deploymentPayload.items || [];
-      const applicationIds = [
-        ...new Set(
-          relatedDeployments.map(({ applicationId }) => applicationId),
-        ),
-      ];
-      if (
-        applicationIds.length &&
-        hasPermission(actor, "applications.read") &&
-        hasPermission(actor, "components.read")
-      ) {
-        const [applicationsPayload, componentPayloads] = await Promise.all([
-          fetchApplications(workspace.id, { limit: 100 }),
-          Promise.all(
-            applicationIds.map((applicationId) =>
-              fetchComponents(applicationId, { limit: 100 }),
-            ),
-          ),
-        ]);
-        setServerApplications(
-          buildServerApplicationGroups({
-            applications: (applicationsPayload.items || []).filter(({ id }) =>
-              applicationIds.includes(id),
-            ),
-            components: componentPayloads.flatMap(({ items }) => items || []),
-            deployments: relatedDeployments,
-            runtimes: runtimePayload.items || [],
-          }),
-        );
-      } else {
-        setServerApplications([]);
-      }
+      setServerApplications(
+        await loadServerApplicationGroups({
+          actor,
+          deployments: relatedDeployments,
+          runtimes: runtimePayload.items || [],
+          workspaceId: workspace.id,
+        }),
+      );
       setActiveTab("overview");
     } catch (loadError) {
       setError(loadError.message);
@@ -247,73 +321,18 @@ export function ServersView({ actor }) {
         }
         selectedCollectionId={collectionState.selectedCollectionId}
         navigator={
-          <ResourceCollectionNavigator
-            canDragItem={() => canManageCollections}
-            collections={collectionState.collections}
-            draggedItem={collectionState.draggedItem}
-            itemLabel="servidores"
-            items={servers}
-            preferenceKey="servers"
-            workspaceId={actor.workspaceId}
-            onCreate={
-              canManageCollections
-                ? collectionState.createCollection
-                : undefined
-            }
-            onDelete={collectionState.removeCollection}
-            onArchiveItem={
-              canManageServerLifecycle
-                ? (server) => void archiveServerItem(server)
-                : undefined
-            }
-            onDeleteItem={
-              canManageServerLifecycle
-                ? (server) => void deleteServerItem(server)
-                : undefined
-            }
-            onDragCollection={
-              canManageCollections
-                ? (collection) =>
-                    collectionState.setDraggedItem({
-                      type: "collection",
-                      id: collection.id,
-                    })
-                : undefined
-            }
-            onDragEnd={() => collectionState.setDraggedItem(null)}
-            onDragItem={(server) =>
-              collectionState.setDraggedItem({ type: "item", id: server.id })
-            }
-            onDrop={(collectionId) =>
-              collectionState.dropItem(collectionId, moveServerToCollection)
-            }
-            onRename={(collection) =>
-              collectionState.setCollectionDialog(collection)
-            }
-            onRestoreItem={
-              canManageServerLifecycle
-                ? (server) => void restoreServerItem(server)
-                : undefined
-            }
-            onSelect={(collectionId) => {
-              collectionState.setSelectedCollectionId(collectionId);
-              setSelected(null);
-            }}
-            onSelectItem={(server) => {
-              collectionState.setSelectedCollectionId(
-                server.collectionId || "",
-              );
-              void openServer(server);
-            }}
-            renderItem={(server) => (
-              <>
-                <Server size={13} />
-                <span>{server.name}</span>
-                {/*<small>{server.hostname || server.key}</small>*/}
-              </>
-            )}
-            selectedCollectionId={collectionState.selectedCollectionId}
-            selectedItemId={selected?.id}
+          <ServersNavigator
+            actor={actor}
+            canManageCollections={canManageCollections}
+            canManageServerLifecycle={canManageServerLifecycle}
+            collectionState={collectionState}
+            onArchive={archiveServerItem}
+            onDelete={deleteServerItem}
+            onOpen={openServer}
+            onRestore={restoreServerItem}
+            servers={servers}
+            setSelected={setSelected}
+            selectedId={selected?.id}
           />
         }
         toolbar={
@@ -337,11 +356,11 @@ export function ServersView({ actor }) {
           <ServerContent
             activeTab={activeTab}
             actor={actor}
-            onArchive={() => void archiveServerItem(selected)}
+            onArchive={() => archiveServerItem(selected)}
             onBack={() => setSelected(null)}
-            onDelete={() => void deleteServerItem(selected)}
+            onDelete={() => deleteServerItem(selected)}
             onEdit={setDialog}
-            onRestore={() => void restoreServerItem(selected)}
+            onRestore={() => restoreServerItem(selected)}
             onSelectTab={setActiveTab}
             serverApplications={serverApplications}
             selected={selected}
@@ -351,7 +370,7 @@ export function ServersView({ actor }) {
             canDrag={canManageCollections}
             collectionState={collectionState}
             loading={loading}
-            onOpen={(server) => void openServer(server)}
+            onOpen={(server) => openServer(server)}
             servers={visibleServers}
           />
         )}

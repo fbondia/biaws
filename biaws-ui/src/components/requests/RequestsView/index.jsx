@@ -36,6 +36,97 @@ function RequestError({ collectionError, requestError }) {
   );
 }
 
+function RequestsNavigator({
+  actor,
+  canManageCollections,
+  canReorderRequests,
+  collectionState,
+  items,
+  moveImprovementToCollection,
+  moveRequest,
+  onSelectCollection,
+  onSelectRequest,
+  selectedRequestId,
+  setRequestPage,
+  statusFilters,
+}) {
+  const canReorder = canReorderRequests && !statusFilters.length;
+  return (
+    <ResourceCollectionNavigator
+      canDragItem={() => canManageCollections || canReorder}
+      canDropOnCollection={(draggedItem) =>
+        draggedItem.type === "collection" || canManageCollections
+      }
+      canReorderItem={() => canReorder}
+      workspaceId={actor.workspaceId}
+      className="requestCollectionsNavigator"
+      collections={collectionState.collections}
+      draggedItem={collectionState.draggedItem}
+      getItemId={(request) => request.id}
+      itemLabel="melhorias"
+      items={items}
+      preferenceKey="demands"
+      onCreate={
+        canManageCollections ? collectionState.createCollection : undefined
+      }
+      onDelete={collectionState.removeCollection}
+      onDragCollection={
+        canManageCollections
+          ? (collection) =>
+              collectionState.setDraggedItem({
+                type: "collection",
+                id: collection.id,
+              })
+          : undefined
+      }
+      onDragEnd={() => collectionState.setDraggedItem(null)}
+      onDragItem={(request) =>
+        collectionState.setDraggedItem({
+          type: "item",
+          id: request.id,
+          collectionId: request.collectionId || "",
+        })
+      }
+      onDrop={(collectionId) =>
+        collectionState.dropItem(collectionId, moveImprovementToCollection)
+      }
+      onRename={(collection) => collectionState.setCollectionDialog(collection)}
+      onReorderItem={(requestId, targetRequest) =>
+        moveRequest(requestId, targetRequest.id)
+      }
+      onSelect={onSelectCollection}
+      onSelectItem={(request) => {
+        setRequestPage(1);
+        collectionState.setSelectedCollectionId(request.collectionId || "");
+        onSelectRequest(request.id);
+      }}
+      renderItem={(request) => (
+        <span className="requestCollectionItem">
+          <span className="requestCollectionItemHeader">
+            <EntityIdentifier
+              fallback="Sem código"
+              label="Código da melhoria"
+              showCopyButton={false}
+              value={request.clientCode}
+            />
+            <span
+              className="requestStatusChip"
+              style={requestStatusStyle(request.status)}
+            >
+              {requestStatusLabel(request.status)}
+            </span>
+          </span>
+          <span className="requestCollectionItemDescription">
+            {request.title || "Sem título"}
+          </span>
+        </span>
+      )}
+      selectedCollectionId={collectionState.selectedCollectionId}
+      selectedItemId={selectedRequestId}
+    />
+  );
+}
+
 export function RequestsView({
   actor,
   initialTaskTarget,
@@ -162,7 +253,7 @@ export function RequestsView({
     if (!initialTaskTarget?.requestId || !initialTaskTarget?.taskId) return;
     let active = true;
     setTaskToOpenId(initialTaskTarget.taskId);
-    void selectRequest(initialTaskTarget.requestId).then(() => {
+    selectRequest(initialTaskTarget.requestId).then(() => {
       if (!active) return;
       setActiveDetailTab("tasks");
       onInitialTaskTargetHandled?.();
@@ -199,7 +290,7 @@ export function RequestsView({
         <button
           className="primaryButton"
           disabled={savingRequestId === "new" || !catalog.applications.length}
-          onClick={() => void addRequest()}
+          onClick={() => addRequest()}
           type="button"
         >
           <Plus size={16} />
@@ -236,89 +327,19 @@ export function RequestsView({
         }
         selectedCollectionId={collectionState.selectedCollectionId}
         navigator={
-          <ResourceCollectionNavigator
-            canDragItem={() =>
-              canManageCollections ||
-              (canReorderRequests && !statusFilters.length)
-            }
-            canDropOnCollection={(draggedItem) =>
-              draggedItem.type === "collection" || canManageCollections
-            }
-            canReorderItem={() => canReorderRequests && !statusFilters.length}
-            workspaceId={actor.workspaceId}
-            className="requestCollectionsNavigator"
-            collections={collectionState.collections}
-            draggedItem={collectionState.draggedItem}
-            getItemId={(request) => request.id}
-            itemLabel="melhorias"
+          <RequestsNavigator
+            actor={actor}
+            canManageCollections={canManageCollections}
+            canReorderRequests={canReorderRequests}
+            collectionState={collectionState}
             items={requestCollectionItems}
-            preferenceKey="demands"
-            onCreate={
-              canManageCollections
-                ? collectionState.createCollection
-                : undefined
-            }
-            onDelete={collectionState.removeCollection}
-            onDragCollection={
-              canManageCollections
-                ? (collection) =>
-                    collectionState.setDraggedItem({
-                      type: "collection",
-                      id: collection.id,
-                    })
-                : undefined
-            }
-            onDragEnd={() => collectionState.setDraggedItem(null)}
-            onDragItem={(request) =>
-              collectionState.setDraggedItem({
-                type: "item",
-                id: request.id,
-                collectionId: request.collectionId || "",
-              })
-            }
-            onDrop={(collectionId) =>
-              collectionState.dropItem(
-                collectionId,
-                moveImprovementToCollection,
-              )
-            }
-            onRename={(collection) =>
-              collectionState.setCollectionDialog(collection)
-            }
-            onReorderItem={(requestId, targetRequest) =>
-              void moveRequest(requestId, targetRequest.id)
-            }
-            onSelect={selectCollection}
-            onSelectItem={(request) => {
-              setRequestPage(1);
-              collectionState.setSelectedCollectionId(
-                request.collectionId || "",
-              );
-              void selectRequest(request.id);
-            }}
-            renderItem={(request) => (
-              <span className="requestCollectionItem">
-                <span className="requestCollectionItemHeader">
-                  <EntityIdentifier
-                    showCopyButton={false}
-                    fallback="Sem código"
-                    label="Código da melhoria"
-                    value={request.clientCode}
-                  />
-                  <span
-                    className="requestStatusChip"
-                    style={requestStatusStyle(request.status)}
-                  >
-                    {requestStatusLabel(request.status)}
-                  </span>
-                </span>
-                <span className="requestCollectionItemDescription">
-                  {request.title || "Sem título"}
-                </span>
-              </span>
-            )}
-            selectedCollectionId={collectionState.selectedCollectionId}
-            selectedItemId={selectedRequestId}
+            moveImprovementToCollection={moveImprovementToCollection}
+            moveRequest={moveRequest}
+            onSelectCollection={selectCollection}
+            onSelectRequest={selectRequest}
+            selectedRequestId={selectedRequestId}
+            setRequestPage={setRequestPage}
+            statusFilters={statusFilters}
           />
         }
         toolbar={
@@ -458,7 +479,7 @@ export function RequestsView({
         draft={statusChange}
         onChange={setStatusChange}
         onClose={() => setStatusChange(null)}
-        onSave={() => void saveStatusChange()}
+        onSave={() => saveStatusChange()}
         saving={Boolean(
           statusChange && savingRequestId === statusChange.request.id,
         )}

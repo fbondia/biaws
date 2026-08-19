@@ -34,7 +34,7 @@ export function SanitizationPreview({
         <button
           className="primaryButton"
           disabled={!previewFile || !applicationId || previewing}
-          onClick={() => void calculatePreview()}
+          onClick={() => calculatePreview()}
           type="button"
         >
           {previewing ? (

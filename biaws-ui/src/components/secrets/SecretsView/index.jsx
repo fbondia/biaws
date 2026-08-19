@@ -111,6 +111,141 @@ function SecretDialogs({
   );
 }
 
+function buildSecretCardProps(secret, context) {
+  const {
+    allowed,
+    applicationNames,
+    archive,
+    closeSecret,
+    copiedSecretId,
+    copyValue,
+    download,
+    permissions,
+    remove,
+    restore,
+    reveal,
+    revealed,
+    setEditing,
+    setShowValue,
+    setVersioning,
+    showValue,
+  } = context;
+  const archived = secret.status === "archived";
+  const canArchive = permissions.archive && allowed("secrets.archive", secret);
+  return {
+    applicationName: secret.applicationId
+      ? applicationNames[secret.applicationId] || secret.applicationId
+      : "",
+    canArchive: !archived && canArchive,
+    canDelete: archived && canArchive,
+    canReveal:
+      !archived &&
+      secret.provisioningStatus === "ready" &&
+      permissions.reveal &&
+      allowed("secrets.value.reveal", secret),
+    canRestore: archived && canArchive,
+    canUpdate:
+      !archived && permissions.update && allowed("secrets.update", secret),
+    canWrite:
+      !archived && permissions.write && allowed("secrets.value.write", secret),
+    copied: copiedSecretId === secret.id,
+    onArchive: async () => {
+      if (await archive(secret)) closeSecret();
+    },
+    onCopyValue: () => copyValue(secret),
+    onDelete: async () => {
+      if (await remove(secret)) closeSecret();
+    },
+    onDownload: () => download(secret),
+    onEdit: () => setEditing(secret),
+    onRestore: async () => {
+      if (await restore(secret)) closeSecret();
+    },
+    onReveal: () => reveal(secret),
+    onToggleValue: () => setShowValue((current) => !current),
+    onVersion: () => setVersioning(secret),
+    revealed: revealed?.secretId === secret.id ? revealed : null,
+    secret,
+    showValue,
+  };
+}
+
+function secretsInCollection(secrets, collectionId, search) {
+  const term = search.trim().toLocaleLowerCase("pt-BR");
+  return secrets.filter((secret) => {
+    if (String(secret.collectionId || "") !== collectionId) return false;
+    if (!term) return true;
+    return [secret.name, secret.identifier, secret.description, secret.type]
+      .filter(Boolean)
+      .some((value) => String(value).toLocaleLowerCase("pt-BR").includes(term));
+  });
+}
+
+function SecretsNavigator({
+  actor,
+  allowed,
+  archive,
+  closeSecret,
+  collectionState,
+  onOpen,
+  permissions,
+  remove,
+  restore,
+  secrets,
+  selectedSecretId,
+}) {
+  return (
+    <ResourceCollectionNavigator
+      canDragItem={(secret) =>
+        permissions.update && allowed("secrets.update", secret)
+      }
+      collections={collectionState.collections}
+      draggedItem={collectionState.draggedItem}
+      itemLabel="segredos"
+      items={secrets}
+      preferenceKey="secrets"
+      workspaceId={actor.workspaceId}
+      onCreate={
+        permissions.update ? collectionState.createCollection : undefined
+      }
+      onDelete={collectionState.removeCollection}
+      onArchiveItem={permissions.archive ? archive : undefined}
+      onDeleteItem={permissions.archive ? remove : undefined}
+      onDragCollection={
+        permissions.update
+          ? (collection) =>
+              collectionState.setDraggedItem({
+                type: "collection",
+                id: collection.id,
+              })
+          : undefined
+      }
+      onDragEnd={() => collectionState.setDraggedItem(null)}
+      onDragItem={(secret) =>
+        collectionState.setDraggedItem({ type: "item", id: secret.id })
+      }
+      onDrop={(collectionId) =>
+        collectionState.dropItem(collectionId, moveSecretToCollection)
+      }
+      onRename={(collection) => collectionState.setCollectionDialog(collection)}
+      onRestoreItem={permissions.archive ? restore : undefined}
+      onSelect={(collectionId) => {
+        closeSecret();
+        collectionState.setSelectedCollectionId(collectionId);
+      }}
+      onSelectItem={onOpen}
+      renderItem={(secret) => (
+        <>
+          <KeyRound size={13} />
+          <span>{secret.name}</span>
+        </>
+      )}
+      selectedCollectionId={collectionState.selectedCollectionId}
+      selectedItemId={selectedSecretId}
+    />
+  );
+}
+
 export function SecretsView({ actor }) {
   const [search, setSearch] = useState("");
   const [selectedSecretId, setSelectedSecretId] = useState("");
@@ -160,21 +295,11 @@ export function SecretsView({ actor }) {
     [secrets, selectedSecretId],
   );
   const visibleSecrets = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase("pt-BR");
-    return secrets.filter((secret) => {
-      if (
-        String(secret.collectionId || "") !==
-        collectionState.selectedCollectionId
-      ) {
-        return false;
-      }
-      if (!term) return true;
-      return [secret.name, secret.identifier, secret.description, secret.type]
-        .filter(Boolean)
-        .some((value) =>
-          String(value).toLocaleLowerCase("pt-BR").includes(term),
-        );
-    });
+    return secretsInCollection(
+      secrets,
+      collectionState.selectedCollectionId,
+      search,
+    );
   }, [secrets, search, collectionState.selectedCollectionId]);
 
   function closeSecret() {
@@ -189,50 +314,26 @@ export function SecretsView({ actor }) {
     collectionState.setSelectedCollectionId(secret.collectionId || "");
   }
 
-  function secretCardProps(secret) {
-    const archived = secret.status === "archived";
-    return {
-      applicationName: secret.applicationId
-        ? applicationNames[secret.applicationId] || secret.applicationId
-        : "",
-      canArchive:
-        !archived && permissions.archive && allowed("secrets.archive", secret),
-      canDelete:
-        archived && permissions.archive && allowed("secrets.archive", secret),
-      canReveal:
-        !archived &&
-        secret.provisioningStatus === "ready" &&
-        permissions.reveal &&
-        allowed("secrets.value.reveal", secret),
-      canRestore:
-        archived && permissions.archive && allowed("secrets.archive", secret),
-      canUpdate:
-        !archived && permissions.update && allowed("secrets.update", secret),
-      canWrite:
-        !archived &&
-        permissions.write &&
-        allowed("secrets.value.write", secret),
-      copied: copiedSecretId === secret.id,
-      onArchive: async () => {
-        if (await archive(secret)) closeSecret();
-      },
-      onCopyValue: () => copyValue(secret),
-      onDownload: () => download(secret),
-      onDelete: async () => {
-        if (await remove(secret)) closeSecret();
-      },
-      onEdit: () => setEditing(secret),
-      onReveal: () => reveal(secret),
-      onRestore: async () => {
-        if (await restore(secret)) closeSecret();
-      },
-      onToggleValue: () => setShowValue((current) => !current),
-      onVersion: () => setVersioning(secret),
-      revealed: revealed?.secretId === secret.id ? revealed : null,
-      secret,
-      showValue,
-    };
-  }
+  const secretCardContext = {
+    allowed,
+    applicationNames,
+    archive,
+    closeSecret,
+    copiedSecretId,
+    copyValue,
+    download,
+    permissions,
+    remove,
+    restore,
+    reveal,
+    revealed,
+    setEditing,
+    setShowValue,
+    setVersioning,
+    showValue,
+  };
+  const secretCardProps = (secret) =>
+    buildSecretCardProps(secret, secretCardContext);
   return (
     <section className="securityView secretsView">
       <header className="securityHeader">
@@ -270,56 +371,18 @@ export function SecretsView({ actor }) {
         }
         selectedCollectionId={collectionState.selectedCollectionId}
         navigator={
-          <ResourceCollectionNavigator
-            canDragItem={(secret) =>
-              permissions.update && allowed("secrets.update", secret)
-            }
-            collections={collectionState.collections}
-            draggedItem={collectionState.draggedItem}
-            itemLabel="segredos"
-            items={secrets}
-            preferenceKey="secrets"
-            workspaceId={actor.workspaceId}
-            onCreate={
-              permissions.update ? collectionState.createCollection : undefined
-            }
-            onDelete={collectionState.removeCollection}
-            onArchiveItem={permissions.archive ? archive : undefined}
-            onDeleteItem={permissions.archive ? remove : undefined}
-            onDragCollection={
-              permissions.update
-                ? (collection) =>
-                    collectionState.setDraggedItem({
-                      type: "collection",
-                      id: collection.id,
-                    })
-                : undefined
-            }
-            onDragEnd={() => collectionState.setDraggedItem(null)}
-            onDragItem={(secret) =>
-              collectionState.setDraggedItem({ type: "item", id: secret.id })
-            }
-            onDrop={(collectionId) =>
-              collectionState.dropItem(collectionId, moveSecretToCollection)
-            }
-            onRename={(collection) =>
-              collectionState.setCollectionDialog(collection)
-            }
-            onRestoreItem={permissions.archive ? restore : undefined}
-            onSelect={(collectionId) => {
-              closeSecret();
-              collectionState.setSelectedCollectionId(collectionId);
-            }}
-            onSelectItem={openSecret}
-            renderItem={(secret) => (
-              <>
-                <KeyRound size={13} />
-                <span>{secret.name}</span>
-                {/*<small>{secret.environment || secret.type}</small>*/}
-              </>
-            )}
-            selectedCollectionId={collectionState.selectedCollectionId}
-            selectedItemId={selectedSecretId}
+          <SecretsNavigator
+            actor={actor}
+            allowed={allowed}
+            archive={archive}
+            closeSecret={closeSecret}
+            collectionState={collectionState}
+            onOpen={openSecret}
+            permissions={permissions}
+            remove={remove}
+            restore={restore}
+            secrets={secrets}
+            selectedSecretId={selectedSecretId}
           />
         }
         toolbar={

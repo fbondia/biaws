@@ -43,10 +43,7 @@ export function useFileDrop({ disabled = false, onDropFiles }) {
     dragDepth.current = 0;
     setIsDraggingFiles(false);
     if (disabled) return;
-    void onDropFiles(
-      [...(event.dataTransfer?.files || [])],
-      event.dataTransfer,
-    );
+    onDropFiles([...(event.dataTransfer?.files || [])], event.dataTransfer);
   }
 
   return {

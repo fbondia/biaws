@@ -26,6 +26,46 @@ function isWorkspaceForbidden(error) {
   return error?.code === "WORKSPACE_FORBIDDEN";
 }
 
+function signInCompletionEvent(nextState, durationMs) {
+  const authenticated = nextState.status === SESSION_STATUS.AUTHENTICATED;
+  const failed = nextState.status === SESSION_STATUS.ERROR;
+  return {
+    context: { durationMs },
+    error: failed ? nextState.error : undefined,
+    event: authenticated
+      ? "session.sign_in.completed"
+      : "session.sign_in.incomplete",
+    level: authenticated ? "info" : failed ? "error" : "warn",
+    message: authenticated
+      ? "Sign-in completed"
+      : "Sign-in did not establish an authenticated session",
+  };
+}
+
+function signInFailureEvent(error, durationMs) {
+  const unauthorized = isUnauthorized(error);
+  return {
+    context: { durationMs },
+    error,
+    event: unauthorized ? "session.sign_in.rejected" : "session.sign_in.failed",
+    level: unauthorized ? "warn" : "error",
+    message: unauthorized
+      ? "Sign-in was rejected"
+      : "Sign-in failed unexpectedly",
+  };
+}
+
+function ensureReauthenticated(nextState) {
+  if (nextState.status === SESSION_STATUS.AUTHENTICATED) return;
+  const error = new Error(
+    nextState.error?.message ||
+      nextState.reason ||
+      "Não foi possível restaurar a sessão. Tente novamente.",
+  );
+  error.code = nextState.error?.code || "REAUTHENTICATION_INCOMPLETE";
+  throw error;
+}
+
 export function createSessionService({
   adapter,
   clearSensitiveState = () => {},
@@ -83,6 +123,86 @@ export function createSessionService({
     );
   }
 
+  function publishRestoredActor(actor, source) {
+    confirmedWorkspaceId = adapter.getWorkspaceId();
+    const nextState = publish(
+      actor
+        ? { actor, status: SESSION_STATUS.AUTHENTICATED }
+        : { status: SESSION_STATUS.ANONYMOUS },
+    );
+    if (actor && ["initialize", "refresh"].includes(source)) {
+      emit({
+        context: { source },
+        event: "session.restore.completed",
+        level: "info",
+        message: "Session identity was restored",
+      });
+    }
+    return { applied: true, state: nextState };
+  }
+
+  async function handleRestoreFailure(
+    error,
+    version,
+    { preserveSelection, source },
+  ) {
+    if (version !== operationVersion) return { applied: false, state };
+    if (isWorkspaceForbidden(error) && adapter.getWorkspaceId()) {
+      emit({
+        context: { source },
+        error,
+        event: "session.workspace_selection.rejected",
+        level: "warn",
+        message: "The persisted workspace selection was rejected",
+      });
+      adapter.setWorkspaceId("");
+      clear("workspace-forbidden");
+      return restoreForOperation(version, {
+        preserveSelection: false,
+        source,
+      });
+    }
+    if (isUnauthorized(error)) {
+      clear("expired");
+      if (lastAuthenticated) {
+        emit({
+          context: { source },
+          event: "session.expiration.detected",
+          level: "info",
+          message: "The authenticated session expired during restoration",
+        });
+      }
+      return {
+        applied: true,
+        state: publish(
+          lastAuthenticated
+            ? {
+                reason: "Sua sessão expirou. Entre novamente.",
+                status: SESSION_STATUS.EXPIRED,
+              }
+            : { status: SESSION_STATUS.ANONYMOUS },
+        ),
+      };
+    }
+    if (!preserveSelection) adapter.setWorkspaceId("");
+    if (["initialize", "refresh"].includes(source)) {
+      emit({
+        context: { source },
+        error,
+        event: "session.restore.failed",
+        level: "error",
+        message: "Session restoration failed unexpectedly",
+      });
+    }
+    return {
+      applied: true,
+      state: publish({
+        error: publicError(error),
+        status: SESSION_STATUS.ERROR,
+      }),
+    };
+  }
+
   async function restoreForOperation(
     version,
     { preserveSelection = true, source = "refresh" } = {},
@@ -90,83 +210,12 @@ export function createSessionService({
     try {
       const actor = await adapter.restore();
       if (version !== operationVersion) return { applied: false, state };
-      confirmedWorkspaceId = adapter.getWorkspaceId();
-      const nextState = publish(
-        actor
-          ? { actor, status: SESSION_STATUS.AUTHENTICATED }
-          : { status: SESSION_STATUS.ANONYMOUS },
-      );
-      if (actor && ["initialize", "refresh"].includes(source)) {
-        emit({
-          context: { source },
-          event: "session.restore.completed",
-          level: "info",
-          message: "Session identity was restored",
-        });
-      }
-      return {
-        applied: true,
-        state: nextState,
-      };
+      return publishRestoredActor(actor, source);
     } catch (error) {
-      if (version !== operationVersion) return { applied: false, state };
-
-      if (isWorkspaceForbidden(error) && adapter.getWorkspaceId()) {
-        emit({
-          context: { source },
-          error,
-          event: "session.workspace_selection.rejected",
-          level: "warn",
-          message: "The persisted workspace selection was rejected",
-        });
-        adapter.setWorkspaceId("");
-        clear("workspace-forbidden");
-        return restoreForOperation(version, {
-          preserveSelection: false,
-          source,
-        });
-      }
-
-      if (isUnauthorized(error)) {
-        clear("expired");
-        if (lastAuthenticated) {
-          emit({
-            context: { source },
-            event: "session.expiration.detected",
-            level: "info",
-            message: "The authenticated session expired during restoration",
-          });
-        }
-        return {
-          applied: true,
-          state: publish(
-            lastAuthenticated
-              ? {
-                  reason: "Sua sessão expirou. Entre novamente.",
-                  status: SESSION_STATUS.EXPIRED,
-                }
-              : { status: SESSION_STATUS.ANONYMOUS },
-          ),
-        };
-      }
-
-      if (!preserveSelection) adapter.setWorkspaceId("");
-      if (["initialize", "refresh"].includes(source)) {
-        emit({
-          context: { source },
-          error,
-          event: "session.restore.failed",
-          level: "error",
-          message: "Session restoration failed unexpectedly",
-        });
-      }
-      return {
-        applied: true,
-        state: publish({
-          error: publicError(error),
-          status: SESSION_STATUS.ERROR,
-        }),
-      };
+      return handleRestoreFailure(error, version, {
+        preserveSelection,
+        source,
+      });
     }
   }
 
@@ -208,40 +257,15 @@ export function createSessionService({
       await adapter.signIn(credentials);
       if (!reauthenticating) lastAuthenticated = false;
       const nextState = await restore({ source: "sign_in" });
-      if (
-        reauthenticating &&
-        nextState.status !== SESSION_STATUS.AUTHENTICATED
-      ) {
-        publish(stateBeforeSignIn);
-        const error = new Error(
-          nextState.error?.message ||
-            nextState.reason ||
-            "Não foi possível restaurar a sessão. Tente novamente.",
-        );
-        error.code = nextState.error?.code || "REAUTHENTICATION_INCOMPLETE";
-        throw error;
+      if (reauthenticating) {
+        try {
+          ensureReauthenticated(nextState);
+        } catch (error) {
+          publish(stateBeforeSignIn);
+          throw error;
+        }
       }
-      emit({
-        context: { durationMs: Math.max(0, now() - startedAt) },
-        error:
-          nextState.status === SESSION_STATUS.ERROR
-            ? nextState.error
-            : undefined,
-        event:
-          nextState.status === SESSION_STATUS.AUTHENTICATED
-            ? "session.sign_in.completed"
-            : "session.sign_in.incomplete",
-        level:
-          nextState.status === SESSION_STATUS.AUTHENTICATED
-            ? "info"
-            : nextState.status === SESSION_STATUS.ERROR
-              ? "error"
-              : "warn",
-        message:
-          nextState.status === SESSION_STATUS.AUTHENTICATED
-            ? "Sign-in completed"
-            : "Sign-in did not establish an authenticated session",
-      });
+      emit(signInCompletionEvent(nextState, Math.max(0, now() - startedAt)));
       return nextState;
     } catch (error) {
       if (isUnauthorized(error)) {
@@ -251,17 +275,7 @@ export function createSessionService({
             : { status: SESSION_STATUS.ANONYMOUS },
         );
       }
-      emit({
-        context: { durationMs: Math.max(0, now() - startedAt) },
-        error,
-        event: isUnauthorized(error)
-          ? "session.sign_in.rejected"
-          : "session.sign_in.failed",
-        level: isUnauthorized(error) ? "warn" : "error",
-        message: isUnauthorized(error)
-          ? "Sign-in was rejected"
-          : "Sign-in failed unexpectedly",
-      });
+      emit(signInFailureEvent(error, Math.max(0, now() - startedAt)));
       throw error;
     }
   }

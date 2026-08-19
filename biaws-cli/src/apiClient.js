@@ -40,6 +40,8 @@ export function createApiClient(baseUrl, apiKey, workspaceId = "") {
   }
 
   return {
+    withWorkspace: (selectedWorkspaceId) =>
+      createApiClient(baseUrl, apiKey, selectedWorkspaceId),
     request: (path, options = {}) => request(path, options, apiRoot),
     identity: () => request("/auth/me", {}, apiRoot),
     list: (options = {}) =>

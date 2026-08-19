@@ -391,6 +391,13 @@ test("agent configure requires a project workspace for multi-workspace identitie
 
 test("agent configure assistant selects the project workspace", async () => {
   const project = await mkdtemp(path.join(os.tmpdir(), "biaws-agent-wizard-"));
+  let selectedWorkspaceId = null;
+  const scopedApi = {
+    list: async () => {
+      assert.equal(selectedWorkspaceId, "workspace-b");
+      return { items: [] };
+    },
+  };
   const api = {
     identity: async () => ({
       actor: {
@@ -401,7 +408,10 @@ test("agent configure assistant selects the project workspace", async () => {
         ],
       },
     }),
-    list: async () => ({ items: [] }),
+    withWorkspace: (workspaceId) => {
+      selectedWorkspaceId = workspaceId;
+      return scopedApi;
+    },
   };
   const prompts = {
     ask: async (question) => {

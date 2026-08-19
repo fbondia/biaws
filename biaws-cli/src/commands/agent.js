@@ -197,6 +197,7 @@ async function configure(api, client, options, context) {
       );
     }
   }
+  const scopedApi = api.withWorkspace ? api.withWorkspace(workspaceId) : api;
   const target = skillTarget(client, projectDirectory);
   const configPath =
     client === "codex"
@@ -212,7 +213,7 @@ async function configure(api, client, options, context) {
           workspaceId,
           options.force,
         );
-  const installation = await runSkillsCommand(api, "install-all", [], {
+  const installation = await runSkillsCommand(scopedApi, "install-all", [], {
     target,
     force: options.force,
     json: false,

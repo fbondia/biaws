@@ -7,6 +7,9 @@ import {
   LocalInstanceCommand,
   ProjectCommand,
 } from "../src/baseCommands.js";
+import ConfigureClaude from "../src/commands/configure/claude.js";
+import ConfigureCodex from "../src/commands/configure/codex.js";
+import ConfigureDoctor from "../src/commands/configure/doctor.js";
 
 function fakeConfig() {
   return { bin: "biaws" };
@@ -99,4 +102,20 @@ test("ProjectCommand injects filesystem, API and terminal adapters", async () =>
   assert.equal(command.adapters.processRunner, fakeProcessRunner);
   assert.equal(context.isCI, true);
   assert.equal(context.isInteractive, false);
+});
+
+test("agent wrappers allow workspace discovery from the authenticated identity", async () => {
+  for (const CommandClass of [
+    ConfigureCodex,
+    ConfigureClaude,
+    ConfigureDoctor,
+  ]) {
+    const command = Object.create(CommandClass.prototype);
+    command.parse = async () => ({ args: { client: "codex" }, flags: {} });
+    command.projectContext = async (_input, options) => {
+      assert.equal(options, undefined);
+      throw new Error("context inspected");
+    };
+    await assert.rejects(() => command.run(), /context inspected/u);
+  }
 });

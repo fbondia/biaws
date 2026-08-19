@@ -418,7 +418,7 @@ test("agent doctor performs a real MCP handshake", async () => {
         toolDirectory: path.resolve("."),
         apiUrl: "http://127.0.0.1:3100",
         apiKey: "biaws_test",
-        workspaceId: "workspace-a",
+        workspaceId: "",
         envFile: "",
       },
     );

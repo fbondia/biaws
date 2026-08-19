@@ -13,9 +13,7 @@ export default class ConfigureCodex extends ProjectCommand {
 
   async run() {
     const { flags } = await this.parse(ConfigureCodex);
-    const context = await this.projectContext(configureContextInput(flags), {
-      requireWorkspace: true,
-    });
+    const context = await this.projectContext(configureContextInput(flags));
     await runAgentCommand(
       context.api,
       "configure",

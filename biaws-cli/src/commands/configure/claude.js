@@ -13,9 +13,7 @@ export default class ConfigureClaude extends ProjectCommand {
 
   async run() {
     const { flags } = await this.parse(ConfigureClaude);
-    const context = await this.projectContext(configureContextInput(flags), {
-      requireWorkspace: true,
-    });
+    const context = await this.projectContext(configureContextInput(flags));
     await runAgentCommand(
       context.api,
       "configure",

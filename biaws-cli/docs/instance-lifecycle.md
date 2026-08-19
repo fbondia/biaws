@@ -6,7 +6,7 @@ O setup interativo coleta entradas ausentes, mostra um plano redigido e pede
 confirmação antes de mutar arquivos ou chamar Docker:
 
 ```bash
-biaws instance setup --interactive
+biaws admin instance setup --interactive
 ```
 
 Em automação, defaults precisam ser autorizados e a senha deve vir de um
@@ -14,7 +14,7 @@ ambiente privado, nunca de argv:
 
 ```bash
 BIAWS_BOOTSTRAP_ADMIN_PASSWORD='...' \
-  biaws instance setup --name local --defaults --non-interactive --yes
+  biaws admin instance setup --name local --defaults --non-interactive --yes
 ```
 
 Use `--storage volumes` ou `--storage directories --storage-root /srv/biaws`.
@@ -24,11 +24,11 @@ CLI não move dados existentes implicitamente.
 ## Operação
 
 ```bash
-biaws instance list
-biaws instance show local
-biaws instance status local
-biaws instance start local
-biaws instance stop local
+biaws admin instance list
+biaws admin instance show local
+biaws admin instance status local
+biaws admin instance start local
+biaws admin instance stop local
 ```
 
 `list` e `show` omitem o conteúdo integral do `.env`. `start`, `stop` e
@@ -47,7 +47,7 @@ Em um checkout descartável com Docker e OpenSSL disponíveis:
 
 ```bash
 BIAWS_BOOTSTRAP_ADMIN_PASSWORD='smoke-only-change-me' \
-  biaws instance setup \
+  biaws admin instance setup \
   --name smoke --mongo-port 27117 --api-port 3110 --ui-port 4410 \
   --public-url http://localhost:4410 --storage volumes \
   --admin-email smoke@example.test --admin-name Smoke \
@@ -55,9 +55,9 @@ BIAWS_BOOTSTRAP_ADMIN_PASSWORD='smoke-only-change-me' \
   --auth-rate-limit-max 100 --auth-rate-limit-window 10 \
   --api-key-rate-limit-max 1000 --api-key-rate-limit-window 3600 \
   --no-demo-seed --non-interactive --yes
-biaws instance status smoke
-biaws instance stop smoke
-biaws instance start smoke
+biaws admin instance status smoke
+biaws admin instance stop smoke
+biaws admin instance start smoke
 ```
 
 ## Backup, restore e remoção
@@ -66,9 +66,9 @@ Os comandos oclif usam o archive portátil existente sem colocar a senha em
 `argv`:
 
 ```bash
-biaws instance backup alpha --password-file /caminho/privado/senha
-biaws instance restore beta --archive ./alpha.tar.gz.enc --password-file /caminho/privado/senha --yes
-biaws instance remove beta --yes
+biaws admin instance backup alpha --password-file /caminho/privado/senha
+biaws admin instance restore beta --archive ./alpha.tar.gz.enc --password-file /caminho/privado/senha --yes
+biaws admin instance remove beta --yes
 ```
 
 Em TTY, a senha pode ser solicitada de forma mascarada. Restore e remove

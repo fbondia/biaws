@@ -30,7 +30,9 @@ export default class ConfigureDoctor extends ProjectCommand {
 
   async run() {
     const { args, flags } = await this.parse(ConfigureDoctor);
-    const context = await this.projectContext(configureContextInput(flags));
+    const context = await this.projectContext(configureContextInput(flags), {
+      requireWorkspace: true,
+    });
     const collected = await collectWizardValues(definition, {
       environment: context.env,
       flags: { client: args.client },

@@ -1,5 +1,5 @@
 import { Args, Flags } from "@oclif/core";
-import { createSkillsCommand } from "../../compatibilityCommands.js";
+import { createSkillsCommand } from "../../commandFactories.js";
 
 export default createSkillsCommand("install", {
   description: "instala uma skill publicada",

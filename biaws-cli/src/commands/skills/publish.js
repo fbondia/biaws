@@ -1,5 +1,5 @@
 import { Flags } from "@oclif/core";
-import { createSkillsCommand } from "../../compatibilityCommands.js";
+import { createSkillsCommand } from "../../commandFactories.js";
 
 export default createSkillsCommand("publish", {
   description: "publica uma versão de skill",

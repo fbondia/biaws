@@ -483,10 +483,10 @@ node "$PWD/biaws-mcp/src/index.js"
 CLI:
 
 ```bash
-biaws skills list
-biaws skills status
-biaws agent doctor codex --project /caminho/do/projeto --workspace id-do-workspace
-biaws monitoring signal <aplicação.componente.deployment.runtime> --status healthy --source synthetic-http
+biaws workspace skills list
+biaws workspace skills status
+biaws workspace agent doctor codex --project /caminho/do/projeto --workspace id-do-workspace
+biaws workspace monitoring signal <aplicação.componente.deployment.runtime> --status healthy --source synthetic-http
 ```
 
 Consulte [biaws-mcp/README.md](biaws-mcp/README.md) e

@@ -5,7 +5,7 @@ import {
 } from "../../domain/readCommand.js";
 import { table } from "../../domain/readService.js";
 export default class ApplicationList extends ReadCommand {
-  static description = "Lista aplicações do workspace";
+  static description = "lista aplicações do workspace";
   static flags = { ...connectionFlags, ...listFlags };
   async run() {
     const { flags } = await this.parse(ApplicationList);

@@ -1,7 +1,7 @@
 import { connectionFlags, ReadCommand } from "../../domain/readCommand.js";
 import { table } from "../../domain/readService.js";
 export default class WorkspaceList extends ReadCommand {
-  static description = "Lista workspaces autorizados";
+  static description = "lista workspaces autorizados";
   static flags = connectionFlags;
   async run() {
     const { flags } = await this.parse(WorkspaceList);

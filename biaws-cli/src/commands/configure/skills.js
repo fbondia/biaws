@@ -32,7 +32,9 @@ export default class ConfigureSkills extends ProjectCommand {
 
   async run() {
     const { args, flags } = await this.parse(ConfigureSkills);
-    const context = await this.projectContext(configureContextInput(flags));
+    const context = await this.projectContext(configureContextInput(flags), {
+      requireWorkspace: true,
+    });
     const target = path.join(
       context.projectDirectory,
       flags.client === "claude" ? ".claude" : ".agents",

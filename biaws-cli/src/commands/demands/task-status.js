@@ -3,7 +3,7 @@ import { WriteCommand, writeFlags } from "../../domain/writeCommand.js";
 import { findTask } from "../../domain/writeService.js";
 
 export default class DemandTaskStatus extends WriteCommand {
-  static description = "Altera o status de uma tarefa por ação específica";
+  static description = "altera o status de uma tarefa por ação específica";
   static args = {
     demand: Args.string({ required: true }),
     task: Args.string({ required: true }),

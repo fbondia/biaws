@@ -2,7 +2,7 @@ import { Args, Flags } from "@oclif/core";
 import { connectionFlags, ReadCommand } from "../../domain/readCommand.js";
 import { readEnvelope, table } from "../../domain/readService.js";
 export default class DemandTasks extends ReadCommand {
-  static description = "Lista tarefas de uma melhoria";
+  static description = "lista tarefas de uma melhoria";
   static args = { demand: Args.string({ required: true }) };
   static flags = {
     ...connectionFlags,

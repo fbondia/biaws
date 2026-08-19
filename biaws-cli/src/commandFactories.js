@@ -12,12 +12,13 @@ import { runSkillsCommand } from "./commands/skills.js";
 
 export const authenticatedFlags = Object.freeze({
   "api-key": Flags.string({
-    description: "chave da API (prefira ISSUE_API_KEY ou --env-file)",
+    description: "chave de API (prefira BIAWS_API_KEY ou --env-file)",
   }),
   "api-url": Flags.string({ description: "URL da API do Bondia Workspaces" }),
   "env-file": Flags.string({ description: "arquivo privado com URL e chave" }),
   workspace: Flags.string({ char: "w", description: "workspace da operação" }),
   json: Flags.boolean({ description: "emite somente JSON em stdout" }),
+  profile: Flags.string({ description: "perfil global da API" }),
 });
 
 function authenticatedInput(flags) {
@@ -25,6 +26,7 @@ function authenticatedInput(flags) {
     apiKey: flags["api-key"],
     apiUrl: flags["api-url"],
     envFile: flags["env-file"],
+    profile: flags.profile,
     workspace: flags.workspace,
   };
 }
@@ -39,6 +41,7 @@ export function createSkillsCommand(action, definition = {}) {
       const { args, flags } = await this.parse(this.constructor);
       const context = await this.authenticatedContext(
         authenticatedInput(flags),
+        { requireWorkspace: true },
       );
       const positional = definition.positional
         ? definition.positional(args)
@@ -58,6 +61,7 @@ export function createMonitoringCommand(action, definition = {}) {
       const { args, flags } = await this.parse(this.constructor);
       const context = await this.authenticatedContext(
         authenticatedInput(flags),
+        { requireWorkspace: true },
       );
       const positional = definition.positional
         ? definition.positional(args)
@@ -69,7 +73,7 @@ export function createMonitoringCommand(action, definition = {}) {
 
 export function createAgentCommand(action) {
   return class AgentAction extends ProjectCommand {
-    static description = `${action === "configure" ? "configura" : "diagnostica"} Codex ou Claude (alias legado)`;
+    static description = `${action === "configure" ? "configura" : "diagnostica"} Codex ou Claude`;
     static args = {
       client: Args.string({
         description: "cliente de agente",

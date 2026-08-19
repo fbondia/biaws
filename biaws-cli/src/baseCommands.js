@@ -90,11 +90,15 @@ export class BaseCommand extends Command {
       toolDirectory: TOOL_DIRECTORY,
     };
   }
+
+  commandContext(input = {}) {
+    return resolveCommandContext(this.contextOptions(input));
+  }
 }
 
 export class LocalInstanceCommand extends BaseCommand {
   localContext(input = {}) {
-    return resolveCommandContext(this.contextOptions(input));
+    return this.commandContext(input);
   }
 }
 

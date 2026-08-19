@@ -74,10 +74,10 @@ const setupFlags = {
     description: "janela de autenticação em segundos",
   }),
   "api-key-rate-limit-max": Flags.integer({
-    description: "requisições por janela de API key",
+    description: "requisições por janela da chave de API",
   }),
   "api-key-rate-limit-window": Flags.integer({
-    description: "janela de API key em segundos",
+    description: "janela da chave de API em segundos",
   }),
 };
 
@@ -251,14 +251,14 @@ const definition = {
       name: "apiKeyRateLimitMax",
       flag: "api-key-rate-limit-max",
       type: "number",
-      message: "Rate limit de API key",
+      message: "Rate limit da chave de API",
       default: 1000,
     },
     {
       name: "apiKeyRateLimitWindow",
       flag: "api-key-rate-limit-window",
       type: "number",
-      message: "Janela de API key (s)",
+      message: "Janela da chave de API (s)",
       default: 3600,
     },
     {

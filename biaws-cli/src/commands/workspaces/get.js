@@ -1,7 +1,7 @@
 import { Args } from "@oclif/core";
 import { connectionFlags, ReadCommand } from "../../domain/readCommand.js";
 export default class WorkspaceGet extends ReadCommand {
-  static description = "Obtém um workspace por ID";
+  static description = "obtém um workspace por ID";
   static args = { id: Args.string({ required: true }) };
   static flags = connectionFlags;
   async run() {

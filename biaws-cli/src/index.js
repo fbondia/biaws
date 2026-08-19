@@ -2,4 +2,9 @@
 
 import { execute } from "@oclif/core";
 
-await execute({ dir: import.meta.url });
+const args = process.argv.slice(2);
+
+await execute({
+  args: args.length ? args : ["help"],
+  dir: import.meta.url,
+});

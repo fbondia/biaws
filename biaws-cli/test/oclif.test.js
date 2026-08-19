@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import {
+  mkdtemp,
+  mkdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -14,154 +23,223 @@ function run(...args) {
   return spawnSync(CLI_ENTRYPOINT, args, {
     cwd: CLI_DIRECTORY,
     encoding: "utf8",
-    env: { ...process.env, ISSUE_API_KEY: "test-key" },
+    env: { ...process.env, BIAWS_API_KEY: "test-key" },
   });
 }
 
-test("oclif gera a ajuda raiz com taxonomia e rotas legadas", () => {
+test("a ajuda raiz expõe somente os três níveis canônicos", () => {
   const result = run("--help");
   assert.equal(result.status, 0);
-  for (const command of [
-    "instance",
-    "configure",
-    "api",
-    "skills",
-    "monitoring",
-    "workspaces",
-    "applications",
-    "demands",
-    "issues",
-  ]) {
-    assert.match(result.stdout, new RegExp(command));
-  }
+  for (const topic of ["admin", "config", "workspace"])
+    assert.match(result.stdout, new RegExp(`^  ${topic}\\s`, "mu"));
+  assert.match(result.stdout, /^  help\s/mu);
+  for (const legacy of ["instance", "configure", "skills", "monitoring"])
+    assert.doesNotMatch(result.stdout, new RegExp(`^  ${legacy}\\s`, "mu"));
 });
 
-test("recursos remotos expõem list/get e tarefas com help contextual", () => {
-  const expectations = [
-    ["workspaces", ["list", "get"]],
-    ["applications", ["list", "get"]],
-    ["demands", ["list", "get", "tasks", "task-status", "complete-task"]],
-    ["issues", ["list", "get", "transition"]],
-  ];
-  for (const [topic, commands] of expectations) {
-    const result = run(topic, "--help");
-    assert.equal(result.status, 0, result.stderr);
-    for (const command of commands)
-      assert.match(result.stdout, new RegExp(`${topic} ${command}`));
-  }
-});
-
-test("recursos remotos exibem ajuda quando chamados sem subcomando", () => {
-  for (const topic of ["workspaces", "applications", "demands", "issues"]) {
-    const result = run(topic);
-    assert.equal(result.status, 0, result.stderr);
-    assert.equal(result.stderr, "");
-    assert.match(result.stdout, new RegExp(`${topic} list`));
-  }
-});
-
-test("oclif gera ajuda contextual para um domínio", () => {
-  const result = run("instance", "--help");
-  assert.equal(result.status, 0);
-  assert.match(result.stdout, /Instala, configura e opera instâncias locais/);
-  for (const command of ["setup", "list", "show", "status", "start", "stop"]) {
-    assert.match(result.stdout, new RegExp(`instance ${command}`));
-  }
-});
-
-test("configure expõe clientes, skills e doctor como comandos oclif", () => {
-  const result = run("configure", "--help");
+test("help explícito explica o produto, os níveis e o projeto", () => {
+  const result = run("help");
   assert.equal(result.status, 0, result.stderr);
-  for (const command of ["codex", "claude", "skills", "doctor"]) {
-    assert.match(result.stdout, new RegExp(`configure ${command}`));
-  }
+  assert.match(result.stdout, /Bondia Workspaces \(BIAWS\)/u);
+  assert.match(result.stdout, /NÍVEIS/u);
+  assert.match(result.stdout, /biaws config init/u);
+  assert.match(result.stdout, /https:\/\/github\.com\/fbondia\/biaws/u);
 });
 
-test("rotas compatíveis de skills, agent e monitoring são subcomandos oclif", () => {
+test("execução sem argumentos apresenta a introdução", () => {
+  const result = run();
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Bondia Workspaces \(BIAWS\)/u);
+  assert.match(result.stdout, /PRIMEIROS PASSOS/u);
+});
+
+test("help explícito navega por tópicos aninhados", () => {
+  const result = run("help", "workspace", "issues");
+  assert.equal(result.status, 0, result.stderr);
+  for (const action of ["list", "get", "transition"])
+    assert.match(result.stdout, new RegExp(`workspace issues ${action}`));
+});
+
+test("os níveis organizam seus comandos", () => {
   const expectations = [
     [
-      "skills",
+      ["admin", "--help"],
+      ["config", "doctor", "install", "instance", "monitoring"],
+    ],
+    [
+      ["config", "--help"],
+      ["init", "login", "show", "set", "unset", "doctor"],
+    ],
+    [
+      ["workspace", "--help"],
       [
-        "list",
-        "install",
-        "install-all",
-        "status",
-        "update",
-        "publish",
-        "publish-all",
+        "init",
+        "use",
+        "current",
+        "unlink",
+        "applications",
+        "demands",
+        "issues",
+        "skills",
+        "monitoring",
+        "agent",
       ],
     ],
-    ["agent", ["configure", "doctor"]],
-    ["monitoring", ["signal", "signals", "describe", "validate"]],
   ];
-  for (const [topic, commands] of expectations) {
-    const result = run(topic, "--help");
+  for (const [args, commands] of expectations) {
+    const result = run(...args);
     assert.equal(result.status, 0, result.stderr);
-    assert.equal(result.stderr, "");
-    for (const command of commands) {
-      assert.match(result.stdout, new RegExp(`${topic} ${command}`));
-    }
+    for (const command of commands)
+      assert.match(result.stdout, new RegExp(command));
   }
 });
 
-test("rotas migradas validam argumentos e flags pelo oclif", () => {
-  const missingArgument = run("skills", "install");
-  assert.equal(missingArgument.status, 2);
-  assert.match(missingArgument.stderr, /Missing 1 required arg|SKILL/u);
-
-  const invalidFlag = run("monitoring", "signals", "runtime-1", "--bad-flag");
-  assert.equal(invalidFlag.status, 2);
-  assert.match(invalidFlag.stderr, /Nonexistent flag: --bad-flag/u);
+test("instâncias e perfis possuem ajuda contextual", () => {
+  const instances = run("admin", "instance", "--help");
+  assert.equal(instances.status, 0, instances.stderr);
+  for (const action of ["setup", "list", "show", "status", "start", "stop"])
+    assert.match(instances.stdout, new RegExp(`admin instance ${action}`));
+  const profiles = run("config", "profiles", "--help");
+  assert.equal(profiles.status, 0, profiles.stderr);
+  assert.match(profiles.stdout, /config profiles list/u);
+  assert.match(profiles.stdout, /config profiles use/u);
 });
 
-test("configure doctor sem cliente falha de forma explícita fora de TTY", () => {
-  const result = run("configure", "doctor", "--non-interactive");
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /Campos obrigatórios ausentes: client/u);
+test("monitoramento administrativo expõe o ciclo operacional", () => {
+  const result = run("admin", "monitoring", "--help");
+  assert.equal(result.status, 0, result.stderr);
+  for (const action of [
+    "build",
+    "validate",
+    "start",
+    "stop",
+    "status",
+    "logs",
+    "provision",
+  ])
+    assert.match(result.stdout, new RegExp(`admin monitoring ${action}`));
 });
 
-test("configure skills exige seleção explícita fora de TTY", () => {
-  const result = run("configure", "skills", "install");
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /Informe o ID da skill ou use --all/u);
+test("as rotas antigas foram eliminadas", () => {
+  for (const command of [
+    ["instance", "list"],
+    ["configure", "codex"],
+    ["skills", "list"],
+    ["workspaces", "list"],
+    ["issues", "list"],
+  ]) {
+    const result = run(...command);
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /not found/u);
+  }
 });
 
-test("setup não aceita password em argv e documenta o ambiente privado", () => {
-  const result = run("instance", "setup", "--help");
-  assert.equal(result.status, 0);
+test("comandos canônicos validam argumentos e flags pelo oclif", () => {
+  const missing = run("workspace", "skills", "install");
+  assert.equal(missing.status, 2);
+  assert.match(missing.stderr, /Missing 1 required arg|SKILL/u);
+  const invalid = run(
+    "workspace",
+    "monitoring",
+    "signals",
+    "runtime-1",
+    "--bad-flag",
+  );
+  assert.equal(invalid.status, 2);
+  assert.match(invalid.stderr, /Nonexistent flag: --bad-flag/u);
+});
+
+test("setup administrativo não aceita senha em argv", () => {
+  const result = run("admin", "instance", "setup", "--help");
+  assert.equal(result.status, 0, result.stderr);
   assert.doesNotMatch(result.stdout, /admin-password/u);
   assert.match(result.stdout, /BIAWS_BOOTSTRAP_ADMIN_PASSWORD/u);
 });
 
-test("comando desconhecido retorna diagnóstico e código de uso", () => {
-  const result = run("inexistente");
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /inexistente/);
+test("admin install oferece plano versionado sem alteração", () => {
+  const result = run("admin", "install", "--version", "1.2.3", "--dry-run");
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /releases\/download\/v1\.2\.3/u);
+  assert.match(result.stdout, /biaws-1\.2\.3\.tar\.gz/u);
 });
 
-test("flag inválida retorna diagnóstico e código de uso", () => {
-  const result = run("instance", "--bad-flag");
+test("config init separa configuração e credencial", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "biaws-cli-config-"));
+  try {
+    const result = spawnSync(
+      CLI_ENTRYPOINT,
+      ["config", "init", "--api-url", "https://biaws.example.test"],
+      {
+        cwd: CLI_DIRECTORY,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          BIAWS_API_KEY: "private-key",
+          BIAWS_CONFIG_HOME: root,
+        },
+      },
+    );
+    assert.equal(result.status, 0, result.stderr);
+    const config = JSON.parse(await readFile(path.join(root, "config.json")));
+    const credentials = JSON.parse(
+      await readFile(path.join(root, "credentials.json")),
+    );
+    assert.equal(config.profiles.default.apiUrl, "https://biaws.example.test");
+    assert.equal(credentials.profiles.default.apiKey, "private-key");
+    assert.doesNotMatch(JSON.stringify(config), /private-key/u);
+    assert.equal(
+      (await stat(path.join(root, "credentials.json"))).mode & 0o777,
+      0o600,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("workspace current encontra associação em pasta ancestral", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "biaws-cli-workspace-"));
+  const nested = path.join(root, "src", "feature");
+  try {
+    await mkdir(path.join(root, ".biaws"), { recursive: true });
+    await mkdir(nested, { recursive: true });
+    await writeFile(
+      path.join(root, ".biaws", "config.json"),
+      JSON.stringify({ version: 1, profile: "default", workspaceId: "ws-a" }),
+    );
+    const result = spawnSync(CLI_ENTRYPOINT, ["workspace", "current"], {
+      cwd: nested,
+      encoding: "utf8",
+      env: { ...process.env, BIAWS_CONFIG_HOME: path.join(root, "global") },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /Workspace ws-a/u);
+    assert.match(
+      result.stdout,
+      new RegExp(root.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")),
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("comando remoto orienta a configurar credencial", () => {
+  const result = spawnSync(CLI_ENTRYPOINT, ["workspace", "skills", "list"], {
+    cwd: CLI_DIRECTORY,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      BIAWS_CONFIG_HOME: "/private/tmp/biaws-cli-test-no-auth",
+      BIAWS_API_KEY: undefined,
+      ISSUE_API_KEY: undefined,
+    },
+  });
   assert.equal(result.status, 2);
-  assert.match(result.stderr, /Nonexistent flag|bad-flag/);
+  assert.match(result.stderr, /Chave de API ausente/u);
+  assert.match(result.stderr, /biaws config login/u);
 });
 
 test("versão vem dos metadados do pacote", () => {
   const result = run("--version");
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /0\.1\.0/);
-});
-
-test("comando remoto valida autenticação antes da operação", () => {
-  const result = spawnSync(CLI_ENTRYPOINT, ["skills", "list"], {
-    cwd: CLI_DIRECTORY,
-    encoding: "utf8",
-    env: {
-      ...process.env,
-      BIAWS_ROOT: "/private/tmp/biaws-cli-test-no-auth",
-      ISSUE_API_KEY: undefined,
-    },
-  });
-  assert.equal(result.status, 2);
-  assert.equal(result.stdout, "");
-  assert.match(result.stderr, /Chave da API ausente/u);
+  assert.match(result.stdout, /0\.1\.0/u);
 });

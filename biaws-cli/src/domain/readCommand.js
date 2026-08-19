@@ -6,6 +6,7 @@ export const connectionFlags = {
   "api-url": Flags.string({ description: "URL da API" }),
   instance: Flags.string({ description: "instância local configurada" }),
   json: Flags.boolean({ description: "emite somente JSON v1 em stdout" }),
+  profile: Flags.string({ description: "perfil global da API" }),
   workspace: Flags.string({ description: "ID do workspace" }),
 };
 
@@ -23,6 +24,7 @@ export class ReadCommand extends AuthenticatedApiCommand {
         {
           apiUrl: flags["api-url"],
           instance: flags.instance,
+          profile: flags.profile,
           workspace: flags.workspace,
         },
         { requireWorkspace: Boolean(options.requireWorkspace) },

@@ -1,7 +1,7 @@
 import { Args } from "@oclif/core";
 import { connectionFlags, ReadCommand } from "../../domain/readCommand.js";
 export default class IssueGet extends ReadCommand {
-  static description = "Obtém uma issue por ID ou código";
+  static description = "obtém uma issue por ID ou código";
   static args = { id: Args.string({ required: true }) };
   static flags = connectionFlags;
   async run() {

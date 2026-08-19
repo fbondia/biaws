@@ -6,7 +6,7 @@ import {
 } from "../../domain/readCommand.js";
 import { table } from "../../domain/readService.js";
 export default class DemandList extends ReadCommand {
-  static description = "Lista melhorias no escopo informado";
+  static description = "lista melhorias no escopo informado";
   static flags = {
     ...connectionFlags,
     ...listFlags,

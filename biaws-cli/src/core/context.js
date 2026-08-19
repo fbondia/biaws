@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import { CliError } from "./errors.js";
+import { loadConfiguration, selectedProfile } from "./configuration.js";
 
 const DEFAULT_API_URL = "http://127.0.0.1:3100";
 
@@ -110,26 +111,54 @@ export async function resolveCommandContext(options) {
     ...toolEnv,
     ...instanceEnv,
   };
-  const apiUrl = normalizeApiUrl(
-    input.apiUrl ||
-      effectiveEnv.ISSUE_API_URL ||
-      effectiveEnv.ISSUE_API_BASE_URL ||
-      DEFAULT_API_URL,
-  );
-  const apiKey = String(input.apiKey || effectiveEnv.ISSUE_API_KEY || "");
-  const workspaceId = String(
-    input.workspaceId ||
-      input.workspace ||
-      effectiveEnv.ISSUE_WORKSPACE_ID ||
-      "",
-  ).trim();
   const projectDirectory = path.resolve(
     input.project || options.cwd || repositoryRoot,
   );
+  const configuration = await loadConfiguration({
+    cwd: projectDirectory,
+    environment,
+    filesystem: options.filesystem,
+  });
+  const profile = selectedProfile(configuration, input.profile);
+  const workspaceConfiguration = configuration.workspace?.config || {};
+
+  const explicitFileEnv = explicitEnvFile ? instanceEnv : {};
+  const configuredApiUrl =
+    input.apiUrl ||
+    explicitFileEnv.BIAWS_API_URL ||
+    explicitFileEnv.ISSUE_API_URL ||
+    environment.BIAWS_API_URL ||
+    environment.ISSUE_API_URL ||
+    environment.ISSUE_API_BASE_URL ||
+    workspaceConfiguration.apiUrl ||
+    profile.config.apiUrl ||
+    effectiveEnv.ISSUE_API_URL ||
+    effectiveEnv.ISSUE_API_BASE_URL ||
+    DEFAULT_API_URL;
+  const configuredApiKey = String(
+    input.apiKey ||
+      explicitFileEnv.BIAWS_API_KEY ||
+      explicitFileEnv.ISSUE_API_KEY ||
+      environment.BIAWS_API_KEY ||
+      environment.ISSUE_API_KEY ||
+      profile.credentials.apiKey ||
+      effectiveEnv.ISSUE_API_KEY ||
+      "",
+  );
+  const configuredWorkspaceId = String(
+    input.workspaceId ||
+      input.workspace ||
+      environment.BIAWS_WORKSPACE_ID ||
+      environment.ISSUE_WORKSPACE_ID ||
+      workspaceConfiguration.workspaceId ||
+      effectiveEnv.ISSUE_WORKSPACE_ID ||
+      "",
+  ).trim();
 
   return Object.freeze({
-    apiKey,
-    apiUrl,
+    apiKey: configuredApiKey,
+    apiUrl: normalizeApiUrl(configuredApiUrl),
+    configuration,
     env: Object.freeze(effectiveEnv),
     envFile,
     instanceDirectory,
@@ -137,10 +166,11 @@ export async function resolveCommandContext(options) {
     instancesDirectory,
     isCI: Boolean(options.terminal.isCI),
     isInteractive: Boolean(options.terminal.isInteractive),
-    projectDirectory,
+    profileName: profile.name,
+    projectDirectory: configuration.workspace?.directory || projectDirectory,
     repositoryRoot,
     toolDirectory,
-    workspaceId,
+    workspaceId: configuredWorkspaceId,
   });
 }
 
@@ -148,13 +178,13 @@ export async function resolveAuthenticatedContext(options) {
   const context = await resolveCommandContext(options);
   if (!context.apiKey) {
     throw new CliError(
-      "Chave da API ausente. Defina ISSUE_API_KEY em um ambiente privado.",
+      "Chave de API ausente. Execute `biaws config login` ou defina BIAWS_API_KEY em um ambiente privado.",
       { code: "AUTHENTICATION_REQUIRED", exitCode: 2 },
     );
   }
   if (options.requireWorkspace && !context.workspaceId) {
     throw new CliError(
-      "Workspace ausente. Informe --workspace ou defina ISSUE_WORKSPACE_ID.",
+      "Workspace ausente. Execute `biaws workspace init` nesta pasta ou informe --workspace.",
       { code: "WORKSPACE_REQUIRED", exitCode: 2 },
     );
   }

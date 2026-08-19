@@ -6,7 +6,7 @@ import {
 } from "../../domain/readCommand.js";
 import { table } from "../../domain/readService.js";
 export default class IssueList extends ReadCommand {
-  static description = "Lista issues no escopo informado";
+  static description = "lista issues no escopo informado";
   static flags = {
     ...connectionFlags,
     ...listFlags,

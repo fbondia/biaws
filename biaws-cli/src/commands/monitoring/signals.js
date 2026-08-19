@@ -2,7 +2,7 @@ import { Flags } from "@oclif/core";
 import {
   createMonitoringCommand,
   runtimeArgument,
-} from "../../compatibilityCommands.js";
+} from "../../commandFactories.js";
 
 export default createMonitoringCommand("signals", {
   description: "lista sinais recebidos por um runtime",

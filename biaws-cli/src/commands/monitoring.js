@@ -1,5 +1,5 @@
 import { BaseCommand } from "../baseCommands.js";
-import { showTopic } from "../compatibilityCommands.js";
+import { showTopic } from "../commandFactories.js";
 
 function parseMetadata(value) {
   if (!value) return {};

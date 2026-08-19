@@ -7,13 +7,14 @@ export const configureContextFlags = Object.freeze({
     char: "p",
     description: "diretório do projeto a configurar",
   }),
+  profile: Flags.string({ description: "perfil global da API" }),
   workspace: Flags.string({
     char: "w",
     description: "workspace associado ao projeto",
   }),
   "api-url": Flags.string({ description: "URL da API do Bondia Workspaces" }),
   "env-file": Flags.string({
-    description: "arquivo privado com URL e chave da API",
+    description: "arquivo privado com URL e chave de API",
   }),
   force: Flags.boolean({
     char: "f",
@@ -33,6 +34,7 @@ export function configureContextInput(flags) {
     apiUrl: flags["api-url"],
     envFile: flags["env-file"],
     project: flags.project,
+    profile: flags.profile,
     workspace: flags.workspace,
   };
 }

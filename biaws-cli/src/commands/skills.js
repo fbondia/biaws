@@ -2,7 +2,7 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 
 import { BaseCommand } from "../baseCommands.js";
-import { showTopic } from "../compatibilityCommands.js";
+import { showTopic } from "../commandFactories.js";
 import { buildSkillPayload } from "../skillPackage.js";
 import {
   checksumInstalledSkill,
@@ -135,7 +135,9 @@ async function publishAllSkills(api, _positional, options) {
 async function installSkill(api, positional, options) {
   const skillId = positional[0];
   if (!skillId)
-    throw new Error("Informe a skill: biaws skills install <skill-id>");
+    throw new Error(
+      "Informe a skill: biaws workspace skills install <skill-id>",
+    );
   const result = await install(api, skillId, options.version, options);
   if (!printJson(result, options)) {
     console.log(

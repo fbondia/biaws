@@ -1,5 +1,5 @@
 import { Flags } from "@oclif/core";
-import { createMonitoringCommand } from "../../compatibilityCommands.js";
+import { createMonitoringCommand } from "../../commandFactories.js";
 
 export default createMonitoringCommand("validate", {
   description: "valida um payload sem persistir sinal",

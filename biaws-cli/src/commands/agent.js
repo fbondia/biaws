@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 
 import { BaseCommand, TOOL_DIRECTORY } from "../baseCommands.js";
-import { showTopic } from "../compatibilityCommands.js";
+import { showTopic } from "../commandFactories.js";
 import { readLock } from "../localSkills.js";
 import { runSkillsCommand } from "./skills.js";
 
@@ -137,7 +137,9 @@ async function resolveWorkspaceId(api, requestedWorkspaceId = "") {
 
 async function configure(api, client, options, context) {
   if (!["codex", "claude"].includes(client)) {
-    throw new Error("Informe o cliente: biaws agent configure codex|claude");
+    throw new Error(
+      "Informe o cliente: biaws workspace agent configure codex|claude",
+    );
   }
   const projectDirectory = path.resolve(options.project || process.cwd());
   const { workspaceId } = await resolveWorkspaceId(api, context.workspaceId);
@@ -324,7 +326,9 @@ function configurationStatus(
 
 async function doctor(api, client, options, context) {
   if (!["codex", "claude"].includes(client)) {
-    throw new Error("Informe o cliente: biaws agent doctor codex|claude");
+    throw new Error(
+      "Informe o cliente: biaws workspace agent doctor codex|claude",
+    );
   }
   const projectDirectory = path.resolve(options.project || process.cwd());
   const target = skillTarget(client, projectDirectory);
@@ -389,8 +393,7 @@ export async function runAgentCommand(
 }
 
 export default class Agent extends BaseCommand {
-  static description =
-    "Configura e diagnostica clientes de agentes (compatibilidade legada)";
+  static description = "Configura e diagnostica clientes de agentes";
 
   async run() {
     await showTopic(this, "agent");

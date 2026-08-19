@@ -2,7 +2,7 @@ import { Args, Flags } from "@oclif/core";
 import { WriteCommand, writeFlags } from "../../domain/writeCommand.js";
 
 export default class IssueTransition extends WriteCommand {
-  static description = "Executa uma transição suportada de status de issue";
+  static description = "executa uma transição suportada de status de issue";
   static args = { issue: Args.string({ required: true }) };
   static flags = {
     ...writeFlags,

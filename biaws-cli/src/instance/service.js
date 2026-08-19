@@ -295,11 +295,11 @@ export async function buildSetupConfiguration(values, context, filesystem) {
     ),
     apiKeyRateLimitMax: integer(
       values.apiKeyRateLimitMax,
-      "Rate limit da API key",
+      "Rate limit da chave de API",
     ),
     apiKeyRateLimitWindow: integer(
       values.apiKeyRateLimitWindow,
-      "Janela da API key",
+      "Janela da chave de API",
     ),
     existing: Boolean(existing),
   });
@@ -376,9 +376,9 @@ export async function executeSetup(
     storage: configuration.storage,
     storageChanged: configuration.storageChanged,
     commands: {
-      status: `biaws instance status ${configuration.name}`,
-      start: `biaws instance start ${configuration.name}`,
-      stop: `biaws instance stop ${configuration.name}`,
+      status: `biaws admin instance status ${configuration.name}`,
+      start: `biaws admin instance start ${configuration.name}`,
+      stop: `biaws admin instance stop ${configuration.name}`,
     },
   };
 }

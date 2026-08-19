@@ -391,7 +391,7 @@ exportação e requisitos legais antes de uso prolongado.
 `agent doctor` informa falha de autenticação
 
 : execute `./scripts/bootstrap.sh` para validar ou recriar a chave técnica e
-depois repita `biaws agent doctor codex|claude --project <diretório>`. Se o
+depois repita `biaws workspace agent doctor codex|claude --project <diretório>`. Se o
 binário veio do npm, defina `BIAWS_ROOT` para o checkout. A chave possui validade definida pela política de autenticação e
 é mantida somente no `.env` local.
 

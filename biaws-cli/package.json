@@ -1,7 +1,7 @@
 {
   "name": "biaws",
-  "version": "0.1.0",
-  "description": "CLI do Bondia Workspaces para configuração do ambiente local",
+  "version": "0.2.0",
+  "description": "CLI do Bondia Workspaces para administração, configuração e operação de workspaces",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -39,8 +39,57 @@
   "oclif": {
     "bin": "biaws",
     "dirname": "biaws",
-    "commands": "./src/commands",
-    "topicSeparator": " "
+    "commands": "./src/cli",
+    "topicSeparator": " ",
+    "topics": {
+      "admin": {
+        "description": "Administra a instalação e as instâncias da plataforma",
+        "subtopics": {
+          "instance": {
+            "description": "Configura e opera instâncias locais do BIAWS"
+          },
+          "monitoring": {
+            "description": "Configura e opera executores de monitoramento"
+          }
+        }
+      },
+      "config": {
+        "description": "Gerencia perfis, URLs e credenciais globais",
+        "subtopics": {
+          "profiles": {
+            "description": "Gerencia os perfis globais de acesso"
+          }
+        }
+      },
+      "workspace": {
+        "description": "Associa a pasta e opera os recursos do workspace",
+        "subtopics": {
+          "agent": {
+            "description": "Configura e diagnostica clientes de agentes",
+            "subtopics": {
+              "configure": {
+                "description": "Configura clientes de agentes na pasta atual"
+              }
+            }
+          },
+          "applications": {
+            "description": "Consulta aplicações do workspace"
+          },
+          "demands": {
+            "description": "Consulta melhorias e suas tarefas"
+          },
+          "issues": {
+            "description": "Consulta e atualiza issues"
+          },
+          "monitoring": {
+            "description": "Envia e consulta sinais de monitoramento"
+          },
+          "skills": {
+            "description": "Gerencia as skills do workspace"
+          }
+        }
+      }
+    }
   },
   "scripts": {
     "start": "node bin/biaws.js",

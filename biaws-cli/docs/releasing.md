@@ -57,7 +57,7 @@ Os wrappers públicos preservados são:
 
 - `scripts/setup-local.sh`: setup co-localizado seguido de configuração;
 - `scripts/setup-client.sh`: configuração de um cliente remoto;
-- `scripts/configure.sh`: adapter legado para `biaws agent configure/doctor`.
+- `scripts/configure.sh`: adapter legado para `biaws workspace agent configure/doctor`.
 
 Esses wrappers usam `scripts/run-biaws-cli.sh`, que fixa `BIAWS_ROOT` no
 checkout e executa o entrypoint com shebang. Em um clone limpo, ele instala
@@ -79,14 +79,14 @@ Antes de marcar uma release, use credenciais descartáveis e execute, nesta
 ordem, em uma instância isolada:
 
 1. `biaws --help` e `biaws --version` pela instalação empacotada;
-2. `biaws instance setup` e `biaws configure codex|claude` com `BIAWS_ROOT`;
+2. `biaws admin instance setup` e `biaws workspace agent configure codex|claude` com `BIAWS_ROOT`;
 3. uma consulta `workspaces list --json` e outra por código, como
    `demands get <código> --json`;
 4. uma escrita idempotente com `demands task-status ... --yes --json`, seguida
    de nova leitura;
-5. `biaws instance backup`, restore em uma instância de destino e validação de
+5. `biaws admin instance backup`, restore em uma instância de destino e validação de
    API/UI;
-6. `biaws instance remove <destino> --yes`, preservando dados externos salvo
+6. `biaws admin instance remove <destino> --yes`, preservando dados externos salvo
    autorização explícita.
 
 Capture somente códigos de saída, envelopes sanitizados e checksums. Não grave

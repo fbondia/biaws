@@ -1,3 +1,3 @@
-import { createAgentCommand } from "../../compatibilityCommands.js";
+import { createAgentCommand } from "../../commandFactories.js";
 
 export default createAgentCommand("configure");

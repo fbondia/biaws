@@ -1,7 +1,7 @@
 import { Args } from "@oclif/core";
 import { connectionFlags, ReadCommand } from "../../domain/readCommand.js";
 export default class ApplicationGet extends ReadCommand {
-  static description = "Obtém uma aplicação por ID";
+  static description = "obtém uma aplicação por ID";
   static args = { id: Args.string({ required: true }) };
   static flags = connectionFlags;
   async run() {

@@ -73,8 +73,8 @@ fi
 
 PROJECT_DIR="$(cd "${PROJECT_DIR}" && pwd -P)"
 ENV_FILE="$(cd "$(dirname "${ENV_FILE}")" && pwd -P)/$(basename "${ENV_FILE}")"
-args=(agent configure "${CLIENT}" --project "${PROJECT_DIR}")
-doctor=(agent doctor "${CLIENT}" --project "${PROJECT_DIR}")
+args=(workspace agent configure "${CLIENT}" --project "${PROJECT_DIR}")
+doctor=(workspace agent doctor "${CLIENT}" --project "${PROJECT_DIR}")
 if [[ -n "${WORKSPACE_ID}" ]]; then
   args+=(--workspace "${WORKSPACE_ID}")
   doctor+=(--workspace "${WORKSPACE_ID}")

@@ -112,9 +112,11 @@ jobs:
           "${install_prefix}/bin/biaws" --version >"${RUNNER_TEMP}/biaws-version.txt" 2>"${RUNNER_TEMP}/biaws-version.err"
           test ! -s "${RUNNER_TEMP}/biaws-help.err"
           test ! -s "${RUNNER_TEMP}/biaws-version.err"
-          for command in agent skills monitoring instance demands issues; do
-            grep -Eq "^  ${command}[[:space:]]" "${RUNNER_TEMP}/biaws-help.txt"
+          for topic in admin config workspace; do
+            grep -Eq "^  ${topic}[[:space:]]" "${RUNNER_TEMP}/biaws-help.txt"
           done
+          "${install_prefix}/bin/biaws" workspace agent configure codex --help > /dev/null
+          "${install_prefix}/bin/biaws" workspace agent doctor --help > /dev/null
           grep -F "biaws/${expected_version}" "${RUNNER_TEMP}/biaws-version.txt"
 
   monitor-executor:

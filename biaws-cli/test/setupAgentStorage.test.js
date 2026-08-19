@@ -444,12 +444,15 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   assert.match(
     nodeCommands,
     new RegExp(
-      `agent configure codex --project ${canonicalProject} --force`,
+      `workspace agent configure codex --project ${canonicalProject} --force`,
       "u",
     ),
   );
   assert.match(
     nodeCommands,
-    new RegExp(`agent doctor codex --project ${canonicalProject}`, "u"),
+    new RegExp(
+      `workspace agent doctor codex --project ${canonicalProject}`,
+      "u",
+    ),
   );
 });

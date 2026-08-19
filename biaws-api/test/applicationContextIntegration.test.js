@@ -19,7 +19,7 @@ test(
     process.env.MONGO_DB =
       process.env.BIAWS_APPLICATION_CONTEXT_INTEGRATION_DB ||
       "biaws_application_context_integration";
-    process.env.ISSUE_DIR = issueDirectory;
+    process.env.BIAWS_ISSUE_DIR = issueDirectory;
     process.env.ATTACHMENT_STORAGE_LOCAL_DIR = issueDirectory;
 
     const { closeMongoClient, getMongoDatabase } =

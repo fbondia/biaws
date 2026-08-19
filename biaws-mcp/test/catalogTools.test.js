@@ -120,8 +120,8 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
 
 test("catalog read tools dispatch only to their scoped HTTP endpoints", async () => {
   const originalFetch = globalThis.fetch;
-  const originalBaseUrl = process.env.ISSUE_API_URL;
-  process.env.ISSUE_API_URL = "http://api.test";
+  const originalBaseUrl = process.env.BIAWS_API_URL;
+  process.env.BIAWS_API_URL = "http://api.test";
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), options });
@@ -218,17 +218,17 @@ test("catalog read tools dispatch only to their scoped HTTP endpoints", async ()
     );
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;
-    else process.env.ISSUE_API_URL = originalBaseUrl;
+    if (originalBaseUrl === undefined) delete process.env.BIAWS_API_URL;
+    else process.env.BIAWS_API_URL = originalBaseUrl;
   }
 });
 
 test("catalog write tools use POST/PATCH and keep scope ids out of payloads", async () => {
   const originalFetch = globalThis.fetch;
-  const originalBaseUrl = process.env.ISSUE_API_URL;
-  const originalApiKey = process.env.ISSUE_API_KEY;
-  process.env.ISSUE_API_URL = "http://api.test";
-  process.env.ISSUE_API_KEY = "biaws_test_key";
+  const originalBaseUrl = process.env.BIAWS_API_URL;
+  const originalApiKey = process.env.BIAWS_API_KEY;
+  process.env.BIAWS_API_URL = "http://api.test";
+  process.env.BIAWS_API_KEY = "biaws_test_key";
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), options });
@@ -364,10 +364,10 @@ test("catalog write tools use POST/PATCH and keep scope ids out of payloads", as
     assert.equal(JSON.parse(calls.at(-1).options.body).serverId, null);
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;
-    else process.env.ISSUE_API_URL = originalBaseUrl;
-    if (originalApiKey === undefined) delete process.env.ISSUE_API_KEY;
-    else process.env.ISSUE_API_KEY = originalApiKey;
+    if (originalBaseUrl === undefined) delete process.env.BIAWS_API_URL;
+    else process.env.BIAWS_API_URL = originalBaseUrl;
+    if (originalApiKey === undefined) delete process.env.BIAWS_API_KEY;
+    else process.env.BIAWS_API_KEY = originalApiKey;
   }
 });
 

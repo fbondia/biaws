@@ -52,7 +52,7 @@ function credentialsWithKey(configuration, name, apiKey) {
 async function requiredApiKey(command) {
   const fromEnvironment = String(
     command.adapters.environment.BIAWS_API_KEY ||
-      command.adapters.environment.ISSUE_API_KEY ||
+      command.adapters.environment.BIAWS_API_KEY ||
       "",
   ).trim();
   if (fromEnvironment) return fromEnvironment;

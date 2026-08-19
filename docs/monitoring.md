@@ -171,7 +171,7 @@ chave única `(workspaceId, id, version)` torna execuções repetidas idempotent
 
 ## CLI
 
-Com `ISSUE_API_URL` e `ISSUE_API_KEY` configurados, selecione o workspace com
+Com `BIAWS_API_URL` e `BIAWS_API_KEY` configurados, selecione o workspace com
 `--workspace` (ou `BIAWS_WORKSPACE_ID` em uma execução direta do CLI):
 
 ```bash

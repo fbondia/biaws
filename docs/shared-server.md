@@ -34,8 +34,8 @@ Cada desenvolvedor mantém um arquivo privado, com permissão `600`, por exemplo
 `~/.config/biaws/default.env`:
 
 ```dotenv
-ISSUE_API_URL=https://ci.exemplo.com/api
-ISSUE_API_KEY=chave-individual-do-desenvolvedor
+BIAWS_API_URL=https://ci.exemplo.com/api
+BIAWS_API_KEY=chave-individual-do-desenvolvedor
 ```
 
 Cada chave deve ser individual, associada apenas aos workspaces e grupos que o

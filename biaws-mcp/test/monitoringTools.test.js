@@ -14,11 +14,11 @@ function jsonResponse(payload = { ok: true }, status = 200) {
 function withHttpClient(testFunction) {
   return async () => {
     const originalFetch = globalThis.fetch;
-    const originalBaseUrl = process.env.ISSUE_API_URL;
-    const originalApiKey = process.env.ISSUE_API_KEY;
+    const originalBaseUrl = process.env.BIAWS_API_URL;
+    const originalApiKey = process.env.BIAWS_API_KEY;
     const originalWorkspaceId = process.env.BIAWS_WORKSPACE_ID;
-    process.env.ISSUE_API_URL = "http://api.test";
-    process.env.ISSUE_API_KEY = "biaws_test_key";
+    process.env.BIAWS_API_URL = "http://api.test";
+    process.env.BIAWS_API_KEY = "biaws_test_key";
     process.env.BIAWS_WORKSPACE_ID = "workspace-1";
     const calls = [];
     globalThis.fetch = async (url, options = {}) => {
@@ -30,8 +30,8 @@ function withHttpClient(testFunction) {
     } finally {
       globalThis.fetch = originalFetch;
       for (const [name, value] of [
-        ["ISSUE_API_URL", originalBaseUrl],
-        ["ISSUE_API_KEY", originalApiKey],
+        ["BIAWS_API_URL", originalBaseUrl],
+        ["BIAWS_API_KEY", originalApiKey],
         ["BIAWS_WORKSPACE_ID", originalWorkspaceId],
       ]) {
         if (value === undefined) delete process.env[name];

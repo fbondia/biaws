@@ -55,8 +55,8 @@ test("collection tools expose bounded resource types and explicit destination id
 
 test("resource collection tools route generic trees through the API", async () => {
   const originalFetch = globalThis.fetch;
-  const originalBaseUrl = process.env.ISSUE_API_URL;
-  process.env.ISSUE_API_URL = "http://api.test";
+  const originalBaseUrl = process.env.BIAWS_API_URL;
+  process.env.BIAWS_API_URL = "http://api.test";
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), options });
@@ -109,15 +109,15 @@ test("resource collection tools route generic trees through the API", async () =
     });
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;
-    else process.env.ISSUE_API_URL = originalBaseUrl;
+    if (originalBaseUrl === undefined) delete process.env.BIAWS_API_URL;
+    else process.env.BIAWS_API_URL = originalBaseUrl;
   }
 });
 
 test("move tools use audited API routes and support moving to root", async () => {
   const originalFetch = globalThis.fetch;
-  const originalBaseUrl = process.env.ISSUE_API_URL;
-  process.env.ISSUE_API_URL = "http://api.test";
+  const originalBaseUrl = process.env.BIAWS_API_URL;
+  process.env.BIAWS_API_URL = "http://api.test";
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), options });
@@ -176,8 +176,8 @@ test("move tools use audited API routes and support moving to root", async () =>
     );
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;
-    else process.env.ISSUE_API_URL = originalBaseUrl;
+    if (originalBaseUrl === undefined) delete process.env.BIAWS_API_URL;
+    else process.env.BIAWS_API_URL = originalBaseUrl;
   }
 });
 

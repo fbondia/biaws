@@ -32,9 +32,9 @@ test(
         "phase2-integration-secret-with-more-than-32-characters",
       BETTER_AUTH_URL: baseUrl,
       BETTER_AUTH_TRUSTED_ORIGINS: baseUrl,
-      ISSUE_API_HOST: "127.0.0.1",
-      ISSUE_API_PORT: String(port),
-      ISSUE_DIR: issueDirectory,
+      BIAWS_API_HOST: "127.0.0.1",
+      BIAWS_API_PORT: String(port),
+      BIAWS_ISSUE_DIR: issueDirectory,
       ATTACHMENT_STORAGE_LOCAL_DIR: issueDirectory,
     });
 

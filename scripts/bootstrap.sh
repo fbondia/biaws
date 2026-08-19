@@ -155,8 +155,8 @@ else
   chmod 600 "${PASSWORD_FILE}"
 fi
 
-api_port="${ISSUE_API_PORT:-$(read_env_value "ISSUE_API_PORT")}"
-ui_port="${ISSUE_UI_PORT:-$(read_env_value "ISSUE_UI_PORT")}"
+api_port="${BIAWS_API_PORT:-$(read_env_value "BIAWS_API_PORT")}"
+ui_port="${BIAWS_UI_PORT:-$(read_env_value "BIAWS_UI_PORT")}"
 api_port="${api_port:-3100}"
 ui_port="${ui_port:-4400}"
 
@@ -189,7 +189,7 @@ admin_created="$(
     tail -n 1
 )"
 
-agent_api_key="$(read_env_value "ISSUE_API_KEY")"
+agent_api_key="$(read_env_value "BIAWS_API_KEY")"
 agent_output="$(
   compose exec -T \
     -e "BIAWS_BOOTSTRAP_AGENT_EMAIL=${BIAWS_BOOTSTRAP_AGENT_EMAIL:-agent@localhost.invalid}" \
@@ -211,7 +211,7 @@ if [[ -z "${agent_api_key}" || -z "${agent_workspace_id}" ]]; then
   echo "Não foi possível configurar a credencial técnica do agente." >&2
   exit 1
 fi
-replace_env_value "ISSUE_API_KEY" "${agent_api_key}"
+replace_env_value "BIAWS_API_KEY" "${agent_api_key}"
 remove_env_value "BIAWS_WORKSPACE_ID"
 chmod 600 "${ENV_FILE}"
 echo "Identidade técnica e rate limit da chave do agente reconciliados."

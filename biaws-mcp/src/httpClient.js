@@ -9,13 +9,13 @@ const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
 
 function readBaseUrl() {
   const explicit =
-    process.env.ISSUE_API_URL ||
-    process.env.ISSUE_API_BASE_URL ||
-    process.env.VITE_ISSUE_API_URL;
+    process.env.BIAWS_API_URL ||
+    process.env.BIAWS_API_BASE_URL ||
+    process.env.VITE_BIAWS_API_URL;
   if (explicit) return explicit.replace(/\/$/u, "");
 
-  const host = process.env.ISSUE_API_HOST || process.env.HOST || "127.0.0.1";
-  const port = process.env.ISSUE_API_PORT || process.env.PORT || "3100";
+  const host = process.env.BIAWS_API_HOST || process.env.HOST || "127.0.0.1";
+  const port = process.env.BIAWS_API_PORT || process.env.PORT || "3100";
   return `http://${host}:${port}`;
 }
 
@@ -47,7 +47,7 @@ function buildUrl(path, params = {}) {
 }
 
 function authenticationHeaders() {
-  const apiKey = String(process.env.ISSUE_API_KEY || "").trim();
+  const apiKey = String(process.env.BIAWS_API_KEY || "").trim();
   const workspaceId = String(process.env.BIAWS_WORKSPACE_ID || "").trim();
   return {
     Accept: "application/json",

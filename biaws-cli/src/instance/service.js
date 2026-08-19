@@ -6,8 +6,8 @@ import { parseEnv } from "../core/context.js";
 
 const PORT_FIELDS = Object.freeze({
   mongoPort: "MONGO_PORT",
-  apiPort: "ISSUE_API_PORT",
-  uiPort: "ISSUE_UI_PORT",
+  apiPort: "BIAWS_API_PORT",
+  uiPort: "BIAWS_UI_PORT",
 });
 
 const STORAGE_FIELDS = Object.freeze({
@@ -143,11 +143,11 @@ export async function listInstances(context, filesystem) {
       directory,
       envFile: path.join(directory, ".env"),
       mongoPort: Number(env.MONGO_PORT || 27_017),
-      apiPort: Number(env.ISSUE_API_PORT || 3_100),
-      uiPort: Number(env.ISSUE_UI_PORT || 4_400),
+      apiPort: Number(env.BIAWS_API_PORT || 3_100),
+      uiPort: Number(env.BIAWS_UI_PORT || 4_400),
       publicUrl:
         env.BIAWS_PUBLIC_URL ||
-        `http://localhost:${env.ISSUE_UI_PORT || 4_400}`,
+        `http://localhost:${env.BIAWS_UI_PORT || 4_400}`,
       storage: Object.values(STORAGE_FIELDS).some((key) => env[key])
         ? "directories"
         : "volumes",

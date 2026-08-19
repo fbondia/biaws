@@ -173,8 +173,8 @@ jobs:
             --env-file instances/ci/.env \
             --project-name biaws-ci \
             exec -T api npm run seed:demo
-          api_port="$(sed -n 's/^ISSUE_API_PORT=//p' instances/ci/.env)"
-          ui_port="$(sed -n 's/^ISSUE_UI_PORT=//p' instances/ci/.env)"
+          api_port="$(sed -n 's/^BIAWS_API_PORT=//p' instances/ci/.env)"
+          ui_port="$(sed -n 's/^BIAWS_UI_PORT=//p' instances/ci/.env)"
           curl --fail --silent --show-error "http://127.0.0.1:${api_port}/api/health"
           curl --fail --silent --show-error "http://127.0.0.1:${ui_port}/" > /dev/null
       - name: Verify active monitoring profile and telemetry

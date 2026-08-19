@@ -303,8 +303,8 @@ O rate limiting possui três camadas independentes:
   documento da própria chave.
 
 Os valores são defaults e podem ser alterados pelas variáveis
-`ISSUE_API_RATE_LIMIT_*`, `BETTER_AUTH_RATE_LIMIT_*` e
-`ISSUE_API_KEY_RATE_LIMIT_*` documentadas no `.env.example`. O setup aceita as
+`BIAWS_API_RATE_LIMIT_*`, `BETTER_AUTH_RATE_LIMIT_*` e
+`BIAWS_API_KEY_RATE_LIMIT_*` documentadas no `.env.example`. O setup aceita as
 opções equivalentes `--api-rate-limit-*`, `--auth-rate-limit-*` e
 `--api-key-rate-limit-*`. Ao executar o bootstrap, uma chave técnica válida é
 preservada, sua cota é reconciliada com a configuração atual e a janela de
@@ -313,7 +313,7 @@ consumo é reiniciada.
 Melhorias, issues, procedimentos e catálogo têm paginação no backend. A UI de
 melhorias carrega 25 registros por página. Ajuste os limites de corpo/anexo pelas
 variáveis documentadas em `.env.example`, considerando memória, proxy e storage.
-No ambiente Docker, `ISSUE_API_MAX_ATTACHMENT_BYTES` configura o mesmo limite
+No ambiente Docker, `BIAWS_API_MAX_ATTACHMENT_BYTES` configura o mesmo limite
 na API e no Nginx; mantenha o proxy externo alinhado quando houver outra camada.
 
 Para um smoke test do receptor passivo, envie um sinal com `signalId` exclusivo,
@@ -360,7 +360,7 @@ Os logs de acesso não incluem body, query string, cookies, chaves, tokens ou
 e-mail. Trate os IDs, caminhos e detalhes internos dos erros como dados
 operacionais e aplique controle de acesso e retenção ao coletor de logs.
 Health checks são omitidos por padrão; defina
-`ISSUE_API_LOG_HEALTH_REQUESTS=true` somente quando precisar diagnosticá-los.
+`BIAWS_API_LOG_HEALTH_REQUESTS=true` somente quando precisar diagnosticá-los.
 
 Em chamadas distribuídas, encaminhe um `X-Request-Id` com até 128 caracteres
 alfanuméricos ou os sinais `.`, `_`, `:` e `-`. Valores ausentes ou inválidos

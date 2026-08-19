@@ -126,23 +126,23 @@ export async function resolveCommandContext(options) {
   const configuredApiUrl =
     input.apiUrl ||
     explicitFileEnv.BIAWS_API_URL ||
-    explicitFileEnv.ISSUE_API_URL ||
+    explicitFileEnv.BIAWS_API_URL ||
     environment.BIAWS_API_URL ||
-    environment.ISSUE_API_URL ||
-    environment.ISSUE_API_BASE_URL ||
+    environment.BIAWS_API_URL ||
+    environment.BIAWS_API_BASE_URL ||
     workspaceConfiguration.apiUrl ||
     profile.config.apiUrl ||
-    effectiveEnv.ISSUE_API_URL ||
-    effectiveEnv.ISSUE_API_BASE_URL ||
+    effectiveEnv.BIAWS_API_URL ||
+    effectiveEnv.BIAWS_API_BASE_URL ||
     DEFAULT_API_URL;
   const configuredApiKey = String(
     input.apiKey ||
       explicitFileEnv.BIAWS_API_KEY ||
-      explicitFileEnv.ISSUE_API_KEY ||
+      explicitFileEnv.BIAWS_API_KEY ||
       environment.BIAWS_API_KEY ||
-      environment.ISSUE_API_KEY ||
+      environment.BIAWS_API_KEY ||
       profile.credentials.apiKey ||
-      effectiveEnv.ISSUE_API_KEY ||
+      effectiveEnv.BIAWS_API_KEY ||
       "",
   );
   const configuredWorkspaceId = String(

@@ -86,7 +86,7 @@ somente seu hash e retorna o segredo apenas na criação. As chaves têm expira�
 fixa de 90 dias e limite de 1.000 requisições por hora. A UI permite que cada
 usuário liste, crie e revogue apenas as próprias chaves.
 
-MCP e CLI recebem a chave por `ISSUE_API_KEY`; o CLI também aceita
+MCP e CLI recebem a chave por `BIAWS_API_KEY`; o CLI também aceita
 `--api-key`. Ambos enviam:
 
 ```http

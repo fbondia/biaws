@@ -296,8 +296,8 @@ list_instances() {
     printf '%-24s Mongo %-5s API %-5s UI %-5s %s\n' \
       "$(basename "${directory}")" \
       "$(read_env_value "${directory}/.env" "MONGO_PORT")" \
-      "$(read_env_value "${directory}/.env" "ISSUE_API_PORT")" \
-      "$(read_env_value "${directory}/.env" "ISSUE_UI_PORT")" \
+      "$(read_env_value "${directory}/.env" "BIAWS_API_PORT")" \
+      "$(read_env_value "${directory}/.env" "BIAWS_UI_PORT")" \
       "${directory}"
   done
   shopt -u nullglob
@@ -402,8 +402,8 @@ port_reserved_by_instance() {
   for env_file in "${INSTANCES_DIR}"/*/.env; do
     [[ "${env_file}" == "${current_env}" ]] && continue
     if [[ "$(read_env_value "${env_file}" "MONGO_PORT")" == "${port}" ]] ||
-      [[ "$(read_env_value "${env_file}" "ISSUE_API_PORT")" == "${port}" ]] ||
-      [[ "$(read_env_value "${env_file}" "ISSUE_UI_PORT")" == "${port}" ]]; then
+      [[ "$(read_env_value "${env_file}" "BIAWS_API_PORT")" == "${port}" ]] ||
+      [[ "$(read_env_value "${env_file}" "BIAWS_UI_PORT")" == "${port}" ]]; then
       shopt -u nullglob
       return 0
     fi
@@ -713,13 +713,13 @@ if [[ -z "${MONGO_PORT}" ]]; then
   fi
 fi
 if [[ -z "${API_PORT}" ]]; then
-  API_PORT="$(read_env_value "${ENV_FILE}" "ISSUE_API_PORT")"
+  API_PORT="$(read_env_value "${ENV_FILE}" "BIAWS_API_PORT")"
   if [[ "${new_instance}" == "1" ]]; then
     API_PORT="$(next_port "${API_PORT:-3100}" "${ENV_FILE}")"
   fi
 fi
 if [[ -z "${UI_PORT}" ]]; then
-  UI_PORT="$(read_env_value "${ENV_FILE}" "ISSUE_UI_PORT")"
+  UI_PORT="$(read_env_value "${ENV_FILE}" "BIAWS_UI_PORT")"
   if [[ "${new_instance}" == "1" ]]; then
     UI_PORT="$(next_port "${UI_PORT:-4400}" "${ENV_FILE}")"
   fi
@@ -763,9 +763,9 @@ done
 
 replace_env_value "${ENV_FILE}" "COMPOSE_PROJECT_NAME" "biaws-${INSTANCE}"
 replace_env_value "${ENV_FILE}" "MONGO_PORT" "${MONGO_PORT}"
-replace_env_value "${ENV_FILE}" "ISSUE_API_PORT" "${API_PORT}"
-replace_env_value "${ENV_FILE}" "ISSUE_UI_PORT" "${UI_PORT}"
-replace_env_value "${ENV_FILE}" "ISSUE_API_URL" "http://127.0.0.1:${API_PORT}"
+replace_env_value "${ENV_FILE}" "BIAWS_API_PORT" "${API_PORT}"
+replace_env_value "${ENV_FILE}" "BIAWS_UI_PORT" "${UI_PORT}"
+replace_env_value "${ENV_FILE}" "BIAWS_API_URL" "http://127.0.0.1:${API_PORT}"
 replace_env_value "${ENV_FILE}" "BIAWS_MONGO_DATA_PATH" "${MONGO_DATA_PATH}"
 replace_env_value "${ENV_FILE}" "BIAWS_ISSUE_FILES_PATH" "${ISSUE_FILES_PATH}"
 replace_env_value "${ENV_FILE}" "BIAWS_REQUEST_FILES_PATH" "${REQUEST_FILES_PATH}"
@@ -800,22 +800,22 @@ else
   replace_env_value "${ENV_FILE}" "BETTER_AUTH_SECURE_COOKIES" "false"
 fi
 if [[ "${DISABLE_RATE_LIMIT}" == "1" ]]; then
-  replace_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_ENABLED" "false"
+  replace_env_value "${ENV_FILE}" "BIAWS_API_RATE_LIMIT_ENABLED" "false"
   replace_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_ENABLED" "false"
-  replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_ENABLED" "false"
+  replace_env_value "${ENV_FILE}" "BIAWS_API_KEY_RATE_LIMIT_ENABLED" "false"
 fi
 [[ -z "${API_RATE_LIMIT_MAX}" ]] || \
-  replace_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_MAX_REQUESTS" "${API_RATE_LIMIT_MAX}"
+  replace_env_value "${ENV_FILE}" "BIAWS_API_RATE_LIMIT_MAX_REQUESTS" "${API_RATE_LIMIT_MAX}"
 [[ -z "${API_RATE_LIMIT_WINDOW}" ]] || \
-  replace_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_WINDOW_SECONDS" "${API_RATE_LIMIT_WINDOW}"
+  replace_env_value "${ENV_FILE}" "BIAWS_API_RATE_LIMIT_WINDOW_SECONDS" "${API_RATE_LIMIT_WINDOW}"
 [[ -z "${AUTH_RATE_LIMIT_MAX}" ]] || \
   replace_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS" "${AUTH_RATE_LIMIT_MAX}"
 [[ -z "${AUTH_RATE_LIMIT_WINDOW}" ]] || \
   replace_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS" "${AUTH_RATE_LIMIT_WINDOW}"
 [[ -z "${API_KEY_RATE_LIMIT_MAX}" ]] || \
-  replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS" "${API_KEY_RATE_LIMIT_MAX}"
+  replace_env_value "${ENV_FILE}" "BIAWS_API_KEY_RATE_LIMIT_MAX_REQUESTS" "${API_KEY_RATE_LIMIT_MAX}"
 [[ -z "${API_KEY_RATE_LIMIT_WINDOW}" ]] || \
-  replace_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS" "${API_KEY_RATE_LIMIT_WINDOW}"
+  replace_env_value "${ENV_FILE}" "BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS" "${API_KEY_RATE_LIMIT_WINDOW}"
 chmod 600 "${ENV_FILE}"
 write_instance_control_scripts
 
@@ -846,9 +846,9 @@ Configuração concluída:
   UI pública: ${PUBLIC_URL}
 
 Rate limiting:
-  API protegida: $(read_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "ISSUE_API_RATE_LIMIT_WINDOW_SECONDS")s por ator
+  API protegida: $(read_env_value "${ENV_FILE}" "BIAWS_API_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "BIAWS_API_RATE_LIMIT_WINDOW_SECONDS")s por ator
   Autenticação:   $(read_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS")s por IP e rota
-  API key:        $(read_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS")s por chave
+  API key:        $(read_env_value "${ENV_FILE}" "BIAWS_API_KEY_RATE_LIMIT_MAX_REQUESTS") requisições / $(read_env_value "${ENV_FILE}" "BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS")s por chave
 
 Configure cada cliente com scripts/setup-client.sh e uma chave própria.
 Operação Docker:

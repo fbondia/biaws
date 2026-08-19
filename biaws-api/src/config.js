@@ -64,26 +64,26 @@ function readRateLimitConfig(prefix, defaults) {
 }
 
 export function getServerConfig() {
-  const host = readEnv(["ISSUE_API_HOST", "HOST"], "127.0.0.1");
-  const port = readNumberEnv(["ISSUE_API_PORT", "PORT"], 3100);
+  const host = readEnv(["BIAWS_API_HOST", "HOST"], "127.0.0.1");
+  const port = readNumberEnv(["BIAWS_API_PORT", "PORT"], 3100);
 
   return {
     host,
     port,
-    maxEmlBytes: readNumberEnv(["ISSUE_API_MAX_EML_BYTES"], 25 * 1024 * 1024),
+    maxEmlBytes: readNumberEnv(["BIAWS_API_MAX_EML_BYTES"], 25 * 1024 * 1024),
     maxAttachmentBytes: readNumberEnv(
-      ["ISSUE_API_MAX_ATTACHMENT_BYTES"],
+      ["BIAWS_API_MAX_ATTACHMENT_BYTES"],
       50 * 1024 * 1024,
     ),
-    maxJsonBytes: readNumberEnv(["ISSUE_API_MAX_JSON_BYTES"], 4 * 1024 * 1024),
+    maxJsonBytes: readNumberEnv(["BIAWS_API_MAX_JSON_BYTES"], 4 * 1024 * 1024),
     logging: {
       includeHealthChecks: readBooleanEnv(
-        ["ISSUE_API_LOG_HEALTH_REQUESTS"],
+        ["BIAWS_API_LOG_HEALTH_REQUESTS"],
         false,
       ),
     },
     rateLimit: {
-      api: readRateLimitConfig("ISSUE_API_RATE_LIMIT", {
+      api: readRateLimitConfig("BIAWS_API_RATE_LIMIT", {
         enabled: true,
         windowSeconds: 60,
         maxRequests: 300,
@@ -93,7 +93,7 @@ export function getServerConfig() {
         windowSeconds: 10,
         maxRequests: 100,
       }),
-      apiKey: readRateLimitConfig("ISSUE_API_KEY_RATE_LIMIT", {
+      apiKey: readRateLimitConfig("BIAWS_API_KEY_RATE_LIMIT", {
         enabled: true,
         windowSeconds: 60 * 60,
         maxRequests: 1_000,

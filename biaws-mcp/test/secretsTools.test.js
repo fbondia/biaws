@@ -28,11 +28,11 @@ test("secret MCP schemas never accept secret contents", () => {
 
 test("secrets_register sends metadata to the registration endpoint", async () => {
   const originalFetch = globalThis.fetch;
-  const originalBaseUrl = process.env.ISSUE_API_URL;
-  const originalApiKey = process.env.ISSUE_API_KEY;
+  const originalBaseUrl = process.env.BIAWS_API_URL;
+  const originalApiKey = process.env.BIAWS_API_KEY;
   const calls = [];
-  process.env.ISSUE_API_URL = "http://127.0.0.1:3199";
-  process.env.ISSUE_API_KEY = "biaws_test_key";
+  process.env.BIAWS_API_URL = "http://127.0.0.1:3199";
+  process.env.BIAWS_API_KEY = "biaws_test_key";
   globalThis.fetch = async (url, options) => {
     calls.push({ url: String(url), options });
     return new Response(JSON.stringify({ secret: { id: "secret-a" } }), {
@@ -67,9 +67,9 @@ test("secrets_register sends metadata to the registration endpoint", async () =>
     });
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;
-    else process.env.ISSUE_API_URL = originalBaseUrl;
-    if (originalApiKey === undefined) delete process.env.ISSUE_API_KEY;
-    else process.env.ISSUE_API_KEY = originalApiKey;
+    if (originalBaseUrl === undefined) delete process.env.BIAWS_API_URL;
+    else process.env.BIAWS_API_URL = originalBaseUrl;
+    if (originalApiKey === undefined) delete process.env.BIAWS_API_KEY;
+    else process.env.BIAWS_API_KEY = originalApiKey;
   }
 });

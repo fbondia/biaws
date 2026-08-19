@@ -96,7 +96,7 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
 - logotipo da UI não era incluído no bundle de produção;
 - criação concorrente de uma issue podia ultrapassar a verificação de
   unicidade.
-- limite de upload do Nginx alinhado a `ISSUE_API_MAX_ATTACHMENT_BYTES`;
+- limite de upload do Nginx alinhado a `BIAWS_API_MAX_ATTACHMENT_BYTES`;
 - configuração de cookies seguros aplicada explicitamente ao Better Auth.
 - rotação de chaves técnicas habilitada em bases restauradas com metadados do
   Better Auth;

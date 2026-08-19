@@ -12,19 +12,19 @@ test("published MCP loads explicit credentials and preserves project scope", asy
   const explicit = path.join(root, "client.env");
   await mkdir(tool);
   await writeFile(path.join(root, "compose.yaml"), "services: {}\n");
-  await writeFile(path.join(root, ".env"), "ISSUE_API_URL=https://root.test\n");
-  await writeFile(path.join(tool, ".env"), "ISSUE_API_URL=https://tool.test\n");
+  await writeFile(path.join(root, ".env"), "BIAWS_API_URL=https://root.test\n");
+  await writeFile(path.join(tool, ".env"), "BIAWS_API_URL=https://tool.test\n");
   await writeFile(
     explicit,
-    "ISSUE_API_URL=https://remote.test/api\nBIAWS_WORKSPACE_ID=wrong-scope\n",
+    "BIAWS_API_URL=https://remote.test/api\nBIAWS_WORKSPACE_ID=wrong-scope\n",
   );
 
   const previous = {
     BIAWS_ENV_FILE: process.env.BIAWS_ENV_FILE,
-    ISSUE_API_URL: process.env.ISSUE_API_URL,
+    BIAWS_API_URL: process.env.BIAWS_API_URL,
     BIAWS_WORKSPACE_ID: process.env.BIAWS_WORKSPACE_ID,
   };
-  delete process.env.ISSUE_API_URL;
+  delete process.env.BIAWS_API_URL;
   process.env.BIAWS_ENV_FILE = explicit;
   process.env.BIAWS_WORKSPACE_ID = "project-scope";
 
@@ -35,7 +35,7 @@ test("published MCP loads explicit credentials and preserves project scope", asy
       path.join(tool, ".env"),
       explicit,
     ]);
-    assert.equal(process.env.ISSUE_API_URL, "https://remote.test/api");
+    assert.equal(process.env.BIAWS_API_URL, "https://remote.test/api");
     assert.equal(process.env.BIAWS_WORKSPACE_ID, "project-scope");
   } finally {
     for (const [key, value] of Object.entries(previous)) {

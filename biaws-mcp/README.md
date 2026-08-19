@@ -34,11 +34,11 @@ a URL e a credencial da instância, mas não seleciona o workspace.
 
 Por padrão, a API é buscada em `http://127.0.0.1:3100`. Para apontar para outro endereço, use uma das variáveis:
 
-- `ISSUE_API_URL`
-- `ISSUE_API_BASE_URL`
-- `VITE_ISSUE_API_URL`
+- `BIAWS_API_URL`
+- `BIAWS_API_BASE_URL`
+- `VITE_BIAWS_API_URL`
 
-Defina obrigatoriamente `ISSUE_API_KEY`. O bootstrap open source cria uma
+Defina obrigatoriamente `BIAWS_API_KEY`. O bootstrap open source cria uma
 identidade técnica e grava sua chave no `.env` local; uma chave também pode ser
 criada manualmente pela UI. O MCP a envia como `Authorization: Bearer`.
 
@@ -307,7 +307,7 @@ Este MCP não expõe uma ferramenta genérica de armazenamento. As escritas disp
 
 O MCP não acessa MongoDB, não executa shell, SSH, deploy ou sincronização Git e
 não recebe valores de senhas, tokens, chaves privadas, kubeconfig ou connection
-strings. A `ISSUE_API_KEY` é a única credencial do processo e
+strings. A `BIAWS_API_KEY` é a única credencial do processo e
 é usada exclusivamente no cabeçalho HTTP.
 
 Erros da API mantêm o status e o código funcional para que o agente diferencie

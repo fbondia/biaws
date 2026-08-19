@@ -26,7 +26,7 @@ function adapters(environment = {}) {
     filesystem: {
       async readFile(filePath) {
         if (filePath === "/workspace/instances/local/.env") {
-          return "ISSUE_API_URL=http://instance.test:3100\nISSUE_API_KEY=private-key\nBIAWS_WORKSPACE_ID=workspace-a\n";
+          return "BIAWS_API_URL=http://instance.test:3100\nBIAWS_API_KEY=private-key\nBIAWS_WORKSPACE_ID=workspace-a\n";
         }
         const error = new Error("missing");
         error.code = "ENOENT";
@@ -83,7 +83,7 @@ test("ProjectCommand injects filesystem, API and terminal adapters", async () =>
   const command = new ProjectCommand([], fakeConfig(), {
     ...adapters({
       BIAWS_ROOT: "/workspace",
-      ISSUE_API_KEY: "private-key",
+      BIAWS_API_KEY: "private-key",
       BIAWS_WORKSPACE_ID: "workspace-a",
     }),
     apiFactory(apiUrl, apiKey, workspaceId) {

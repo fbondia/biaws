@@ -27,18 +27,18 @@ Variáveis esperadas:
 
 Variáveis opcionais:
 
-- `ISSUE_API_PORT`: porta HTTP, default `3100`
-- `ISSUE_API_HOST`: host HTTP, default `127.0.0.1`
-- `ISSUE_API_MAX_EML_BYTES`: tamanho máximo de um upload EML, default `26214400` (25 MiB)
-- `ISSUE_API_MAX_ATTACHMENT_BYTES`: tamanho máximo de cada anexo, default `52428800` (50 MiB)
-- `ISSUE_API_MAX_JSON_BYTES`: tamanho máximo de payload JSON, incluindo pacotes de skills, default `4194304` (4 MiB)
-- `ISSUE_API_RATE_LIMIT_ENABLED`, `ISSUE_API_RATE_LIMIT_WINDOW_SECONDS` e `ISSUE_API_RATE_LIMIT_MAX_REQUESTS`: limite geral persistente por ator; defaults `true`, `60` e `300`
+- `BIAWS_API_PORT`: porta HTTP, default `3100`
+- `BIAWS_API_HOST`: host HTTP, default `127.0.0.1`
+- `BIAWS_API_MAX_EML_BYTES`: tamanho máximo de um upload EML, default `26214400` (25 MiB)
+- `BIAWS_API_MAX_ATTACHMENT_BYTES`: tamanho máximo de cada anexo, default `52428800` (50 MiB)
+- `BIAWS_API_MAX_JSON_BYTES`: tamanho máximo de payload JSON, incluindo pacotes de skills, default `4194304` (4 MiB)
+- `BIAWS_API_RATE_LIMIT_ENABLED`, `BIAWS_API_RATE_LIMIT_WINDOW_SECONDS` e `BIAWS_API_RATE_LIMIT_MAX_REQUESTS`: limite geral persistente por ator; defaults `true`, `60` e `300`
 - `BETTER_AUTH_RATE_LIMIT_ENABLED`, `BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS` e `BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS`: limite por IP e rota do Better Auth; defaults `true`, `10` e `100`
-- `ISSUE_API_KEY_RATE_LIMIT_ENABLED`, `ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS` e `ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS`: cota persistida em cada API key; defaults `true`, `3600` e `1000`
+- `BIAWS_API_KEY_RATE_LIMIT_ENABLED`, `BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS` e `BIAWS_API_KEY_RATE_LIMIT_MAX_REQUESTS`: cota persistida em cada API key; defaults `true`, `3600` e `1000`
 - `BETTER_AUTH_TRUSTED_PROXIES`: IPs ou CIDRs dos proxies confiáveis, separados por vírgula
-- `ISSUE_DIR`: diretório usado para o espelho local e armazenamento dos anexos importados
+- `BIAWS_ISSUE_DIR`: diretório usado para o espelho local e armazenamento dos anexos importados
 - `ATTACHMENT_STORAGE_PROVIDER`: provider de anexos; atualmente `local` (default)
-- `ATTACHMENT_STORAGE_LOCAL_DIR`: raiz opcional dos anexos no provider local; por padrão usa `ISSUE_DIR`. Caminhos relativos partem da raiz de `biaws`
+- `ATTACHMENT_STORAGE_LOCAL_DIR`: raiz opcional dos anexos no provider local; por padrão usa `BIAWS_ISSUE_DIR`. Caminhos relativos partem da raiz de `biaws`
 
 ## Storage de anexos
 
@@ -108,7 +108,7 @@ Carregar a home e seu catálogo de widgets:
 
 ```bash
 curl http://127.0.0.1:3100/api/home \
-  -H "Authorization: Bearer $ISSUE_API_KEY" \
+  -H "Authorization: Bearer $BIAWS_API_KEY" \
   -H "X-Biaws-Workspace-Id: $BIAWS_WORKSPACE_ID"
 ```
 
@@ -116,7 +116,7 @@ Atualizar somente os widgets de monitoramento da home:
 
 ```bash
 curl http://127.0.0.1:3100/api/home/monitoring \
-  -H "Authorization: Bearer $ISSUE_API_KEY" \
+  -H "Authorization: Bearer $BIAWS_API_KEY" \
   -H "X-Biaws-Workspace-Id: $BIAWS_WORKSPACE_ID"
 ```
 
@@ -130,7 +130,7 @@ Receber um sinal de monitoramento de runtime:
 
 ```bash
 curl -X POST http://127.0.0.1:3100/api/monitoring/runtimes/<runtime-uuid-ou-caminho>/signals \
-  -H "Authorization: Bearer $ISSUE_API_KEY" \
+  -H "Authorization: Bearer $BIAWS_API_KEY" \
   -H "X-Biaws-Workspace-Id: $BIAWS_WORKSPACE_ID" \
   -H 'Content-Type: application/json' \
   -d '{"signalId":"probe:42","status":"healthy","source":"probe-http"}'
@@ -167,7 +167,7 @@ curl -X POST http://127.0.0.1:3100/api/issues \
 
 Se `id` não for informado, a API gera um ID sintético no formato `YYYY-MM-DD-999`.
 
-Analisar um EML sem gravar no MongoDB ou no `ISSUE_DIR`:
+Analisar um EML sem gravar no MongoDB ou no `BIAWS_ISSUE_DIR`:
 
 ```bash
 curl -X POST 'http://127.0.0.1:3100/api/issues/imports/eml?dryRun=true' \
@@ -194,7 +194,7 @@ legados de `INC`, `REQ`, `erro` e `incidente`.
 
 A API deduplica IDs sintéticos por data e assunto, deduplica comentários por
 hash e reabre uma issue existente quando o EML a atualiza. Na importação
-efetiva, `ISSUE_DIR` é obrigatório para gravar anexos e atualizar o espelho
+efetiva, `BIAWS_ISSUE_DIR` é obrigatório para gravar anexos e atualizar o espelho
 local.
 
 As regras de sanitização são consultadas e atualizadas por
@@ -271,7 +271,7 @@ DELETE /api/knowledge/documents/:id/attachments/:attachmentId
 PATCH /api/knowledge/documents/:id/attachments/:attachmentId/tags
 ```
 
-Cada domínio usa sua própria raiz (`ISSUE_DIR`, `REQUEST_DIR` ou `DOCUMENT_DIR`)
+Cada domínio usa sua própria raiz (`BIAWS_ISSUE_DIR`, `REQUEST_DIR` ou `DOCUMENT_DIR`)
 e o mesmo layout mensal `YYYY-MM/<id>/attachments/<arquivo>`.
 
 ## Documentos de conhecimento

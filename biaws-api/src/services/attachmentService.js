@@ -19,7 +19,7 @@ import { createAttachmentStorage } from "../storage/attachmentStorage.js";
 const ENTITY_CONFIG = {
   issues: {
     collection: COLLECTION_NAMES.ISSUES,
-    directoryEnv: "ISSUE_DIR",
+    directoryEnv: "BIAWS_ISSUE_DIR",
     filter: (id) => ({ id }),
     read: (id, query) => getIssue(id, query),
     resultKey: "issue",

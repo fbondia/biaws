@@ -126,8 +126,8 @@ No servidor, crie somente a instância. Não configure Codex ou Claude Code nele
 ```
 
 Em cada máquina de desenvolvedor, mantenha uma cópia local do repositório e um
-arquivo de ambiente privado com `ISSUE_API_URL=https://ci.exemplo.com/api` e
-`ISSUE_API_KEY=<chave individual>`. Em seguida execute:
+arquivo de ambiente privado com `BIAWS_API_URL=https://ci.exemplo.com/api` e
+`BIAWS_API_KEY=<chave individual>`. Em seguida execute:
 
 ```bash
 chmod 600 ~/.config/biaws/default.env

@@ -45,12 +45,10 @@ Normalize valores BSON antes de responder ao cliente.
 - ferramentas MCP usam `snake_case` com domínio primeiro, como `issues_search`;
 - eventos de log usam `snake_case`, como `http_request_failed`;
 - comandos CLI usam palavras minúsculas e hífen em opções longas;
-- variáveis de ambiente do produto usam `BIAWS_` ou o prefixo legado
-  explicitamente documentado `ISSUE_`.
+- variáveis de ambiente do produto usam exclusivamente o prefixo `BIAWS_`.
 
-Evite criar um terceiro nome para o mesmo conceito. Se o contrato legado e a
-marca atual divergirem, documente a compatibilidade em vez de fazer uma troca
-parcial.
+Evite criar um segundo nome para o mesmo conceito ou introduzir aliases de
+compatibilidade sem uma necessidade operacional explícita.
 
 ## Documentação
 

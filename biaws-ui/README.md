@@ -25,7 +25,7 @@ Por padrão a UI roda em `http://127.0.0.1:4400` e usa proxy para `http://127.0.
 Se precisar apontar para outra API:
 
 ```bash
-VITE_ISSUE_API_URL=http://127.0.0.1:3100 npm run dev
+VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
 ```
 
 ## Recursos

@@ -25,20 +25,20 @@ test("explicit instance env overrides repository defaults", async () => {
   const instanceEnv = path.join(root, "instances", "client-a", ".env");
   await mkdir(tool, { recursive: true });
   await mkdir(path.dirname(instanceEnv), { recursive: true });
-  await writeFile(path.join(root, ".env"), "ISSUE_API_URL=http://root:3100\n");
-  await writeFile(instanceEnv, "ISSUE_API_URL=http://client-a:3101\n");
-  const previousUrl = process.env.ISSUE_API_URL;
+  await writeFile(path.join(root, ".env"), "BIAWS_API_URL=http://root:3100\n");
+  await writeFile(instanceEnv, "BIAWS_API_URL=http://client-a:3101\n");
+  const previousUrl = process.env.BIAWS_API_URL;
   const previousEnvFile = process.env.BIAWS_ENV_FILE;
-  delete process.env.ISSUE_API_URL;
+  delete process.env.BIAWS_API_URL;
   process.env.BIAWS_ENV_FILE = instanceEnv;
 
   try {
     const result = loadEnv(tool);
-    assert.equal(process.env.ISSUE_API_URL, "http://client-a:3101");
+    assert.equal(process.env.BIAWS_API_URL, "http://client-a:3101");
     assert.equal(result.loaded.at(-1), instanceEnv);
   } finally {
-    if (previousUrl === undefined) delete process.env.ISSUE_API_URL;
-    else process.env.ISSUE_API_URL = previousUrl;
+    if (previousUrl === undefined) delete process.env.BIAWS_API_URL;
+    else process.env.BIAWS_API_URL = previousUrl;
     if (previousEnvFile === undefined) delete process.env.BIAWS_ENV_FILE;
     else process.env.BIAWS_ENV_FILE = previousEnvFile;
   }

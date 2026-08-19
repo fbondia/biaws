@@ -44,8 +44,8 @@ test("improvement tools expose the journey model", () => {
 
 test("knowledge searches preserve their supported application context", async () => {
   const originalFetch = globalThis.fetch;
-  const originalBaseUrl = process.env.ISSUE_API_URL;
-  process.env.ISSUE_API_URL = "http://api.test";
+  const originalBaseUrl = process.env.BIAWS_API_URL;
+  process.env.BIAWS_API_URL = "http://api.test";
   const urls = [];
   globalThis.fetch = async (url) => {
     urls.push(String(url));
@@ -79,15 +79,15 @@ test("knowledge searches preserve their supported application context", async ()
     assert.equal(documentQuery.get("componentId"), filters.componentId);
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;
-    else process.env.ISSUE_API_URL = originalBaseUrl;
+    if (originalBaseUrl === undefined) delete process.env.BIAWS_API_URL;
+    else process.env.BIAWS_API_URL = originalBaseUrl;
   }
 });
 
 test("knowledge creation serializes validated application context", async () => {
   const originalFetch = globalThis.fetch;
-  const originalBaseUrl = process.env.ISSUE_API_URL;
-  process.env.ISSUE_API_URL = "http://api.test";
+  const originalBaseUrl = process.env.BIAWS_API_URL;
+  process.env.BIAWS_API_URL = "http://api.test";
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), options });
@@ -161,8 +161,8 @@ test("knowledge creation serializes validated application context", async () => 
     );
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;
-    else process.env.ISSUE_API_URL = originalBaseUrl;
+    if (originalBaseUrl === undefined) delete process.env.BIAWS_API_URL;
+    else process.env.BIAWS_API_URL = originalBaseUrl;
   }
 });
 

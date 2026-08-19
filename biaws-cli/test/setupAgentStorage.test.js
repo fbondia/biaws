@@ -151,14 +151,14 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
     configuredEnv,
     new RegExp(`^BIAWS_MONGO_DATA_PATH=${canonicalStorage}/mongo$`, "mu"),
   );
-  assert.match(configuredEnv, /^ISSUE_API_RATE_LIMIT_MAX_REQUESTS=450$/mu);
-  assert.match(configuredEnv, /^ISSUE_API_RATE_LIMIT_WINDOW_SECONDS=90$/mu);
+  assert.match(configuredEnv, /^BIAWS_API_RATE_LIMIT_MAX_REQUESTS=450$/mu);
+  assert.match(configuredEnv, /^BIAWS_API_RATE_LIMIT_WINDOW_SECONDS=90$/mu);
   assert.match(configuredEnv, /^BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS=80$/mu);
   assert.match(configuredEnv, /^BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS=20$/mu);
-  assert.match(configuredEnv, /^ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS=2400$/mu);
+  assert.match(configuredEnv, /^BIAWS_API_KEY_RATE_LIMIT_MAX_REQUESTS=2400$/mu);
   assert.match(
     configuredEnv,
-    /^ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS=7200$/mu,
+    /^BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS=7200$/mu,
   );
   assert.match(
     configuredEnv,
@@ -318,8 +318,8 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
     path.join(otherInstance, ".env"),
     otherEnv
       .replace(/^MONGO_PORT=.*$/mu, "MONGO_PORT=27018")
-      .replace(/^ISSUE_API_PORT=.*$/mu, "ISSUE_API_PORT=3101")
-      .replace(/^ISSUE_UI_PORT=.*$/mu, "ISSUE_UI_PORT=4401"),
+      .replace(/^BIAWS_API_PORT=.*$/mu, "BIAWS_API_PORT=3101")
+      .replace(/^BIAWS_UI_PORT=.*$/mu, "BIAWS_UI_PORT=4401"),
   );
   const conflictingPort = runSetup({
     bin,

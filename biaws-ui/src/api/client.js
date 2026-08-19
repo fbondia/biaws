@@ -1,7 +1,7 @@
 import { defaultMessagesService } from "../infrastructure/messages/runtime.js";
 import { defaultLogger } from "../infrastructure/logging/runtime.js";
 
-const API_BASE_URL = (import.meta.env?.VITE_ISSUE_API_URL || "").replace(
+const API_BASE_URL = (import.meta.env?.VITE_BIAWS_API_URL || "").replace(
   /\/$/u,
   "",
 );

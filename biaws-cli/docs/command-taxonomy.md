@@ -61,9 +61,8 @@ flags > variáveis de ambiente > configuração da pasta > perfil global > defau
 ```
 
 As variáveis canônicas são `BIAWS_API_URL`, `BIAWS_API_KEY` e
-`BIAWS_WORKSPACE_ID`. Os nomes `ISSUE_*` permanecem aceitos como variáveis de
-ambiente internas durante a transição do backend, mas não representam comandos
-antigos do CLI.
+`BIAWS_WORKSPACE_ID`. Variáveis com o prefixo temporário anterior não são
+aceitas como aliases.
 
 ## Convenções
 

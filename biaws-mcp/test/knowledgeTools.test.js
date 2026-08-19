@@ -49,8 +49,8 @@ test("document tools expose one bounded discriminated knowledge API", () => {
 
 test("knowledge context loader fetches current unified documents", async () => {
   const originalFetch = globalThis.fetch;
-  const originalBaseUrl = process.env.ISSUE_API_URL;
-  process.env.ISSUE_API_URL = "http://api.test";
+  const originalBaseUrl = process.env.BIAWS_API_URL;
+  process.env.BIAWS_API_URL = "http://api.test";
   const calls = [];
   globalThis.fetch = async (url) => {
     const path = new URL(String(url)).pathname;
@@ -87,7 +87,7 @@ test("knowledge context loader fetches current unified documents", async () => {
     );
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalBaseUrl === undefined) delete process.env.ISSUE_API_URL;
-    else process.env.ISSUE_API_URL = originalBaseUrl;
+    if (originalBaseUrl === undefined) delete process.env.BIAWS_API_URL;
+    else process.env.BIAWS_API_URL = originalBaseUrl;
   }
 });

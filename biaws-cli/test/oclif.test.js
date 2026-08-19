@@ -248,7 +248,7 @@ test("comando remoto orienta a configurar credencial", () => {
       ...process.env,
       BIAWS_CONFIG_HOME: "/private/tmp/biaws-cli-test-no-auth",
       BIAWS_API_KEY: undefined,
-      ISSUE_API_KEY: undefined,
+      BIAWS_API_KEY: undefined,
     },
   });
   assert.equal(result.status, 2);

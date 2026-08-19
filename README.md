@@ -292,8 +292,8 @@ o MongoDB. Em cada máquina cliente, crie um arquivo privado com uma chave
 individual:
 
 ```dotenv
-ISSUE_API_URL=https://biaws.exemplo.com/api
-ISSUE_API_KEY=biaws_chave_individual
+BIAWS_API_URL=https://biaws.exemplo.com/api
+BIAWS_API_KEY=biaws_chave_individual
 ```
 
 Então configure o projeto consumidor:
@@ -476,8 +476,8 @@ O bootstrap preenche URL e chave no `.env` da instância. Para uma configuraçã
 manual do CLI, crie uma chave na área da conta e defina:
 
 ```bash
-export ISSUE_API_URL=http://127.0.0.1:3100
-export ISSUE_API_KEY=biaws_sua_chave
+export BIAWS_API_URL=http://127.0.0.1:3100
+export BIAWS_API_KEY=biaws_sua_chave
 export BIAWS_WORKSPACE_ID=id-do-workspace
 ```
 

@@ -45,10 +45,10 @@ async function fixture() {
     path.join(instancesDirectory, "alpha", ".env"),
     [
       "MONGO_PORT=27017",
-      "ISSUE_API_PORT=3100",
-      "ISSUE_UI_PORT=4400",
+      "BIAWS_API_PORT=3100",
+      "BIAWS_UI_PORT=4400",
       "BIAWS_PUBLIC_URL=https://alpha.example.test",
-      "ISSUE_API_KEY=must-not-leak",
+      "BIAWS_API_KEY=must-not-leak",
     ].join("\n"),
   );
   return {

@@ -16,7 +16,7 @@ function readConfiguredIssueDir(options) {
   const explicitDir = String(readOption(options, "issue-dir") || "").trim();
   if (explicitDir) return path.resolve(explicitDir);
 
-  const envDir = String(process.env.ISSUE_DIR || "").trim();
+  const envDir = String(process.env.BIAWS_ISSUE_DIR || "").trim();
   if (!envDir) return "";
 
   return path.isAbsolute(envDir) ? envDir : path.resolve(ISSUES_ROOT, envDir);
@@ -26,7 +26,7 @@ export function getIssueBaseDir(options) {
   const baseDir = readConfiguredIssueDir(options);
   if (!baseDir) {
     throw new Error(
-      "Missing issue directory. Set ISSUE_DIR in biaws/.env or pass --issue-dir <path>.",
+      "Missing issue directory. Set BIAWS_ISSUE_DIR in biaws/.env or pass --issue-dir <path>.",
     );
   }
 

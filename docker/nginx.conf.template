@@ -1,7 +1,7 @@
 server {
   listen 80;
   server_name _;
-  client_max_body_size ${ISSUE_API_MAX_ATTACHMENT_BYTES};
+  client_max_body_size ${BIAWS_API_MAX_ATTACHMENT_BYTES};
 
   root /usr/share/nginx/html;
   index index.html;

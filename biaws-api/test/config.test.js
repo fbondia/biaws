@@ -6,16 +6,16 @@ import { getServerConfig } from "../src/config.js";
 const MANAGED_KEYS = [
   "NODE_ENV",
   "BETTER_AUTH_SECURE_COOKIES",
-  "ISSUE_API_LOG_HEALTH_REQUESTS",
-  "ISSUE_API_RATE_LIMIT_ENABLED",
-  "ISSUE_API_RATE_LIMIT_WINDOW_SECONDS",
-  "ISSUE_API_RATE_LIMIT_MAX_REQUESTS",
+  "BIAWS_API_LOG_HEALTH_REQUESTS",
+  "BIAWS_API_RATE_LIMIT_ENABLED",
+  "BIAWS_API_RATE_LIMIT_WINDOW_SECONDS",
+  "BIAWS_API_RATE_LIMIT_MAX_REQUESTS",
   "BETTER_AUTH_RATE_LIMIT_ENABLED",
   "BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS",
   "BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS",
-  "ISSUE_API_KEY_RATE_LIMIT_ENABLED",
-  "ISSUE_API_KEY_RATE_LIMIT_WINDOW_SECONDS",
-  "ISSUE_API_KEY_RATE_LIMIT_MAX_REQUESTS",
+  "BIAWS_API_KEY_RATE_LIMIT_ENABLED",
+  "BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS",
+  "BIAWS_API_KEY_RATE_LIMIT_MAX_REQUESTS",
   "BETTER_AUTH_TRUSTED_PROXIES",
   "BIAWS_SECRETS_DIR",
   "BIAWS_SECRET_FILES_PATH",
@@ -44,7 +44,7 @@ test("production defaults to secure cookies and quiet health checks", () => {
   try {
     process.env.NODE_ENV = "production";
     delete process.env.BETTER_AUTH_SECURE_COOKIES;
-    delete process.env.ISSUE_API_LOG_HEALTH_REQUESTS;
+    delete process.env.BIAWS_API_LOG_HEALTH_REQUESTS;
     for (const key of MANAGED_KEYS.filter((key) =>
       key.includes("RATE_LIMIT"),
     )) {
@@ -79,7 +79,7 @@ test("boolean settings accept explicit operational overrides", () => {
   try {
     process.env.NODE_ENV = "production";
     process.env.BETTER_AUTH_SECURE_COOKIES = "false";
-    process.env.ISSUE_API_LOG_HEALTH_REQUESTS = "yes";
+    process.env.BIAWS_API_LOG_HEALTH_REQUESTS = "yes";
 
     const config = getServerConfig();
     assert.equal(config.auth.secureCookies, false);
@@ -105,9 +105,9 @@ test("invalid boolean settings fail fast", () => {
 test("rate limit settings accept explicit overrides", () => {
   const restore = preserveEnvironment();
   try {
-    process.env.ISSUE_API_RATE_LIMIT_ENABLED = "false";
-    process.env.ISSUE_API_RATE_LIMIT_WINDOW_SECONDS = "30";
-    process.env.ISSUE_API_RATE_LIMIT_MAX_REQUESTS = "42";
+    process.env.BIAWS_API_RATE_LIMIT_ENABLED = "false";
+    process.env.BIAWS_API_RATE_LIMIT_WINDOW_SECONDS = "30";
+    process.env.BIAWS_API_RATE_LIMIT_MAX_REQUESTS = "42";
     process.env.BETTER_AUTH_TRUSTED_PROXIES = "10.0.0.0/8,127.0.0.1";
 
     const config = getServerConfig();

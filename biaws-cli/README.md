@@ -171,6 +171,7 @@ biaws admin instance list
 biaws admin instance status local
 biaws admin instance start local
 biaws admin instance stop local
+biaws admin instance update local
 biaws admin instance backup local
 ```
 

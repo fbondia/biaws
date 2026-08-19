@@ -18,10 +18,13 @@ import {
   composeArguments,
   executeSetup,
   getInstance,
+  getInstanceUpdateStatus,
   listInstances,
   removeArguments,
   restoreArguments,
   setupArguments,
+  updateInstance,
+  validateInstanceUpdate,
   validatePublicUrl,
   validateStoragePath,
   withPasswordFile,
@@ -33,6 +36,11 @@ async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "biaws-instance-"));
   const instancesDirectory = path.join(root, "instances");
   await mkdir(path.join(instancesDirectory, "alpha"), { recursive: true });
+  await mkdir(path.join(root, "biaws-cli"), { recursive: true });
+  await writeFile(
+    path.join(root, "biaws-cli", "package.json"),
+    JSON.stringify({ version: "1.2.0" }),
+  );
   await writeFile(
     path.join(instancesDirectory, "alpha", ".env"),
     [
@@ -180,6 +188,82 @@ test("argumentos Compose são determinísticos e injetáveis", async (t) => {
     composeArguments(instance, setup.context, "status").at(-1),
     "json",
   );
+  assert.deepEqual(
+    composeArguments(instance, setup.context, "update").slice(-4),
+    ["up", "-d", "--build", "--wait"],
+  );
+  assert.deepEqual(
+    composeArguments(instance, setup.context, "validate").slice(-2),
+    ["config", "--quiet"],
+  );
+});
+
+test("status de update compara a versão implantada com a release", async (t) => {
+  const setup = await fixture();
+  t.after(setup.cleanup);
+  const instance = await getInstance(setup.context, filesystem, "alpha");
+  assert.deepEqual(
+    await getInstanceUpdateStatus(instance, setup.context, filesystem),
+    {
+      instance: "alpha",
+      currentVersion: "unknown",
+      newVersion: "1.2.0",
+      updateRequired: true,
+    },
+  );
+  await writeFile(instance.envFile, "BIAWS_VERSION=1.2.0\n");
+  const current = await getInstance(setup.context, filesystem, "alpha");
+  assert.equal(
+    (await getInstanceUpdateStatus(current, setup.context, filesystem))
+      .updateRequired,
+    false,
+  );
+});
+
+test("update valida o Compose e grava a versão somente após o deploy", async (t) => {
+  const setup = await fixture();
+  t.after(setup.cleanup);
+  const instance = await getInstance(setup.context, filesystem, "alpha");
+  const invocations = [];
+  const runner = {
+    async run(command, args, options) {
+      invocations.push({ argv: [command, ...args], options });
+      return { processExitCode: 0, stdout: "", stderr: "" };
+    },
+  };
+  await validateInstanceUpdate(instance, setup.context, runner);
+  await updateInstance(instance, setup.context, filesystem, runner, "1.2.0", {
+    PATH: "/bin",
+  });
+  assert.deepEqual(
+    invocations.map((invocation) => invocation.argv.slice(-2)),
+    [
+      ["config", "--quiet"],
+      ["--build", "--wait"],
+    ],
+  );
+  assert.equal(invocations[1].options.env.BIAWS_VERSION, "1.2.0");
+  assert.match(
+    await readFile(instance.envFile, "utf8"),
+    /^BIAWS_VERSION=1\.2\.0$/mu,
+  );
+});
+
+test("update não altera a versão persistida quando o deploy falha", async (t) => {
+  const setup = await fixture();
+  t.after(setup.cleanup);
+  const instance = await getInstance(setup.context, filesystem, "alpha");
+  const before = await readFile(instance.envFile, "utf8");
+  const runner = {
+    async run() {
+      throw new Error("deploy failed");
+    },
+  };
+  await assert.rejects(
+    updateInstance(instance, setup.context, filesystem, runner, "1.2.0"),
+    /deploy failed/u,
+  );
+  assert.equal(await readFile(instance.envFile, "utf8"), before);
 });
 
 test("backup, restore e remoção constroem argv separado e seguro", async (t) => {

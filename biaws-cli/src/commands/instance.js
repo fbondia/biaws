@@ -8,6 +8,7 @@ export default class Instance extends LocalInstanceCommand {
   static examples = [
     "<%= config.bin %> instance setup",
     "<%= config.bin %> instance status",
+    "<%= config.bin %> instance update",
     "<%= config.bin %> instance backup",
   ];
 

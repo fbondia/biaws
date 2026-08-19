@@ -27,6 +27,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
+      BIAWS_VERSION: ${BIAWS_VERSION:-unknown}
       MONGO_URI: mongodb://mongo:27017/biaws
       MONGO_DB: ${MONGO_DB:-biaws}
       ISSUE_API_HOST: 0.0.0.0
@@ -58,6 +59,8 @@ services:
       ISSUE_API_LOG_HEALTH_REQUESTS: ${ISSUE_API_LOG_HEALTH_REQUESTS:-false}
     ports:
       - "127.0.0.1:${ISSUE_API_PORT:-3100}:3100"
+    labels:
+      org.opencontainers.image.version: ${BIAWS_VERSION:-unknown}
     volumes:
       - ${BIAWS_ISSUE_FILES_PATH:-issue-files}:/data/issues
       - ${BIAWS_REQUEST_FILES_PATH:-request-files}:/data/requests
@@ -143,6 +146,8 @@ services:
         condition: service_healthy
     environment:
       ISSUE_API_MAX_ATTACHMENT_BYTES: ${ISSUE_API_MAX_ATTACHMENT_BYTES:-52428800}
+    labels:
+      org.opencontainers.image.version: ${BIAWS_VERSION:-unknown}
     ports:
       - "${ISSUE_UI_PORT:-4400}:80"
     healthcheck:

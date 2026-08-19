@@ -618,6 +618,7 @@ fi
 validate_instance "${INSTANCE}"
 
 "${ROOT_DIR}/scripts/check-prerequisites.sh" --quiet
+PLATFORM_VERSION="$(node -p "require('${ROOT_DIR}/biaws-cli/package.json').version")"
 
 INSTANCE_DIR="${INSTANCES_DIR}/${INSTANCE}"
 ENV_FILE="${INSTANCE_DIR}/.env"
@@ -819,12 +820,15 @@ chmod 600 "${ENV_FILE}"
 write_instance_control_scripts
 
 if [[ "${SKIP_BOOTSTRAP}" != "1" ]]; then
-  BIAWS_ENV_FILE="${ENV_FILE}" \
+  BIAWS_VERSION="${PLATFORM_VERSION}" \
+    BIAWS_ENV_FILE="${ENV_FILE}" \
     BIAWS_INSTANCE="${INSTANCE}" \
     BIAWS_INSTANCES_DIR="${INSTANCES_DIR}" \
     "${ROOT_DIR}/scripts/bootstrap.sh" \
       --instance "${INSTANCE}" \
       --instances-dir "${INSTANCES_DIR}"
+  replace_env_value "${ENV_FILE}" "BIAWS_VERSION" "${PLATFORM_VERSION}"
+  chmod 600 "${ENV_FILE}"
 elif [[ "${DISABLE_RATE_LIMIT}" == "1" ||
   -n "${API_RATE_LIMIT_MAX}${API_RATE_LIMIT_WINDOW}${AUTH_RATE_LIMIT_MAX}${AUTH_RATE_LIMIT_WINDOW}${API_KEY_RATE_LIMIT_MAX}${API_KEY_RATE_LIMIT_WINDOW}" ]]; then
   echo "Aviso: rate limiting atualizado no .env; reinicie a API para aplicar a configuração." >&2

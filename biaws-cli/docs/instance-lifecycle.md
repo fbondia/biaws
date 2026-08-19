@@ -35,6 +35,46 @@ biaws admin instance stop local
 `status` invocam Docker Compose sem shell e com projeto, arquivo Compose e env
 da instância resolvidos explicitamente.
 
+## Atualização
+
+Depois de atualizar o checkout ou instalar uma nova release, reconstrua API,
+UI e os demais serviços com:
+
+```bash
+biaws admin instance update local
+```
+
+Antes de alterar a instância, consulte a versão efetivamente implantada e a
+versão disponível no checkout:
+
+```bash
+biaws admin instance update local --check
+biaws admin instance update local --check --json
+```
+
+O resultado informa `currentVersion`, `newVersion` e `updateRequired`.
+Instâncias criadas antes desse mecanismo começam com `currentVersion` igual a
+`unknown` e são consideradas pendentes. Se as versões forem iguais, o comando
+não cria backup nem reconstrói containers; use `--force` para repetir o deploy.
+
+Por padrão, o comando valida o arquivo Compose, solicita uma senha, cria um
+backup completo e então executa `up -d --build --wait`. Em automação, use um
+arquivo privado para a senha:
+
+```bash
+biaws admin instance update local --password-file /caminho/privado/senha
+```
+
+Se a política operacional já produz um backup externo verificável, a criação
+local pode ser dispensada explicitamente com `--skip-backup`. O update preserva
+o project name, o `.env`, os volumes e os bind mounts da instância. Ele não
+executa `git pull` nem troca a versão do checkout.
+
+A versão implantada só é registrada depois que `up -d --build --wait` termina
+com sucesso. Ela também é exposta pelo `/api/health` e pelos labels dos
+containers de API e UI. A versão nova é lida do `biaws-cli/package.json` da
+raiz selecionada por `--root`/`BIAWS_ROOT`.
+
 ## Smoke test Docker real
 
 Em um checkout descartável com Docker e OpenSSL disponíveis:

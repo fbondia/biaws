@@ -10,7 +10,7 @@ biaws
 │   ├── install
 │   ├── doctor
 │   ├── config
-│   ├── instance setup|list|show|status|start|stop|backup|restore|remove
+│   ├── instance setup|list|show|status|start|stop|update|backup|restore|remove
 │   └── monitoring build|validate|start|stop|status|logs|provision
 ├── config
 │   ├── init|login|show|set|unset|doctor

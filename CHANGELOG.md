@@ -27,6 +27,9 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- comando `biaws admin instance update`, com comparação entre versão implantada
+  e disponível, modo `--check`, backup seguro por padrão, validação do Compose
+  e reconstrução dos serviços sem trocar os storages;
 - bootstrap de identidade técnica exclusiva e de menor privilégio para o
   executor, credencial montada por arquivo, fontes de segredo por arquivo,
   hardening do container e smoke test do profile real no CI;

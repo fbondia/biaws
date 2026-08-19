@@ -107,6 +107,7 @@ export function createApp({ logger = apiLogger } = {}) {
     res.json({
       status: "ok",
       service: "biaws-api",
+      version: process.env.BIAWS_VERSION || "unknown",
       issueStorage: "ready",
     });
   });

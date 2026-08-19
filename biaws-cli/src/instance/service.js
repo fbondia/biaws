@@ -18,6 +18,8 @@ const STORAGE_FIELDS = Object.freeze({
   secretPath: "BIAWS_SECRET_FILES_PATH",
 });
 
+const UNKNOWN_VERSION = "unknown";
+
 function usageError(message, code, details) {
   throw new CliError(message, { code, details, exitCode: 2 });
 }
@@ -174,6 +176,50 @@ export async function getInstance(context, filesystem, name) {
     });
   }
   return instance;
+}
+
+function normalizeVersion(value, label) {
+  const version = String(value || "").trim();
+  if (
+    !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.test(version)
+  ) {
+    throw new CliError(`${label} inválida: ${version || "ausente"}.`, {
+      code: "INVALID_RELEASE_VERSION",
+    });
+  }
+  return version;
+}
+
+export async function getInstanceUpdateStatus(instance, context, filesystem) {
+  const manifestPath = path.join(
+    context.repositoryRoot,
+    "biaws-cli",
+    "package.json",
+  );
+  let manifest;
+  try {
+    manifest = JSON.parse(await filesystem.readFile(manifestPath, "utf8"));
+  } catch (error) {
+    throw new CliError(
+      `Não foi possível ler a versão da release em ${manifestPath}.`,
+      {
+        code: "RELEASE_VERSION_READ_FAILED",
+        cause: error,
+      },
+    );
+  }
+  const newVersion = normalizeVersion(manifest.version, "Versão da release");
+  const installed = String(instance.env.BIAWS_VERSION || "").trim();
+  const currentVersion =
+    installed && installed !== UNKNOWN_VERSION
+      ? normalizeVersion(installed, "Versão instalada")
+      : UNKNOWN_VERSION;
+  return Object.freeze({
+    instance: instance.name,
+    currentVersion,
+    newVersion,
+    updateRequired: currentVersion !== newVersion,
+  });
 }
 
 function resolveStorage(values, existing) {
@@ -396,6 +442,8 @@ export function composeArguments(instance, context, operation) {
     `biaws-${instance.name}`,
   ];
   if (operation === "start") return [...base, "up", "-d", "--wait"];
+  if (operation === "update") return [...base, "up", "-d", "--build", "--wait"];
+  if (operation === "validate") return [...base, "config", "--quiet"];
   if (operation === "stop") return [...base, "stop"];
   return [...base, "ps", "--format", "json"];
 }
@@ -405,13 +453,47 @@ export async function operateInstance(
   context,
   processRunner,
   operation,
+  options = {},
 ) {
   const result = await processRunner.run(
     "docker",
     composeArguments(instance, context, operation),
-    { cwd: context.repositoryRoot, silent: true },
+    {
+      cwd: context.repositoryRoot,
+      env: options.environment,
+      silent: true,
+    },
   );
   return { instance: instance.name, operation, output: result.stdout.trim() };
+}
+
+export async function validateInstanceUpdate(instance, context, processRunner) {
+  return operateInstance(instance, context, processRunner, "validate");
+}
+
+export async function updateInstance(
+  instance,
+  context,
+  filesystem,
+  processRunner,
+  version,
+  environment = {},
+) {
+  const normalizedVersion = normalizeVersion(version, "Nova versão");
+  const result = await operateInstance(
+    instance,
+    context,
+    processRunner,
+    "update",
+    { environment: { ...environment, BIAWS_VERSION: normalizedVersion } },
+  );
+  const envContents = await filesystem.readFile(instance.envFile, "utf8");
+  const versionLine = `BIAWS_VERSION=${normalizedVersion}`;
+  const nextEnv = /^BIAWS_VERSION=.*$/mu.test(envContents)
+    ? envContents.replace(/^BIAWS_VERSION=.*$/gmu, versionLine)
+    : `${envContents.replace(/\s*$/u, "")}\n${versionLine}\n`;
+  await filesystem.writeFile(instance.envFile, nextEnv, { mode: 0o600 });
+  return result;
 }
 
 export function validateArchivePath(value) {

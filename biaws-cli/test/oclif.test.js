@@ -103,12 +103,24 @@ test("os níveis organizam seus comandos", () => {
 test("instâncias e perfis possuem ajuda contextual", () => {
   const instances = run("admin", "instance", "--help");
   assert.equal(instances.status, 0, instances.stderr);
-  for (const action of ["setup", "list", "show", "status", "start", "stop"])
+  for (const action of [
+    "setup",
+    "list",
+    "show",
+    "status",
+    "start",
+    "stop",
+    "update",
+  ])
     assert.match(instances.stdout, new RegExp(`admin instance ${action}`));
   const profiles = run("config", "profiles", "--help");
   assert.equal(profiles.status, 0, profiles.stderr);
   assert.match(profiles.stdout, /config profiles list/u);
   assert.match(profiles.stdout, /config profiles use/u);
+  const update = run("admin", "instance", "update", "--help");
+  assert.equal(update.status, 0, update.stderr);
+  assert.match(update.stdout, /--check/u);
+  assert.match(update.stdout, /--force/u);
 });
 
 test("monitoramento administrativo expõe o ciclo operacional", () => {

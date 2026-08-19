@@ -133,7 +133,7 @@ test(
       assert.equal(
         (await request("/api/catalog/workspaces", { cookie: readerCookie }))
           .status,
-        403,
+        200,
       );
       assert.equal(
         (

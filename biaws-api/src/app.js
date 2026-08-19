@@ -142,7 +142,7 @@ export function createApp({ logger = apiLogger } = {}) {
   app.use("/api/monitoring", ...protectedRoute, monitoringRouter);
   app.use(
     "/api/catalog",
-    ...protectedRoute,
+    ...platformRoute,
     catalogRouter,
     catalogTopologyRouter,
   );

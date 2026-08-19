@@ -6,6 +6,7 @@ import {
   requireAllPermissions,
   requireWorkspaceScope,
 } from "../auth/authorizationMiddleware.js";
+import { requireWorkspaceContext } from "../auth/authenticationMiddleware.js";
 import { recordAuditEvent } from "../repositories/auditRepository.js";
 import { assertApplicationCanArchive } from "../repositories/deploymentsRepository.js";
 import {
@@ -39,7 +40,6 @@ function sendNotFound(res, code, message) {
 
 catalogRouter.get(
   "/workspaces",
-  requireAllPermissions("workspaces.read"),
   asyncHandler(async (req, res) => {
     res.json(
       await listWorkspaces({
@@ -48,6 +48,10 @@ catalogRouter.get(
     );
   }),
 );
+
+// Workspace discovery must work before a multi-workspace actor has selected
+// one. Every route below this point operates inside a resolved workspace.
+catalogRouter.use(requireWorkspaceContext);
 
 catalogRouter.get(
   "/workspaces/:workspaceId",

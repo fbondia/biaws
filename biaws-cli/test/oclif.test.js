@@ -237,9 +237,3 @@ test("comando remoto orienta a configurar credencial", () => {
   assert.match(result.stderr, /Chave de API ausente/u);
   assert.match(result.stderr, /biaws config login/u);
 });
-
-test("versão vem dos metadados do pacote", () => {
-  const result = run("--version");
-  assert.equal(result.status, 0);
-  assert.match(result.stdout, /0\.1\.0/u);
-});

@@ -48,31 +48,30 @@ export function writeEnvelope(resource, operation, result) {
   };
 }
 
+function exitCodeForStatus(status) {
+  if (status === 404) return 4;
+  if (status === 403) return 3;
+  if (status === 401 || status === 422 || status === 409) return 2;
+  return 1;
+}
+
+function writeErrorCodeForStatus(status) {
+  const codes = {
+    403: "PERMISSION_DENIED",
+    404: "RESOURCE_NOT_FOUND",
+    409: "WRITE_CONFLICT",
+    422: "INVALID_TRANSITION",
+  };
+  return codes[status] || "API_WRITE_FAILED";
+}
+
 export function asWriteCliError(error, resource) {
   if (error instanceof CliError) return error;
   const status = error?.statusCode;
-  const exitCode =
-    status === 404
-      ? 4
-      : status === 403
-        ? 3
-        : status === 401 || status === 422 || status === 409
-          ? 2
-          : 1;
-  const fallback =
-    status === 404
-      ? "RESOURCE_NOT_FOUND"
-      : status === 403
-        ? "PERMISSION_DENIED"
-        : status === 409
-          ? "WRITE_CONFLICT"
-          : status === 422
-            ? "INVALID_TRANSITION"
-            : "API_WRITE_FAILED";
   return new CliError(`${resource}: ${error.message}`, {
     cause: error,
-    code: error?.code || fallback,
-    exitCode,
+    code: error?.code || writeErrorCodeForStatus(status),
+    exitCode: exitCodeForStatus(status),
   });
 }
 

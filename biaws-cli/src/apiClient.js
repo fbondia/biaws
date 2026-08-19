@@ -2,6 +2,23 @@ function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$/u, "");
 }
 
+function errorCodeForStatus(status) {
+  const codes = {
+    401: "UNAUTHENTICATED",
+    403: "FORBIDDEN",
+    404: "NOT_FOUND",
+    409: "CONFLICT",
+  };
+  return codes[status] || "ISSUE_API_ERROR";
+}
+
+function apiError(response, data) {
+  const error = new Error(data?.error?.message || `HTTP ${response.status}`);
+  error.statusCode = response.status;
+  error.code = data?.error?.code || errorCodeForStatus(response.status);
+  return error;
+}
+
 export function createApiClient(baseUrl, apiKey, workspaceId = "") {
   const apiRoot = `${trimTrailingSlash(baseUrl)}/api`;
   const root = `${apiRoot}/skills`;
@@ -18,24 +35,7 @@ export function createApiClient(baseUrl, apiKey, workspaceId = "") {
       },
     });
     const data = await response.json().catch(() => null);
-    if (!response.ok) {
-      const error = new Error(
-        data?.error?.message || `HTTP ${response.status}`,
-      );
-      error.statusCode = response.status;
-      error.code =
-        data?.error?.code ||
-        (response.status === 401
-          ? "UNAUTHENTICATED"
-          : response.status === 403
-            ? "FORBIDDEN"
-            : response.status === 404
-              ? "NOT_FOUND"
-              : response.status === 409
-                ? "CONFLICT"
-                : "ISSUE_API_ERROR");
-      throw error;
-    }
+    if (!response.ok) throw apiError(response, data);
     return data;
   }
 

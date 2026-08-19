@@ -157,6 +157,51 @@ async function validateAnswer(question, value, values) {
   });
 }
 
+async function resolveDefault(question, values) {
+  if (!Object.hasOwn(question, "default")) {
+    return { hasDefault: false, value: undefined };
+  }
+  const value =
+    typeof question.default === "function"
+      ? await question.default(Object.freeze({ ...values }))
+      : question.default;
+  return { hasDefault: true, value };
+}
+
+async function askQuestion(adapter, question, defaultValue, input, values) {
+  const prompt = defaultValue.hasDefault
+    ? { ...question, default: defaultValue.value }
+    : question;
+  try {
+    return await adapter.ask(prompt, {
+      signal: input.signal,
+      values: Object.freeze({ ...values }),
+    });
+  } catch (error) {
+    if (error instanceof PromptCancelledError) throw error;
+    if (error?.name === "AbortError") throw new PromptCancelledError();
+    throw error;
+  }
+}
+
+async function resolveQuestion(question, values, input, options, adapter) {
+  if (!(await isApplicable(question, values))) return { skipped: true };
+
+  let value = sourceValue(question, input.flags || {}, input.environment || {});
+  const defaultValue = await resolveDefault(question, values);
+  if (!hasValue(value) && options.defaults && defaultValue.hasDefault) {
+    value = defaultValue.value;
+  }
+  if (!hasValue(value) && options.interactive) {
+    value = await askQuestion(adapter, question, defaultValue, input, values);
+  }
+  if (!hasValue(value)) {
+    return { missing: question.required !== false };
+  }
+  await validateAnswer(question, value, values);
+  return { name: question.name, value };
+}
+
 export async function collectWizardValues(definition, input = {}) {
   const terminal = input.terminal || {};
   const options = normalizeWizardOptions(input.options, terminal);
@@ -170,42 +215,16 @@ export async function collectWizardValues(definition, input = {}) {
   const questions = definition.questions || [];
 
   for (const question of questions) {
-    if (!(await isApplicable(question, values))) continue;
-    let value = sourceValue(
+    const resolved = await resolveQuestion(
       question,
-      input.flags || {},
-      input.environment || {},
+      values,
+      input,
+      options,
+      adapter,
     );
-    const hasDefault = Object.hasOwn(question, "default");
-    const defaultValue = hasDefault
-      ? typeof question.default === "function"
-        ? await question.default(Object.freeze({ ...values }))
-        : question.default
-      : undefined;
-    if (!hasValue(value) && options.defaults && hasDefault) {
-      value = defaultValue;
-    }
-    if (!hasValue(value) && options.interactive) {
-      try {
-        value = await adapter.ask(
-          hasDefault ? { ...question, default: defaultValue } : question,
-          {
-            signal: input.signal,
-            values: Object.freeze({ ...values }),
-          },
-        );
-      } catch (error) {
-        if (error instanceof PromptCancelledError) throw error;
-        if (error?.name === "AbortError") throw new PromptCancelledError();
-        throw error;
-      }
-    }
-    if (!hasValue(value)) {
-      if (question.required !== false) missing.push(question);
-      continue;
-    }
-    await validateAnswer(question, value, values);
-    values[question.name] = value;
+    if (resolved.skipped) continue;
+    if (resolved.missing) missing.push(question);
+    if (resolved.name) values[resolved.name] = resolved.value;
   }
 
   if (missing.length > 0) throw new MissingWizardInputError(missing);

@@ -29,7 +29,7 @@ const ENTITY_CONFIG = {
   },
   documents: {
     collection: COLLECTION_NAMES.DOCUMENTS,
-    directoryEnv: "DOCUMENT_DIR",
+    directoryEnv: "BIAWS_DOCUMENT_DIR",
     fallbackDirectoryEnv: "PROCEDURE_DIR",
     filter: (id) => ({ id }),
     read: (id, query) => getDocument(id, query),
@@ -37,7 +37,7 @@ const ENTITY_CONFIG = {
   },
   requests: {
     collection: COLLECTION_NAMES.REQUESTS,
-    directoryEnv: "REQUEST_DIR",
+    directoryEnv: "BIAWS_REQUEST_DIR",
     filter(id) {
       if (!ObjectId.isValid(id))
         throw createHttpError(422, `Invalid request id: ${id}`);

@@ -271,7 +271,7 @@ DELETE /api/knowledge/documents/:id/attachments/:attachmentId
 PATCH /api/knowledge/documents/:id/attachments/:attachmentId/tags
 ```
 
-Cada domínio usa sua própria raiz (`BIAWS_ISSUE_DIR`, `REQUEST_DIR` ou `DOCUMENT_DIR`)
+Cada domínio usa sua própria raiz (`BIAWS_ISSUE_DIR`, `BIAWS_REQUEST_DIR` ou `BIAWS_DOCUMENT_DIR`)
 e o mesmo layout mensal `YYYY-MM/<id>/attachments/<arquivo>`.
 
 ## Documentos de conhecimento

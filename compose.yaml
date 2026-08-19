@@ -44,8 +44,8 @@ services:
       BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS: ${BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS:-3600}
       BIAWS_API_KEY_RATE_LIMIT_MAX_REQUESTS: ${BIAWS_API_KEY_RATE_LIMIT_MAX_REQUESTS:-1000}
       BIAWS_ISSUE_DIR: /data/issues
-      REQUEST_DIR: /data/requests
-      DOCUMENT_DIR: /data/documents
+      BIAWS_REQUEST_DIR: /data/requests
+      BIAWS_DOCUMENT_DIR: /data/documents
       BIAWS_SECRETS_PROVIDER: local
       BIAWS_SECRETS_DIR: /data/secrets
       BIAWS_SECRETS_KEY_FILE: /run/secrets/biaws-master-key

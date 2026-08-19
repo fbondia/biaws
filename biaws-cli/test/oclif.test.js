@@ -42,6 +42,12 @@ test("help explícito explica o produto, os níveis e o projeto", () => {
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Bondia Workspaces \(BIAWS\)/u);
   assert.match(result.stdout, /NÍVEIS/u);
+  assert.match(result.stdout, /NÍVEIS[\s\S]*BIAWS CLI[\s\S]*PRIMEIROS PASSOS/u);
+  assert.match(result.stdout, /Raiz da instalação:/u);
+  assert.match(result.stdout, /Diretório de instâncias:/u);
+  assert.match(result.stdout, /Diretório do CLI:/u);
+  assert.match(result.stdout, /BIAWS_ROOT/u);
+  assert.match(result.stdout, /BIAWS_INSTANCES_DIR/u);
   assert.match(result.stdout, /biaws config init/u);
   assert.match(result.stdout, /https:\/\/github\.com\/fbondia\/biaws/u);
 });

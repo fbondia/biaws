@@ -87,10 +87,11 @@ export default class InstanceRestore extends LocalInstanceCommand {
           { secrets: password ? [password] : [], silent: flags.json },
         ),
     );
-    this.output({ json: flags.json }).result(
-      flags.json
-        ? { instance: instance.name, operation: "restore", output }
-        : output,
-    );
+    if (flags.json)
+      this.output({ json: true }).result({
+        instance: instance.name,
+        operation: "restore",
+        output,
+      });
   }
 }

@@ -3,13 +3,32 @@ import { spawn as nodeSpawn } from "node:child_process";
 import { ProcessExecutionError } from "./errors.js";
 import { redactText } from "./redaction.js";
 
-function attachOutput(stream, target, chunks, shouldBuffer) {
-  if (!stream) return;
+function attachOutput(stream, target, chunks, options = {}) {
+  if (!stream) return () => {};
+  const secrets = options.secrets || [];
+  let pending = "";
+
+  const writeSanitizedLines = (value) => {
+    pending += value;
+    const lastNewline = pending.lastIndexOf("\n");
+    if (lastNewline < 0) return;
+    target?.write(redactText(pending.slice(0, lastNewline + 1), secrets));
+    pending = pending.slice(lastNewline + 1);
+  };
+
   stream.on("data", (chunk) => {
     const value = String(chunk);
     chunks.push(value);
-    if (!shouldBuffer && target) target.write(value);
+    if (options.silent || !target) return;
+    if (secrets.length) writeSanitizedLines(value);
+    else target.write(value);
   });
+
+  return () => {
+    if (!options.silent && target && pending)
+      target.write(redactText(pending, secrets));
+    pending = "";
+  };
 }
 
 export class ProcessRunner {
@@ -25,8 +44,6 @@ export class ProcessRunner {
       throw new TypeError("ProcessRunner exige comando e array de argumentos.");
     }
     const secrets = options.secrets || [];
-    const shouldBuffer =
-      Boolean(options.silent) || secrets.some((secret) => String(secret || ""));
     const stdoutChunks = [];
     const stderrChunks = [];
     let child;
@@ -47,8 +64,14 @@ export class ProcessRunner {
         { cause, command: redactText(command, secrets) },
       );
     }
-    attachOutput(child.stdout, this.stdout, stdoutChunks, shouldBuffer);
-    attachOutput(child.stderr, this.stderr, stderrChunks, shouldBuffer);
+    const flushStdout = attachOutput(child.stdout, this.stdout, stdoutChunks, {
+      secrets,
+      silent: Boolean(options.silent),
+    });
+    const flushStderr = attachOutput(child.stderr, this.stderr, stderrChunks, {
+      secrets,
+      silent: Boolean(options.silent),
+    });
     if (options.input !== undefined) child.stdin.end(options.input);
 
     return new Promise((resolve, reject) => {
@@ -73,12 +96,6 @@ export class ProcessRunner {
         stdout: redactText(stdoutChunks.join(""), secrets),
         stderr: redactText(stderrChunks.join(""), secrets),
       });
-      const flush = (result) => {
-        if (!shouldBuffer || options.silent) return;
-        if (result.stdout && this.stdout) this.stdout.write(result.stdout);
-        if (result.stderr && this.stderr) this.stderr.write(result.stderr);
-      };
-
       child.once("error", (cause) => {
         cleanup();
         reject(
@@ -90,8 +107,9 @@ export class ProcessRunner {
       });
       child.once("close", (processExitCode, signal) => {
         cleanup();
+        flushStdout();
+        flushStderr();
         const result = { ...output(), processExitCode, signal: signal || null };
-        flush(result);
         if (processExitCode === 0 && !signal) {
           resolve(result);
           return;

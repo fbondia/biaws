@@ -55,6 +55,27 @@ test("ProcessRunner uses separated arguments and redacts streams and errors", as
   assert.equal(writtenError, "failed [REDACTED]");
 });
 
+test("ProcessRunner streams complete sanitized lines before process completion", async () => {
+  const child = fakeChild();
+  const stdout = new PassThrough();
+  let renderedOut = "";
+  stdout.on("data", (chunk) => (renderedOut += chunk));
+  const runner = new ProcessRunner({
+    spawn: () => child,
+    signalSource: new EventEmitter(),
+    stdout,
+    stderr: new PassThrough(),
+  });
+  const execution = runner.run("backup", [], { secrets: ["private-key"] });
+
+  child.stdout.write("Gerando dump com private-key\nCompactando");
+  assert.equal(renderedOut, "Gerando dump com [REDACTED]\n");
+
+  child.emit("close", 0, null);
+  await execution;
+  assert.equal(renderedOut, "Gerando dump com [REDACTED]\nCompactando");
+});
+
 test("ProcessRunner forwards parent signals and reports child signal", async () => {
   const child = fakeChild();
   const signalSource = new EventEmitter();

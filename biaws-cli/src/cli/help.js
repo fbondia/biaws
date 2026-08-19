@@ -44,6 +44,7 @@ AJUDA
   biaws help workspace issues
 
 PROJETO
+  Saiba mais sobre o projeto (e contribua se quiser):
   https://github.com/fbondia/biaws`;
 }
 

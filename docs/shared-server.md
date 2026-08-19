@@ -30,8 +30,8 @@ Entre na UI como administrador, crie ou associe cada pessoa aos workspaces e
 grupos necessários e peça que cada uma gere sua própria API key na área da
 conta. Não distribua a chave técnica criada pelo bootstrap.
 
-Cada desenvolvedor mantém um clone local e um arquivo privado, com permissão
-`600`, por exemplo `~/.config/biaws/default.env`:
+Cada desenvolvedor mantém um arquivo privado, com permissão `600`, por exemplo
+`~/.config/biaws/default.env`:
 
 ```dotenv
 ISSUE_API_URL=https://ci.exemplo.com/api
@@ -39,7 +39,19 @@ ISSUE_API_KEY=chave-individual-do-desenvolvedor
 ```
 
 Cada chave deve ser individual, associada apenas aos workspaces e grupos que o
-desenvolvedor precisa acessar. Para configurar o cliente local:
+desenvolvedor precisa acessar. Com o CLI publicado, o cliente pode ser
+configurado sem clonar o repositório:
+
+```bash
+npm install --global biaws
+biaws workspace agent configure codex \
+  --project /caminho/do/projeto \
+  --env-file ~/.config/biaws/default.env \
+  --workspace id-do-workspace
+```
+
+O CLI grava `npx --yes biaws-mcp@<versão-fixada>` e instala as skills do
+catálogo. Em um checkout do BIAWS, o wrapper equivalente continua disponível:
 
 ```bash
 ./scripts/setup-client.sh \

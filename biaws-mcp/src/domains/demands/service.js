@@ -4,10 +4,11 @@ import {
   fetchJson,
   sendJson,
 } from "../../httpClient.js";
-import {
-  DEFAULT_REQUEST_STATUS,
-  DEFAULT_REQUEST_TASK_STATUS,
-} from "../../../../shared/requestConstants.js";
+
+// A API fornece as opções em runtime; estes valores preservam compatibilidade
+// somente quando uma instalação antiga ainda não publicou as listas.
+const DEFAULT_REQUEST_STATUS = "Sugerido";
+const DEFAULT_REQUEST_TASK_STATUS = "Pendente";
 
 async function requestOptions() {
   const payload = await fetchJson("/api/option-lists/runtime");

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile, mkdir } from "node:fs/promises";
+import { chmod, mkdtemp, readFile, writeFile, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -15,7 +15,7 @@ import {
   checksumPackageFiles,
 } from "../src/skillPackage.js";
 import { createApiClient } from "../src/apiClient.js";
-import { runAgentCommand } from "../src/commands/agent.js";
+import { MCP_PACKAGE_SPEC, runAgentCommand } from "../src/commands/agent.js";
 import { runMonitoringCommand } from "../src/commands/monitoring.js";
 import { loadEnv } from "../../shared/index.js";
 
@@ -301,7 +301,8 @@ test("agent configure writes Codex MCP config and installs catalog skills", asyn
     "utf8",
   );
   assert.match(config, /\[mcp_servers\.biaws\]/u);
-  assert.match(config, /biaws-mcp\/src\/index\.js/u);
+  assert.match(config, /command = "npx"/u);
+  assert.ok(config.includes(JSON.stringify(MCP_PACKAGE_SPEC)));
   assert.match(config, /BIAWS_ENV_FILE = "\/tmp\/client-a\.env"/u);
   assert.match(config, /ISSUE_WORKSPACE_ID = "workspace-a"/u);
   assert.equal(
@@ -319,7 +320,14 @@ test("agent configure merges Claude MCP config without removing other servers", 
   await writeFile(
     path.join(project, ".mcp.json"),
     JSON.stringify({
-      mcpServers: { existing: { command: "existing", args: [] } },
+      mcpServers: {
+        existing: { command: "existing", args: [] },
+        biaws: {
+          type: "stdio",
+          command: "node",
+          args: ["/checkout/biaws/biaws-mcp/src/index.js"],
+        },
+      },
     }),
   );
   const api = {
@@ -345,7 +353,8 @@ test("agent configure merges Claude MCP config without removing other servers", 
     await readFile(path.join(project, ".mcp.json"), "utf8"),
   );
   assert.equal(config.mcpServers.existing.command, "existing");
-  assert.equal(config.mcpServers.biaws.command, "node");
+  assert.equal(config.mcpServers.biaws.command, "npx");
+  assert.deepEqual(config.mcpServers.biaws.args, ["--yes", MCP_PACKAGE_SPEC]);
   assert.equal(config.mcpServers.biaws.env.BIAWS_ENV_FILE, "/tmp/client-b.env");
   assert.equal(config.mcpServers.biaws.env.ISSUE_WORKSPACE_ID, "workspace-b");
 });
@@ -382,12 +391,21 @@ test("agent configure requires a project workspace for multi-workspace identitie
 
 test("agent doctor performs a real MCP handshake", async () => {
   const project = await mkdtemp(path.join(os.tmpdir(), "biaws-agent-doctor-"));
+  const executableDirectory = await mkdtemp(
+    path.join(os.tmpdir(), "biaws-agent-bin-"),
+  );
   const entrypoint = path.resolve("..", "biaws-mcp", "src", "index.js");
+  const npx = path.join(executableDirectory, "npx");
+  await writeFile(
+    npx,
+    `#!/bin/sh\nexec ${JSON.stringify(process.execPath)} ${JSON.stringify(entrypoint)}\n`,
+  );
+  await chmod(npx, 0o755);
   await mkdir(path.join(project, ".codex"), { recursive: true });
   await mkdir(path.join(project, ".agents"), { recursive: true });
   await writeFile(
     path.join(project, ".codex", "config.toml"),
-    `[mcp_servers.biaws]\ncommand = "node"\nargs = [${JSON.stringify(entrypoint)}]\nenv = { ISSUE_WORKSPACE_ID = "workspace-a" }\n`,
+    `[mcp_servers.biaws]\ncommand = "npx"\nargs = ${JSON.stringify(["--yes", MCP_PACKAGE_SPEC])}\nenv = { ISSUE_WORKSPACE_ID = "workspace-a" }\n`,
   );
   await writeFile(
     path.join(project, ".agents", "biaws-skills.lock.json"),
@@ -402,6 +420,8 @@ test("agent doctor performs a real MCP handshake", async () => {
     }),
   );
   const originalFetch = globalThis.fetch;
+  const originalPath = process.env.PATH;
+  process.env.PATH = `${executableDirectory}${path.delimiter}${originalPath}`;
   globalThis.fetch = async () =>
     new Response(JSON.stringify({ status: "ok", actor: { id: "agent-1" } }), {
       status: 200,
@@ -426,6 +446,7 @@ test("agent doctor performs a real MCP handshake", async () => {
     assert.ok(result.checks.mcp.toolCount > 0);
   } finally {
     globalThis.fetch = originalFetch;
+    process.env.PATH = originalPath;
     process.exitCode = 0;
   }
 });

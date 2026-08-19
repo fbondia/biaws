@@ -8,6 +8,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- configuração de agentes passou a usar `npx` com versão fixada do MCP, sem
+  exigir um checkout local do BIAWS;
 - onboarding reorganizado com rotas explícitas para macOS, Linux e Windows via
   WSL2, além de um prompt único para instalação assistida por agente;
 - identidade da solução padronizada como Bondia Workspaces;
@@ -27,6 +29,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- pacote público executável `biaws-mcp`, com validação do tarball, handshake no
+  CI e fluxo protegido de publicação no npm;
 - comando `biaws admin instance update`, com comparação entre versão implantada
   e disponível, modo `--check`, backup seguro por padrão, validação do Compose
   e reconstrução dos serviços sem trocar os storages;

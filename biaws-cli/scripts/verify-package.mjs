@@ -11,6 +11,10 @@ const packageDirectory = path.resolve(
 const metadata = JSON.parse(
   await readFile(path.join(packageDirectory, "package.json"), "utf8"),
 );
+const agentSource = await readFile(
+  path.join(packageDirectory, "src/commands/agent.js"),
+  "utf8",
+);
 
 async function sourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -130,6 +134,32 @@ for (const forbidden of ["test", ".scannerwork", "node_modules"]) {
     false,
     `${forbidden} não deve integrar o pacote publicado`,
   );
+}
+
+const mcpName = agentSource.match(
+  /export const MCP_PACKAGE_NAME = "([^"]+)";/u,
+)?.[1];
+const mcpVersion = agentSource.match(
+  /export const MCP_PACKAGE_VERSION = "([^"]+)";/u,
+)?.[1];
+assert.equal(mcpName, "biaws-mcp", "nome do MCP configurado pelo CLI divergiu");
+assert.match(mcpVersion || "", /^\d+\.\d+\.\d+$/u, "versão do MCP inválida");
+
+try {
+  const mcpMetadata = JSON.parse(
+    await readFile(
+      path.resolve(packageDirectory, "../biaws-mcp/package.json"),
+      "utf8",
+    ),
+  );
+  assert.equal(mcpName, mcpMetadata.name, "nome do MCP fora de sincronia");
+  assert.equal(
+    mcpVersion,
+    mcpMetadata.version,
+    "versão do MCP fora de sincronia",
+  );
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
 }
 
 process.stdout.write(`Pacote ${metadata.name}@${metadata.version} validado.\n`);

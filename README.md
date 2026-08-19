@@ -194,16 +194,19 @@ ou outro agente com terminal, copie o
 poderá instalar o BIAWS sem pedir que você digite comandos, solicitando apenas
 as aprovações necessárias.
 
-O CLI também pode ser instalado pelo npm para consultas e operações remotas:
+O CLI pode ser instalado pelo npm para consultas, operações remotas e
+configuração dos agentes:
 
 ```bash
 npm install --global biaws
 biaws --help
 ```
 
-Comandos de instância, MCP e skills locais precisam do checkout completo. Ao
-usar o binário global fora dele, defina `BIAWS_ROOT=/caminho/para/biaws`. O
-checkout também pode expor o mesmo comando com `npm --prefix biaws-cli link`.
+O CLI configura o MCP como `npx --yes biaws-mcp@<versão>`, portanto o cliente
+baixa e executa uma versão fixada sem depender de um checkout. Comandos de
+instância e publicação do catálogo inicial continuam precisando do checkout
+completo; nesses casos, defina `BIAWS_ROOT=/caminho/para/biaws`. O checkout
+também pode expor o mesmo comando com `npm --prefix biaws-cli link`.
 
 ### Pré-requisitos
 
@@ -423,7 +426,7 @@ globais do cliente não são alteradas. Codex usa `.codex/config.toml`; Claude
 Code usa `.mcp.json`.
 
 O cliente pode solicitar aprovação para usar um servidor MCP definido pelo
-projeto. Revise o caminho apresentado antes de aprovar.
+projeto. Confirme o pacote e a versão fixada antes de aprovar.
 
 ## Desenvolvimento local
 
@@ -474,10 +477,10 @@ instância e grave `ISSUE_WORKSPACE_ID` no bloco `env` do servidor `biaws`. O
 `setup-local.sh` e `setup-client.sh` fazem isso automaticamente por meio de
 `configure.sh`.
 
-Servidor MCP:
+Servidor MCP pelo pacote publicado:
 
 ```bash
-node "$PWD/biaws-mcp/src/index.js"
+npx --yes biaws-mcp@0.1.0
 ```
 
 CLI:

@@ -234,8 +234,8 @@ Para Codex, o trecho gerado em `.codex/config.toml` contém:
 
 ```toml
 [mcp_servers.biaws]
-command = "node"
-args = ["/caminho/para/biaws/biaws-mcp/src/index.js"]
+command = "npx"
+args = ["--yes", "biaws-mcp@0.1.0"]
 env = { BIAWS_ENV_FILE = "/caminho/para/biaws/instances/meu-projeto/.env", ISSUE_WORKSPACE_ID = "id-do-workspace" }
 ```
 
@@ -412,10 +412,10 @@ claude
 ```
 
 O cliente pode solicitar aprovação para usar o servidor MCP configurado pelo
-projeto. Antes de aprovar, confirme que o comando aponta para:
+projeto. Antes de aprovar, confirme o comando e a versão fixada:
 
 ```text
-<caminho-do-clone>/biaws/biaws-mcp/src/index.js
+npx --yes biaws-mcp@0.1.0
 ```
 
 ## 6. Confirmar o funcionamento
@@ -766,10 +766,10 @@ Claude Code:
 .claude/biaws-skills.lock.json
 ```
 
-As configurações MCP contêm caminhos absolutos da máquina e o ID do workspace,
-mas não a chave técnica. Evite versioná-las quando o projeto não possuir um
-caminho de instalação padronizado para toda a equipe. O segredo permanece
-somente no `.env` da instância.
+As configurações MCP contêm a versão fixada do pacote, o caminho absoluto do
+arquivo privado de ambiente e o ID do workspace, mas não a chave técnica. Evite
+versioná-las quando o caminho desse arquivo não for padronizado para toda a
+equipe. O segredo permanece somente no `.env` da instância.
 
 ## Próximos passos
 

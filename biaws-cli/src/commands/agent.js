@@ -9,6 +9,11 @@ import { runSkillsCommand } from "./skills.js";
 
 const CODEX_BEGIN = "# BEGIN BIAWS MANAGED MCP";
 const CODEX_END = "# END BIAWS MANAGED MCP";
+export const MCP_PACKAGE_NAME = "biaws-mcp";
+export const MCP_PACKAGE_VERSION = "0.1.0";
+export const MCP_PACKAGE_SPEC = `${MCP_PACKAGE_NAME}@${MCP_PACKAGE_VERSION}`;
+const MCP_COMMAND = "npx";
+const MCP_ARGS = ["--yes", MCP_PACKAGE_SPEC];
 
 function skillTarget(client, projectDirectory) {
   return path.join(
@@ -18,8 +23,18 @@ function skillTarget(client, projectDirectory) {
   );
 }
 
-function mcpEntrypoint(toolDirectory) {
-  return path.resolve(toolDirectory, "..", "biaws-mcp", "src", "index.js");
+function isExpectedClaudeServer(server) {
+  if (
+    server?.command === MCP_COMMAND &&
+    JSON.stringify(server.args || []) === JSON.stringify(MCP_ARGS)
+  ) {
+    return true;
+  }
+  return (
+    server?.command === "node" &&
+    server.args?.length === 1 &&
+    /(?:^|[\\/])biaws-mcp[\\/]src[\\/]index\.js$/u.test(server.args[0])
+  );
 }
 
 async function readOptional(filePath, fallback = "") {
@@ -33,7 +48,6 @@ async function readOptional(filePath, fallback = "") {
 
 async function writeCodexConfiguration(
   projectDirectory,
-  entrypoint,
   envFile,
   workspaceId,
   force,
@@ -59,8 +73,8 @@ async function writeCodexConfiguration(
   }
   const managed = `${CODEX_BEGIN}
 [mcp_servers.biaws]
-command = "node"
-args = [${JSON.stringify(entrypoint)}]
+command = ${JSON.stringify(MCP_COMMAND)}
+args = ${JSON.stringify(MCP_ARGS)}
 env = {${envFile ? ` BIAWS_ENV_FILE = ${JSON.stringify(envFile)},` : ""} ISSUE_WORKSPACE_ID = ${JSON.stringify(workspaceId)} }
 ${CODEX_END}
 `;
@@ -71,7 +85,6 @@ ${CODEX_END}
 
 async function writeClaudeConfiguration(
   projectDirectory,
-  entrypoint,
   envFile,
   workspaceId,
   force,
@@ -85,21 +98,19 @@ async function writeClaudeConfiguration(
     throw new Error(`JSON inválido em ${configPath}`);
   }
   config.mcpServers ||= {};
-  if (config.mcpServers.biaws && !force) {
-    const current = config.mcpServers.biaws;
-    if (
-      current.command !== "node" ||
-      JSON.stringify(current.args || []) !== JSON.stringify([entrypoint])
-    ) {
-      throw new Error(
-        `Já existe uma configuração Claude diferente para o servidor biaws em ${configPath}; use --force para substituí-la`,
-      );
-    }
+  if (
+    config.mcpServers.biaws &&
+    !force &&
+    !isExpectedClaudeServer(config.mcpServers.biaws)
+  ) {
+    throw new Error(
+      `Já existe uma configuração Claude diferente para o servidor biaws em ${configPath}; use --force para substituí-la`,
+    );
   }
   config.mcpServers.biaws = {
     type: "stdio",
-    command: "node",
-    args: [entrypoint],
+    command: MCP_COMMAND,
+    args: MCP_ARGS,
     env: {
       ...(envFile ? { BIAWS_ENV_FILE: envFile } : {}),
       ISSUE_WORKSPACE_ID: workspaceId,
@@ -144,19 +155,16 @@ async function configure(api, client, options, context) {
   const projectDirectory = path.resolve(options.project || process.cwd());
   const { workspaceId } = await resolveWorkspaceId(api, context.workspaceId);
   const target = skillTarget(client, projectDirectory);
-  const entrypoint = mcpEntrypoint(context.toolDirectory);
   const configPath =
     client === "codex"
       ? await writeCodexConfiguration(
           projectDirectory,
-          entrypoint,
           context.envFile,
           workspaceId,
           options.force,
         )
       : await writeClaudeConfiguration(
           projectDirectory,
-          entrypoint,
           context.envFile,
           workspaceId,
           options.force,
@@ -173,6 +181,7 @@ async function configure(api, client, options, context) {
     configPath,
     skillTarget: target,
     installation,
+    mcpPackage: MCP_PACKAGE_SPEC,
     workspaceId,
   };
   if (options.json) console.log(JSON.stringify(result, null, 2));
@@ -197,9 +206,9 @@ async function requestStatus(url, headers = {}) {
   }
 }
 
-async function mcpStatus(entrypoint, envFile, workspaceId) {
+async function mcpStatus(envFile, workspaceId) {
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [entrypoint], {
+    const child = spawn(MCP_COMMAND, MCP_ARGS, {
       stdio: ["pipe", "pipe", "pipe"],
       env: {
         ...process.env,
@@ -222,9 +231,9 @@ async function mcpStatus(entrypoint, envFile, workspaceId) {
       () =>
         finish({
           ok: false,
-          detail: errorOutput.trim() || "MCP não respondeu em 5 segundos",
+          detail: errorOutput.trim() || "MCP não respondeu em 30 segundos",
         }),
-      5_000,
+      30_000,
     );
     child.stderr.on("data", (chunk) => {
       errorOutput += chunk;
@@ -283,20 +292,15 @@ async function mcpStatus(entrypoint, envFile, workspaceId) {
   });
 }
 
-function configurationStatus(
-  client,
-  contents,
-  entrypoint,
-  envFile,
-  workspaceId,
-) {
+function configurationStatus(client, contents, envFile, workspaceId) {
   if (typeof contents !== "string") {
     return { ok: false, detail: "Configuração MCP não encontrada" };
   }
   if (client === "codex") {
     const ok =
       contents.includes("[mcp_servers.biaws]") &&
-      contents.includes(JSON.stringify(entrypoint)) &&
+      contents.includes(`command = ${JSON.stringify(MCP_COMMAND)}`) &&
+      contents.includes(`args = ${JSON.stringify(MCP_ARGS)}`) &&
       (!envFile || contents.includes(JSON.stringify(envFile))) &&
       contents.includes(`ISSUE_WORKSPACE_ID = ${JSON.stringify(workspaceId)}`);
     return {
@@ -309,8 +313,8 @@ function configurationStatus(
   try {
     const server = JSON.parse(contents).mcpServers?.biaws;
     const ok =
-      server?.command === "node" &&
-      JSON.stringify(server.args || []) === JSON.stringify([entrypoint]) &&
+      server?.command === MCP_COMMAND &&
+      JSON.stringify(server.args || []) === JSON.stringify(MCP_ARGS) &&
       (!envFile || server.env?.BIAWS_ENV_FILE === envFile) &&
       server.env?.ISSUE_WORKSPACE_ID === workspaceId;
     return {
@@ -336,11 +340,10 @@ async function doctor(api, client, options, context) {
     client === "codex"
       ? path.join(projectDirectory, ".codex", "config.toml")
       : path.join(projectDirectory, ".mcp.json");
-  const entrypoint = mcpEntrypoint(context.toolDirectory);
   const resolved = await resolveWorkspaceId(api, context.workspaceId);
   const [health, mcp, configContents, lock] = await Promise.all([
     requestStatus(`${context.apiUrl}/api/health`),
-    mcpStatus(entrypoint, context.envFile, resolved.workspaceId),
+    mcpStatus(context.envFile, resolved.workspaceId),
     readOptional(configPath, null),
     readLock(target),
   ]);
@@ -354,7 +357,6 @@ async function doctor(api, client, options, context) {
       ...configurationStatus(
         client,
         configContents,
-        entrypoint,
         context.envFile,
         resolved.workspaceId,
       ),

@@ -1,9 +1,9 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { loadEnv } from "../../shared/index.js";
 import { createMcpMessageHandler, protocolError } from "./mcpServer.js";
 import { dispatchTool, listTools } from "./tools.js";
+import { loadEnv } from "./loadEnv.js";
 
 const TOOL_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),

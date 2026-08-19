@@ -75,9 +75,23 @@ jobs:
           cache: npm
           cache-dependency-path: biaws-mcp/package-lock.json
       - run: npm ci
-      - run: npm run format:check
-      - run: npm run check
-      - run: npm test
+      - run: npm run release:check
+      - run: npm audit --omit=dev --audit-level=high
+      - name: Install the packed MCP and exercise the handshake
+        shell: bash
+        run: |
+          expected_version="$(node -p "require('./package.json').version")"
+          package_file="biaws-mcp-${expected_version}.tgz"
+          npm pack --pack-destination "${RUNNER_TEMP}"
+          install_prefix="${RUNNER_TEMP}/biaws-mcp-global"
+          npm install --global --prefix "${install_prefix}" "${RUNNER_TEMP}/${package_file}"
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{}}}' \
+            '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+            | "${install_prefix}/bin/biaws-mcp" > "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
+          grep -F '"id":2' "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
+          grep -F '"tools":[' "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
 
   cli:
     name: CLI (Node ${{ matrix.node-version }}, ${{ matrix.os }})

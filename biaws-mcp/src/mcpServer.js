@@ -1,4 +1,5 @@
 import { runWithRequestContext } from "./requestContext.js";
+import { SERVER_NAME, SERVER_VERSION } from "./version.js";
 
 function success(id, result) {
   return { jsonrpc: "2.0", id, result };
@@ -101,7 +102,7 @@ export function createMcpMessageHandler({
         success(id, {
           protocolVersion: params.protocolVersion || "2024-11-05",
           capabilities: { tools: {} },
-          serverInfo: { name: "biaws-mcp", version: "0.1.0" },
+          serverInfo: { name: SERVER_NAME, version: SERVER_VERSION },
         }),
       );
       return;

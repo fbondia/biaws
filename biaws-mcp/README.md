@@ -22,7 +22,10 @@ O servidor separa os domínios:
 - `resource_collections_*` e `*_move_to_collection`: organização hierárquica
   de aplicações, regras, decisões, procedimentos, segredos, skills e servidores.
 
-O carregamento de ambiente usa o `shared/loadEnv.js` do próprio repositório. O MCP conversa com a `biaws-api` por HTTP e não acessa diretamente o mecanismo de armazenamento.
+O carregamento de ambiente é autocontido no pacote. Em um checkout, ele preserva
+o fallback para o `.env` da raiz; no pacote publicado, usa o `.env` local ou o
+arquivo indicado por `BIAWS_ENV_FILE`. O MCP conversa com a `biaws-api` por HTTP
+e não acessa diretamente o mecanismo de armazenamento.
 
 Em instalações multi-instância, `BIAWS_ENV_FILE` aponta para
 `instances/<nome>/.env`. Esse arquivo tem precedência sobre o `.env` da raiz e
@@ -56,7 +59,26 @@ Arquivos enviados ou baixados pelo MCP têm limite padrão de 10 MiB. Defina
 `BIAWS_MCP_MAX_ATTACHMENT_BYTES` para reduzir ou elevar esse limite, respeitado
 o teto de 50 MiB do MCP e o limite independente configurado na API.
 
-## Execução
+## Instalação e execução
+
+O pacote público expõe o executável `biaws-mcp`. Clientes configurados pelo CLI
+usam uma versão fixada por meio do cache local do npm:
+
+```bash
+npx --yes biaws-mcp@0.1.0
+```
+
+Também é possível instalá-lo explicitamente:
+
+```bash
+npm install --global biaws-mcp@0.1.0
+biaws-mcp
+```
+
+O processo continua usando transporte MCP `stdio`; somente as chamadas para a
+`biaws-api` atravessam a rede.
+
+### Desenvolvimento pelo checkout
 
 Suba a `biaws-api` em outro terminal e execute:
 
@@ -68,7 +90,7 @@ npm start
 Em um cliente MCP, configure o comando:
 
 ```bash
-node /caminho/para/biaws/biaws-mcp/src/index.js
+npx --yes biaws-mcp@0.1.0
 ```
 
 O fluxo recomendado é gerar a configuração completa com:
@@ -78,6 +100,9 @@ BIAWS_ENV_FILE=/caminho/para/instances/minha-instancia/.env \
 node /caminho/para/biaws/biaws-cli/src/index.js \
   agent configure codex --project /caminho/do/projeto --workspace id-do-workspace
 ```
+
+O processo de publicação e rollback está em
+[`docs/releasing.md`](docs/releasing.md).
 
 ## Ferramentas
 

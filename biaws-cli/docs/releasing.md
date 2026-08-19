@@ -69,9 +69,13 @@ não são aliases circulares. A remoção dos wrappers públicos só pode ocorre
 após aviso de depreciação em uma release `0.x`, telemetria ou evidência de
 adoção e um runbook de substituição atualizado.
 
-O pacote npm isolado cobre ajuda e API remota. Instância, MCP e catálogo local
-dependem do checkout completo; defina `BIAWS_ROOT` para sua raiz quando o
-executável global for chamado fora dela.
+O pacote npm isolado cobre ajuda, API remota, instalação das skills e
+configuração do MCP publicado. Operações de instância e publicação do catálogo
+inicial dependem do checkout completo; defina `BIAWS_ROOT` para sua raiz quando
+o executável global for chamado fora dela.
+
+Publique primeiro a versão de `biaws-mcp` fixada pelo CLI. O CLI nunca deve ser
+publicado apontando para uma versão do MCP que ainda não exista no registry.
 
 ## Exercício de release
 

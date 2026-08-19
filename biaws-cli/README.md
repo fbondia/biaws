@@ -131,7 +131,9 @@ biaws workspace skills status
 
 O Codex usa `.codex/config.toml` e `.agents/skills`. O Claude Code usa
 `.mcp.json` e `.claude/skills`. Configurações de terceiros são preservadas e
-nenhuma credencial é gravada no projeto.
+nenhuma credencial é gravada no projeto. O MCP é configurado como
+`npx --yes biaws-mcp@<versão-fixada>`, sem exigir um checkout local da
+plataforma.
 
 ## Monitoramento
 

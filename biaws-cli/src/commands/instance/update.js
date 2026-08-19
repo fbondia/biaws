@@ -16,6 +16,74 @@ import {
   withPasswordFile,
 } from "../../instance/service.js";
 
+function versionCheckResult(instance, versionStatus, json) {
+  if (json) return versionStatus;
+  return [
+    `Instância: ${instance.name}`,
+    `Versão atual: ${versionStatus.currentVersion}`,
+    `Nova versão: ${versionStatus.newVersion}`,
+    `Atualização necessária: ${versionStatus.updateRequired ? "sim" : "não"}`,
+  ].join("\n");
+}
+
+function unchangedResult(instance, versionStatus, json) {
+  return json
+    ? { ...versionStatus, updated: false, backupCreated: false }
+    : `Instância ${instance.name} já está na versão ${versionStatus.newVersion}.`;
+}
+
+async function createUpdateBackup(command, instance, context, flags) {
+  if (flags["skip-backup"]) return "";
+
+  let password;
+  if (!flags["password-file"]) {
+    if (!context.isInteractive) {
+      command.error(
+        "Atualização exige --password-file ou --skip-backup em modo não interativo.",
+        { code: "BACKUP_PASSWORD_REQUIRED", exit: 2 },
+      );
+    }
+    password = await command.adapters.prompts.ask({
+      name: "password",
+      type: "password",
+      message: "Senha do backup anterior à atualização",
+    });
+  }
+
+  return withPasswordFile(
+    command.adapters.filesystem,
+    password,
+    flags["password-file"],
+    async (passwordFile) =>
+      executeInstanceScript(
+        backupArguments(instance, context, {
+          output: flags["backup-output"],
+          passwordFile,
+        }),
+        context,
+        command.adapters.processRunner,
+        { secrets: password ? [password] : [], silent: flags.json },
+      ),
+  );
+}
+
+function updatedResult(instance, versionStatus, flags, backupOutput) {
+  if (!flags.json) {
+    return `Instância ${instance.name} atualizada de ${versionStatus.currentVersion} para ${versionStatus.newVersion}. UI: ${instance.publicUrl}`;
+  }
+  return {
+    instance: instance.name,
+    operation: "update",
+    currentVersion: versionStatus.currentVersion,
+    newVersion: versionStatus.newVersion,
+    updateRequired: versionStatus.updateRequired,
+    updated: true,
+    backupCreated: !flags["skip-backup"],
+    backupOutput,
+    ui: instance.publicUrl,
+  };
+}
+
 export default class InstanceUpdate extends LocalInstanceCommand {
   static description =
     "reconstrói e atualiza os serviços preservando os dados da instância";
@@ -58,22 +126,13 @@ export default class InstanceUpdate extends LocalInstanceCommand {
     );
     if (flags.check) {
       this.output({ json: flags.json }).result(
-        flags.json
-          ? versionStatus
-          : [
-              `Instância: ${instance.name}`,
-              `Versão atual: ${versionStatus.currentVersion}`,
-              `Nova versão: ${versionStatus.newVersion}`,
-              `Atualização necessária: ${versionStatus.updateRequired ? "sim" : "não"}`,
-            ].join("\n"),
+        versionCheckResult(instance, versionStatus, flags.json),
       );
       return;
     }
     if (!versionStatus.updateRequired && !flags.force) {
       this.output({ json: flags.json }).result(
-        flags.json
-          ? { ...versionStatus, updated: false, backupCreated: false }
-          : `Instância ${instance.name} já está na versão ${versionStatus.newVersion}.`,
+        unchangedResult(instance, versionStatus, flags.json),
       );
       return;
     }
@@ -83,38 +142,12 @@ export default class InstanceUpdate extends LocalInstanceCommand {
       context,
       this.adapters.processRunner,
     );
-    let backupOutput = "";
-
-    if (!flags["skip-backup"]) {
-      let password;
-      if (!flags["password-file"]) {
-        if (!context.isInteractive)
-          this.error(
-            "Atualização exige --password-file ou --skip-backup em modo não interativo.",
-            { code: "BACKUP_PASSWORD_REQUIRED", exit: 2 },
-          );
-        password = await this.adapters.prompts.ask({
-          name: "password",
-          type: "password",
-          message: "Senha do backup anterior à atualização",
-        });
-      }
-      backupOutput = await withPasswordFile(
-        this.adapters.filesystem,
-        password,
-        flags["password-file"],
-        async (passwordFile) =>
-          executeInstanceScript(
-            backupArguments(instance, context, {
-              output: flags["backup-output"],
-              passwordFile,
-            }),
-            context,
-            this.adapters.processRunner,
-            { secrets: password ? [password] : [], silent: flags.json },
-          ),
-      );
-    }
+    const backupOutput = await createUpdateBackup(
+      this,
+      instance,
+      context,
+      flags,
+    );
 
     await updateInstance(
       instance,
@@ -125,19 +158,7 @@ export default class InstanceUpdate extends LocalInstanceCommand {
       this.adapters.environment,
     );
     this.output({ json: flags.json }).result(
-      flags.json
-        ? {
-            instance: instance.name,
-            operation: "update",
-            currentVersion: versionStatus.currentVersion,
-            newVersion: versionStatus.newVersion,
-            updateRequired: versionStatus.updateRequired,
-            updated: true,
-            backupCreated: !flags["skip-backup"],
-            backupOutput,
-            ui: instance.publicUrl,
-          }
-        : `Instância ${instance.name} atualizada de ${versionStatus.currentVersion} para ${versionStatus.newVersion}. UI: ${instance.publicUrl}`,
+      updatedResult(instance, versionStatus, flags, backupOutput),
     );
   }
 }

@@ -235,8 +235,8 @@ Para Codex, o trecho gerado em `.codex/config.toml` contém:
 ```toml
 [mcp_servers.biaws]
 command = "npx"
-args = ["--yes", "biaws-mcp@0.1.0"]
-env = { BIAWS_ENV_FILE = "/caminho/para/biaws/instances/meu-projeto/.env", ISSUE_WORKSPACE_ID = "id-do-workspace" }
+args = ["--yes", "biaws-mcp@0.2.0"]
+env = { BIAWS_ENV_FILE = "/caminho/para/biaws/instances/meu-projeto/.env", BIAWS_WORKSPACE_ID = "id-do-workspace" }
 ```
 
 Para Claude Code, `.mcp.json` recebe as mesmas duas variáveis em
@@ -415,7 +415,7 @@ O cliente pode solicitar aprovação para usar o servidor MCP configurado pelo
 projeto. Antes de aprovar, confirme o comando e a versão fixada:
 
 ```text
-npx --yes biaws-mcp@0.1.0
+npx --yes biaws-mcp@0.2.0
 ```
 
 ## 6. Confirmar o funcionamento

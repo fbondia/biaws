@@ -16,27 +16,27 @@ test("published MCP loads explicit credentials and preserves project scope", asy
   await writeFile(path.join(tool, ".env"), "ISSUE_API_URL=https://tool.test\n");
   await writeFile(
     explicit,
-    "ISSUE_API_URL=https://remote.test/api\nISSUE_WORKSPACE_ID=wrong-scope\n",
+    "ISSUE_API_URL=https://remote.test/api\nBIAWS_WORKSPACE_ID=wrong-scope\n",
   );
 
   const previous = {
     BIAWS_ENV_FILE: process.env.BIAWS_ENV_FILE,
     ISSUE_API_URL: process.env.ISSUE_API_URL,
-    ISSUE_WORKSPACE_ID: process.env.ISSUE_WORKSPACE_ID,
+    BIAWS_WORKSPACE_ID: process.env.BIAWS_WORKSPACE_ID,
   };
   delete process.env.ISSUE_API_URL;
   process.env.BIAWS_ENV_FILE = explicit;
-  process.env.ISSUE_WORKSPACE_ID = "project-scope";
+  process.env.BIAWS_WORKSPACE_ID = "project-scope";
 
   try {
-    const result = loadEnv(tool, { preserve: ["ISSUE_WORKSPACE_ID"] });
+    const result = loadEnv(tool, { preserve: ["BIAWS_WORKSPACE_ID"] });
     assert.deepEqual(result.loaded, [
       path.join(root, ".env"),
       path.join(tool, ".env"),
       explicit,
     ]);
     assert.equal(process.env.ISSUE_API_URL, "https://remote.test/api");
-    assert.equal(process.env.ISSUE_WORKSPACE_ID, "project-scope");
+    assert.equal(process.env.BIAWS_WORKSPACE_ID, "project-scope");
   } finally {
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[key];

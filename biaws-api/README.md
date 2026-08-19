@@ -109,7 +109,7 @@ Carregar a home e seu catálogo de widgets:
 ```bash
 curl http://127.0.0.1:3100/api/home \
   -H "Authorization: Bearer $ISSUE_API_KEY" \
-  -H "X-Biaws-Workspace-Id: $ISSUE_WORKSPACE_ID"
+  -H "X-Biaws-Workspace-Id: $BIAWS_WORKSPACE_ID"
 ```
 
 Atualizar somente os widgets de monitoramento da home:
@@ -117,7 +117,7 @@ Atualizar somente os widgets de monitoramento da home:
 ```bash
 curl http://127.0.0.1:3100/api/home/monitoring \
   -H "Authorization: Bearer $ISSUE_API_KEY" \
-  -H "X-Biaws-Workspace-Id: $ISSUE_WORKSPACE_ID"
+  -H "X-Biaws-Workspace-Id: $BIAWS_WORKSPACE_ID"
 ```
 
 O contrato de configuração e extensão está em
@@ -131,7 +131,7 @@ Receber um sinal de monitoramento de runtime:
 ```bash
 curl -X POST http://127.0.0.1:3100/api/monitoring/runtimes/<runtime-uuid-ou-caminho>/signals \
   -H "Authorization: Bearer $ISSUE_API_KEY" \
-  -H "X-Biaws-Workspace-Id: $ISSUE_WORKSPACE_ID" \
+  -H "X-Biaws-Workspace-Id: $BIAWS_WORKSPACE_ID" \
   -H 'Content-Type: application/json' \
   -d '{"signalId":"probe:42","status":"healthy","source":"probe-http"}'
 ```

@@ -212,7 +212,7 @@ if [[ -z "${agent_api_key}" || -z "${agent_workspace_id}" ]]; then
   exit 1
 fi
 replace_env_value "ISSUE_API_KEY" "${agent_api_key}"
-remove_env_value "ISSUE_WORKSPACE_ID"
+remove_env_value "BIAWS_WORKSPACE_ID"
 chmod 600 "${ENV_FILE}"
 echo "Identidade técnica e rate limit da chave do agente reconciliados."
 

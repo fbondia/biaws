@@ -10,6 +10,8 @@ import {
 import ConfigureClaude from "../src/commands/configure/claude.js";
 import ConfigureCodex from "../src/commands/configure/codex.js";
 import ConfigureDoctor from "../src/commands/configure/doctor.js";
+import { interactiveConfigureInput } from "../src/configure/command.js";
+import { ProgrammedPromptAdapter } from "../src/core/prompts.js";
 
 function fakeConfig() {
   return { bin: "biaws" };
@@ -24,7 +26,7 @@ function adapters(environment = {}) {
     filesystem: {
       async readFile(filePath) {
         if (filePath === "/workspace/instances/local/.env") {
-          return "ISSUE_API_URL=http://instance.test:3100\nISSUE_API_KEY=private-key\nISSUE_WORKSPACE_ID=workspace-a\n";
+          return "ISSUE_API_URL=http://instance.test:3100\nISSUE_API_KEY=private-key\nBIAWS_WORKSPACE_ID=workspace-a\n";
         }
         const error = new Error("missing");
         error.code = "ENOENT";
@@ -82,7 +84,7 @@ test("ProjectCommand injects filesystem, API and terminal adapters", async () =>
     ...adapters({
       BIAWS_ROOT: "/workspace",
       ISSUE_API_KEY: "private-key",
-      ISSUE_WORKSPACE_ID: "workspace-a",
+      BIAWS_WORKSPACE_ID: "workspace-a",
     }),
     apiFactory(apiUrl, apiKey, workspaceId) {
       assert.equal(apiUrl, "http://127.0.0.1:3100");
@@ -111,6 +113,7 @@ test("agent wrappers allow workspace discovery from the authenticated identity",
     ConfigureDoctor,
   ]) {
     const command = Object.create(CommandClass.prototype);
+    command.adapters = { terminal: { isInteractive: false } };
     command.parse = async () => ({ args: { client: "codex" }, flags: {} });
     command.projectContext = async (_input, options) => {
       assert.equal(options, undefined);
@@ -118,4 +121,78 @@ test("agent wrappers allow workspace discovery from the authenticated identity",
     };
     await assert.rejects(() => command.run(), /context inspected/u);
   }
+});
+
+test("agent assistant collects project and instance environment", async () => {
+  const prompts = new ProgrammedPromptAdapter({
+    project: "/workspace/selected",
+    envFile: "/workspace/instances/local/.env",
+  });
+  const command = {
+    adapters: {
+      cwd: () => "/workspace/current",
+      environment: {},
+      prompts,
+      terminal: { isInteractive: true },
+    },
+  };
+
+  const input = await interactiveConfigureInput(command, {
+    interactive: true,
+  });
+
+  assert.equal(input.project, "/workspace/selected");
+  assert.equal(input.envFile, "/workspace/instances/local/.env");
+  assert.deepEqual(prompts.questions, ["project", "envFile"]);
+});
+
+test("agent assistant is the default in an interactive terminal", async () => {
+  const prompts = new ProgrammedPromptAdapter({
+    project: "/workspace/selected",
+    envFile: "/workspace/instances/local/.env",
+  });
+  const input = await interactiveConfigureInput(
+    {
+      adapters: {
+        cwd: () => "/workspace/current",
+        environment: {},
+        prompts,
+        terminal: { isInteractive: true },
+      },
+    },
+    {},
+  );
+
+  assert.equal(input.interactive, true);
+  assert.deepEqual(prompts.questions, ["project", "envFile"]);
+});
+
+test("--no-interactive disables the assistant in a terminal", async () => {
+  const input = await interactiveConfigureInput(
+    {
+      adapters: {
+        terminal: { isInteractive: true },
+      },
+    },
+    { interactive: false, project: "/workspace/project" },
+  );
+
+  assert.equal(input.interactive, false);
+  assert.equal(input.project, "/workspace/project");
+});
+
+test("agent assistant rejects non-interactive terminals", async () => {
+  const command = {
+    adapters: {
+      cwd: () => "/workspace/current",
+      environment: {},
+      prompts: { isInteractive: false },
+      terminal: { isInteractive: false },
+    },
+  };
+
+  await assert.rejects(
+    interactiveConfigureInput(command, { interactive: true }),
+    { code: "INTERACTIVE_INPUT_UNAVAILABLE", exitCode: 2 },
+  );
 });

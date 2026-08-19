@@ -48,7 +48,7 @@ function buildUrl(path, params = {}) {
 
 function authenticationHeaders() {
   const apiKey = String(process.env.ISSUE_API_KEY || "").trim();
-  const workspaceId = String(process.env.ISSUE_WORKSPACE_ID || "").trim();
+  const workspaceId = String(process.env.BIAWS_WORKSPACE_ID || "").trim();
   return {
     Accept: "application/json",
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),

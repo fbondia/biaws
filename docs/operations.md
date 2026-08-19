@@ -401,7 +401,7 @@ binário veio do npm, defina `BIAWS_ROOT` para o checkout. A chave possui valida
 workspace. No MCP, execute novamente `./scripts/configure.sh --client
 codex|claude --project <diretório> --env-file <arquivo-local> --workspace
 id-do-workspace` para gravar a seleção na configuração local do projeto. Em
-execuções diretas do CLI, use `--workspace` ou `ISSUE_WORKSPACE_ID`.
+execuções diretas do CLI, use `--workspace` ou `BIAWS_WORKSPACE_ID`.
 
 `WORKSPACE_FORBIDDEN` ou recurso não encontrado
 
@@ -413,8 +413,8 @@ Recursos fora do escopo retornam `404` para evitar enumeração.
 : reaplique `./scripts/configure.sh --client codex|claude --project <diretório>
 --env-file <arquivo-local> --workspace id-do-workspace`. Use `--force` somente
 para substituir uma configuração `biaws` anterior que não era gerenciada pelo
-CLI. Instalações antigas podem conter `ISSUE_WORKSPACE_ID` no `.env` da
-instância; `setup-server.sh` remove essa variável legada.
+CLI. O arquivo da instância não deve conter `BIAWS_WORKSPACE_ID` no `.env` da
+instância; `setup-server.sh` remove essa variável de escopo.
 
 Login funciona, mas a UI perde a sessão
 

@@ -122,6 +122,7 @@ biaws workspace api PATCH /recurso/ID --body '{"status":"Ativo"}'
 ```bash
 biaws workspace agent configure codex
 biaws workspace agent configure claude
+biaws workspace agent configure codex --no-interactive --env-file /caminho/instancia.env --workspace workspace-id
 biaws workspace agent doctor codex
 biaws workspace skills list
 biaws workspace skills install SKILL_ID

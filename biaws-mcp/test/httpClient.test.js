@@ -6,8 +6,8 @@ import { runWithRequestContext } from "../src/requestContext.js";
 
 test("MCP HTTP client sends the explicit workspace context", async () => {
   const originalFetch = globalThis.fetch;
-  const originalWorkspaceId = process.env.ISSUE_WORKSPACE_ID;
-  process.env.ISSUE_WORKSPACE_ID = "workspace-a";
+  const originalWorkspaceId = process.env.BIAWS_WORKSPACE_ID;
+  process.env.BIAWS_WORKSPACE_ID = "workspace-a";
   let receivedWorkspaceId = "";
   globalThis.fetch = async (url, options = {}) => {
     receivedWorkspaceId = new Headers(options.headers).get(
@@ -24,8 +24,8 @@ test("MCP HTTP client sends the explicit workspace context", async () => {
   } finally {
     globalThis.fetch = originalFetch;
     if (originalWorkspaceId === undefined)
-      delete process.env.ISSUE_WORKSPACE_ID;
-    else process.env.ISSUE_WORKSPACE_ID = originalWorkspaceId;
+      delete process.env.BIAWS_WORKSPACE_ID;
+    else process.env.BIAWS_WORKSPACE_ID = originalWorkspaceId;
   }
 });
 

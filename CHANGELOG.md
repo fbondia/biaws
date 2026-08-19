@@ -8,6 +8,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- variável de escopo dos clientes e do MCP renomeada para
+  `BIAWS_WORKSPACE_ID`, sem alias para o nome anterior;
 - configuração de agentes passou a usar `npx` com versão fixada do MCP, sem
   exigir um checkout local do BIAWS;
 - onboarding reorganizado com rotas explícitas para macOS, Linux e Windows via
@@ -29,6 +31,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- modo assistente padrão em terminais para `biaws workspace agent configure
+codex|claude`, com seleção de workspace e confirmação antes da escrita;
 - pacote público executável `biaws-mcp`, com validação do tarball, handshake no
   CI e fluxo protegido de publicação no npm;
 - comando `biaws admin instance update`, com comparação entre versão implantada

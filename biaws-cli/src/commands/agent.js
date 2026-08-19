@@ -4,13 +4,14 @@ import path from "node:path";
 
 import { BaseCommand, TOOL_DIRECTORY } from "../baseCommands.js";
 import { showTopic } from "../commandFactories.js";
+import { CliError } from "../core/errors.js";
 import { readLock } from "../localSkills.js";
 import { runSkillsCommand } from "./skills.js";
 
 const CODEX_BEGIN = "# BEGIN BIAWS MANAGED MCP";
 const CODEX_END = "# END BIAWS MANAGED MCP";
 export const MCP_PACKAGE_NAME = "biaws-mcp";
-export const MCP_PACKAGE_VERSION = "0.1.0";
+export const MCP_PACKAGE_VERSION = "0.2.0";
 export const MCP_PACKAGE_SPEC = `${MCP_PACKAGE_NAME}@${MCP_PACKAGE_VERSION}`;
 const MCP_COMMAND = "npx";
 const MCP_ARGS = ["--yes", MCP_PACKAGE_SPEC];
@@ -75,7 +76,7 @@ async function writeCodexConfiguration(
 [mcp_servers.biaws]
 command = ${JSON.stringify(MCP_COMMAND)}
 args = ${JSON.stringify(MCP_ARGS)}
-env = {${envFile ? ` BIAWS_ENV_FILE = ${JSON.stringify(envFile)},` : ""} ISSUE_WORKSPACE_ID = ${JSON.stringify(workspaceId)} }
+env = {${envFile ? ` BIAWS_ENV_FILE = ${JSON.stringify(envFile)},` : ""} BIAWS_WORKSPACE_ID = ${JSON.stringify(workspaceId)} }
 ${CODEX_END}
 `;
   const output = current ? `${current}\n\n${managed}` : managed;
@@ -113,14 +114,19 @@ async function writeClaudeConfiguration(
     args: MCP_ARGS,
     env: {
       ...(envFile ? { BIAWS_ENV_FILE: envFile } : {}),
-      ISSUE_WORKSPACE_ID: workspaceId,
+      BIAWS_WORKSPACE_ID: workspaceId,
     },
   };
   await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
   return configPath;
 }
 
-async function resolveWorkspaceId(api, requestedWorkspaceId = "") {
+async function resolveWorkspaceId(
+  api,
+  requestedWorkspaceId = "",
+  interactive = false,
+  prompts,
+) {
   let identity;
   try {
     identity = await api.identity();
@@ -132,7 +138,22 @@ async function resolveWorkspaceId(api, requestedWorkspaceId = "") {
     }
     throw error;
   }
-  const workspaceId = requestedWorkspaceId || identity?.actor?.workspaceId;
+  const workspaces = identity?.actor?.workspaces || [];
+  let workspaceId = requestedWorkspaceId || identity?.actor?.workspaceId;
+  if (interactive && workspaces.length > 0) {
+    workspaceId = await prompts.ask({
+      name: "workspaceId",
+      type: "select",
+      message: "Workspace do projeto",
+      choices: workspaces.map((workspace) => ({
+        name: workspace.name
+          ? `${workspace.name} (${workspace.id})`
+          : workspace.id,
+        value: workspace.id,
+      })),
+      ...(workspaceId ? { default: workspaceId } : {}),
+    });
+  }
   if (!workspaceId) {
     if ((identity?.actor?.workspaces?.length || 0) > 1) {
       throw new Error(
@@ -153,7 +174,29 @@ async function configure(api, client, options, context) {
     );
   }
   const projectDirectory = path.resolve(options.project || process.cwd());
-  const { workspaceId } = await resolveWorkspaceId(api, context.workspaceId);
+  const { workspaceId } = await resolveWorkspaceId(
+    api,
+    context.workspaceId,
+    options.interactive,
+    options.prompts,
+  );
+  if (options.interactive) {
+    const confirmed = await options.prompts.ask({
+      name: "confirmConfiguration",
+      type: "confirm",
+      message: `Configurar ${client} em ${projectDirectory} para o workspace ${workspaceId}?`,
+      default: true,
+    });
+    if (!confirmed) {
+      throw new CliError(
+        "Configuração cancelada antes de qualquer alteração.",
+        {
+          code: "PROMPT_CANCELLED",
+          exitCode: 130,
+        },
+      );
+    }
+  }
   const target = skillTarget(client, projectDirectory);
   const configPath =
     client === "codex"
@@ -213,7 +256,7 @@ async function mcpStatus(envFile, workspaceId) {
       env: {
         ...process.env,
         ...(envFile ? { BIAWS_ENV_FILE: envFile } : {}),
-        ISSUE_WORKSPACE_ID: workspaceId,
+        BIAWS_WORKSPACE_ID: workspaceId,
       },
     });
     let output = "";
@@ -302,7 +345,7 @@ function configurationStatus(client, contents, envFile, workspaceId) {
       contents.includes(`command = ${JSON.stringify(MCP_COMMAND)}`) &&
       contents.includes(`args = ${JSON.stringify(MCP_ARGS)}`) &&
       (!envFile || contents.includes(JSON.stringify(envFile))) &&
-      contents.includes(`ISSUE_WORKSPACE_ID = ${JSON.stringify(workspaceId)}`);
+      contents.includes(`BIAWS_WORKSPACE_ID = ${JSON.stringify(workspaceId)}`);
     return {
       ok,
       detail: ok
@@ -316,7 +359,7 @@ function configurationStatus(client, contents, envFile, workspaceId) {
       server?.command === MCP_COMMAND &&
       JSON.stringify(server.args || []) === JSON.stringify(MCP_ARGS) &&
       (!envFile || server.env?.BIAWS_ENV_FILE === envFile) &&
-      server.env?.ISSUE_WORKSPACE_ID === workspaceId;
+      server.env?.BIAWS_WORKSPACE_ID === workspaceId;
     return {
       ok,
       detail: ok

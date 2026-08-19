@@ -172,7 +172,7 @@ chave única `(workspaceId, id, version)` torna execuções repetidas idempotent
 ## CLI
 
 Com `ISSUE_API_URL` e `ISSUE_API_KEY` configurados, selecione o workspace com
-`--workspace` (ou `ISSUE_WORKSPACE_ID` em uma execução direta do CLI):
+`--workspace` (ou `BIAWS_WORKSPACE_ID` em uma execução direta do CLI):
 
 ```bash
 biaws workspace monitoring signal billing.billing-api.production.primary \
@@ -244,7 +244,7 @@ POST   /api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId/exe
 
 As mesmas operações de administração estão disponíveis para agentes pelas
 tools MCP `monitoring_templates_*` e `runtime_active_monitors_*`. O MCP usa o
-workspace definido em `ISSUE_WORKSPACE_ID`, nunca aceita ampliação de escopo por
+workspace definido em `BIAWS_WORKSPACE_ID`, nunca aceita ampliação de escopo por
 argumento e delega autorização, validação e auditoria à API. Monitores que ainda
 aguardam o provisionamento do executor devem ser cadastrados com
 `enabled: false`.

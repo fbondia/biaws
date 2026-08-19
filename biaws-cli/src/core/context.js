@@ -149,9 +149,8 @@ export async function resolveCommandContext(options) {
     input.workspaceId ||
       input.workspace ||
       environment.BIAWS_WORKSPACE_ID ||
-      environment.ISSUE_WORKSPACE_ID ||
       workspaceConfiguration.workspaceId ||
-      effectiveEnv.ISSUE_WORKSPACE_ID ||
+      effectiveEnv.BIAWS_WORKSPACE_ID ||
       "",
   ).trim();
 

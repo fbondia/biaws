@@ -43,7 +43,7 @@ vínculo retorna `403 WORKSPACE_FORBIDDEN`.
 
 O ator de `GET /api/auth/me` contém `workspaceId`, `workspaces`,
 `permissionScopes`, grupos e permissões do workspace corrente. A UI persiste a
-seleção localmente; MCP e CLI usam `ISSUE_WORKSPACE_ID`.
+seleção localmente; MCP e CLI usam `BIAWS_WORKSPACE_ID`.
 
 Filtros de query, body ou argumentos MCP nunca são usados como prova de acesso.
 O servidor substitui o workspace pelo contexto autenticado e intersecta

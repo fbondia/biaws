@@ -418,7 +418,16 @@ Para repetir somente a configuração do cliente:
   --env-file ~/.config/biaws/cliente-a.env
 ```
 
-O MCP recebe `BIAWS_ENV_FILE` e `ISSUE_WORKSPACE_ID` na configuração local do
+Em um terminal interativo, o CLI solicita o projeto, o arquivo privado da
+instância e o workspace por padrão:
+
+```bash
+biaws workspace agent configure codex
+```
+
+Use `--no-interactive` em uma execução manual que já forneça todos os parâmetros.
+
+O MCP recebe `BIAWS_ENV_FILE` e `BIAWS_WORKSPACE_ID` na configuração local do
 projeto. O primeiro aponta para as credenciais e a URL da instância; o segundo
 fixa a fronteira de workspace daquele projeto. Assim, projetos diferentes podem
 usar workspaces diferentes da mesma instância e chave técnica. Configurações
@@ -469,18 +478,18 @@ manual do CLI, crie uma chave na área da conta e defina:
 ```bash
 export ISSUE_API_URL=http://127.0.0.1:3100
 export ISSUE_API_KEY=biaws_sua_chave
-export ISSUE_WORKSPACE_ID=id-do-workspace
+export BIAWS_WORKSPACE_ID=id-do-workspace
 ```
 
 Na configuração MCP, mantenha `BIAWS_ENV_FILE` apontando para o `.env` da
-instância e grave `ISSUE_WORKSPACE_ID` no bloco `env` do servidor `biaws`. O
+instância e grave `BIAWS_WORKSPACE_ID` no bloco `env` do servidor `biaws`. O
 `setup-local.sh` e `setup-client.sh` fazem isso automaticamente por meio de
 `configure.sh`.
 
 Servidor MCP pelo pacote publicado:
 
 ```bash
-npx --yes biaws-mcp@0.1.0
+npx --yes biaws-mcp@0.2.0
 ```
 
 CLI:

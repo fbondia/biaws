@@ -636,7 +636,7 @@ fi
 
 # Migração: versões anteriores armazenavam o workspace no arquivo da instância.
 # Ele agora pertence à configuração MCP de cada projeto consumidor.
-remove_env_value "${ENV_FILE}" "ISSUE_WORKSPACE_ID"
+  remove_env_value "${ENV_FILE}" "BIAWS_WORKSPACE_ID"
 
 existing_mongo_data_path="$(read_env_value "${ENV_FILE}" "BIAWS_MONGO_DATA_PATH")"
 existing_issue_files_path="$(read_env_value "${ENV_FILE}" "BIAWS_ISSUE_FILES_PATH")"

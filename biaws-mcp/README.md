@@ -42,7 +42,7 @@ Defina obrigatoriamente `ISSUE_API_KEY`. O bootstrap open source cria uma
 identidade técnica e grava sua chave no `.env` local; uma chave também pode ser
 criada manualmente pela UI. O MCP a envia como `Authorization: Bearer`.
 
-Defina `ISSUE_WORKSPACE_ID` no bloco `env` do servidor MCP local ao projeto. O
+Defina `BIAWS_WORKSPACE_ID` no bloco `env` do servidor MCP local ao projeto. O
 MCP preserva esse valor mesmo ao carregar `BIAWS_ENV_FILE` e o envia como
 `X-Biaws-Workspace-Id`; argumentos das tools não ampliam esse escopo. A chave
 precisa pertencer ao workspace — selecionar o ID não concede permissões.
@@ -65,13 +65,13 @@ O pacote público expõe o executável `biaws-mcp`. Clientes configurados pelo C
 usam uma versão fixada por meio do cache local do npm:
 
 ```bash
-npx --yes biaws-mcp@0.1.0
+npx --yes biaws-mcp@0.2.0
 ```
 
 Também é possível instalá-lo explicitamente:
 
 ```bash
-npm install --global biaws-mcp@0.1.0
+npm install --global biaws-mcp@0.2.0
 biaws-mcp
 ```
 
@@ -90,7 +90,7 @@ npm start
 Em um cliente MCP, configure o comando:
 
 ```bash
-npx --yes biaws-mcp@0.1.0
+npx --yes biaws-mcp@0.2.0
 ```
 
 O fluxo recomendado é gerar a configuração completa com:
@@ -164,7 +164,7 @@ Monitoramentos ativos são configurados por referência pública ou ID do runtim
 - `runtime_active_monitors_archive`.
 
 As tools não aceitam `workspaceId`; o escopo vem exclusivamente de
-`ISSUE_WORKSPACE_ID`. Configurações REST podem referenciar segredos apenas por
+`BIAWS_WORKSPACE_ID`. Configurações REST podem referenciar segredos apenas por
 identificadores públicos em `headerRefs`; valores de credenciais não pertencem
 ao MCP. Templates são permitidos somente para o provider REST. Para preparar um
 monitor antes de provisionar o executor, crie-o com `enabled: false`.

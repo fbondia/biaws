@@ -16,10 +16,10 @@ function withHttpClient(testFunction) {
     const originalFetch = globalThis.fetch;
     const originalBaseUrl = process.env.ISSUE_API_URL;
     const originalApiKey = process.env.ISSUE_API_KEY;
-    const originalWorkspaceId = process.env.ISSUE_WORKSPACE_ID;
+    const originalWorkspaceId = process.env.BIAWS_WORKSPACE_ID;
     process.env.ISSUE_API_URL = "http://api.test";
     process.env.ISSUE_API_KEY = "biaws_test_key";
-    process.env.ISSUE_WORKSPACE_ID = "workspace-1";
+    process.env.BIAWS_WORKSPACE_ID = "workspace-1";
     const calls = [];
     globalThis.fetch = async (url, options = {}) => {
       calls.push({ url: String(url), options });
@@ -32,7 +32,7 @@ function withHttpClient(testFunction) {
       for (const [name, value] of [
         ["ISSUE_API_URL", originalBaseUrl],
         ["ISSUE_API_KEY", originalApiKey],
-        ["ISSUE_WORKSPACE_ID", originalWorkspaceId],
+        ["BIAWS_WORKSPACE_ID", originalWorkspaceId],
       ]) {
         if (value === undefined) delete process.env[name];
         else process.env[name] = value;

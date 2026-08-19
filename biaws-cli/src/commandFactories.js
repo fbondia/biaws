@@ -4,6 +4,7 @@ import { AuthenticatedApiCommand, ProjectCommand } from "./baseCommands.js";
 import {
   configureContextFlags,
   configureContextInput,
+  interactiveConfigureInput,
   legacyAgentContext,
 } from "./configure/command.js";
 import { runAgentCommand } from "./commands/agent.js";
@@ -85,12 +86,21 @@ export function createAgentCommand(action) {
 
     async run() {
       const { args, flags } = await this.parse(this.constructor);
-      const context = await this.projectContext(configureContextInput(flags));
+      const input =
+        action === "configure"
+          ? await interactiveConfigureInput(this, flags)
+          : configureContextInput(flags);
+      const context = await this.projectContext(input);
       await runAgentCommand(
         context.api,
         action,
         [args.client],
-        { ...flags, project: context.projectDirectory },
+        {
+          ...flags,
+          interactive: input.interactive,
+          project: context.projectDirectory,
+          prompts: this.adapters.prompts,
+        },
         legacyAgentContext(context),
       );
     }

@@ -107,7 +107,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   );
   await writeFile(
     path.join(instance, ".env"),
-    `${await readFile(path.join(instance, ".env"), "utf8")}\nISSUE_WORKSPACE_ID=legacy-workspace\n`,
+    `${await readFile(path.join(instance, ".env"), "utf8")}\nBIAWS_WORKSPACE_ID=workspace-local\n`,
   );
   const bin = await createFakeRuntime(temporaryRoot);
 
@@ -135,7 +135,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   assert.equal(configured.status, 0, configured.stderr);
 
   const configuredEnv = await readFile(path.join(instance, ".env"), "utf8");
-  assert.doesNotMatch(configuredEnv, /^ISSUE_WORKSPACE_ID=/mu);
+  assert.doesNotMatch(configuredEnv, /^BIAWS_WORKSPACE_ID=/mu);
   assert.match(
     configuredEnv,
     /^BIAWS_PUBLIC_URL=https:\/\/ci\.example\.test$/mu,

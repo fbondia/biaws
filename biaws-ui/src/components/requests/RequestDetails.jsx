@@ -204,6 +204,7 @@ export function RequestDetails(props) {
     onCloseChecklistDialog,
     onTabChange,
     onToggleEditMode,
+    onUpdateChecklistItem,
     selectedChecklistItem,
   } = props;
   return (

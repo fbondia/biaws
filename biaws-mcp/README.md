@@ -17,8 +17,9 @@ O servidor separa os domínios:
 - `attachments_*`: envio, download, classificação e exclusão de arquivos de
   chamados, melhorias, tarefas e procedimentos.
 - `secrets_*`: consulta e registro de metadados de segredos, sem acesso aos valores.
-- `monitoring_templates_*` e `runtime_active_monitors_*`: administração
-  versionada de templates e configuração de monitoramentos ativos dos runtimes.
+- `monitoring_templates_*`, `runtime_active_monitors_*` e
+  `runtime_monitoring_results_list`: administração versionada de templates,
+  configuração de monitores e consulta do histórico dos runtimes.
 - `resource_collections_*` e `*_move_to_collection`: organização hierárquica
   de aplicações, regras, decisões, procedimentos, segredos, skills e servidores.
 
@@ -162,6 +163,11 @@ Monitoramentos ativos são configurados por referência pública ou ID do runtim
 - `runtime_active_monitors_create`;
 - `runtime_active_monitors_update`;
 - `runtime_active_monitors_archive`.
+
+`runtime_monitoring_results_list` consulta o histórico unificado de observações
+ativas, passivas e manuais. `observedFrom` e `observedTo` aceitam uma data
+`YYYY-MM-DD` ou um instante ISO 8601; datas sem horário preservam a semântica de
+dia inteiro no limite final.
 
 As tools não aceitam `workspaceId`; o escopo vem exclusivamente de
 `BIAWS_WORKSPACE_ID`. Configurações REST podem referenciar segredos apenas por

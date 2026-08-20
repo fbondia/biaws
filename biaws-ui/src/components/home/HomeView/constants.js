@@ -21,3 +21,14 @@ export const EMPTY_MONITORING_FILTERS = {
   observedFrom: "",
   observedTo: "",
 };
+
+export function monitoringFilterParams(filters = {}) {
+  return Object.fromEntries(
+    Object.entries(filters).map(([key, value]) => [
+      key,
+      key.startsWith("observed") && value
+        ? new Date(value).toISOString()
+        : value,
+    ]),
+  );
+}

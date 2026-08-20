@@ -11,6 +11,7 @@ import {
   newObservationDraft,
   selectableMonitoringTemplates,
 } from "../src/components/monitoring/runtime/model.js";
+import { monitoringFilterParams } from "../src/components/home/HomeView/constants.js";
 
 test("active manual executions are collected from health metrics", () => {
   const ids = activeManualExecutionIds([
@@ -164,6 +165,18 @@ test("monitoring history pages are merged without duplicate observations", () =>
     events.map(({ id }) => id),
     ["event-2", "event-1", "event-3"],
   );
+});
+
+test("monitoring date-time filters are sent as unambiguous ISO instants", () => {
+  const result = monitoringFilterParams({
+    observedFrom: "2026-08-19T10:15",
+    observedTo: "2026-08-19T12:45",
+    status: "degraded",
+  });
+
+  assert.equal(result.observedFrom, new Date("2026-08-19T10:15").toISOString());
+  assert.equal(result.observedTo, new Date("2026-08-19T12:45").toISOString());
+  assert.equal(result.status, "degraded");
 });
 
 test("template selectors expose active versions and preserve the current reference", () => {

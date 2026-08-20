@@ -518,7 +518,7 @@ export function MonitoringRuntimesView({ actor }) {
   const [deployment, setDeployment] = useState(null);
   const [runtime, setRuntime] = useState(null);
   const [viewMode, setViewMode] = useState("navigation");
-  const [monitoredOnly, setMonitoredOnly] = useState(false);
+  const [monitoredOnly, setMonitoredOnly] = useState(true);
   const [monitoredTopology, setMonitoredTopology] = useState({
     applicationIds: [],
     componentIds: [],

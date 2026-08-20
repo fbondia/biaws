@@ -664,6 +664,21 @@ test("monitoring signal history filters status and observed date range", () => {
     "2026-07-01T00:00:00.000Z",
   );
   assert.equal(filter.observedAt.$lt.toISOString(), "2026-08-01T00:00:00.000Z");
+  const instantFilter = buildRuntimeMonitoringSignalFilter(
+    { id: "runtime-1", workspaceId: "workspace-1" },
+    {
+      observedFrom: "2026-07-31T10:15:00-03:00",
+      observedTo: "2026-07-31T12:45:00-03:00",
+    },
+  );
+  assert.equal(
+    instantFilter.observedAt.$gte.toISOString(),
+    "2026-07-31T13:15:00.000Z",
+  );
+  assert.equal(
+    instantFilter.observedAt.$lte.toISOString(),
+    "2026-07-31T15:45:00.000Z",
+  );
   assert.throws(
     () =>
       buildRuntimeMonitoringSignalFilter(

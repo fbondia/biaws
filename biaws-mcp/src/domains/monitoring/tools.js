@@ -11,6 +11,7 @@ import {
   getMonitoringTemplateUsage,
   listMonitoringTemplates,
   listRuntimeActiveMonitors,
+  listRuntimeMonitoringResults,
   previewMonitoringTemplate,
   updateRuntimeActiveMonitor,
   validateMonitoringTemplateSample,
@@ -133,6 +134,33 @@ export const monitoringTools = [
     "Arquiva uma versão de template identificada explicitamente; a API recusa versões ainda em uso.",
     archiveMonitoringTemplate,
     TEMPLATE_VERSION_ID_SCHEMA,
+  ),
+  definition(
+    "runtime_monitoring_results_list",
+    "Lista resultados históricos unificados de monitoramento de um runtime, com filtros por instante inicial, instante final e status.",
+    listRuntimeMonitoringResults,
+    schema(
+      {
+        runtimeReference: ID,
+        observedFrom: {
+          type: "string",
+          description:
+            "Data (YYYY-MM-DD) ou instante ISO 8601 inicial, inclusivo",
+        },
+        observedTo: {
+          type: "string",
+          description:
+            "Data (YYYY-MM-DD, incluindo o dia inteiro) ou instante ISO 8601 final, inclusivo",
+        },
+        status: {
+          type: "string",
+          enum: ["unknown", "healthy", "degraded", "unavailable", "stopped"],
+        },
+        page: { type: "integer", minimum: 1, default: 1 },
+        limit: { type: "integer", minimum: 1, maximum: 100, default: 50 },
+      },
+      ["runtimeReference"],
+    ),
   ),
   definition(
     "runtime_active_monitors_list",

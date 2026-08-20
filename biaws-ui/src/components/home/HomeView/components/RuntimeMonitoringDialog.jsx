@@ -5,7 +5,11 @@ import { fetchRuntimeMonitoringTimeline } from "../../../../api.js";
 import { MonitoringEventDetails } from "../../../shared/MonitoringEventDetails/index.jsx";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { formatMonitoringDate } from "../../widgets/widgetUtils.js";
-import { EMPTY_MONITORING_FILTERS, MONITORING_STATUSES } from "../constants.js";
+import {
+  EMPTY_MONITORING_FILTERS,
+  monitoringFilterParams,
+  MONITORING_STATUSES,
+} from "../constants.js";
 
 export function RuntimeMonitoringDialog({ runtime, onClose }) {
   const [signals, setSignals] = useState([]);
@@ -22,7 +26,7 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
     void fetchRuntimeMonitoringTimeline(runtime.id, {
       page: 1,
       limit: 20,
-      ...filters,
+      ...monitoringFilterParams(filters),
     })
       .then((payload) => {
         if (!active) return;
@@ -47,7 +51,9 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
       draftFilters.observedTo &&
       draftFilters.observedFrom > draftFilters.observedTo
     ) {
-      setError("A data final deve ser igual ou posterior à data inicial.");
+      setError(
+        "O horário final deve ser igual ou posterior ao horário inicial.",
+      );
       return;
     }
     setFilters({ ...draftFilters });
@@ -126,20 +132,20 @@ function MonitoringFilters({
   return (
     <form className="homeMonitoringFilters" onSubmit={applyFilters}>
       <label className="field">
-        <span>Data inicial</span>
+        <span>Início</span>
         <input
           max={draftFilters.observedTo || undefined}
           onChange={(event) => update("observedFrom", event.target.value)}
-          type="date"
+          type="datetime-local"
           value={draftFilters.observedFrom}
         />
       </label>
       <label className="field">
-        <span>Data final</span>
+        <span>Fim</span>
         <input
           min={draftFilters.observedFrom || undefined}
           onChange={(event) => update("observedTo", event.target.value)}
-          type="date"
+          type="datetime-local"
           value={draftFilters.observedTo}
         />
       </label>

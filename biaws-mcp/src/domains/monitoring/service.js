@@ -34,6 +34,11 @@ function activeMonitorsPath(args, monitor = false) {
   return monitor ? `${base}/${segment(requiredId(args, "monitorId"))}` : base;
 }
 
+function runtimeMonitoringTimelinePath(args) {
+  const runtimeReference = requiredId(args, "runtimeReference");
+  return `/api/monitoring/runtimes/${segment(runtimeReference)}/timeline`;
+}
+
 function payload(args, omitted) {
   const excluded = new Set(omitted);
   const result = Object.fromEntries(
@@ -112,6 +117,19 @@ export function listRuntimeActiveMonitors(args = {}) {
   return fetchJson(
     activeMonitorsPath(args),
     cleanParams({ page: args.page, limit: args.limit }),
+  );
+}
+
+export function listRuntimeMonitoringResults(args = {}) {
+  return fetchJson(
+    runtimeMonitoringTimelinePath(args),
+    cleanParams({
+      observedFrom: args.observedFrom,
+      observedTo: args.observedTo,
+      status: args.status,
+      page: args.page,
+      limit: args.limit,
+    }),
   );
 }
 

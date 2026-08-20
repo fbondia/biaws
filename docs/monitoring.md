@@ -243,11 +243,12 @@ POST   /api/monitoring/runtimes/:runtimeReference/active-monitors/:monitorId/exe
 ```
 
 As mesmas operações de administração estão disponíveis para agentes pelas
-tools MCP `monitoring_templates_*` e `runtime_active_monitors_*`. O MCP usa o
-workspace definido em `BIAWS_WORKSPACE_ID`, nunca aceita ampliação de escopo por
-argumento e delega autorização, validação e auditoria à API. Monitores que ainda
-aguardam o provisionamento do executor devem ser cadastrados com
-`enabled: false`.
+tools MCP `monitoring_templates_*` e `runtime_active_monitors_*`. A tool
+`runtime_monitoring_results_list` consulta o histórico por runtime, intervalo
+de datas ou instantes ISO 8601, status e paginação. O MCP usa o workspace
+definido em `BIAWS_WORKSPACE_ID`, nunca aceita ampliação de escopo por argumento
+e delega autorização, validação e auditoria à API. Monitores que ainda aguardam
+o provisionamento do executor devem ser cadastrados com `enabled: false`.
 
 Leitura exige `runtimes.read`; mutações exigem `runtimes.update` e são
 auditadas. `DELETE` arquiva a configuração. O contrato inicial aceita `name`,

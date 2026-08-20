@@ -1,6 +1,6 @@
 {
   "name": "biaws",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "CLI do Bondia Workspaces para administração, configuração e operação de workspaces",
   "license": "Apache-2.0",
   "repository": {

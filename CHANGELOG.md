@@ -31,6 +31,8 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 
+- consulta agregada do histórico de saúde de runtimes na API e no MCP, com
+  resolução temporal adaptativa e consumo independente pelos gráficos da UI;
 - modo assistente padrão em terminais para `biaws workspace agent configure
 codex|claude`, com seleção de workspace e confirmação antes da escrita;
 - pacote público executável `biaws-mcp`, com validação do tarball, handshake no

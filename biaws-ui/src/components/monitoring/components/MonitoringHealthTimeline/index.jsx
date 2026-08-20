@@ -11,9 +11,11 @@ import {
 
 import "../../../../styles/features/monitoring-history.css";
 import {
+  monitoringHealthSummaryCaption,
   monitoringHealthStatusLabel,
   monitoringHealthTimeline,
 } from "./model.js";
+import { useMonitoringHealthSummary } from "./hooks/useMonitoringHealthSummary.js";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
@@ -24,8 +26,28 @@ function formatTimestamp(value) {
   return DATE_FORMAT.format(new Date(value));
 }
 
-export function MonitoringHealthTimeline({ events, monitors }) {
-  const timeline = monitoringHealthTimeline(events, monitors);
+export function MonitoringHealthTimeline({
+  monitors,
+  observedFrom,
+  observedTo,
+  runtimeId,
+  status,
+}) {
+  const { error, loading, summary } = useMonitoringHealthSummary({
+    observedFrom,
+    observedTo,
+    runtimeId,
+    status,
+  });
+  if (loading) {
+    return (
+      <div className="monitoringHealthTimelineEmpty" role="status">
+        Carregando resumo temporal…
+      </div>
+    );
+  }
+  if (error) return <div className="errorBox">{error}</div>;
+  const timeline = monitoringHealthTimeline(summary, monitors);
   if (!timeline.points.length) {
     return (
       <div className="monitoringHealthTimelineEmpty">
@@ -70,10 +92,14 @@ export function MonitoringHealthTimeline({ events, monitors }) {
                 width={88}
               />
               <Tooltip
-                formatter={(value, name) => [
-                  monitoringHealthStatusLabel(value),
-                  name,
-                ]}
+                formatter={(value, name, item) => {
+                  const eventCount =
+                    item.payload?.[`${item.dataKey}EventCount`] || 0;
+                  return [
+                    `${monitoringHealthStatusLabel(value)} · ${eventCount} ${eventCount === 1 ? "evento" : "eventos"}`,
+                    name,
+                  ];
+                }}
                 labelFormatter={formatTimestamp}
               />
               <Legend />
@@ -94,10 +120,7 @@ export function MonitoringHealthTimeline({ events, monitors }) {
           </ResponsiveContainer>
         </div>
       </div>
-      <p>
-        Cada linha representa um monitoramento. O gráfico considera os eventos
-        carregados no histórico atual.
-      </p>
+      <p>{monitoringHealthSummaryCaption(timeline.meta)}</p>
     </section>
   );
 }

@@ -67,6 +67,8 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
     setFilters({ ...EMPTY_MONITORING_FILTERS });
   }
 
+  const summaryFilters = monitoringFilterParams(filters);
+
   return (
     <div
       className="dialogBackdrop homeMonitoringBackdrop"
@@ -114,11 +116,15 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
             error={error}
             loading={loading}
             monitors={runtime.activeMonitors}
+            observedFrom={summaryFilters.observedFrom}
+            observedTo={summaryFilters.observedTo}
+            runtimeId={runtime.id}
             signals={signals}
+            status={summaryFilters.status}
             viewMode={viewMode}
           />
         </div>
-        {meta?.total ? (
+        {viewMode === "list" && meta?.total ? (
           <footer>
             Exibindo {signals.length} de {meta.total} eventos, do mais recente
             para o mais antigo.
@@ -191,7 +197,28 @@ function MonitoringFilters({
   );
 }
 
-function MonitoringSignals({ error, loading, monitors, signals, viewMode }) {
+function MonitoringSignals({
+  error,
+  loading,
+  monitors,
+  observedFrom,
+  observedTo,
+  runtimeId,
+  signals,
+  status,
+  viewMode,
+}) {
+  if (viewMode === "timeline") {
+    return (
+      <MonitoringHealthTimeline
+        monitors={monitors}
+        observedFrom={observedFrom}
+        observedTo={observedTo}
+        runtimeId={runtimeId}
+        status={status}
+      />
+    );
+  }
   if (loading)
     return <div className="homeWidgetPending">Carregando sinais…</div>;
   if (error) return <div className="errorBox">{error}</div>;
@@ -201,10 +228,6 @@ function MonitoringSignals({ error, loading, monitors, signals, viewMode }) {
         Nenhum sinal encontrado para os filtros informados.
       </div>
     );
-  }
-
-  if (viewMode === "timeline") {
-    return <MonitoringHealthTimeline events={signals} monitors={monitors} />;
   }
 
   return (

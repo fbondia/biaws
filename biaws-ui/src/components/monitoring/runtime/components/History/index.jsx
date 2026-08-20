@@ -156,15 +156,15 @@ export function RuntimeMonitoringHistory({
           ) : null}
         </div>
       </div>
-      {monitoringLoading && !monitoringEvents.length ? (
+      {viewMode === "timeline" ? (
+        <MonitoringHealthTimeline
+          monitors={activeMonitors}
+          runtimeId={entity?.id}
+        />
+      ) : monitoringLoading && !monitoringEvents.length ? (
         <div className="catalogHistoryEmpty" role="status">
           Carregando histórico…
         </div>
-      ) : viewMode === "timeline" ? (
-        <MonitoringHealthTimeline
-          events={monitoringEvents}
-          monitors={activeMonitors}
-        />
       ) : (
         <HistoryItems
           empty="Nenhuma observação de monitoramento registrada."
@@ -196,7 +196,7 @@ export function RuntimeMonitoringHistory({
           )}
         />
       )}
-      {monitoringHistoryHasMore ? (
+      {viewMode === "list" && monitoringHistoryHasMore ? (
         <button
           className="secondaryButton catalogMonitoringLoadMore"
           disabled={monitoringHistoryLoadingMore}

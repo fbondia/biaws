@@ -24,6 +24,11 @@ import {
   normalizeMonitoringMetadataProfile,
 } from "./monitoringMetadataProfiles.js";
 import { evaluateMonitoringTemplateReference } from "./monitoringTemplatesRepository.js";
+import {
+  buildRuntimeMonitoringSummaryPipeline,
+  normalizeRuntimeMonitoringSummaryQuery,
+  runtimeMonitoringSummaryResponse,
+} from "./runtimeMonitoringSummary.js";
 
 const SIGNAL_STATUSES = RUNTIME_STATUSES.filter(
   (status) => status !== "archived",
@@ -633,6 +638,26 @@ export async function listRuntimeMonitoringTimeline(runtimeId, query = {}) {
     },
     items: events.map(timelineEvent),
   };
+}
+
+export async function getRuntimeMonitoringHealthSummary(runtimeId, query = {}) {
+  const runtime = await getRuntime(runtimeId, {
+    workspaceId: query.workspaceId,
+  });
+  if (!runtime) {
+    throw createCatalogError(404, "RUNTIME_NOT_FOUND", "Runtime not found");
+  }
+  const settings = normalizeRuntimeMonitoringSummaryQuery(query);
+  const filter = buildRuntimeMonitoringSignalFilter(runtime, {
+    observedFrom: settings.observedFrom.toISOString(),
+    observedTo: settings.observedTo.toISOString(),
+    status: query.status,
+  });
+  const collection = await monitoringCollection();
+  const rows = await collection
+    .aggregate(buildRuntimeMonitoringSummaryPipeline(filter, settings))
+    .toArray();
+  return runtimeMonitoringSummaryResponse(runtime, settings, rows);
 }
 
 export async function recalculateRuntimeMonitoringExpiration(

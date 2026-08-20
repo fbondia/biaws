@@ -23,70 +23,63 @@ const SERIES_COLORS = [
   "var(--palette-blue-42)",
 ];
 
-function eventSeriesIdentity(event, monitorNames) {
-  if (event.monitorId || event.monitorName) {
-    const identity = event.monitorId || event.monitorName;
-    const sourceLabel = String(event.source || "").replace(/^[^:]+:/u, "");
-    return {
-      id: `monitor:${identity}`,
-      label:
-        event.monitorName ||
-        monitorNames.get(String(event.monitorId)) ||
-        sourceLabel ||
-        `Monitor ${identity}`,
-    };
-  }
-  if (event.origin === "manual") {
-    return { id: "origin:manual", label: "Observações manuais" };
-  }
-  return {
-    id: `origin:${event.origin || "passive"}`,
-    label: event.origin === "active" ? "Monitor ativo" : "Sinais passivos",
-  };
-}
-
 export function monitoringHealthStatusLabel(level) {
   return HEALTH_LABELS[Number(level)] || "Desconhecido";
 }
 
-export function monitoringHealthTimeline(events = [], monitors = []) {
+export function monitoringHealthTimeline(summary = {}, monitors = []) {
+  const compactSummary = summary || {};
   const monitorNames = new Map(
     monitors.map((monitor) => [String(monitor.id), monitor.name]),
   );
-  const normalizedEvents = events
-    .flatMap((event) => {
-      const timestamp = new Date(event.observedAt).getTime();
-      const level = HEALTH_LEVELS[String(event.status || "").toLowerCase()];
-      if (!Number.isFinite(timestamp) || level === undefined) return [];
-      return [
-        { ...eventSeriesIdentity(event, monitorNames), level, timestamp },
-      ];
-    })
-    .sort((left, right) => left.timestamp - right.timestamp);
-
-  const identities = new Map();
-  for (const event of normalizedEvents) {
-    if (!identities.has(event.id)) identities.set(event.id, event.label);
-  }
-  const series = [...identities].map(([id, label], index) => ({
+  const preparedSeries = (compactSummary.series || [])
+    .map((item) => ({
+      ...item,
+      points: (item.points || []).flatMap((point) => {
+        const timestamp = new Date(point.observedAt).getTime();
+        const level = HEALTH_LEVELS[String(point.status || "").toLowerCase()];
+        return Number.isFinite(timestamp) && level !== undefined
+          ? [{ ...point, level, timestamp }]
+          : [];
+      }),
+    }))
+    .filter((item) => item.points.length);
+  const series = preparedSeries.map((item, index) => ({
     color: SERIES_COLORS[index % SERIES_COLORS.length],
-    id,
+    id: item.id,
     key: `series${index}`,
-    label,
+    label:
+      (item.monitorId && monitorNames.get(String(item.monitorId))) ||
+      item.label,
   }));
-  const keyById = new Map(series.map(({ id, key }) => [id, key]));
   const pointsByTimestamp = new Map();
-  for (const event of normalizedEvents) {
-    const point = pointsByTimestamp.get(event.timestamp) || {
-      timestamp: event.timestamp,
-    };
-    point[keyById.get(event.id)] = event.level;
-    pointsByTimestamp.set(event.timestamp, point);
-  }
+  preparedSeries.forEach((item, index) => {
+    const key = `series${index}`;
+    for (const entry of item.points) {
+      const point = pointsByTimestamp.get(entry.timestamp) || {
+        timestamp: entry.timestamp,
+      };
+      point[key] = entry.level;
+      point[`${key}EventCount`] = entry.eventCount;
+      pointsByTimestamp.set(entry.timestamp, point);
+    }
+  });
 
+  const points = [...pointsByTimestamp.values()].sort(
+    (left, right) => left.timestamp - right.timestamp,
+  );
   return {
-    points: [...pointsByTimestamp.values()],
+    meta: compactSummary.meta || null,
+    points,
     series,
     statusTicks: HEALTH_LABELS.map((_label, level) => level),
   };
+}
+
+export function monitoringHealthSummaryCaption(meta) {
+  if (!meta) return "Resumo temporal agregado do histórico de monitoramento.";
+  const eventLabel = meta.eventCount === 1 ? "evento" : "eventos";
+  const pointLabel = meta.pointCount === 1 ? "ponto" : "pontos";
+  const summaryLabel = meta.eventCount === 1 ? "resumido" : "resumidos";
+  return `${meta.eventCount} ${eventLabel} ${summaryLabel} em ${meta.pointCount} ${pointLabel}, com resolução ${meta.resolution}.`;
 }

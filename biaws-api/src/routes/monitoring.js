@@ -11,6 +11,7 @@ import { getApplication } from "../repositories/catalogRepository.js";
 import {
   recordActiveRuntimeMonitoringObservation,
   getApplicationMonitoringHealth,
+  getRuntimeMonitoringHealthSummary,
   listRuntimeMonitoringTimeline,
   listRuntimeMonitoringSignals,
   recordManualRuntimeMonitoringObservation,
@@ -637,6 +638,21 @@ monitoringRouter.get(
     res.json({
       health: { ...health, details },
     });
+  }),
+);
+
+monitoringRouter.get(
+  "/runtimes/:runtimeReference/health-summary",
+  requireAllPermissions("runtimes.read"),
+  asyncHandler(async (req, res) => {
+    const runtime = await scopedRuntime(req, "runtimes.read");
+    if (!runtime) return sendRuntimeNotFound(res);
+    res.json(
+      await getRuntimeMonitoringHealthSummary(runtime.id, {
+        ...req.query,
+        workspaceId: req.actor.workspaceId,
+      }),
+    );
   }),
 );
 

@@ -1,6 +1,6 @@
 {
   "name": "@bondia/biaws-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Interface React do Bondia Workspaces",
   "license": "Apache-2.0",
   "private": true,

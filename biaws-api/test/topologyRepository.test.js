@@ -25,6 +25,11 @@ import {
   normalizeMonitoringSignal,
 } from "../src/repositories/runtimeMonitoringRepository.js";
 import {
+  buildRuntimeMonitoringSummaryPipeline,
+  normalizeRuntimeMonitoringSummaryQuery,
+  runtimeMonitoringSummaryResponse,
+} from "../src/repositories/runtimeMonitoringSummary.js";
+import {
   buildScopedListFilter,
   pagination,
 } from "../src/repositories/topologyRepositorySupport.js";
@@ -695,6 +700,95 @@ test("monitoring signal history filters status and observed date range", () => {
       ),
     (error) => error.code === "INVALID_MONITORING_FILTER",
   );
+});
+
+test("monitoring health summary bounds long ranges with an effective resolution", () => {
+  const settings = normalizeRuntimeMonitoringSummaryQuery(
+    {
+      maxPoints: 100,
+      observedFrom: "2026-01-01",
+      observedTo: "2026-06-30",
+      resolution: "1m",
+    },
+    new Date("2026-07-01T00:00:00.000Z"),
+  );
+  assert.equal(settings.observedFrom.toISOString(), "2026-01-01T00:00:00.000Z");
+  assert.equal(settings.observedTo.toISOString(), "2026-06-30T23:59:59.999Z");
+  assert.equal(settings.requestedResolution, "1m");
+  assert.equal(settings.resolution.id, "7d");
+  assert.throws(
+    () => normalizeRuntimeMonitoringSummaryQuery({ maxPoints: 10 }),
+    (error) => error.code === "INVALID_MONITORING_SUMMARY",
+  );
+});
+
+test("monitoring health summary pipeline keeps the worst state in each bucket", () => {
+  const settings = normalizeRuntimeMonitoringSummaryQuery({
+    maxPoints: 400,
+    observedFrom: "2026-08-01T00:00:00.000Z",
+    observedTo: "2026-08-01T12:00:00.000Z",
+    resolution: "1h",
+  });
+  const pipeline = buildRuntimeMonitoringSummaryPipeline(
+    { runtimeId: "runtime-1", workspaceId: "workspace-1" },
+    settings,
+  );
+  const group = pipeline.find((stage) => stage.$group).$group;
+  assert.deepEqual(group.worstSeverity, { $min: "$severity" });
+  assert.equal(group._id.bucket.$dateTrunc.unit, "hour");
+  assert.equal(group._id.bucket.$dateTrunc.binSize, 1);
+});
+
+test("monitoring health summary returns compact series and aggregate counts", () => {
+  const settings = normalizeRuntimeMonitoringSummaryQuery({
+    observedFrom: "2026-08-01",
+    observedTo: "2026-08-02",
+    resolution: "1h",
+  });
+  const summary = runtimeMonitoringSummaryResponse(
+    { id: "runtime-1" },
+    settings,
+    [
+      {
+        _id: {
+          bucket: new Date("2026-08-01T10:00:00.000Z"),
+          seriesId: "monitor:http",
+        },
+        degradedCount: 1,
+        eventCount: 8,
+        healthyCount: 7,
+        label: "HTTP",
+        monitorId: "http",
+        stoppedCount: 0,
+        unavailableCount: 0,
+        unknownCount: 0,
+        worstSeverity: 2,
+      },
+    ],
+  );
+  assert.equal(summary.meta.eventCount, 8);
+  assert.equal(summary.meta.pointCount, 1);
+  assert.equal(summary.meta.statusCounts.healthy, 7);
+  assert.deepEqual(summary.series[0], {
+    id: "monitor:http",
+    label: "HTTP",
+    monitorId: "http",
+    points: [
+      {
+        eventCount: 8,
+        observedAt: "2026-08-01T10:00:00.000Z",
+        observedTo: "2026-08-01T10:59:59.999Z",
+        status: "degraded",
+        statusCounts: {
+          stopped: 0,
+          unavailable: 0,
+          degraded: 1,
+          unknown: 0,
+          healthy: 7,
+        },
+      },
+    ],
+  });
 });
 
 test("scoped topology filters escape search and pagination is bounded", () => {

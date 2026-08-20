@@ -291,6 +291,7 @@ entre `operation`, `deployment`, `rollback`, `troubleshooting`, `monitoring` e
 | `POST`   | `/api/monitoring/runtimes/:runtimeReference/manual-observations`                   | `runtimes.update`           |
 | `GET`    | `/api/monitoring/runtimes/:runtimeReference/signals`                               | `runtimes.read`             |
 | `GET`    | `/api/monitoring/runtimes/:runtimeReference/timeline`                              | `runtimes.read`             |
+| `GET`    | `/api/monitoring/runtimes/:runtimeReference/health-summary`                        | `runtimes.read`             |
 | `GET`    | `/api/monitoring/applications/:applicationId/health`                               | `runtimes.read`             |
 | `GET`    | `/api/monitoring/metadata-profiles`                                                | `runtimes.read`             |
 | `GET`    | `/api/monitoring/runtimes/:runtimeReference/active-monitors`                       | `runtimes.read`             |

@@ -55,6 +55,7 @@ test("monitoring tools are registered once with closed top-level schemas", () =>
     "monitoring_templates_deactivate",
     "monitoring_templates_archive",
     "runtime_monitoring_results_list",
+    "runtime_monitoring_health_summary",
     "runtime_active_monitors_list",
     "runtime_active_monitors_create",
     "runtime_active_monitors_update",
@@ -125,6 +126,17 @@ test(
           limit: 10,
         },
         "/api/monitoring/runtimes/runtime%2Fkey/timeline?observedFrom=2026-08-19T10%3A00%3A00-03%3A00&observedTo=2026-08-19T12%3A30%3A00-03%3A00&status=degraded&page=2&limit=10",
+      ],
+      [
+        "runtime_monitoring_health_summary",
+        {
+          runtimeReference: "runtime/key",
+          observedFrom: "2026-01-01",
+          observedTo: "2026-06-30",
+          resolution: "auto",
+          maxPoints: 400,
+        },
+        "/api/monitoring/runtimes/runtime%2Fkey/health-summary?observedFrom=2026-01-01&observedTo=2026-06-30&resolution=auto&maxPoints=400",
       ],
       [
         "runtime_active_monitors_list",

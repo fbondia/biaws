@@ -15,7 +15,7 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     url: "https://biaws.example.test",
   });
   const previous = Object.fromEntries(
-    ["document", "navigator", "window"].map((name) => [
+    ["document", "fetch", "navigator", "window"].map((name) => [
       name,
       Object.getOwnPropertyDescriptor(globalThis, name),
     ]),
@@ -196,15 +196,51 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
       (button) => button.textContent.includes("Gráfico"),
     );
     assert.ok(chartButton);
+    globalThis.fetch = async () =>
+      new Response(
+        JSON.stringify({
+          meta: { eventCount: 24, pointCount: 2, resolution: "6h" },
+          series: [
+            {
+              id: "monitor:http",
+              label: "HTTP",
+              monitorId: "http",
+              points: [
+                {
+                  eventCount: 12,
+                  observedAt: "2026-08-13T06:00:00.000Z",
+                  status: "healthy",
+                },
+              ],
+            },
+            {
+              id: "monitor:database",
+              label: "Banco",
+              monitorId: "database",
+              points: [
+                {
+                  eventCount: 12,
+                  observedAt: "2026-08-13T12:00:00.000Z",
+                  status: "degraded",
+                },
+              ],
+            },
+          ],
+        }),
+        { headers: { "Content-Type": "application/json" }, status: 200 },
+      );
     chartButton.click();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     assert.equal(chartButton.getAttribute("aria-pressed"), "true");
     assert.ok(
       document.querySelector(
         '[aria-label="Evolução temporal da saúde por monitoramento"]',
       ),
     );
-    assert.match(document.body.textContent, /eventos carregados/u);
+    assert.match(
+      document.body.textContent,
+      /24 eventos resumidos em 2 pontos/u,
+    );
 
     const listButton = [...document.querySelectorAll("button")].find((button) =>
       button.textContent.includes("Lista"),

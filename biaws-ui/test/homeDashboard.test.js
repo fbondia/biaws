@@ -96,31 +96,63 @@ test("home dashboard exposes widget controls while personalizing", async () => {
     assert.ok(pendingButton.querySelector(".spinIcon"));
     pendingRoot.unmount();
 
-    globalThis.fetch = async () =>
-      new Response(
-        JSON.stringify({
-          items: [
-            {
-              id: "event-1",
-              monitorId: "http",
-              observedAt: "2026-08-20T10:00:00.000Z",
-              receivedAt: "2026-08-20T10:00:01.000Z",
-              source: "monitor:http",
-              status: "healthy",
-            },
-            {
-              id: "event-2",
-              monitorId: "database",
-              observedAt: "2026-08-20T11:00:00.000Z",
-              receivedAt: "2026-08-20T11:00:01.000Z",
-              source: "monitor:database",
-              status: "degraded",
-            },
-          ],
-          meta: { total: 2 },
-        }),
-        { headers: { "Content-Type": "application/json" }, status: 200 },
-      );
+    globalThis.fetch = async (url) => {
+      const payload = String(url).includes("/health-summary")
+        ? {
+            meta: { eventCount: 2, pointCount: 2, resolution: "6h" },
+            series: [
+              {
+                id: "monitor:http",
+                label: "HTTP",
+                monitorId: "http",
+                points: [
+                  {
+                    eventCount: 1,
+                    observedAt: "2026-08-20T10:00:00.000Z",
+                    status: "healthy",
+                  },
+                ],
+              },
+              {
+                id: "monitor:database",
+                label: "Banco",
+                monitorId: "database",
+                points: [
+                  {
+                    eventCount: 1,
+                    observedAt: "2026-08-20T11:00:00.000Z",
+                    status: "degraded",
+                  },
+                ],
+              },
+            ],
+          }
+        : {
+            items: [
+              {
+                id: "event-1",
+                monitorId: "http",
+                observedAt: "2026-08-20T10:00:00.000Z",
+                receivedAt: "2026-08-20T10:00:01.000Z",
+                source: "monitor:http",
+                status: "healthy",
+              },
+              {
+                id: "event-2",
+                monitorId: "database",
+                observedAt: "2026-08-20T11:00:00.000Z",
+                receivedAt: "2026-08-20T11:00:01.000Z",
+                source: "monitor:database",
+                status: "degraded",
+              },
+            ],
+            meta: { total: 2 },
+          };
+      return new Response(JSON.stringify(payload), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      });
+    };
     const dialogRoot = mountRuntimeMonitoringDialog(
       document.getElementById("app"),
     );
@@ -135,13 +167,14 @@ test("home dashboard exposes widget controls while personalizing", async () => {
     );
     assert.ok(chartButton);
     chartButton.click();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     assert.equal(chartButton.getAttribute("aria-pressed"), "true");
     assert.ok(
       document.querySelector(
         '[aria-label="Evolução temporal da saúde por monitoramento"]',
       ),
     );
+    assert.match(document.body.textContent, /2 eventos resumidos em 2 pontos/u);
 
     const listButton = [...document.querySelectorAll("button")].find((button) =>
       button.textContent.includes("Lista"),

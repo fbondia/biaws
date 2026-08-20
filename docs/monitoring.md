@@ -364,6 +364,20 @@ observações manuais:
 GET /api/monitoring/runtimes/:runtimeReference/timeline?page=1&limit=50&status=degraded&observedFrom=2026-07-01&observedTo=2026-07-31
 ```
 
+Para gráficos e análises de períodos longos, use a consulta agregada. Ela cria
+uma série por monitoramento, conserva o pior estado observado em cada bucket e
+eleva automaticamente a resolução quando necessário para respeitar
+`maxPoints` (50 a 1.000, padrão 400). O intervalo padrão são os últimos 30 dias.
+
+```http
+GET /api/monitoring/runtimes/:runtimeReference/health-summary?observedFrom=2026-01-01&observedTo=2026-06-30&resolution=auto&maxPoints=400
+```
+
+A resposta contém `meta` com período efetivo, resolução, contagens de eventos e
+estados, além de `series[].points[]` com estado mais crítico, quantidade de
+eventos e distribuição dos estados por intervalo. Continue usando `timeline`
+para consultar os registros detalhados de um intervalo relevante.
+
 Observações manuais usam o mesmo histórico:
 
 ```http

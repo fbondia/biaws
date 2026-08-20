@@ -280,6 +280,12 @@ export function fetchRuntimeMonitoringTimeline(runtimeId, params) {
     params,
   );
 }
+export function fetchRuntimeMonitoringHealthSummary(runtimeId, params) {
+  return fetchJson(
+    `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/health-summary`,
+    params,
+  );
+}
 export function fetchRuntimeActiveMonitors(runtimeId, params) {
   return fetchJson(
     `/api/monitoring/runtimes/${encodeURIComponent(runtimeId)}/active-monitors`,

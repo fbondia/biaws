@@ -39,6 +39,11 @@ function runtimeMonitoringTimelinePath(args) {
   return `/api/monitoring/runtimes/${segment(runtimeReference)}/timeline`;
 }
 
+function runtimeMonitoringHealthSummaryPath(args) {
+  const runtimeReference = requiredId(args, "runtimeReference");
+  return `/api/monitoring/runtimes/${segment(runtimeReference)}/health-summary`;
+}
+
 function payload(args, omitted) {
   const excluded = new Set(omitted);
   const result = Object.fromEntries(
@@ -129,6 +134,19 @@ export function listRuntimeMonitoringResults(args = {}) {
       status: args.status,
       page: args.page,
       limit: args.limit,
+    }),
+  );
+}
+
+export function getRuntimeMonitoringHealthSummary(args = {}) {
+  return fetchJson(
+    runtimeMonitoringHealthSummaryPath(args),
+    cleanParams({
+      observedFrom: args.observedFrom,
+      observedTo: args.observedTo,
+      status: args.status,
+      resolution: args.resolution,
+      maxPoints: args.maxPoints,
     }),
   );
 }

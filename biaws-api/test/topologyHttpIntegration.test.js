@@ -467,6 +467,19 @@ test(
       assert.equal(timeline.items[0].origin, "manual");
       assert.equal(timeline.items[1].origin, "passive");
       assert.equal(timeline.items[1].payload.probe.durationMs, 850);
+      const healthSummaryResponse = await request(
+        `/api/monitoring/runtimes/${runtime.id}/health-summary?observedFrom=2026-07-31&observedTo=2026-07-31&resolution=1h&maxPoints=50`,
+        { cookie: adminCookie },
+      );
+      assert.equal(healthSummaryResponse.status, 200);
+      const healthSummary = await healthSummaryResponse.json();
+      assert.equal(healthSummary.meta.eventCount, 3);
+      assert.equal(healthSummary.meta.resolution, "1h");
+      assert.equal(healthSummary.meta.statusCounts.unavailable, 1);
+      assert.equal(
+        healthSummary.series.some(({ id }) => id === "origin:manual"),
+        true,
+      );
       const retentionUpdate = await patch(
         `/api/catalog/runtimes/${runtime.id}`,
         { monitoringRetentionDays: 20 },

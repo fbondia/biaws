@@ -9,6 +9,7 @@ import {
   getMonitoringTemplate,
   getMonitoringTemplateContract,
   getMonitoringTemplateUsage,
+  getRuntimeMonitoringHealthSummary,
   listMonitoringTemplates,
   listRuntimeActiveMonitors,
   listRuntimeMonitoringResults,
@@ -158,6 +159,42 @@ export const monitoringTools = [
         },
         page: { type: "integer", minimum: 1, default: 1 },
         limit: { type: "integer", minimum: 1, maximum: 100, default: 50 },
+      },
+      ["runtimeReference"],
+    ),
+  ),
+  definition(
+    "runtime_monitoring_health_summary",
+    "Resume a evolução temporal da saúde de um runtime em séries agregadas por monitor, preservando o pior estado de cada intervalo e limitando a quantidade de pontos.",
+    getRuntimeMonitoringHealthSummary,
+    schema(
+      {
+        runtimeReference: ID,
+        observedFrom: {
+          type: "string",
+          description:
+            "Data (YYYY-MM-DD) ou instante ISO 8601 inicial; o padrão cobre 30 dias antes do limite final",
+        },
+        observedTo: {
+          type: "string",
+          description:
+            "Data (YYYY-MM-DD, incluindo o dia inteiro) ou instante ISO 8601 final; o padrão é o instante atual",
+        },
+        status: {
+          type: "string",
+          enum: ["unknown", "healthy", "degraded", "unavailable", "stopped"],
+        },
+        resolution: {
+          type: "string",
+          enum: ["auto", "1m", "5m", "15m", "1h", "6h", "1d", "7d", "30d"],
+          default: "auto",
+        },
+        maxPoints: {
+          type: "integer",
+          minimum: 50,
+          maximum: 1000,
+          default: 400,
+        },
       },
       ["runtimeReference"],
     ),

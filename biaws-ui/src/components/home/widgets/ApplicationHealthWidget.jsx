@@ -2,12 +2,12 @@ import { Clock3, Server } from "lucide-react";
 import { useState } from "react";
 
 import {
-  formatMonitoringDate,
   MonitoringExecutionButton,
   MonitoringHistoryButton,
-  MonitoringObservation,
-  MonitoringStatusBadge,
-} from "../../shared/monitoring/index.js";
+} from "../../monitoring/components/MonitoringActions.jsx";
+import { MonitoringObservation } from "../../monitoring/components/MonitoringObservation.jsx";
+import { MonitoringStatusBadge } from "../../monitoring/components/MonitoringStatusBadge.jsx";
+import { formatMonitoringDate } from "../../monitoring/formatters.js";
 
 function applicationRuntimes(application) {
   return (application?.components || []).flatMap((component) =>

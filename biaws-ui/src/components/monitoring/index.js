@@ -1,5 +1,5 @@
 export { MonitoringTemplatesView } from "../settings/MonitoringTemplatesView/index.jsx";
-export { MonitoringRuntimesView } from "./runtimes/MonitoringRuntimesView.jsx";
+export { MonitoringRuntimesView } from "./runtimes/MonitoringRuntimesView/index.jsx";
 
 export {
   RuntimeMonitoringConfiguration,

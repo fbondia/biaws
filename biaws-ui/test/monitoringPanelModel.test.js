@@ -8,7 +8,7 @@ import {
   runtimeHealthData,
   selectedMonitoringTargets,
   selectedMonitoringWidgets,
-} from "../src/components/monitoring/runtimes/panelModel.js";
+} from "../src/components/monitoring/runtimes/MonitoringRuntimesView/components/MonitoringDashboard/model.js";
 
 const targets = [
   { id: "runtime-1", application: { id: "app-1", name: "API" } },

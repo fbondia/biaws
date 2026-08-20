@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 
-import { TargetSelector } from "../../src/components/monitoring/runtimes/MonitoringDashboard.jsx";
+import { TargetSelector } from "../../src/components/monitoring/runtimes/MonitoringRuntimesView/components/MonitoringDashboard/index.jsx";
 
 export function mountMonitoringPanelSelector(container) {
   let savedWidgets = null;

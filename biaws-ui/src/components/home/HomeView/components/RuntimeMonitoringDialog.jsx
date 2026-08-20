@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { fetchRuntimeMonitoringTimeline } from "../../../../api.js";
-import { MonitoringEventDetails } from "../../../shared/MonitoringEventDetails/index.jsx";
+import { MonitoringEventDetails } from "../../../monitoring/components/MonitoringEventDetails/index.jsx";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { formatMonitoringDate } from "../../widgets/widgetUtils.js";
 import {

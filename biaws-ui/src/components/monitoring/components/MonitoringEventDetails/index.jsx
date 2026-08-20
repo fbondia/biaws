@@ -8,8 +8,8 @@ import {
   YAxis,
 } from "recharts";
 
-import "../../../styles/shared/monitoring-event.css";
-import { EntityIdentifier } from "../EntityIdentifier/index.jsx";
+import "../../../../styles/shared/monitoring-event.css";
+import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
 import {
   compactMonitoringValue,

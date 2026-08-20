@@ -6,7 +6,7 @@ import {
   monitoringPresentationFields,
   monitoringPresentationSeries,
   monitoringStatusTone,
-} from "../src/components/shared/MonitoringEventDetails/model.js";
+} from "../src/components/monitoring/components/MonitoringEventDetails/model.js";
 
 const event = {
   metadata: {

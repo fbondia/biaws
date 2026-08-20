@@ -1,7 +1,7 @@
 import { Plus, X } from "lucide-react";
 import React from "react";
 
-import { MonitoringEventDetails } from "../../../shared/MonitoringEventDetails/index.jsx";
+import { MonitoringEventDetails } from "../../components/MonitoringEventDetails/index.jsx";
 import { RUNTIME_STATUSES } from "../../../catalog/CatalogEntityDialog/constants.js";
 import { monitoringOriginLabel } from "../model.js";
 import {

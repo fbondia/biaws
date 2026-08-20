@@ -1,1 +1,1 @@
-export { formatMonitoringDate } from "../../shared/monitoring/index.js";
+export { formatMonitoringDate } from "../../monitoring/formatters.js";

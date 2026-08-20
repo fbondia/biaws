@@ -1,7 +1,7 @@
 import { Clock3, Server } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { MonitoringMetadataPresentation } from "../shared/MonitoringEventDetails/index.jsx";
+import { MonitoringMetadataPresentation } from "../monitoring/components/MonitoringEventDetails/index.jsx";
 
 function formatDate(value) {
   if (!value) return "Sem sinal recebido";

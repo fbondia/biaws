@@ -1,4 +1,4 @@
-import { MonitoringMetadataPresentation } from "../MonitoringEventDetails/index.jsx";
+import { MonitoringMetadataPresentation } from "./MonitoringEventDetails/index.jsx";
 
 export function MonitoringObservation({ emptyClassName, emptyMessage, event }) {
   const hasMetadata = Boolean(

@@ -3,11 +3,16 @@ import {
   CheckSquare2,
   GripVertical,
   LayoutDashboard,
-  RefreshCw,
-  Settings2,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   fetchApplicationMonitoringHealth,
@@ -251,7 +256,10 @@ export function TargetSelector({
   );
 }
 
-export function MonitoringDashboard({ actor }) {
+export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
+  { actor, onLoadingChange },
+  ref,
+) {
   const [targets, setTargets] = useState([]);
   const [widgets, setWidgets] = useState([]);
   const [healthByRuntimeId, setHealthByRuntimeId] = useState({});
@@ -336,6 +344,19 @@ export function MonitoringDashboard({ actor }) {
     await loadHealth(selectedWidgets.map(({ target }) => target));
   }
 
+  useImperativeHandle(ref, () => ({
+    configure() {
+      setSelecting(true);
+    },
+    refresh() {
+      return load();
+    },
+  }));
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
+
   const scheduleExecutionRefresh = useManualExecutionRefresh(refreshHealth);
 
   useEffect(() => {
@@ -394,27 +415,6 @@ export function MonitoringDashboard({ actor }) {
 
   return (
     <section className="monitoringPanelView" aria-busy={loading}>
-      <header className="monitoringPanelToolbar">
-        <div>
-          <button
-            aria-label="Atualizar painel"
-            className="iconButton"
-            disabled={loading}
-            onClick={load}
-            type="button"
-          >
-            <RefreshCw className={loading ? "spinIcon" : undefined} size={17} />
-          </button>
-          <button
-            className="primaryButton"
-            disabled={loading}
-            onClick={() => setSelecting(true)}
-            type="button"
-          >
-            <Settings2 size={16} /> Configurar painel
-          </button>
-        </div>
-      </header>
       {error ? (
         <div className="errorBox" role="alert">
           {error}
@@ -517,4 +517,4 @@ export function MonitoringDashboard({ actor }) {
       ) : null}
     </section>
   );
-}
+});

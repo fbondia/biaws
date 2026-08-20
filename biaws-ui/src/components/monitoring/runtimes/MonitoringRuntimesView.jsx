@@ -14,7 +14,7 @@ import {
   Server,
   Settings2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   fetchApplications,
@@ -525,7 +525,13 @@ export function MonitoringRuntimesView({ actor }) {
     runtimeIds: [],
   });
   const [loading, setLoading] = useState(true);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
   const [error, setError] = useState("");
+  const dashboardRef = useRef(null);
+
+  const updateDashboardLoading = useCallback((value) => {
+    setDashboardLoading(value);
+  }, []);
 
   const filteredTopology = useMemo(
     () =>
@@ -794,8 +800,8 @@ export function MonitoringRuntimesView({ actor }) {
             <>
               <button
                 className="primaryButton"
-                disabled={loading}
-                //onClick={() => setSelecting(true)}
+                disabled={dashboardLoading}
+                onClick={() => dashboardRef.current?.configure()}
                 type="button"
               >
                 <Settings2 size={16} /> Configurar painel
@@ -803,15 +809,17 @@ export function MonitoringRuntimesView({ actor }) {
               <button
                 aria-label="Atualizar painel"
                 className="iconButton"
-                disabled={loading}
-                //onClick={load}
+                disabled={dashboardLoading}
+                onClick={() => dashboardRef.current?.refresh()}
                 type="button"
               >
-                <RefreshCw className={loading ? "spinIcon" : undefined} size={17} />
+                <RefreshCw
+                  className={dashboardLoading ? "spinIcon" : undefined}
+                  size={17}
+                />
               </button>
             </>
           ) : null}
-
         </div>
       </header>
       {error ? (
@@ -820,7 +828,11 @@ export function MonitoringRuntimesView({ actor }) {
         </div>
       ) : null}
       {viewMode === "dashboard" ? (
-        <MonitoringDashboard actor={actor} />
+        <MonitoringDashboard
+          actor={actor}
+          onLoadingChange={updateDashboardLoading}
+          ref={dashboardRef}
+        />
       ) : (
         <RuntimeNavigation
           actor={actor}

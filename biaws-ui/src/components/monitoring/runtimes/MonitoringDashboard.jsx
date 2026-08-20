@@ -3,8 +3,6 @@ import {
   CheckSquare2,
   GripVertical,
   LayoutDashboard,
-  LoaderCircle,
-  Play,
   RefreshCw,
   Settings2,
   X,
@@ -24,7 +22,9 @@ import {
 } from "../../../hooks/useAutoRefresh.js";
 import "../../../styles/features/home/index.css";
 import { HOME_WIDGET_SIZES } from "../../home/HomeView/model.js";
+import { RuntimeMonitoringDialog } from "../../home/HomeView/components/RuntimeMonitoringDialog.jsx";
 import { ApplicationHealthWidget } from "../../home/widgets/ApplicationHealthWidget.jsx";
+import { MonitoringExecutionButton } from "../../shared/monitoring/index.js";
 import {
   canRequestMonitoringExecution,
   MonitoringExecutionDialog,
@@ -251,7 +251,7 @@ export function TargetSelector({
   );
 }
 
-export function MonitoringDashboard({ actor, onOpenTarget }) {
+export function MonitoringDashboard({ actor }) {
   const [targets, setTargets] = useState([]);
   const [widgets, setWidgets] = useState([]);
   const [healthByRuntimeId, setHealthByRuntimeId] = useState({});
@@ -261,6 +261,7 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [executionDialog, setExecutionDialog] = useState(null);
+  const [historyRuntime, setHistoryRuntime] = useState(null);
   const [pendingExecutions, setPendingExecutions] = useState({});
   const loadPromiseRef = useRef(null);
   const selectedWidgets = useMemo(
@@ -342,7 +343,7 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
   }, []);
 
   useAutoRefresh(load, {
-    enabled: !selecting && !executionDialog,
+    enabled: !selecting && !executionDialog && !historyRuntime,
     intervalMs: MONITORING_REFRESH_INTERVAL_MS,
   });
 
@@ -394,10 +395,6 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
   return (
     <section className="monitoringPanelView" aria-busy={loading}>
       <header className="monitoringPanelToolbar">
-        <div>
-          <h2>Meu painel</h2>
-          <p>Acompanhe os runtimes que importam para sua operação.</p>
-        </div>
         <div>
           <button
             aria-label="Atualizar painel"
@@ -470,20 +467,12 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
                   </div>
                 </div>
                 {canRequestMonitoringExecution(actor, target.applicationId) ? (
-                  <button
-                    aria-label={`Executar monitor de ${target.name}`}
+                  <MonitoringExecutionButton
                     className="iconButton"
                     disabled={Boolean(pendingExecutions[target.id])}
-                    onClick={() => setExecutionDialog(target)}
-                    title="Executar monitor agora"
-                    type="button"
-                  >
-                    {pendingExecutions[target.id] ? (
-                      <LoaderCircle className="spinIcon" size={16} />
-                    ) : (
-                      <Play size={16} />
-                    )}
-                  </button>
+                    onExecute={setExecutionDialog}
+                    runtime={target}
+                  />
                 ) : null}
               </header>
               <div className="homeWidgetBody">
@@ -491,7 +480,7 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
                   <ApplicationHealthWidget
                     config={{ runtimeId: target.id, presentation: "tabs" }}
                     data={healthByRuntimeId[target.id]}
-                    onSelectRuntime={() => onOpenTarget(target)}
+                    onSelectRuntime={setHistoryRuntime}
                   />
                 ) : (
                   <div className="homeWidgetPending">Carregando saúde…</div>
@@ -518,6 +507,12 @@ export function MonitoringDashboard({ actor, onOpenTarget }) {
           }}
           onRequested={executionRequested}
           target={executionDialog}
+        />
+      ) : null}
+      {historyRuntime ? (
+        <RuntimeMonitoringDialog
+          onClose={() => setHistoryRuntime(null)}
+          runtime={historyRuntime}
         />
       ) : null}
     </section>

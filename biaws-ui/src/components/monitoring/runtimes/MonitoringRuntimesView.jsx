@@ -30,7 +30,10 @@ import { buildUrl } from "../../../api/client.js";
 import { hasPermission } from "../../../permissions.js";
 import "../../../styles/features/catalog/index.css";
 import "../../../styles/features/monitoring-center.css";
-import { MonitoringMetadataPresentation } from "../../shared/MonitoringEventDetails/index.jsx";
+import {
+  MonitoringObservation,
+  MonitoringStatusBadge,
+} from "../../shared/monitoring/index.js";
 import {
   monitoringCliExample,
   RuntimeMonitoringConfiguration,
@@ -219,13 +222,11 @@ function MonitorSummary({ event, monitor }) {
           </dd>
         </div>
       </dl>
-      {event?.metadata && Object.keys(event.metadata).length ? (
-        <MonitoringMetadataPresentation event={event} showRawFallback />
-      ) : (
-        <div className="monitoringRuntimeEmptyObservation">
-          Este monitor ainda não possui uma observação com dados para exibir.
-        </div>
-      )}
+      <MonitoringObservation
+        emptyClassName="monitoringRuntimeEmptyObservation"
+        emptyMessage="Este monitor ainda não possui uma observação com dados para exibir."
+        event={event}
+      />
     </div>
   );
 }
@@ -306,9 +307,7 @@ function RuntimeMonitoringWorkspace({ actor, context, workspace }) {
           </p>
         </div>
         <div className="monitoringRuntimeHeaderActions">
-          <span className={`catalogStatus catalogStatus-${runtime.status}`}>
-            {runtime.status}
-          </span>
+          <MonitoringStatusBadge status={runtime.status} />
           {mode === "overview" && canUpdateRuntime ? (
             <button
               className="primaryButton"
@@ -720,49 +719,6 @@ export function MonitoringRuntimesView({ actor }) {
     }
   }
 
-  async function openDashboardTarget(target) {
-    setViewMode("navigation");
-    setMonitoredOnly(true);
-    setSelectedCollectionId(target.application?.collectionId || "");
-    setApplication(target.application);
-    setComponent(null);
-    setDeployment(null);
-    setRuntime(null);
-    setLoading(true);
-    setError("");
-    try {
-      const [componentPayload, deploymentPayload] = await Promise.all([
-        fetchComponents(target.applicationId, { limit: 100 }),
-        fetchDeployments(target.applicationId, { limit: 100 }),
-      ]);
-      const nextComponents = componentPayload.items || [];
-      const nextDeployments = deploymentPayload.items || [];
-      const nextComponent = nextComponents.find(
-        ({ id }) => id === target.componentId,
-      );
-      const nextDeployment = nextDeployments.find(
-        ({ id }) => id === target.deploymentId,
-      );
-      setComponents(nextComponents);
-      setDeployments(nextDeployments);
-      setComponent(nextComponent || null);
-      if (!nextDeployment)
-        throw new Error("Deployment do runtime não encontrado.");
-      const runtimePayload = await fetchRuntimes(
-        nextDeployment.id,
-        runtimeListParams(true),
-      );
-      const nextRuntimes = runtimePayload.items || [];
-      setDeployment(nextDeployment);
-      setRuntimes(nextRuntimes);
-      setRuntime(nextRuntimes.find(({ id }) => id === target.id) || null);
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   function selectCollection(collectionId) {
     setSelectedCollectionId(collectionId);
     setApplication(null);
@@ -806,6 +762,7 @@ export function MonitoringRuntimesView({ actor }) {
               <LayoutDashboard size={16} /> Painel
             </button>
           </div>
+
           {viewMode === "navigation" ? (
             <>
               <button
@@ -832,6 +789,29 @@ export function MonitoringRuntimesView({ actor }) {
               </button>
             </>
           ) : null}
+
+          {viewMode === "dashboard" ? (
+            <>
+              <button
+                className="primaryButton"
+                disabled={loading}
+                //onClick={() => setSelecting(true)}
+                type="button"
+              >
+                <Settings2 size={16} /> Configurar painel
+              </button>
+              <button
+                aria-label="Atualizar painel"
+                className="iconButton"
+                disabled={loading}
+                //onClick={load}
+                type="button"
+              >
+                <RefreshCw className={loading ? "spinIcon" : undefined} size={17} />
+              </button>
+            </>
+          ) : null}
+
         </div>
       </header>
       {error ? (
@@ -840,7 +820,7 @@ export function MonitoringRuntimesView({ actor }) {
         </div>
       ) : null}
       {viewMode === "dashboard" ? (
-        <MonitoringDashboard actor={actor} onOpenTarget={openDashboardTarget} />
+        <MonitoringDashboard actor={actor} />
       ) : (
         <RuntimeNavigation
           actor={actor}

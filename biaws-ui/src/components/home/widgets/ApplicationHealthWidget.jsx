@@ -1,8 +1,13 @@
-import { Clock3, History, LoaderCircle, Play, Server } from "lucide-react";
+import { Clock3, Server } from "lucide-react";
 import { useState } from "react";
 
-import { MonitoringMetadataPresentation } from "../../shared/MonitoringEventDetails/index.jsx";
-import { formatMonitoringDate } from "./widgetUtils.js";
+import {
+  formatMonitoringDate,
+  MonitoringExecutionButton,
+  MonitoringHistoryButton,
+  MonitoringObservation,
+  MonitoringStatusBadge,
+} from "../../shared/monitoring/index.js";
 
 function applicationRuntimes(application) {
   return (application?.components || []).flatMap((component) =>
@@ -47,11 +52,6 @@ function HealthMetadataExplorer({
   }
 
   if (!activeApplication || !activeRuntime) return null;
-  const hasMetadata = Boolean(
-    activeRuntime.latestSignal?.metadata &&
-    Object.keys(activeRuntime.latestSignal.metadata).length,
-  );
-
   return (
     <section className="homeHealthMetadataExplorer">
       {!hideTabs ? (
@@ -117,51 +117,29 @@ function HealthMetadataExplorer({
           </div>
           <div className="homeHealthMetadataActions">
             {canRequestExecution?.(activeRuntime) ? (
-              <button
-                aria-label={`Executar monitor de ${activeRuntime.name}`}
-                className="secondaryButton"
+              <MonitoringExecutionButton
                 disabled={isExecutionPending?.(activeRuntime)}
-                onClick={() => onRequestExecution(activeRuntime)}
-                title="Executar monitor agora"
-                type="button"
-              >
-                {isExecutionPending?.(activeRuntime) ? (
-                  <LoaderCircle className="spinIcon" size={16} />
-                ) : (
-                  <Play size={16} />
-                )}
-              </button>
+                onExecute={onRequestExecution}
+                runtime={activeRuntime}
+              />
             ) : null}
-            <button
-              aria-label={`Abrir histórico de ${activeRuntime.name}`}
-              className="secondaryButton"
-              onClick={() => onSelectRuntime(activeRuntime)}
-              type="button"
-            >
-              <History size={18} />
-            </button>
+            <MonitoringHistoryButton
+              onOpenHistory={onSelectRuntime}
+              runtime={activeRuntime}
+            />
           </div>
         </header>
         <div className="homeHealthMetadataPanelContext">
-          <span
-            className={`catalogStatus catalogStatus-${activeRuntime.status}`}
-          >
-            {activeRuntime.status}
-          </span>
+          <MonitoringStatusBadge status={activeRuntime.status} />
           <span>
             Última entrada: {formatMonitoringDate(activeRuntime.observedAt)}
           </span>
         </div>
-        {hasMetadata ? (
-          <MonitoringMetadataPresentation
-            event={activeRuntime.latestSignal}
-            showRawFallback
-          />
-        ) : (
-          <div className="homeHealthRuntimeMetadataEmpty">
-            O último sinal não possui metadados.
-          </div>
-        )}
+        <MonitoringObservation
+          emptyClassName="homeHealthRuntimeMetadataEmpty"
+          emptyMessage="O último sinal não possui metadados."
+          event={activeRuntime.latestSignal}
+        />
       </div>
     </section>
   );
@@ -194,25 +172,16 @@ function HealthRuntimeCard({
             {runtime.message ? ` · ${runtime.message}` : ""}
           </span>
         </div>
-        <span className={`catalogStatus catalogStatus-${runtime.status}`}>
-          {runtime.status}
-        </span>
+        <MonitoringStatusBadge status={runtime.status} />
       </button>
       {canRequestExecution?.(runtime) ? (
-        <button
-          aria-label={`Executar monitor de ${runtime.name}`}
+        <MonitoringExecutionButton
           className="iconButton homeHealthRuntimeExecution"
           disabled={isExecutionPending?.(runtime)}
-          onClick={() => onRequestExecution(runtime)}
-          title="Executar monitor agora"
-          type="button"
-        >
-          {isExecutionPending?.(runtime) ? (
-            <LoaderCircle className="spinIcon" size={15} />
-          ) : (
-            <Play size={15} />
-          )}
-        </button>
+          iconSize={15}
+          onExecute={onRequestExecution}
+          runtime={runtime}
+        />
       ) : null}
     </div>
   );
@@ -292,9 +261,7 @@ function HealthApplicationSection({
         <div>
           <strong>{application.name}</strong>
         </div>
-        <span className={`catalogStatus catalogStatus-${application.status}`}>
-          {application.status}
-        </span>
+        <MonitoringStatusBadge status={application.status} />
       </header>
       <div className="homeHealthComponents">
         {application.components.map((component) => (

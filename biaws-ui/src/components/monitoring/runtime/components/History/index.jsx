@@ -1,15 +1,17 @@
 import { Plus, X } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 
-import { MonitoringEventDetails } from "../../components/MonitoringEventDetails/index.jsx";
-import { RUNTIME_STATUSES } from "../../../catalog/CatalogEntityDialog/constants.js";
-import { monitoringOriginLabel } from "../model.js";
+import { MonitoringEventDetails } from "../../../components/MonitoringEventDetails/index.jsx";
+import { MonitoringHealthTimeline } from "../../../components/MonitoringHealthTimeline/index.jsx";
+import { MonitoringHistoryViewSwitch } from "../../../components/MonitoringHistoryViewSwitch.jsx";
+import { RUNTIME_STATUSES } from "../../../../catalog/CatalogEntityDialog/constants.js";
+import { monitoringOriginLabel } from "../../model.js";
 import {
   HistoryItems,
   SelectField,
   TextField,
-} from "../../../catalog/CatalogEntityDialog/components/Fields.jsx";
-import { Feedback, formatDate, useNestedDialogKeyboard } from "./support.jsx";
+} from "../../../../catalog/CatalogEntityDialog/components/Fields.jsx";
+import { Feedback, formatDate, useNestedDialogKeyboard } from "../support.jsx";
 
 function ObservationDialog({
   draft,
@@ -113,7 +115,9 @@ export function RuntimeMonitoringHistory({
   entity,
   options,
 }) {
+  const [viewMode, setViewMode] = useState("list");
   const {
+    activeMonitors = [],
     addingObservation,
     monitoringError,
     monitoringEvents,
@@ -136,20 +140,31 @@ export function RuntimeMonitoringHistory({
             Observações ativas, passivas e manuais com detalhes sanitizados.
           </span>
         </div>
-        {options.canUpdateRuntime && editing ? (
-          <button
-            className="primaryButton"
-            onClick={openObservation}
-            type="button"
-          >
-            <Plus size={16} /> Observação manual
-          </button>
-        ) : null}
+        <div className="monitoringHistoryActions">
+          <MonitoringHistoryViewSwitch
+            onChange={setViewMode}
+            value={viewMode}
+          />
+          {options.canUpdateRuntime && editing ? (
+            <button
+              className="primaryButton"
+              onClick={openObservation}
+              type="button"
+            >
+              <Plus size={16} /> Observação manual
+            </button>
+          ) : null}
+        </div>
       </div>
       {monitoringLoading && !monitoringEvents.length ? (
         <div className="catalogHistoryEmpty" role="status">
           Carregando histórico…
         </div>
+      ) : viewMode === "timeline" ? (
+        <MonitoringHealthTimeline
+          events={monitoringEvents}
+          monitors={activeMonitors}
+        />
       ) : (
         <HistoryItems
           empty="Nenhuma observação de monitoramento registrada."

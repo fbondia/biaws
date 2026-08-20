@@ -76,18 +76,26 @@ export function RuntimeMonitoringTabsHarness() {
   const [events, setEvents] = useState([
     {
       id: "event-1",
+      monitorId: "http",
+      monitorName: "HTTP",
       observedAt: "2026-08-13T12:00:00.000Z",
       origin: "passive",
       status: "healthy",
     },
   ]);
   const controller = {
+    activeMonitors: [
+      { id: "http", name: "HTTP" },
+      { id: "database", name: "Banco" },
+    ],
     addingObservation: false,
     loadMoreMonitoringEvents: () =>
       setEvents((current) => [
         ...current,
         {
           id: "event-2",
+          monitorId: "database",
+          monitorName: "Banco",
           observedAt: "2026-08-13T11:00:00.000Z",
           origin: "active",
           status: "healthy",

@@ -15,7 +15,7 @@ test("home dashboard exposes widget controls while personalizing", async () => {
     url: "https://biaws.example.test",
   });
   const previous = Object.fromEntries(
-    ["document", "navigator", "window"].map((name) => [
+    ["document", "fetch", "navigator", "window"].map((name) => [
       name,
       Object.getOwnPropertyDescriptor(globalThis, name),
     ]),
@@ -42,10 +42,13 @@ test("home dashboard exposes widget controls while personalizing", async () => {
         outDir: outputDirectory,
       },
     });
-    const { mountEditingHomeDashboard, mountMonitoringHomeDashboard } =
-      await import(
-        pathToFileURL(join(outputDirectory, "home-dashboard-harness.js"))
-      );
+    const {
+      mountEditingHomeDashboard,
+      mountMonitoringHomeDashboard,
+      mountRuntimeMonitoringDialog,
+    } = await import(
+      pathToFileURL(join(outputDirectory, "home-dashboard-harness.js"))
+    );
     const root = mountEditingHomeDashboard(document.getElementById("app"));
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -92,6 +95,64 @@ test("home dashboard exposes widget controls while personalizing", async () => {
     assert.equal(pendingButton.disabled, true);
     assert.ok(pendingButton.querySelector(".spinIcon"));
     pendingRoot.unmount();
+
+    globalThis.fetch = async () =>
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              id: "event-1",
+              monitorId: "http",
+              observedAt: "2026-08-20T10:00:00.000Z",
+              receivedAt: "2026-08-20T10:00:01.000Z",
+              source: "monitor:http",
+              status: "healthy",
+            },
+            {
+              id: "event-2",
+              monitorId: "database",
+              observedAt: "2026-08-20T11:00:00.000Z",
+              receivedAt: "2026-08-20T11:00:01.000Z",
+              source: "monitor:database",
+              status: "degraded",
+            },
+          ],
+          meta: { total: 2 },
+        }),
+        { headers: { "Content-Type": "application/json" }, status: 200 },
+      );
+    const dialogRoot = mountRuntimeMonitoringDialog(
+      document.getElementById("app"),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    assert.equal(
+      document.querySelectorAll(".homeMonitoringSignals article").length,
+      2,
+    );
+
+    const chartButton = [...document.querySelectorAll("button")].find(
+      (button) => button.textContent.includes("Gráfico"),
+    );
+    assert.ok(chartButton);
+    chartButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(chartButton.getAttribute("aria-pressed"), "true");
+    assert.ok(
+      document.querySelector(
+        '[aria-label="Evolução temporal da saúde por monitoramento"]',
+      ),
+    );
+
+    const listButton = [...document.querySelectorAll("button")].find((button) =>
+      button.textContent.includes("Lista"),
+    );
+    listButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(
+      document.querySelectorAll(".homeMonitoringSignals article").length,
+      2,
+    );
+    dialogRoot.unmount();
   } finally {
     for (const [name, descriptor] of Object.entries(previous)) {
       if (descriptor) Object.defineProperty(globalThis, name, descriptor);

@@ -119,8 +119,9 @@
 
 .homeMonitoringDialog {
   display: flex;
-  width: min(720px, calc(100vw - 32px));
-  max-height: min(760px, calc(100dvh - 44px));
+  width: calc(100vw - 52px);
+  min-width: 0;
+  max-height: calc(100dvh - 96px);
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -168,6 +169,7 @@
 }
 
 .homeMonitoringDialogBody {
+  min-width: 0;
   overflow-y: auto;
   padding: var(--space-4) var(--space-5);
 }
@@ -189,6 +191,12 @@
 
 .homeMonitoringFilterActions button {
   min-height: 38px;
+}
+
+.homeMonitoringViewToolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
 }
 
 .homeMonitoringSignals {

@@ -1,6 +1,8 @@
 import { createRoot } from "react-dom/client";
+import { flushSync } from "react-dom";
 
 import { HomeDashboard } from "../../src/components/home/HomeView/components/HomeDashboard.jsx";
+import { RuntimeMonitoringDialog } from "../../src/components/home/HomeView/components/RuntimeMonitoringDialog.jsx";
 
 const noop = () => {};
 
@@ -127,6 +129,27 @@ export function mountMonitoringHomeDashboard(
       saving={false}
       widgets={[instance]}
     />,
+  );
+  return root;
+}
+
+export function mountRuntimeMonitoringDialog(container) {
+  const root = createRoot(container);
+  flushSync(() =>
+    root.render(
+      <RuntimeMonitoringDialog
+        onClose={noop}
+        runtime={{
+          activeMonitors: [
+            { id: "http", name: "HTTP" },
+            { id: "database", name: "Banco" },
+          ],
+          id: "runtime-1",
+          name: "Principal",
+          server: { name: "Produção" },
+        }}
+      />,
+    ),
   );
   return root;
 }

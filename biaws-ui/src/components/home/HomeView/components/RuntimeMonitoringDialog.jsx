@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 
 import { fetchRuntimeMonitoringTimeline } from "../../../../api.js";
 import { MonitoringEventDetails } from "../../../monitoring/components/MonitoringEventDetails/index.jsx";
+import { MonitoringHealthTimeline } from "../../../monitoring/components/MonitoringHealthTimeline/index.jsx";
+import { MonitoringHistoryViewSwitch } from "../../../monitoring/components/MonitoringHistoryViewSwitch.jsx";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { formatMonitoringDate } from "../../widgets/widgetUtils.js";
 import {
@@ -16,6 +18,7 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
   const [meta, setMeta] = useState(null);
   const [draftFilters, setDraftFilters] = useState(EMPTY_MONITORING_FILTERS);
   const [filters, setFilters] = useState(EMPTY_MONITORING_FILTERS);
+  const [viewMode, setViewMode] = useState("list");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -101,10 +104,18 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
             loading={loading}
             setDraftFilters={setDraftFilters}
           />
+          <div className="homeMonitoringViewToolbar">
+            <MonitoringHistoryViewSwitch
+              onChange={setViewMode}
+              value={viewMode}
+            />
+          </div>
           <MonitoringSignals
             error={error}
             loading={loading}
+            monitors={runtime.activeMonitors}
             signals={signals}
+            viewMode={viewMode}
           />
         </div>
         {meta?.total ? (
@@ -180,7 +191,7 @@ function MonitoringFilters({
   );
 }
 
-function MonitoringSignals({ error, loading, signals }) {
+function MonitoringSignals({ error, loading, monitors, signals, viewMode }) {
   if (loading)
     return <div className="homeWidgetPending">Carregando sinais…</div>;
   if (error) return <div className="errorBox">{error}</div>;
@@ -190,6 +201,10 @@ function MonitoringSignals({ error, loading, signals }) {
         Nenhum sinal encontrado para os filtros informados.
       </div>
     );
+  }
+
+  if (viewMode === "timeline") {
+    return <MonitoringHealthTimeline events={signals} monitors={monitors} />;
   }
 
   return (

@@ -192,6 +192,27 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     assert.equal(document.querySelectorAll(".catalogHistoryItem").length, 2);
     assert.doesNotMatch(document.body.textContent, /Carregar mais/u);
 
+    const chartButton = [...document.querySelectorAll("button")].find(
+      (button) => button.textContent.includes("Gráfico"),
+    );
+    assert.ok(chartButton);
+    chartButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(chartButton.getAttribute("aria-pressed"), "true");
+    assert.ok(
+      document.querySelector(
+        '[aria-label="Evolução temporal da saúde por monitoramento"]',
+      ),
+    );
+    assert.match(document.body.textContent, /eventos carregados/u);
+
+    const listButton = [...document.querySelectorAll("button")].find((button) =>
+      button.textContent.includes("Lista"),
+    );
+    listButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(document.querySelectorAll(".catalogHistoryItem").length, 2);
+
     tabsRoot.unmount();
   } finally {
     for (const [name, descriptor] of Object.entries(previous)) {

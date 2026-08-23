@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { createPlatformWorkspace } from "../../../../api.js";
@@ -41,9 +41,9 @@ export function WorkspaceFormDialog({ actor, onClose, onCreated, users }) {
         onSubmit={submit}
         role="dialog"
       >
-        <header className="dialogHeader">
-          <div className="dialogTitleBlock">
-            <span className="dialogKicker">Administração global</span>
+        <header className="platformDialogHeader">
+          <div className="platformDialogTitleBlock">
+            <span className="platformDialogKicker">Administração global</span>
             <h2 id="workspace-create-title">Novo workspace</h2>
           </div>
           <button

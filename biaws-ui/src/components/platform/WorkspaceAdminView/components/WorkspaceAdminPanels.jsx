@@ -1,5 +1,6 @@
 import { Archive, Plus, RotateCcw, Save, UserPlus, X } from "lucide-react";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
+import { useState, useEffect } from "react";
 
 const TABS = [
   ["general", "Geral"],

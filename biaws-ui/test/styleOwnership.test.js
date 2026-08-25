@@ -86,3 +86,30 @@ test("shared filter dialogs are available before feature styles load", async () 
     assertSelector(source, selector);
   }
 });
+
+test("administrative page layout is available before lazy feature styles load", async () => {
+  const source = await loadCssGraph("src/styles.css");
+  const [optionListsView, taxonomyView] = await Promise.all([
+    readFile(
+      path.join(UI_ROOT, "src/components/settings/OptionListsView/index.jsx"),
+      "utf8",
+    ),
+    readFile(
+      path.join(
+        UI_ROOT,
+        "src/components/taxonomy/IssueTaxonomyManager/index.jsx",
+      ),
+      "utf8",
+    ),
+  ]);
+
+  for (const selector of ["adminPage", "adminHero", "adminHeroActions"]) {
+    assertSelector(source, selector);
+  }
+
+  assert.match(optionListsView, /className="adminPage optionListsView"/u);
+  assert.match(optionListsView, /className="adminHero"/u);
+  assert.match(taxonomyView, /className="adminPage"/u);
+  assert.match(taxonomyView, /className="adminHero"/u);
+  assert.match(taxonomyView, /className="adminHeroActions"/u);
+});

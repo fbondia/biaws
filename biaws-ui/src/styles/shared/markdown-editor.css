@@ -211,11 +211,11 @@
   padding-top: 44px;
 }
 
-.markdownBlockExpandButton {
+.markdownBlockExpandButton,
+.markdownBlockCopyButton {
   position: absolute;
   z-index: 1;
   top: 8px;
-  right: 8px;
   display: inline-grid;
   width: 30px;
   height: 30px;
@@ -228,7 +228,16 @@
   cursor: pointer;
 }
 
-.markdownBlockExpandButton:hover {
+.markdownBlockExpandButton {
+  right: 8px;
+}
+
+.markdownBlockCopyButton {
+  right: 46px;
+}
+
+.markdownBlockExpandButton:hover,
+.markdownBlockCopyButton:hover {
   background: var(--color-info-surface);
   color: var(--color-accent-text);
 }

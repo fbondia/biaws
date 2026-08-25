@@ -57,8 +57,8 @@ export function IssueTaxonomyManager() {
     onDropFiles: (files) => loadTaxonomyFile(files[0]),
   });
   return (
-    <section className="taxonomyPage">
-      <div className="taxonomyHero">
+    <section className="adminPage">
+      <div className="adminHero">
         <div>
           <span>Administração</span>
           <h2>Taxonomia de Chamados e Documentação</h2>
@@ -67,7 +67,7 @@ export function IssueTaxonomyManager() {
             documentos.
           </p>
         </div>
-        <div className="taxonomyHeroActions">
+        <div className="adminHeroActions">
           <button
             className="secondaryButton"
             disabled={loading || saving}

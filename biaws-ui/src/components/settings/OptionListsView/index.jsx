@@ -73,8 +73,8 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
     selectedListByGroup[activeGroup?.key] || activeGroup?.lists[0]?.key || "";
 
   return (
-    <section className="taxonomyPage optionListsView">
-      <header className="taxonomyHero">
+    <section className="adminPage optionListsView">
+      <header className="adminHero">
         <div>
           <span>Administração</span>
           <h2>Listas de Opções</h2>

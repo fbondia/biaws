@@ -11,7 +11,7 @@ import { runSkillsCommand } from "./skills.js";
 const CODEX_BEGIN = "# BEGIN BIAWS MANAGED MCP";
 const CODEX_END = "# END BIAWS MANAGED MCP";
 export const MCP_PACKAGE_NAME = "biaws-mcp";
-export const MCP_PACKAGE_VERSION = "0.3.0";
+export const MCP_PACKAGE_VERSION = "0.4.0";
 export const MCP_PACKAGE_SPEC = `${MCP_PACKAGE_NAME}@${MCP_PACKAGE_VERSION}`;
 const MCP_COMMAND = "npx";
 const MCP_ARGS = ["--yes", MCP_PACKAGE_SPEC];

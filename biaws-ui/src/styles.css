@@ -2,6 +2,7 @@
 @import "./styles/foundations/base.css";
 @import "./styles/layout/app-shell.css";
 @import "./styles/shared/catalog-context.css";
+@import "./styles/shared/admin-page.css";
 @import "./styles/shared/controls.css";
 @import "./styles/shared/messages.css";
 @import "./styles/shared/replication-dialog.css";

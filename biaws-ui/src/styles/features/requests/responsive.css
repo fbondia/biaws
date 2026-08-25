@@ -125,7 +125,6 @@
   .contentBand,
   .summaryBand,
   .tableBand,
-  .taxonomyPage,
   .requestsPage {
     padding-left: 16px;
     padding-right: 16px;
@@ -154,8 +153,6 @@
   }
 
   .topBarActions.mobileMenuOpen,
-  .taxonomyHero,
-  .taxonomyHeroActions,
   .requestsHero,
   .requestDetailTabsBar {
     display: grid;

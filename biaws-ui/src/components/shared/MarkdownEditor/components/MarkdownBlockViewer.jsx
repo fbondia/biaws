@@ -39,6 +39,17 @@ export function MarkdownBlockViewer({ language, source, type }) {
         isMermaid ? "markdownExpandableMermaid" : "markdownExpandableCode"
       }`}
     >
+      {!isMermaid ? (
+        <button
+          aria-label={copied ? "Código copiado" : "Copiar código"}
+          className="markdownBlockCopyButton"
+          onClick={copyCode}
+          title={copied ? "Copiado" : "Copiar código"}
+          type="button"
+        >
+          {copied ? <Check size={16} /> : <Copy size={16} />}
+        </button>
+      ) : null}
       <button
         aria-label={`Abrir ${title.toLocaleLowerCase("pt-BR")} em tela cheia`}
         className="markdownBlockExpandButton"

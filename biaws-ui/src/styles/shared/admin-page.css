@@ -1,0 +1,53 @@
+.adminPage {
+  padding: 20px 28px 28px;
+}
+
+.adminHero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.adminHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.adminHero h2 {
+  margin: var(--space-1) 0 0;
+  font-size: 1.65rem;
+  letter-spacing: 0;
+}
+
+.adminHero span {
+  color: var(--color-accent-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.adminHero p {
+  max-width: 760px;
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-subtle);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .adminPage {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .adminHero,
+  .adminHeroActions {
+    display: grid;
+    width: 100%;
+  }
+}

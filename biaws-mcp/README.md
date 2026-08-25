@@ -213,6 +213,10 @@ conhecimento.
 - `issues_search`: busca issues com os mesmos filtros principais da
   `biaws-api`, inclusive por workspace, aplicação e componente afetado.
 - `issues_get`: obtém uma issue com comentários e metadados dos anexos.
+- `issues_add_comment`: adiciona um comentário em Markdown a uma issue
+  existente; a autoria é atribuída pela identidade autenticada na API.
+- `issues_update_comment`: atualiza o conteúdo e, opcionalmente, a data de um
+  comentário existente, preservando sua autoria original.
 - `issues_get_classification_catalog`: obtém a árvore taxonômica e os grupos de tags válidos; opcionalmente inclui listas achatadas de IDs e caminhos.
 - `issues_create_taxonomy_item`: inclui um item na raiz ou sob outro item,
   opcionalmente configurando seu escopo por aplicações.

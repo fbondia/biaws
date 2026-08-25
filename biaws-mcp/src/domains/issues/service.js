@@ -130,6 +130,34 @@ export async function getIssueDetails(args = {}) {
   return fetchJson(`/api/issues/${encodeURIComponent(args.issueId)}`);
 }
 
+export async function addIssueComment(args = {}) {
+  const issueId = String(args.issueId || "").trim();
+  const text = String(args.text || "").trim();
+  if (!issueId) throw new Error("issueId is required");
+  if (!text) throw new Error("text is required");
+
+  return sendJson(
+    `/api/issues/${encodeURIComponent(issueId)}/comments`,
+    cleanParams({ text, date: args.date }),
+    {},
+    "POST",
+  );
+}
+
+export async function updateIssueComment(args = {}) {
+  const issueId = String(args.issueId || "").trim();
+  const commentId = String(args.commentId || "").trim();
+  const text = String(args.text || "").trim();
+  if (!issueId) throw new Error("issueId is required");
+  if (!commentId) throw new Error("commentId is required");
+  if (!text) throw new Error("text is required");
+
+  return sendJson(
+    `/api/issues/${encodeURIComponent(issueId)}/comments/${encodeURIComponent(commentId)}`,
+    cleanParams({ text, date: args.date }),
+  );
+}
+
 export async function getIssueClassificationCatalog(args = {}) {
   const payload = await fetchJson(
     "/api/issues/taxonomy",

@@ -1,4 +1,5 @@
 import {
+  addIssueComment,
   classifyIssue,
   createTaxonomyItem,
   createIssue,
@@ -10,6 +11,7 @@ import {
   summarizeIssuesForSupport,
   suggestTaxonomy,
   updateIssueState,
+  updateIssueComment,
   updateTaxonomyItem,
 } from "./domains/issues/service.js";
 import {
@@ -155,6 +157,58 @@ const tools = [
       },
     },
     handler: getIssueDetails,
+  },
+  {
+    name: "issues_add_comment",
+    description: "Adiciona um comentário em Markdown a uma issue existente.",
+    inputSchema: {
+      type: "object",
+      required: ["issueId", "text"],
+      additionalProperties: false,
+      properties: {
+        issueId: { type: "string", minLength: 1 },
+        text: {
+          type: "string",
+          minLength: 1,
+          description: "Conteúdo do comentário em Markdown.",
+        },
+        date: {
+          type: "string",
+          description:
+            "Data do comentário em formato aceito pela API; usa o momento atual quando omitida.",
+        },
+      },
+    },
+    handler: addIssueComment,
+  },
+  {
+    name: "issues_update_comment",
+    description:
+      "Atualiza o conteúdo e, opcionalmente, a data de um comentário de issue.",
+    inputSchema: {
+      type: "object",
+      required: ["issueId", "commentId", "text"],
+      additionalProperties: false,
+      properties: {
+        issueId: { type: "string", minLength: 1 },
+        commentId: {
+          type: "string",
+          minLength: 1,
+          description: "ID do comentário retornado por issues_get.",
+        },
+        text: {
+          type: "string",
+          minLength: 1,
+          description: "Novo conteúdo do comentário em Markdown.",
+        },
+        date: {
+          type: "string",
+          description:
+            "Nova data do comentário; usa o momento atual quando omitida.",
+        },
+      },
+    },
+    handler: updateIssueComment,
   },
   {
     name: "issues_get_classification_catalog",

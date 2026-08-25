@@ -183,6 +183,17 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     tabs[1].click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.match(document.body.textContent, /Histórico unificado/u);
+    const chartButton = [...document.querySelectorAll("button")].find(
+      (button) => button.textContent.includes("Gráfico"),
+    );
+    assert.ok(chartButton);
+    assert.equal(chartButton.getAttribute("aria-pressed"), "true");
+
+    const listButton = [...document.querySelectorAll("button")].find((button) =>
+      button.textContent.includes("Lista"),
+    );
+    listButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     const loadMore = [...document.querySelectorAll("button")].find((button) =>
       button.textContent.includes("Carregar mais"),
     );
@@ -192,10 +203,6 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     assert.equal(document.querySelectorAll(".catalogHistoryItem").length, 2);
     assert.doesNotMatch(document.body.textContent, /Carregar mais/u);
 
-    const chartButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent.includes("Gráfico"),
-    );
-    assert.ok(chartButton);
     globalThis.fetch = async () =>
       new Response(
         JSON.stringify({
@@ -242,9 +249,6 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
       /24 eventos resumidos em 2 pontos/u,
     );
 
-    const listButton = [...document.querySelectorAll("button")].find((button) =>
-      button.textContent.includes("Lista"),
-    );
     listButton.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(document.querySelectorAll(".catalogHistoryItem").length, 2);

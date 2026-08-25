@@ -115,7 +115,7 @@ export function RuntimeMonitoringHistory({
   entity,
   options,
 }) {
-  const [viewMode, setViewMode] = useState("list");
+  const [viewMode, setViewMode] = useState("timeline");
   const {
     activeMonitors = [],
     addingObservation,

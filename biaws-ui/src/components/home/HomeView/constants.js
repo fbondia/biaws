@@ -22,6 +22,23 @@ export const EMPTY_MONITORING_FILTERS = {
   observedTo: "",
 };
 
+function localDateTimeValue(date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+export function monitoringDefaultFilters(now = new Date()) {
+  const observedFrom = new Date(now);
+  observedFrom.setHours(0, 0, 0, 0);
+  observedFrom.setDate(observedFrom.getDate() - 3);
+
+  return {
+    ...EMPTY_MONITORING_FILTERS,
+    observedFrom: localDateTimeValue(observedFrom),
+    observedTo: localDateTimeValue(now),
+  };
+}
+
 export function monitoringFilterParams(filters = {}) {
   return Object.fromEntries(
     Object.entries(filters).map(([key, value]) => [

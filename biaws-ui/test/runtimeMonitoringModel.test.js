@@ -11,7 +11,10 @@ import {
   newObservationDraft,
   selectableMonitoringTemplates,
 } from "../src/components/monitoring/runtime/model.js";
-import { monitoringFilterParams } from "../src/components/home/HomeView/constants.js";
+import {
+  monitoringDefaultFilters,
+  monitoringFilterParams,
+} from "../src/components/home/HomeView/constants.js";
 
 test("active manual executions are collected from health metrics", () => {
   const ids = activeManualExecutionIds([
@@ -177,6 +180,16 @@ test("monitoring date-time filters are sent as unambiguous ISO instants", () => 
   assert.equal(result.observedFrom, new Date("2026-08-19T10:15").toISOString());
   assert.equal(result.observedTo, new Date("2026-08-19T12:45").toISOString());
   assert.equal(result.status, "degraded");
+});
+
+test("monitoring filters start three calendar days ago at midnight and end now", () => {
+  const filters = monitoringDefaultFilters(new Date(2026, 7, 25, 14, 37));
+
+  assert.deepEqual(filters, {
+    observedFrom: "2026-08-22T00:00",
+    observedTo: "2026-08-25T14:37",
+    status: "",
+  });
 });
 
 test("template selectors expose active versions and preserve the current reference", () => {

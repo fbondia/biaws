@@ -157,18 +157,17 @@ test("home dashboard exposes widget controls while personalizing", async () => {
       document.getElementById("app"),
     );
     await new Promise((resolve) => setTimeout(resolve, 10));
-    assert.equal(
-      document.querySelectorAll(".homeMonitoringSignals article").length,
-      2,
-    );
 
     const chartButton = [...document.querySelectorAll("button")].find(
       (button) => button.textContent.includes("Gráfico"),
     );
     assert.ok(chartButton);
-    chartButton.click();
-    await new Promise((resolve) => setTimeout(resolve, 10));
     assert.equal(chartButton.getAttribute("aria-pressed"), "true");
+    const [observedFromInput, observedToInput] = document.querySelectorAll(
+      '.homeMonitoringFilters input[type="datetime-local"]',
+    );
+    assert.match(observedFromInput.value, /T00:00$/u);
+    assert.ok(observedToInput.value);
     assert.ok(
       document.querySelector(
         '[aria-label="Evolução temporal da saúde por monitoramento"]',

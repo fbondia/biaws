@@ -9,6 +9,7 @@ import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { formatMonitoringDate } from "../../widgets/widgetUtils.js";
 import {
   EMPTY_MONITORING_FILTERS,
+  monitoringDefaultFilters,
   monitoringFilterParams,
   MONITORING_STATUSES,
 } from "../constants.js";
@@ -16,9 +17,9 @@ import {
 export function RuntimeMonitoringDialog({ runtime, onClose }) {
   const [signals, setSignals] = useState([]);
   const [meta, setMeta] = useState(null);
-  const [draftFilters, setDraftFilters] = useState(EMPTY_MONITORING_FILTERS);
-  const [filters, setFilters] = useState(EMPTY_MONITORING_FILTERS);
-  const [viewMode, setViewMode] = useState("list");
+  const [draftFilters, setDraftFilters] = useState(monitoringDefaultFilters);
+  const [filters, setFilters] = useState(draftFilters);
+  const [viewMode, setViewMode] = useState("timeline");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 

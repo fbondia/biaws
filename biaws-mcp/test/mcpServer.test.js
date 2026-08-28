@@ -4,7 +4,7 @@ import test from "node:test";
 import { createMcpMessageHandler, protocolError } from "../src/mcpServer.js";
 import { currentRequestSignal } from "../src/requestContext.js";
 
-function createServer(dispatchTool) {
+function createServer(dispatchTool, options = {}) {
   const messages = [];
   return {
     messages,
@@ -12,6 +12,7 @@ function createServer(dispatchTool) {
       dispatchTool,
       listTools: () => [],
       writeMessage: (message) => messages.push(message),
+      ...options,
     }),
   };
 }
@@ -99,4 +100,66 @@ test("JSON-RPC protocol errors always use numeric codes", () => {
   const response = protocolError(3, -32601, "Method not found");
   assert.equal(typeof response.error.code, "number");
   assert.equal(response.error.code, -32601);
+});
+
+test("tool calls emit correlated lifecycle diagnostics", async () => {
+  const events = [];
+  const logger = {
+    info: (event, fields) => events.push({ event, fields }),
+    warn: (event, fields) => events.push({ event, fields }),
+    error: (event, fields) => events.push({ event, fields }),
+  };
+  const times = [100, 125];
+  const { server } = createServer(async () => ({ ok: true }), {
+    logger,
+    createRequestId: () => "request-123",
+    now: () => times.shift(),
+  });
+
+  await server.accept({
+    jsonrpc: "2.0",
+    id: 9,
+    method: "tools/call",
+    params: { name: "demands_list_tasks", arguments: {} },
+  });
+
+  assert.deepEqual(
+    events.map(({ event }) => event),
+    ["mcp_tool_call_started", "mcp_tool_call_completed"],
+  );
+  assert.equal(events[0].fields.requestId, "request-123");
+  assert.equal(events[0].fields.tool, "demands_list_tasks");
+  assert.equal(events[1].fields.durationMs, 25);
+});
+
+test("response write failures are observed without an unhandled rejection", async () => {
+  const events = [];
+  const logger = {
+    info: (event) => events.push(event),
+    warn: (event) => events.push(event),
+    error: (event) => events.push(event),
+  };
+  const error = new Error("broken stdout");
+  error.code = "EPIPE";
+  const server = createMcpMessageHandler({
+    dispatchTool: async () => ({ ok: true }),
+    listTools: () => [],
+    writeMessage: () => {
+      throw error;
+    },
+    logger,
+  });
+
+  await assert.doesNotReject(() =>
+    server.accept({
+      jsonrpc: "2.0",
+      id: 10,
+      method: "tools/call",
+      params: { name: "demands_list_tasks", arguments: {} },
+    }),
+  );
+  await server.waitForIdle();
+
+  assert.ok(events.includes("mcp_message_handling_failed"));
+  assert.ok(events.includes("mcp_error_response_write_failed"));
 });

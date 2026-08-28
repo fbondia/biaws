@@ -1,4 +1,7 @@
-import { currentRequestSignal } from "./requestContext.js";
+import {
+  currentRequestContext,
+  currentRequestSignal,
+} from "./requestContext.js";
 import { setTimeout as delay } from "node:timers/promises";
 
 const DEFAULT_TIMEOUT_MS = 15_000;
@@ -145,9 +148,10 @@ function attachmentSizeError(maxBytes, actualBytes) {
   return error;
 }
 
-function createRequestContext(path, params, maxRetries) {
+function createRequestContext(path, params, maxRetries, method) {
   const url = buildUrl(path, params);
   const externalSignal = currentRequestSignal();
+  const mcpContext = currentRequestContext();
   const timeoutSignal = AbortSignal.timeout(readTimeoutMs());
   return {
     url,
@@ -156,6 +160,10 @@ function createRequestContext(path, params, maxRetries) {
       ? AbortSignal.any([externalSignal, timeoutSignal])
       : timeoutSignal,
     maxRetries,
+    method: method || "GET",
+    logger: mcpContext?.logger,
+    requestId: mcpContext?.requestId,
+    tool: mcpContext?.tool,
   };
 }
 
@@ -174,8 +182,17 @@ function shouldRetryRequest(error, attempt, context) {
 }
 
 async function waitBeforeRetry(attempt, context) {
+  const backoffMs = 100 * 2 ** attempt;
+  context.logger?.warn("mcp_http_retry_scheduled", {
+    requestId: context.requestId,
+    tool: context.tool,
+    method: context.method,
+    origin: context.url.origin,
+    nextAttempt: attempt + 2,
+    backoffMs,
+  });
   try {
-    await delay(100 * 2 ** attempt, undefined, { signal: context.signal });
+    await delay(backoffMs, undefined, { signal: context.signal });
   } catch (error) {
     throw transportError(error, context.url, context.externalSignal);
   }
@@ -183,11 +200,40 @@ async function waitBeforeRetry(attempt, context) {
 
 async function requestWithRetries(context, operation) {
   for (let attempt = 0; ; attempt += 1) {
+    const startedAt = Date.now();
+    context.logger?.debug("mcp_http_attempt_started", {
+      requestId: context.requestId,
+      tool: context.tool,
+      method: context.method,
+      origin: context.url.origin,
+      attempt: attempt + 1,
+    });
     try {
-      return await operation(context);
+      const result = await operation(context);
+      context.logger?.info("mcp_http_attempt_completed", {
+        requestId: context.requestId,
+        tool: context.tool,
+        method: context.method,
+        origin: context.url.origin,
+        attempt: attempt + 1,
+        durationMs: Math.max(0, Date.now() - startedAt),
+        statusCode: context.responseStatus,
+      });
+      return result;
     } catch (cause) {
       const error = normalizeRequestError(cause, context);
-      if (!shouldRetryRequest(error, attempt, context)) throw error;
+      const retry = shouldRetryRequest(error, attempt, context);
+      context.logger?.[retry ? "warn" : "error"]("mcp_http_attempt_failed", {
+        requestId: context.requestId,
+        tool: context.tool,
+        method: context.method,
+        origin: context.url.origin,
+        attempt: attempt + 1,
+        durationMs: Math.max(0, Date.now() - startedAt),
+        willRetry: retry,
+        error,
+      });
+      if (!retry) throw error;
       await waitBeforeRetry(attempt, context);
     }
   }
@@ -217,14 +263,16 @@ async function requestJson(
   { method, body, params = {}, headers = {} } = {},
 ) {
   const maxRetries = !method || method === "GET" ? readMaxRetries() : 0;
-  const context = createRequestContext(path, params, maxRetries);
-  return requestWithRetries(context, async ({ url, signal }) => {
+  const context = createRequestContext(path, params, maxRetries, method);
+  return requestWithRetries(context, async (requestContext) => {
+    const { url, signal } = requestContext;
     const response = await fetch(url, {
       ...(method ? { method } : {}),
       headers: { ...authenticationHeaders(), ...headers },
       body,
       signal,
     });
+    requestContext.responseStatus = response.status;
     const payload = await readPayload(response);
     if (!response.ok) throw responseError(response, payload);
     return payload;
@@ -235,12 +283,14 @@ async function requestBinary(
   path,
   { params = {}, headers = {}, maxBytes } = {},
 ) {
-  const context = createRequestContext(path, params, readMaxRetries());
-  return requestWithRetries(context, async ({ url, signal }) => {
+  const context = createRequestContext(path, params, readMaxRetries(), "GET");
+  return requestWithRetries(context, async (requestContext) => {
+    const { url, signal } = requestContext;
     const response = await fetch(url, {
       headers: { ...authenticationHeaders(), ...headers },
       signal,
     });
+    requestContext.responseStatus = response.status;
     if (!response.ok) {
       throw responseError(response, await readPayload(response));
     }

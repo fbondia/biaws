@@ -66,13 +66,13 @@ O pacote público expõe o executável `biaws-mcp`. Clientes configurados pelo C
 usam uma versão fixada por meio do cache local do npm:
 
 ```bash
-npx --yes biaws-mcp@0.3.0
+npx --yes biaws-mcp@0.5.0
 ```
 
 Também é possível instalá-lo explicitamente:
 
 ```bash
-npm install --global biaws-mcp@0.3.0
+npm install --global biaws-mcp@0.5.0
 biaws-mcp
 ```
 
@@ -91,7 +91,7 @@ npm start
 Em um cliente MCP, configure o comando:
 
 ```bash
-npx --yes biaws-mcp@0.3.0
+npx --yes biaws-mcp@0.5.0
 ```
 
 O fluxo recomendado é gerar a configuração completa com:
@@ -104,6 +104,36 @@ node /caminho/para/biaws/biaws-cli/src/index.js \
 
 O processo de publicação e rollback está em
 [`docs/releasing.md`](docs/releasing.md).
+
+## Diagnóstico do transporte
+
+A partir da versão 0.5.0, o processo escreve um evento JSON por linha em
+`stderr`. O `stdout` permanece exclusivo para frames JSON-RPC do MCP. Cada
+execução recebe um `executionId` e cada chamada de tool recebe um `requestId`,
+permitindo correlacionar ciclo de vida, duração, tentativas HTTP, cancelamento e
+falhas de processo sem registrar argumentos, respostas ou credenciais.
+
+Os eventos principais são:
+
+- `mcp_server_started`, `mcp_shutdown_requested` e `mcp_server_stopped`;
+- `mcp_tool_call_started`, `mcp_tool_call_completed`,
+  `mcp_tool_call_failed` e `mcp_tool_call_cancelled`;
+- `mcp_http_attempt_completed`, `mcp_http_attempt_failed` e
+  `mcp_http_retry_scheduled`;
+- `mcp_input_error`, `mcp_stdout_error`, `mcp_uncaught_exception` e
+  `mcp_unhandled_rejection`.
+
+`BIAWS_MCP_LOG_LEVEL` aceita `debug`, `info`, `warn` ou `error` e usa `info` por
+padrão. O nível `debug` também registra o início de cada tentativa HTTP. O MCP
+seleciona somente origem, método, status, duração e dados de correlação; URLs
+completas, query strings, headers, argumentos, payloads e valores de ambiente
+não são emitidos.
+
+Para investigar `Transport closed`, preserve o `stderr` do processo configurado
+pelo cliente MCP e procure, usando o mesmo `executionId`, por
+`mcp_stdout_error`, eventos fatais, sinais ou encerramentos sem
+`mcp_server_stopped`. Um `mcp_tool_call_failed` com resposta MCP válida indica
+falha funcional ou da API, não fechamento do transporte.
 
 ## Ferramentas
 

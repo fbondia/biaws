@@ -9,3 +9,7 @@ export function runWithRequestContext(context, callback) {
 export function currentRequestSignal() {
   return requestContext.getStore()?.signal;
 }
+
+export function currentRequestContext() {
+  return requestContext.getStore();
+}

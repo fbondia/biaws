@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { runWithRequestContext } from "./requestContext.js";
 import { SERVER_NAME, SERVER_VERSION } from "./version.js";
 
@@ -59,6 +61,9 @@ export function createMcpMessageHandler({
   dispatchTool,
   listTools,
   writeMessage,
+  logger,
+  createRequestId = randomUUID,
+  now = () => Date.now(),
 }) {
   const activeRequests = new Map();
   const inFlight = new Set();
@@ -66,13 +71,41 @@ export function createMcpMessageHandler({
   async function handleToolCall(id, params) {
     const controller = new AbortController();
     activeRequests.set(id, controller);
+    const requestId = createRequestId();
+    const tool = String(params.name || "");
+    const startedAt = now();
+    const logContext = {
+      requestId,
+      rpcRequestId: ["string", "number"].includes(typeof id) ? id : undefined,
+      tool,
+    };
+    logger?.info("mcp_tool_call_started", {
+      ...logContext,
+      inFlight: activeRequests.size,
+    });
     try {
       const result = await runWithRequestContext(
-        { signal: controller.signal },
+        { signal: controller.signal, logger, requestId, tool },
         () => dispatchTool(params.name, params.arguments || {}),
       );
       writeMessage(success(id, toolResult(result)));
+      logger?.info("mcp_tool_call_completed", {
+        ...logContext,
+        durationMs: Math.max(0, now() - startedAt),
+      });
     } catch (error) {
+      const cancelled = error?.code === "REQUEST_CANCELLED";
+      const expectedFailure =
+        cancelled ||
+        (Number.isInteger(error?.statusCode) && error.statusCode < 500);
+      logger?.[expectedFailure ? "warn" : "error"](
+        cancelled ? "mcp_tool_call_cancelled" : "mcp_tool_call_failed",
+        {
+          ...logContext,
+          durationMs: Math.max(0, now() - startedAt),
+          error,
+        },
+      );
       writeMessage(success(id, toolErrorResult(error)));
     } finally {
       activeRequests.delete(id);
@@ -119,15 +152,31 @@ export function createMcpMessageHandler({
   }
 
   function accept(request) {
-    const operation = handleMessage(request).catch(() => {
+    const operation = handleMessage(request).catch((error) => {
+      logger?.error("mcp_message_handling_failed", {
+        rpcRequestId: ["string", "number"].includes(typeof request?.id)
+          ? request.id
+          : undefined,
+        method: String(request?.method || ""),
+        error,
+      });
       if (request?.id !== undefined) {
-        writeMessage(
-          protocolError(request.id, -32603, "Internal JSON-RPC error"),
-        );
+        try {
+          writeMessage(
+            protocolError(request.id, -32603, "Internal JSON-RPC error"),
+          );
+        } catch (writeError) {
+          logger?.error("mcp_error_response_write_failed", {
+            error: writeError,
+          });
+        }
       }
     });
     inFlight.add(operation);
-    void operation.finally(() => inFlight.delete(operation));
+    void operation.then(
+      () => inFlight.delete(operation),
+      () => inFlight.delete(operation),
+    );
     return operation;
   }
 

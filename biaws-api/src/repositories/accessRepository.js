@@ -53,7 +53,7 @@ export const INITIAL_PERMISSION_GROUPS = Object.freeze([
     id: "knowledge-management",
     name: "Gestão de conhecimento",
     description:
-      "Gerenciamento de taxonomia, procedimentos, regras, decisões e skills.",
+      "Gerenciamento de taxonomia, documentos de conhecimento e skills.",
     permissions: permissionsStartingWith(
       "taxonomy.",
       "documents.",

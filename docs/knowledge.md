@@ -1,9 +1,9 @@
 # Documentos de conhecimento
 
 O Bondia Workspaces mantém regras de negócio, decisões arquiteturais, guidelines,
-features e referências técnicas em uma única coleção de documentos. O campo
-`documentType` é um discriminador obrigatório e imutável; ele define validação,
-template, metadados específicos e ciclo de vida.
+features, referências técnicas e procedimentos em uma única coleção de
+documentos. O campo `documentType` é um discriminador obrigatório e imutável;
+ele define validação, template, metadados específicos e ciclo de vida.
 
 ## Tipos e ciclos de vida
 
@@ -14,10 +14,15 @@ template, metadados específicos e ciclo de vida.
 | `guideline`             | Diretrizes e padrões de desenvolvimento                        | `draft`, `published`, `deprecated`, `archived`               |
 | `feature`               | Descrição funcional e técnica aprofundada de uma capacidade    | `draft`, `published`, `deprecated`, `archived`               |
 | `technical-reference`   | Arquitetura atual, contratos, schemas, protocolos e mecanismos | `draft`, `published`, `deprecated`, `archived`               |
+| `procedure`             | Instruções operacionais reutilizáveis                           | `draft`, `published`, `deprecated`, `archived`               |
 
-Regras, decisões e features exigem uma aplicação. Guidelines e referências
-técnicas também podem existir no escopo geral do workspace. Componentes somente
-podem ser associados quando houver uma aplicação.
+Regras, decisões e features exigem uma aplicação. Guidelines, referências
+técnicas e procedimentos também podem existir no escopo geral do workspace.
+Componentes somente podem ser associados quando houver uma aplicação.
+
+Para guidelines, `details.scope` define o contexto: `workspace` não aceita
+`applicationId`, `application` exige a aplicação e `component` exige também ao
+menos um item em `affectedComponentIds`.
 
 ## Contrato
 
@@ -32,6 +37,9 @@ letras minúsculas, números e hífens simples. Campos específicos ficam em
 - guideline: `scope` e `enforcement`;
 - feature: `maturity`;
 - referência técnica: `referenceKind`.
+
+Procedimentos não possuem campos adicionais em `details`; sua estrutura é
+definida pelo template Markdown do tipo.
 
 `source.mode` distingue conteúdo `native` de conteúdo canônico em `repository`.
 Nesse segundo caso, `repositoryId` e `path` são obrigatórios. O Markdown permite
@@ -69,8 +77,11 @@ título, resumo e Markdown. A
 permissão `documents.*` é híbrida: pode abranger todo o workspace ou aplicações
 selecionadas.
 
-O MCP expõe `documents_search`, `documents_get`, `documents_create`,
-`documents_update` e `documents_add_observation`. `knowledge_context_load`
+O MCP expõe `document_types_list`, `documents_search`, `documents_get`,
+`documents_create`, `documents_update` e `documents_add_observation`.
+`document_types_list` devolve o catálogo oficial de tipos, estados, contexto e
+campos específicos. `documents_create` usa um schema discriminado por tipo para
+recusar combinações inválidas antes da chamada HTTP. `knowledge_context_load`
 carrega documentos vigentes — regras ativas, decisões aceitas e demais tipos
 publicados — aplicáveis à aplicação ou componente. Listagens e o contexto
 agregado omitem o Markdown; o conteúdo completo é carregado sob demanda.

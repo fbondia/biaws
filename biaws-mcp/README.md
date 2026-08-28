@@ -9,19 +9,18 @@ O servidor separa os domínios:
   topologia operacional.
 - `issues_*`: chamados, incidentes, requisições operacionais, taxonomia e classificação.
 - `demands_*`: melhorias, especificações, jornadas, prazos e contexto para desenvolvimento.
-- `procedures_*`: procedimentos operacionais em Markdown, com tags e classificação taxonômica compartilhadas com issues.
-- `documents_*`: regras, decisões, guidelines, features e referências técnicas
-  relacionado a aplicações e componentes.
+- `documents_*`: regras, decisões, guidelines, features, referências técnicas e
+  procedimentos relacionados ao workspace, a aplicações e a componentes.
 - `knowledge_context_load`: regras ativas e decisões aceitas para o contexto
   solicitado.
 - `attachments_*`: envio, download, classificação e exclusão de arquivos de
-  chamados, melhorias, tarefas e procedimentos.
+  chamados, melhorias, tarefas e documentos.
 - `secrets_*`: consulta e registro de metadados de segredos, sem acesso aos valores.
 - `monitoring_templates_*`, `runtime_active_monitors_*` e
   `runtime_monitoring_results_list`: administração versionada de templates,
   configuração de monitores e consulta do histórico dos runtimes.
 - `resource_collections_*` e `*_move_to_collection`: organização hierárquica
-  de aplicações, regras, decisões, procedimentos, segredos, skills e servidores.
+  de aplicações, documentos, melhorias, segredos, skills e servidores.
 
 O carregamento de ambiente é autocontido no pacote. Em um checkout, ele preserva
 o fallback para o `.env` da raiz; no pacote publicado, usa o `.env` local ou o
@@ -66,13 +65,13 @@ O pacote público expõe o executável `biaws-mcp`. Clientes configurados pelo C
 usam uma versão fixada por meio do cache local do npm:
 
 ```bash
-npx --yes biaws-mcp@0.5.0
+npx --yes biaws-mcp@0.6.0
 ```
 
 Também é possível instalá-lo explicitamente:
 
 ```bash
-npm install --global biaws-mcp@0.5.0
+npm install --global biaws-mcp@0.6.0
 biaws-mcp
 ```
 
@@ -91,7 +90,7 @@ npm start
 Em um cliente MCP, configure o comando:
 
 ```bash
-npx --yes biaws-mcp@0.5.0
+npx --yes biaws-mcp@0.6.0
 ```
 
 O fluxo recomendado é gerar a configuração completa com:
@@ -220,19 +219,19 @@ monitor antes de provisionar o executor, crie-o com `enabled: false`.
 - `resource_collections_delete`: exclui somente uma coleção vazia, sem
   subcoleções nem itens vinculados;
 - `applications_move_to_collection`, `servers_move_to_collection`,
-  `secrets_move_to_collection`, `skills_move_to_collection` e
-  `procedures_move_to_collection`: movem um item para uma coleção validada ou
+  `secrets_move_to_collection`, `skills_move_to_collection`,
+  `demands_move_to_collection` e `documents_move_to_collection`: movem um item
+  para uma coleção validada ou
   para a raiz quando `collectionId` é vazio.
 
 As quatro ferramentas `resource_collections_*` aceitam `resourceType` com os
-valores `applications`, `procedures`, `secrets`, `skills` ou `servers`.
-Procedimentos usam sua árvore própria na API; os demais recursos usam a árvore
-compartilhada por tipo. Todas as mutações mantêm as validações contra ciclos,
+valores `applications`, `demands`, `documents`, `secrets`, `skills` ou
+`servers`. Todas as mutações mantêm as validações contra ciclos,
 escopo do workspace, permissões e auditoria da API.
 
 `applications_get_context` entrega, em uma única consulta, a aplicação,
 integrações, componentes, repositórios, deployments, runtimes, servidores referenciados e
-resumos de issues, melhorias e procedimentos associados. O argumento `limit`
+resumos de issues, melhorias e documentos associados. O argumento `limit`
 vale separadamente para cada grupo, tem teto de 100 e padrão 25. O resultado
 informa totais e truncamentos e não contém credenciais, endereços dos
 servidores, metadata dos runtimes, anexos nem os textos extensos da base de
@@ -294,7 +293,7 @@ conhecimento.
   conteúdo armazenado.
 
 As quatro ferramentas aceitam `entityType` com `issue`, `demand`, `task` ou
-`procedure`. `entityId` identifica o chamado, melhoria ou procedimento. Para
+`document`. `entityId` identifica o chamado, melhoria ou documento. Para
 `task`, `entityId` deve ser o ID da melhoria pai e `taskId` deve identificar a
 tarefa por ID ou código.
 
@@ -315,15 +314,25 @@ quando essas permissões tiverem sido removidas ou ainda não existirem, um
 administrador deverá concedê-las. Operações no contexto de tarefa usam as
 permissões de anexos da melhoria pai.
 
-### Procedimentos
+### Documentos
 
-- `procedures_search`: pesquisa por ID, texto (título, sumário e conteúdo),
-  taxonomia (incluindo descendentes), tag e contexto.
-- `procedures_get_classification_catalog`: obtém a árvore taxonômica e os grupos de tags; opcionalmente inclui listas achatadas de IDs válidos.
-- `procedures_create`: cria um procedimento com título, sumário, conteúdo,
-  classificação e contexto opcionais.
-- `procedures_update`: atualiza parcialmente título, sumário, conteúdo,
-  classificação ou contexto.
+- `document_types_list`: consulta o contrato oficial de cada tipo, incluindo
+  estados, contexto obrigatório e campos específicos de `details`;
+- `documents_search` e `documents_get`: localizam documentos e carregam seu
+  conteúdo completo sob demanda;
+- `documents_create`: cria regras, decisões, guidelines, features, referências
+  técnicas e procedimentos usando um schema discriminado por `documentType`;
+- `documents_update`: atualiza conteúdo, contexto e metadados, preservando o
+  tipo imutável;
+- `documents_add_observation`: acrescenta uma observação imutável.
+
+Regras de negócio, decisões arquiteturais e features exigem `applicationId`.
+Referências técnicas podem pertencer ao workspace ou a uma aplicação.
+Procedimentos também podem pertencer ao workspace ou ser vinculados a uma
+aplicação e seus componentes; são documentos com `documentType=procedure`.
+Guidelines usam `details.scope`: `workspace` proíbe `applicationId`,
+`application` o exige e `component` exige também `affectedComponentIds`.
+Componentes sempre devem estar ativos e pertencer à aplicação informada.
 
 ### Metadados de segredos
 
@@ -343,8 +352,8 @@ O grupo padrão `agent-operator` recebe `secrets.metadata.read` e
 `secrets.value.reveal`.
 
 Issues e melhorias criadas pelo MCP sempre pertencem a uma aplicação e podem
-informar `affectedComponentIds`. Procedimentos podem permanecer gerais ao
-workspace ou ser vinculados opcionalmente a uma aplicação e seus componentes.
+informar `affectedComponentIds`. Documentos seguem as regras de contexto
+declaradas por `document_types_list`.
 Nas ferramentas de consulta, os filtros comuns são `workspaceId`,
 `applicationId` e `componentId`.
 

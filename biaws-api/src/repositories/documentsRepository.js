@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { DOCUMENT_TYPE_CATALOG } from "../../../shared/documentTypes.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
 import { getPagination } from "../helpers/query.js";
@@ -12,50 +13,7 @@ import { assertResourceCollection } from "./resourceCollectionsRepository.js";
 import { assertTaxonomyIdsApplicable } from "../helpers/taxonomy.js";
 import { normalizeResourceIdentifier } from "../helpers/resourceIdentifier.js";
 
-export const DOCUMENT_TYPES = Object.freeze({
-  "business-rule": Object.freeze({
-    label: "Regra de negócio",
-    defaultStatus: "draft",
-    statuses: ["draft", "active", "retired", "archived"],
-    currentStatuses: ["active"],
-    applicationRequired: true,
-  }),
-  "architecture-decision": Object.freeze({
-    label: "Decisão arquitetural",
-    defaultStatus: "proposed",
-    statuses: ["proposed", "accepted", "rejected", "superseded", "archived"],
-    currentStatuses: ["accepted"],
-    applicationRequired: true,
-  }),
-  guideline: Object.freeze({
-    label: "Guideline",
-    defaultStatus: "draft",
-    statuses: ["draft", "published", "deprecated", "archived"],
-    currentStatuses: ["published"],
-    applicationRequired: false,
-  }),
-  feature: Object.freeze({
-    label: "Feature",
-    defaultStatus: "draft",
-    statuses: ["draft", "published", "deprecated", "archived"],
-    currentStatuses: ["published"],
-    applicationRequired: true,
-  }),
-  "technical-reference": Object.freeze({
-    label: "Referência técnica",
-    defaultStatus: "draft",
-    statuses: ["draft", "published", "deprecated", "archived"],
-    currentStatuses: ["published"],
-    applicationRequired: false,
-  }),
-  procedure: Object.freeze({
-    label: "Procedimento",
-    defaultStatus: "draft",
-    statuses: ["draft", "published", "deprecated", "archived"],
-    currentStatuses: ["published"],
-    applicationRequired: false,
-  }),
-});
+export const DOCUMENT_TYPES = DOCUMENT_TYPE_CATALOG;
 
 const MAX_REFERENCES = 100;
 const MAX_RELATIONSHIP = 80;
@@ -546,6 +504,7 @@ async function validateReferences(
     const target = await db.collection(COLLECTION_NAMES.DOCUMENTS).findOne({
       id: reference.targetDocumentId,
       workspaceId,
+      documentType: { $in: Object.keys(DOCUMENT_TYPES) },
       ...(authorizationScope?.workspace === true
         ? {}
         : { applicationId: { $in: authorizationScope?.applicationIds || [] } }),
@@ -611,7 +570,10 @@ function combinedFilter(query = {}) {
       $in: [String(query.applicationId).trim(), null],
     };
   }
-  const conditions = [contextFilter];
+  const conditions = [
+    contextFilter,
+    { documentType: { $in: Object.keys(DOCUMENT_TYPES) } },
+  ];
   const search = String(query.search || "").trim();
   const documentType = String(query.documentType || "").trim();
   const status = String(query.status || "").trim();
@@ -674,6 +636,7 @@ export async function getDocument(id, query = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const document = await db.collection(COLLECTION_NAMES.DOCUMENTS).findOne({
     id: String(id),
+    documentType: { $in: Object.keys(DOCUMENT_TYPES) },
     ...buildKnowledgeContextFilter(query),
   });
   return {
@@ -693,6 +656,7 @@ export async function getDocumentByIdentifier(
     await db.collection(COLLECTION_NAMES.DOCUMENTS).findOne({
       identifier: String(identifier),
       workspaceId: String(workspaceId),
+      documentType: { $in: Object.keys(DOCUMENT_TYPES) },
     }),
   );
 }

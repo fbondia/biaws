@@ -236,7 +236,7 @@ const tools = [
   {
     name: "issues_create_taxonomy_item",
     description:
-      "Inclui um item na taxonomia compartilhada de issues e procedimentos, na raiz ou sob um item pai.",
+      "Inclui um item na taxonomia compartilhada de issues e documentos, na raiz ou sob um item pai.",
     inputSchema: {
       type: "object",
       required: ["id", "label"],
@@ -831,6 +831,45 @@ function validateEnum(value, schema, path, fields) {
   }
 }
 
+function validateConst(value, schema, path, fields) {
+  if (Object.hasOwn(schema, "const") && value !== schema.const) {
+    addValidationField(
+      fields,
+      path,
+      "invalid_const",
+      `${path} must be ${JSON.stringify(schema.const)}`,
+    );
+  }
+}
+
+function validateString(value, schema, path, fields) {
+  if (typeof value !== "string") return;
+  if (schema.minLength !== undefined && value.length < schema.minLength) {
+    addValidationField(
+      fields,
+      path,
+      "min_length",
+      `${path} must contain at least ${schema.minLength} characters`,
+    );
+  }
+  if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+    addValidationField(
+      fields,
+      path,
+      "max_length",
+      `${path} must contain at most ${schema.maxLength} characters`,
+    );
+  }
+  if (schema.pattern && !new RegExp(schema.pattern, "u").test(value)) {
+    addValidationField(
+      fields,
+      path,
+      "pattern",
+      `${path} must match ${schema.pattern}`,
+    );
+  }
+}
+
 function validateNumber(value, schema, path, fields) {
   if (typeof value !== "number") return;
   if (schema.minimum !== undefined && value < schema.minimum) {
@@ -921,13 +960,73 @@ function validateObject(value, schema, path, fields) {
   validateObjectEntries(value, schema, path, fields);
 }
 
+function validateNot(value, schema, path, fields) {
+  if (!schema.not) return;
+  const nestedFields = [];
+  validateValue(value, schema.not, path, nestedFields);
+  if (!nestedFields.length) {
+    addValidationField(
+      fields,
+      path,
+      "not",
+      `${path || "arguments"} contains a forbidden combination of fields`,
+    );
+  }
+}
+
+function validateOneOf(value, schema, path, fields) {
+  if (!schema.oneOf?.length) return;
+  const candidates = schema.oneOf.map((candidate) => {
+    const candidateFields = [];
+    validateValue(value, candidate, path, candidateFields);
+    return candidateFields;
+  });
+  const matches = candidates.filter(
+    (candidateFields) => !candidateFields.length,
+  );
+  if (matches.length === 1) return;
+  if (!matches.length) {
+    const discriminatedIndexes = schema.oneOf.flatMap((candidate, index) => {
+      const matchesDiscriminator = Object.entries(
+        candidate.properties || {},
+      ).some(
+        ([property, definition]) =>
+          Object.hasOwn(definition, "const") &&
+          isPlainObject(value) &&
+          value[property] === definition.const,
+      );
+      return matchesDiscriminator ? [index] : [];
+    });
+    const eligible = discriminatedIndexes.length
+      ? discriminatedIndexes.map((index) => candidates[index])
+      : candidates;
+    const best = eligible.reduce((selected, candidate) =>
+      candidate.length < selected.length ? candidate : selected,
+    );
+    if (best.length) {
+      fields.push(...best);
+      return;
+    }
+  }
+  addValidationField(
+    fields,
+    path,
+    "one_of",
+    `${path || "arguments"} must match exactly one supported schema variant`,
+  );
+}
+
 function validateValue(value, schema, path, fields) {
   if (!schema || value === undefined) return;
   if (!validateSchemaType(value, schema, path, fields)) return;
+  validateConst(value, schema, path, fields);
   validateEnum(value, schema, path, fields);
+  validateString(value, schema, path, fields);
   validateNumber(value, schema, path, fields);
   validateArray(value, schema, path, fields);
   validateObject(value, schema, path, fields);
+  validateNot(value, schema, path, fields);
+  validateOneOf(value, schema, path, fields);
 }
 
 function validateArguments(tool, args) {

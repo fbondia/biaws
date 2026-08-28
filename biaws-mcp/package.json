@@ -1,6 +1,6 @@
 {
   "name": "biaws-mcp",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Servidor MCP de domínio para o Bondia Workspaces",
   "license": "Apache-2.0",
   "repository": {

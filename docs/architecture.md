@@ -47,7 +47,7 @@ dona de tenancy, agenda, coordenação e persistência.
 ## Dados
 
 MongoDB mantém identidades, workspaces, aplicações, topologia, permissões,
-issues, melhorias, procedimentos, taxonomia, skills, sinais de monitoramento e
+issues, melhorias, documentos, taxonomia, skills, sinais de monitoramento e
 auditoria. A coleção `homeConfigurations` mantém somente o layout e as
 configurações pessoais dos widgets; as métricas são calculadas a partir dos
 domínios originais. Anexos ficam fora do documento, referenciados por `provider`
@@ -65,8 +65,9 @@ workspace; componentes, repositórios, deployments e runtimes pertencem a uma
 aplicação; servidores pertencem diretamente ao workspace e podem ser
 referenciados por runtimes.
 
-Issues e melhorias exigem aplicação. Procedimentos podem ser gerais ao workspace
-ou associados a uma aplicação. Tarefas herdam o contexto da melhoria. O contexto
+Issues e melhorias exigem aplicação. Documentos seguem regras de contexto por
+tipo e podem exigir aplicação; procedimentos são documentos do tipo `procedure`.
+Tarefas herdam o contexto da melhoria. O contexto
 agregado de uma aplicação retorna apenas resumos sanitizados e limita cada
 coleção a 100 itens.
 

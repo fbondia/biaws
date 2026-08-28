@@ -1,9 +1,11 @@
 import { cleanParams, fetchJson, sendJson } from "../../httpClient.js";
+import { DOCUMENT_TYPE_CATALOG } from "./documentTypeCatalog.js";
 
 const BASE_PATH = "/api/knowledge/documents";
 
 function documentPayload(args = {}, current = {}) {
   return {
+    identifier: args.identifier ?? current.identifier,
     documentType: args.documentType ?? current.documentType,
     title: args.title ?? current.title,
     summary: args.summary ?? current.summary,
@@ -26,6 +28,28 @@ function documentPayload(args = {}, current = {}) {
     lastReviewedAt: args.lastReviewedAt ?? current.lastReviewedAt ?? "",
     nextReviewAt: args.nextReviewAt ?? current.nextReviewAt ?? "",
     changeSummary: args.changeSummary,
+  };
+}
+
+export function listDocumentTypes() {
+  return {
+    documentTypes: Object.values(DOCUMENT_TYPE_CATALOG).map((config) => ({
+      ...config,
+      context: config.applicationRequired
+        ? { applicationId: "required", affectedComponentIds: "optional" }
+        : config.type === "guideline"
+          ? {
+              applicationId: "depends-on-details.scope",
+              affectedComponentIds: "required-when-scope-is-component",
+            }
+          : { applicationId: "optional", affectedComponentIds: "optional" },
+    })),
+    commonRules: {
+      workspaceId: "implicit-from-mcp-configuration",
+      affectedComponentIds: "requires-applicationId",
+      documentType: "immutable-after-creation",
+      repositorySource: "repositoryId-and-path-required",
+    },
   };
 }
 

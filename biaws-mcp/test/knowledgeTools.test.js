@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { knowledgeTools } from "../src/domains/knowledge/tools.js";
+import { DOCUMENT_TYPE_CATALOG as MCP_DOCUMENT_TYPE_CATALOG } from "../src/domains/knowledge/documentTypeCatalog.js";
 import { dispatchTool, listTools } from "../src/tools.js";
+import { DOCUMENT_TYPE_CATALOG as SHARED_DOCUMENT_TYPE_CATALOG } from "../../shared/documentTypes.js";
 
 function jsonResponse(payload = { ok: true }, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -15,6 +17,7 @@ test("document tools expose one bounded discriminated knowledge API", () => {
   const names = knowledgeTools.map(({ name }) => name);
   assert.deepEqual(names, [
     "knowledge_context_load",
+    "document_types_list",
     "documents_search",
     "documents_get",
     "documents_create",
@@ -45,6 +48,66 @@ test("document tools expose one bounded discriminated knowledge API", () => {
     "procedure",
   ]);
   assert.equal(create.inputSchema.properties.references.maxItems, 100);
+  assert.ok(create.inputSchema.properties.identifier);
+  assert.equal(create.inputSchema.oneOf.length, 10);
+  assert.deepEqual(MCP_DOCUMENT_TYPE_CATALOG, SHARED_DOCUMENT_TYPE_CATALOG);
+});
+
+test("document type catalog exposes context, states and typed details", async () => {
+  const result = await dispatchTool("document_types_list", {});
+  assert.equal(result.documentTypes.length, 6);
+  assert.equal(
+    result.documentTypes.find(({ type }) => type === "business-rule").context
+      .applicationId,
+    "required",
+  );
+  assert.deepEqual(
+    result.documentTypes.find(({ type }) => type === "guideline").details.scope
+      .enum,
+    ["workspace", "application", "component"],
+  );
+  const procedure = result.documentTypes.find(
+    ({ type }) => type === "procedure",
+  );
+  assert.equal(procedure.context.applicationId, "optional");
+  assert.deepEqual(procedure.details, {});
+});
+
+test("document creation validates its discriminated contract before HTTP", async () => {
+  await assert.rejects(
+    dispatchTool("documents_create", {
+      documentType: "business-rule",
+      title: "Rule",
+      summary: "Summary",
+      markdown: "# Rule",
+    }),
+    (error) =>
+      error.code === "VALIDATION_ERROR" &&
+      error.fields.some(({ path }) => path === "applicationId"),
+  );
+  await assert.rejects(
+    dispatchTool("documents_create", {
+      documentType: "guideline",
+      title: "Guideline",
+      summary: "Summary",
+      markdown: "# Guideline",
+      applicationId: "app-1",
+      details: { scope: "workspace", enforcement: "recommended" },
+    }),
+    (error) => error.code === "VALIDATION_ERROR",
+  );
+  await assert.rejects(
+    dispatchTool("documents_create", {
+      documentType: "technical-reference",
+      title: "Reference",
+      summary: "Summary",
+      markdown: "# Reference",
+      source: { mode: "repository" },
+    }),
+    (error) =>
+      error.code === "VALIDATION_ERROR" &&
+      error.fields.some(({ path }) => path === "source.repositoryId"),
+  );
 });
 
 test("knowledge context loader fetches current unified documents", async () => {

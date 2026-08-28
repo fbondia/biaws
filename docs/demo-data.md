@@ -21,7 +21,7 @@ O seed é idempotente e inclui:
 - taxonomia pequena de operação e produto;
 - uma issue aberta e classificada;
 - uma melhoria com checklist, especificação, acompanhamento de jornadas e tarefa;
-- uma coleção e um procedimento de primeiros passos;
+- uma coleção e um documento do tipo procedimento com os primeiros passos;
 - um workspace, uma aplicação e um componente fictícios compartilhados pelos
   registros de demonstração.
 
@@ -32,7 +32,7 @@ O seed:
 - não cria duplicatas quando executado novamente;
 - identifica autoria com `demo-seed`;
 - não contém nomes, e-mails ou conteúdo de clientes reais.
-- cria listas, taxonomia e coleção de procedimentos dentro do workspace padrão.
+- cria listas, taxonomia e coleção de documentos dentro do workspace padrão.
 
 A tarefa herda o contexto da melhoria em sua representação na API, sem duplicar
 os campos de workspace, aplicação e componentes na coleção `requestTasks`.

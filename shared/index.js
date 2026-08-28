@@ -1,5 +1,6 @@
 export { loadEnv } from "./loadEnv.js";
 export { buildSkillPayload, checksumPackageFiles } from "./skillPackage.js";
+export { DOCUMENT_TYPE_CATALOG, DOCUMENT_TYPES } from "./documentTypes.js";
 export {
   assertKnownPermissions,
   getPermissionScope,

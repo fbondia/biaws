@@ -57,7 +57,8 @@ Uma recuperação completa depende de dois conjuntos de dados:
 
 - MongoDB: identidades, sessões, autorizações, catálogo, conhecimento e
   auditoria;
-- volumes de anexos: `issue-files`, `request-files` e `procedure-files`;
+- volumes de anexos: `issue-files`, `request-files` e o volume legado
+  `procedure-files`, hoje usado pelos arquivos de documentos;
 - cofre local: `secret-files`, contendo apenas versões criptografadas;
 - chave mestra do cofre: `.secrets-master-key`, mantida fora do volume.
 
@@ -119,7 +120,8 @@ docker run --rm \
   alpine tar -C /source -czf /backup/issue-files.tar.gz .
 ```
 
-Repita para `biaws_request-files`, `biaws_procedure-files` e
+Repita para `biaws_request-files`, `biaws_procedure-files` (arquivos de
+documentos) e
 `biaws_secret-files`. O prefixo dos
 volumes acompanha `COMPOSE_PROJECT_NAME`; confirme os nomes com
 `docker volume ls` antes de executar.
@@ -141,7 +143,7 @@ ou a senha inicial.
 
 - dump lógico compactado do MongoDB;
 - anexos de issues e requests;
-- documentos e procedimentos;
+- documentos;
 - arquivos criptografados do cofre e sua chave mestra;
 - `.env`, senha inicial ainda disponível e credenciais do executor;
 - diretórios `monitoring/` e `data/monitoring/` da instância;
@@ -234,7 +236,7 @@ chave mestra correta do cofre, suba API e UI e valide:
 
 1. `GET /api/health`;
 2. login de um administrador;
-3. leitura de uma aplicação, issue, melhoria e procedimento;
+3. leitura de uma aplicação, issue, melhoria e documento;
 4. download de pelo menos um anexo de cada domínio utilizado;
 5. isolamento por workspace e aplicação;
 6. totais e registros recentes de auditoria.
@@ -310,7 +312,7 @@ opções equivalentes `--api-rate-limit-*`, `--auth-rate-limit-*` e
 preservada, sua cota é reconciliada com a configuração atual e a janela de
 consumo é reiniciada.
 
-Melhorias, issues, procedimentos e catálogo têm paginação no backend. A UI de
+Melhorias, issues, documentos e catálogo têm paginação no backend. A UI de
 melhorias carrega 25 registros por página. Ajuste os limites de corpo/anexo pelas
 variáveis documentadas em `.env.example`, considerando memória, proxy e storage.
 No ambiente Docker, `BIAWS_API_MAX_ATTACHMENT_BYTES` configura o mesmo limite

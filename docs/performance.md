@@ -16,7 +16,7 @@ seus na primeira operação.
 | sinais de um runtime         | `workspaceId, applicationId, runtimeId, observedAt, receivedAt`                |
 | issues recentes              | `workspaceId, applicationId, dates.receivedEmailAt, updatedAt, id`             |
 | melhorias ordenadas          | `workspaceId, applicationId, listRank, updatedAt, createdAt`                   |
-| procedimentos por título     | `workspaceId, applicationId, title, updatedAt`                                 |
+| documentos por tipo e estado | `workspaceId, documentType, status, updatedAt`                                 |
 | contexto de conhecimento     | `workspaceId, applicationId, updatedAt, id`                                    |
 | auditoria por raiz           | `rootType, rootId, occurredAt`                                                 |
 | configuração pessoal da home | `workspaceId, userId`                                                          |
@@ -40,7 +40,7 @@ db.issues
   .explain("executionStats");
 ```
 
-Repita para melhorias e procedimentos:
+Repita para melhorias e documentos:
 
 ```javascript
 db.requests
@@ -49,9 +49,9 @@ db.requests
   .limit(25)
   .explain("executionStats");
 
-db.procedures
-  .find({ workspaceId, applicationId })
-  .sort({ title: 1, updatedAt: -1 })
+db.documents
+  .find({ workspaceId, documentType: "procedure", status: "published" })
+  .sort({ updatedAt: -1 })
   .limit(25)
   .explain("executionStats");
 ```
@@ -83,7 +83,7 @@ No seed final, os planos com `hint()` retornaram `IXSCAN`, sem estágio `SORT`:
 | componentes                   |          1 |                 1 |                     1 |
 | issues                        |          1 |                 1 |                     1 |
 | melhorias                     |          1 |                 1 |                     1 |
-| procedimentos                 |          1 |                 1 |                     1 |
+| documentos                    |          1 |                 1 |                     1 |
 | deployments e runtimes vazios |          0 |                 0 |                     0 |
 
 Índices antigos, cujas chaves sejam prefixos de índices novos, podem permanecer

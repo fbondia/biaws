@@ -8,6 +8,10 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- MCP `0.6.0` passou a expor o contrato discriminado dos documentos e a tool
+  `document_types_list`; as interfaces legadas `procedures_*` foram removidas e
+  procedimentos permanecem disponíveis por `documents_*` com
+  `documentType=procedure`;
 - variável de escopo dos clientes e do MCP renomeada para
   `BIAWS_WORKSPACE_ID`, sem alias para o nome anterior;
 - configuração de agentes passou a usar `npx` com versão fixada do MCP, sem
@@ -54,7 +58,7 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
 - identificadores editáveis e únicos para documentos e grupos personalizados,
   usados para decidir entre criação e substituição durante a replicação;
 - tools MCP para enviar, baixar, classificar e excluir anexos de chamados,
-  melhorias, tarefas e procedimentos, com Base64 limitado e associação de
+  melhorias, tarefas e documentos, com Base64 limitado e associação de
   tarefas compatível com a UI;
 - diagnóstico de pré-requisitos com detecção de sistema, versão mínima do
   Node.js, Docker Compose e disponibilidade do Docker Engine;
@@ -68,7 +72,7 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
 - seletor multi-instância com portas, credenciais, Compose e volumes isolados
   sobre um único clone do código;
 - configuração por instância de bind mounts para MongoDB e arquivos de issues,
-  requests e procedures, mantendo volumes Docker nomeados como padrão;
+  requests e documentos, mantendo volumes Docker nomeados como padrão;
 - scripts executáveis de início, parada, backup e restore do MongoDB gerados
   para cada instância;
 - identidade técnica de menor privilégio e chave local criadas pelo bootstrap;
@@ -80,8 +84,8 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
 - seed idempotente com dados fictícios;
 - validação contínua com GitHub Actions;
 - fundação do catálogo com workspace padrão e API protegida de aplicações.
-- contexto obrigatório de aplicação para issues e demandas e opcional para
-  procedimentos;
+- contexto obrigatório de aplicação para issues e demandas e definido por tipo
+  para documentos;
 - autorização por workspace e por conjunto de aplicações;
 - topologia operacional com componentes, repositórios, servidores, deployments,
   runtimes, consultas reversas e contexto agregado limitado.
@@ -94,7 +98,7 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
 
 ### Fixed
 
-- seed criava listas, taxonomia e coleções de procedimentos fora do workspace;
+- seed criava listas, taxonomia e coleções de documentos fora do workspace;
 - logotipo da UI não era incluído no bundle de produção;
 - criação concorrente de uma issue podia ultrapassar a verificação de
   unicidade.

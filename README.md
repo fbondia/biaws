@@ -489,7 +489,7 @@ instância e grave `BIAWS_WORKSPACE_ID` no bloco `env` do servidor `biaws`. O
 Servidor MCP pelo pacote publicado:
 
 ```bash
-npx --yes biaws-mcp@0.2.0
+npx --yes biaws-mcp@0.6.0
 ```
 
 CLI:

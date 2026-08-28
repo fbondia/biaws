@@ -85,7 +85,7 @@ A futura suíte de browser deve começar pequena e estável:
 2. autorização negativa e troca de workspace;
 3. criar e atualizar uma issue;
 4. criar melhoria e tarefa;
-5. consultar/criar procedimento;
+5. consultar/criar documento;
 6. publicar e instalar uma skill;
 7. criar entidades básicas de topologia.
 

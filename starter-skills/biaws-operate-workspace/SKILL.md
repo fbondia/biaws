@@ -1,6 +1,6 @@
 ---
 name: biaws-operate-workspace
-description: Consultar e atualizar com segurança o contexto operacional mantido no Bondia Workspaces por meio das ferramentas MCP de workspaces, aplicações, topologia, issues, demandas, tarefas e procedimentos. Usar quando o usuário pedir para investigar, registrar, contextualizar, classificar ou atualizar trabalho operacional armazenado no Bondia Workspaces.
+description: Consultar e atualizar com segurança o contexto operacional mantido no Bondia Workspaces por meio das ferramentas MCP de workspaces, aplicações, topologia, issues, demandas, tarefas e documentos. Usar quando o usuário pedir para investigar, registrar, contextualizar, classificar ou atualizar trabalho operacional armazenado no Bondia Workspaces.
 ---
 
 # Operar o Bondia Workspaces

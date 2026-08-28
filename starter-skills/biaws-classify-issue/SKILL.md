@@ -11,7 +11,7 @@ Usar as ferramentas MCP `biaws` e as regras de segurança de `biaws-operate-work
 
 1. Exigir o código ou ID da issue e chamar `issues_get`. Não substituir uma issue existente por uma descrição livre.
 2. Identificar o workspace, a aplicação relacionada e a classificação atual.
-3. Chamar `issues_get_classification_catalog` com `applicationId` quando disponível e `flatten: true`. Usar `procedures_get_classification_catalog` apenas como fallback compatível e informar o fallback.
+3. Chamar `issues_get_classification_catalog` com `applicationId` quando disponível e `flatten: true`.
 4. Considerar título, descrição, comentários e metadados úteis de anexos. Dar mais peso ao problema, à solicitação e à causa confirmada do que a assinaturas, citações automáticas ou hipóteses descartadas.
 5. Chamar `issues_suggest_taxonomy` como busca auxiliar. Validar cada sugestão contra a árvore atual; não tratar score lexical como decisão.
 6. Quando a ambiguidade for material, pesquisar precedentes com `issues_search` ou `issues_by_taxonomy`. Usá-los como evidência secundária, não como regra.

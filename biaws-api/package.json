@@ -30,15 +30,15 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@better-auth/api-key": "1.6.25",
-    "@better-auth/mongo-adapter": "1.6.25",
-    "@node-rs/argon2": "2.0.2",
-    "better-auth": "1.6.25",
+    "@better-auth/api-key": "1.7.2",
+    "@better-auth/mongo-adapter": "1.7.2",
+    "@node-rs/argon2": "2.1.0",
+    "better-auth": "1.7.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonata": "2.2.2",
-    "mailparser": "^3.7.2",
-    "mongodb": "^7.5.0",
+    "mailparser": "^3.9.17",
+    "mongodb": "^7.6.0",
     "multer": "^2.2.0"
   },
   "overrides": {

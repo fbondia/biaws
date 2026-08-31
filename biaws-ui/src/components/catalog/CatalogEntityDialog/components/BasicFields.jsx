@@ -3,6 +3,7 @@ import {
   REPOSITORY_PROVIDERS,
   SERVER_STATUSES,
 } from "../constants.js";
+import { MarkdownEditor } from "../../../shared/MarkdownEditor/index.jsx";
 import {
   EntityFieldGroup,
   MultiSelectField,
@@ -242,11 +243,18 @@ export function BasicFields({
       >
         <label className="field catalogWideField">
           <span>Descrição</span>
-          <textarea
-            onChange={(event) => update("description", event.target.value)}
-            rows={4}
-            value={draft.description || ""}
-          />
+          {kind === "server" ? (
+            <MarkdownEditor
+              onChange={(value) => update("description", value)}
+              value={draft.description || ""}
+            />
+          ) : (
+            <textarea
+              onChange={(event) => update("description", event.target.value)}
+              rows={4}
+              value={draft.description || ""}
+            />
+          )}
         </label>
       </EntityFieldGroup>
     </>

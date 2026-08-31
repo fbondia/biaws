@@ -159,7 +159,7 @@ function ServerDetails({
             variant="eyebrow"
           />
           <h2>{selected.name}</h2>
-          <p>{selected.description || selected.purpose || "Sem descrição."}</p>
+          <p>{selected.hostname || "Hostname não informado."}</p>
         </div>
         <div className="catalogHeaderActions">
           {hasPermission(actor, "servers.update") ? (

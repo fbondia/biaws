@@ -11,6 +11,7 @@ import {
 import { hasPermission } from "../../../../permissions.js";
 import { AuditHistory } from "../../../shared/AuditHistory.jsx";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
+import { MarkdownPreview } from "../../../shared/MarkdownEditor/index.jsx";
 import {
   collectionPathLabel,
   ResourceCollectionDialog,
@@ -231,14 +232,40 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
   if (activeTab === "overview") {
     return (
       <div className="catalogTabPanel">
-        <div className="catalogOverviewCard">
-          <h3>Inventário</h3>
+        <div className="catalogOverviewCard serverOverviewCard">
           <dl>
             <div>
               <dt>Hostname</dt>
               <dd>{selected.hostname || "-"}</dd>
             </div>
             <div>
+              <dt>Sistema operacional</dt>
+              <dd>{selected.operatingSystem || "-"}</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>
+                <span
+                  className={`catalogStatus catalogStatus-${selected.status || "unknown"}`}
+                >
+                  {selected.status || "unknown"}
+                </span>
+              </dd>
+            </div>
+
+
+            <div>
+              <dt>Localização</dt>
+              <dd>{selected.location || "-"}</dd>
+            </div>
+            <div>
+              <dt>Provedor</dt>
+              <dd>{selected.provider || "-"}</dd>
+            </div>
+
+
+
+            <div className="serverOverviewWide">
               <dt>Endereços</dt>
               <dd>
                 {selected.addresses?.length ? (
@@ -252,27 +279,44 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
                 )}
               </dd>
             </div>
-            <div>
-              <dt>Provedor</dt>
-              <dd>{selected.provider || "-"}</dd>
-            </div>
-            <div>
-              <dt>Localização</dt>
-              <dd>{selected.location || "-"}</dd>
-            </div>
-            <div>
-              <dt>Sistema operacional</dt>
-              <dd>{selected.operatingSystem || "-"}</dd>
-            </div>
-            <div>
-              <dt>Finalidade</dt>
-              <dd>{selected.purpose || "-"}</dd>
-            </div>
-            <div>
-              <dt>Status</dt>
-              <dd>{selected.status}</dd>
-            </div>
           </dl>
+
+        <section
+          aria-labelledby="server-description-title"
+          className="serverOverviewDescription"
+        >
+          <h3 id="server-description-title">Finalidade</h3>
+          <div>{selected.purpose || "-"}</div>
+        </section>
+
+        <section
+          aria-labelledby="server-description-title"
+          className="serverOverviewDescription"
+        >
+          <h3 id="server-description-title">Tags</h3>
+              {selected.tags?.length ? (
+                <span className="serverTagList">
+                  {selected.tags.map((tag) => (
+                    <span className="serverTagChip" key={tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </span>
+              ) : (
+                "-"
+              )}
+          </section>
+
+          <section
+            aria-labelledby="server-description-title"
+            className="serverOverviewDescription"
+          >
+            <h3 id="server-description-title">Descrição</h3>
+            <MarkdownPreview value={selected.description || ""} />
+          </section>
+
+
+
         </div>
       </div>
     );

@@ -30,7 +30,7 @@ Identificar componente, artefato, repositório, ambiente e deployment confirmado
 
 Criar tarefa distinta da publicação e exigir `deploymentId`, versão, revisão quando disponível, repositório, ambiente, horário efetivo e evidência.
 
-O executor deve reler `deployments_get` e acrescentar uma entrada `deployed` ao histórico append-only de `publications` usando `deployments_update`. Nunca registrar antes da publicação nem usar entrada `planned` como substituto da tarefa.
+O executor deve reler `deployments_get` e acrescentar uma entrada `deployed` ao histórico append-only usando `deployments_record_publication`. Nunca registrar antes da publicação nem usar entrada `planned` como substituto da tarefa.
 
 ## Modelo mínimo
 

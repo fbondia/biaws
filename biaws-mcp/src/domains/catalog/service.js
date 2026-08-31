@@ -256,6 +256,16 @@ export async function updateDeployment(args = {}) {
   );
 }
 
+export async function recordDeploymentPublication(args = {}) {
+  const deploymentId = requiredId(args, "deploymentId");
+  return sendJson(
+    `${entityPath("deployments", deploymentId)}/publications`,
+    mutationPayload(args, ["deploymentId"]),
+    {},
+    "POST",
+  );
+}
+
 export async function listRuntimes(args = {}) {
   const deploymentId = requiredId(args, "deploymentId");
   return fetchJson(

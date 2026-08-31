@@ -157,7 +157,8 @@ As escritas estruturadas são:
 - `integrations_create` e `integrations_update`;
 - `repositories_create` e `repositories_update`;
 - `servers_create` e `servers_update`;
-- `deployments_create` e `deployments_update`;
+- `deployments_create`, `deployments_update` e
+  `deployments_record_publication`;
 - `runtimes_create` e `runtimes_update`.
 
 As ferramentas de escrita usam `POST` ou `PATCH` da API e, portanto, herdam

@@ -192,6 +192,7 @@ não pode ser arquivado enquanto possuir runtime não arquivado.
 | `POST`  | `/api/catalog/applications/:applicationId/deployments` | `deployments.create`  |
 | `GET`   | `/api/catalog/deployments/:deploymentId`               | `deployments.read`    |
 | `PATCH` | `/api/catalog/deployments/:deploymentId`               | `deployments.update`  |
+| `POST`  | `/api/catalog/deployments/:deploymentId/publications`  | `deployments.update`  |
 | `PATCH` | `/api/catalog/deployments/:deploymentId/archive`       | `deployments.archive` |
 
 Filtros adicionais: `componentId`, `repositoryId`, `environment` e `serverId`.
@@ -224,6 +225,10 @@ quando informado, também deve pertencer à aplicação.
 `publications` é um histórico append-only com até 200 itens. `version`,
 `source.revision` e `deployedAt` continuam materializados na resposta com os
 dados da publicação mais recente para compatibilidade.
+
+Para registrar uma publicação sem reenviar o histórico, use `POST` em
+`/api/catalog/deployments/:deploymentId/publications` com uma única entrada. A
+API gera `id`, `recordedAt` e `recordedBy` e acrescenta a entrada atomicamente.
 
 Um deployment não pode ser arquivado enquanto possuir runtime não arquivado.
 

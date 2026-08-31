@@ -23,6 +23,7 @@ import {
   listRuntimes,
   listServers,
   listWorkspaces,
+  recordDeploymentPublication,
   updateApplication,
   updateComponent,
   updateDeployment,
@@ -165,6 +166,18 @@ const SERVER_PROPERTIES = {
   tags: TAGS,
 };
 
+const PUBLICATION_PROPERTIES = {
+  version: STRING,
+  revision: STRING,
+  repositoryId: { type: ["string", "null"] },
+  status: {
+    type: "string",
+    enum: ["planned", "canceled", "deployed"],
+  },
+  publishedAt: { type: ["string", "null"] },
+  description: STRING,
+};
+
 const DEPLOYMENT_PROPERTIES = {
   key: APPLICATION_PROPERTIES.key,
   name: STRING,
@@ -183,15 +196,7 @@ const DEPLOYMENT_PROPERTIES = {
       required: ["version"],
       properties: {
         id: ID,
-        version: STRING,
-        revision: STRING,
-        repositoryId: { type: ["string", "null"] },
-        status: {
-          type: "string",
-          enum: ["planned", "canceled", "deployed"],
-        },
-        publishedAt: { type: ["string", "null"] },
-        description: STRING,
+        ...PUBLICATION_PROPERTIES,
         recordedAt: { type: ["string", "null"] },
         recordedBy: STRING,
       },
@@ -552,6 +557,15 @@ export const catalogTools = [
       },
       ["deploymentId"],
     ),
+  ),
+  definition(
+    "deployments_record_publication",
+    "Registra uma publicação no histórico append-only de um deployment sem reenviar as entradas existentes.",
+    recordDeploymentPublication,
+    schema({ deploymentId: ID, ...PUBLICATION_PROPERTIES }, [
+      "deploymentId",
+      "version",
+    ]),
   ),
   definition(
     "runtimes_create",

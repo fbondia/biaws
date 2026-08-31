@@ -39,9 +39,8 @@ Registrar somente depois da publicação bem-sucedida:
 
 1. chamar `deployments_get` imediatamente antes da escrita;
 2. verificar se já existe publicação `deployed` com a mesma versão e revisão;
-3. preservar todas as entradas atuais, IDs, ordem e campos do histórico append-only;
-4. chamar `deployments_update` enviando o array atual de `publications` acrescido de uma entrada com `version`, `revision`, `repositoryId`, `status: "deployed"`, `publishedAt` efetivo e descrição concisa;
-5. chamar `deployments_get` novamente e verificar a nova entrada e os campos materializados de versão, revisão e data.
+3. chamar `deployments_record_publication` com `version`, `revision`, `repositoryId`, `status: "deployed"`, `publishedAt` efetivo e descrição concisa;
+4. chamar `deployments_get` novamente e verificar a nova entrada e os campos materializados de versão, revisão e data.
 
 Não enviar `recordedAt` ou `recordedBy` na nova entrada; o servidor os registra. Não criar entrada `planned` para representar intenção futura. Após timeout, reler antes de repetir para evitar duplicidade.
 

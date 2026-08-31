@@ -42,6 +42,7 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
     "servers_update",
     "deployments_create",
     "deployments_update",
+    "deployments_record_publication",
     "runtimes_create",
     "runtimes_update",
   ];
@@ -105,6 +106,15 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
     ({ name }) => name === "deployments_update",
   ).inputSchema.properties.publications.items.properties.status;
   assert.deepEqual(publicationStatus.enum, ["planned", "canceled", "deployed"]);
+  const recordPublicationProperties = catalogTools.find(
+    ({ name }) => name === "deployments_record_publication",
+  ).inputSchema.properties;
+  assert.equal(
+    Object.hasOwn(recordPublicationProperties, "publications"),
+    false,
+  );
+  assert.equal(Object.hasOwn(recordPublicationProperties, "recordedAt"), false);
+  assert.equal(Object.hasOwn(recordPublicationProperties, "recordedBy"), false);
   const runtimeProperties = catalogTools.find(
     ({ name }) => name === "runtimes_update",
   ).inputSchema.properties;
@@ -332,6 +342,18 @@ test("catalog write tools use POST/PATCH and keep scope ids out of payloads", as
       { deploymentId: "deployment-1", version: "2.0.0" },
       "PATCH",
       "/api/catalog/deployments/deployment-1",
+      "deploymentId",
+    ],
+    [
+      "deployments_record_publication",
+      {
+        deploymentId: "deployment-1",
+        version: "2.0.0",
+        revision: "abc123",
+        status: "deployed",
+      },
+      "POST",
+      "/api/catalog/deployments/deployment-1/publications",
       "deploymentId",
     ],
     [

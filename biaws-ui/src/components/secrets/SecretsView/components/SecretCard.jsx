@@ -269,10 +269,12 @@ export function SecretCard({
         <div className="secretCardIdentity">
           <strong>{secret.name}</strong>
           <div className="secretCardBadges">
+            <span className="secretFormatBadge">
+              {secret.type}
+            </span>
             {isPending ? (
               <span className="secretPendingBadge">Aguardando valor</span>
             ) : null}
-            <span className="typeBadge">{secret.type}</span>
             <span className="secretFormatBadge">
               {isFile ? "Arquivo" : "Texto"}
             </span>

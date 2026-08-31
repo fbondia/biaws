@@ -591,6 +591,101 @@ export async function updateDeployment(deploymentId, payload = {}, actor = {}) {
   return getDeployment(current.id);
 }
 
+export async function recordDeploymentPublication(
+  deploymentId,
+  payload = {},
+  actor = {},
+) {
+  const current = await getDeployment(deploymentId);
+  if (!current) {
+    throw createCatalogError(
+      404,
+      "DEPLOYMENT_NOT_FOUND",
+      "Deployment not found",
+    );
+  }
+  if (current.status === "archived") {
+    throw createCatalogError(
+      409,
+      "DEPLOYMENT_ARCHIVED",
+      "Deployment is archived",
+    );
+  }
+  const currentPublications = legacyPublications(current);
+  if (currentPublications.length >= MAX_HISTORY_ITEMS) {
+    throw createCatalogError(
+      409,
+      "DEPLOYMENT_PUBLICATION_LIMIT",
+      `publications cannot contain more than ${MAX_HISTORY_ITEMS} items`,
+    );
+  }
+  const application = await requireOperationalApplication(
+    current.applicationId,
+    {
+      active: true,
+      workspaceId: current.workspaceId,
+    },
+  );
+  const publication = normalizePublication(
+    {
+      ...payload,
+      repositoryId: payload.repositoryId || current.repositoryId,
+    },
+    currentPublications.length,
+    {
+      actor,
+      id: randomUUID(),
+      recordedAt: new Date(),
+    },
+  );
+  await validateDeploymentRelationships(application, {
+    ...current,
+    publications: [...currentPublications, publication],
+  });
+
+  const hasStoredHistory = Array.isArray(current.publications);
+  const set = {
+    updatedAt: new Date(),
+    updatedBy: actorId(actor),
+  };
+  if (publication.status === "deployed") {
+    set.version = publication.version;
+    set.source = {
+      repositoryId: current.repositoryId || null,
+      revision: publication.revision,
+    };
+    set.deployedAt = publication.publishedAt;
+  }
+  const { deployments } = await getTopologyCollections();
+  const result = await deployments.updateOne(
+    {
+      id: current.id,
+      workspaceId: current.workspaceId,
+      applicationId: current.applicationId,
+      status: { $ne: "archived" },
+      ...(hasStoredHistory
+        ? { [`publications.${MAX_HISTORY_ITEMS - 1}`]: { $exists: false } }
+        : { publications: { $exists: false } }),
+    },
+    hasStoredHistory
+      ? { $push: { publications: publication }, $set: set }
+      : {
+          $set: {
+            ...set,
+            publications: [...currentPublications, publication],
+          },
+        },
+  );
+  if (!result.matchedCount) {
+    throw createCatalogError(
+      409,
+      "DEPLOYMENT_PUBLICATION_CONFLICT",
+      "Deployment changed concurrently or reached the publication limit; reload and try again",
+    );
+  }
+  return getDeployment(current.id);
+}
+
 export async function archiveDeployment(deploymentId, actor = {}) {
   const current = await getDeployment(deploymentId);
   if (!current) {

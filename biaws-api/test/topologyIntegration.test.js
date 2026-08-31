@@ -60,6 +60,7 @@ test(
       getRuntime,
       listDeployments,
       listRuntimes,
+      recordDeploymentPublication,
       restoreDeployment,
       restoreRuntime,
       updateDeployment,
@@ -242,6 +243,21 @@ test(
         ).version,
         "1.0.1",
       );
+      const publishedDeployment = await recordDeploymentPublication(
+        deployment.id,
+        {
+          version: "1.1.0",
+          revision: "def456",
+          repositoryId: repository.id,
+          status: "deployed",
+          publishedAt: "2026-08-31T12:00:00.000Z",
+        },
+        actor,
+      );
+      assert.equal(publishedDeployment.publications.length, 2);
+      assert.equal(publishedDeployment.publications.at(-1).version, "1.1.0");
+      assert.equal(publishedDeployment.version, "1.1.0");
+      assert.equal(publishedDeployment.source.revision, "def456");
       const runtime = await createRuntime(
         deployment.id,
         {

@@ -611,7 +611,15 @@ export async function recordDeploymentPublication(
       "Deployment is archived",
     );
   }
-  const currentPublications = legacyPublications(current);
+  const storedPublications = Array.isArray(current.publications)
+    ? current.publications
+    : null;
+  const materializesLegacyHistory =
+    (!storedPublications || storedPublications.length === 0) &&
+    Boolean(current.version || current.source?.revision || current.deployedAt);
+  const currentPublications = materializesLegacyHistory
+    ? legacyPublications({ ...current, publications: undefined })
+    : storedPublications || [];
   if (currentPublications.length >= MAX_HISTORY_ITEMS) {
     throw createCatalogError(
       409,
@@ -643,7 +651,8 @@ export async function recordDeploymentPublication(
     publications: [...currentPublications, publication],
   });
 
-  const hasStoredHistory = Array.isArray(current.publications);
+  const canAppendToStoredHistory =
+    storedPublications !== null && !materializesLegacyHistory;
   const set = {
     updatedAt: new Date(),
     updatedBy: actorId(actor),
@@ -663,11 +672,13 @@ export async function recordDeploymentPublication(
       workspaceId: current.workspaceId,
       applicationId: current.applicationId,
       status: { $ne: "archived" },
-      ...(hasStoredHistory
+      ...(canAppendToStoredHistory
         ? { [`publications.${MAX_HISTORY_ITEMS - 1}`]: { $exists: false } }
-        : { publications: { $exists: false } }),
+        : storedPublications
+          ? { publications: { $size: 0 } }
+          : { publications: { $exists: false } }),
     },
-    hasStoredHistory
+    canAppendToStoredHistory
       ? { $push: { publications: publication }, $set: set }
       : {
           $set: {

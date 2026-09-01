@@ -253,7 +253,6 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
               </dd>
             </div>
 
-
             <div>
               <dt>Localização</dt>
               <dd>{selected.location || "-"}</dd>
@@ -262,8 +261,6 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
               <dt>Provedor</dt>
               <dd>{selected.provider || "-"}</dd>
             </div>
-
-
 
             <div className="serverOverviewWide">
               <dt>Endereços</dt>
@@ -281,30 +278,30 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
             </div>
           </dl>
 
-        <section
-          aria-labelledby="server-description-title"
-          className="serverOverviewDescription"
-        >
-          <h3 id="server-description-title">Finalidade</h3>
-          <div>{selected.purpose || "-"}</div>
-        </section>
+          <section
+            aria-labelledby="server-description-title"
+            className="serverOverviewDescription"
+          >
+            <h3 id="server-description-title">Finalidade</h3>
+            <div>{selected.purpose || "-"}</div>
+          </section>
 
-        <section
-          aria-labelledby="server-description-title"
-          className="serverOverviewDescription"
-        >
-          <h3 id="server-description-title">Tags</h3>
-              {selected.tags?.length ? (
-                <span className="serverTagList">
-                  {selected.tags.map((tag) => (
-                    <span className="serverTagChip" key={tag}>
-                      {tag}
-                    </span>
-                  ))}
-                </span>
-              ) : (
-                "-"
-              )}
+          <section
+            aria-labelledby="server-description-title"
+            className="serverOverviewDescription"
+          >
+            <h3 id="server-description-title">Tags</h3>
+            {selected.tags?.length ? (
+              <span className="serverTagList">
+                {selected.tags.map((tag) => (
+                  <span className="serverTagChip" key={tag}>
+                    {tag}
+                  </span>
+                ))}
+              </span>
+            ) : (
+              "-"
+            )}
           </section>
 
           <section
@@ -314,9 +311,6 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
             <h3 id="server-description-title">Descrição</h3>
             <MarkdownPreview value={selected.description || ""} />
           </section>
-
-
-
         </div>
       </div>
     );

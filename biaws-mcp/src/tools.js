@@ -45,6 +45,13 @@ const DEMAND_TASK_STATUS_SCHEMA = {
     "Status configurado em Configurações/Listas de Opções; a API valida o valor vigente.",
 };
 
+const DEMAND_TASK_UPDATE_STATUS_SCHEMA = {
+  type: "string",
+  enum: ["Pendente", "Andamento", "Aguardando Decisão", "Concluído"],
+  description:
+    "Status válido da tarefa. Use exatamente um dos valores declarados no enum.",
+};
+
 const DEMAND_TASK_FIELDS = {
   code: { type: "string", description: "Código opcional da tarefa" },
   title: { type: "string" },
@@ -710,7 +717,8 @@ const tools = [
   },
   {
     name: "demands_update_task_status",
-    description: "Altera somente o status de uma tarefa da melhoria.",
+    description:
+      "Altera somente o status de uma tarefa da melhoria. Requer um status válido declarado no schema.",
     inputSchema: {
       type: "object",
       required: ["requestId", "taskId", "status"],
@@ -718,7 +726,7 @@ const tools = [
       properties: {
         requestId: { type: "string", description: "ID ou código da melhoria" },
         taskId: { type: "string" },
-        status: DEMAND_TASK_STATUS_SCHEMA,
+        status: DEMAND_TASK_UPDATE_STATUS_SCHEMA,
       },
     },
     handler: updateDemandTaskStatus,

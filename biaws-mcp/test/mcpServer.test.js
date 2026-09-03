@@ -50,6 +50,42 @@ test("tool failures are successful JSON-RPC responses with MCP isError", async (
   assert.doesNotMatch(messages[0].result.content[0].text, /mcpServer\.test/u);
 });
 
+test("a tool validation failure does not close the transport", async () => {
+  const { messages, server } = createServer(async (name) => {
+    if (name === "demands_update_task_status") {
+      const error = new Error(
+        "status must be one of Pendente, Andamento, Aguardando Decisão, Concluído",
+      );
+      error.code = "VALIDATION_ERROR";
+      error.statusCode = 400;
+      throw error;
+    }
+    return { ok: true };
+  });
+
+  await server.accept({
+    jsonrpc: "2.0",
+    id: 1,
+    method: "tools/call",
+    params: {
+      name: "demands_update_task_status",
+      arguments: { status: "Em andamento" },
+    },
+  });
+  await server.accept({
+    jsonrpc: "2.0",
+    id: 2,
+    method: "tools/call",
+    params: { name: "demands_list_tasks", arguments: {} },
+  });
+
+  assert.equal(messages[0].id, 1);
+  assert.equal(messages[0].result.isError, true);
+  assert.equal(messages[1].id, 2);
+  assert.equal(messages[1].result.isError, undefined);
+  assert.deepEqual(messages[1].result.structuredContent, { ok: true });
+});
+
 test("a stalled tool does not block another call and can be cancelled", async () => {
   const { messages, server } = createServer(async (name) => {
     if (name === "fast") return { ok: true };

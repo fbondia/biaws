@@ -98,6 +98,9 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
 
 ### Fixed
 
+- MCP `0.8.0` passa a declarar os status aceitos por
+  `demands_update_task_status` e mantém o transporte ativo quando a validação
+  de uma chamada falha;
 - seed criava listas, taxonomia e coleções de documentos fora do workspace;
 - logotipo da UI não era incluído no bundle de produção;
 - criação concorrente de uma issue podia ultrapassar a verificação de

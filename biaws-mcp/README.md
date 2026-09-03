@@ -65,13 +65,13 @@ O pacote público expõe o executável `biaws-mcp`. Clientes configurados pelo C
 usam uma versão fixada por meio do cache local do npm:
 
 ```bash
-npx --yes biaws-mcp@0.7.0
+npx --yes biaws-mcp@0.8.0
 ```
 
 Também é possível instalá-lo explicitamente:
 
 ```bash
-npm install --global biaws-mcp@0.7.0
+npm install --global biaws-mcp@0.8.0
 biaws-mcp
 ```
 
@@ -90,7 +90,7 @@ npm start
 Em um cliente MCP, configure o comando:
 
 ```bash
-npx --yes biaws-mcp@0.7.0
+npx --yes biaws-mcp@0.8.0
 ```
 
 O fluxo recomendado é gerar a configuração completa com:

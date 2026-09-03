@@ -40,7 +40,7 @@ test("stdio entrypoint keeps protocol on stdout and diagnostics on stderr", asyn
   assert.equal(exitCode, 0);
   const protocolLines = stdout.trim().split(/\r?\n/u).map(JSON.parse);
   assert.equal(protocolLines.length, 1);
-  assert.equal(protocolLines[0].result.serverInfo.version, "0.7.0");
+  assert.equal(protocolLines[0].result.serverInfo.version, "0.8.0");
 
   const diagnosticLines = stderr.trim().split(/\r?\n/u).map(JSON.parse);
   assert.deepEqual(

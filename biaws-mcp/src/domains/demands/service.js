@@ -396,7 +396,7 @@ export async function updateDemandTask(args = {}) {
 export async function updateDemandTaskStatus(args = {}) {
   if (!args.requestId) throw new Error("requestId is required");
   if (!args.taskId) throw new Error("taskId is required");
-  validateTaskStatus(args.status);
+  await validateTaskStatus(args.status);
 
   const { request, task } = await readDemandTask(args.requestId, args.taskId);
   return sendJson(

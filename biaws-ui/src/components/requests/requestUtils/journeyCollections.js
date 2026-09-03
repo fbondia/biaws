@@ -41,6 +41,33 @@ function addTotals(target, source, months) {
   }
 }
 
+export function journeyCollectionRowKey(row) {
+  if (row.kind !== "collection") return "";
+  if (row.id === "") return "collection:total";
+  return `collection:${row.id}`;
+}
+
+export function visibleJourneyRows(rows = [], collapsedCollectionIds = []) {
+  const collapsedIds = new Set(collapsedCollectionIds);
+  const visibleRows = [];
+  let hiddenBelowDepth = null;
+
+  for (const row of rows) {
+    if (hiddenBelowDepth !== null && row.depth > hiddenBelowDepth) continue;
+    hiddenBelowDepth = null;
+    visibleRows.push(row);
+
+    if (
+      row.kind === "collection" &&
+      collapsedIds.has(journeyCollectionRowKey(row))
+    ) {
+      hiddenBelowDepth = row.depth;
+    }
+  }
+
+  return visibleRows;
+}
+
 export function buildJourneyCollectionRows(
   collections = [],
   requests = [],

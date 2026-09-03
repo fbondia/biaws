@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildJourneyCollectionRows } from "../src/components/requests/requestUtils/journeyCollections.js";
+import {
+  buildJourneyCollectionRows,
+  journeyCollectionRowKey,
+  visibleJourneyRows,
+} from "../src/components/requests/requestUtils/journeyCollections.js";
 
 test("journey rows aggregate nested collections and the general total", () => {
   const collections = [
@@ -78,4 +82,43 @@ test("journey rows place improvements from unknown collections at root", () => {
   assert.equal(rows[1].depth, 1);
   assert.equal(rows[2].request.id, "orphan");
   assert.equal(rows[2].depth, 2);
+});
+
+test("collapsed journey collections hide only their descendants", () => {
+  const rows = buildJourneyCollectionRows(
+    [
+      { id: "platform", name: "Plataforma", parentId: "" },
+      { id: "api", name: "API", parentId: "platform" },
+      { id: "support", name: "Suporte", parentId: "" },
+    ],
+    [
+      {
+        id: "api-item",
+        collectionId: "api",
+        journeys: [{ month: "2026-09", plannedJourneys: 1 }],
+      },
+      {
+        id: "support-item",
+        collectionId: "support",
+        journeys: [{ month: "2026-09", plannedJourneys: 1 }],
+      },
+    ],
+    ["2026-09"],
+  );
+
+  const visibleRows = visibleJourneyRows(rows, ["collection:platform"]);
+
+  assert.deepEqual(
+    visibleRows.map((row) =>
+      row.kind === "collection"
+        ? journeyCollectionRowKey(row)
+        : `request:${row.request.id}`,
+    ),
+    [
+      "collection:total",
+      "collection:platform",
+      "collection:support",
+      "request:support-item",
+    ],
+  );
 });

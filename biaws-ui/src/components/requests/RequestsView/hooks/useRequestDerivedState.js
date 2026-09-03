@@ -47,7 +47,7 @@ export function useRequestDerivedState({
   }, [collectionId, collections, requestCollectionItems]);
   const scheduleJourneyMonths = useMemo(() => {
     const months = new Set();
-    for (const request of filteredRequests) {
+    for (const request of scheduleRequests) {
       for (const item of request.journeys) {
         if (
           (Number(item.plannedJourneys) || 0) > 0 ||
@@ -58,7 +58,7 @@ export function useRequestDerivedState({
       }
     }
     return [...months].sort((first, second) => first.localeCompare(second));
-  }, [filteredRequests]);
+  }, [scheduleRequests]);
   const scheduleJourneyRequests = useMemo(() => {
     if (!scheduleJourneyMonths.length) return [];
     return scheduleRequests.filter((request) =>

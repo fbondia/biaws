@@ -1052,6 +1052,10 @@ export async function listRequestCollectionItems(query = {}) {
       updatedAt: 1,
     })
     .toArray();
+  const journeyPeriodsByRequestId = await readJourneyPeriods(
+    db,
+    items.map((item) => item._id),
+  );
 
   return {
     meta: { total: items.length },
@@ -1066,6 +1070,7 @@ export async function listRequestCollectionItems(query = {}) {
       estimatedDeliveryDate: document.estimatedDeliveryDate || "",
       startDate: document.startDate || "",
       endDate: document.endDate || "",
+      journeys: journeyPeriodsByRequestId.get(document._id.toString()) || [],
       listRank: requestListRank(document),
       createdAt: document.createdAt || null,
       updatedAt: document.updatedAt || null,

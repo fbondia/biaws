@@ -1,12 +1,43 @@
-import { formatMonth } from "./requestUtils.js";
+import { FolderTree } from "lucide-react";
 
-export function JourneyCalendar({ months, requests, onSelectRequest }) {
+import { buildJourneyCollectionRows, formatMonth } from "./requestUtils.js";
+
+function JourneyValues({ totals }) {
+  return totals.planned || totals.executed ? (
+    <>
+      {totals.planned ? (
+        <span className="requestBillingMatrixChip requestBillingMatrixChipPlanned">
+          {totals.planned} previstas
+        </span>
+      ) : null}
+      {totals.executed ? (
+        <span className="requestBillingMatrixChip requestBillingMatrixChipBilled">
+          {totals.executed} executadas
+        </span>
+      ) : null}
+    </>
+  ) : (
+    <span className="requestBillingMatrixEmpty">-</span>
+  );
+}
+
+export function JourneyCalendar({
+  collections,
+  months,
+  requests,
+  onSelectRequest,
+}) {
+  const rows = buildJourneyCollectionRows(collections, requests, months);
+  const generalTotals = rows[0]?.totals || { planned: 0, executed: 0 };
+
   return (
     <div className="requestScheduleBlock">
       <div className="sectionTitleRow">
         <h3>Calendário de jornadas</h3>
         <span>
-          {requests.length} melhorias · {months.length} meses
+          {requests.length} melhorias · {months.length} meses ·{" "}
+          {generalTotals.planned} previstas · {generalTotals.executed}{" "}
+          executadas
         </span>
       </div>
 
@@ -14,60 +45,63 @@ export function JourneyCalendar({ months, requests, onSelectRequest }) {
         <div className="requestBillingMatrixWrap">
           <div
             className="requestBillingMatrix"
-            style={{ "--billing-month-count": months.length }}
+            style={{ "--billing-month-count": months.length + 1 }}
           >
             <div className="requestBillingMatrixHeader requestBillingMatrixDemandHeader">
-              Melhoria
+              Melhoria ou coleção
             </div>
             {months.map((month) => (
               <div className="requestBillingMatrixHeader" key={month}>
                 {formatMonth(month)}
               </div>
             ))}
+            <div className="requestBillingMatrixHeader">Total</div>
 
-            {requests.flatMap((request) => {
-              const journeysByMonth = new Map(
-                request.journeys.map((item) => [item.month, item]),
-              );
+            {rows.flatMap((row) => {
+              const rowKey =
+                row.kind === "collection"
+                  ? `collection:${row.id || "root"}`
+                  : `request:${row.request.id}`;
+              const label =
+                row.kind === "collection" ? (
+                  <div
+                    className="requestBillingMatrixCollection"
+                    key={`${rowKey}:label`}
+                    style={{ "--billing-row-depth": row.depth }}
+                  >
+                    <FolderTree aria-hidden="true" size={14} />
+                    <strong>{row.name}</strong>
+                    <span>{row.itemCount}</span>
+                  </div>
+                ) : (
+                  <button
+                    className="requestBillingMatrixDemand"
+                    key={`${rowKey}:label`}
+                    onClick={() => onSelectRequest(row.request.id)}
+                    style={{ "--billing-row-depth": row.depth }}
+                    type="button"
+                  >
+                    <strong>{row.request.title || "Sem título"}</strong>
+                  </button>
+                );
+              const cellClass =
+                row.kind === "collection"
+                  ? "requestBillingMatrixCell requestBillingMatrixCollectionCell"
+                  : "requestBillingMatrixCell";
 
               return [
-                <button
-                  className="requestBillingMatrixDemand"
-                  key={`${request.id}:demand`}
-                  onClick={() => onSelectRequest(request.id)}
-                  type="button"
+                label,
+                ...months.map((month) => (
+                  <div className={cellClass} key={`${rowKey}:${month}`}>
+                    <JourneyValues totals={row.totals.months[month]} />
+                  </div>
+                )),
+                <div
+                  className={`${cellClass} requestBillingMatrixTotalCell`}
+                  key={`${rowKey}:total`}
                 >
-                  <strong>{request.title || "Sem título"}</strong>
-                </button>,
-                ...months.map((month) => {
-                  const item = journeysByMonth.get(month);
-                  const planned = Number(item?.plannedJourneys) || 0;
-                  const executed = Number(item?.executedJourneys) || 0;
-
-                  return (
-                    <div
-                      className="requestBillingMatrixCell"
-                      key={`${request.id}:${month}`}
-                    >
-                      {planned || executed ? (
-                        <>
-                          {planned ? (
-                            <span className="requestBillingMatrixChip requestBillingMatrixChipPlanned">
-                              {planned} previstas
-                            </span>
-                          ) : null}
-                          {executed ? (
-                            <span className="requestBillingMatrixChip requestBillingMatrixChipBilled">
-                              {executed} executadas
-                            </span>
-                          ) : null}
-                        </>
-                      ) : (
-                        <span className="requestBillingMatrixEmpty">-</span>
-                      )}
-                    </div>
-                  );
-                }),
+                  <JourneyValues totals={row.totals} />
+                </div>,
               ];
             })}
           </div>

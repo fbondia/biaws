@@ -60,6 +60,7 @@ const styleFiles = cssFiles(stylesDirectory);
 const declaredVariables = new Set();
 const runtimeVariables = new Set([
   "billing-month-count",
+  "billing-row-depth",
   "depth",
   "file-tag-background",
   "file-tag-border",

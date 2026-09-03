@@ -487,6 +487,7 @@
 
 .requestBillingMatrixHeader,
 .requestBillingMatrixDemand,
+.requestBillingMatrixCollection,
 .requestBillingMatrixCell {
   border-bottom: 1px solid var(--color-border-subtle);
   border-right: 1px solid var(--color-border-subtle);
@@ -505,7 +506,8 @@
 }
 
 .requestBillingMatrixDemandHeader,
-.requestBillingMatrixDemand {
+.requestBillingMatrixDemand,
+.requestBillingMatrixCollection {
   position: sticky;
   left: 0;
 }
@@ -522,7 +524,39 @@
   border-left: 0;
   background: var(--color-surface);
   color: var(--color-text-secondary);
+  padding-left: calc(8px + var(--billing-row-depth, 0) * 16px);
   text-align: left;
+}
+
+.requestBillingMatrixCollection {
+  z-index: 1;
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  gap: 7px;
+  background: var(--color-surface-muted);
+  padding-left: calc(8px + var(--billing-row-depth, 0) * 16px);
+  color: var(--color-text-secondary);
+}
+
+.requestBillingMatrixCollection > svg {
+  flex: 0 0 auto;
+  color: var(--color-text-subtle);
+}
+
+.requestBillingMatrixCollection strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.requestBillingMatrixCollection span {
+  margin-left: auto;
+  color: var(--color-text-subtle);
+  font-size: 10px;
+  font-weight: 800;
 }
 
 .requestBillingMatrixDemand:hover {
@@ -550,6 +584,16 @@
   background: var(--color-surface-subtle);
   color: var(--color-text-secondary);
   font-size: 12px;
+}
+
+.requestBillingMatrixCollectionCell {
+  min-height: 54px;
+  background: var(--color-surface-muted);
+}
+
+.requestBillingMatrixTotalCell {
+  border-right: 0;
+  background: var(--palette-neutral-02);
 }
 
 .requestBillingMatrixChip {

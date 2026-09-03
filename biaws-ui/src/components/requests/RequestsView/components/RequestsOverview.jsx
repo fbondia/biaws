@@ -66,6 +66,7 @@ export function RequestsOverview({
 
         {!loading && activeTab === "journeys" ? (
           <JourneyCalendar
+            collections={collections}
             months={journeyMonths}
             onSelectRequest={onSelectRequest}
             requests={journeyRequests}

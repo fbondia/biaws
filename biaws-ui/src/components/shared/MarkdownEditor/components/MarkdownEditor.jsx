@@ -12,8 +12,11 @@ export function MarkdownEditor({
   onChange,
   allowFullscreen = true,
   fullscreen = false,
+  initialMode = "preview",
 }) {
-  const [mode, setMode] = useState("preview");
+  const [mode, setMode] = useState(() =>
+    initialMode === "text" ? "text" : "preview",
+  );
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const textareaRef = useRef(null);
@@ -170,6 +173,7 @@ export function MarkdownEditor({
                   <MarkdownEditor
                     allowFullscreen={false}
                     fullscreen
+                    initialMode={mode}
                     onChange={onChange}
                     value={value}
                   />

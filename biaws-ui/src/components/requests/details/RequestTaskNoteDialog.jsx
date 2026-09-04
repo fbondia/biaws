@@ -62,6 +62,7 @@ export function RequestTaskNoteDialog({
           <label className="field requestTaskNoteContentField">
             <span>Nota</span>
             <MarkdownEditor
+              initialMode="text"
               onChange={(content) => onChange({ ...draft, content })}
               value={draft.content}
             />

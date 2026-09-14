@@ -1,781 +1,351 @@
 # Início rápido
 
-Este guia mostra como iniciar uma instância local do **Bondia Workspaces** ou
-conectar Codex e Claude Code a um servidor compartilhado.
+Este guia cobre as duas formas suportadas de começar com o **Bondia
+Workspaces**:
 
-Uma única cópia do repositório pode manter várias instâncias isoladas. Cada
-instância possui banco, anexos, portas, usuários e credenciais próprios.
+- conectar um projeto a uma instância que já existe;
+- hospedar uma instância local ou compartilhada e depois conectar projetos.
 
-## Escolha como instalar
+O comando `biaws` é a interface pública. Os scripts em `scripts/` implementam
+partes do ciclo de vida e permanecem disponíveis para compatibilidade e
+diagnóstico avançado, mas não são a rota principal deste guia.
 
-Há três rotas explícitas: `setup-server.sh` cria uma instância; `setup-client.sh`
-conecta um agente a uma API existente; `setup-local.sh` orienta o fluxo co-localizado.
+## 1. Instalar o CLI
 
-| Seu ambiente                                    | Siga esta rota                                                    |
-| ----------------------------------------------- | ----------------------------------------------------------------- |
-| macOS                                           | [macOS](#macos)                                                   |
-| Ubuntu, Debian ou outra distribuição Linux      | [Linux](#linux)                                                   |
-| Windows 10/11                                   | [Windows com WSL2](#windows-com-wsl2)                             |
-| Codex, Claude Code ou outro agente com terminal | [Instalação por um único prompt](#instalação-por-um-único-prompt) |
-
-O BIAWS requer Git, Docker com o plugin Compose, Node.js `20.19.0` ou superior,
-`curl`, `openssl` e Bash. Node.js 22 LTS é recomendado.
-
-O comando `biaws` pode ser instalado separadamente para ajuda e operações de
-API remota:
+O CLI requer Node.js `20.19.0` ou superior. Node.js 22 LTS é recomendado.
 
 ```bash
 npm install --global biaws
+biaws --version
 biaws --help
 ```
 
-O runtime Docker, a configuração MCP e as operações de instância continuam
-usando os assets do checkout. Para combinar o binário npm com eles, exporte
-`BIAWS_ROOT=/caminho/absoluto/para/biaws`; durante desenvolvimento, use
-`npm --prefix biaws-cli link` para criar o mesmo comando a partir do checkout.
+Ele possui três níveis canônicos:
 
-### macOS
-
-1. Instale o [Docker Desktop para Mac](https://docs.docker.com/desktop/setup/install/mac-install/).
-2. Instale Git, Node.js, `curl` e OpenSSL. Com
-   [Homebrew](https://brew.sh/):
-
-   ```bash
-   brew install git node curl openssl
-   ```
-
-3. Abra o Docker Desktop e aguarde o engine ficar disponível.
-
-O setup é compatível com Macs Apple Silicon e Intel; as imagens Docker escolhem
-a arquitetura adequada. Não é necessário substituir o Bash fornecido pelo
-macOS.
-
-### Linux
-
-1. Instale o [Docker Engine](https://docs.docker.com/engine/install/) para sua
-   distribuição, incluindo o plugin Docker Compose. Se preferir interface
-   gráfica, use o [Docker Desktop para Linux](https://docs.docker.com/desktop/setup/install/linux/).
-2. Instale Git, `curl`, OpenSSL e os certificados do sistema. Em Ubuntu/Debian:
-
-   ```bash
-   sudo apt-get update
-   sudo apt-get install -y git curl openssl ca-certificates
-   ```
-
-3. Instale Node.js 22 LTS pelo
-   [canal oficial do Node.js](https://nodejs.org/en/download). O pacote `nodejs`
-   padrão de distribuições antigas pode não atingir a versão mínima `20.19.0`.
-4. Inicie o Docker e siga o
-   [pós-instalação oficial](https://docs.docker.com/engine/install/linux-postinstall/)
-   se quiser executá-lo sem `sudo`.
-
-### Windows com WSL2
-
-O suporte no Windows é feito por WSL2. Windows nativo, PowerShell, Prompt de
-Comando, Git Bash, MSYS2 e Cygwin não executam o instalador.
-
-1. Em um PowerShell aberto como administrador, instale o WSL2 com Ubuntu:
-
-   ```powershell
-   wsl --install -d Ubuntu
-   ```
-
-   Reinicie o Windows se solicitado e conclua a criação do usuário Linux. Veja
-   a [documentação oficial do WSL](https://learn.microsoft.com/windows/wsl/install).
-
-2. Instale o [Docker Desktop para Windows](https://docs.docker.com/desktop/setup/install/windows-install/),
-   habilite o engine baseado em WSL2 e ative a integração com a distribuição
-   Ubuntu em **Settings > Resources > WSL Integration**.
-3. No terminal Ubuntu do WSL — não no PowerShell — instale as ferramentas:
-
-   ```bash
-   sudo apt-get update
-   sudo apt-get install -y git curl openssl ca-certificates
-   ```
-
-4. Ainda no Ubuntu, instale Node.js 22 LTS pelo
-   [canal oficial do Node.js](https://nodejs.org/en/download).
-5. Clone o BIAWS e mantenha seus projetos dentro do filesystem Linux, por
-   exemplo em `~/Source`. Evite `/mnt/c`, que introduz diferenças de permissões,
-   caminhos e desempenho.
-
-Todos os comandos Bash das próximas seções devem ser executados dentro do
-terminal WSL. A UI continuará acessível no navegador do Windows por
-`http://localhost:<porta>`.
-
-### Instalação por um único prompt
-
-Se o agente atual pode usar um terminal, você não precisa copiar nenhum dos
-comandos deste guia. Envie a ele o
-[prompt pronto para instalação assistida](docs/agent-assisted-installation.md).
-
-O agente deve detectar macOS, Linux ou Windows/WSL2, verificar o ambiente,
-solicitar aprovação antes de instalar pacotes ou alterar configurações do
-sistema, clonar o repositório, executar o setup e validar o MCP. O usuário só
-precisa aprovar essas ações e, quando o sistema operacional exigir, concluir
-uma janela do Docker Desktop, reinicialização ou autenticação administrativa.
-
-## Escolher a topologia
-
-### Servidor compartilhado
-
-No servidor, crie somente a instância. Não configure Codex ou Claude Code nele:
-
-```bash
-./scripts/setup-server.sh --instance default --public-url https://ci.exemplo.com
+```text
+biaws admin ...      # instalação, instâncias e executores
+biaws config ...     # perfis, URLs e credenciais do CLI
+biaws workspace ...  # associação da pasta e recursos do workspace
 ```
 
-Em cada máquina de desenvolvedor, mantenha uma cópia local do repositório e um
-arquivo de ambiente privado com `BIAWS_API_URL=https://ci.exemplo.com/api` e
-`BIAWS_API_KEY=<chave individual>`. Em seguida execute:
+Não existem aliases para a taxonomia anterior. Use sempre o prefixo completo,
+como `biaws workspace monitoring signal` ou `biaws admin instance status`.
 
-```bash
-chmod 600 ~/.config/biaws/default.env
-./scripts/setup-client.sh \
-  --client codex \
-  --project /caminho/do/projeto \
-  --env-file ~/.config/biaws/default.env
+## 2. Escolher a rota
+
+### Conectar a um servidor existente
+
+Você precisa de:
+
+- URL HTTPS da API;
+- chave individual com acesso ao workspace;
+- ID ou nome do workspace;
+- Codex ou Claude Code instalado e autenticado.
+
+Não é necessário Docker nem um checkout local do BIAWS.
+
+### Hospedar uma instância
+
+Além do CLI, você precisa de:
+
+- macOS ou Linux; no Windows, use WSL2;
+- Git e Bash;
+- Docker com o plugin Compose;
+- `curl`, `openssl` e `tar`;
+- os assets completos de uma release ou checkout do BIAWS.
+
+Windows nativo, PowerShell, Prompt de Comando, Git Bash, MSYS2 e Cygwin não são
+ambientes suportados para hospedar a plataforma. No WSL2, mantenha instalação e
+dados no filesystem Linux, não em `/mnt/c`.
+
+## 3. Conectar um projeto a uma instância existente
+
+Crie um arquivo privado fora do projeto:
+
+```dotenv
+BIAWS_API_URL=https://biaws.exemplo.com
+BIAWS_API_KEY=biaws_chave_individual
 ```
 
-Os detalhes de proxy, credenciais e isolamento estão em
-[docs/shared-server.md](docs/shared-server.md).
-
-### Instância local
-
-Para desenvolvimento individual ou avaliação, siga as etapas abaixo e use
-`setup-local.sh`. Ele cria os containers e configura o agente na mesma máquina.
-
-## 1. Baixar o Bondia Workspaces
-
-Clone o branch principal para obter o runtime Docker, scripts e catálogo:
+Proteja o arquivo e configure também um perfil global para os comandos diretos
+do CLI:
 
 ```bash
-git clone https://github.com/fbondia/biaws.git
-cd biaws
+chmod 600 ~/.config/biaws/equipe.env
+biaws config init --api-url https://biaws.exemplo.com
+biaws config doctor
 ```
 
-Valide os pré-requisitos e o acesso ao Docker:
+`config init` solicita a chave de forma mascarada. Para automação, forneça
+`BIAWS_API_KEY` pelo ambiente do processo.
+
+Associe a pasta ao workspace. O arquivo `.biaws/config.json` recebe apenas o
+perfil e o ID do workspace, nunca a chave:
 
 ```bash
-./scripts/check-prerequisites.sh --include-git
+cd /caminho/do/projeto
+biaws workspace init id-do-workspace
+biaws workspace current
 ```
 
-Quando houver releases publicadas, prefira uma versão identificada:
+Configure o agente. O arquivo privado é necessário porque o processo MCP é
+executado separadamente do CLI e não lê `credentials.json`:
 
 ```bash
-git clone https://github.com/fbondia/biaws.git
-cd biaws
-git switch --detach vX.Y.Z
-```
+biaws workspace agent configure codex \
+  --env-file ~/.config/biaws/equipe.env \
+  --workspace id-do-workspace
 
-## 2. Preparar o projeto consumidor
-
-O projeto consumidor é o repositório no qual o Codex ou o Claude Code usará o
-Bondia Workspaces.
-
-Se ainda não existir:
-
-```bash
-mkdir -p "$HOME/Source/meu-projeto"
-```
-
-## 3. Criar a instância e configurar o agente
-
-Para Codex:
-
-```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --client codex \
-  --project "$HOME/Source/meu-projeto"
-```
-
-Para Claude Code:
-
-```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --client claude \
-  --project "$HOME/Source/meu-projeto"
-```
-
-O setup:
-
-1. cria `instances/meu-projeto/.env`;
-2. cria scripts de start, stop, backup e restore em `instances/meu-projeto`;
-3. seleciona portas disponíveis;
-4. gera os segredos locais;
-5. constrói e inicia MongoDB, API e UI;
-6. cria o administrador inicial;
-7. cria uma identidade técnica para o agente;
-8. publica o catálogo inicial de skills;
-9. instala as skills no projeto consumidor;
-10. configura o servidor MCP;
-11. executa o diagnóstico e o handshake MCP.
-
-O `.env` da instância guarda a URL e a chave técnica. O workspace fica na
-configuração MCP do projeto consumidor, permitindo conectar projetos diferentes
-a workspaces diferentes da mesma instância. Se a chave acessar mais de um,
-selecione-o explicitamente:
-
-```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --client codex \
-  --project "$HOME/Source/meu-projeto" \
+biaws workspace agent doctor codex \
+  --env-file ~/.config/biaws/equipe.env \
   --workspace id-do-workspace
 ```
 
-Sem `--workspace`, a seleção é automática somente quando a identidade acessa um
-único workspace. O ID não concede acesso; primeiro inclua a identidade técnica
-como membro ativo do workspace e atribua seus grupos.
+Para Claude Code, substitua `codex` por `claude`. Em terminal interativo, o CLI
+pode solicitar o workspace quando ele não for informado.
 
-Para Codex, o trecho gerado em `.codex/config.toml` contém:
+O Codex recebe `.codex/config.toml` e skills em `.agents/skills/`. O Claude Code
+recebe `.mcp.json` e skills em `.claude/skills/`. O servidor MCP é fixado como
+`npx --yes biaws-mcp@<versão>` e nenhuma chave é gravada nesses arquivos.
 
-```toml
-[mcp_servers.biaws]
-command = "npx"
-args = ["--yes", "biaws-mcp@0.8.0"]
-env = { BIAWS_ENV_FILE = "/caminho/para/biaws/instances/meu-projeto/.env", BIAWS_WORKSPACE_ID = "id-do-workspace" }
-```
+## 4. Hospedar uma instância local
 
-Para Claude Code, `.mcp.json` recebe as mesmas duas variáveis em
-`mcpServers.biaws.env`.
-
-Depois do setup, a instância pode ser iniciada ou parada de qualquer diretório:
+Obtenha os assets e valide o ambiente:
 
 ```bash
-instances/meu-projeto/start.sh
-instances/meu-projeto/stop.sh
-instances/meu-projeto/backup-mongo.sh
-instances/meu-projeto/restore-mongo.sh backups/biaws-<data>.archive.gz
+git clone https://github.com/fbondia/biaws.git
+cd biaws
+biaws admin doctor
 ```
 
-O `stop.sh` preserva os containers e todos os dados persistentes. Para
-reconstruir as imagens ao iniciar, use
-`instances/meu-projeto/start.sh --build`.
+Quando uma release completa estiver publicada, os mesmos assets podem ser
+obtidos com `biaws admin install --version <versão> --directory <destino>`. O
+instalador verifica o checksum e recusa diretórios não vazios.
 
-O `backup-mongo.sh` grava por padrão em `instances/meu-projeto/backups` e
-aceita outro diretório como argumento. Ele também gera um checksum SHA-256. O
-`restore-mongo.sh` verifica esse checksum, quando disponível, e exige que o
-nome da instância seja digitado antes de executar `mongorestore --drop`. Use
-`--yes` somente em automações que já tenham confirmação externa.
-
-Para uma cópia completa e portável da instância, use os scripts globais:
+Crie a instância pelo assistente:
 
 ```bash
-./scripts/backup-instance.sh --instance meu-projeto
-./scripts/restore-instance.sh \
-  --instance meu-projeto \
-  --archive instances/meu-projeto/backups/meu-projeto-<data>.tar.gz.enc
+biaws admin instance setup --root "$PWD" --interactive
 ```
 
-O pacote completo é criptografado com senha e inclui MongoDB, arquivos, cofre,
-chave mestra, `.env` e credenciais auxiliares. A restauração exige uma instância
-de destino previamente criada e preserva seus caminhos, portas e URLs.
+O CLI mostra um plano antes de alterar arquivos ou chamar Docker. O setup:
 
-Para escolher portas específicas:
+1. cria `instances/<nome>/.env`;
+2. seleciona e valida as portas externas;
+3. configura volumes Docker ou diretórios persistentes;
+4. gera os segredos locais;
+5. constrói e inicia MongoDB, API e UI;
+6. cria o administrador inicial e as identidades técnicas;
+7. publica o catálogo inicial de skills.
+
+As portas `27017`, `3100` e `4400` são defaults, não endereços garantidos.
+Consulte o resultado efetivo:
 
 ```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --mongo-port 27018 \
-  --api-port 3101 \
-  --ui-port 4401 \
-  --client codex \
-  --project "$HOME/Source/meu-projeto"
+biaws admin instance list --root "$PWD"
+biaws admin instance show minha-instancia --root "$PWD"
+biaws admin instance status minha-instancia --root "$PWD"
 ```
 
-Para iniciar sem registros de demonstração:
+A senha inicial fica em
+`instances/<nome>/.bootstrap-admin-password`, com o diretório ignorado pelo Git.
+Troque-a pela UI no primeiro acesso. Não exiba nem copie a chave técnica mantida
+no `.env`.
+
+Para conectar um projeto da mesma máquina, use o fluxo da seção anterior com:
 
 ```bash
-BIAWS_SKIP_DEMO_SEED=1 \
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --client codex \
-  --project "$HOME/Source/meu-projeto"
+biaws workspace agent configure codex \
+  --project /caminho/do/projeto \
+  --env-file "$PWD/instances/minha-instancia/.env" \
+  --workspace id-do-workspace
 ```
 
-### Escolher onde os dados serão armazenados
+## 5. Hospedar um servidor compartilhado
 
-Sem opções adicionais, cada instância usa cinco volumes nomeados gerenciados
-pelo Docker: MongoDB, anexos de issues, arquivos de requests, documentos e o
-cofre criptografado de segredos. A chave mestra do cofre fica
-fora desses volumes, no diretório da instância. O nome efetivo recebe o prefixo
-do projeto Compose da instância.
-
-Para armazenar tudo em diretórios visíveis no host, informe uma raiz absoluta
-ao criar a instância:
+No servidor, crie a instância com a origem HTTPS final:
 
 ```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --storage-dir "$HOME/.local/share/biaws/meu-projeto" \
-  --client codex \
-  --project "$HOME/Source/meu-projeto"
+biaws admin instance setup \
+  --root /opt/biaws \
+  --name equipe \
+  --public-url https://biaws.exemplo.com \
+  --interactive
 ```
 
-O setup cria:
+Publique UI e API por um proxy HTTPS, encaminhando `/api` para a API. Não exponha
+o MongoDB nem distribua o `.env` da instância. Depois do primeiro acesso, crie
+uma chave individual para cada pessoa ou automação e aplique o fluxo de cliente
+remoto da seção 3.
 
-```text
-~/.local/share/biaws/meu-projeto/
-├── mongo/
-├── issues/
-├── requests/
-├── documents/
-└── secrets/
-```
+Requisitos de proxy, isolamento e credenciais estão em
+[docs/shared-server.md](docs/shared-server.md).
 
-Para escolher cada caminho separadamente:
+## 6. Operar e atualizar instâncias
+
+Use `--root` ou defina `BIAWS_ROOT` para a instalação administrativa:
 
 ```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --mongo-data-path "$HOME/biaws-data/mongo" \
-  --issue-files-path "$HOME/biaws-data/issues" \
-  --request-files-path "$HOME/biaws-data/requests" \
-  --document-files-path "$HOME/biaws-data/documents" \
-  --secret-files-path "$HOME/biaws-data/secrets" \
-  --client codex \
-  --project "$HOME/Source/meu-projeto"
+biaws admin instance start minha-instancia --root /opt/biaws
+biaws admin instance stop minha-instancia --root /opt/biaws
+biaws admin instance status minha-instancia --root /opt/biaws
+biaws admin instance update minha-instancia --root /opt/biaws --check
 ```
 
-Os caminhos precisam ser absolutos, distintos, não aninhados entre si e
-graváveis pelo Docker. Eles ficam registrados no `.env` da instância. Para
-voltar aos volumes nomeados:
+O update efetivo valida o Compose, cria backup completo por padrão e reconstrói
+os serviços. Ele não executa `git pull` nem troca a release da instalação.
+
+Backup, restore e remoção:
 
 ```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --use-docker-volumes \
-  --client codex \
-  --project "$HOME/Source/meu-projeto"
+biaws admin instance backup minha-instancia --root /opt/biaws
+biaws admin instance restore destino \
+  --root /opt/biaws \
+  --archive /caminho/minha-instancia-<data>.tar.gz.enc
+biaws admin instance remove destino --root /opt/biaws
 ```
 
-> Alterar os caminhos de uma instância existente não move os dados. Faça backup,
-> configure o novo destino e restaure o MongoDB e os arquivos antes de voltar a
-> aceitar escritas.
+Backup e restore solicitam a senha de forma mascarada. Em automação, use
+`--password-file` com um arquivo protegido por permissão `0600`. Restore e
+remoção exigem confirmação explícita.
 
-## 4. Fazer o primeiro acesso
+Detalhes sobre persistência, migração, rollback e diagnóstico estão em
+[docs/operations.md](docs/operations.md).
 
-Ao final do setup, o terminal mostra:
+## 7. Operar recursos do workspace
 
-- endereço da UI;
-- endereço da API;
-- e-mail do administrador;
-- senha inicial.
-
-Por padrão, a primeira instância usa:
-
-- MongoDB: `mongodb://127.0.0.1:27017/biaws`;
-- UI: <http://localhost:4400>;
-- API: <http://localhost:3100>;
-- health check: <http://localhost:3100/api/health>.
-
-Cada instância possui seu próprio container MongoDB e armazenamento. Se alguma
-das portas do MongoDB, da API ou da UI estiver ocupada ou reservada por outra
-instância, o setup seleciona outra e informa os endereços efetivos. A porta
-interna do MongoDB permanece sempre em `27017`; `MONGO_PORT` controla somente a
-porta publicada no host.
-
-A senha inicial também fica em:
-
-```text
-instances/meu-projeto/.bootstrap-admin-password
-```
-
-Entre na UI e altere a senha do administrador.
-
-A primeira tela é a home operacional. Ela já vem com indicadores de chamados,
-tarefas pendentes e saúde das aplicações permitidos para o usuário. Use
-**Personalizar** para abrir o catálogo, adicionar ou repetir widgets, alterar o
-tamanho e configurar opções próprias de cada instância, como a aplicação do
-widget de monitoramento. O layout é salvo por usuário e por workspace.
-
-> A chave técnica do agente fica somente em
-> `instances/meu-projeto/.env`. Ela não é exibida no resumo da instalação.
-
-## 5. Abrir o agente
-
-Codex:
+Depois de configurar o perfil e associar a pasta:
 
 ```bash
-cd "$HOME/Source/meu-projeto"
-codex
+biaws workspace applications list
+biaws workspace demands list
+biaws workspace issues list --status open
+biaws workspace skills status
 ```
 
-Claude Code:
+Para uma rota ainda não coberta por comando de domínio:
 
 ```bash
-cd "$HOME/Source/meu-projeto"
-claude
+biaws workspace api GET /catalog/workspaces
 ```
 
-O cliente pode solicitar aprovação para usar o servidor MCP configurado pelo
-projeto. Antes de aprovar, confirme o comando e a versão fixada:
+Leituras aceitam `--json` quando o resultado será consumido por automação.
+Escritas de domínio resolvem o recurso antes da alteração e solicitam
+confirmação quando aplicável.
 
-```text
-npx --yes biaws-mcp@0.8.0
-```
+## 8. Enviar um sinal de monitoramento
 
-## 6. Confirmar o funcionamento
-
-Experimente:
-
-```text
-Use o Bondia Workspaces para listar os workspaces e aplicações disponíveis.
-```
-
-Com dados de demonstração:
-
-```text
-Consulte a issue de demonstração e resuma o contexto registrado.
-```
-
-```text
-Liste as demandas abertas e identifique suas tarefas pendentes.
-```
-
-O agente deve usar as ferramentas MCP `biaws` e retornar dados da instância
-selecionada.
-
-## 7. Enviar um sinal de monitoramento
-
-Cadastre uma aplicação, componente, deployment e runtime pela UI. Na aba
-Monitoramento do runtime, copie seu UUID ou caminho de identificadores. Usando
-a chave técnica criada pelo setup:
+Cadastre uma aplicação, componente, deployment e runtime pela UI. Depois use o
+UUID do runtime ou seu caminho de identificadores:
 
 ```bash
-BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
-biaws \
-  monitoring signal <aplicação.componente.deployment.runtime> \
-  --workspace id-do-workspace \
+biaws workspace monitoring signal \
+  <aplicação.componente.deployment.runtime> \
   --status healthy \
   --source quickstart \
   --signal-id quickstart:1 \
   --message "Primeiro sinal externo"
 ```
 
-Abra o runtime na aba Topologia. O estado aparece na lista e o histórico fica
-na seção Monitoramento. Repetir o comando com o mesmo `--signal-id` não cria
-outro evento. Veja [docs/monitoring.md](docs/monitoring.md).
-
-## 8. Executar monitoramentos ativos por workspace
-
-O executor ativo é um processo separado da API e atende exatamente um
-workspace. A agenda, os leases, os templates e o histórico permanecem na API;
-o diretório local guarda somente políticas de execução e credenciais montadas
-como arquivos. A mesma imagem é compartilhada por todos os executores da
-instância.
-
-Inicie a instância antes de configurar seus executores:
+Repetir o comando com o mesmo `--signal-id` não cria outro evento. Consulte o
+histórico com:
 
 ```bash
-instances/meu-projeto/start.sh
+biaws workspace monitoring signals \
+  <aplicação.componente.deployment.runtime> --limit 20
 ```
 
-### Criar a configuração do workspace
+O contrato completo está em [docs/monitoring.md](docs/monitoring.md).
 
-Escolha um identificador local legível, como `equipe-a`, e crie a estrutura:
+## 9. Executar monitoramentos ativos
+
+O executor ativo é administrado no nível da instalação:
 
 ```bash
-mkdir -p \
-  instances/meu-projeto/monitoring/workspaces/equipe-a/secrets \
-  instances/meu-projeto/monitoring/workspaces/equipe-a/scripts
-chmod 700 instances/meu-projeto/monitoring/workspaces/equipe-a/secrets
+biaws admin monitoring provision id-do-workspace \
+  --instance minha-instancia --root /opt/biaws
+biaws admin monitoring validate \
+  --instance minha-instancia --root /opt/biaws
+biaws admin monitoring start \
+  --instance minha-instancia --root /opt/biaws
+biaws admin monitoring status \
+  --instance minha-instancia --root /opt/biaws
+biaws admin monitoring logs \
+  --instance minha-instancia --root /opt/biaws
 ```
 
-Crie `instances/meu-projeto/monitoring/workspaces/equipe-a/.env`:
+Antes de iniciar, revise allowlists de rede, scripts permitidos e referências de
+segredos. Cada executor atende exatamente um workspace e deve possuir identidade
+técnica própria. O runbook completo está em
+[docs/active-monitoring-operations.md](docs/active-monitoring-operations.md).
 
-```dotenv
-BIAWS_MONITOR_EXECUTOR_ENABLED=true
-BIAWS_MONITOR_EXECUTOR_API_URL=http://api:3100
-BIAWS_MONITOR_EXECUTOR_API_KEY_FILE=/run/secrets/executor-api-key
-BIAWS_MONITOR_EXECUTOR_WORKSPACE_ID=id-do-workspace
-BIAWS_MONITOR_EXECUTOR_ID=meu-projeto-equipe-a-1
-BIAWS_MONITOR_EXECUTOR_CONCURRENCY=4
-BIAWS_MONITOR_EXECUTOR_POLL_INTERVAL_MS=15000
-BIAWS_MONITOR_EXECUTOR_LEASE_SECONDS=60
-BIAWS_MONITOR_EXECUTOR_RENEW_INTERVAL_MS=20000
-BIAWS_MONITOR_EXECUTOR_REQUEST_TIMEOUT_MS=10000
-BIAWS_MONITOR_EXECUTOR_EVIDENCE_MAX_BYTES=8000
-
-BIAWS_MONITOR_REST_ALLOWED_HOSTS=health.exemplo.com,*.servicos.exemplo.com
-BIAWS_MONITOR_REST_ALLOWED_METHODS=GET,HEAD
-BIAWS_MONITOR_REST_ALLOW_PRIVATE_ADDRESSES=false
-BIAWS_MONITOR_REST_MAX_REDIRECTS=0
-BIAWS_MONITOR_REFERENCE_FILE_MAP='{"servico-auth":"servico-auth"}'
-BIAWS_MONITOR_SHELL_SCRIPTS='{}'
-```
-
-`BIAWS_MONITOR_REST_ALLOWED_HOSTS` deve conter somente os destinos necessários
-ao workspace. Se um nome permitido resolver para uma rede corporativa privada,
-defina `BIAWS_MONITOR_REST_ALLOW_PRIVATE_ADDRESSES=true` conscientemente; a
-allowlist de hosts continua sendo aplicada.
-
-### Provisionar a identidade técnica
-
-Gere uma identidade exclusiva, com somente `monitoring.active.execute`, e
-grave sua chave fora do `.env`:
+## 10. Diagnóstico
 
 ```bash
-node scripts/provision-monitoring-workspace.mjs \
-  --instance meu-projeto \
-  --workspace equipe-a
+biaws config show
+biaws config doctor
+biaws workspace current
+biaws workspace agent doctor codex --env-file ~/.config/biaws/equipe.env
+biaws admin doctor
+biaws admin instance status minha-instancia --root /opt/biaws
 ```
 
-O comando cria ou reconcilia a identidade no workspace informado e grava
-`secrets/executor-api-key` com permissão `0600`. A chave existente é enviada ao
-bootstrap por entrada padrão para não aparecer nos argumentos do processo.
+Se o diagnóstico do agente falhar:
 
-Para cada entrada de `BIAWS_MONITOR_REFERENCE_FILE_MAP`, crie um arquivo com o
-valor completo que será usado pelo header. Por exemplo, `servico-auth` pode
-conter `Bearer ...` ou `Basic ...`. Não coloque o valor no `.env`, no monitor,
-no Git ou nos logs. Prefira copiar o arquivo diretamente de um cofre:
+1. confirme que o arquivo passado em `--env-file` ainda existe e está protegido;
+2. confira `BIAWS_API_URL` e a validade da chave;
+3. confirme que a identidade pertence ao workspace selecionado;
+4. revise a versão fixada do `biaws-mcp` no arquivo do cliente;
+5. preserve o `stderr` do MCP para investigar falhas de transporte.
 
-```bash
-install -m 600 /caminho/protegido/servico-auth \
-  instances/meu-projeto/monitoring/workspaces/equipe-a/secrets/servico-auth
-```
+## 11. Arquivos locais importantes
 
-### Validar e iniciar
-
-Valide a rede da API, a credencial e o Compose:
-
-```bash
-./scripts/manage-monitoring-workspaces.sh \
-  --instance meu-projeto validate equipe-a
-```
-
-Inicie o executor e aguarde seu healthcheck:
-
-```bash
-./scripts/manage-monitoring-workspaces.sh \
-  --instance meu-projeto start equipe-a
-```
-
-Consulte estado e logs sanitizados:
-
-```bash
-./scripts/manage-monitoring-workspaces.sh \
-  --instance meu-projeto status equipe-a
-
-./scripts/manage-monitoring-workspaces.sh \
-  --instance meu-projeto logs equipe-a
-```
-
-Sem informar identificadores após a ação, o script opera todos os diretórios
-`workspaces/*/.env`. Falha em um workspace é reportada sem interromper os
-demais. Para interromper somente um executor:
-
-```bash
-./scripts/manage-monitoring-workspaces.sh \
-  --instance meu-projeto stop equipe-a
-```
-
-Cadastre inicialmente os monitores como desabilitados na UI. Depois que o
-executor estiver saudável, habilite primeiro um destino de teste e confirme a
-primeira observação no histórico antes de habilitar os demais. Para adicionar
-outro workspace, repita a estrutura com outro diretório, ID e identidade
-técnica; não compartilhe o arquivo `executor-api-key` entre workspaces.
-
-## Diagnóstico
-
-Para Codex:
-
-```bash
-BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
-biaws \
-  agent doctor codex \
-  --project "$HOME/Source/meu-projeto" \
-  --workspace id-do-workspace
-```
-
-Para Claude Code:
-
-```bash
-BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
-biaws \
-  agent doctor claude \
-  --project "$HOME/Source/meu-projeto" \
-  --workspace id-do-workspace
-```
-
-Resultado esperado:
+Configuração global do CLI:
 
 ```text
-OK  node
-OK  api
-OK  authentication
-OK  workspace
-OK  mcp
-OK  configuration
-OK  skills
+~/.config/biaws/
+├── config.json
+└── credentials.json       # permissão 0600
 ```
 
-## Operar uma instância
-
-Defina um atalho para o Compose:
-
-```bash
-BIAWS_ROOT="$PWD"
-
-biaws_compose() {
-  docker compose \
-    --env-file "$BIAWS_ROOT/instances/meu-projeto/.env" \
-    --project-name biaws-meu-projeto \
-    --project-directory "$BIAWS_ROOT" \
-    "$@"
-}
-```
-
-Comandos usuais:
-
-```bash
-biaws_compose ps
-biaws_compose logs -f api
-biaws_compose restart api ui
-biaws_compose down
-biaws_compose up -d
-```
-
-`down` remove os containers, mas preserva os volumes nomeados e não apaga os
-diretórios configurados como bind mounts.
-
-> Não execute `down --volumes` se desejar manter banco e anexos.
-
-Para eliminar uma instância, seus containers, rede, volumes nomeados e arquivos
-mantidos dentro do diretório da instância, use:
-
-```bash
-./scripts/remove-instance.sh --instance meu-projeto
-```
-
-O comando exige a confirmação pelo nome. Dados configurados em bind mounts fora
-da instância são preservados, salvo quando `--delete-external-data` também for
-informado.
-
-## Usar mais de uma instância
-
-Crie outras instâncias usando o mesmo clone:
-
-```bash
-./scripts/setup-local.sh \
-  --instance cliente-a \
-  --client codex \
-  --project "$HOME/Source/cliente-a"
-
-./scripts/setup-local.sh \
-  --instance cliente-b \
-  --client codex \
-  --project "$HOME/Source/cliente-b"
-```
-
-Liste as instâncias:
-
-```bash
-./scripts/setup-server.sh --list-instances
-```
-
-Sem `--instance`, o setup oferece um seletor quando executado em um terminal
-interativo.
-
-## Reconfigurar sem reconstruir
-
-Para garantir as skills ausentes e reaplicar a configuração MCP sem repetir o
-bootstrap:
-
-```bash
-./scripts/configure.sh \
-  --client codex \
-  --project "$HOME/Source/meu-projeto" \
-  --env-file "$PWD/instances/meu-projeto/.env" \
-  --workspace id-do-workspace
-```
-
-Se já existir uma configuração `biaws` não gerenciada que deva passar ao
-controle do CLI, revise-a e acrescente `--force`.
-
-Para atualizar as skills já instaladas:
-
-```bash
-BIAWS_ENV_FILE="$PWD/instances/meu-projeto/.env" \
-biaws \
-  skills update \
-  --workspace id-do-workspace \
-  --target "$HOME/Source/meu-projeto/.agents/skills"
-```
-
-Para Claude Code, use
-`--target "$HOME/Source/meu-projeto/.claude/skills"`.
-
-## Atualizar o Bondia Workspaces
-
-Se estiver acompanhando o branch principal, atualize o único clone:
-
-```bash
-git pull --ff-only
-```
-
-Se instalou uma release, selecione explicitamente a nova versão:
-
-```bash
-git fetch --tags
-git switch --detach vX.Y.Z
-```
-
-Depois, execute novamente o setup para cada instância que desejar reconstruir:
-
-```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --client codex \
-  --project "$HOME/Source/meu-projeto"
-```
-
-Antes de atualizar ambientes com dados importantes, siga o roteiro de backup e
-restauração em [docs/operations.md](docs/operations.md).
-
-## Arquivos locais importantes
+Instalação administrativa:
 
 ```text
 instances/
-└── meu-projeto/
+└── minha-instancia/
     ├── .env
-    └── .bootstrap-admin-password
+    ├── .bootstrap-admin-password
+    ├── backups/
+    └── monitoring/
 ```
 
-Esses arquivos são ignorados pelo Git e não devem ser copiados para locais
-públicos.
-
-No projeto consumidor, o setup cria:
-
-Codex:
+Projeto consumidor com Codex:
 
 ```text
+.biaws/config.json
 .codex/config.toml
 .agents/skills/
 .agents/biaws-skills.lock.json
 ```
 
-Claude Code:
+Projeto consumidor com Claude Code:
 
 ```text
+.biaws/config.json
 .mcp.json
 .claude/skills/
 .claude/biaws-skills.lock.json
 ```
 
-As configurações MCP contêm a versão fixada do pacote, o caminho absoluto do
-arquivo privado de ambiente e o ID do workspace, mas não a chave técnica. Evite
-versioná-las quando o caminho desse arquivo não for padronizado para toda a
-equipe. O segredo permanece somente no `.env` da instância.
+`.biaws/config.json` não contém credenciais e pode ser compartilhado quando o
+perfil e o workspace forem convencionais para a equipe. Os arquivos MCP contêm
+um caminho para o arquivo privado; não os versione quando esse caminho variar
+entre máquinas.
 
 ## Próximos passos
 
-- Consulte a visão geral em [README.md](README.md).
-- Veja backup, restauração e atualização em
-  [docs/operations.md](docs/operations.md).
-- Conheça as ferramentas disponíveis em
-  [biaws-mcp/README.md](biaws-mcp/README.md).
-- Consulte os comandos do CLI em [biaws-cli/README.md](biaws-cli/README.md).
+- Visão geral: [README.md](README.md)
+- Referência do CLI: [biaws-cli/README.md](biaws-cli/README.md)
+- Ferramentas MCP: [biaws-mcp/README.md](biaws-mcp/README.md)
+- Operação e recuperação: [docs/operations.md](docs/operations.md)
+- Monitoramento ativo: [docs/active-monitoring-operations.md](docs/active-monitoring-operations.md)

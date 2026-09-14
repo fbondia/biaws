@@ -21,8 +21,9 @@ Use Node.js 20.19 ou mais recente. O caminho mais rápido para executar o sistem
 completo é:
 
 ```bash
-./scripts/check-prerequisites.sh --include-git
-./scripts/bootstrap.sh
+npm install --global biaws
+biaws admin doctor
+biaws admin instance setup --root "$PWD" --interactive
 ```
 
 Para trabalhar sem containers, siga o README de cada módulo.
@@ -32,7 +33,8 @@ Para trabalhar sem containers, siga o README de cada módulo.
 - `biaws-api`: API, autenticação, persistência e auditoria;
 - `biaws-ui`: aplicação React;
 - `biaws-mcp`: servidor MCP;
-- `biaws-cli`: gerenciamento local de skills;
+- `biaws-cli`: instalação e administração da plataforma, configuração de acesso,
+  associação de projetos e operação de recursos do workspace;
 - `biaws-monitor-executor`: execução contínua de monitoramentos ativos via API;
 - `shared`: contratos compartilhados;
 - `docker` e `scripts`: execução reproduzível.

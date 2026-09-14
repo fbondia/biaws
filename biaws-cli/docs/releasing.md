@@ -84,9 +84,10 @@ ordem, em uma instância isolada:
 
 1. `biaws --help` e `biaws --version` pela instalação empacotada;
 2. `biaws admin instance setup` e `biaws workspace agent configure codex|claude` com `BIAWS_ROOT`;
-3. uma consulta `workspaces list --json` e outra por código, como
-   `demands get <código> --json`;
-4. uma escrita idempotente com `demands task-status ... --yes --json`, seguida
+3. uma consulta `biaws workspace list --json` e outra por código, como
+   `biaws workspace demands get <código> --json`;
+4. uma escrita idempotente com `biaws workspace demands task-status ... --yes
+--json`, seguida
    de nova leitura;
 5. `biaws admin instance backup`, restore em uma instância de destino e validação de
    API/UI;

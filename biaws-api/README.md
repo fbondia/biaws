@@ -3,7 +3,9 @@
 Documentação do catálogo de workspace, aplicações e topologia operacional:
 [docs/catalog-api.md](docs/catalog-api.md).
 
-API REST responsável pelo domínio de issues, incluindo consulta, persistência e importação de EML.
+API REST responsável por autenticação, autorização, tenancy, catálogo e
+topologia, issues, melhorias, conhecimento, skills, segredos, monitoramento,
+auditoria e persistência. Também recebe e sanitiza importações EML.
 
 A fundação de identidade usa Better Auth e as rotas de negócio exigem sessão ou
 chave de API válida, além das permissões específicas de cada operação. A API

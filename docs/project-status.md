@@ -38,13 +38,15 @@ Este é um projeto mantido em regime de melhor esforço, sem SLA.
 | testes de integração HTTP com MongoDB | concluído para contexto, tenancy e topologia                                                 |
 | cobertura das ferramentas MCP         | concluído para contratos de catálogo e conhecimento                                          |
 | fluxos principais da UI               | validação manual concluída; E2E automatizado pendente                                        |
-| instalação limpa validada em CI       | workflow configurado; bootstrap e seed reproduzidos localmente                               |
+| instalação limpa validada em CI       | pacote do CLI validado; runtime, bootstrap e seed exercitados pelo wrapper compatível        |
 | checksums e rollback defensivo no CLI | concluído                                                                                    |
 | onboarding de agentes                 | seletor multi-instância, bootstrap técnico, catálogo inicial, Codex e Claude validados em CI |
 | documentação de backup e restauração  | concluído, com ensaio ainda obrigatório por release                                          |
 
-O projeto permanece alpha até existir uma suíte E2E da UI e pelo menos uma
-release pública operada com o runbook atual.
+O caminho administrativo pelo CLI reutiliza os engines Bash exercitados pelo
+smoke test. Ainda falta exercitar no CI o fluxo completo a partir de um asset de
+GitHub Release. O projeto permanece alpha até existir uma suíte E2E da UI e pelo
+menos uma release pública operada com o runbook atual.
 
 ## Critérios para 1.0
 

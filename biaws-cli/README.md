@@ -15,8 +15,8 @@ Uma execução descartável pode usar `npx biaws help`. Em um checkout de
 desenvolvimento, `npm --prefix biaws-cli link` cria o mesmo comando global.
 
 O pacote requer Node.js 20.19 ou superior. Operações administrativas de
-instância também exigem Git, Docker e Docker Compose. Windows é suportado por
-WSL2, não de forma nativa.
+instância também exigem Git, Bash, `curl`, OpenSSL, `tar`, Docker e Docker
+Compose. Windows é suportado por WSL2, não de forma nativa.
 
 ## Organização
 
@@ -123,7 +123,7 @@ biaws workspace api PATCH /recurso/ID --body '{"status":"Ativo"}'
 biaws workspace agent configure codex
 biaws workspace agent configure claude
 biaws workspace agent configure codex --no-interactive --env-file /caminho/instancia.env --workspace workspace-id
-biaws workspace agent doctor codex
+biaws workspace agent doctor codex --env-file /caminho/instancia.env
 biaws workspace skills list
 biaws workspace skills install SKILL_ID
 biaws workspace skills update
@@ -158,13 +158,14 @@ Diagnostique os pré-requisitos e baixe uma release verificada:
 
 ```bash
 biaws admin doctor
-biaws admin install --version 1.0.0 --dry-run
-biaws admin install --version 1.0.0 --directory /opt/biaws
+biaws admin install --version <versão> --dry-run
+biaws admin install --version <versão> --directory /opt/biaws
 ```
 
 O instalador busca `biaws-<versão>.tar.gz` e seu arquivo `.sha256` na release do
 GitHub. Ele recusa diretórios não vazios e extrai somente depois de verificar o
-checksum.
+checksum. Use somente uma versão que possua esses dois assets publicados; o
+pacote npm isolado não contém o runtime Docker.
 
 Gerencie as instâncias:
 

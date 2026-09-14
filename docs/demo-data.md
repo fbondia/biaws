@@ -40,5 +40,9 @@ os campos de workspace, aplicação e componentes na coleção `requestTasks`.
 Para um ambiente vazio sem demonstração:
 
 ```bash
-BIAWS_SKIP_DEMO_SEED=1 ./scripts/bootstrap.sh
+biaws admin instance setup \
+  --root /caminho/para/biaws \
+  --name vazio \
+  --no-demo-seed \
+  --interactive
 ```

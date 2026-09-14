@@ -97,8 +97,8 @@ O fluxo recomendado é gerar a configuração completa com:
 
 ```bash
 BIAWS_ENV_FILE=/caminho/para/instances/minha-instancia/.env \
-node /caminho/para/biaws/biaws-cli/src/index.js \
-  agent configure codex --project /caminho/do/projeto --workspace id-do-workspace
+biaws workspace agent configure codex \
+  --project /caminho/do/projeto --workspace id-do-workspace
 ```
 
 O processo de publicação e rollback está em

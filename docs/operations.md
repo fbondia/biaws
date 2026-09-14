@@ -7,8 +7,18 @@ monitoramento e uma política própria de recuperação.
 
 ## Selecionar uma instância
 
-Instâncias criadas pelo setup ficam em `instances/<nome>`. Para executar
-as operações comuns, use os scripts gerados para a instância:
+Instâncias criadas pelo setup ficam em `instances/<nome>`. Para as operações
+comuns, prefira a interface pública do CLI:
+
+```bash
+biaws admin instance start meu-projeto --root /caminho/para/biaws
+biaws admin instance stop meu-projeto --root /caminho/para/biaws
+biaws admin instance status meu-projeto --root /caminho/para/biaws
+biaws admin instance backup meu-projeto --root /caminho/para/biaws
+```
+
+Os scripts gerados continuam disponíveis para diagnóstico de baixo nível e uso
+direto do Compose:
 
 ```bash
 instances/meu-projeto/start.sh
@@ -168,8 +178,8 @@ um arquivo protegido e use:
 
 ```bash
 chmod 600 /srv/keys/biaws-backup-password
-./scripts/backup-instance.sh \
-  --instance meu-projeto \
+biaws admin instance backup meu-projeto \
+  --root /caminho/para/biaws \
   --password-file /srv/keys/biaws-backup-password
 ```
 
@@ -182,17 +192,20 @@ No host de destino, use uma versão compatível do código e crie primeiro a
 instância. Essa etapa define os caminhos, portas e URL próprios do novo host:
 
 ```bash
-./scripts/setup-server.sh \
-  --instance meu-projeto \
-  --storage-dir /srv/biaws/meu-projeto \
-  --public-url https://biaws.novo.exemplo.com
+biaws admin instance setup \
+  --root /caminho/para/biaws \
+  --name meu-projeto \
+  --storage directories \
+  --storage-root /srv/biaws/meu-projeto \
+  --public-url https://biaws.novo.exemplo.com \
+  --interactive
 ```
 
 Depois restaure o pacote:
 
 ```bash
-./scripts/restore-instance.sh \
-  --instance meu-projeto \
+biaws admin instance restore meu-projeto \
+  --root /caminho/para/biaws \
   --archive /srv/backups/meu-projeto.tar.gz.enc
 ```
 
@@ -204,8 +217,9 @@ confiáveis e UID/GID permanecem os do novo host. Use
 `--yes --password-file <arquivo>` apenas em automações que já tenham confirmação
 externa.
 
-Depois da migração, execute novamente `setup-client.sh` nos projetos consumidores
-se a URL, o arquivo de ambiente ou o caminho do clone tiver mudado.
+Depois da migração, execute novamente `biaws workspace agent configure
+codex|claude` nos projetos consumidores se a URL ou o caminho do arquivo privado
+tiver mudado.
 
 ## Restauração ensaiada
 
@@ -392,18 +406,20 @@ exportação e requisitos legais antes de uso prolongado.
 
 `agent doctor` informa falha de autenticação
 
-: execute `./scripts/bootstrap.sh` para validar ou recriar a chave técnica e
-depois repita `biaws workspace agent doctor codex|claude --project <diretório>`. Se o
-binário veio do npm, defina `BIAWS_ROOT` para o checkout. A chave possui validade definida pela política de autenticação e
-é mantida somente no `.env` local.
+: valide a instância com `biaws admin instance status <nome> --root <instalação>`
+e crie ou rotacione a chave pela UI quando necessário. Depois repita `biaws
+workspace agent doctor codex|claude --project <diretório>`. A chave possui
+validade definida pela política de autenticação e é mantida somente no arquivo
+privado local.
 
 `WORKSPACE_REQUIRED`
 
 : envie `X-Biaws-Workspace-Id` quando a identidade tiver acesso a mais de um
-workspace. No MCP, execute novamente `./scripts/configure.sh --client
+workspace. No MCP, execute novamente `biaws workspace agent configure
 codex|claude --project <diretório> --env-file <arquivo-local> --workspace
 id-do-workspace` para gravar a seleção na configuração local do projeto. Em
-execuções diretas do CLI, use `--workspace` ou `BIAWS_WORKSPACE_ID`.
+execuções diretas do CLI, use `biaws workspace init`, `--workspace` ou
+`BIAWS_WORKSPACE_ID`.
 
 `WORKSPACE_FORBIDDEN` ou recurso não encontrado
 
@@ -412,11 +428,11 @@ Recursos fora do escopo retornam `404` para evitar enumeração.
 
 `agent doctor` informa falha em `configuration`
 
-: reaplique `./scripts/configure.sh --client codex|claude --project <diretório>
+: reaplique `biaws workspace agent configure codex|claude --project <diretório>
 --env-file <arquivo-local> --workspace id-do-workspace`. Use `--force` somente
 para substituir uma configuração `biaws` anterior que não era gerenciada pelo
 CLI. O arquivo da instância não deve conter `BIAWS_WORKSPACE_ID` no `.env` da
-instância; `setup-server.sh` remove essa variável de escopo.
+instância; o setup administrativo remove essa variável de escopo.
 
 Login funciona, mas a UI perde a sessão
 

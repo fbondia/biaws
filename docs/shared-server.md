@@ -3,11 +3,16 @@
 Use esta rota quando API, UI e MongoDB vivem em um servidor comum, mas Codex ou
 Claude Code rodam nas máquinas dos desenvolvedores.
 
-No servidor, execute somente `scripts/setup-server.sh`. Ele cria a instância,
-seus dados, segredos e identidade técnica; não escreve configuração de agente.
+No servidor, use o CLI com os assets completos da plataforma. O comando cria a
+instância, seus dados, segredos e identidades técnicas; não escreve configuração
+de agente.
 
 ```bash
-./scripts/setup-server.sh --instance default --public-url https://ci.exemplo.com
+biaws admin instance setup \
+  --root /opt/biaws \
+  --name default \
+  --public-url https://ci.exemplo.com \
+  --interactive
 ```
 
 Publique a UI e a API por um proxy HTTPS. A API deve ser encaminhada sob
@@ -34,7 +39,7 @@ Cada desenvolvedor mantém um arquivo privado, com permissão `600`, por exemplo
 `~/.config/biaws/default.env`:
 
 ```dotenv
-BIAWS_API_URL=https://ci.exemplo.com/api
+BIAWS_API_URL=https://ci.exemplo.com
 BIAWS_API_KEY=chave-individual-do-desenvolvedor
 ```
 
@@ -51,7 +56,8 @@ biaws workspace agent configure codex \
 ```
 
 O CLI grava `npx --yes biaws-mcp@<versão-fixada>` e instala as skills do
-catálogo. Em um checkout do BIAWS, o wrapper equivalente continua disponível:
+catálogo. Os wrappers do checkout continuam disponíveis somente para
+compatibilidade e diagnóstico:
 
 ```bash
 ./scripts/setup-client.sh \
@@ -65,12 +71,17 @@ catálogo. Em um checkout do BIAWS, o wrapper equivalente continua disponível:
 último também executa o diagnóstico de autenticação. Nunca copie chaves ou o
 arquivo de ambiente do servidor para clientes.
 
-Para trocar apenas o workspace, reaplique `configure.sh` com os mesmos
-`--client`, `--project` e `--env-file`. Use `--force` apenas se já houver uma
-configuração `biaws` não gerenciada que deva ser assumida pelo CLI.
+Para trocar apenas o workspace, reaplique `biaws workspace agent configure` com
+o mesmo cliente, projeto e arquivo privado. Use `--force` apenas se já houver
+uma configuração `biaws` não gerenciada que deva ser assumida pelo CLI.
 
-Faça backup antes de atualizar e execute novamente `setup-server.sh` com a
-mesma instância e URL pública. O script preserva a URL pública existente quando
-`--public-url` é omitido, mas recomenda-se informá-la explicitamente em
-automação. Operação, restore e troubleshooting estão em
-[operations.md](operations.md).
+Faça backup e consulte primeiro a necessidade da atualização:
+
+```bash
+biaws admin instance update default --root /opt/biaws --check
+biaws admin instance update default --root /opt/biaws
+```
+
+O update preserva a configuração da instância, cria backup completo por padrão
+e não troca sozinho a release disponível em `/opt/biaws`. Operação, restore e
+troubleshooting estão em [operations.md](operations.md).

@@ -20,15 +20,13 @@ gravada no ambiente do container nem deve ser copiada para a configuração de u
 monitor.
 
 ```bash
-./scripts/setup-server.sh \
-  --instance producao \
-  --public-url https://biaws.exemplo.com
-
-docker compose \
-  --env-file instances/producao/.env \
-  --project-name biaws-producao \
-  --profile active-monitoring \
-  up -d --build --wait monitor-executor
+biaws admin instance setup \
+  --root /opt/biaws \
+  --name producao \
+  --public-url https://biaws.exemplo.com \
+  --interactive
+biaws admin monitoring build --instance producao --root /opt/biaws
+biaws admin monitoring start --instance producao --root /opt/biaws
 ```
 
 O profile é opt-in. API, UI e receptor passivo continuam funcionando quando ele
@@ -86,7 +84,16 @@ explicitamente no processo e não deve aparecer em arquivos versionados.
 
 ## Readiness, métricas e logs
 
-Valide os três serviços e o executor:
+Para o diagnóstico usual, prefira o CLI:
+
+```bash
+biaws admin instance status producao --root /opt/biaws
+biaws admin monitoring validate --instance producao --root /opt/biaws
+biaws admin monitoring status --instance producao --root /opt/biaws
+biaws admin monitoring logs --instance producao --root /opt/biaws
+```
+
+Para inspecionar diretamente readiness e métricas dentro do container:
 
 ```bash
 docker compose --env-file instances/producao/.env \

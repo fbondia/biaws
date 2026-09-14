@@ -282,8 +282,8 @@ export default class InstanceSetup extends LocalInstanceCommand {
   static description =
     "cria ou reconcilia uma instância local por plano idempotente";
   static examples = [
-    "<%= config.bin %> instance setup --interactive",
-    "BIAWS_BOOTSTRAP_ADMIN_PASSWORD=... <%= config.bin %> instance setup --name local --defaults --yes --non-interactive",
+    "<%= config.bin %> admin instance setup --interactive",
+    "BIAWS_BOOTSTRAP_ADMIN_PASSWORD=... <%= config.bin %> admin instance setup --name local --defaults --yes --non-interactive",
   ];
   static flags = setupFlags;
 

@@ -50,6 +50,10 @@ export class AdminDoctorCommand extends BaseCommand {
     const checks = [
       { name: "Node.js", command: "node", args: ["--version"] },
       { name: "Git", command: "git", args: ["--version"] },
+      { name: "Bash", command: "bash", args: ["--version"] },
+      { name: "curl", command: "curl", args: ["--version"] },
+      { name: "OpenSSL", command: "openssl", args: ["version"] },
+      { name: "tar", command: "tar", args: ["--version"] },
       { name: "Docker", command: "docker", args: ["--version"] },
       {
         name: "Docker Compose",

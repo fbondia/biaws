@@ -1,7 +1,7 @@
 # Bondia Workspaces UI
 
-UI React para administrar o catálogo técnico e consultar a base de conhecimento
-exposta pelo `biaws-api`.
+UI React para pessoas operarem trabalho, topologia, monitoramento, conhecimento
+e controles de acesso expostos pelo `biaws-api`.
 
 ## Execução
 
@@ -47,6 +47,11 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
 - Gerenciamento da taxonomia de issues com upload de JSON, rascunho local e gravação do pacote inteiro via `PUT /api/issues/taxonomy`
 - Classificação de issue no diálogo de detalhes, com taxonomia principal, taxonomias secundárias e tags por grupo gravadas em `issues.classification`
 - Cores por grupo de tags, filtros por tag e exibição de tags na grid de issues
+- Home pessoal com widgets configuráveis e filtrados pelas permissões do ator
+- Histórico de publicações por deployment
+- Runtimes, templates e histórico agregado de monitoramento
+- Catálogo de skills e documentos tipados em Markdown
+- Cofre de segredos, usuários, grupos, listas de opções e auditoria funcional
 
 Enquanto houver somente o workspace padrão, a UI o resolve automaticamente e
 não apresenta um seletor de tenant. Autorização e validação das relações

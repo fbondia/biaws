@@ -136,7 +136,8 @@ mas apresente a proposta e as evidências antes de registrar qualquer mudança.
 - trilha de auditoria funcional;
 - servidor MCP com ferramentas de catálogo, topologia, issues, melhorias,
   procedimentos, conhecimento, coleções e metadados de segredos;
-- CLI para publicar, instalar e atualizar skills;
+- CLI público para instalar e administrar a plataforma, manter perfis de acesso,
+  associar projetos a workspaces, operar recursos de domínio e configurar agentes e skills;
 - UI React responsiva e acessível;
 - MongoDB e armazenamento local de anexos, com contrato preparado para outros
   providers.
@@ -160,19 +161,28 @@ Detalhes de responsabilidades e fluxos estão em
 
 ## Instalação
 
-O runtime usa containers e a integração do agente roda na máquina que contém o
-projeto consumidor. As duas responsabilidades podem ficar na mesma máquina ou
-em máquinas distintas:
+O comando `biaws` é a interface pública para instalação, administração e uso da
+plataforma. O runtime da API, UI, MongoDB e executor continua usando Docker
+Compose; o CLI administra esses assets e também configura o projeto no qual o
+agente será executado.
 
-| Topologia      | Comando                   | Responsabilidade                                       |
-| -------------- | ------------------------- | ------------------------------------------------------ |
-| Local          | `scripts/setup-local.sh`  | Cria a instância e configura um cliente local          |
-| Servidor       | `scripts/setup-server.sh` | Cria ou atualiza somente API, UI, MongoDB e dados      |
-| Cliente remoto | `scripts/setup-client.sh` | Configura MCP e skills para consumir uma API existente |
+```bash
+npm install --global biaws
+biaws --help
+```
 
-As ferramentas de baixo nível permanecem separadas: `bootstrap.sh` inicializa
-os serviços e dados, enquanto `configure.sh` grava a configuração MCP, instala
-as skills e executa o diagnóstico do cliente.
+Os comandos se organizam em três níveis:
+
+```text
+biaws admin ...      # instala e administra instâncias e executores
+biaws config ...     # mantém perfis, URLs e credenciais globais do CLI
+biaws workspace ...  # associa a pasta e opera recursos do workspace
+```
+
+Quem apenas consumirá um servidor existente precisa somente de Node.js, do CLI
+e de uma chave individual. Quem hospedará uma instância também precisa dos
+assets completos de uma release ou checkout, além de Git, Docker Compose, Bash,
+OpenSSL e `curl`.
 
 Estas são as plataformas oficialmente documentadas:
 
@@ -194,27 +204,24 @@ ou outro agente com terminal, copie o
 poderá instalar o BIAWS sem pedir que você digite comandos, solicitando apenas
 as aprovações necessárias.
 
-O CLI pode ser instalado pelo npm para consultas, operações remotas e
-configuração dos agentes:
-
-```bash
-npm install --global biaws
-biaws --help
-```
-
-O CLI configura o MCP como `npx --yes biaws-mcp@<versão>`, portanto o cliente
-baixa e executa uma versão fixada sem depender de um checkout. Comandos de
-instância e publicação do catálogo inicial continuam precisando do checkout
-completo; nesses casos, defina `BIAWS_ROOT=/caminho/para/biaws`. O checkout
-também pode expor o mesmo comando com `npm --prefix biaws-cli link`.
+O CLI configura o MCP como `npx --yes biaws-mcp@<versão>`, portanto o projeto
+consumidor não precisa clonar a plataforma. Operações administrativas precisam
+da raiz que contém `compose.yaml`, `docker/`, `scripts/` e os módulos da
+plataforma. Informe-a por `--root` ou `BIAWS_ROOT`. Em um checkout de
+desenvolvimento, `npm --prefix biaws-cli link` expõe o mesmo comando.
 
 ### Pré-requisitos
 
-Pré-requisitos:
+Para o CLI e um cliente remoto:
 
-- Docker com o plugin Compose;
 - Node.js `20.19.0` ou superior;
-- `curl` e `openssl`;
+- acesso HTTPS à API da instância.
+
+Para hospedar ou desenvolver a plataforma, acrescente:
+
+- Git e Bash;
+- Docker com o plugin Compose;
+- `curl`, `openssl` e `tar`.
 
 Valide o ambiente antes do primeiro setup:
 
@@ -222,69 +229,64 @@ Valide o ambiente antes do primeiro setup:
 ./scripts/check-prerequisites.sh --include-git
 ```
 
-### Instalação local
+### Instância local
 
-Use esta rota para desenvolvimento individual ou avaliação. Ela cria os
-serviços e configura o agente no mesmo computador:
+Para avaliação ou desenvolvimento individual, obtenha os assets da plataforma,
+instale o CLI e crie a instância pelo assistente:
 
 ```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --client codex \
-  --project /caminho/do/projeto
+git clone https://github.com/fbondia/biaws.git
+cd biaws
+npm install --global biaws
+biaws admin doctor
+biaws admin instance setup --root "$PWD" --interactive
 ```
 
-O fluxo:
+O setup mostra um plano antes de alterar arquivos ou iniciar containers. Ele
+cria a configuração da instância, seleciona as portas, gera os segredos,
+constrói e inicia os serviços, cria o administrador e as identidades técnicas e
+publica o catálogo inicial de skills.
 
-1. cria `instances/meu-projeto/.env`, se necessário;
-2. cria os comandos de start, stop, backup e restore em
-   `instances/meu-projeto`;
-3. seleciona portas livres para o MongoDB, a API e a UI;
-4. gera um `BETTER_AUTH_SECRET` local;
-5. constrói e inicia MongoDB, API e UI;
-6. cria o primeiro administrador;
-7. cria uma identidade técnica de menor privilégio para MCP e CLI;
-8. publica o catálogo inicial de skills;
-9. instala as skills e configura o MCP no projeto consumidor;
-10. executa o diagnóstico completo.
+As portas `4400`, `3100` e `27017` são apenas os defaults da primeira instância.
+Consulte os endereços efetivos com:
 
-Ao final, ele mostra a credencial inicial e os endereços:
-
-- UI: <http://localhost:4400>
-- API: <http://localhost:3100>
-- MongoDB: `mongodb://127.0.0.1:27017/biaws`
-- health check: <http://localhost:3100/api/health>
+```bash
+biaws admin instance show meu-projeto --root "$PWD"
+biaws admin instance status meu-projeto --root "$PWD"
+```
 
 A senha inicial fica em
 `instances/meu-projeto/.bootstrap-admin-password`, ignorado pelo Git. Troque-a
-pela UI no primeiro acesso.
+pela UI no primeiro acesso. A chave técnica fica somente no `.env` privado da
+instância e não é exibida no resumo.
 
-A chave técnica fica somente no `.env` da instância, também ignorado pelo Git.
-Ela não é exibida no resumo do bootstrap.
-
-O workspace é uma escolha do projeto consumidor, não da instância. Quando a
-identidade técnica tiver acesso a mais de um, informe-o ao setup local:
+No projeto consumidor, configure o cliente usando esse arquivo privado:
 
 ```bash
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --client codex \
-  --project /caminho/do/projeto \
+cd /caminho/do/projeto
+biaws workspace agent configure codex \
+  --env-file /caminho/para/biaws/instances/meu-projeto/.env \
+  --workspace id-do-workspace
+biaws workspace agent doctor codex \
+  --env-file /caminho/para/biaws/instances/meu-projeto/.env \
   --workspace id-do-workspace
 ```
 
-Sem `--workspace`, a configuração seleciona automaticamente quando a chave
-acessa um único workspace. A opção não concede acesso: a identidade técnica
-precisa ser membro ativo do workspace selecionado.
+Sem `--workspace`, o assistente permite escolher entre os workspaces acessíveis.
+A seleção não concede acesso: a identidade precisa ser membro ativo do
+workspace.
 
 ### Servidor compartilhado
 
-No host dos serviços, informe a origem HTTPS pela qual a UI será publicada:
+No host dos serviços, obtenha os assets completos e informe a origem HTTPS pela
+qual a UI será publicada:
 
 ```bash
-./scripts/setup-server.sh \
-  --instance equipe \
-  --public-url https://biaws.exemplo.com
+biaws admin instance setup \
+  --root /opt/biaws \
+  --name equipe \
+  --public-url https://biaws.exemplo.com \
+  --interactive
 ```
 
 Publique UI e API por um proxy HTTPS, encaminhando `/api` para a API. Não exponha
@@ -292,17 +294,19 @@ o MongoDB. Em cada máquina cliente, crie um arquivo privado com uma chave
 individual:
 
 ```dotenv
-BIAWS_API_URL=https://biaws.exemplo.com/api
+BIAWS_API_URL=https://biaws.exemplo.com
 BIAWS_API_KEY=biaws_chave_individual
 ```
 
-Então configure o projeto consumidor:
+Na máquina cliente, somente o CLI é necessário. Configure um perfil para
+operações diretas e associe o projeto ao workspace:
 
 ```bash
 chmod 600 ~/.config/biaws/equipe.env
-./scripts/setup-client.sh \
-  --client codex \
-  --project /caminho/do/projeto \
+biaws config init --api-url https://biaws.exemplo.com
+cd /caminho/do/projeto
+biaws workspace init id-do-workspace
+biaws workspace agent configure codex \
   --env-file ~/.config/biaws/equipe.env \
   --workspace id-do-workspace
 ```
@@ -312,20 +316,20 @@ Veja os requisitos de proxy, credenciais e isolamento em
 
 ### Operação e opções
 
-Inicie e pare a instância com:
+Inicie, pare, atualize e proteja a instância com o CLI:
 
 ```bash
-instances/meu-projeto/start.sh
-instances/meu-projeto/stop.sh
-instances/meu-projeto/backup-mongo.sh
-instances/meu-projeto/restore-mongo.sh backups/biaws-<data>.archive.gz
+biaws admin instance start meu-projeto --root /caminho/para/biaws
+biaws admin instance stop meu-projeto --root /caminho/para/biaws
+biaws admin instance update meu-projeto --root /caminho/para/biaws --check
+biaws admin instance backup meu-projeto --root /caminho/para/biaws
 ```
 
 Para remover uma instância, incluindo containers, rede, volumes Docker e seu
 diretório local:
 
 ```bash
-./scripts/remove-instance.sh --instance meu-projeto
+biaws admin instance remove meu-projeto --root /caminho/para/biaws
 ```
 
 Bind mounts configurados fora do diretório da instância são preservados por
@@ -336,15 +340,15 @@ Para migrar uma instância completa, incluindo MongoDB, anexos, documentos,
 cofre, chave mestra e configuração sensível, gere um pacote criptografado:
 
 ```bash
-./scripts/backup-instance.sh --instance meu-projeto
+biaws admin instance backup meu-projeto --root /caminho/para/biaws
 ```
 
 No host de destino, crie primeiro uma instância com os caminhos, portas e URL
 corretos e restaure o pacote:
 
 ```bash
-./scripts/restore-instance.sh \
-  --instance meu-projeto \
+biaws admin instance restore meu-projeto \
+  --root /caminho/para/biaws \
   --archive /caminho/meu-projeto-<data>.tar.gz.enc
 ```
 
@@ -355,31 +359,30 @@ O backup lógico do MongoDB recebe timestamp e checksum SHA-256. O restore
 confere o checksum, quando presente, e solicita confirmação explícita antes de
 substituir o banco da instância.
 
-Para informar sua própria credencial:
+Para automação não interativa, informe os campos exigidos e mantenha a senha
+fora de `argv`:
 
 ```bash
 BIAWS_BOOTSTRAP_ADMIN_EMAIL=voce@example.com \
 BIAWS_BOOTSTRAP_ADMIN_NAME="Seu Nome" \
 BIAWS_BOOTSTRAP_ADMIN_PASSWORD="uma-senha-segura-com-12-ou-mais-caracteres" \
-./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --client codex \
-  --project /caminho/do/projeto
+biaws admin instance setup \
+  --root /caminho/para/biaws \
+  --name meu-projeto \
+  --defaults --non-interactive --yes
 ```
 
 Para iniciar sem dados de demonstração:
 
 ```bash
-BIAWS_SKIP_DEMO_SEED=1 ./scripts/setup-local.sh \
-  --instance meu-projeto \
-  --client codex \
-  --project /caminho/do/projeto
+biaws admin instance setup --root /caminho/para/biaws \
+  --name meu-projeto --no-demo-seed --interactive
 ```
 
 Liste as instâncias:
 
 ```bash
-./scripts/setup-server.sh --list-instances
+biaws admin instance list --root /caminho/para/biaws
 ```
 
 O seed nunca apaga registros e não substitui uma taxonomia já existente. Veja
@@ -388,32 +391,27 @@ O seed nunca apaga registros e não substitui uma taxonomia já existente. Veja
 Atualizações, backup, restauração e diagnóstico estão no
 [runbook operacional](docs/operations.md).
 
-## Várias instâncias, um único clone
+## Várias instâncias, uma instalação
 
-Cada instância mantém somente configuração e credenciais em `instances/<nome>`.
-Código, imagens Docker, MCP e CLI são compartilhados pelo mesmo clone. O nome do
-projeto Compose, os volumes, as portas, o banco e a chave técnica permanecem
-isolados.
+Cada instância mantém configuração, credenciais, scripts auxiliares, backups e
+configurações de executor em `instances/<nome>`. Código, imagens Docker e CLI
+são compartilhados pela instalação. O nome do projeto Compose, os volumes, as
+portas, o banco e as chaves técnicas permanecem isolados.
 
 ```bash
-./scripts/setup-server.sh --instance cliente-a --public-url https://a.exemplo.com
-./scripts/setup-server.sh --instance cliente-b --public-url https://b.exemplo.com
-
-./scripts/setup-client.sh \
-  --client codex \
-  --project /projetos/cliente-a \
-  --env-file ~/.config/biaws/cliente-a.env
+biaws admin instance setup --root /opt/biaws --name cliente-a --interactive
+biaws admin instance setup --root /opt/biaws --name cliente-b --interactive
+biaws admin instance list --root /opt/biaws
 ```
 
-Portas são alocadas automaticamente para instâncias novas. Use `--mongo-port`,
-`--api-port` e `--ui-port` para fixá-las. Sem `--instance`, o script oferece um
-seletor em terminais interativos.
+O assistente oferece as portas padrão e valida colisões com as demais
+instâncias. Ao criar mais de uma, informe valores distintos com `--mongo-port`,
+`--api-port` e `--ui-port`. Sem `--name`, o assistente solicita o nome.
 
 Para repetir somente a configuração do cliente:
 
 ```bash
-./scripts/configure.sh \
-  --client codex \
+biaws workspace agent configure codex \
   --project /caminho/do/projeto \
   --env-file ~/.config/biaws/cliente-a.env
 ```
@@ -429,10 +427,14 @@ Use `--no-interactive` em uma execução manual que já forneça todos os parâm
 
 O MCP recebe `BIAWS_ENV_FILE` e `BIAWS_WORKSPACE_ID` na configuração local do
 projeto. O primeiro aponta para as credenciais e a URL da instância; o segundo
-fixa a fronteira de workspace daquele projeto. Assim, projetos diferentes podem
-usar workspaces diferentes da mesma instância e chave técnica. Configurações
-globais do cliente não são alteradas. Codex usa `.codex/config.toml`; Claude
-Code usa `.mcp.json`.
+fixa a fronteira de workspace daquele projeto. Para operações diretas do CLI,
+`biaws config init` mantém URL e credencial em arquivos globais separados, e
+`biaws workspace init` grava somente perfil e workspace em `.biaws/config.json`.
+Codex usa `.codex/config.toml`; Claude Code usa `.mcp.json`.
+
+Os scripts em `scripts/` e os atalhos gerados em `instances/<nome>` permanecem
+disponíveis para compatibilidade e diagnóstico de baixo nível. O
+[runbook operacional](docs/operations.md) documenta quando usá-los.
 
 O cliente pode solicitar aprovação para usar um servidor MCP definido pelo
 projeto. Confirme o pacote e a versão fixada antes de aprovar.
@@ -481,10 +483,10 @@ export BIAWS_API_KEY=biaws_sua_chave
 export BIAWS_WORKSPACE_ID=id-do-workspace
 ```
 
-Na configuração MCP, mantenha `BIAWS_ENV_FILE` apontando para o `.env` da
-instância e grave `BIAWS_WORKSPACE_ID` no bloco `env` do servidor `biaws`. O
-`setup-local.sh` e `setup-client.sh` fazem isso automaticamente por meio de
-`configure.sh`.
+Na configuração MCP, mantenha `BIAWS_ENV_FILE` apontando para o `.env` privado
+da instância ou do cliente e grave `BIAWS_WORKSPACE_ID` no bloco `env` do
+servidor `biaws`. `biaws workspace agent configure codex|claude` faz isso e
+instala as skills disponíveis no workspace.
 
 Servidor MCP pelo pacote publicado:
 

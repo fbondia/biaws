@@ -10,7 +10,7 @@ Node.js e um pacote compartilhado.
 | `biaws-api`              | HTTP, autenticação, autorização, domínio, auditoria e persistência |
 | `biaws-ui`               | experiência web React                                              |
 | `biaws-mcp`              | ferramentas MCP de domínio sobre a API                             |
-| `biaws-cli`              | publicação e instalação local de skills                            |
+| `biaws-cli`              | instalação, instâncias, perfis, workspaces, agentes e operação     |
 | `biaws-monitor-executor` | execução coordenada de monitoramentos ativos via API               |
 | `shared`                 | permissões, constantes e carregamento de ambiente                  |
 

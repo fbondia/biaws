@@ -26,21 +26,23 @@ para a instalação.
 2. Verifique Git, Bash, Node.js 20.19 ou superior (prefira Node.js 22 LTS), curl,
    OpenSSL, Docker e o plugin Docker Compose. Instale apenas o que estiver faltando,
    usando os canais oficiais indicados no QUICKSTART do repositório.
-3. Clone https://github.com/fbondia/biaws.git em um diretório apropriado do usuário
-   (por padrão ~/Source/biaws). Se ele já existir, preserve mudanças locais e apenas
-   atualize quando isso for seguro. No WSL2, mantenha o clone e os dados no
-   filesystem Linux, nunca em /mnt/c.
+3. Instale o pacote público `biaws` pelo npm. Clone
+   https://github.com/fbondia/biaws.git em um diretório apropriado do usuário
+   (por padrão ~/Source/biaws) para obter os assets completos do runtime. Se ele
+   já existir, preserve mudanças locais e apenas atualize quando isso for seguro.
+   No WSL2, mantenha o clone e os dados no filesystem Linux, nunca em /mnt/c.
 4. Leia README.md e QUICKSTART.md do clone antes de continuar. Execute
-   ./scripts/check-prerequisites.sh --include-git e corrija os problemas encontrados.
-5. Use o cliente de agente desta conversa (codex ou claude), derive um nome de
-   instância válido a partir do projeto atual e execute ./scripts/setup-local.sh
-   com --instance, --client e o caminho absoluto de --project. Use volumes
-   Docker gerenciados, portas automáticas e dados de demonstração, salvo se o
-   contexto do projeto indicar claramente outra escolha. Não transforme esta
-   instalação local em um servidor compartilhado; essa é uma rota separada.
+   `biaws admin doctor` e corrija os problemas encontrados.
+5. Derive um nome de instância válido a partir do projeto atual e execute
+   `biaws admin instance setup --root <clone> --interactive`. Use volumes Docker
+   gerenciados, portas disponíveis e dados de demonstração, salvo se o contexto
+   indicar claramente outra escolha. Não transforme esta instalação local em um
+   servidor compartilhado; essa é uma rota separada.
 6. Não exiba nem copie a chave técnica do .env. Preserve os arquivos de credenciais
    fora do Git. Não desabilite controles de segurança e não use opções destrutivas.
-7. Confirme o health check da API, a UI, os containers e o diagnóstico/handshake MCP.
+7. Use `biaws workspace agent configure codex|claude` com o `.env` privado da
+   instância e o caminho absoluto do projeto. Confirme o health check da API, a
+   UI, os containers e `biaws workspace agent doctor`.
    Se o cliente solicitar confiança no MCP local, mostre o caminho exato para eu
    aprovar.
 8. Ao terminar, informe a URL da UI, a instância criada, onde ficou o clone, quais

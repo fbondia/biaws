@@ -28,9 +28,6 @@ biaws config ...     # perfis, URLs e credenciais do CLI
 biaws workspace ...  # associação da pasta e recursos do workspace
 ```
 
-Não existem aliases para a taxonomia anterior. Use sempre o prefixo completo,
-como `biaws workspace monitoring signal` ou `biaws admin instance status`.
-
 ## 2. Escolher a rota
 
 ### Conectar a um servidor existente

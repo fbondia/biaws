@@ -491,7 +491,7 @@ instala as skills disponíveis no workspace.
 Servidor MCP pelo pacote publicado:
 
 ```bash
-npx --yes biaws-mcp@0.8.0
+npx --yes biaws-mcp@0.9.0
 ```
 
 CLI:

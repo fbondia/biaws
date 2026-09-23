@@ -98,6 +98,8 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
 
 ### Fixed
 
+- MCP `0.9.0` consulta demandas diretamente por ID ou pelo filtro exato de
+  código, sem depender da listagem paginada para localizar tarefas;
 - MCP `0.8.0` passa a declarar os status aceitos por
   `demands_update_task_status` e mantém o transporte ativo quando a validação
   de uma chamada falha;

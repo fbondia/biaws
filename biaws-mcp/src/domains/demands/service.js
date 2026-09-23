@@ -112,13 +112,16 @@ async function readAllDemands(args = {}) {
 }
 
 async function readDemand(requestId) {
-  const payload = await readAllDemands();
-  const request = payload.items.find(
-    (item) => item.id === requestId || item.clientCode === requestId,
-  );
+  const isObjectId = /^[0-9a-f]{24}$/iu.test(requestId);
+  const payload = isObjectId
+    ? await fetchJson(`/api/requests/${encodeURIComponent(requestId)}`)
+    : await fetchJson("/api/requests", { code: requestId });
+  const request = isObjectId
+    ? payload.request
+    : payload.items?.find((item) => item.clientCode === requestId);
   if (!request) throw new Error(`Demand not found: ${requestId}`);
   return {
-    meta: payload.meta,
+    meta: payload.meta || {},
     request,
   };
 }

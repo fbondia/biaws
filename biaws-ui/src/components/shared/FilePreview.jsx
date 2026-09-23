@@ -2,29 +2,10 @@ import { Download, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { htmlPreviewDocument, previewKind } from "./filePreviewModel.js";
 import { MarkdownPreview } from "./MarkdownEditor/index.jsx";
 
 const TEXT_PREVIEW_LIMIT = 2 * 1024 * 1024;
-const IMAGE_TYPES = new Set([
-  "image/avif",
-  "image/bmp",
-  "image/gif",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]);
-const TEXT_EXTENSIONS = new Set([
-  "csv",
-  "ini",
-  "json",
-  "log",
-  "properties",
-  "sql",
-  "txt",
-  "xml",
-  "yaml",
-  "yml",
-]);
 
 function extension(filename) {
   return (
@@ -33,24 +14,6 @@ function extension(filename) {
       .split(".")
       .pop() || ""
   );
-}
-
-function previewKind(file) {
-  const contentType = String(file.contentType || "")
-    .toLowerCase()
-    .split(";")[0];
-  const fileExtension = extension(file.filename);
-  if (IMAGE_TYPES.has(contentType)) return "image";
-  if (contentType === "application/pdf" || fileExtension === "pdf")
-    return "pdf";
-  if (fileExtension === "md" || fileExtension === "markdown") return "markdown";
-  if (
-    contentType.startsWith("text/") ||
-    ["application/json", "application/xml"].includes(contentType) ||
-    TEXT_EXTENSIONS.has(fileExtension)
-  )
-    return "text";
-  return "";
 }
 
 export function canPreviewFile(file) {
@@ -67,7 +30,12 @@ export function FilePreview({
 }) {
   const [text, setText] = useState("");
   const [textError, setTextError] = useState("");
+  const [htmlView, setHtmlView] = useState("preview");
   const kind = previewKind(file);
+  const htmlDocument = useMemo(
+    () => (kind === "html" ? htmlPreviewDocument(text) : ""),
+    [kind, text],
+  );
   const objectUrl = useMemo(
     () =>
       blob && ["image", "pdf"].includes(kind) ? URL.createObjectURL(blob) : "",
@@ -85,7 +53,7 @@ export function FilePreview({
     let active = true;
     setText("");
     setTextError("");
-    if (!blob || !["text", "markdown"].includes(kind)) return () => {};
+    if (!blob || !["text", "markdown", "html"].includes(kind)) return () => {};
     if (blob.size > TEXT_PREVIEW_LIMIT) {
       setTextError(
         "O arquivo textual excede o limite de 2 MB para visualização.",
@@ -111,6 +79,8 @@ export function FilePreview({
       active = false;
     };
   }, [blob, file.filename, kind]);
+
+  useEffect(() => setHtmlView("preview"), [file.filename]);
 
   useEffect(() => {
     function closeOnEscape(event) {
@@ -173,6 +143,39 @@ export function FilePreview({
           ) : null}
           {!loading && !error && blob && kind === "text" ? (
             <pre>{text}</pre>
+          ) : null}
+          {!loading && !error && blob && kind === "html" ? (
+            <div className="filePreviewHtml">
+              <div aria-label="Modo de visualização do HTML" role="tablist">
+                <button
+                  aria-selected={htmlView === "preview"}
+                  className={htmlView === "preview" ? "active" : ""}
+                  onClick={() => setHtmlView("preview")}
+                  role="tab"
+                  type="button"
+                >
+                  Visualização
+                </button>
+                <button
+                  aria-selected={htmlView === "source"}
+                  className={htmlView === "source" ? "active" : ""}
+                  onClick={() => setHtmlView("source")}
+                  role="tab"
+                  type="button"
+                >
+                  Código-fonte
+                </button>
+              </div>
+              {htmlView === "preview" ? (
+                <iframe
+                  sandbox=""
+                  srcDoc={htmlDocument}
+                  title={`Preview de ${file.filename || "HTML"}`}
+                />
+              ) : (
+                <pre>{text}</pre>
+              )}
+            </div>
           ) : null}
         </div>
       </section>

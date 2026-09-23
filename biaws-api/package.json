@@ -37,9 +37,9 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonata": "2.2.2",
-    "mailparser": "^3.7.2",
+    "mailparser": "^3.9.28",
     "mongodb": "^7.5.0",
-    "multer": "^2.2.0"
+    "multer": "^2.4.0"
   },
   "overrides": {
     "deepmerge-ts": "^8.0.0"

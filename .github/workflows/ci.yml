@@ -68,6 +68,7 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run check:css
+      - run: npm test
       - run: npm run build
       - run: npm audit --audit-level=high
 
@@ -165,6 +166,16 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install the checkout MCP for the agent bootstrap
+        shell: bash
+        run: |
+          expected_version="$(node -p "require('./biaws-mcp/package.json').version")"
+          npm pack ./biaws-mcp --pack-destination "${RUNNER_TEMP}"
+          npm install --no-save --package-lock=false --ignore-scripts \
+            "${RUNNER_TEMP}/biaws-mcp-${expected_version}.tgz"
       - name: Bootstrap from a clean checkout
         env:
           BIAWS_BOOTSTRAP_ADMIN_EMAIL: ci@example.test

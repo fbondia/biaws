@@ -54,6 +54,15 @@ cd biaws-monitor-executor && npm run format:check && npm run check && npm test
 Novos comportamentos devem incluir testes proporcionais ao risco. Alterações de
 UI devem considerar teclado, foco, contraste e layout móvel.
 
+O job Compose da CI empacota o MCP do checkout e o instala temporariamente na
+raiz, sem alterar manifestos ou lockfiles. Assim, o bootstrap e o doctor usam a
+versão em desenvolvimento pelo `npx`, mesmo antes de sua publicação no npm.
+
+A UI fixa `lodash-es` em `4.18.1` por override para corrigir as vulnerabilidades
+GHSA-r5fr-rjxr-66jc e GHSA-f23m-r3pf-42rh nas dependências transitivas do Mermaid.
+Revise a necessidade do override quando Chevrotain adotar uma versão corrigida.
+O job da UI também executa `npm test` antes do build.
+
 Use o [checklist de mudança](docs/guidelines/change-checklist.md) para selecionar
 as validações aplicáveis e registrar no pull request o que não foi executado.
 

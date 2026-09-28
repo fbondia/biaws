@@ -56,27 +56,38 @@ test("server overview presents technical data, tags, purpose and markdown descri
       ),
       [
         "Hostname",
-        "IPs",
+        "Sistema operacional",
         "Status",
         "Localização",
         "Provedor",
-        "Sistema operacional",
-        "Tags",
-        "Finalidade",
+        "Endereços",
       ],
     );
     assert.deepEqual(
-      [...overview.querySelectorAll(".serverTagChip")].map(
+      [...overview.querySelectorAll(".catalogAddressList li")].map(
+        ({ textContent }) => textContent,
+      ),
+      ["192.0.2.10", "2001:db8::10"],
+    );
+    const sections = new Map(
+      [...overview.querySelectorAll("section")].map((section) => [
+        section.querySelector("h3").textContent,
+        section,
+      ]),
+    );
+    assert.deepEqual([...sections.keys()], ["Finalidade", "Tags", "Descrição"]);
+    assert.deepEqual(
+      [...sections.get("Tags").querySelectorAll(".serverTagChip")].map(
         ({ textContent }) => textContent,
       ),
       ["produção", "crítico"],
     );
     assert.equal(
-      overview.querySelector(".serverOverviewPurpose dd").textContent,
+      sections.get("Finalidade").querySelector("div").textContent,
       "Hospeda os serviços principais.",
     );
     assert.equal(
-      overview.querySelector(".serverOverviewDescription strong").textContent,
+      sections.get("Descrição").querySelector("strong").textContent,
       "monitorado",
     );
     root.unmount();

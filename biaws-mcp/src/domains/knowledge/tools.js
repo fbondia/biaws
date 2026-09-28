@@ -3,6 +3,8 @@ import {
   createDocument,
   getDocument,
   listDocumentTypes,
+  listDocumentRevisions,
+  listDocumentObservations,
   loadKnowledgeContext,
   searchDocuments,
   updateDocument,
@@ -317,6 +319,18 @@ export const knowledgeTools = [
     "documents_get",
     "Obtém um documento com Markdown, metadados específicos e relações.",
     getDocument,
+    schema({ documentId: ID }, ["documentId"]),
+  ),
+  definition(
+    "documents_list_revisions",
+    "Consulta até 100 revisões mais recentes de um documento, em ordem decrescente de revisão. A API não oferece paginação deste histórico.",
+    listDocumentRevisions,
+    schema({ documentId: ID }, ["documentId"]),
+  ),
+  definition(
+    "documents_list_observations",
+    "Consulta até 200 observações mais recentes de um documento. A API não oferece paginação deste histórico.",
+    listDocumentObservations,
     schema({ documentId: ID }, ["documentId"]),
   ),
   definition(

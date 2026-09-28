@@ -43,6 +43,11 @@ function withHttpClient(testFunction) {
 
 test("monitoring tools are registered once with closed top-level schemas", () => {
   const expected = [
+    "monitoring_runtime_topology_get",
+    "monitoring_runtime_targets_list",
+    "monitoring_metadata_profiles_list",
+    "applications_monitoring_health_get",
+    "runtime_monitoring_signals_list",
     "monitoring_templates_list",
     "monitoring_templates_get",
     "monitoring_templates_preview",

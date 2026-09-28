@@ -65,13 +65,13 @@ O pacote público expõe o executável `biaws-mcp`. Clientes configurados pelo C
 usam uma versão fixada por meio do cache local do npm:
 
 ```bash
-npx --yes biaws-mcp@0.9.0
+npx --yes biaws-mcp@0.10.0
 ```
 
 Também é possível instalá-lo explicitamente:
 
 ```bash
-npm install --global biaws-mcp@0.9.0
+npm install --global biaws-mcp@0.10.0
 biaws-mcp
 ```
 
@@ -90,7 +90,7 @@ npm start
 Em um cliente MCP, configure o comando:
 
 ```bash
-npx --yes biaws-mcp@0.9.0
+npx --yes biaws-mcp@0.10.0
 ```
 
 O fluxo recomendado é gerar a configuração completa com:
@@ -238,6 +238,36 @@ informa totais e truncamentos e não contém credenciais, endereços dos
 servidores, metadata dos runtimes, anexos nem os textos extensos da base de
 conhecimento.
 
+### Histórico de documentos
+
+- `documents_list_revisions`: consulta até 100 revisões mais recentes.
+- `documents_list_observations`: consulta até 200 observações mais recentes.
+
+Ambas exigem `documentId` e preservam a autorização da API. Esses endpoints
+não oferecem paginação.
+
+### Consultas de monitoramento
+
+- `monitoring_runtime_topology_get`: consulta a topologia monitorada.
+- `monitoring_runtime_targets_list`: lista os alvos de runtime monitorados.
+- `monitoring_metadata_profiles_list`: lista os perfis de apresentação de
+  metadados; exige leitura de runtimes no escopo de workspace.
+- `applications_monitoring_health_get`: consulta a saúde consolidada de uma
+  aplicação; `includeConfigured` inclui runtimes com monitores configurados
+  mesmo sem resultados recebidos (padrão `false`).
+- `runtime_monitoring_signals_list`: lista sinais passivos/externos por runtime,
+  período e status, com `page` (padrão 1) e `limit` (padrão 50, máximo 100).
+  Para resultados de monitores ativos, use `runtime_monitoring_results_list`.
+
+Topologia, alvos e perfis retornam o conjunto acessível fornecido pela API, sem
+paginação. As consultas usam o workspace configurado no MCP.
+
+### Auditoria
+
+- `audit_events_list`: consulta os eventos mais recentes de uma entidade, com
+  `entityType`, `entityId` e `limit` (padrão 100, máximo 200). Usa a permissão
+  de leitura e o escopo da entidade. A API não oferece paginação deste histórico.
+
 ### Issues / chamados
 
 - `issues_search`: busca issues com os mesmos filtros principais da
@@ -258,6 +288,8 @@ conhecimento.
   obrigatório.
 - `issues_import_eml`: analisa ou importa um EML enviado em Base64; `dryRun` é `true` por padrão.
 - `issues_update_state`: altera status e/ou tipo de uma issue.
+- `issues_update`: altera título, texto, tipo, status, aplicação e componentes
+  afetados. Exige ao menos um campo e preserva os campos omitidos.
 - `issues_suggest_taxonomy`: sugere taxonomias aderentes ao texto da issue.
 - `issues_classify`: grava classificação/KB em `issues.classification`.
 - `issues_by_taxonomy`: busca issues por assunto/taxonomia, incluindo todos os
@@ -265,7 +297,11 @@ conhecimento.
 
 ### Melhorias
 
-- `demands_list`: lista melhorias com filtros simples e de contexto.
+- `demands_list`: lista uma página de melhorias, com `page` (padrão 1),
+  `limit` (padrão 25, máximo 100), filtros de contexto e `collectionId`
+  (`__root__` seleciona a raiz). A resposta informa total, página e total de
+  páginas. Busca por `text` e código parcial em `code` percorre as páginas da
+  API e aplica os filtros antes da paginação do resultado.
 - `demands_get`: obtém uma melhoria estruturada.
 - `demands_create`: cria uma melhoria com dados cadastrais, especificação,
   checklist e planejamento; `applicationId` é obrigatório.
@@ -274,6 +310,19 @@ conhecimento.
 - `demands_implementation_context`: extrai contexto de especificação e tarefas para agentes de desenvolvimento.
 - `demands_add_note`: adiciona anotação a uma melhoria.
 - `demands_update_description`: atualiza a descrição sucinta da melhoria.
+- `demands_update`: altera código, título, descrição, status, prazos, estimativa
+  de jornadas, aplicação e componentes afetados. Exige ao menos um campo;
+  campos omitidos são preservados pela API.
+- `demands_update_specification`: substitui todas as seções da especificação.
+- `demands_update_checklist`: substitui todos os itens do checklist, incluindo
+  conclusão, data e comentário.
+- `demands_update_journeys`: substitui o planejamento mensal de jornadas.
+  Os meses devem estar dentro de `startDate`/`endDate` da melhoria; ajuste as
+  datas com `demands_update` primeiro. A API preenche meses do período não
+  informados com zero.
+- `demands_update_note`: altera conteúdo e, opcionalmente, data de uma nota;
+  preserva a data existente quando omitida.
+- `demands_delete_note`: exclui permanentemente uma nota da melhoria.
 - `demands_list_tasks`: lista tarefas, com filtro opcional por status.
 - `demands_create_task`: inclui uma tarefa.
 - `demands_update_task`: altera código, título, status, datas, situação, descrição ou especificação de uma tarefa.
@@ -282,6 +331,19 @@ conhecimento.
 - `demands_add_task_note`: adiciona uma nota de execução a uma tarefa.
 - `demands_update_task_note`: altera uma nota de execução.
 - `demands_delete_task_note`: exclui uma nota de execução.
+
+Calendário e prazos percorrem todas as páginas de melhorias no escopo informado,
+com filtro opcional por `collectionId`. Essas consultas e a busca local de
+`demands_list` leem até 100 páginas de 100 melhorias. Ao exceder o limite, retornam
+`DEMAND_SCAN_LIMIT_EXCEEDED` e solicitam filtros mais específicos, sem devolver
+um resultado parcial como completo.
+
+As novas ferramentas de alteração aceitam `requestId` como ID ou código exato da melhoria.
+Consulte `demands_get` antes de substituir especificação, checklist ou jornadas
+para conservar os itens desejados. Arrays vazios limpam especificação e checklist;
+para jornadas, zeram o planejamento no período da melhoria. IDs de seções,
+rótulos de checklist e meses de jornadas devem ser únicos. As alterações usam
+somente a API, com as mesmas permissões, escopo e auditoria da interface.
 
 ### Anexos
 

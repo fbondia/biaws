@@ -11,6 +11,7 @@ import {
   summarizeIssuesForSupport,
   suggestTaxonomy,
   updateIssueState,
+  updateIssue,
   updateIssueComment,
   updateTaxonomyItem,
 } from "./domains/issues/service.js";
@@ -36,6 +37,8 @@ import { catalogTools } from "./domains/catalog/tools.js";
 import { collectionTools } from "./domains/collections/tools.js";
 import { secretTools } from "./domains/secrets/tools.js";
 import { knowledgeTools } from "./domains/knowledge/tools.js";
+import { auditTools } from "./domains/audit/tools.js";
+import { demandMutationTools } from "./domains/demands/tools.js";
 import { attachmentTools } from "./domains/attachments/tools.js";
 import { monitoringTools } from "./domains/monitoring/tools.js";
 
@@ -140,6 +143,8 @@ const tools = [
   ...secretTools,
   ...knowledgeTools,
   ...attachmentTools,
+  ...demandMutationTools,
+  ...auditTools,
   ...monitoringTools,
   {
     name: "issues_search",
@@ -164,6 +169,35 @@ const tools = [
       },
     },
     handler: getIssueDetails,
+  },
+  {
+    name: "issues_update",
+    description:
+      "Atualiza título, texto, tipo, status, aplicação e componentes afetados de uma issue. Informe ao menos um campo; campos omitidos são preservados pela API.",
+    inputSchema: {
+      type: "object",
+      required: ["issueId"],
+      additionalProperties: false,
+      properties: {
+        issueId: { type: "string", minLength: 1 },
+        title: { type: "string", minLength: 1 },
+        text: {
+          type: "string",
+          minLength: 1,
+          description: "Conteúdo em Markdown.",
+        },
+        type: { type: "string", enum: ["incident", "request"] },
+        status: { type: "string", enum: ["open", "closed"] },
+        applicationId: { type: "string", minLength: 1 },
+        affectedComponentIds: {
+          type: "array",
+          maxItems: 100,
+          uniqueItems: true,
+          items: { type: "string", minLength: 1 },
+        },
+      },
+    },
+    handler: updateIssue,
   },
   {
     name: "issues_add_comment",
@@ -482,7 +516,7 @@ const tools = [
   {
     name: "demands_list",
     description:
-      "Lista melhorias com filtros simples por status, texto e código.",
+      "Lista uma página de melhorias por status, texto, código e coleção. Texto e código parcial são filtrados antes da paginação; consultas com esses filtros percorrem até 100 páginas da API.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
@@ -491,6 +525,12 @@ const tools = [
         text: { type: "string" },
         code: { type: "string" },
         includeDetails: { type: "boolean", default: false },
+        page: { type: "integer", minimum: 1, default: 1 },
+        limit: { type: "integer", minimum: 1, maximum: 100, default: 25 },
+        collectionId: {
+          type: "string",
+          description: "ID da coleção; __root__ filtra melhorias na raiz.",
+        },
         ...KNOWLEDGE_CONTEXT_FILTER_PROPERTIES,
       },
     },
@@ -604,6 +644,10 @@ const tools = [
         fromMonth: { type: "string", description: "YYYY-MM" },
         toMonth: { type: "string", description: "YYYY-MM" },
         status: { type: "string" },
+        collectionId: {
+          type: "string",
+          description: "ID da coleção ou __root__.",
+        },
         ...KNOWLEDGE_CONTEXT_FILTER_PROPERTIES,
       },
     },
@@ -621,6 +665,10 @@ const tools = [
         referenceDate: {
           type: "string",
           description: "YYYY-MM-DD. Default: hoje.",
+        },
+        collectionId: {
+          type: "string",
+          description: "ID da coleção ou __root__.",
         },
         ...KNOWLEDGE_CONTEXT_FILTER_PROPERTIES,
       },

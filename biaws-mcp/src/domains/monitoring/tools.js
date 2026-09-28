@@ -7,6 +7,11 @@ import {
   createRuntimeActiveMonitor,
   deactivateMonitoringTemplate,
   getMonitoringTemplate,
+  getMonitoringRuntimeTopology,
+  listMonitoringRuntimeTargets,
+  listMonitoringMetadataProfiles,
+  getApplicationMonitoringHealth,
+  listRuntimeMonitoringSignals,
   getMonitoringTemplateContract,
   getMonitoringTemplateUsage,
   getRuntimeMonitoringHealthSummary,
@@ -62,6 +67,63 @@ const TEMPLATE_VERSION_ID_SCHEMA = schema({ templateId: ID, version: ID }, [
 ]);
 
 export const monitoringTools = [
+  definition(
+    "monitoring_runtime_topology_get",
+    "Consulta a topologia monitorada no escopo autorizado. A API retorna a árvore completa acessível sem paginação.",
+    getMonitoringRuntimeTopology,
+    schema(),
+  ),
+  definition(
+    "monitoring_runtime_targets_list",
+    "Lista os alvos de runtime monitorados no escopo autorizado. A API retorna todos os alvos acessíveis sem paginação.",
+    listMonitoringRuntimeTargets,
+    schema(),
+  ),
+  definition(
+    "monitoring_metadata_profiles_list",
+    "Lista os perfis de apresentação de metadados do workspace; exige permissão de leitura de runtimes no escopo de workspace. A API não oferece paginação.",
+    listMonitoringMetadataProfiles,
+    schema(),
+  ),
+  definition(
+    "applications_monitoring_health_get",
+    "Consulta a saúde consolidada e os detalhes de monitoramento de uma aplicação. includeConfigured inclui runtimes com monitores configurados mesmo sem resultados recebidos.",
+    getApplicationMonitoringHealth,
+    schema(
+      {
+        applicationId: ID,
+        includeConfigured: { type: "boolean", default: false },
+      },
+      ["applicationId"],
+    ),
+  ),
+  definition(
+    "runtime_monitoring_signals_list",
+    "Lista uma página de sinais passivos ou externos de um runtime, filtrados por período e status. Para incluir resultados de monitores ativos, use runtime_monitoring_results_list.",
+    listRuntimeMonitoringSignals,
+    schema(
+      {
+        runtimeReference: ID,
+        observedFrom: {
+          type: "string",
+          description:
+            "Data YYYY-MM-DD ou instante ISO 8601 inicial, inclusivo.",
+        },
+        observedTo: {
+          type: "string",
+          description:
+            "Data YYYY-MM-DD incluindo o dia inteiro ou instante ISO 8601 final, inclusivo.",
+        },
+        status: {
+          type: "string",
+          enum: ["unknown", "healthy", "degraded", "unavailable", "stopped"],
+        },
+        page: { type: "integer", minimum: 1, default: 1 },
+        limit: { type: "integer", minimum: 1, maximum: 100, default: 50 },
+      },
+      ["runtimeReference"],
+    ),
+  ),
   definition(
     "monitoring_templates_list",
     "Lista templates de monitoramento versionados do workspace configurado, com filtro de status e paginação.",

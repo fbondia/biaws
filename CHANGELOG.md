@@ -8,6 +8,13 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- MCP atualizado de `0.9.0` para `0.10.0`, com novas ferramentas de melhorias,
+  issues, auditoria, documentos e monitoramento; o CLI e os exemplos de instalação
+  passam a referenciar `biaws-mcp@0.10.0`;
+
+- `demands_list` expõe paginação e filtro de coleção; calendário e prazos
+  percorrem as páginas da API, com limite explícito para evitar totais parciais;
+
 - MCP `0.6.0` passou a expor o contrato discriminado dos documentos e a tool
   `document_types_list`; as interfaces legadas `procedures_*` foram removidas e
   procedimentos permanecem disponíveis por `documents_*` com
@@ -34,6 +41,14 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
   rede interna do Compose.
 
 ### Added
+
+- consultas MCP de auditoria, revisões e observações de documentos, topologia
+  monitorada, alvos, perfis de metadados, saúde de aplicações e sinais passivos;
+- ferramenta `issues_update` para editar conteúdo e contexto de issues;
+
+- ferramentas MCP para atualizar dados cadastrais, especificação, checklist e
+  jornadas de melhorias e editar/excluir suas notas; atualizações enviam apenas
+  os campos solicitados e preservam permissões e auditoria da API;
 
 - consulta agregada do histórico de saúde de runtimes na API e no MCP, com
   resolução temporal adaptativa e consumo independente pelos gráficos da UI;

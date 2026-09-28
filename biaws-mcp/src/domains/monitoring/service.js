@@ -172,3 +172,37 @@ export function updateRuntimeActiveMonitor(args = {}) {
 export function archiveRuntimeActiveMonitor(args = {}) {
   return deleteJson(activeMonitorsPath(args, true));
 }
+
+export async function getMonitoringRuntimeTopology() {
+  return fetchJson("/api/monitoring/runtime-topology");
+}
+
+export async function listMonitoringRuntimeTargets() {
+  return fetchJson("/api/monitoring/runtime-targets");
+}
+
+export async function listMonitoringMetadataProfiles() {
+  return fetchJson("/api/monitoring/metadata-profiles");
+}
+
+export async function getApplicationMonitoringHealth(args = {}) {
+  const applicationId = requiredId(args, "applicationId");
+  return fetchJson(
+    `/api/monitoring/applications/${segment(applicationId)}/health`,
+    cleanParams({ includeConfigured: args.includeConfigured ?? false }),
+  );
+}
+
+export async function listRuntimeMonitoringSignals(args = {}) {
+  const runtimeReference = requiredId(args, "runtimeReference");
+  return fetchJson(
+    `/api/monitoring/runtimes/${segment(runtimeReference)}/signals`,
+    cleanParams({
+      observedFrom: args.observedFrom,
+      observedTo: args.observedTo,
+      status: args.status,
+      page: args.page ?? 1,
+      limit: args.limit ?? 50,
+    }),
+  );
+}

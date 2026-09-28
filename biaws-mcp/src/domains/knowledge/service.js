@@ -136,3 +136,17 @@ export async function loadKnowledgeContext(args = {}) {
     documents,
   };
 }
+
+function documentHistoryPath(args, suffix) {
+  const documentId = String(args.documentId || "").trim();
+  if (!documentId) throw new Error("documentId is required");
+  return `${BASE_PATH}/${encodeURIComponent(documentId)}/${suffix}`;
+}
+
+export async function listDocumentRevisions(args = {}) {
+  return fetchJson(documentHistoryPath(args, "revisions"));
+}
+
+export async function listDocumentObservations(args = {}) {
+  return fetchJson(documentHistoryPath(args, "observations"));
+}

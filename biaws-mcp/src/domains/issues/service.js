@@ -405,3 +405,46 @@ export async function findIssuesByTaxonomy(args = {}) {
     }),
   );
 }
+
+export async function updateIssue(args = {}) {
+  const issueId = String(args.issueId || "").trim();
+  if (!issueId) throw new Error("issueId is required");
+  const payload = {};
+  for (const field of [
+    "title",
+    "text",
+    "type",
+    "status",
+    "applicationId",
+    "affectedComponentIds",
+  ]) {
+    if (args[field] === undefined) continue;
+    const value =
+      typeof args[field] === "string" ? args[field].trim() : args[field];
+    if (typeof value === "string" && !value)
+      throw new Error(`${field} is required`);
+    payload[field] = value;
+  }
+  if (!Object.keys(payload).length)
+    throw new Error("At least one update field is required");
+  if (payload.affectedComponentIds) {
+    payload.affectedComponentIds = payload.affectedComponentIds.map((id) => {
+      const value = id.trim();
+      if (!value)
+        throw new Error("affectedComponentIds must contain nonblank IDs");
+      return value;
+    });
+    if (
+      new Set(payload.affectedComponentIds).size !==
+      payload.affectedComponentIds.length
+    ) {
+      throw new Error("affectedComponentIds must be unique");
+    }
+  }
+  return sendJson(
+    `/api/issues/${encodeURIComponent(issueId)}`,
+    payload,
+    {},
+    "PATCH",
+  );
+}

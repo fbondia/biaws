@@ -100,15 +100,42 @@ function compactDemand(request) {
   };
 }
 
-async function readAllDemands(args = {}) {
+async function readDemandPage(args = {}, page = 1, limit = 25) {
   return fetchJson(
     "/api/requests",
     cleanParams({
       workspaceId: args.workspaceId,
       applicationId: args.applicationId,
       componentId: args.componentId,
+      collectionId: args.collectionId,
+      status: args.status,
+      page,
+      limit,
     }),
   );
+}
+
+async function readAllDemands(args = {}) {
+  const items = [];
+  let meta = {};
+  // Bound traversal without returning an apparently complete partial result.
+  for (let page = 1; page <= 100; page += 1) {
+    const payload = await readDemandPage(args, page, 100);
+    items.push(...payload.items);
+    meta = payload.meta || {};
+    const totalPages = Number(
+      meta.totalPages ?? Math.ceil(Number(meta.total) / 100),
+    );
+    if (!Number.isFinite(totalPages) || page >= totalPages) {
+      return { meta, items };
+    }
+  }
+  const error = new Error(
+    "Demand scan exceeds 100 pages; narrow the application, component, status or collection filters",
+  );
+  error.code = "DEMAND_SCAN_LIMIT_EXCEEDED";
+  error.retryable = false;
+  throw error;
 }
 
 async function readDemand(requestId) {
@@ -145,16 +172,31 @@ function journeySummaryForRequest(request) {
 }
 
 export async function listDemands(args = {}) {
-  const payload = await readAllDemands(args);
+  const page = args.page ?? 1;
+  const limit = args.limit ?? 25;
+  // Text and partial-code matching remain MCP filters; filter before paging.
+  const locallyFiltered = Boolean(args.text || args.code);
+  const payload = locallyFiltered
+    ? await readAllDemands(args)
+    : await readDemandPage(args, page, limit);
   const filtered = filterDemands(payload.items, args);
-
+  const items = locallyFiltered
+    ? filtered.slice((page - 1) * limit, page * limit)
+    : filtered;
+  const total = locallyFiltered
+    ? filtered.length
+    : (payload.meta?.total ?? filtered.length);
   return {
     meta: {
       ...payload.meta,
-      returned: filtered.length,
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+      returned: items.length,
       filters: args,
     },
-    items: args.includeDetails ? filtered : filtered.map(compactDemand),
+    items: args.includeDetails ? items : items.map(compactDemand),
   };
 }
 
@@ -479,12 +521,129 @@ export async function updateDemandDescription(args = {}) {
   if (!String(args.description || "").trim())
     throw new Error("description is required");
 
-  const { request } = await readDemand(args.requestId);
+  return updateDemandFields(args, {
+    description: String(args.description).trim(),
+  });
+}
+
+function requiredText(value, field) {
+  const normalized = String(value || "").trim();
+  if (!normalized) throw new Error(`${field} is required`);
+  return normalized;
+}
+
+async function updateDemandFields(args, payload) {
+  const requestId = requiredText(args.requestId, "requestId");
+  const { request } = await readDemand(requestId);
+  if (payload.journeys) {
+    const from = String(request.startDate || "").slice(0, 7);
+    const to = String(request.endDate || "").slice(0, 7);
+    if (
+      payload.journeys.some(
+        (item) => !from || !to || item.month < from || item.month > to,
+      )
+    ) {
+      throw new Error(
+        "journeys.month must fall within the demand startDate/endDate; update its dates first",
+      );
+    }
+  }
+  // The API merges omitted fields and enforces field-specific permissions.
+  return sendJson(`/api/requests/${encodeURIComponent(request.id)}`, payload);
+}
+
+export async function updateDemand(args = {}) {
+  const fields = [
+    "clientCode",
+    "title",
+    "description",
+    "status",
+    "estimatedDeliveryDate",
+    "startDate",
+    "endDate",
+    "estimatedJourneys",
+    "applicationId",
+    "affectedComponentIds",
+  ];
+  const payload = {};
+  for (const field of fields) {
+    if (args[field] === undefined) continue;
+    payload[field] =
+      typeof args[field] === "string" ? args[field].trim() : args[field];
+    if (["title", "status", "applicationId"].includes(field)) {
+      payload[field] = requiredText(args[field], field);
+    }
+  }
+  if (!Object.keys(payload).length)
+    throw new Error("At least one update field is required");
+  if (payload.affectedComponentIds) {
+    payload.affectedComponentIds = payload.affectedComponentIds.map((id) =>
+      requiredText(id, "affectedComponentIds"),
+    );
+    assertUnique(payload.affectedComponentIds, "affectedComponentIds");
+  }
+  return updateDemandFields(args, payload);
+}
+
+function assertUnique(values, field) {
+  if (new Set(values).size !== values.length)
+    throw new Error(`${field} must be unique`);
+}
+
+export async function updateDemandSpecification(args = {}) {
+  const sections = args.specificationSections.map((section) => ({
+    ...section,
+    id: requiredText(section.id, "section.id"),
+    title: requiredText(section.title, "section.title"),
+  }));
+  assertUnique(
+    sections.map((section) => section.id),
+    "section.id",
+  );
+  return updateDemandFields(args, { specification: { sections } });
+}
+
+export async function updateDemandChecklist(args = {}) {
+  const checklist = args.checklist.map((item) => ({
+    ...item,
+    label: requiredText(item.label, "checklist.label"),
+  }));
+  assertUnique(
+    checklist.map((item) => item.label),
+    "checklist.label",
+  );
+  return updateDemandFields(args, { checklist });
+}
+
+export async function updateDemandJourneys(args = {}) {
+  assertUnique(
+    args.journeys.map((item) => item.month),
+    "journeys.month",
+  );
+  return updateDemandFields(args, { journeys: args.journeys });
+}
+
+async function readDemandNote(args) {
+  const requestId = requiredText(args.requestId, "requestId");
+  const noteId = requiredText(args.noteId, "noteId");
+  const { request } = await readDemand(requestId);
+  const note = (request.notes || []).find((item) => item.id === noteId);
+  if (!note) throw new Error(`Demand note not found: ${noteId}`);
+  return { request, note };
+}
+
+export async function updateDemandNote(args = {}) {
+  const content = requiredText(args.content, "content");
+  const { request, note } = await readDemandNote(args);
   return sendJson(
-    `/api/requests/${encodeURIComponent(request.id)}`,
-    cleanParams({
-      ...request,
-      description: String(args.description).trim(),
-    }),
+    `/api/requests/${encodeURIComponent(request.id)}/notes/${encodeURIComponent(note.id)}`,
+    { content, date: args.date ?? note.date },
+  );
+}
+
+export async function deleteDemandNote(args = {}) {
+  const { request, note } = await readDemandNote(args);
+  return deleteJson(
+    `/api/requests/${encodeURIComponent(request.id)}/notes/${encodeURIComponent(note.id)}`,
   );
 }

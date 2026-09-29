@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { RESOURCE_CATALOG } from "../../biaws-mcp/src/resourceCatalog.js";
+import RESOURCE_CATALOG from "../../biaws-mcp/src/resourceCatalog.json" with { type: "json" };
 import { issuesRouter } from "../src/routes/issues/index.js";
 import { requestsRouter } from "../src/routes/requests/index.js";
 import { knowledgeRecordsRouter } from "../src/routes/knowledgeRecords/index.js";

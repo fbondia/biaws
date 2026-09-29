@@ -1,0 +1,14 @@
+sonar.projectKey=BIAWS-MCP
+sonar.projectName=BIAWS MCP
+sonar.projectVersion=0.11.0
+sonar.host.url=http://localhost:9000
+sonar.sourceEncoding=UTF-8
+
+sonar.sources=src
+sonar.tests=test
+sonar.test.inclusions=test/**/*.ts
+sonar.exclusions=**/node_modules/**,coverage/**,dist/**
+
+sonar.typescript.tsconfigPaths=tsconfig.json
+# Configure authentication through SONAR_TOKEN; never commit credentials.
+# This workflow does not currently generate or import an LCOV coverage report.

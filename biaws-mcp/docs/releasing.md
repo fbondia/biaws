@@ -83,3 +83,20 @@ smoke acima nas duas eras do protocolo.
 
 A descoberta recursiva e os comandos por domínio estão em [testing.md](testing.md).
 Execute a suíte completa além da seleção do domínio alterado.
+
+## Sonar
+
+A configuração local `sonar-project.properties` é ignorada por conter a
+credencial da instância. O modelo sem segredos está em
+`sonar-project.properties.example`: projeto BIAWS-MCP, versão 0.11.0, fontes em
+`src`, testes TypeScript em `test`, tsconfig estrito e exclusão de build,
+node_modules e coverage. Configure o token por ambiente ou na configuração
+local; nunca o inclua em evidências. O fluxo não gera nem importa LCOV.
+
+Execute `bash sonar-analysis.sh` na raiz. O script testa e analisa API, UI, CLI
+e MCP em sequência; seu exit code final representa apenas a última etapa.
+Confira testes e scanner por módulo, leia o report-task.txt do MCP, aguarde a
+Compute Engine terminar e consulte Quality Gate, métricas e issues. Uma falha
+de infraestrutura mantém a verificação pendente; Quality Gate com erro exige
+backlog e nova análise após as correções. O catálogo estático JSON compartilhado
+permite à API conferir as rotas sem depender do build TypeScript do MCP.

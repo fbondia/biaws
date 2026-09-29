@@ -34,7 +34,9 @@ function isExpectedClaudeServer(server) {
   return (
     server?.command === "node" &&
     server.args?.length === 1 &&
-    /(?:^|[\\/])biaws-mcp[\\/]src[\\/]index\.js$/u.test(server.args[0])
+    /(?:^|[\\/])biaws-mcp[\\/](?:(?:dist[\\/])?src[\\/]index\.js|bin[\\/]biaws-mcp\.js)$/u.test(
+      server.args[0],
+    )
   );
 }
 
@@ -290,6 +292,13 @@ async function mcpStatus(envFile, workspaceId) {
         if (!line.trim()) continue;
         try {
           const message = JSON.parse(line);
+          if (message.error) {
+            finish({
+              ok: false,
+              detail: message.error.message || "MCP recusou a chamada",
+            });
+            return;
+          }
           if (message.id === 1 && message.result && !toolsRequested) {
             toolsRequested = true;
             child.stdin.write(
@@ -330,7 +339,11 @@ async function mcpStatus(envFile, workspaceId) {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
-        params: { protocolVersion: "2024-11-05", capabilities: {} },
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "biaws-agent-doctor", version: "1.0.0" },
+        },
       })}\n`,
     );
   });

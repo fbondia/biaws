@@ -454,7 +454,7 @@ test("agent doctor performs a real MCP handshake", async () => {
   const executableDirectory = await mkdtemp(
     path.join(os.tmpdir(), "biaws-agent-bin-"),
   );
-  const entrypoint = path.resolve("..", "biaws-mcp", "src", "index.js");
+  const entrypoint = path.resolve("..", "biaws-mcp", "bin", "biaws-mcp.js");
   const npx = path.join(executableDirectory, "npx");
   await writeFile(
     npx,

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fetchJson } from "../../../src/httpClient.js";
+import { fetchJson } from "../../../src/api/httpClient.js";
 import { errorInfo, fieldErrors } from "../../helpers/types.js";
 test("MCP HTTP client distinguishes forbidden responses", async () => {
   const originalFetch = globalThis.fetch;

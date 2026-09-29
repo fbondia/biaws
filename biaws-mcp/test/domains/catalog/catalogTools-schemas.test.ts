@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { catalogTools } from "../../../src/domains/catalog/tools.js";
-import { listTools } from "../../../src/tools.js";
+import { listTools } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 test("catalog tools are registered once with explicit bounded schemas", () => {
   const expected = [
@@ -138,7 +138,9 @@ test("catalog schemas expose no credential or remote execution argument", () => 
     "ssh",
     "mongoQuery",
   ]);
-  function visit(schema: import("../../../src/contracts.js").Schema): void {
+  function visit(
+    schema: import("../../../src/mcp/tools/contracts.js").Schema,
+  ): void {
     for (const [key, value] of Object.entries(schema?.properties || {})) {
       assert.equal(prohibited.has(key), false, key);
       visit(value);

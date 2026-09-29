@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { demandId, withApi } from "./demandMutationTools.fixtures.js";
 test("invalid input is rejected before any HTTP call", async () => {
   await withApi(async (calls) => {

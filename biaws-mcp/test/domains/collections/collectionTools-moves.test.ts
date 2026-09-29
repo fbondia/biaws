@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { jsonResponse } from "./collectionTools.fixtures.js";
 test("move tools use audited API routes and support moving to root", async () => {
   const originalFetch = globalThis.fetch;

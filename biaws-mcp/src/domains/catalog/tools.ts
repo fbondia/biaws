@@ -1,5 +1,5 @@
-import { bindTool } from "../../bindTool.js";
-import type { ToolDefinition, ToolHandler } from "../../contracts.js";
+import { bindTool } from "../../mcp/tools/bindTool.js";
+import type { ToolDefinition, ToolHandler } from "../../mcp/tools/contracts.js";
 import { catalogTools as definitions } from "./schemas.js";
 import {
   createApplication,

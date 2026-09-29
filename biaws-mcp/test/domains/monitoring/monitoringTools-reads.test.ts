@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { withHttpClient } from "./monitoringTools.fixtures.js";
 test(
   "monitoring read and evaluation tools dispatch to scoped API endpoints",

@@ -2,15 +2,15 @@ import {
   requireEntity,
   type ApiEntity,
   type ApiMeta,
-} from "../../apiContracts.js";
-import type { ServiceArguments } from "../../contracts.js";
-import { BiawsError } from "../../errors.js";
+} from "../../api/apiContracts.js";
+import type { ServiceArguments } from "../../mcp/tools/contracts.js";
+import { BiawsError } from "../../runtime/errors.js";
 import {
   cleanParams,
   deleteJson,
   fetchJson,
   sendJson,
-} from "../../httpClient.js";
+} from "../../api/httpClient.js";
 
 // A API fornece as opções em runtime; estes valores preservam compatibilidade
 // somente quando uma instalação antiga ainda não publicou as listas.

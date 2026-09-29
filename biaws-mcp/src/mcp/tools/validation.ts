@@ -1,5 +1,5 @@
 import type { Schema, ToolDefinition } from "./contracts.js";
-import { BiawsError } from "./errors.js";
+import { BiawsError } from "../../runtime/errors.js";
 export interface ValidationField {
   path: string;
   code: string;

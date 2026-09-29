@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readResource } from "../../src/resources.js";
+import { readResource } from "../../src/mcp/resources/resources.js";
 import { blobContent } from "../helpers/types.js";
 import { json, W, withApi } from "./resources.fixtures.js";
 test("file contents use blobs and canonical metadata without leaking storage locators", async () => {

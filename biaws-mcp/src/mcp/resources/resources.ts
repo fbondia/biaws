@@ -4,9 +4,9 @@ import {
   requireEntity,
   type ApiEntity,
   type ApiPayload,
-} from "./apiContracts.js";
-import { BiawsError } from "./errors.js";
-import { fetchBinary, fetchJson } from "./httpClient.js";
+} from "../../api/apiContracts.js";
+import { BiawsError } from "../../runtime/errors.js";
+import { fetchBinary, fetchJson } from "../../api/httpClient.js";
 import type { ResourceDefinition } from "./resourceCatalog.js";
 import { RESOURCE_CATALOG } from "./resourceCatalog.js";
 

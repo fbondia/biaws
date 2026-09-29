@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { errorInfo, required } from "../../helpers/types.js";
 import { jsonResponse } from "./attachmentTools.fixtures.js";
 test("task uploads delegate parent resolution and file association to the API", async () => {

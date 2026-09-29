@@ -122,6 +122,25 @@ biaws workspace agent configure codex \
 O processo de publicação e rollback está em
 [`docs/releasing.md`](docs/releasing.md).
 
+## Organização do código
+
+- `src/index.ts`: inicialização e ciclo de vida do processo stdio;
+- `src/version.ts`: nome e versão anunciados pelo servidor;
+- `src/config/`: carregamento do ambiente;
+- `src/api/`: cliente HTTP e validação dos payloads da API;
+- `src/runtime/`: logs, contexto de requisição e erros compartilhados;
+- `src/mcp/mcpServer.ts`: adaptação para o protocolo MCP;
+- `src/mcp/tools/`: composição do catálogo, dispatch, contratos e validação
+  de argumentos;
+- `src/mcp/resources/`: descoberta, leitura e links de resources;
+- `src/domains/<domínio>/`: schemas, registro de handlers e services de cada
+  domínio. Novas tools devem ser definidas e vinculadas ao service nessa pasta;
+  os catálogos centrais apenas agregam os domínios.
+
+O arquivo `src/resourceCatalog.json` permanece na raiz porque também é
+consumido diretamente pelo teste de contrato de rotas da API. O módulo em
+`src/mcp/resources/resourceCatalog.ts` importa essa fonte única.
+
 ## Diagnóstico do transporte
 
 A partir da versão 0.5.0, o processo escreve um evento JSON por linha em

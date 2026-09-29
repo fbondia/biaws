@@ -1,4 +1,4 @@
-import type { ToolDefinition } from "../../contracts.js";
+import type { ToolDefinition } from "../../mcp/tools/contracts.js";
 export const auditTools = [
   {
     name: "audit_events_list",

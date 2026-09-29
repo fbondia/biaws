@@ -7,20 +7,20 @@ import {
   type ServerContext,
 } from "@modelcontextprotocol/server";
 import { randomUUID } from "node:crypto";
-import { errorInfo, isRecord } from "./errors.js";
-import type { Logger } from "./logger.js";
-import { runWithRequestContext } from "./requestContext.js";
-import { resourceLinksForTool } from "./resourceLinks.js";
+import { errorInfo, isRecord } from "../runtime/errors.js";
+import type { Logger } from "../runtime/logger.js";
+import { runWithRequestContext } from "../runtime/requestContext.js";
+import { resourceLinksForTool } from "./resources/resourceLinks.js";
 import {
   listResources as defaultListResources,
   listResourceTemplates as defaultListResourceTemplates,
   readResource as defaultReadResource,
-} from "./resources.js";
+} from "./resources/resources.js";
 import {
   dispatchTool as defaultDispatchTool,
   listTools as defaultListTools,
-} from "./tools.js";
-import { SERVER_NAME, SERVER_VERSION } from "./version.js";
+} from "./tools/tools.js";
+import { SERVER_NAME, SERVER_VERSION } from "../version.js";
 export interface McpOptions {
   dispatchTool?: (name: string, args: unknown) => Promise<unknown>;
   listTools?: typeof defaultListTools;

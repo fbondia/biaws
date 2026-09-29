@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 test("document type catalog exposes context, states and typed details", async () => {
   const result = await dispatchTool("document_types_list", {});

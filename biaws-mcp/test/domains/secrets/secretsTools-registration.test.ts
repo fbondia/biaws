@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 test("secrets_register sends metadata to the registration endpoint", async () => {
   const originalFetch = globalThis.fetch;
   const originalBaseUrl = process.env.BIAWS_API_URL;

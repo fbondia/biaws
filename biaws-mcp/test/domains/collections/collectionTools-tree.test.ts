@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { jsonResponse } from "./collectionTools.fixtures.js";
 test("resource collection tools route generic trees through the API", async () => {
   const originalFetch = globalThis.fetch;

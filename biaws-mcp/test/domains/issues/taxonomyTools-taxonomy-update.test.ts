@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 import { response, taxonomyPayload } from "./taxonomyTools.fixtures.js";
 test("updates taxonomy item configuration without dropping descendants", async () => {
   const originalFetch = globalThis.fetch;
   let writtenBody:
-    | { taxonomy: import("../../../src/apiContracts.js").ApiEntity[] }
+    | { taxonomy: import("../../../src/api/apiContracts.js").ApiEntity[] }
     | undefined;
   globalThis.fetch = async (_url, options = {}) => {
     if (!options.method) {

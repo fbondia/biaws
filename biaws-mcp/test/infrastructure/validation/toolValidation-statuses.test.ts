@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool, listTools } from "../../../src/tools.js";
+import { dispatchTool, listTools } from "../../../src/mcp/tools/tools.js";
 import { errorInfo, fieldErrors, required } from "../../helpers/types.js";
 import { VALID_TASK_STATUSES } from "./toolValidation.fixtures.js";
 test("task status update declares and validates every accepted status", async () => {

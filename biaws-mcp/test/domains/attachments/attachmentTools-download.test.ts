@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 test("attachments_download returns binary content as Base64 with response metadata", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>

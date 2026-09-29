@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { collectionTools } from "../../../src/domains/collections/tools.js";
-import { listTools } from "../../../src/tools.js";
+import { listTools } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 test("collection tools expose bounded resource types and explicit destination ids", () => {
   assert.deepEqual(

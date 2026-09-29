@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { errorInfo, required } from "../../helpers/types.js";
 import { demands, withApi } from "./demandPagination.fixtures.js";
 for (const name of ["demands_journey_calendar", "demands_deadlines"] as const) {

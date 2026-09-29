@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fetchJson } from "../../../src/httpClient.js";
+import { fetchJson } from "../../../src/api/httpClient.js";
 import { errorInfo } from "../../helpers/types.js";
 for (const payload of [
   { items: [{ id: 42 }] },

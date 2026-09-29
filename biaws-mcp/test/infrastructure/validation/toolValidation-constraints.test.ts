@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { fieldErrors } from "../../helpers/types.js";
 test("tool argument validation preserves enum, numeric and array constraints", async () => {
   await assert.rejects(

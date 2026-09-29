@@ -1,11 +1,11 @@
-import type { ServiceArguments } from "../../contracts.js";
-import { BiawsError } from "../../errors.js";
+import type { ServiceArguments } from "../../mcp/tools/contracts.js";
+import { BiawsError } from "../../runtime/errors.js";
 import {
   cleanParams,
   deleteJson,
   fetchJson,
   sendJson,
-} from "../../httpClient.js";
+} from "../../api/httpClient.js";
 
 const TEMPLATE_BASE = "/api/monitoring/templates";
 

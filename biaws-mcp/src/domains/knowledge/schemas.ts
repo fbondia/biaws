@@ -1,4 +1,4 @@
-import type { ToolDefinition } from "../../contracts.js";
+import type { ToolDefinition } from "../../mcp/tools/contracts.js";
 export const knowledgeTools = [
   {
     name: "knowledge_context_load",

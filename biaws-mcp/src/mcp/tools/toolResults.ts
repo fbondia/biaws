@@ -3,8 +3,8 @@ import type {
   downloadAttachment,
   updateAttachmentTags,
   uploadAttachments,
-} from "./domains/attachments/service.js";
-import type { listAuditEvents } from "./domains/audit/service.js";
+} from "../../domains/attachments/service.js";
+import type { listAuditEvents } from "../../domains/audit/service.js";
 import type {
   createApplication,
   createComponent,
@@ -29,7 +29,7 @@ import type {
   updateRepository,
   updateRuntime,
   updateServer,
-} from "./domains/catalog/service.js";
+} from "../../domains/catalog/service.js";
 import type {
   createResourceCollection,
   deleteResourceCollection,
@@ -40,7 +40,7 @@ import type {
   moveServerToCollection,
   moveSkillToCollection,
   updateResourceCollection,
-} from "./domains/collections/service.js";
+} from "../../domains/collections/service.js";
 import type {
   addDemandNote,
   addDemandTaskNote,
@@ -64,7 +64,7 @@ import type {
   updateDemandTask,
   updateDemandTaskNote,
   updateDemandTaskStatus,
-} from "./domains/demands/service.js";
+} from "../../domains/demands/service.js";
 import type {
   addIssueComment,
   classifyIssue,
@@ -81,7 +81,7 @@ import type {
   updateIssueComment,
   updateIssueState,
   updateTaxonomyItem,
-} from "./domains/issues/service.js";
+} from "../../domains/issues/service.js";
 import type {
   addDocumentObservation,
   createDocument,
@@ -89,7 +89,7 @@ import type {
   loadKnowledgeContext,
   searchDocuments,
   updateDocument,
-} from "./domains/knowledge/service.js";
+} from "../../domains/knowledge/service.js";
 import type {
   activateMonitoringTemplate,
   archiveMonitoringTemplate,
@@ -106,11 +106,11 @@ import type {
   previewMonitoringTemplate,
   updateRuntimeActiveMonitor,
   validateMonitoringTemplateSample,
-} from "./domains/monitoring/service.js";
+} from "../../domains/monitoring/service.js";
 import type {
   listSecretMetadata,
   registerSecretMetadata,
-} from "./domains/secrets/service.js";
+} from "../../domains/secrets/service.js";
 export interface ToolResultMap {
   issues_search: Awaited<ReturnType<typeof searchIssues>>;
   issues_get: Awaited<ReturnType<typeof getIssueDetails>>;

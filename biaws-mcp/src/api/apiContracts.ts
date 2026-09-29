@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BiawsError } from "./errors.js";
+import { BiawsError } from "../runtime/errors.js";
 
 // Validate fields consumed by services; retain unknown API fields for forwarding.
 export interface ApiEntity {

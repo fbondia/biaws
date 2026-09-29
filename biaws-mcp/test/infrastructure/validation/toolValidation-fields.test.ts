@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { errorInfo, fieldErrors } from "../../helpers/types.js";
 test("tool argument validation exposes every actionable field error", async () => {
   await assert.rejects(

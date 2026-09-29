@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { listResources, listResourceTemplates } from "../../src/resources.js";
+import {
+  listResources,
+  listResourceTemplates,
+} from "../../src/mcp/resources/resources.js";
 import { connectTestServer } from "../helpers/sdk.js";
 import { required } from "../helpers/types.js";
 test("the protocol discovers the resource hierarchy without subscriptions", async (t) => {

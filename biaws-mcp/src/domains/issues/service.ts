@@ -1,12 +1,12 @@
-import type { ApiEntity, ApiPayload } from "../../apiContracts.js";
-import type { ServiceArguments } from "../../contracts.js";
-import { BiawsError } from "../../errors.js";
+import type { ApiEntity, ApiPayload } from "../../api/apiContracts.js";
+import type { ServiceArguments } from "../../mcp/tools/contracts.js";
+import { BiawsError } from "../../runtime/errors.js";
 import {
   cleanParams,
   fetchJson,
   sendJson,
   sendMultipart,
-} from "../../httpClient.js";
+} from "../../api/httpClient.js";
 interface FlatTaxonomy {
   id?: string;
   label?: string;

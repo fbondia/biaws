@@ -1,5 +1,5 @@
-import type { ServiceArguments } from "../../contracts.js";
-import { cleanParams, fetchJson, sendJson } from "../../httpClient.js";
+import type { ServiceArguments } from "../../mcp/tools/contracts.js";
+import { cleanParams, fetchJson, sendJson } from "../../api/httpClient.js";
 
 export async function listSecretMetadata(
   args: ServiceArguments<"secrets_list"> = {},

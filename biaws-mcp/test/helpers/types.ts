@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { apiPayloadSchema } from "../../src/apiContracts.js";
-import { errorInfo } from "../../src/errors.js";
+import { apiPayloadSchema } from "../../src/api/apiContracts.js";
+import { errorInfo } from "../../src/runtime/errors.js";
 export function required<T>(value: T | null | undefined): T {
   if (value === undefined || value === null)
     throw new Error("Missing test fixture value");

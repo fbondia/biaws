@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { listTools } from "../../../src/tools.js";
+import { listTools } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 test("issue comment tools expose bounded schemas", () => {
   const tools = new Map(listTools().map((tool) => [tool.name, tool]));

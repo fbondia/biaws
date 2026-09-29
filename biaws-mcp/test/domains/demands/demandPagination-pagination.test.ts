@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { required, toolPayload } from "../../helpers/types.js";
 import { demands, withApi } from "./demandPagination.fixtures.js";
 test("demands_list forwards pagination and collection scope to the API", async () => {

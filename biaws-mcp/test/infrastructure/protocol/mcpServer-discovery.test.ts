@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { listResourceTemplates } from "../../../src/resources.js";
-import { listTools } from "../../../src/tools.js";
+import { listResourceTemplates } from "../../../src/mcp/resources/resources.js";
+import { listTools } from "../../../src/mcp/tools/tools.js";
 import { connectTestServer } from "../../helpers/sdk.js";
 import { required } from "../../helpers/types.js";
 for (const mode of ["legacy", { pin: "2026-07-28" }] as const) {

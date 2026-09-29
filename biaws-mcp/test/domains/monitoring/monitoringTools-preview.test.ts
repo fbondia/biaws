@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { withHttpClient } from "./monitoringTools.fixtures.js";
 test(
   "active monitor tools use explicit runtime scope and omit path ids from payloads",

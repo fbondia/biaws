@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 import { withApi } from "./apiCoverageTools.fixtures.js";
 test("issues_update writes only supplied mutable fields", async () => {

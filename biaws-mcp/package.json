@@ -1,7 +1,7 @@
 {
   "name": "biaws-mcp",
   "version": "0.11.0",
-  "description": "Servidor MCP de dom\u00ednio para o Bondia Workspaces",
+  "description": "Servidor MCP de domínio para o Bondia Workspaces",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -49,7 +49,7 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.2.0",
-    "@types/node": "20.19.43",
+    "@types/node": "^20.19.43",
     "json-schema-to-ts": "3.1.1",
     "prettier": "^3.7.4",
     "typescript": "5.9.3"

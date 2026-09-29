@@ -1,6 +1,6 @@
-import type { ServiceArguments } from "../../contracts.js";
-import { BiawsError } from "../../errors.js";
-import { cleanParams, fetchJson, sendJson } from "../../httpClient.js";
+import type { ServiceArguments } from "../../mcp/tools/contracts.js";
+import { BiawsError } from "../../runtime/errors.js";
+import { cleanParams, fetchJson, sendJson } from "../../api/httpClient.js";
 
 function requiredId(args: Record<string, unknown>, field: string) {
   const value = String(args?.[field] || "").trim();

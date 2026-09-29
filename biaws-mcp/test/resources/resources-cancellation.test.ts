@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { currentRequestSignal } from "../../src/requestContext.js";
+import { currentRequestSignal } from "../../src/runtime/requestContext.js";
 import { connectTestServer } from "../helpers/sdk.js";
 import { required } from "../helpers/types.js";
 import { W } from "./resources.fixtures.js";

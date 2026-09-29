@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fetchJson } from "../../../src/httpClient.js";
-import { runWithRequestContext } from "../../../src/requestContext.js";
+import { fetchJson } from "../../../src/api/httpClient.js";
+import { runWithRequestContext } from "../../../src/runtime/requestContext.js";
 import { errorInfo, required } from "../../helpers/types.js";
 test("MCP HTTP client times out stalled responses", async () => {
   const originalFetch = globalThis.fetch;

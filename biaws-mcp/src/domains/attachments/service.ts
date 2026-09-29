@@ -4,15 +4,15 @@ type AttachmentArguments = ServiceArguments<
   | "attachments_update_tags"
   | "attachments_delete"
 >;
-import type { ServiceArguments } from "../../contracts.js";
-import { BiawsError } from "../../errors.js";
+import type { ServiceArguments } from "../../mcp/tools/contracts.js";
+import { BiawsError } from "../../runtime/errors.js";
 import {
   cleanParams,
   deleteJson,
   fetchBinary,
   sendJson,
   sendMultipart,
-} from "../../httpClient.js";
+} from "../../api/httpClient.js";
 
 const DEFAULT_MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 const HARD_MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;

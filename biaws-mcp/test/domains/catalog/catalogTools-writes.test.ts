@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 import { jsonResponse } from "./catalogTools.fixtures.js";
 test("catalog write tools use POST/PATCH and keep scope ids out of payloads", async () => {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { monitoringTools } from "../../../src/domains/monitoring/tools.js";
-import { listTools } from "../../../src/tools.js";
+import { listTools } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 test("monitoring tools are registered once with closed top-level schemas", () => {
   const expected = [

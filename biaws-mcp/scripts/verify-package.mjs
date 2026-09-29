@@ -73,7 +73,7 @@ for (const required of [
   "README.md",
   "docs/releasing.md",
   "dist/src/index.js",
-  "dist/src/loadEnv.js",
+  "dist/src/config/loadEnv.js",
 ]) {
   await access(path.join(packageDirectory, required));
 }

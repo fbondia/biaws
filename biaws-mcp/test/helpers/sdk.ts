@@ -1,7 +1,10 @@
 import { Client, type ClientOptions } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
-import { createBiawsMcpServer, type McpOptions } from "../../src/mcpServer.js";
+import {
+  createBiawsMcpServer,
+  type McpOptions,
+} from "../../src/mcp/mcpServer.js";
 
 export async function connectTestServer(
   options: McpOptions = {},

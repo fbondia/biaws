@@ -3,9 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
-import { loadEnv } from "./loadEnv.js";
-import { createLogger } from "./logger.js";
-import { createBiawsMcpServer } from "./mcpServer.js";
+import { loadEnv } from "./config/loadEnv.js";
+import { createLogger } from "./runtime/logger.js";
+import { createBiawsMcpServer } from "./mcp/mcpServer.js";
 import { SERVER_NAME, SERVER_VERSION } from "./version.js";
 
 const TOOL_DIR = path.resolve(

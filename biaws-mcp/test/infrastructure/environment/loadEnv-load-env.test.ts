@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { loadEnv } from "../../../src/loadEnv.js";
+import { loadEnv } from "../../../src/config/loadEnv.js";
 test("published MCP loads explicit credentials and preserves project scope", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "biaws-mcp-env-"));
   const tool = path.join(root, "biaws-mcp");

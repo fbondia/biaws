@@ -1,7 +1,7 @@
-import type { ApiEntity } from "../../apiContracts.js";
-import type { ServiceArguments } from "../../contracts.js";
-import { BiawsError } from "../../errors.js";
-import { cleanParams, fetchJson, sendJson } from "../../httpClient.js";
+import type { ApiEntity } from "../../api/apiContracts.js";
+import type { ServiceArguments } from "../../mcp/tools/contracts.js";
+import { BiawsError } from "../../runtime/errors.js";
+import { cleanParams, fetchJson, sendJson } from "../../api/httpClient.js";
 import { DOCUMENT_TYPE_CATALOG } from "./documentTypeCatalog.js";
 
 const BASE_PATH = "/api/knowledge/documents";

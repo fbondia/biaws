@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fetchJson } from "../../../src/httpClient.js";
+import { fetchJson } from "../../../src/api/httpClient.js";
 test("MCP HTTP client sends the explicit workspace context", async () => {
   const originalFetch = globalThis.fetch;
   const originalWorkspaceId = process.env.BIAWS_WORKSPACE_ID;

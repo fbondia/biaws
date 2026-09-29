@@ -1,6 +1,6 @@
-import type { ServiceArguments } from "../../contracts.js";
-import { BiawsError } from "../../errors.js";
-import { deleteJson, sendJson } from "../../httpClient.js";
+import type { ServiceArguments } from "../../mcp/tools/contracts.js";
+import { BiawsError } from "../../runtime/errors.js";
+import { deleteJson, sendJson } from "../../api/httpClient.js";
 
 const RESOURCE_TYPES = new Set([
   "applications",

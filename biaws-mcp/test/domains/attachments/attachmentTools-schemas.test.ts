@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { listTools } from "../../../src/tools.js";
+import { listTools } from "../../../src/mcp/tools/tools.js";
 test("attachment tools expose the four supported file operations", () => {
   const tools = listTools().filter(({ name }) =>
     name.startsWith("attachments_"),

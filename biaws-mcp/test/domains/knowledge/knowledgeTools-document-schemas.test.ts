@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DOCUMENT_TYPE_CATALOG as MCP_DOCUMENT_TYPE_CATALOG } from "../../../src/domains/knowledge/documentTypeCatalog.js";
 import { knowledgeTools } from "../../../src/domains/knowledge/tools.js";
-import { listTools } from "../../../src/tools.js";
+import { listTools } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 import { SHARED_DOCUMENT_TYPE_CATALOG } from "./knowledgeTools.fixtures.js";
 test("document tools expose one bounded discriminated knowledge API", () => {

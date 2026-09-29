@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 import { jsonResponse } from "./attachmentTools.fixtures.js";
 test("attachments_upload sends files and tags through the existing multipart API", async () => {

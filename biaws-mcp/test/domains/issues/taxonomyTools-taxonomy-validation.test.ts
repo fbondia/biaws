@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { response, taxonomyPayload } from "./taxonomyTools.fixtures.js";
 test("rejects duplicate, missing parent and empty taxonomy updates before writing", async () => {
   const originalFetch = globalThis.fetch;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { dispatchTool } from "../../../src/tools.js";
+import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { errorInfo } from "../../helpers/types.js";
 import { jsonResponse } from "./attachmentTools.fixtures.js";
 test("attachment downloads enforce the configured MCP byte limit", async () => {

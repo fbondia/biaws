@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isRecord } from "../../src/errors.js";
+import { isRecord } from "../../src/runtime/errors.js";
 import { connectTestServer } from "../helpers/sdk.js";
 import { required, textContent, toolPayload } from "../helpers/types.js";
 import { replacements } from "./readMigration.fixtures.js";

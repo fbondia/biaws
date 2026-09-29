@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BiawsError } from "../../../src/errors.js";
-import { createLogger } from "../../../src/logger.js";
+import { BiawsError } from "../../../src/runtime/errors.js";
+import { createLogger } from "../../../src/runtime/logger.js";
 import { captureStream } from "./logger.fixtures.js";
 test("structured logger writes correlated JSON and redacts secrets", () => {
   const capture = captureStream();

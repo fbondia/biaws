@@ -1,6 +1,6 @@
 import type { ResourceLink } from "@modelcontextprotocol/server";
-import { apiEntitySchema, type ApiEntity } from "./apiContracts.js";
-import { isRecord } from "./errors.js";
+import { apiEntitySchema, type ApiEntity } from "../../api/apiContracts.js";
+import { isRecord } from "../../runtime/errors.js";
 
 function link(uri: string, item: ApiEntity): ResourceLink {
   return {

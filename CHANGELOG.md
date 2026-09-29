@@ -8,6 +8,12 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- API atualizada de `0.5.0` para `0.6.0` e MCP de `0.11.0` para `0.12.0`,
+  consolidando as refatorações TypeScript, os contratos Zod e OpenAPI da API
+  e a integração do MCP com o SDK oficial; versões de contratos, handshake,
+  descoberta, exemplos e referência do CLI sincronizadas; guia de versionamento
+  atualizado com build, testes compilados e validação OpenAPI;
+
 - API atualizada de `0.4.0` para `0.5.0` e MCP de `0.10.0` para `0.11.0`,
   incluindo resources hierárquicos, resolução de ID ou identificador e
   organização das rotas e repositories por domínio; handshake, exemplos e

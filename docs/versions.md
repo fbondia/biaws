@@ -6,7 +6,7 @@ mesmo significado operacional:
 
 | Componente               | Pacote                | Uso da versão                                                    |
 | ------------------------ | --------------------- | ---------------------------------------------------------------- |
-| `biaws-api`              | privado               | metadado npm do componente; não é exposto pelo runtime           |
+| `biaws-api`              | privado               | metadado npm e versão do documento OpenAPI                       |
 | `biaws-ui`               | privado               | metadado npm do componente; não é exposto pelo bundle            |
 | `biaws-mcp`              | público (`biaws-mcp`) | pacote npm e versão anunciada no handshake MCP                   |
 | `biaws-cli`              | público (`biaws`)     | pacote npm e versão da release da plataforma implantada pelo CLI |
@@ -59,25 +59,43 @@ Arquivos obrigatórios:
 
 - `biaws-api/package.json`;
 - `biaws-api/package-lock.json`, tanto `version` na raiz quanto
-  `packages[""].version`.
+  `packages[""].version`;
+- `info.version` no gerador `biaws-api/src/contracts/openapi.ts`;
+- `biaws-api/openapi/openapi.json`, regenerado com `npm run openapi:generate`;
+- `sonar.projectVersion` em `biaws-api/sonar-project.properties.example` e a
+  referência correspondente em `biaws-api/docs/api-review-sonar.md`.
 
-Hoje não há constante nem teste com a versão da API fixada no código. O endpoint
+A versão independente da API é exposta no documento OpenAPI quando a
+documentação está habilitada. O endpoint
 `/api/health` não lê `biaws-api/package.json`: ele devolve `BIAWS_VERSION`,
 recebida pelo serviço `api` em `compose.yaml`. Essa variável representa a
 **release da plataforma**, descrita na seção do CLI, e não a versão independente
 do pacote da API. Portanto, não altere `.env.example`, `compose.yaml` ou testes
 de `BIAWS_VERSION` ao fazer somente um bump da API.
 
-Validação do componente:
+A API usa TypeScript estrito e executa JavaScript compilado em produção,
+inclusive nos comandos de bootstrap, seed e migração. O build emite
+`dist/biaws-api/src`; `npm run check` verifica a tipagem sem emitir arquivos.
+
+Validação do componente (com MongoDB de teste disponível):
 
 ```bash
 cd biaws-api
+export BIAWS_INTEGRATION_MONGO_URI=mongodb://127.0.0.1:27017/biaws_release_test
+export BIAWS_HTTP_INTEGRATION=1
 npm ci
 npm run format:check
 npm run check
+npm run openapi:check
+npm run build
 npm test
+npm run test:compiled
 npm audit --omit=dev --audit-level=high
 ```
+
+`npm run test:compiled` recompila fontes e testes e executa a suíte compilada.
+Sem as variáveis acima, as integrações MongoDB e a jornada HTTP não são
+exercitadas integralmente. Use um banco exclusivo para os testes.
 
 Como a API é empacotada por `docker/api.Dockerfile`, valide também a imagem
 quando houver release/deploy do componente:
@@ -131,8 +149,12 @@ docker compose --env-file instances/<instancia>/.env \
 O MCP possui mais de uma cópia intencional da versão. Atualize em conjunto:
 
 - `biaws-mcp/package.json` e `biaws-mcp/package-lock.json`;
-- `SERVER_VERSION` em `biaws-mcp/src/version.js`;
-- a expectativa do handshake em `biaws-mcp/test/index.test.js`;
+- `SERVER_VERSION` em `biaws-mcp/src/version.ts`;
+- as expectativas da versão em
+  `biaws-mcp/test/infrastructure/protocol/index-stdio.test.ts` e
+  `biaws-mcp/test/infrastructure/protocol/mcpServer-discovery.test.ts`;
+- `sonar.projectVersion` em `biaws-mcp/sonar-project.properties.example` e a
+  referência correspondente em `biaws-mcp/docs/releasing.md`;
 - exemplos fixados como `biaws-mcp@<versao>` em `README.md`, `QUICKSTART.md` e
   `biaws-mcp/README.md`, se existirem;
 - `MCP_PACKAGE_VERSION` em `biaws-cli/src/commands/agent.js`, pois o CLI grava
@@ -144,6 +166,13 @@ O script `biaws-mcp/scripts/verify-package.mjs` compara o manifesto, o lock e
 manifesto. O verificador do pacote CLI compara `MCP_PACKAGE_VERSION` com o
 manifesto local do MCP. Esses scripts são verificadores: não mude suas regras
 durante um bump normal.
+
+O MCP também usa TypeScript estrito. `npm run release:check` verifica
+formatação e tipagem, compila, executa os testes e verifica o pacote.
+`npm pack` recompila pelo hook `prepack`; o tarball contém `dist/src` e
+o bootstrap `bin/biaws-mcp.js`, sem fontes TypeScript, testes ou compilador.
+O smoke do tarball usa o cliente oficial para verificar handshake e descoberta
+nas duas eras do protocolo, conforme `biaws-mcp/docs/releasing.md`.
 
 Execute:
 
@@ -303,7 +332,8 @@ do deploy.
 - [ ] `package.json`, `package-lock.json` e `packages[""]` têm a mesma versão;
 - [ ] referências fixas encontradas por `rg` foram classificadas e atualizadas
       quando pertencem ao componente;
-- [ ] `SERVER_VERSION`, teste de handshake e documentação foram atualizados no
+- [ ] versão do gerador OpenAPI e artefato regenerado acompanham o bump da API;
+- [ ] `SERVER_VERSION`, testes de handshake/descoberta e documentação foram atualizados no
       bump do MCP;
 - [ ] `MCP_PACKAGE_VERSION` aponta para uma versão do MCP que será publicada
       antes do CLI;

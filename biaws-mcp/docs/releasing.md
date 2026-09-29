@@ -88,7 +88,7 @@ Execute a suíte completa além da seleção do domínio alterado.
 
 A configuração local `sonar-project.properties` é ignorada por conter a
 credencial da instância. O modelo sem segredos está em
-`sonar-project.properties.example`: projeto BIAWS-MCP, versão 0.11.0, fontes em
+`sonar-project.properties.example`: projeto BIAWS-MCP, versão 0.12.0, fontes em
 `src`, testes TypeScript em `test`, tsconfig estrito e exclusão de build,
 node_modules e coverage. Configure o token por ambiente ou na configuração
 local; nunca o inclua em evidências. O fluxo não gera nem importa LCOV.

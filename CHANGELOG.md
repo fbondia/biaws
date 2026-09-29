@@ -8,6 +8,9 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- CLI atualizado de `0.4.0` para `0.5.0`, incluindo a gestão de atualização
+  de instalações por manifesto de release.
+
 - Atualização de instalações passa a comparar `release.json` e o manifesto
   aplicado, com versões independentes de API, UI e executor e revisão de
   implantação; a versão da plataforma deixa de ser determinada pelo CLI.

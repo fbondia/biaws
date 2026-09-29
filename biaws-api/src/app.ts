@@ -33,6 +33,8 @@ import { secretsRouter } from "./routes/secrets/index.js";
 import { resourceCollectionsRouter } from "./routes/resourceCollections/index.js";
 import { knowledgeRecordsRouter } from "./routes/knowledgeRecords/index.js";
 import { userPreferencesRouter } from "./routes/userPreferences/index.js";
+import { installRouteContracts } from "./contracts/routeContracts.js";
+import { contractRouters } from "./contracts/routers.js";
 import {
   rejectDatabaseOverride,
   requireIdentityAdminOperation,
@@ -51,6 +53,7 @@ function ensureIssueStorage() {
 export function createApp({ logger = apiLogger } = {}) {
   ensureIssueStorage();
   createAttachmentStorage();
+  installRouteContracts(contractRouters);
   const app = express();
 
   app.disable("x-powered-by");

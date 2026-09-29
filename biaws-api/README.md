@@ -30,6 +30,8 @@ mutações, normalização, contexto, índices e recursos filhos compõem as ope
 públicas expostas pelos `index.ts`. As leituras granulares de resources pertencem
 a issues, melhorias e documentos; mecanismos comuns ficam em `repositories/shared`.
 Consulte [src/repositories/README.md](src/repositories/README.md).
+Os contratos Zod de entrada e resposta estão em
+[docs/http-contracts.md](docs/http-contracts.md).
 
 ## TypeScript e execução
 

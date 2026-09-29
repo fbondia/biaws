@@ -12,6 +12,7 @@ import { Readable } from "node:stream";
 import test from "node:test";
 
 import { COLLECTION_NAMES } from "../../src/database/collectionNames.js";
+import { demandResponseSchema } from "../../src/contracts/domainSchemas.js";
 
 const integrationEnabled = Boolean(process.env.BIAWS_INTEGRATION_MONGO_URI);
 
@@ -121,6 +122,11 @@ test(
         affectedComponentIds: [component.id],
       });
       assert.ok(demand.request);
+      assert.equal(
+        demandResponseSchema.safeParse(JSON.parse(JSON.stringify(demand)))
+          .success,
+        true,
+      );
       const withTask = await createRequestTask(demand.request.id, {
         title: "Inherited context",
       });

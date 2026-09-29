@@ -5,6 +5,7 @@ import {
 } from "../support/integration.js";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { issueResponseSchema } from "../../src/contracts/domainSchemas.js";
 
 const integrationEnabled = Boolean(process.env.BIAWS_INTEGRATION_MONGO_URI);
 
@@ -42,6 +43,12 @@ test(
           applicationId: application.id,
         },
         query,
+      );
+      assert.equal(
+        issueResponseSchema.safeParse(
+          JSON.parse(JSON.stringify({ issue: created.issue })),
+        ).success,
+        true,
       );
       const withComment = await createIssueComment(
         created.issueId,

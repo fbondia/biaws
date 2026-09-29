@@ -17,16 +17,16 @@ test(
     const { closeMongoClient, getMongoDatabase } =
       await import("../src/helpers/mongoClient.js");
     const { ensureDefaultWorkspace } =
-      await import("../src/repositories/catalogRepository.js");
+      await import("../src/repositories/catalog/index.js");
     const { INITIAL_PERMISSION_GROUPS } =
-      await import("../src/repositories/accessRepository.js");
+      await import("../src/repositories/access/index.js");
     const {
       getWorkspaceSummary,
       provisionWorkspace,
       removeWorkspaceMember,
       setWorkspaceMemberGroups,
       setWorkspaceStatus,
-    } = await import("../src/repositories/platformWorkspaceRepository.js");
+    } = await import("../src/repositories/catalog/workspaces/platform.js");
 
     const db = await getMongoDatabase();
     try {

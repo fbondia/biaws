@@ -16,22 +16,22 @@ import {
   createErrorHandler,
   createRequestLoggingMiddleware,
 } from "./logging/httpLogging.js";
-import { issuesRouter } from "./routes/issues.js";
-import { requestsRouter } from "./routes/requests.js";
-import { skillsRouter } from "./routes/skills.js";
-import { accessRouter } from "./routes/access.js";
-import { identityRouter } from "./routes/identity.js";
-import { auditRouter } from "./routes/audit.js";
-import { optionListsRouter } from "./routes/optionLists.js";
-import { catalogRouter } from "./routes/catalog.js";
-import { catalogTopologyRouter } from "./routes/catalogTopology.js";
-import { monitoringRouter } from "./routes/monitoring.js";
-import { homeRouter } from "./routes/home.js";
-import { platformRouter } from "./routes/platform.js";
-import { secretsRouter } from "./routes/secrets.js";
-import { resourceCollectionsRouter } from "./routes/resourceCollections.js";
-import { knowledgeRecordsRouter } from "./routes/knowledgeRecords.js";
-import { userPreferencesRouter } from "./routes/userPreferences.js";
+import { issuesRouter } from "./routes/issues/index.js";
+import { requestsRouter } from "./routes/requests/index.js";
+import { skillsRouter } from "./routes/skills/index.js";
+import { accessRouter } from "./routes/access/index.js";
+import { identityRouter } from "./routes/identity/index.js";
+import { auditRouter } from "./routes/audit/index.js";
+import { optionListsRouter } from "./routes/optionLists/index.js";
+import { catalogRouter } from "./routes/catalog/index.js";
+import { catalogTopologyRouter } from "./routes/catalogTopology/index.js";
+import { monitoringRouter } from "./routes/monitoring/index.js";
+import { homeRouter } from "./routes/home/index.js";
+import { platformRouter } from "./routes/platform/index.js";
+import { secretsRouter } from "./routes/secrets/index.js";
+import { resourceCollectionsRouter } from "./routes/resourceCollections/index.js";
+import { knowledgeRecordsRouter } from "./routes/knowledgeRecords/index.js";
+import { userPreferencesRouter } from "./routes/userPreferences/index.js";
 import {
   rejectDatabaseOverride,
   requireIdentityAdminOperation,

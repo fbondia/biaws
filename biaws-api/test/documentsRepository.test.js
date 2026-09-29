@@ -7,7 +7,7 @@ import {
   documentTypeConfig,
   normalizeDocumentPayload,
   restoredDocumentStatus,
-} from "../src/repositories/documentsRepository.js";
+} from "../src/repositories/documents/index.js";
 
 test("documents keep type-specific lifecycle states in one model", () => {
   assert.deepEqual(documentTypeConfig("business-rule").statuses, [

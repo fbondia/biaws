@@ -8,7 +8,7 @@ import {
   normalizeDiagramNodes,
   normalizeDiagramPayload,
   normalizeDiagramVisibilityIds,
-} from "../src/repositories/topologyDiagramsRepository.js";
+} from "../src/repositories/topologyDiagrams/index.js";
 
 test("topology diagrams normalize node positions and typed edges", () => {
   const nodes = normalizeDiagramNodes([

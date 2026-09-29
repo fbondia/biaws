@@ -3,7 +3,7 @@ import {
   actorHasWorkspaceScope,
 } from "../auth/authorizationMiddleware.js";
 import { apiLogger, serializeError } from "../logging/logger.js";
-import { resolveUserAuthorization } from "../repositories/accessRepository.js";
+import { resolveUserAuthorization } from "../repositories/access/index.js";
 
 export const MAX_REPLICATION_WORKSPACES = 20;
 

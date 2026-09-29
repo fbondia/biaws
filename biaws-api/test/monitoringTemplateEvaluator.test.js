@@ -5,7 +5,7 @@ import {
   evaluateMonitoringTemplate,
   normalizeMonitoringTemplateDefinition,
   sanitizeMonitoringTemplateSample,
-} from "../src/repositories/monitoringTemplateEvaluator.js";
+} from "../src/repositories/monitoring/templates/legacyEvaluator.js";
 
 const definition = {
   rules: [

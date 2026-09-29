@@ -15,6 +15,22 @@ do próprio repositório, nesta precedência:
 - `biaws/.env`
 - `biaws/biaws-api/.env`, se existir
 
+## Organização das rotas
+
+`src/routes/<domínio>/index.js` compõe explicitamente o router. Cada endpoint
+fica em um arquivo próprio, com método, caminho, autorização, handler e auditoria.
+Filhos como comentários, tarefas e anexos ficam em subpastas do domínio.
+Os mecanismos comuns ficam em `src/routes/shared`, incluindo tratamento de erros,
+resolução de referências e resposta das leituras granulares.
+
+Consulte [src/routes/README.md](src/routes/README.md) para adicionar endpoints.
+
+Os repositories também são organizados por domínio. Módulos de consultas,
+mutações, normalização, contexto, índices e recursos filhos compõem as operações
+públicas expostas pelos `index.js`. As leituras granulares de resources pertencem
+a issues, melhorias e documentos; mecanismos comuns ficam em `repositories/shared`.
+Consulte [src/repositories/README.md](src/repositories/README.md).
+
 ## Ambiente
 
 Copie `.env.example` da raiz para `.env` e ajuste os valores locais. O arquivo é compartilhado pela API e pelo MCP; quando necessário, `biaws-api/.env` pode sobrescrever valores apenas para a API. A UI possui seu próprio `biaws-ui/.env.example`, conforme o carregamento padrão do Vite.
@@ -97,6 +113,14 @@ e a matriz de grupos em
 backend está em [`docs/authorization.md`](docs/authorization.md). O modelo de
 tenancy e o cabeçalho de seleção de workspace estão em
 [`docs/authorization-scopes.md`](docs/authorization-scopes.md).
+
+## Referências e leituras hierárquicas
+
+Os parâmetros de entidade aceitam ID ou identificador de negócio, com ID tendo precedência. A resolução preserva o workspace, os escopos de aplicação e o vínculo com o pai. Melhorias usam `clientCode`, tarefas usam `code` dentro da melhoria, documentos usam `identifier`, e issues podem receber um `identifier` opcional como `INC12345`. Catálogo e topologia usam `key` quando aplicável. Referências ambíguas retornam 409; itens ausentes ou fora do escopo retornam 404.
+
+A API oferece consultas granulares de comentários, classificação, especificação, checklist, jornadas, notas, tarefas, revisões, observações e arquivos. Os caminhos HTTP existentes e suas escritas continuam disponíveis. O [catálogo de resources do MCP](../biaws-mcp/docs/resources.md) lista cada leitura e seu endpoint HTTP correspondente.
+
+Os novos endpoints de metadados de arquivos retornam somente metadados públicos. Arquivos de tarefas têm rotas próprias, usam `tasks.attachment.*` e mantêm na API a associação por tag do código da tarefa.
 
 ## Endpoints
 

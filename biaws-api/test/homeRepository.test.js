@@ -9,7 +9,7 @@ import {
   HOME_WIDGET_CATALOG,
   normalizeHomeWidgets,
   pendingTasksPagination,
-} from "../src/repositories/homeRepository.js";
+} from "../src/repositories/home/index.js";
 
 const actor = {
   permissions: ["issues.read", "demands.read", "runtimes.read"],

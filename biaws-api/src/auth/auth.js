@@ -7,7 +7,7 @@ import { admin } from "better-auth/plugins";
 import { getServerConfig } from "../config.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoClient, resolveDatabaseName } from "../helpers/mongoClient.js";
-import { resolveUserAuthorization } from "../repositories/accessRepository.js";
+import { resolveUserAuthorization } from "../repositories/access/index.js";
 import { platformPermissionsForTechnicalRole } from "./authorizationMiddleware.js";
 import { ensureAuthIndexes } from "./authIndexes.js";
 import { hashPassword, verifyPassword } from "./password.js";

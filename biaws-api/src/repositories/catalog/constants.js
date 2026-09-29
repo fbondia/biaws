@@ -1,0 +1,5 @@
+import { COLLECTION_NAMES } from "../../database/collectionNames.js";
+
+export const WORKSPACES_COLLECTION = COLLECTION_NAMES.WORKSPACES;
+
+export const APPLICATIONS_COLLECTION = COLLECTION_NAMES.APPLICATIONS;

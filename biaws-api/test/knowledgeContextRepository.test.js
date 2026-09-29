@@ -6,7 +6,7 @@ import {
   knowledgeContextMetadata,
   normalizeAffectedComponentIds,
   resolveKnowledgeContext,
-} from "../src/repositories/knowledgeContextRepository.js";
+} from "../src/repositories/shared/knowledgeContext.js";
 
 function fakeDatabase({ workspace, application, components = [] }) {
   const collections = {

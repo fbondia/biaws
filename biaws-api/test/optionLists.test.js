@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   normalizeOptionListPayload,
   optionListReplicationPayload,
-} from "../src/repositories/optionListsRepository.js";
+} from "../src/repositories/optionLists/index.js";
 
 test("normalizes, orders and preserves option metadata", () => {
   const list = normalizeOptionListPayload({

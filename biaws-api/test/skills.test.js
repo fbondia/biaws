@@ -5,7 +5,7 @@ import {
   compareSemver,
   normalizeSkillPayload,
   skillReplicationPayload,
-} from "../src/repositories/skillsRepository.js";
+} from "../src/repositories/skills/index.js";
 
 test("normalizes a versioned skill package and calculates checksums", () => {
   const skill = normalizeSkillPayload({

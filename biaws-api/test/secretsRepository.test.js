@@ -5,7 +5,7 @@ import {
   normalizeSecretIdentifier,
   normalizeSecretPayload,
   publicSecret,
-} from "../src/repositories/secretsRepository.js";
+} from "../src/repositories/secrets/index.js";
 
 test("secret metadata validation accepts supported values", () => {
   assert.deepEqual(

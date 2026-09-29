@@ -1,4 +1,4 @@
-import { buildKnowledgeContextFilter } from "../repositories/knowledgeContextRepository.js";
+import { buildKnowledgeContextFilter } from "../repositories/shared/knowledgeContext.js";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 25;

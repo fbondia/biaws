@@ -18,7 +18,7 @@ test(
       await import("../src/helpers/mongoClient.js");
     const { seedDemoData } = await import("../src/scripts/seedDemo.js");
     const { listRequests } =
-      await import("../src/repositories/requestsRepository.js");
+      await import("../src/repositories/requests/index.js");
     const db = await getMongoDatabase();
 
     try {

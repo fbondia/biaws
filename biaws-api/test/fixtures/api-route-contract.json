@@ -1,0 +1,1265 @@
+{
+  "accessRouter": [
+    {
+      "path": "/permissions",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/groups",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/groups/:groupId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/groups",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/groups/:groupId/replicate",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/groups/:groupId",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/groups/:groupId/status",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/users/:userId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/users/:userId/groups",
+      "methods": ["put"],
+      "handlers": 2
+    }
+  ],
+  "auditRouter": [
+    {
+      "path": "/:entityType/:entityId",
+      "methods": ["get"],
+      "handlers": 2
+    }
+  ],
+  "catalogRouter": [
+    {
+      "path": "/workspaces",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "middleware": "requireWorkspaceContext"
+    },
+    {
+      "path": "/workspaces/:workspaceId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/workspaces/:workspaceId/applications",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/workspaces/:workspaceId/applications",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/applications/:applicationId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/collection",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/archive",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/restore",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/permanent",
+      "methods": ["delete"],
+      "handlers": 2
+    }
+  ],
+  "catalogTopologyRouter": [
+    {
+      "path": "/deployments/:deploymentId/publications",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/context",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/applications/:applicationId/components",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/applications/:applicationId/components",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/components/:componentId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/components/:componentId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/components/:componentId/archive",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/integrations",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/applications/:applicationId/integrations",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/integrations/:integrationId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/integrations/:integrationId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/integrations/:integrationId/archive",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/repositories",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/applications/:applicationId/repositories",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/repositories/:repositoryId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/repositories/:repositoryId/components",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/repositories/:repositoryId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/repositories/:repositoryId/archive",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/workspaces/:workspaceId/servers",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/workspaces/:workspaceId/servers",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/servers/:serverId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/servers/:serverId/runtimes",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/servers/:serverId/deployments",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/servers/:serverId/collection",
+      "methods": ["patch"],
+      "handlers": 3
+    },
+    {
+      "path": "/servers/:serverId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/servers/:serverId/archive",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/servers/:serverId/restore",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/servers/:serverId/permanent",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/deployments",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/applications/:applicationId/deployments",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/deployments/:deploymentId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/deployments/:deploymentId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/deployments/:deploymentId/publications",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/deployments/:deploymentId/archive",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/deployments/:deploymentId/runtimes",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/deployments/:deploymentId/runtimes",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeId/archive",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/topology-diagrams",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/applications/:applicationId/topology-diagrams",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/topology-diagrams/:diagramId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/topology-diagrams/:diagramId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/components/:componentId/restore",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/components/:componentId/permanent",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/integrations/:integrationId/restore",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/integrations/:integrationId/permanent",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/repositories/:repositoryId/restore",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/repositories/:repositoryId/permanent",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/deployments/:deploymentId/restore",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/deployments/:deploymentId/permanent",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeId/restore",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeId/permanent",
+      "methods": ["delete"],
+      "handlers": 2
+    }
+  ],
+  "homeRouter": [
+    {
+      "path": "/",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/monitoring",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/pending-tasks",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/configuration",
+      "methods": ["put"],
+      "handlers": 1
+    }
+  ],
+  "identityRouter": [
+    {
+      "path": "/users",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/users",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/users/:userId/disabled",
+      "methods": ["patch"],
+      "handlers": 3
+    },
+    {
+      "path": "/users/:userId/password",
+      "methods": ["put"],
+      "handlers": 3
+    },
+    {
+      "path": "/users/:userId/sessions",
+      "methods": ["delete"],
+      "handlers": 3
+    }
+  ],
+  "issuesRouter": [
+    {
+      "path": "/imports/eml/sanitization",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/imports/eml/sanitization",
+      "methods": ["put"],
+      "handlers": 3
+    },
+    {
+      "path": "/",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/imports/eml",
+      "methods": ["post"],
+      "handlers": 5
+    },
+    {
+      "path": "/summary",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/aggregate",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/taxonomy",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/taxonomy",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/:id/attachments/:attachmentId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments/:attachmentId",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments/:attachmentId/tags",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/comments",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/comments/:commentId",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/by-taxonomy/:taxonomyId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/classification",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/comments",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/comments/:commentId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/classification",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments/:attachmentId/metadata",
+      "methods": ["get"],
+      "handlers": 2
+    }
+  ],
+  "knowledgeRecordsRouter": [
+    {
+      "path": "/document-types",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/attachments",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/documents/:id/attachments/:attachmentId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/attachments/:attachmentId",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/attachments/:attachmentId/tags",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/replicate",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/revisions",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/observations",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/observations",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/collection",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/permanent",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/restore",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/content",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/references",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/revisions/:revision",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/observations/:observationId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/attachments",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/documents/:id/attachments/:attachmentId/metadata",
+      "methods": ["get"],
+      "handlers": 2
+    }
+  ],
+  "monitoringRouter": [
+    {
+      "path": "/runtimes/:runtimeReference/active-monitors/:monitorId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtime-topology",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtime-targets",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/templates",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/metadata-profiles",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates/preview",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates/:templateId",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates/:templateId",
+      "methods": ["patch"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates/:templateId/versions/:version/usage",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates/:templateId/versions/:version/contract",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates/:templateId/versions/:version/validate",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates/:templateId/versions/:version/activate",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates/:templateId/versions/:version/deactivate",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/templates/:templateId/versions/:version",
+      "methods": ["delete"],
+      "handlers": 3
+    },
+    {
+      "path": "/runtimes/:runtimeReference/active-monitors",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeReference/active-monitors",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeReference/active-monitors/:monitorId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeReference/active-monitors/:monitorId",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeReference/active-monitors/:monitorId/executions",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/executor/leases",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/executor/leases/:leaseToken/renew",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/executor/leases/:leaseToken/results",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeReference/manual-observations",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeReference/signals",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/applications/:applicationId/health",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeReference/health-summary",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeReference/timeline",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/runtimes/:runtimeReference/signals",
+      "methods": ["get"],
+      "handlers": 2
+    }
+  ],
+  "optionListsRouter": [
+    {
+      "path": "/runtime",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:key",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/:key/replicate",
+      "methods": ["post"],
+      "handlers": 2
+    }
+  ],
+  "platformRouter": [
+    {
+      "middleware": "platformAuthorizationMiddleware"
+    },
+    {
+      "path": "/users",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces",
+      "methods": ["post"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId",
+      "methods": ["patch"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId/archive",
+      "methods": ["post"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId/reactivate",
+      "methods": ["post"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId/summary",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId/groups",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId/members",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId/members/:userId",
+      "methods": ["put"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId/members/:userId",
+      "methods": ["delete"],
+      "handlers": 1
+    },
+    {
+      "path": "/workspaces/:workspaceId/audit",
+      "methods": ["get"],
+      "handlers": 2
+    }
+  ],
+  "requestsRouter": [
+    {
+      "path": "/",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/collection-items",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/:id/attachments/:attachmentId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments/:attachmentId",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments/:attachmentId/tags",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/order",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/collection",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/notes",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/notes/:noteId",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/notes/:noteId",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/notes",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/notes/:noteId",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/notes/:noteId",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/specification",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/specification/sections/:sectionId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/checklist",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/journeys",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/notes",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/notes/:noteId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/notes",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/notes/:noteId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/implementation-context",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/attachments/:attachmentId/metadata",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/attachments",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/attachments/:attachmentId/metadata",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/attachments/:attachmentId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/attachments",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/:id/tasks/:taskId/attachments/:attachmentId/tags",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/:id/tasks/:taskId/attachments/:attachmentId",
+      "methods": ["delete"],
+      "handlers": 2
+    }
+  ],
+  "resourceCollectionsRouter": [
+    {
+      "path": "/:resourceType",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:resourceType",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:resourceType/:collectionId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/:resourceType/:collectionId",
+      "methods": ["delete"],
+      "handlers": 2
+    }
+  ],
+  "secretsRouter": [
+    {
+      "path": "/",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/registrations",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/files",
+      "methods": ["post"],
+      "handlers": 3
+    },
+    {
+      "path": "/:secretId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:secretId/collection",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/:secretId",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/:secretId/value",
+      "methods": ["put"],
+      "handlers": 2
+    },
+    {
+      "path": "/:secretId/file",
+      "methods": ["put"],
+      "handlers": 3
+    },
+    {
+      "path": "/:secretId/reveal",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:secretId/copy",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:secretId/download",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:secretId/archive",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:secretId/restore",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:secretId/permanent",
+      "methods": ["delete"],
+      "handlers": 2
+    }
+  ],
+  "skillsRouter": [
+    {
+      "path": "/",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:skillId/collection",
+      "methods": ["patch"],
+      "handlers": 2
+    },
+    {
+      "path": "/",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:skillId",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:skillId/:version/download",
+      "methods": ["get"],
+      "handlers": 2
+    },
+    {
+      "path": "/:skillId/:version/replicate",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
+      "path": "/:skillId/:version/deprecate",
+      "methods": ["patch"],
+      "handlers": 2
+    }
+  ],
+  "userPreferencesRouter": [
+    {
+      "path": "/collection-navigation/:context",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/collection-navigation/:context",
+      "methods": ["patch"],
+      "handlers": 1
+    },
+    {
+      "path": "/monitoring-panel",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "path": "/monitoring-panel",
+      "methods": ["put"],
+      "handlers": 1
+    }
+  ]
+}

@@ -6,8 +6,8 @@ import { getAuth } from "../auth/auth.js";
 import { bootstrapAgent } from "../auth/bootstrapAgent.js";
 import { getServerConfig } from "../config.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
-import { setUserGroups } from "../repositories/accessRepository.js";
-import { ensureDefaultWorkspace } from "../repositories/catalogRepository.js";
+import { setUserGroups } from "../repositories/access/index.js";
+import { ensureDefaultWorkspace } from "../repositories/catalog/index.js";
 
 async function run() {
   const serverConfig = getServerConfig();

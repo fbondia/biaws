@@ -15,23 +15,23 @@ import {
 import {
   createIssue,
   saveIssueClassification,
-} from "../repositories/issuesRepository.js";
-import { listOptionLists } from "../repositories/optionListsRepository.js";
-import { createDocument } from "../repositories/documentsRepository.js";
-import { createResourceCollection } from "../repositories/resourceCollectionsRepository.js";
+} from "../repositories/issues/index.js";
+import { listOptionLists } from "../repositories/optionLists/index.js";
+import { createDocument } from "../repositories/documents/index.js";
+import { createResourceCollection } from "../repositories/resourceCollections/index.js";
 import {
   createRequest,
   createRequestTask,
-} from "../repositories/requestsRepository.js";
+} from "../repositories/requests/index.js";
 import {
   getIssueTaxonomy,
   saveIssueTaxonomy,
-} from "../repositories/taxonomyRepository.js";
+} from "../repositories/issues/taxonomy.js";
 import {
   createApplication,
   ensureDefaultWorkspace,
-} from "../repositories/catalogRepository.js";
-import { createComponent } from "../repositories/componentsRepository.js";
+} from "../repositories/catalog/index.js";
+import { createComponent } from "../repositories/components/index.js";
 
 const SEED_ACTOR = "demo-seed";
 const DEMO_ISSUE_ID = "DEMO-INC-001";

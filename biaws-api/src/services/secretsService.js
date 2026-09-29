@@ -15,8 +15,8 @@ import {
   publicSecret,
   restoreSecretDocument,
   updateSecretDocument,
-} from "../repositories/secretsRepository.js";
-import { assertResourceCollection } from "../repositories/resourceCollectionsRepository.js";
+} from "../repositories/secrets/index.js";
+import { assertResourceCollection } from "../repositories/resourceCollections/index.js";
 import { getSecretProvider } from "../secrets/secretProvider.js";
 import { normalizeUploadFilename } from "./attachmentService.js";
 

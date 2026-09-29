@@ -8,7 +8,7 @@ import {
   INITIAL_PERMISSION_GROUPS,
   normalizeGroupInput,
   permissionGroupReplicationPayload,
-} from "../src/repositories/accessRepository.js";
+} from "../src/repositories/access/index.js";
 import { PERMISSION_CATALOG } from "../../shared/index.js";
 
 function seededField(pipeline, field) {

@@ -9,8 +9,8 @@ import { closeMongoClient } from "../helpers/mongoClient.js";
 import {
   ensureDefaultWorkspace,
   getWorkspace,
-} from "../repositories/catalogRepository.js";
-import { publishSkill } from "../repositories/skillsRepository.js";
+} from "../repositories/catalog/index.js";
+import { publishSkill } from "../repositories/skills/index.js";
 
 const ROOT_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),

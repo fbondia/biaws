@@ -15,9 +15,8 @@ test(
     const { closeMongoClient, getMongoDatabase } =
       await import("../src/helpers/mongoClient.js");
     const { createApplication, ensureDefaultWorkspace } =
-      await import("../src/repositories/catalogRepository.js");
-    const { createIssue } =
-      await import("../src/repositories/issuesRepository.js");
+      await import("../src/repositories/catalog/index.js");
+    const { createIssue } = await import("../src/repositories/issues/index.js");
     const db = await getMongoDatabase();
 
     try {

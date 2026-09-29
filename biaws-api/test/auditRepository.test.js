@@ -6,7 +6,7 @@ import {
   buildAuditFilter,
   calculateAuditChanges,
   sanitizeAuditValue,
-} from "../src/repositories/auditRepository.js";
+} from "../src/repositories/audit/index.js";
 
 test("audit differences contain field paths and previous/new values", () => {
   assert.deepEqual(

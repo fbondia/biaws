@@ -1,3 +1,4 @@
+import { resolveEntityReference } from "../repositories/shared/references.js";
 import crypto from "crypto";
 import { ObjectId } from "mongodb";
 
@@ -7,13 +8,13 @@ import {
   writeIssueMirror,
 } from "../helpers/issueStorage.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
-import { getIssue } from "../repositories/issuesRepository.js";
-import { getDocument } from "../repositories/documentsRepository.js";
-import { getRequest } from "../repositories/requestsRepository.js";
+import { getIssue } from "../repositories/issues/index.js";
+import { getDocument } from "../repositories/documents/index.js";
+import { getRequest } from "../repositories/requests/index.js";
 import {
   buildKnowledgeContextFilter,
   knowledgeContextMetadata,
-} from "../repositories/knowledgeContextRepository.js";
+} from "../repositories/shared/knowledgeContext.js";
 import { createAttachmentStorage } from "../storage/attachmentStorage.js";
 
 const ENTITY_CONFIG = {
@@ -136,7 +137,7 @@ function normalizeTags(value) {
   return tags;
 }
 
-function parseUploadTags(value) {
+export function parseUploadTags(value) {
   if (value === undefined || value === null || value === "") return [];
   if (Array.isArray(value)) return normalizeTags(value);
   try {
@@ -170,6 +171,15 @@ export async function uploadAttachments(
     throw createHttpError(422, "Multipart field 'files' is required");
 
   const config = entityConfig(entityType);
+  entityId = await resolveEntityReference(
+    entityType === "requests"
+      ? "demand"
+      : entityType === "issues"
+        ? "issue"
+        : "document",
+    entityId,
+    query,
+  );
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const filter = {
     ...config.filter(entityId),
@@ -234,6 +244,15 @@ export async function readAttachment(
   query = {},
 ) {
   const config = entityConfig(entityType);
+  entityId = await resolveEntityReference(
+    entityType === "requests"
+      ? "demand"
+      : entityType === "issues"
+        ? "issue"
+        : "document",
+    entityId,
+    query,
+  );
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const document = await db.collection(config.collection).findOne({
     ...config.filter(entityId),
@@ -270,6 +289,15 @@ export async function deleteAttachment(
   query = {},
 ) {
   const config = entityConfig(entityType);
+  entityId = await resolveEntityReference(
+    entityType === "requests"
+      ? "demand"
+      : entityType === "issues"
+        ? "issue"
+        : "document",
+    entityId,
+    query,
+  );
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const filter = {
     ...config.filter(entityId),
@@ -367,6 +395,15 @@ export async function updateAttachmentTags(
   query = {},
 ) {
   const config = entityConfig(entityType);
+  entityId = await resolveEntityReference(
+    entityType === "requests"
+      ? "demand"
+      : entityType === "issues"
+        ? "issue"
+        : "document",
+    entityId,
+    query,
+  );
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const filter = {
     ...config.filter(entityId),

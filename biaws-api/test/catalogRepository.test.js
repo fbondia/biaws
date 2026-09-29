@@ -6,7 +6,7 @@ import {
   buildApplicationFilter,
   buildOperationalWorkspaceFilter,
   normalizeApplicationInput,
-} from "../src/repositories/catalogRepository.js";
+} from "../src/repositories/catalog/index.js";
 import { PERMISSION_CATALOG } from "../../shared/index.js";
 
 test("catalog permissions are part of the canonical catalog", () => {

@@ -3,8 +3,8 @@
 import { getAuth } from "../auth/auth.js";
 import { bootstrapAdmin } from "../auth/bootstrapAdmin.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
-import { setUserGroups } from "../repositories/accessRepository.js";
-import { ensureDefaultWorkspace } from "../repositories/catalogRepository.js";
+import { setUserGroups } from "../repositories/access/index.js";
+import { ensureDefaultWorkspace } from "../repositories/catalog/index.js";
 
 function requireValue(name) {
   const value = String(process.env[name] || "").trim();

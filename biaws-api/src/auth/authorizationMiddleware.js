@@ -1,3 +1,5 @@
+import { resolveEntityReference } from "../repositories/shared/references.js";
+
 function forbidden(res, requiredPermissions) {
   res.status(403).json({
     error: {
@@ -78,7 +80,16 @@ export function requireApplicationAccess(
   permission,
   parameter = "applicationId",
 ) {
-  return function applicationAuthorizationMiddleware(req, res, next) {
+  return async function applicationAuthorizationMiddleware(req, res, next) {
+    try {
+      req.params[parameter] = await resolveEntityReference(
+        "application",
+        req.params[parameter],
+        authorizationQuery(req.actor, permission),
+      );
+    } catch (error) {
+      return next(error);
+    }
     if (
       !actorCanAccessApplication(req.actor, permission, req.params[parameter])
     ) {
@@ -95,7 +106,18 @@ export function requireApplicationAccess(
 }
 
 export function requireApplicationPermissions(...permissions) {
-  return function applicationPermissionsMiddleware(req, res, next) {
+  return async function applicationPermissionsMiddleware(req, res, next) {
+    try {
+      for (const permission of permissions) {
+        req.params.applicationId = await resolveEntityReference(
+          "application",
+          req.params.applicationId,
+          authorizationQuery(req.actor, permission),
+        );
+      }
+    } catch (error) {
+      return next(error);
+    }
     const applicationId = req.params.applicationId;
     if (
       !permissions.every((permission) =>
@@ -148,6 +170,7 @@ export function requireAllPermissions(...requiredPermissions) {
       forbidden(res, requiredPermissions);
       return;
     }
+    req.referencePermissions = requiredPermissions;
     next();
   };
 }
@@ -185,6 +208,7 @@ export function requireBodyFieldPermissions(
       forbidden(res, required);
       return;
     }
+    req.referencePermissions = required;
     next();
   };
 }

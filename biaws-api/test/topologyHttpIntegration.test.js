@@ -8,7 +8,7 @@ import { COLLECTION_NAMES } from "../src/database/collectionNames.js";
 import {
   integratedMonitoringTemplateSeeds,
   migrateIntegratedMonitoringProfiles,
-} from "../src/repositories/monitoringMetadataProfileTemplates.js";
+} from "../src/repositories/monitoring/metadataProfiles/templateSeeds.js";
 
 const integrationEnabled =
   Boolean(process.env.BIAWS_INTEGRATION_MONGO_URI) &&
@@ -44,9 +44,9 @@ test(
     const { closeMongoClient, getMongoDatabase } =
       await import("../src/helpers/mongoClient.js");
     const { setUserGroups } =
-      await import("../src/repositories/accessRepository.js");
+      await import("../src/repositories/access/index.js");
     const { ensureDefaultWorkspace } =
-      await import("../src/repositories/catalogRepository.js");
+      await import("../src/repositories/catalog/index.js");
 
     const database = await getMongoDatabase();
     await database.dropDatabase();

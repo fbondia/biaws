@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { normalizeIntegrationInput } from "../src/repositories/integrationsRepository.js";
+import { normalizeIntegrationInput } from "../src/repositories/integrations/index.js";
 
 test("integration input normalizes its directional application link", () => {
   assert.deepEqual(

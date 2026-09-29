@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { evaluateJsonataIsolated } from "../src/repositories/monitoringJsonataEvaluator.js";
-import { evaluateUnifiedMonitoringTemplate } from "../src/repositories/monitoringUnifiedTemplateEvaluator.js";
-import { normalizeMonitoringTemplateDefinition } from "../src/repositories/monitoringTemplateEvaluator.js";
+import { evaluateJsonataIsolated } from "../src/repositories/monitoring/templates/jsonataEvaluator.js";
+import { evaluateUnifiedMonitoringTemplate } from "../src/repositories/monitoring/templates/unifiedEvaluator.js";
+import { normalizeMonitoringTemplateDefinition } from "../src/repositories/monitoring/templates/legacyEvaluator.js";
 
 function definition(expression) {
   return {
@@ -85,7 +85,7 @@ test("JSONata diagnostics are sanitized and invalid output contracts are rejecte
         "phase",
         "position",
       ]);
-      assert.equal(error.stack.includes("jsonata"), false);
+      assert.doesNotMatch(error.stack, /node_modules[\\/]jsonata[\\/]/u);
       return true;
     },
   );

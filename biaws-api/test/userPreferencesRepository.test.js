@@ -7,7 +7,7 @@ import {
   COLLECTION_NAVIGATION_CONTEXTS,
   normalizeCollectionNavigationMutation,
   normalizeMonitoringPanelMutation,
-} from "../src/repositories/userPreferencesRepository.js";
+} from "../src/repositories/userPreferences/index.js";
 
 test("collection navigation preferences cover every collection surface", () => {
   assert.deepEqual(COLLECTION_NAVIGATION_CONTEXTS, [

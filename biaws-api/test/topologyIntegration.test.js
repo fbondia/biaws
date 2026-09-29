@@ -20,7 +20,7 @@ test(
       ensureDefaultWorkspace,
       getApplication,
       restoreApplication,
-    } = await import("../src/repositories/catalogRepository.js");
+    } = await import("../src/repositories/catalog/index.js");
     const {
       archiveComponent,
       createComponent,
@@ -28,7 +28,7 @@ test(
       getComponent,
       restoreComponent,
       updateComponent,
-    } = await import("../src/repositories/componentsRepository.js");
+    } = await import("../src/repositories/components/index.js");
     const {
       archiveRepository,
       createRepository,
@@ -37,7 +37,7 @@ test(
       listRepositoryComponents,
       restoreRepository,
       updateRepository,
-    } = await import("../src/repositories/repositoriesRepository.js");
+    } = await import("../src/repositories/repositories/index.js");
     const {
       archiveServer,
       createServer,
@@ -47,7 +47,7 @@ test(
       listServerRuntimes,
       restoreServer,
       updateServer,
-    } = await import("../src/repositories/serversRepository.js");
+    } = await import("../src/repositories/servers/index.js");
     const {
       archiveDeployment,
       archiveRuntime,
@@ -65,11 +65,11 @@ test(
       restoreRuntime,
       updateDeployment,
       updateRuntime,
-    } = await import("../src/repositories/deploymentsRepository.js");
+    } = await import("../src/repositories/deployments/index.js");
     const { getApplicationContext } =
-      await import("../src/repositories/catalogContextRepository.js");
+      await import("../src/repositories/catalog/applications/context.js");
     const { getMonitoredRuntimeTopology } =
-      await import("../src/repositories/runtimeActiveMonitoringRepository.js");
+      await import("../src/repositories/monitoring/activeMonitors/index.js");
     const {
       archiveIntegration,
       createIntegration,
@@ -77,13 +77,13 @@ test(
       getIntegration,
       listIntegrations,
       restoreIntegration,
-    } = await import("../src/repositories/integrationsRepository.js");
+    } = await import("../src/repositories/integrations/index.js");
     const {
       createTopologyDiagram,
       getTopologyDiagram,
       listTopologyDiagrams,
       updateTopologyDiagram,
-    } = await import("../src/repositories/topologyDiagramsRepository.js");
+    } = await import("../src/repositories/topologyDiagrams/index.js");
 
     const actor = {
       userId: "integration-user",

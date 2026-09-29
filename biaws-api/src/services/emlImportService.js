@@ -16,13 +16,13 @@ import {
 import {
   activeValues,
   getIssueOptionLists,
-} from "../repositories/optionListsRepository.js";
+} from "../repositories/optionLists/index.js";
 import {
   buildKnowledgeContextFilter,
   knowledgeContextMetadata,
   resolveKnowledgeContext,
-} from "../repositories/knowledgeContextRepository.js";
-import { getEmailSanitizationConfiguration } from "../repositories/emailSanitizationRepository.js";
+} from "../repositories/shared/knowledgeContext.js";
+import { getEmailSanitizationConfiguration } from "../repositories/issues/emailSanitization.js";
 
 const ISSUES_COLLECTION = COLLECTION_NAMES.ISSUES;
 const COMMENTS_COLLECTION = COLLECTION_NAMES.ISSUE_COMMENTS;

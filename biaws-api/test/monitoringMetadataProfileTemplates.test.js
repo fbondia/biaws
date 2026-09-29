@@ -4,8 +4,8 @@ import test from "node:test";
 import {
   integratedMonitoringTemplateSeeds,
   migrateIntegratedMonitoringProfiles,
-} from "../src/repositories/monitoringMetadataProfileTemplates.js";
-import { normalizeMonitoringTemplateDefinition } from "../src/repositories/monitoringTemplateEvaluator.js";
+} from "../src/repositories/monitoring/metadataProfiles/templateSeeds.js";
+import { normalizeMonitoringTemplateDefinition } from "../src/repositories/monitoring/templates/legacyEvaluator.js";
 
 test("integrated profiles become complete unified template definitions", () => {
   const seeds = integratedMonitoringTemplateSeeds();

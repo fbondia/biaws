@@ -8,9 +8,9 @@ import {
 } from "../../../shared/index.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
-import { monitoringExpirationDate } from "../repositories/runtimeMonitoringRepository.js";
-import { ensureRuntimeActiveMonitoringIndexes } from "../repositories/runtimeActiveMonitoringRepository.js";
-import { migrateIntegratedMonitoringProfiles } from "../repositories/monitoringMetadataProfileTemplates.js";
+import { monitoringExpirationDate } from "../repositories/monitoring/events/index.js";
+import { ensureRuntimeActiveMonitoringIndexes } from "../repositories/monitoring/activeMonitors/index.js";
+import { migrateIntegratedMonitoringProfiles } from "../repositories/monitoring/metadataProfiles/templateSeeds.js";
 
 const apply = process.argv.slice(2).includes("--apply");
 

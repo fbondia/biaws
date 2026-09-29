@@ -1,0 +1,21 @@
+import { Router } from "express";
+import { registerListPermissions } from "./listPermissions.js";
+import { registerListGroups } from "./listGroups.js";
+import { registerGetGroup } from "./groups/getGroup.js";
+import { registerCreateGroup } from "./createGroup.js";
+import { registerCreateGroupsReplicate } from "./groups/createGroupsReplicate.js";
+import { registerReplaceGroup } from "./groups/replaceGroup.js";
+import { registerUpdateGroupsStatus } from "./groups/updateGroupsStatus.js";
+import { registerGetUser } from "./users/getUser.js";
+import { registerReplaceUsersGroups } from "./users/replaceUsersGroups.js";
+
+export const accessRouter = Router();
+registerListPermissions(accessRouter);
+registerListGroups(accessRouter);
+registerGetGroup(accessRouter);
+registerCreateGroup(accessRouter);
+registerCreateGroupsReplicate(accessRouter);
+registerReplaceGroup(accessRouter);
+registerUpdateGroupsStatus(accessRouter);
+registerGetUser(accessRouter);
+registerReplaceUsersGroups(accessRouter);

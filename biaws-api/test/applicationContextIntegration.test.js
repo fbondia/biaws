@@ -25,19 +25,19 @@ test(
     const { closeMongoClient, getMongoDatabase } =
       await import("../src/helpers/mongoClient.js");
     const { createApplication, ensureDefaultWorkspace } =
-      await import("../src/repositories/catalogRepository.js");
+      await import("../src/repositories/catalog/index.js");
     const { createComponent } =
-      await import("../src/repositories/componentsRepository.js");
+      await import("../src/repositories/components/index.js");
     const { createIssue, listIssues } =
-      await import("../src/repositories/issuesRepository.js");
+      await import("../src/repositories/issues/index.js");
     const { createRequest, createRequestTask } =
-      await import("../src/repositories/requestsRepository.js");
+      await import("../src/repositories/requests/index.js");
     const { createDocument } =
-      await import("../src/repositories/documentsRepository.js");
+      await import("../src/repositories/documents/index.js");
     const { deleteAttachment, uploadAttachments } =
       await import("../src/services/attachmentService.js");
     const { getApplicationContext } =
-      await import("../src/repositories/catalogContextRepository.js");
+      await import("../src/repositories/catalog/applications/context.js");
 
     const db = await getMongoDatabase();
     try {

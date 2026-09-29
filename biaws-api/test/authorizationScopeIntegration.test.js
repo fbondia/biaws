@@ -21,13 +21,13 @@ test(
       createPermissionGroup,
       resolveUserAuthorization,
       setUserGroups,
-    } = await import("../src/repositories/accessRepository.js");
+    } = await import("../src/repositories/access/index.js");
     const { createApplication, createWorkspace, ensureDefaultWorkspace } =
-      await import("../src/repositories/catalogRepository.js");
+      await import("../src/repositories/catalog/index.js");
     const { createIssue, getIssue, listIssues } =
-      await import("../src/repositories/issuesRepository.js");
+      await import("../src/repositories/issues/index.js");
     const { listAuditEvents, recordAuditEvent } =
-      await import("../src/repositories/auditRepository.js");
+      await import("../src/repositories/audit/index.js");
     const { readAttachment } =
       await import("../src/services/attachmentService.js");
 

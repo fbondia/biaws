@@ -1,0 +1,32 @@
+import { Router } from "express";
+import { registerListUsers } from "./listUsers.js";
+import { registerListWorkspaces } from "./listWorkspaces.js";
+import { registerCreateWorkspace } from "./createWorkspace.js";
+import { registerGetWorkspace } from "./workspaces/getWorkspace.js";
+import { registerUpdateWorkspace } from "./workspaces/updateWorkspace.js";
+import { registerCreateWorkspacesArchive } from "./workspaces/createWorkspacesArchive.js";
+import { registerCreateWorkspacesReactivate } from "./workspaces/createWorkspacesReactivate.js";
+import { registerListWorkspacesSummary } from "./workspaces/listWorkspacesSummary.js";
+import { registerListWorkspacesGroups } from "./workspaces/listWorkspacesGroups.js";
+import { registerListWorkspacesMembers } from "./workspaces/listWorkspacesMembers.js";
+import { registerReplaceWorkspacesMember } from "./workspaces/replaceWorkspacesMember.js";
+import { registerDeleteWorkspacesMember } from "./workspaces/deleteWorkspacesMember.js";
+import { registerListWorkspacesAudit } from "./workspaces/listWorkspacesAudit.js";
+import { requirePlatformPermissions } from "../../auth/authorizationMiddleware.js";
+
+export const platformRouter = Router();
+
+platformRouter.use(requirePlatformPermissions("platform.workspaces.manage"));
+registerListUsers(platformRouter);
+registerListWorkspaces(platformRouter);
+registerCreateWorkspace(platformRouter);
+registerGetWorkspace(platformRouter);
+registerUpdateWorkspace(platformRouter);
+registerCreateWorkspacesArchive(platformRouter);
+registerCreateWorkspacesReactivate(platformRouter);
+registerListWorkspacesSummary(platformRouter);
+registerListWorkspacesGroups(platformRouter);
+registerListWorkspacesMembers(platformRouter);
+registerReplaceWorkspacesMember(platformRouter);
+registerDeleteWorkspacesMember(platformRouter);
+registerListWorkspacesAudit(platformRouter);

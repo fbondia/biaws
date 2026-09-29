@@ -59,6 +59,12 @@ Arquivos enviados ou baixados pelo MCP têm limite padrão de 10 MiB. Defina
 `BIAWS_MCP_MAX_ATTACHMENT_BYTES` para reduzir ou elevar esse limite, respeitado
 o teto de 50 MiB do MCP e o limite independente configurado na API.
 
+## Resources e classificação
+
+O servidor também expõe resources hierárquicos para ler itens, comentários, tarefas, notas, documentos e arquivos. Consulte o [catálogo de resources e endpoints](docs/resources.md). A API aceita ID ou identificador de negócio nos parâmetros aplicáveis; as tools existentes permanecem disponíveis para compatibilidade.
+
+A classificação é proposta pelo agente após ler a issue e o catálogo aplicável como resources. `issues_classify` grava o resultado autorizado; o servidor não solicita sampling.
+
 ## Instalação e execução
 
 O pacote público expõe o executável `biaws-mcp`. Clientes configurados pelo CLI
@@ -290,7 +296,7 @@ paginação. As consultas usam o workspace configurado no MCP.
 - `issues_update_state`: altera status e/ou tipo de uma issue.
 - `issues_update`: altera título, texto, tipo, status, aplicação e componentes
   afetados. Exige ao menos um campo e preserva os campos omitidos.
-- `issues_suggest_taxonomy`: sugere taxonomias aderentes ao texto da issue.
+- `issues_suggest_taxonomy`: busca lexical legada, mantida para compatibilidade; o fluxo principal usa a análise do agente sobre os resources da issue e do catálogo.
 - `issues_classify`: grava classificação/KB em `issues.classification`.
 - `issues_by_taxonomy`: busca issues por assunto/taxonomia, incluindo todos os
   seus descendentes e filtros opcionais de contexto.
@@ -360,13 +366,12 @@ As quatro ferramentas aceitam `entityType` com `issue`, `demand`, `task` ou
 `task`, `entityId` deve ser o ID da melhoria pai e `taskId` deve identificar a
 tarefa por ID ou código.
 
-Como a API ainda não possui uma rota própria de anexos de tarefas, o MCP mantém
-o contrato vigente da UI: armazena o arquivo na melhoria e associa a tarefa por
-uma tag igual ao seu código. O MCP valida essa associação antes de baixar,
-alterar tags ou excluir o arquivo e nunca remove a tag da tarefa por meio de
-`attachments_update_tags`.
+A API expõe rotas próprias de arquivos de tarefas em
+`/api/requests/:id/tasks/:taskId/attachments`. Ela resolve os IDs ou códigos,
+valida a associação e preserva a tag do código da tarefa. O MCP delega essas
+regras à API e usa as permissões `tasks.attachment.*`.
 
-Os arquivos trafegam exclusivamente em Base64 no protocolo MCP. O servidor não
+Nas tools de compatibilidade, os arquivos trafegam em Base64. Resources de conteúdo devolvem texto ou blob conforme o MIME type. O servidor não
 aceita caminhos locais, URLs para download remoto ou referências ao filesystem
 do processo. Todas as operações passam pelas rotas autenticadas da
 `biaws-api`, preservando autorização, escopo e auditoria por domínio.

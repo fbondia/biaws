@@ -2,6 +2,12 @@ import { randomUUID } from "node:crypto";
 
 import { runWithRequestContext } from "./requestContext.js";
 import { SERVER_NAME, SERVER_VERSION } from "./version.js";
+import {
+  listResources as defaultListResources,
+  listResourceTemplates as defaultListResourceTemplates,
+  readResource as defaultReadResource,
+} from "./resources.js";
+import { resourceLinksForTool } from "./resourceLinks.js";
 
 function success(id, result) {
   return { jsonrpc: "2.0", id, result };
@@ -37,13 +43,14 @@ function publicToolError(error) {
   return result;
 }
 
-export function toolResult(result) {
+export function toolResult(result, links = []) {
   return {
     content: [
       {
         type: "text",
         text: JSON.stringify(result, null, 2),
       },
+      ...links,
     ],
     structuredContent: result,
   };
@@ -60,6 +67,9 @@ export function toolErrorResult(error) {
 export function createMcpMessageHandler({
   dispatchTool,
   listTools,
+  listResources = defaultListResources,
+  listResourceTemplates = defaultListResourceTemplates,
+  readResource = defaultReadResource,
   writeMessage,
   logger,
   createRequestId = randomUUID,
@@ -67,6 +77,54 @@ export function createMcpMessageHandler({
 }) {
   const activeRequests = new Map();
   const inFlight = new Set();
+  const supportedVersions = [
+    "2025-11-25",
+    "2025-06-18",
+    "2025-03-26",
+    "2024-11-05",
+  ];
+  let protocolVersion = "2024-11-05";
+
+  async function handleResourceRead(id, params) {
+    const controller = new AbortController();
+    activeRequests.set(id, controller);
+    const requestId = createRequestId();
+    const startedAt = now();
+    const logContext = { requestId, rpcRequestId: id, tool: "resources/read" };
+    logger?.info("mcp_resource_read_started", logContext);
+    try {
+      const result = await runWithRequestContext(
+        {
+          signal: controller.signal,
+          logger,
+          requestId,
+          tool: "resources/read",
+        },
+        () => readResource(params),
+      );
+      writeMessage(success(id, result));
+      logger?.info("mcp_resource_read_completed", {
+        ...logContext,
+        durationMs: Math.max(0, now() - startedAt),
+      });
+    } catch (error) {
+      logger?.warn("mcp_resource_read_failed", { ...logContext, error });
+      writeMessage(
+        protocolError(
+          id,
+          error.statusCode === 404
+            ? -32002
+            : error.statusCode === 422
+              ? -32602
+              : -32603,
+          error.message || "Resource read failed",
+          publicToolError(error),
+        ),
+      );
+    } finally {
+      activeRequests.delete(id);
+    }
+  }
 
   async function handleToolCall(id, params) {
     const controller = new AbortController();
@@ -88,7 +146,10 @@ export function createMcpMessageHandler({
         { signal: controller.signal, logger, requestId, tool },
         () => dispatchTool(params.name, params.arguments || {}),
       );
-      writeMessage(success(id, toolResult(result)));
+      const links = ["2025-11-25", "2025-06-18"].includes(protocolVersion)
+        ? resourceLinksForTool(tool, result)
+        : [];
+      writeMessage(success(id, toolResult(result, links)));
       logger?.info("mcp_tool_call_completed", {
         ...logContext,
         durationMs: Math.max(0, now() - startedAt),
@@ -131,10 +192,15 @@ export function createMcpMessageHandler({
     if (id === undefined) return;
 
     if (method === "initialize") {
+      protocolVersion = supportedVersions.includes(params.protocolVersion)
+        ? params.protocolVersion
+        : params.protocolVersion
+          ? supportedVersions[0]
+          : "2024-11-05";
       writeMessage(
         success(id, {
-          protocolVersion: params.protocolVersion || "2024-11-05",
-          capabilities: { tools: {} },
+          protocolVersion,
+          capabilities: { tools: {}, resources: {} },
           serverInfo: { name: SERVER_NAME, version: SERVER_VERSION },
         }),
       );
@@ -146,6 +212,27 @@ export function createMcpMessageHandler({
     }
     if (method === "tools/call") {
       await handleToolCall(id, params);
+      return;
+    }
+    if (method === "resources/read") {
+      await handleResourceRead(id, params);
+      return;
+    }
+    if (method === "resources/list" || method === "resources/templates/list") {
+      try {
+        writeMessage(
+          success(
+            id,
+            method === "resources/list"
+              ? listResources(params)
+              : listResourceTemplates(params),
+          ),
+        );
+      } catch (error) {
+        writeMessage(
+          protocolError(id, -32602, error.message, publicToolError(error)),
+        );
+      }
       return;
     }
     writeMessage(protocolError(id, -32601, `Method not found: ${method}`));

@@ -144,7 +144,7 @@ test("attachment tag updates and deletion use the domain routes", async () => {
   }
 });
 
-test("task uploads resolve the parent demand and preserve the task-code tag", async () => {
+test("task uploads delegate parent resolution and file association to the API", async () => {
   const originalFetch = globalThis.fetch;
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
@@ -178,12 +178,12 @@ test("task uploads resolve the parent demand and preserve the task-code tag", as
       ],
     });
 
-    assert.equal(calls.length, 2);
+    assert.equal(calls.length, 1);
     assert.equal(
       new URL(calls[0].url).pathname,
-      "/api/requests/507f1f77bcf86cd799439011",
+      "/api/requests/507f1f77bcf86cd799439011/tasks/task-1/attachments",
     );
-    assert.equal(calls[1].options.body.get("tags"), '["evidência","dev-7"]');
+    assert.equal(calls[0].options.body.get("tags"), '["evidência"]');
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -194,13 +194,15 @@ test("task operations reject files that are not associated with that task", asyn
   let calls = 0;
   globalThis.fetch = async () => {
     calls += 1;
-    return jsonResponse({
-      request: {
-        id: "507f1f77bcf86cd799439011",
-        tasks: [{ id: "task-1", code: "DEV-7" }],
-        attachments: [{ id: "attachment-1", tags: ["DEV-8"] }],
+    return jsonResponse(
+      {
+        error: {
+          code: "NOT_FOUND",
+          message: "File does not belong to this task",
+        },
       },
-    });
+      404,
+    );
   };
 
   try {
@@ -212,9 +214,7 @@ test("task operations reject files that are not associated with that task", asyn
           taskId: "task-1",
           attachmentId: "attachment-1",
         }),
-      (error) =>
-        error.code === "ATTACHMENT_NOT_ASSOCIATED_WITH_TASK" &&
-        error.statusCode === 404,
+      (error) => error.code === "NOT_FOUND" && error.statusCode === 404,
     );
     assert.equal(calls, 1);
   } finally {
@@ -222,7 +222,7 @@ test("task operations reject files that are not associated with that task", asyn
   }
 });
 
-test("task tag updates cannot remove the task association", async () => {
+test("task tag updates use the task endpoint so the API preserves the association", async () => {
   const originalFetch = globalThis.fetch;
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
@@ -247,9 +247,13 @@ test("task tag updates cannot remove the task association", async () => {
       attachmentId: "attachment-1",
       tags: ["resultado"],
     });
-    assert.equal(calls.length, 2);
-    assert.deepEqual(JSON.parse(calls[1].options.body), {
-      tags: ["resultado", "dev-7"],
+    assert.equal(calls.length, 1);
+    assert.equal(
+      new URL(calls[0].url).pathname,
+      "/api/requests/507f1f77bcf86cd799439011/tasks/dev-7/attachments/attachment-1/tags",
+    );
+    assert.deepEqual(JSON.parse(calls[0].options.body), {
+      tags: ["resultado"],
     });
   } finally {
     globalThis.fetch = originalFetch;

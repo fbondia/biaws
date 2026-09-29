@@ -80,7 +80,8 @@ test("metadata and description updates send only requested fields and resolve ex
       description: "",
       affectedComponentIds: [],
     });
-    assert.equal(calls[0].search, "?code=BIAWS-1");
+    assert.equal(calls[0].path, "/api/requests/BIAWS-1");
+    assert.equal(calls[0].search, "");
     assert.equal(calls[1].path, `/api/requests/${demandId}`);
     assert.equal(calls[1].method, "PUT");
     assert.deepEqual(calls[1].body, {

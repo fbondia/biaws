@@ -411,6 +411,7 @@ export async function updateIssue(args = {}) {
   if (!issueId) throw new Error("issueId is required");
   const payload = {};
   for (const field of [
+    "identifier",
     "title",
     "text",
     "type",
@@ -421,7 +422,7 @@ export async function updateIssue(args = {}) {
     if (args[field] === undefined) continue;
     const value =
       typeof args[field] === "string" ? args[field].trim() : args[field];
-    if (typeof value === "string" && !value)
+    if (typeof value === "string" && !value && field !== "identifier")
       throw new Error(`${field} is required`);
     payload[field] = value;
   }

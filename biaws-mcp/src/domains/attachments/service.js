@@ -81,15 +81,7 @@ function normalizedTags(tags = []) {
   ];
 }
 
-function findAttachment(attachments, attachmentId) {
-  const id = String(attachmentId);
-  return (attachments || []).find(
-    (attachment) =>
-      String(attachment.id || "") === id || String(attachment.index) === id,
-  );
-}
-
-async function resolveTarget(args, { verifyAttachment = false } = {}) {
+async function resolveTarget(args) {
   const entityType = String(args.entityType || "").trim();
   const entityId = String(args.entityId || "").trim();
   if (!ENTITY_PATHS[entityType] && entityType !== "task") {
@@ -106,64 +98,11 @@ async function resolveTarget(args, { verifyAttachment = false } = {}) {
   }
 
   const taskId = String(args.taskId || "").trim();
-  if (!taskId) {
-    throw domainError("taskId is required when entityType is task");
-  }
-  const payload = await fetchJson(
-    `/api/requests/${encodeURIComponent(entityId)}`,
-    cleanParams({
-      workspaceId: args.workspaceId,
-      applicationId: args.applicationId,
-      componentId: args.componentId,
-    }),
-  );
-  const request = payload.request;
-  if (!request) {
-    throw domainError(`Demand not found: ${entityId}`, "NOT_FOUND", 404);
-  }
-  const task = (request.tasks || []).find(
-    (item) =>
-      String(item.id || "") === taskId ||
-      String(item.code || "").toLowerCase() === taskId.toLowerCase(),
-  );
-  if (!task) {
-    throw domainError(`Task not found: ${taskId}`, "NOT_FOUND", 404);
-  }
-  const taskTag = String(task.code || "")
-    .trim()
-    .toLowerCase();
-  if (!taskTag) {
-    throw domainError(
-      `Task ${taskId} must have a code before files can be associated with it`,
-    );
-  }
-
-  let attachment;
-  if (verifyAttachment) {
-    attachment = findAttachment(request.attachments, args.attachmentId);
-    if (!attachment) {
-      throw domainError(
-        `Attachment not found: ${args.attachmentId}`,
-        "NOT_FOUND",
-        404,
-      );
-    }
-    const belongsToTask = normalizedTags(attachment.tags).includes(taskTag);
-    if (!belongsToTask) {
-      throw domainError(
-        `Attachment ${args.attachmentId} is not associated with task ${taskId}`,
-        "ATTACHMENT_NOT_ASSOCIATED_WITH_TASK",
-        404,
-      );
-    }
-  }
-
+  if (!taskId) throw domainError("taskId is required when entityType is task");
   return {
-    entityPath: "requests",
-    entityId: request.id,
-    task,
-    attachment,
-    tags: normalizedTags([...(args.tags || []), taskTag]),
+    entityPath: `requests/${encodeURIComponent(entityId)}/tasks`,
+    entityId: taskId,
+    tags: normalizedTags(args.tags),
   };
 }
 
@@ -217,9 +156,7 @@ export async function uploadAttachments(args = {}) {
 }
 
 export async function downloadAttachment(args = {}) {
-  const target = await resolveTarget(args, {
-    verifyAttachment: args.entityType === "task",
-  });
+  const target = await resolveTarget(args);
   const { content, headers } = await fetchBinary(
     attachmentPath(target, args.attachmentId),
     requestParams(args),
@@ -238,9 +175,7 @@ export async function downloadAttachment(args = {}) {
 }
 
 export async function updateAttachmentTags(args = {}) {
-  const target = await resolveTarget(args, {
-    verifyAttachment: args.entityType === "task",
-  });
+  const target = await resolveTarget(args);
   return sendJson(
     attachmentPath(target, args.attachmentId, "/tags"),
     { tags: target.tags },
@@ -250,9 +185,7 @@ export async function updateAttachmentTags(args = {}) {
 }
 
 export async function deleteAttachment(args = {}) {
-  const target = await resolveTarget(args, {
-    verifyAttachment: args.entityType === "task",
-  });
+  const target = await resolveTarget(args);
   return deleteJson(
     attachmentPath(target, args.attachmentId),
     requestParams(args),

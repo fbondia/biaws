@@ -51,14 +51,14 @@ test("task reads fetch a demand by ID without listing demands", async () => {
   assert.deepEqual(urls, [`http://api.test/api/requests/${demandId}`]);
 });
 
-test("client codes use the API's exact code filter", async () => {
+test("client codes use the same item endpoint as IDs", async () => {
   const urls = [];
   await withMockApi(
     async (url) => {
       urls.push(String(url));
       return response({
         meta: { total: 1 },
-        items: [{ id: demandId, clientCode: "BIAWS-1" }],
+        request: { id: demandId, clientCode: "BIAWS-1" },
       });
     },
     async () => {
@@ -67,7 +67,7 @@ test("client codes use the API's exact code filter", async () => {
       assert.equal(result.meta.total, 1);
     },
   );
-  assert.deepEqual(urls, ["http://api.test/api/requests?code=BIAWS-1"]);
+  assert.deepEqual(urls, ["http://api.test/api/requests/BIAWS-1"]);
 });
 
 test("task updates read only the target demand before writing", async () => {

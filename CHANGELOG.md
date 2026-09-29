@@ -8,6 +8,20 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- repositories da API organizados por domínio e responsabilidade, com separação
+  de consultas, mutações, normalização, contexto, histórico e recursos filhos;
+  leituras granulares de resources passam aos respectivos domínios;
+
+- rotas da API organizadas em pastas por domínio e arquivos por endpoint, com
+  composição explícita dos routers e mecanismos comuns em `routes/shared`;
+
+- MCP passa a expor resources hierárquicos com links e leitura granular pela API;
+  tools de leitura permanecem disponíveis para compatibilidade;
+- API resolve IDs antes dos identificadores de negócio no mesmo escopo autorizado,
+  incluindo filhos e auditoria; arquivos de tarefas usam rotas e permissões próprias;
+- classificação de issues passa a orientar análise pelo agente sobre os resources
+  da issue e do catálogo aplicável, com gravação por `issues_classify` e sem sampling.
+
 - MCP atualizado de `0.9.0` para `0.10.0`, com novas ferramentas de melhorias,
   issues, auditoria, documentos e monitoramento; o CLI e os exemplos de instalação
   passam a referenciar `biaws-mcp@0.10.0`;

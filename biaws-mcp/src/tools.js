@@ -179,7 +179,16 @@ const tools = [
       required: ["issueId"],
       additionalProperties: false,
       properties: {
-        issueId: { type: "string", minLength: 1 },
+        issueId: {
+          type: "string",
+          minLength: 1,
+          description: "ID ou identificador exato da issue",
+        },
+        identifier: {
+          type: "string",
+          maxLength: 100,
+          description: "Identificador de negócio; vazio remove o identificador",
+        },
         title: { type: "string", minLength: 1 },
         text: {
           type: "string",
@@ -207,7 +216,11 @@ const tools = [
       required: ["issueId", "text"],
       additionalProperties: false,
       properties: {
-        issueId: { type: "string", minLength: 1 },
+        issueId: {
+          type: "string",
+          minLength: 1,
+          description: "ID ou identificador exato da issue",
+        },
         text: {
           type: "string",
           minLength: 1,
@@ -231,7 +244,11 @@ const tools = [
       required: ["issueId", "commentId", "text"],
       additionalProperties: false,
       properties: {
-        issueId: { type: "string", minLength: 1 },
+        issueId: {
+          type: "string",
+          minLength: 1,
+          description: "ID ou identificador exato da issue",
+        },
         commentId: {
           type: "string",
           minLength: 1,
@@ -382,6 +399,12 @@ const tools = [
       required: ["title", "text", "applicationId"],
       additionalProperties: false,
       properties: {
+        identifier: {
+          type: "string",
+          maxLength: 100,
+          description:
+            "Identificador de negócio opcional, por exemplo INC12345",
+        },
         id: {
           type: "string",
           description: "Opcional. Se omitido, será gerado um ID sintético.",
@@ -455,7 +478,7 @@ const tools = [
   {
     name: "issues_suggest_taxonomy",
     description:
-      "Sugere taxonomias aderentes ao texto/título de uma issue ou texto livre.",
+      "Busca lexical legada de taxonomias, mantida para compatibilidade. Para classificar, o agente deve ler os resources da issue e do catálogo da aplicação, analisar os dados e usar issues_classify quando autorizado.",
     inputSchema: {
       type: "object",
       additionalProperties: false,

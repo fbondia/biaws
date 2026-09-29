@@ -139,13 +139,10 @@ async function readAllDemands(args = {}) {
 }
 
 async function readDemand(requestId) {
-  const isObjectId = /^[0-9a-f]{24}$/iu.test(requestId);
-  const payload = isObjectId
-    ? await fetchJson(`/api/requests/${encodeURIComponent(requestId)}`)
-    : await fetchJson("/api/requests", { code: requestId });
-  const request = isObjectId
-    ? payload.request
-    : payload.items?.find((item) => item.clientCode === requestId);
+  const payload = await fetchJson(
+    `/api/requests/${encodeURIComponent(requestId)}`,
+  );
+  const request = payload.request;
   if (!request) throw new Error(`Demand not found: ${requestId}`);
   return {
     meta: payload.meta || {},
@@ -392,7 +389,15 @@ async function taskPayload(args, current = {}) {
 
 async function readDemandTask(requestId, taskId) {
   const { request } = await readDemand(requestId);
-  const task = (request.tasks || []).find((item) => item.id === taskId);
+  let task = (request.tasks || []).find((item) => item.id === taskId);
+  if (!task) {
+    const matches = (request.tasks || []).filter(
+      (item) => String(item.code || "").toLowerCase() === taskId.toLowerCase(),
+    );
+    if (matches.length > 1)
+      throw new Error("Ambiguous task identifier; use its ID");
+    task = matches[0];
+  }
   if (!task) throw new Error(`Demand task not found: ${taskId}`);
   return { request, task };
 }

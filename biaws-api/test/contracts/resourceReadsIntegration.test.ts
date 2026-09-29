@@ -67,6 +67,21 @@ test(
       await import("../../src/routes/requests/index.js");
     const { knowledgeRecordsRouter } =
       await import("../../src/routes/knowledgeRecords/index.js");
+    const { installRouteContracts } =
+      await import("../../src/contracts/routeContracts.js");
+    installRouteContracts([
+      { domain: "issuesRouter", prefix: "/api/issues", router: issuesRouter },
+      {
+        domain: "requestsRouter",
+        prefix: "/api/requests",
+        router: requestsRouter,
+      },
+      {
+        domain: "knowledgeRecordsRouter",
+        prefix: "/api/knowledge",
+        router: knowledgeRecordsRouter,
+      },
+    ]);
     const db = await getMongoDatabase();
     let server: Server | undefined;
     try {
@@ -297,6 +312,34 @@ test(
       );
       assert.equal(response.status, 200);
       assert.equal(await response.text(), "hello");
+      const multipart = new FormData();
+      multipart.append(
+        "files",
+        new Blob(["transport"], { type: "text/plain" }),
+        "transport.txt",
+      );
+      response = await request("/api/requests/MEL123/tasks/TASK1/attachments", {
+        method: "POST",
+        body: multipart,
+      });
+      assert.equal(response.status, 201);
+      const uploaded = (await response.json()) as {
+        uploaded: Array<{ id: string; filename: string; storage?: unknown }>;
+      };
+      assert.equal(uploaded.uploaded[0]?.filename, "transport.txt");
+      assert.equal(uploaded.uploaded[0]?.storage, undefined);
+      const transportedId = uploaded.uploaded[0]?.id;
+      assert.ok(transportedId);
+      response = await request(
+        `/api/requests/MEL123/tasks/TASK1/attachments/${transportedId}`,
+      );
+      assert.equal(response.status, 200);
+      assert.equal(await response.text(), "transport");
+      assert.ok(
+        await db
+          .collection(C.AUDIT_EVENTS)
+          .findOne({ action: "attachment_added", "target.id": transportedId }),
+      );
       response = await request(
         `/api/requests/MEL123/tasks/TASK1/attachments/${fileId}/tags`,
         {

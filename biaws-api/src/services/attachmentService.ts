@@ -297,7 +297,10 @@ export async function uploadAttachments(
       result as Awaited<ReturnType<typeof getIssue>>,
       entityId,
     );
-  return { ...result, uploaded: stored };
+  return {
+    ...result,
+    uploaded: stored.map(({ storage: _storage, ...attachment }) => attachment),
+  };
 }
 
 export async function readAttachment(

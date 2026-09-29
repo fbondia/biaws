@@ -34,6 +34,8 @@ Os contratos Zod de entrada e resposta estão em
 [docs/http-contracts.md](docs/http-contracts.md).
 O documento gerado e o endpoint de consulta são descritos em
 [docs/openapi.md](docs/openapi.md).
+O relatório de compatibilidade da revisão está em
+[docs/api-review-validation.md](docs/api-review-validation.md).
 
 ## TypeScript e execução
 

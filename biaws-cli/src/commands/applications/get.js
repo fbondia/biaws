@@ -10,8 +10,6 @@ export default class ApplicationGet extends ReadCommand {
       resource: "application",
       operation: "get",
     });
-    this.emit(flags, result, (p) =>
-      JSON.stringify(p.application || p, null, 2),
-    );
+    this.emit(flags, result, (p) => JSON.stringify(p.application || p, null, 2));
   }
 }

@@ -4,16 +4,9 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import {
-  checksumInstalledSkill,
-  installSkillPackage,
-  readLock,
-} from "../src/localSkills.js";
+import { checksumInstalledSkill, installSkillPackage, readLock } from "../src/localSkills.js";
 import { runSkillsCommand } from "../src/commands/skills.js";
-import {
-  buildSkillPayload,
-  checksumPackageFiles,
-} from "../src/skillPackage.js";
+import { buildSkillPayload, checksumPackageFiles } from "../src/skillPackage.js";
 import { createApiClient } from "../src/apiClient.js";
 import { MCP_PACKAGE_SPEC, runAgentCommand } from "../src/commands/agent.js";
 import { runMonitoringCommand } from "../src/commands/monitoring.js";
@@ -80,11 +73,7 @@ test("API client sends the configured Bearer key", async () => {
   };
 
   try {
-    await createApiClient(
-      "http://127.0.0.1:3100",
-      "biaws_secret",
-      "workspace-a",
-    ).list();
+    await createApiClient("http://127.0.0.1:3100", "biaws_secret", "workspace-a").list();
     assert.equal(receivedAuthorization, "Bearer biaws_secret");
     assert.equal(receivedWorkspace, "workspace-a");
   } finally {
@@ -95,10 +84,10 @@ test("API client sends the configured Bearer key", async () => {
 test("API client distinguishes forbidden responses", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({ error: { code: "FORBIDDEN", message: "Denied" } }),
-      { status: 403, headers: { "Content-Type": "application/json" } },
-    );
+    new Response(JSON.stringify({ error: { code: "FORBIDDEN", message: "Denied" } }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
   try {
     await assert.rejects(
       () => createApiClient("http://127.0.0.1:3100", "biaws_secret").list(),
@@ -155,10 +144,7 @@ test("monitoring command sends an idempotent runtime health signal", async () =>
 test("builds a publish payload from a skill directory", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "biaws-cli-build-"));
   await mkdir(path.join(root, "references"));
-  await writeFile(
-    path.join(root, "SKILL.md"),
-    "---\nname: biaws-example\ndescription: Example skill\n---\n",
-  );
+  await writeFile(path.join(root, "SKILL.md"), "---\nname: biaws-example\ndescription: Example skill\n---\n");
   await writeFile(path.join(root, "references", "guide.md"), "Guide");
 
   const payload = await buildSkillPayload(root, { version: "1.0.0" });
@@ -194,10 +180,7 @@ test("installs a package and records the local lock", async () => {
     target,
   );
 
-  assert.equal(
-    await readFile(path.join(result.directory, "SKILL.md"), "utf8"),
-    "# Example\n",
-  );
+  assert.equal(await readFile(path.join(result.directory, "SKILL.md"), "utf8"), "# Example\n");
   const lock = await readLock(target);
   assert.equal(lock.skills["biaws-example"].version, "1.0.0");
   assert.equal(lock.skills["biaws-example"].packageSha256, packageSha256);
@@ -251,9 +234,7 @@ test("agent configure writes Codex MCP config and installs catalog skills", asyn
   const files = [
     {
       path: "SKILL.md",
-      contentBase64: Buffer.from(
-        "---\nname: biaws-example\ndescription: Example\n---\n",
-      ).toString("base64"),
+      contentBase64: Buffer.from("---\nname: biaws-example\ndescription: Example\n---\n").toString("base64"),
     },
   ];
   const packageSha256 = checksumPackageFiles(files);
@@ -296,20 +277,14 @@ test("agent configure writes Codex MCP config and installs catalog skills", asyn
     },
   );
 
-  const config = await readFile(
-    path.join(project, ".codex", "config.toml"),
-    "utf8",
-  );
+  const config = await readFile(path.join(project, ".codex", "config.toml"), "utf8");
   assert.match(config, /\[mcp_servers\.biaws\]/u);
   assert.match(config, /command = "npx"/u);
   assert.ok(config.includes(JSON.stringify(MCP_PACKAGE_SPEC)));
   assert.match(config, /BIAWS_ENV_FILE = "\/tmp\/client-a\.env"/u);
   assert.match(config, /BIAWS_WORKSPACE_ID = "workspace-a"/u);
   assert.equal(
-    await readFile(
-      path.join(project, ".agents", "skills", "biaws-example", "SKILL.md"),
-      "utf8",
-    ),
+    await readFile(path.join(project, ".agents", "skills", "biaws-example", "SKILL.md"), "utf8"),
     "---\nname: biaws-example\ndescription: Example\n---\n",
   );
   assert.equal(result.installation.installed.length, 1);
@@ -349,9 +324,7 @@ test("agent configure merges Claude MCP config without removing other servers", 
     },
   );
 
-  const config = JSON.parse(
-    await readFile(path.join(project, ".mcp.json"), "utf8"),
-  );
+  const config = JSON.parse(await readFile(path.join(project, ".mcp.json"), "utf8"));
   assert.equal(config.mcpServers.existing.command, "existing");
   assert.equal(config.mcpServers.biaws.command, "npx");
   assert.deepEqual(config.mcpServers.biaws.args, ["--yes", MCP_PACKAGE_SPEC]);
@@ -442,24 +415,16 @@ test("agent configure assistant selects the project workspace", async () => {
     },
   );
 
-  const config = await readFile(
-    path.join(project, ".codex", "config.toml"),
-    "utf8",
-  );
+  const config = await readFile(path.join(project, ".codex", "config.toml"), "utf8");
   assert.match(config, /BIAWS_WORKSPACE_ID = "workspace-b"/u);
 });
 
 test("agent doctor performs a real MCP handshake", async () => {
   const project = await mkdtemp(path.join(os.tmpdir(), "biaws-agent-doctor-"));
-  const executableDirectory = await mkdtemp(
-    path.join(os.tmpdir(), "biaws-agent-bin-"),
-  );
+  const executableDirectory = await mkdtemp(path.join(os.tmpdir(), "biaws-agent-bin-"));
   const entrypoint = path.resolve("..", "biaws-mcp", "bin", "biaws-mcp.js");
   const npx = path.join(executableDirectory, "npx");
-  await writeFile(
-    npx,
-    `#!/bin/sh\nexec ${JSON.stringify(process.execPath)} ${JSON.stringify(entrypoint)}\n`,
-  );
+  await writeFile(npx, `#!/bin/sh\nexec ${JSON.stringify(process.execPath)} ${JSON.stringify(entrypoint)}\n`);
   await chmod(npx, 0o755);
   await mkdir(path.join(project, ".codex"), { recursive: true });
   await mkdir(path.join(project, ".agents"), { recursive: true });

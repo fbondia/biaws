@@ -1,21 +1,11 @@
 import { Flags } from "@oclif/core";
 
 import { LocalInstanceCommand } from "../../baseCommands.js";
-import {
-  contextFlags,
-  contextInput,
-  instanceArgument,
-} from "../../instance/command.js";
-import {
-  backupArguments,
-  executeInstanceScript,
-  getInstance,
-  withPasswordFile,
-} from "../../instance/service.js";
+import { contextFlags, contextInput, instanceArgument } from "../../instance/command.js";
+import { backupArguments, executeInstanceScript, getInstance, withPasswordFile } from "../../instance/service.js";
 
 export default class InstanceBackup extends LocalInstanceCommand {
-  static description =
-    "cria backup completo, criptografado e verificável de uma instância";
+  static description = "cria backup completo, criptografado e verificável de uma instância";
   static args = { instance: instanceArgument };
   static flags = {
     ...contextFlags,
@@ -32,11 +22,7 @@ export default class InstanceBackup extends LocalInstanceCommand {
   async run() {
     const { args, flags } = await this.parse(InstanceBackup);
     const context = await this.localContext(contextInput(flags, args.instance));
-    const instance = await getInstance(
-      context,
-      this.adapters.filesystem,
-      args.instance,
-    );
+    const instance = await getInstance(context, this.adapters.filesystem, args.instance);
     let password;
     if (!flags["password-file"]) {
       if (!context.isInteractive)

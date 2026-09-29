@@ -1,8 +1,7 @@
 import { Args, Flags } from "@oclif/core";
 
 export const instanceArgument = Args.string({
-  description:
-    "nome da instância; usa BIAWS_INSTANCE ou a única disponível quando omitido",
+  description: "nome da instância; usa BIAWS_INSTANCE ou a única disponível quando omitido",
   required: false,
 });
 

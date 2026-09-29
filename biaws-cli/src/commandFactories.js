@@ -40,13 +40,8 @@ export function createSkillsCommand(action, definition = {}) {
 
     async run() {
       const { args, flags } = await this.parse(this.constructor);
-      const context = await this.authenticatedContext(
-        authenticatedInput(flags),
-        { requireWorkspace: true },
-      );
-      const positional = definition.positional
-        ? definition.positional(args)
-        : [];
+      const context = await this.authenticatedContext(authenticatedInput(flags), { requireWorkspace: true });
+      const positional = definition.positional ? definition.positional(args) : [];
       await runSkillsCommand(context.api, action, positional, flags);
     }
   };
@@ -60,13 +55,8 @@ export function createMonitoringCommand(action, definition = {}) {
 
     async run() {
       const { args, flags } = await this.parse(this.constructor);
-      const context = await this.authenticatedContext(
-        authenticatedInput(flags),
-        { requireWorkspace: true },
-      );
-      const positional = definition.positional
-        ? definition.positional(args)
-        : [];
+      const context = await this.authenticatedContext(authenticatedInput(flags), { requireWorkspace: true });
+      const positional = definition.positional ? definition.positional(args) : [];
       await runMonitoringCommand(context.api, action, positional, flags);
     }
   };
@@ -87,9 +77,7 @@ export function createAgentCommand(action) {
     async run() {
       const { args, flags } = await this.parse(this.constructor);
       const input =
-        action === "configure"
-          ? await interactiveConfigureInput(this, flags)
-          : configureContextInput(flags);
+        action === "configure" ? await interactiveConfigureInput(this, flags) : configureContextInput(flags);
       const context = await this.projectContext(input);
       await runAgentCommand(
         context.api,

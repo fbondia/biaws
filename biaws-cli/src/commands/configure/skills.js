@@ -3,10 +3,7 @@ import path from "node:path";
 import { Args, Flags } from "@oclif/core";
 
 import { ProjectCommand } from "../../baseCommands.js";
-import {
-  configureContextFlags,
-  configureContextInput,
-} from "../../configure/command.js";
+import { configureContextFlags, configureContextInput } from "../../configure/command.js";
 import { CliError } from "../../core/errors.js";
 import { runSkillsCommand } from "../skills.js";
 
@@ -35,20 +32,16 @@ export default class ConfigureSkills extends ProjectCommand {
     const context = await this.projectContext(configureContextInput(flags), {
       requireWorkspace: true,
     });
-    const target = path.join(
-      context.projectDirectory,
-      flags.client === "claude" ? ".claude" : ".agents",
-      "skills",
-    );
+    const target = path.join(context.projectDirectory, flags.client === "claude" ? ".claude" : ".agents", "skills");
     let action = args.action;
     let positional = args.skill ? [args.skill] : [];
     if (action === "install" && flags.all) action = "install-all";
     if (action === "install" && !args.skill) {
       if (!context.isInteractive) {
-        throw new CliError(
-          "Informe o ID da skill ou use --all em modo não interativo.",
-          { code: "SKILL_SELECTION_REQUIRED", exitCode: 2 },
-        );
+        throw new CliError("Informe o ID da skill ou use --all em modo não interativo.", {
+          code: "SKILL_SELECTION_REQUIRED",
+          exitCode: 2,
+        });
       }
       const catalog = await context.api.list();
       if (!catalog.items.length)

@@ -2,11 +2,7 @@ import assert from "node:assert/strict";
 import { PassThrough } from "node:stream";
 import test from "node:test";
 
-import {
-  AuthenticatedApiCommand,
-  LocalInstanceCommand,
-  ProjectCommand,
-} from "../src/baseCommands.js";
+import { AuthenticatedApiCommand, LocalInstanceCommand, ProjectCommand } from "../src/baseCommands.js";
 import ConfigureClaude from "../src/commands/configure/claude.js";
 import ConfigureCodex from "../src/commands/configure/codex.js";
 import ConfigureDoctor from "../src/commands/configure/doctor.js";
@@ -45,11 +41,7 @@ function adapters(environment = {}) {
 
 test("LocalInstanceCommand resolve paths without requiring an API key", async () => {
   const environment = { BIAWS_ROOT: "/workspace" };
-  const command = new LocalInstanceCommand(
-    [],
-    fakeConfig(),
-    adapters(environment),
-  );
+  const command = new LocalInstanceCommand([], fakeConfig(), adapters(environment));
   const context = await command.localContext({ instance: "empty" });
 
   assert.equal(context.repositoryRoot, "/workspace");
@@ -94,10 +86,7 @@ test("ProjectCommand injects filesystem, API and terminal adapters", async () =>
     },
     processRunner: fakeProcessRunner,
   });
-  const context = await command.projectContext(
-    { project: "/workspace/example" },
-    { requireWorkspace: true },
-  );
+  const context = await command.projectContext({ project: "/workspace/example" }, { requireWorkspace: true });
 
   assert.equal(context.projectDirectory, "/workspace/example");
   assert.equal(context.api, fakeApi);
@@ -107,11 +96,7 @@ test("ProjectCommand injects filesystem, API and terminal adapters", async () =>
 });
 
 test("agent wrappers allow workspace discovery from the authenticated identity", async () => {
-  for (const CommandClass of [
-    ConfigureCodex,
-    ConfigureClaude,
-    ConfigureDoctor,
-  ]) {
+  for (const CommandClass of [ConfigureCodex, ConfigureClaude, ConfigureDoctor]) {
     const command = Object.create(CommandClass.prototype);
     command.adapters = { terminal: { isInteractive: false } };
     command.parse = async () => ({ args: { client: "codex" }, flags: {} });
@@ -191,8 +176,8 @@ test("agent assistant rejects non-interactive terminals", async () => {
     },
   };
 
-  await assert.rejects(
-    interactiveConfigureInput(command, { interactive: true }),
-    { code: "INTERACTIVE_INPUT_UNAVAILABLE", exitCode: 2 },
-  );
+  await assert.rejects(interactiveConfigureInput(command, { interactive: true }), {
+    code: "INTERACTIVE_INPUT_UNAVAILABLE",
+    exitCode: 2,
+  });
 });

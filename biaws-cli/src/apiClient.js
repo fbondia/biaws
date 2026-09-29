@@ -40,22 +40,14 @@ export function createApiClient(baseUrl, apiKey, workspaceId = "") {
   }
 
   return {
-    withWorkspace: (selectedWorkspaceId) =>
-      createApiClient(baseUrl, apiKey, selectedWorkspaceId),
+    withWorkspace: (selectedWorkspaceId) => createApiClient(baseUrl, apiKey, selectedWorkspaceId),
     request: (path, options = {}) => request(path, options, apiRoot),
     identity: () => request("/auth/me", {}, apiRoot),
-    list: (options = {}) =>
-      request(options.includeDeprecated ? "?includeDeprecated=true" : ""),
+    list: (options = {}) => request(options.includeDeprecated ? "?includeDeprecated=true" : ""),
     get: (skillId, version) =>
-      request(
-        `/${encodeURIComponent(skillId)}${version ? `?version=${encodeURIComponent(version)}` : ""}`,
-      ),
-    download: (skillId, version) =>
-      request(
-        `/${encodeURIComponent(skillId)}/${encodeURIComponent(version)}/download`,
-      ),
-    publish: (payload) =>
-      request("", { method: "POST", body: JSON.stringify(payload) }),
+      request(`/${encodeURIComponent(skillId)}${version ? `?version=${encodeURIComponent(version)}` : ""}`),
+    download: (skillId, version) => request(`/${encodeURIComponent(skillId)}/${encodeURIComponent(version)}/download`),
+    publish: (payload) => request("", { method: "POST", body: JSON.stringify(payload) }),
     monitoring: {
       describeTemplate: (templateId, version) =>
         request(

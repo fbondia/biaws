@@ -1,11 +1,7 @@
 import { Flags } from "@oclif/core";
 
 import { LocalInstanceCommand } from "../../baseCommands.js";
-import {
-  contextFlags,
-  contextInput,
-  writeResult,
-} from "../../instance/command.js";
+import { contextFlags, contextInput, writeResult } from "../../instance/command.js";
 import { listInstances } from "../../instance/service.js";
 
 export default class InstanceList extends LocalInstanceCommand {
@@ -18,9 +14,7 @@ export default class InstanceList extends LocalInstanceCommand {
   async run() {
     const { flags } = await this.parse(InstanceList);
     const context = await this.localContext(contextInput(flags));
-    const instances = (
-      await listInstances(context, this.adapters.filesystem)
-    ).map(({ env, ...item }) => item);
+    const instances = (await listInstances(context, this.adapters.filesystem)).map(({ env, ...item }) => item);
     writeResult(
       this,
       instances,

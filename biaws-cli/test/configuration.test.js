@@ -1,12 +1,5 @@
 import assert from "node:assert/strict";
-import {
-  chmod,
-  mkdir,
-  mkdtemp,
-  readFile,
-  rm,
-  writeFile,
-} from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -24,19 +17,9 @@ const filesystem = { chmod, mkdir, readFile, rm, writeFile };
 const terminal = { isCI: true, isInteractive: false };
 
 test("caminhos globais respeitam BIAWS_CONFIG_HOME, XDG e HOME", () => {
-  assert.equal(
-    resolveConfigurationPaths({ BIAWS_CONFIG_HOME: "/private/custom" })
-      .directory,
-    "/private/custom",
-  );
-  assert.equal(
-    resolveConfigurationPaths({ XDG_CONFIG_HOME: "/private/xdg" }).directory,
-    "/private/xdg/biaws",
-  );
-  assert.equal(
-    resolveConfigurationPaths({ HOME: "/private/home" }).directory,
-    "/private/home/.config/biaws",
-  );
+  assert.equal(resolveConfigurationPaths({ BIAWS_CONFIG_HOME: "/private/custom" }).directory, "/private/custom");
+  assert.equal(resolveConfigurationPaths({ XDG_CONFIG_HOME: "/private/xdg" }).directory, "/private/xdg/biaws");
+  assert.equal(resolveConfigurationPaths({ HOME: "/private/home" }).directory, "/private/home/.config/biaws");
 });
 
 test("configuração da pasta seleciona perfil, credencial e workspace", async () => {

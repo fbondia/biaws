@@ -22,10 +22,10 @@ async function readJson(filesystem, filePath, kind) {
     return value;
   } catch (error) {
     if (missing(error)) return null;
-    throw new CliError(
-      `Não foi possível ler ${kind} em ${filePath}: ${error.message}.`,
-      { code: "CONFIGURATION_READ_FAILED", cause: error },
-    );
+    throw new CliError(`Não foi possível ler ${kind} em ${filePath}: ${error.message}.`, {
+      code: "CONFIGURATION_READ_FAILED",
+      cause: error,
+    });
   }
 }
 
@@ -51,11 +51,7 @@ export async function findWorkspaceConfiguration(filesystem, startDirectory) {
   let directory = path.resolve(startDirectory);
   while (true) {
     const filePath = path.join(directory, ".biaws", "config.json");
-    const config = await readJson(
-      filesystem,
-      filePath,
-      "a configuração do workspace",
-    );
+    const config = await readJson(filesystem, filePath, "a configuração do workspace");
     if (config) return Object.freeze({ config, directory, filePath });
     const parent = path.dirname(directory);
     if (parent === directory) return null;
@@ -94,55 +90,29 @@ export async function writeGlobalConfiguration(filesystem, paths, config) {
       { code: "CONFIGURATION_HOME_REQUIRED", exitCode: 2 },
     );
   }
-  await writeJson(
-    filesystem,
-    paths.configFile,
-    { version: CONFIG_VERSION, ...config },
-    0o600,
-  );
+  await writeJson(filesystem, paths.configFile, { version: CONFIG_VERSION, ...config }, 0o600);
 }
 
 export async function writeCredentials(filesystem, paths, credentials) {
   if (!paths.credentialsFile) {
-    throw new CliError(
-      "Não foi possível determinar o diretório de credenciais. Defina HOME ou BIAWS_CONFIG_HOME.",
-      { code: "CONFIGURATION_HOME_REQUIRED", exitCode: 2 },
-    );
+    throw new CliError("Não foi possível determinar o diretório de credenciais. Defina HOME ou BIAWS_CONFIG_HOME.", {
+      code: "CONFIGURATION_HOME_REQUIRED",
+      exitCode: 2,
+    });
   }
-  await writeJson(
-    filesystem,
-    paths.credentialsFile,
-    { version: CONFIG_VERSION, ...credentials },
-    0o600,
-  );
+  await writeJson(filesystem, paths.credentialsFile, { version: CONFIG_VERSION, ...credentials }, 0o600);
 }
 
-export async function writeWorkspaceConfiguration(
-  filesystem,
-  projectDirectory,
-  config,
-) {
-  const filePath = path.join(
-    path.resolve(projectDirectory),
-    ".biaws",
-    "config.json",
-  );
-  await writeJson(
-    filesystem,
-    filePath,
-    { version: CONFIG_VERSION, ...config },
-    0o644,
-  );
+export async function writeWorkspaceConfiguration(filesystem, projectDirectory, config) {
+  const filePath = path.join(path.resolve(projectDirectory), ".biaws", "config.json");
+  await writeJson(filesystem, filePath, { version: CONFIG_VERSION, ...config }, 0o644);
   return filePath;
 }
 
 export function selectedProfile(configuration, requestedProfile) {
   const workspaceConfig = configuration.workspace?.config || {};
   const name = String(
-    requestedProfile ||
-      workspaceConfig.profile ||
-      configuration.global.currentProfile ||
-      DEFAULT_PROFILE,
+    requestedProfile || workspaceConfig.profile || configuration.global.currentProfile || DEFAULT_PROFILE,
   ).trim();
   return Object.freeze({
     name,

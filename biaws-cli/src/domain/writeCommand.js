@@ -1,11 +1,7 @@
 import { Flags } from "@oclif/core";
 import { AuthenticatedApiCommand } from "../baseCommands.js";
 import { CliError } from "../core/errors.js";
-import {
-  asWriteCliError,
-  DomainWriteService,
-  writeEnvelope,
-} from "./writeService.js";
+import { asWriteCliError, DomainWriteService, writeEnvelope } from "./writeService.js";
 
 export const writeFlags = {
   "api-url": Flags.string({ description: "URL da API" }),
@@ -54,13 +50,10 @@ export class WriteCommand extends AuthenticatedApiCommand {
   async confirm(flags, plan) {
     if (flags.yes) return;
     if (!this.adapters.terminal.isInteractive) {
-      throw new CliError(
-        "Confirmação necessária. Use --yes em modo não interativo.",
-        {
-          code: "CONFIRMATION_REQUIRED",
-          exitCode: 2,
-        },
-      );
+      throw new CliError("Confirmação necessária. Use --yes em modo não interativo.", {
+        code: "CONFIRMATION_REQUIRED",
+        exitCode: 2,
+      });
     }
     const confirmed = await this.adapters.prompts.ask({
       name: "confirmation",

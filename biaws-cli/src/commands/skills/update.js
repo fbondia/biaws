@@ -1,8 +1,5 @@
 import { Flags } from "@oclif/core";
-import {
-  createSkillsCommand,
-  optionalSkillArgument,
-} from "../../commandFactories.js";
+import { createSkillsCommand, optionalSkillArgument } from "../../commandFactories.js";
 
 export default createSkillsCommand("update", {
   description: "atualiza uma ou todas as skills instaladas",

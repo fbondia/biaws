@@ -39,11 +39,7 @@ export function createAdminMonitoringCommand(action) {
         instance: flags.instance,
         root: flags.root,
       });
-      const script = path.join(
-        context.repositoryRoot,
-        "scripts",
-        "manage-monitoring-workspaces.sh",
-      );
+      const script = path.join(context.repositoryRoot, "scripts", "manage-monitoring-workspaces.sh");
       await this.adapters.processRunner.run("bash", [
         script,
         "--instance",
@@ -56,8 +52,7 @@ export function createAdminMonitoringCommand(action) {
 }
 
 export class AdminMonitoringProvisionCommand extends LocalInstanceCommand {
-  static description =
-    "provisiona a identidade técnica de monitoramento de um workspace";
+  static description = "provisiona a identidade técnica de monitoramento de um workspace";
   static args = {
     workspace: Args.string({
       description: "identificador local do workspace",
@@ -72,11 +67,7 @@ export class AdminMonitoringProvisionCommand extends LocalInstanceCommand {
       instance: flags.instance,
       root: flags.root,
     });
-    const script = path.join(
-      context.repositoryRoot,
-      "scripts",
-      "provision-monitoring-workspace.mjs",
-    );
+    const script = path.join(context.repositoryRoot, "scripts", "provision-monitoring-workspace.mjs");
     await this.adapters.processRunner.run("node", [
       script,
       "--instance",

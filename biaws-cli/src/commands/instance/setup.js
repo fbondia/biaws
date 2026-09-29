@@ -1,17 +1,8 @@
 import { Flags } from "@oclif/core";
 
 import { LocalInstanceCommand } from "../../baseCommands.js";
-import {
-  buildExecutionPlan,
-  executeExecutionPlan,
-  summarizeExecutionPlan,
-  wizardFlags,
-} from "../../core/wizard.js";
-import {
-  contextFlags,
-  contextInput,
-  writeResult,
-} from "../../instance/command.js";
+import { buildExecutionPlan, executeExecutionPlan, summarizeExecutionPlan, wizardFlags } from "../../core/wizard.js";
+import { contextFlags, contextInput, writeResult } from "../../instance/command.js";
 import {
   buildSetupConfiguration,
   executeSetup,
@@ -100,8 +91,7 @@ const definition = {
       type: "input",
       message: "E-mail do administrador",
       default: "admin@example.com",
-      validate: (value) =>
-        /^\S+@\S+\.\S+$/u.test(value) || "E-mail administrativo inválido.",
+      validate: (value) => /^\S+@\S+\.\S+$/u.test(value) || "E-mail administrativo inválido.",
     },
     {
       name: "adminName",
@@ -279,8 +269,7 @@ const definition = {
 };
 
 export default class InstanceSetup extends LocalInstanceCommand {
-  static description =
-    "cria ou reconcilia uma instância local por plano idempotente";
+  static description = "cria ou reconcilia uma instância local por plano idempotente";
   static examples = [
     "<%= config.bin %> admin instance setup --interactive",
     "BIAWS_BOOTSTRAP_ADMIN_PASSWORD=... <%= config.bin %> admin instance setup --name local --defaults --yes --non-interactive",
@@ -298,33 +287,20 @@ export default class InstanceSetup extends LocalInstanceCommand {
       terminal: this.adapters.terminal,
     });
     const configuration = await buildSetupConfiguration(
-      Object.fromEntries(
-        definition.questions.map((question) => [
-          question.name,
-          plan.get(question.name),
-        ]),
-      ),
+      Object.fromEntries(definition.questions.map((question) => [question.name, plan.get(question.name)])),
       context,
       this.adapters.filesystem,
     );
     if (configuration.storageChanged) {
-      this.output().diagnostic(
-        "Aviso: o storage mudou; dados existentes não serão movidos automaticamente.",
-      );
+      this.output().diagnostic("Aviso: o storage mudou; dados existentes não serão movidos automaticamente.");
     }
-    this.output().diagnostic(
-      `Plano validado: ${JSON.stringify(summarizeExecutionPlan(plan))}`,
-    );
+    this.output().diagnostic(`Plano validado: ${JSON.stringify(summarizeExecutionPlan(plan))}`);
     const result = await executeExecutionPlan(
       plan,
       () =>
-        executeSetup(
-          configuration,
-          context,
-          this.adapters.processRunner,
-          this.adapters.environment,
-          { silent: flags.json },
-        ),
+        executeSetup(configuration, context, this.adapters.processRunner, this.adapters.environment, {
+          silent: flags.json,
+        }),
       {
         options: flags,
         promptAdapter: this.adapters.prompts,

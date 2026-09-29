@@ -3,10 +3,7 @@ import { confirm, input, number, password, select } from "@inquirer/prompts";
 import { CliError } from "./errors.js";
 
 export class PromptCancelledError extends CliError {
-  constructor(
-    message = "Operação cancelada antes de qualquer alteração.",
-    options = {},
-  ) {
+  constructor(message = "Operação cancelada antes de qualquer alteração.", options = {}) {
     super(message, {
       ...options,
       code: "PROMPT_CANCELLED",
@@ -17,11 +14,7 @@ export class PromptCancelledError extends CliError {
 }
 
 function isPromptCancellation(error) {
-  return (
-    error?.name === "ExitPromptError" ||
-    error?.name === "AbortPromptError" ||
-    error?.name === "AbortError"
-  );
+  return error?.name === "ExitPromptError" || error?.name === "AbortPromptError" || error?.name === "AbortError";
 }
 
 export class PromptAdapter {
@@ -60,9 +53,7 @@ export class InteractivePromptAdapter extends PromptAdapter {
     const config = {
       message: question.message || question.name,
       ...(question.choices ? { choices: question.choices } : {}),
-      ...(Object.hasOwn(question, "default")
-        ? { default: question.default }
-        : {}),
+      ...(Object.hasOwn(question, "default") ? { default: question.default } : {}),
     };
     try {
       return await handler(config, {
@@ -82,22 +73,17 @@ export class NonInteractivePromptAdapter extends PromptAdapter {
   }
 
   async ask() {
-    throw new CliError(
-      "Não é possível solicitar entrada sem terminal interativo.",
-      {
-        code: "INTERACTIVE_INPUT_UNAVAILABLE",
-        exitCode: 2,
-      },
-    );
+    throw new CliError("Não é possível solicitar entrada sem terminal interativo.", {
+      code: "INTERACTIVE_INPUT_UNAVAILABLE",
+      exitCode: 2,
+    });
   }
 }
 
 export class ProgrammedPromptAdapter extends PromptAdapter {
   constructor(responses = {}, options = {}) {
     super({ isInteractive: options.isInteractive ?? true });
-    this.responses = Array.isArray(responses)
-      ? [...responses]
-      : { ...responses };
+    this.responses = Array.isArray(responses) ? [...responses] : { ...responses };
     this.questions = [];
   }
 
@@ -106,12 +92,9 @@ export class ProgrammedPromptAdapter extends PromptAdapter {
     let response;
     if (Array.isArray(this.responses)) {
       if (this.responses.length === 0) {
-        throw new CliError(
-          `Resposta programada ausente para ${question.name}.`,
-          {
-            code: "PROGRAMMED_RESPONSE_MISSING",
-          },
-        );
+        throw new CliError(`Resposta programada ausente para ${question.name}.`, {
+          code: "PROGRAMMED_RESPONSE_MISSING",
+        });
       }
       response = this.responses.shift();
     } else if (Object.hasOwn(this.responses, question.name)) {
@@ -121,8 +104,7 @@ export class ProgrammedPromptAdapter extends PromptAdapter {
         code: "PROGRAMMED_RESPONSE_MISSING",
       });
     }
-    if (typeof response === "function")
-      response = await response(question, state);
+    if (typeof response === "function") response = await response(question, state);
     if (response instanceof Error) throw response;
     return response;
   }

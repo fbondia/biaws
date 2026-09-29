@@ -1,14 +1,9 @@
 import { ProjectCommand } from "../../baseCommands.js";
-import {
-  configureContextFlags,
-  interactiveConfigureInput,
-  legacyAgentContext,
-} from "../../configure/command.js";
+import { configureContextFlags, interactiveConfigureInput, legacyAgentContext } from "../../configure/command.js";
 import { runAgentCommand } from "../agent.js";
 
 export default class ConfigureCodex extends ProjectCommand {
-  static description =
-    "configura MCP e skills do Codex sem persistir credenciais no projeto";
+  static description = "configura MCP e skills do Codex sem persistir credenciais no projeto";
   static flags = configureContextFlags;
 
   async run() {

@@ -1,22 +1,12 @@
 import assert from "node:assert/strict";
-import {
-  mkdtemp,
-  mkdir,
-  readFile,
-  rm,
-  stat,
-  writeFile,
-} from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-const CLI_DIRECTORY = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-);
+const CLI_DIRECTORY = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLI_ENTRYPOINT = path.join(CLI_DIRECTORY, "bin", "biaws.js");
 
 function run(...args) {
@@ -30,8 +20,7 @@ function run(...args) {
 test("a ajuda raiz expõe somente os três níveis canônicos", () => {
   const result = run("--help");
   assert.equal(result.status, 0);
-  for (const topic of ["admin", "config", "workspace"])
-    assert.match(result.stdout, new RegExp(`^  ${topic}\\s`, "mu"));
+  for (const topic of ["admin", "config", "workspace"]) assert.match(result.stdout, new RegExp(`^  ${topic}\\s`, "mu"));
   assert.match(result.stdout, /^  help\s/mu);
   for (const legacy of ["instance", "configure", "skills", "monitoring"])
     assert.doesNotMatch(result.stdout, new RegExp(`^  ${legacy}\\s`, "mu"));
@@ -78,40 +67,20 @@ test("os níveis organizam seus comandos", () => {
     ],
     [
       ["workspace", "--help"],
-      [
-        "init",
-        "use",
-        "current",
-        "unlink",
-        "applications",
-        "demands",
-        "issues",
-        "skills",
-        "monitoring",
-        "agent",
-      ],
+      ["init", "use", "current", "unlink", "applications", "demands", "issues", "skills", "monitoring", "agent"],
     ],
   ];
   for (const [args, commands] of expectations) {
     const result = run(...args);
     assert.equal(result.status, 0, result.stderr);
-    for (const command of commands)
-      assert.match(result.stdout, new RegExp(command));
+    for (const command of commands) assert.match(result.stdout, new RegExp(command));
   }
 });
 
 test("instâncias e perfis possuem ajuda contextual", () => {
   const instances = run("admin", "instance", "--help");
   assert.equal(instances.status, 0, instances.stderr);
-  for (const action of [
-    "setup",
-    "list",
-    "show",
-    "status",
-    "start",
-    "stop",
-    "update",
-  ])
+  for (const action of ["setup", "list", "show", "status", "start", "stop", "update"])
     assert.match(instances.stdout, new RegExp(`admin instance ${action}`));
   const profiles = run("config", "profiles", "--help");
   assert.equal(profiles.status, 0, profiles.stderr);
@@ -126,15 +95,7 @@ test("instâncias e perfis possuem ajuda contextual", () => {
 test("monitoramento administrativo expõe o ciclo operacional", () => {
   const result = run("admin", "monitoring", "--help");
   assert.equal(result.status, 0, result.stderr);
-  for (const action of [
-    "build",
-    "validate",
-    "start",
-    "stop",
-    "status",
-    "logs",
-    "provision",
-  ])
+  for (const action of ["build", "validate", "start", "stop", "status", "logs", "provision"])
     assert.match(result.stdout, new RegExp(`admin monitoring ${action}`));
 });
 
@@ -156,13 +117,7 @@ test("comandos canônicos validam argumentos e flags pelo oclif", () => {
   const missing = run("workspace", "skills", "install");
   assert.equal(missing.status, 2);
   assert.match(missing.stderr, /Missing 1 required arg|SKILL/u);
-  const invalid = run(
-    "workspace",
-    "monitoring",
-    "signals",
-    "runtime-1",
-    "--bad-flag",
-  );
+  const invalid = run("workspace", "monitoring", "signals", "runtime-1", "--bad-flag");
   assert.equal(invalid.status, 2);
   assert.match(invalid.stderr, /Nonexistent flag: --bad-flag/u);
 });
@@ -184,31 +139,22 @@ test("admin install oferece plano versionado sem alteração", () => {
 test("config init separa configuração e credencial", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "biaws-cli-config-"));
   try {
-    const result = spawnSync(
-      CLI_ENTRYPOINT,
-      ["config", "init", "--api-url", "https://biaws.example.test"],
-      {
-        cwd: CLI_DIRECTORY,
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          BIAWS_API_KEY: "private-key",
-          BIAWS_CONFIG_HOME: root,
-        },
+    const result = spawnSync(CLI_ENTRYPOINT, ["config", "init", "--api-url", "https://biaws.example.test"], {
+      cwd: CLI_DIRECTORY,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        BIAWS_API_KEY: "private-key",
+        BIAWS_CONFIG_HOME: root,
       },
-    );
+    });
     assert.equal(result.status, 0, result.stderr);
     const config = JSON.parse(await readFile(path.join(root, "config.json")));
-    const credentials = JSON.parse(
-      await readFile(path.join(root, "credentials.json")),
-    );
+    const credentials = JSON.parse(await readFile(path.join(root, "credentials.json")));
     assert.equal(config.profiles.default.apiUrl, "https://biaws.example.test");
     assert.equal(credentials.profiles.default.apiKey, "private-key");
     assert.doesNotMatch(JSON.stringify(config), /private-key/u);
-    assert.equal(
-      (await stat(path.join(root, "credentials.json"))).mode & 0o777,
-      0o600,
-    );
+    assert.equal((await stat(path.join(root, "credentials.json"))).mode & 0o777, 0o600);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -231,10 +177,7 @@ test("workspace current encontra associação em pasta ancestral", async () => {
     });
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /Workspace ws-a/u);
-    assert.match(
-      result.stdout,
-      new RegExp(root.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")),
-    );
+    assert.match(result.stdout, new RegExp(root.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")));
   } finally {
     await rm(root, { recursive: true, force: true });
   }

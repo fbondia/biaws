@@ -1,13 +1,5 @@
 import crypto from "node:crypto";
-import {
-  lstat,
-  mkdir,
-  readdir,
-  readFile,
-  rename,
-  rm,
-  writeFile,
-} from "node:fs/promises";
+import { lstat, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 function lockPath(targetDirectory) {
@@ -28,8 +20,7 @@ export async function readLock(targetDirectory) {
   try {
     return JSON.parse(await readFile(lockPath(targetDirectory), "utf8"));
   } catch (error) {
-    if (error.code === "ENOENT")
-      return { format: "biaws-skills-lock/v1", skills: {} };
+    if (error.code === "ENOENT") return { format: "biaws-skills-lock/v1", skills: {} };
     throw error;
   }
 }
@@ -39,8 +30,7 @@ async function collectInstalledFiles(root, current = root, result = []) {
   entries.sort((a, b) => a.name.localeCompare(b.name));
   for (const entry of entries) {
     const absolutePath = path.join(current, entry.name);
-    if (entry.isSymbolicLink())
-      throw new Error(`Link simbólico inesperado: ${absolutePath}`);
+    if (entry.isSymbolicLink()) throw new Error(`Link simbólico inesperado: ${absolutePath}`);
     if (entry.isDirectory()) {
       await collectInstalledFiles(root, absolutePath, result);
     } else if (entry.isFile()) {
@@ -70,19 +60,12 @@ export async function checksumInstalledSkill(skillDirectory) {
 
 async function writeLock(targetDirectory, lock) {
   await mkdir(path.dirname(targetDirectory), { recursive: true });
-  await writeFile(
-    lockPath(targetDirectory),
-    `${JSON.stringify(lock, null, 2)}\n`,
-    "utf8",
-  );
+  await writeFile(lockPath(targetDirectory), `${JSON.stringify(lock, null, 2)}\n`, "utf8");
 }
 
 function safeDestination(root, relativePath) {
   const normalized = String(relativePath || "").replaceAll("\\", "/");
-  if (
-    normalized.startsWith("/") ||
-    normalized.split("/").some((part) => !part || part === "." || part === "..")
-  ) {
+  if (normalized.startsWith("/") || normalized.split("/").some((part) => !part || part === "." || part === "..")) {
     throw new Error(`Caminho inválido no pacote: ${relativePath}`);
   }
   const destination = path.resolve(root, normalized);
@@ -92,22 +75,12 @@ function safeDestination(root, relativePath) {
   return destination;
 }
 
-export async function installSkillPackage(
-  skillPackage,
-  targetDirectory,
-  options = {},
-) {
-  if (
-    skillPackage?.format !== "biaws-skill-package/v1" ||
-    !skillPackage.skill
-  ) {
+export async function installSkillPackage(skillPackage, targetDirectory, options = {}) {
+  if (skillPackage?.format !== "biaws-skill-package/v1" || !skillPackage.skill) {
     throw new Error("Pacote de skill inválido ou incompatível");
   }
   const skill = skillPackage.skill;
-  const finalDirectory = path.join(
-    path.resolve(targetDirectory),
-    skill.skillId,
-  );
+  const finalDirectory = path.join(path.resolve(targetDirectory), skill.skillId);
   const temporaryDirectory = `${finalDirectory}.install-${crypto.randomUUID()}`;
   await mkdir(temporaryDirectory, { recursive: true });
   try {
@@ -118,9 +91,7 @@ export async function installSkillPackage(
     }
     if (await exists(finalDirectory)) {
       if (!options.force) {
-        throw new Error(
-          `A skill já existe em ${finalDirectory}; use --force para substituí-la`,
-        );
+        throw new Error(`A skill já existe em ${finalDirectory}; use --force para substituí-la`);
       }
       const backupDirectory = `${finalDirectory}.backup-${new Date().toISOString().replace(/[:.]/gu, "-")}`;
       await rename(finalDirectory, backupDirectory);

@@ -3,8 +3,7 @@ import { Help } from "@oclif/core";
 import { LocalInstanceCommand } from "../baseCommands.js";
 
 export default class Instance extends LocalInstanceCommand {
-  static description =
-    "Instala, configura e opera instâncias locais do Bondia Workspaces";
+  static description = "Instala, configura e opera instâncias locais do Bondia Workspaces";
   static examples = [
     "<%= config.bin %> instance setup",
     "<%= config.bin %> instance status",

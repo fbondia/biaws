@@ -44,9 +44,7 @@ export function table(items, columns) {
   for (const item of items) {
     rows.push(columns.map(([, read]) => String(read(item) ?? "")));
   }
-  const widths = rows[0].map((_, index) =>
-    Math.max(...rows.map((row) => row[index].length)),
-  );
+  const widths = rows[0].map((_, index) => Math.max(...rows.map((row) => row[index].length)));
   return rows
     .map((row) =>
       row
@@ -60,14 +58,9 @@ export function table(items, columns) {
 export function asCliError(error, resource) {
   if (error instanceof CliError) return error;
   const status = error?.statusCode;
-  const exitCode =
-    status === 404 ? 4 : status === 403 ? 3 : status === 401 ? 2 : 1;
+  const exitCode = status === 404 ? 4 : status === 403 ? 3 : status === 401 ? 2 : 1;
   const code =
-    status === 404
-      ? "RESOURCE_NOT_FOUND"
-      : status === 403
-        ? "PERMISSION_DENIED"
-        : error?.code || "API_READ_FAILED";
+    status === 404 ? "RESOURCE_NOT_FOUND" : status === 403 ? "PERMISSION_DENIED" : error?.code || "API_READ_FAILED";
   return new CliError(`${resource}: ${error.message}`, {
     cause: error,
     code,
@@ -98,15 +91,11 @@ export class DomainReadService {
   }
   async demand(id, filters = {}) {
     try {
-      return await this.api.request(
-        `/requests/${encodeURIComponent(id)}${queryString(filters)}`,
-      );
+      return await this.api.request(`/requests/${encodeURIComponent(id)}${queryString(filters)}`);
     } catch (error) {
       if (error?.statusCode !== 404) throw error;
       const payload = await this.demands({ ...filters, code: id, limit: 2 });
-      const matches = (payload.items || []).filter(
-        (item) => String(item.clientCode || "") === String(id),
-      );
+      const matches = (payload.items || []).filter((item) => String(item.clientCode || "") === String(id));
       if (matches.length === 1) return { request: matches[0] };
       if (matches.length > 1) {
         throw new CliError(`Código de melhoria ambíguo: ${id}.`, {

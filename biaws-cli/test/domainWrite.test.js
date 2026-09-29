@@ -1,11 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  asWriteCliError,
-  DomainWriteService,
-  findTask,
-  writeEnvelope,
-} from "../src/domain/writeService.js";
+import { asWriteCliError, DomainWriteService, findTask, writeEnvelope } from "../src/domain/writeService.js";
 
 test("DomainWriteService envia somente status aos endpoints específicos", async () => {
   const calls = [];
@@ -44,10 +39,7 @@ test("DomainWriteService resolve código da melhoria antes da escrita", async ()
   });
   const result = await service.demand("DEMO-001");
   assert.equal(result.request.id, "request-1");
-  assert.deepEqual(calls, [
-    "/requests/DEMO-001",
-    "/requests?code=DEMO-001&limit=2",
-  ]);
+  assert.deepEqual(calls, ["/requests/DEMO-001", "/requests?code=DEMO-001&limit=2"]);
 });
 
 test("findTask resolve código ou ID e rejeita referência ausente", () => {
@@ -78,10 +70,7 @@ test("conflito, validação, autorização e inexistência são distinguíveis",
     [404, "RESOURCE_NOT_FOUND", 4],
   ];
   for (const [statusCode, code, exitCode] of errors) {
-    const result = asWriteCliError(
-      Object.assign(new Error("falha"), { statusCode }),
-      "issue",
-    );
+    const result = asWriteCliError(Object.assign(new Error("falha"), { statusCode }), "issue");
     assert.equal(result.code, code);
     assert.equal(result.exitCode, exitCode);
   }

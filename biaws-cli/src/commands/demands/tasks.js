@@ -17,9 +17,7 @@ export default class DemandTasks extends ReadCommand {
           workspaceId: c.workspaceId,
         });
         const request = payload.request || payload;
-        const items = (request.tasks || []).filter(
-          (x) => !flags.status || x.status === flags.status,
-        );
+        const items = (request.tasks || []).filter((x) => !flags.status || x.status === flags.status);
         return { items, meta: { total: items.length } };
       },
       {

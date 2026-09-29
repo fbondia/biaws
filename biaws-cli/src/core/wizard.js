@@ -1,11 +1,7 @@
 import { Flags } from "@oclif/core";
 
 import { CliError } from "./errors.js";
-import {
-  NonInteractivePromptAdapter,
-  PromptCancelledError,
-  createPromptAdapter,
-} from "./prompts.js";
+import { NonInteractivePromptAdapter, PromptCancelledError, createPromptAdapter } from "./prompts.js";
 import { redactValue } from "./redaction.js";
 
 const REDACTED = "[REDACTED]";
@@ -38,16 +34,13 @@ function hasValue(value) {
 function clone(value) {
   if (Array.isArray(value)) return value.map(clone);
   if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [key, clone(item)]),
-    );
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, clone(item)]));
   }
   return value;
 }
 
 function deepFreeze(value) {
-  if (!value || typeof value !== "object" || Object.isFrozen(value))
-    return value;
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
   for (const item of Object.values(value)) deepFreeze(item);
   return Object.freeze(value);
 }
@@ -70,11 +63,7 @@ export class ExecutionPlan {
 
   constructor(kind, values, questions) {
     this.#values = deepFreeze(clone(values));
-    const secretNames = new Set(
-      questions
-        .filter((question) => question.secret)
-        .map((question) => question.name),
-    );
+    const secretNames = new Set(questions.filter((question) => question.secret).map((question) => question.name));
     const secretValues = [...secretNames]
       .map((name) => values[name])
       .filter(hasValue)
@@ -84,9 +73,7 @@ export class ExecutionPlan {
       Object.fromEntries(
         Object.entries(values).map(([name, value]) => [
           name,
-          secretNames.has(name) && hasValue(value)
-            ? REDACTED
-            : redactValue(clone(value), secretValues),
+          secretNames.has(name) && hasValue(value) ? REDACTED : redactValue(clone(value), secretValues),
         ]),
       ),
     );
@@ -103,25 +90,16 @@ export class ExecutionPlan {
 }
 
 export function normalizeWizardOptions(options = {}, terminal = {}) {
-  const nonInteractive = Boolean(
-    options.nonInteractive || options["non-interactive"],
-  );
+  const nonInteractive = Boolean(options.nonInteractive || options["non-interactive"]);
   if (options.interactive && nonInteractive) {
-    throw new CliError(
-      "--interactive e --non-interactive são mutuamente exclusivos.",
-      {
-        code: "INTERACTION_MODE_CONFLICT",
-        exitCode: 2,
-      },
-    );
+    throw new CliError("--interactive e --non-interactive são mutuamente exclusivos.", {
+      code: "INTERACTION_MODE_CONFLICT",
+      exitCode: 2,
+    });
   }
   return Object.freeze({
     defaults: Boolean(options.defaults),
-    interactive: Boolean(
-      !nonInteractive &&
-      terminal.isInteractive &&
-      (options.interactive || !nonInteractive),
-    ),
+    interactive: Boolean(!nonInteractive && terminal.isInteractive && (options.interactive || !nonInteractive)),
     json: Boolean(options.json),
     yes: Boolean(options.yes),
   });
@@ -137,19 +115,14 @@ function sourceValue(question, flags, environment) {
 }
 
 async function isApplicable(question, values) {
-  return question.when
-    ? Boolean(await question.when(Object.freeze({ ...values })))
-    : true;
+  return question.when ? Boolean(await question.when(Object.freeze({ ...values }))) : true;
 }
 
 async function validateAnswer(question, value, values) {
   if (!question.validate) return;
   const result = await question.validate(value, Object.freeze({ ...values }));
   if (result === true || result === undefined) return;
-  const message =
-    typeof result === "string"
-      ? result
-      : `Valor inválido para ${question.name}.`;
+  const message = typeof result === "string" ? result : `Valor inválido para ${question.name}.`;
   throw new CliError(message, {
     code: "WIZARD_VALIDATION_FAILED",
     exitCode: 2,
@@ -162,16 +135,12 @@ async function resolveDefault(question, values) {
     return { hasDefault: false, value: undefined };
   }
   const value =
-    typeof question.default === "function"
-      ? await question.default(Object.freeze({ ...values }))
-      : question.default;
+    typeof question.default === "function" ? await question.default(Object.freeze({ ...values })) : question.default;
   return { hasDefault: true, value };
 }
 
 async function askQuestion(adapter, question, defaultValue, input, values) {
-  const prompt = defaultValue.hasDefault
-    ? { ...question, default: defaultValue.value }
-    : question;
+  const prompt = defaultValue.hasDefault ? { ...question, default: defaultValue.value } : question;
   try {
     return await adapter.ask(prompt, {
       signal: input.signal,
@@ -207,21 +176,13 @@ export async function collectWizardValues(definition, input = {}) {
   const options = normalizeWizardOptions(input.options, terminal);
   const adapter =
     input.promptAdapter ||
-    (options.interactive
-      ? createPromptAdapter(terminal, input.promptOptions)
-      : new NonInteractivePromptAdapter());
+    (options.interactive ? createPromptAdapter(terminal, input.promptOptions) : new NonInteractivePromptAdapter());
   const values = {};
   const missing = [];
   const questions = definition.questions || [];
 
   for (const question of questions) {
-    const resolved = await resolveQuestion(
-      question,
-      values,
-      input,
-      options,
-      adapter,
-    );
+    const resolved = await resolveQuestion(question, values, input, options, adapter);
     if (resolved.skipped) continue;
     if (resolved.missing) missing.push(question);
     if (resolved.name) values[resolved.name] = resolved.value;
@@ -238,11 +199,7 @@ export function createExecutionPlan(definition, collected) {
       exitCode: 2,
     });
   }
-  return new ExecutionPlan(
-    definition.kind,
-    collected.values,
-    collected.questions,
-  );
+  return new ExecutionPlan(definition.kind, collected.values, collected.questions);
 }
 
 export function summarizeExecutionPlan(plan) {
@@ -252,13 +209,10 @@ export function summarizeExecutionPlan(plan) {
 export async function confirmExecutionPlan(plan, input = {}) {
   if (input.options?.yes) return true;
   if (!input.terminal?.isInteractive || !input.promptAdapter?.isInteractive) {
-    throw new CliError(
-      "Confirmação necessária. Use --yes em modo não interativo.",
-      {
-        code: "CONFIRMATION_REQUIRED",
-        exitCode: 2,
-      },
-    );
+    throw new CliError("Confirmação necessária. Use --yes em modo não interativo.", {
+      code: "CONFIRMATION_REQUIRED",
+      exitCode: 2,
+    });
   }
   let confirmed;
   try {
@@ -291,8 +245,5 @@ export async function executeExecutionPlan(plan, executor, input = {}) {
 }
 
 export async function buildExecutionPlan(definition, input = {}) {
-  return createExecutionPlan(
-    definition,
-    await collectWizardValues(definition, input),
-  );
+  return createExecutionPlan(definition, await collectWizardValues(definition, input));
 }

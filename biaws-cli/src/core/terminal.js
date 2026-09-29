@@ -27,10 +27,7 @@ export class CliOutput {
 
   result(value) {
     if (this.json) {
-      writeLine(
-        this.terminal.stdout,
-        JSON.stringify(redactValue(value, this.secrets), null, 2),
-      );
+      writeLine(this.terminal.stdout, JSON.stringify(redactValue(value, this.secrets), null, 2));
       return;
     }
     writeLine(this.terminal.stdout, redactText(value, this.secrets));

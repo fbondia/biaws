@@ -14,10 +14,7 @@ test("configuração global resolve o MCP no checkout indicado por BIAWS_ROOT", 
     workspaceId: "workspace-a",
   });
 
-  assert.equal(
-    context.toolDirectory,
-    path.join("/checkout/biaws", "biaws-cli"),
-  );
+  assert.equal(context.toolDirectory, path.join("/checkout/biaws", "biaws-cli"));
 });
 
 test("configuração preserva a rota legada quando não há raiz do checkout", () => {

@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createApiClient } from "../src/apiClient.js";
-import {
-  asCliError,
-  DomainReadService,
-  readEnvelope,
-  table,
-} from "../src/domain/readService.js";
+import { asCliError, DomainReadService, readEnvelope, table } from "../src/domain/readService.js";
 
 test("DomainReadService repassa filtros, paginação e escopo sem ampliá-los", async () => {
   const calls = [];
@@ -104,10 +99,7 @@ test("erros de autorização e inexistência possuem códigos de saída distinto
     statusCode: 404,
   });
   assert.deepEqual(
-    [
-      asCliError(forbidden, "issue").code,
-      asCliError(forbidden, "issue").exitCode,
-    ],
+    [asCliError(forbidden, "issue").code, asCliError(forbidden, "issue").exitCode],
     ["PERMISSION_DENIED", 3],
   );
   assert.deepEqual(
@@ -128,10 +120,8 @@ test("cliente HTTP preserva o código de erro específico da API", async (contex
       return { error: { code: "ISSUE_NOT_FOUND", message: "Issue not found" } };
     },
   });
-  await assert.rejects(
-    createApiClient("http://api.test", "secret", "workspace-a").request(
-      "/issues/INC-404",
-    ),
-    { code: "ISSUE_NOT_FOUND", statusCode: 404 },
-  );
+  await assert.rejects(createApiClient("http://api.test", "secret", "workspace-a").request("/issues/INC-404"), {
+    code: "ISSUE_NOT_FOUND",
+    statusCode: 404,
+  });
 });

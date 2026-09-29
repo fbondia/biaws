@@ -2,11 +2,7 @@ import { Args, Flags } from "@oclif/core";
 
 import { BaseCommand } from "../baseCommands.js";
 import { CliError } from "../core/errors.js";
-import {
-  DEFAULT_PROFILE,
-  writeCredentials,
-  writeGlobalConfiguration,
-} from "../core/configuration.js";
+import { DEFAULT_PROFILE, writeCredentials, writeGlobalConfiguration } from "../core/configuration.js";
 
 const profileFlag = Flags.string({
   char: "p",
@@ -20,10 +16,10 @@ const jsonFlag = Flags.boolean({
 function profileName(value) {
   const name = String(value || DEFAULT_PROFILE).trim();
   if (!/^[a-z0-9][a-z0-9._-]*$/u.test(name)) {
-    throw new CliError(
-      "O perfil deve usar letras minúsculas, números, ponto, hífen ou sublinhado.",
-      { code: "INVALID_PROFILE", exitCode: 2 },
-    );
+    throw new CliError("O perfil deve usar letras minúsculas, números, ponto, hífen ou sublinhado.", {
+      code: "INVALID_PROFILE",
+      exitCode: 2,
+    });
   }
   return name;
 }
@@ -51,9 +47,7 @@ function credentialsWithKey(configuration, name, apiKey) {
 
 async function requiredApiKey(command) {
   const fromEnvironment = String(
-    command.adapters.environment.BIAWS_API_KEY ||
-      command.adapters.environment.BIAWS_API_KEY ||
-      "",
+    command.adapters.environment.BIAWS_API_KEY || command.adapters.environment.BIAWS_API_KEY || "",
   ).trim();
   if (fromEnvironment) return fromEnvironment;
   if (command.adapters.terminal.isInteractive) {
@@ -65,10 +59,10 @@ async function requiredApiKey(command) {
       }),
     ).trim();
   }
-  throw new CliError(
-    "Chave de API ausente. Defina BIAWS_API_KEY ou execute o comando em um terminal interativo.",
-    { code: "API_KEY_REQUIRED", exitCode: 2 },
-  );
+  throw new CliError("Chave de API ausente. Defina BIAWS_API_KEY ou execute o comando em um terminal interativo.", {
+    code: "API_KEY_REQUIRED",
+    exitCode: 2,
+  });
 }
 
 function emit(command, json, value, human) {
@@ -96,11 +90,7 @@ export class ConfigInitCommand extends BaseCommand {
     });
     global.currentProfile = name;
     await Promise.all([
-      writeGlobalConfiguration(
-        this.adapters.filesystem,
-        context.configuration.paths,
-        global,
-      ),
+      writeGlobalConfiguration(this.adapters.filesystem, context.configuration.paths, global),
       writeCredentials(
         this.adapters.filesystem,
         context.configuration.paths,
@@ -212,11 +202,7 @@ export class ConfigSetCommand extends BaseCommand {
     const global = globalWithProfile(context.configuration, name, {
       apiUrl: context.apiUrl,
     });
-    await writeGlobalConfiguration(
-      this.adapters.filesystem,
-      context.configuration.paths,
-      global,
-    );
+    await writeGlobalConfiguration(this.adapters.filesystem, context.configuration.paths, global);
     emit(
       this,
       flags.json,
@@ -247,18 +233,12 @@ export class ConfigUnsetCommand extends BaseCommand {
       const profiles = { ...(context.configuration.global.profiles || {}) };
       profiles[name] = { ...(profiles[name] || {}) };
       delete profiles[name].apiUrl;
-      await writeGlobalConfiguration(
-        this.adapters.filesystem,
-        context.configuration.paths,
-        { ...context.configuration.global, profiles },
-      );
+      await writeGlobalConfiguration(this.adapters.filesystem, context.configuration.paths, {
+        ...context.configuration.global,
+        profiles,
+      });
     }
-    emit(
-      this,
-      flags.json,
-      { key: args.key, profile: name, removed: true },
-      `${args.key} removido do perfil ${name}.`,
-    );
+    emit(this, flags.json, { key: args.key, profile: name, removed: true }, `${args.key} removido do perfil ${name}.`);
   }
 }
 
@@ -274,9 +254,7 @@ export class ConfigDoctorCommand extends BaseCommand {
     let error = null;
     if (context.apiKey) {
       try {
-        identity = await this.adapters
-          .apiFactory(context.apiUrl, context.apiKey)
-          .identity();
+        identity = await this.adapters.apiFactory(context.apiUrl, context.apiKey).identity();
         authentication = "válida";
       } catch (cause) {
         authentication = "inválida";
@@ -315,16 +293,11 @@ export class ConfigProfilesListCommand extends BaseCommand {
   async run() {
     const { flags } = await this.parse(this.constructor);
     const context = await this.commandContext();
-    const current =
-      context.configuration.global.currentProfile || DEFAULT_PROFILE;
-    const items = Object.entries(
-      context.configuration.global.profiles || {},
-    ).map(([name, config]) => ({
+    const current = context.configuration.global.currentProfile || DEFAULT_PROFILE;
+    const items = Object.entries(context.configuration.global.profiles || {}).map(([name, config]) => ({
       apiUrl: config.apiUrl || null,
       current: name === current,
-      credentialsConfigured: Boolean(
-        context.configuration.credentials.profiles?.[name]?.apiKey,
-      ),
+      credentialsConfigured: Boolean(context.configuration.credentials.profiles?.[name]?.apiKey),
       name,
     }));
     emit(
@@ -333,10 +306,7 @@ export class ConfigProfilesListCommand extends BaseCommand {
       { items },
       items.length
         ? items
-            .map(
-              (item) =>
-                `${item.current ? "*" : " "} ${item.name}  ${item.apiUrl || "URL não configurada"}`,
-            )
+            .map((item) => `${item.current ? "*" : " "} ${item.name}  ${item.apiUrl || "URL não configurada"}`)
             .join("\n")
         : "Nenhum perfil configurado.",
     );
@@ -358,16 +328,10 @@ export class ConfigProfilesUseCommand extends BaseCommand {
         exitCode: 2,
       });
     }
-    await writeGlobalConfiguration(
-      this.adapters.filesystem,
-      context.configuration.paths,
-      { ...context.configuration.global, currentProfile: name },
-    );
-    emit(
-      this,
-      flags.json,
-      { currentProfile: name },
-      `Perfil global selecionado: ${name}.`,
-    );
+    await writeGlobalConfiguration(this.adapters.filesystem, context.configuration.paths, {
+      ...context.configuration.global,
+      currentProfile: name,
+    });
+    emit(this, flags.json, { currentProfile: name }, `Perfil global selecionado: ${name}.`);
   }
 }

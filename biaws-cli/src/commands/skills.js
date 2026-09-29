@@ -4,11 +4,7 @@ import path from "node:path";
 import { BaseCommand } from "../baseCommands.js";
 import { showTopic } from "../commandFactories.js";
 import { buildSkillPayload } from "../skillPackage.js";
-import {
-  checksumInstalledSkill,
-  installSkillPackage,
-  readLock,
-} from "../localSkills.js";
+import { checksumInstalledSkill, installSkillPackage, readLock } from "../localSkills.js";
 
 function targetFrom(options) {
   return path.resolve(options.target || ".agents/skills");
@@ -64,9 +60,7 @@ async function publishSkill(api, _positional, options) {
   const payload = await buildSkillPayload(options.dir, options);
   const result = await api.publish(payload);
   if (!printJson(result, options)) {
-    console.log(
-      `Publicada ${result.skill.skillId}@${result.skill.version} (${result.skill.packageSha256})`,
-    );
+    console.log(`Publicada ${result.skill.skillId}@${result.skill.version} (${result.skill.packageSha256})`);
   }
 }
 
@@ -79,10 +73,7 @@ async function publishAllSkills(api, _positional, options) {
     api.list({ includeDeprecated: true }),
   ]);
   const publishedVersions = new Map(
-    catalog.items.map((item) => [
-      item.skillId,
-      new Set((item.versions || []).map((candidate) => candidate.version)),
-    ]),
+    catalog.items.map((item) => [item.skillId, new Set((item.versions || []).map((candidate) => candidate.version))]),
   );
   const result = { published: [], skipped: [], failed: [] };
 
@@ -118,14 +109,9 @@ async function publishAllSkills(api, _positional, options) {
     if (result.failed.length) process.exitCode = 1;
     return;
   }
-  for (const item of result.published)
-    console.log(`Publicada ${item.skillId}@${item.version}`);
-  for (const item of result.skipped)
-    console.log(
-      `Ignorada ${item.skillId}@${item.version}: versão já existente`,
-    );
-  for (const item of result.failed)
-    console.error(`Falha em ${item.directory}: ${item.message}`);
+  for (const item of result.published) console.log(`Publicada ${item.skillId}@${item.version}`);
+  for (const item of result.skipped) console.log(`Ignorada ${item.skillId}@${item.version}: versão já existente`);
+  for (const item of result.failed) console.error(`Falha em ${item.directory}: ${item.message}`);
   console.log(
     `Resumo: ${result.published.length} publicada(s), ${result.skipped.length} ignorada(s), ${result.failed.length} falha(s).`,
   );
@@ -134,15 +120,10 @@ async function publishAllSkills(api, _positional, options) {
 
 async function installSkill(api, positional, options) {
   const skillId = positional[0];
-  if (!skillId)
-    throw new Error(
-      "Informe a skill: biaws workspace skills install <skill-id>",
-    );
+  if (!skillId) throw new Error("Informe a skill: biaws workspace skills install <skill-id>");
   const result = await install(api, skillId, options.version, options);
   if (!printJson(result, options)) {
-    console.log(
-      `Instalada ${skillId}@${result.skill.version} em ${result.directory}`,
-    );
+    console.log(`Instalada ${skillId}@${result.skill.version} em ${result.directory}`);
   }
 }
 
@@ -173,21 +154,13 @@ async function installCatalogSkill(api, item, lock, options, results) {
 }
 
 function printInstallAllResults(results) {
-  for (const item of results.installed)
-    console.log(
-      `Instalada ${item.skillId}@${item.version} em ${item.directory}`,
-    );
-  for (const item of results.skipped)
-    console.log(`Preservada ${item.skillId}@${item.version}`);
-  for (const item of results.failed)
-    console.error(`Falha em ${item.skillId}: ${item.message}`);
+  for (const item of results.installed) console.log(`Instalada ${item.skillId}@${item.version} em ${item.directory}`);
+  for (const item of results.skipped) console.log(`Preservada ${item.skillId}@${item.version}`);
+  for (const item of results.failed) console.error(`Falha em ${item.skillId}: ${item.message}`);
 }
 
 async function installAllSkills(api, _positional, options) {
-  const [catalog, lock] = await Promise.all([
-    api.list(),
-    readLock(targetFrom(options)),
-  ]);
+  const [catalog, lock] = await Promise.all([api.list(), readLock(targetFrom(options))]);
   const results = { installed: [], skipped: [], failed: [] };
   for (const item of catalog.items) {
     await installCatalogSkill(api, item, lock, options, results);
@@ -211,14 +184,10 @@ function skillStatus(local, installedChecksum, latestVersion) {
 async function getInstalledSkillsStatus(api, options) {
   const lock = await readLock(targetFrom(options));
   const catalog = await api.list();
-  const latestById = new Map(
-    catalog.items.map((item) => [item.skillId, item.latestVersion]),
-  );
+  const latestById = new Map(catalog.items.map((item) => [item.skillId, item.latestVersion]));
   const items = [];
   for (const [skillId, local] of Object.entries(lock.skills)) {
-    const installedChecksum = await checksumInstalledSkill(
-      path.join(targetFrom(options), skillId),
-    );
+    const installedChecksum = await checksumInstalledSkill(path.join(targetFrom(options), skillId));
     const latestVersion = latestById.get(skillId) || null;
     items.push({
       skillId,
@@ -239,9 +208,7 @@ async function showSkillsStatus(api, _positional, options) {
   }
   for (const item of items) {
     const latest = item.latestVersion ? `; catálogo ${item.latestVersion}` : "";
-    console.log(
-      `${item.skillId}@${item.installedVersion}: ${item.status}${latest}`,
-    );
+    console.log(`${item.skillId}@${item.installedVersion}: ${item.status}${latest}`);
   }
 }
 
@@ -250,9 +217,7 @@ async function updateSkills(api, positional, options) {
   const lock = await readLock(targetFrom(options));
   const catalog = await api.list();
   if (requestedSkillId && !lock.skills[requestedSkillId]) {
-    throw new Error(
-      `Skill não instalada pelo Bondia Workspaces CLI: ${requestedSkillId}`,
-    );
+    throw new Error(`Skill não instalada pelo Bondia Workspaces CLI: ${requestedSkillId}`);
   }
   const candidates = catalog.items.filter(
     (item) =>
@@ -272,9 +237,7 @@ async function updateSkills(api, positional, options) {
   if (printJson({ items: results }, options)) return;
   if (!results.length) console.log("Todas as skills estão atualizadas.");
   for (const result of results) {
-    console.log(
-      `Atualizada ${path.basename(result.directory)} para ${result.skill.version}`,
-    );
+    console.log(`Atualizada ${path.basename(result.directory)} para ${result.skill.version}`);
   }
 }
 
@@ -290,14 +253,12 @@ const ACTION_HANDLERS = {
 
 export async function runSkillsCommand(api, action, positional, options) {
   const handler = ACTION_HANDLERS[action];
-  if (!handler)
-    throw new Error(`Ação de skills desconhecida: ${action || "(ausente)"}`);
+  if (!handler) throw new Error(`Ação de skills desconhecida: ${action || "(ausente)"}`);
   return handler(api, positional, options);
 }
 
 export default class Skills extends BaseCommand {
-  static description =
-    "Gerencia publicação, instalação e atualização de skills";
+  static description = "Gerencia publicação, instalação e atualização de skills";
 
   async run() {
     await showTopic(this, "skills");

@@ -25,8 +25,7 @@ function attachOutput(stream, target, chunks, options = {}) {
   });
 
   return () => {
-    if (!options.silent && target && pending)
-      target.write(redactText(pending, secrets));
+    if (!options.silent && target && pending) target.write(redactText(pending, secrets));
     pending = "";
   };
 }
@@ -52,17 +51,13 @@ export class ProcessRunner {
         cwd: options.cwd,
         env: options.env,
         shell: false,
-        stdio: [
-          options.input === undefined ? "ignore" : "pipe",
-          "pipe",
-          "pipe",
-        ],
+        stdio: [options.input === undefined ? "ignore" : "pipe", "pipe", "pipe"],
       });
     } catch (cause) {
-      throw new ProcessExecutionError(
-        `Falha ao iniciar ${redactText(command, secrets)}.`,
-        { cause, command: redactText(command, secrets) },
-      );
+      throw new ProcessExecutionError(`Falha ao iniciar ${redactText(command, secrets)}.`, {
+        cause,
+        command: redactText(command, secrets),
+      });
     }
     const flushStdout = attachOutput(child.stdout, this.stdout, stdoutChunks, {
       secrets,
@@ -99,10 +94,10 @@ export class ProcessRunner {
       child.once("error", (cause) => {
         cleanup();
         reject(
-          new ProcessExecutionError(
-            `Falha ao iniciar ${redactText(command, secrets)}.`,
-            { cause, command: redactText(command, secrets) },
-          ),
+          new ProcessExecutionError(`Falha ao iniciar ${redactText(command, secrets)}.`, {
+            cause,
+            command: redactText(command, secrets),
+          }),
         );
       });
       child.once("close", (processExitCode, signal) => {
@@ -114,10 +109,7 @@ export class ProcessRunner {
           resolve(result);
           return;
         }
-        const renderedCommand = redactText(
-          [command, ...args].join(" "),
-          secrets,
-        );
+        const renderedCommand = redactText([command, ...args].join(" "), secrets);
         reject(
           new ProcessExecutionError(
             signal

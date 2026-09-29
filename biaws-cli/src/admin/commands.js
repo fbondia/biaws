@@ -64,11 +64,7 @@ export class AdminDoctorCommand extends BaseCommand {
     const items = [];
     for (const check of checks) {
       try {
-        const result = await this.adapters.processRunner.run(
-          check.command,
-          check.args,
-          { silent: true },
-        );
+        const result = await this.adapters.processRunner.run(check.command, check.args, { silent: true });
         items.push({
           name: check.name,
           status: "disponível",
@@ -88,12 +84,7 @@ export class AdminDoctorCommand extends BaseCommand {
       this,
       flags.json,
       { healthy, items },
-      items
-        .map(
-          (item) =>
-            `${item.name}: ${item.status}${item.version ? ` (${item.version})` : ""}`,
-        )
-        .join("\n"),
+      items.map((item) => `${item.name}: ${item.status}${item.version ? ` (${item.version})` : ""}`).join("\n"),
     );
   }
 }
@@ -107,13 +98,10 @@ async function ensureEmptyDirectory(filesystem, directory) {
   try {
     const entries = await filesystem.readdir(directory);
     if (entries.length) {
-      throw new CliError(
-        `O diretório de destino não está vazio: ${directory}.`,
-        {
-          code: "INSTALL_DIRECTORY_NOT_EMPTY",
-          exitCode: 2,
-        },
-      );
+      throw new CliError(`O diretório de destino não está vazio: ${directory}.`, {
+        code: "INSTALL_DIRECTORY_NOT_EMPTY",
+        exitCode: 2,
+      });
     }
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
@@ -140,10 +128,7 @@ async function expectedChecksum(url, explicit) {
       { code: "INSTALL_CHECKSUM_REQUIRED" },
     );
   }
-  return (await response.text())
-    .trim()
-    .split(/\s+/u)[0]
-    .toLocaleLowerCase("en-US");
+  return (await response.text()).trim().split(/\s+/u)[0].toLocaleLowerCase("en-US");
 }
 
 export class AdminInstallCommand extends BaseCommand {
@@ -165,18 +150,11 @@ export class AdminInstallCommand extends BaseCommand {
   async run() {
     const { flags } = await this.parse(this.constructor);
     const version = flags.version || this.config.version;
-    const directory = path.resolve(
-      flags.directory || path.join(this.adapters.cwd(), `biaws-${version}`),
-    );
+    const directory = path.resolve(flags.directory || path.join(this.adapters.cwd(), `biaws-${version}`));
     const url = githubArchive(flags.repository, version);
     const plan = { directory, source: url, version };
     if (flags["dry-run"]) {
-      emit(
-        this,
-        flags.json,
-        { ...plan, dryRun: true },
-        `Release v${version}\nOrigem: ${url}\nDestino: ${directory}`,
-      );
+      emit(this, flags.json, { ...plan, dryRun: true }, `Release v${version}\nOrigem: ${url}\nDestino: ${directory}`);
       return;
     }
     await ensureEmptyDirectory(this.adapters.filesystem, directory);
@@ -184,24 +162,15 @@ export class AdminInstallCommand extends BaseCommand {
     const checksum = await expectedChecksum(url, flags.checksum);
     const actual = createHash("sha256").update(archive).digest("hex");
     if (actual !== checksum) {
-      throw new CliError(
-        `Checksum inválido: esperado ${checksum}, obtido ${actual}.`,
-        { code: "INSTALL_CHECKSUM_MISMATCH" },
-      );
+      throw new CliError(`Checksum inválido: esperado ${checksum}, obtido ${actual}.`, {
+        code: "INSTALL_CHECKSUM_MISMATCH",
+      });
     }
-    const temporary = await this.adapters.filesystem.mkdtemp(
-      path.join(tmpdir(), "biaws-install-"),
-    );
+    const temporary = await this.adapters.filesystem.mkdtemp(path.join(tmpdir(), "biaws-install-"));
     const archivePath = path.join(temporary, "biaws.tar.gz");
     try {
       await this.adapters.filesystem.writeFile(archivePath, archive);
-      await this.adapters.processRunner.run("tar", [
-        "-xzf",
-        archivePath,
-        "--strip-components=1",
-        "-C",
-        directory,
-      ]);
+      await this.adapters.processRunner.run("tar", ["-xzf", archivePath, "--strip-components=1", "-C", directory]);
     } finally {
       await this.adapters.filesystem.rm(temporary, {
         recursive: true,

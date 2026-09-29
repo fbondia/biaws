@@ -1,5 +1,4 @@
-const SECRET_KEY_PATTERN =
-  /(?:api[-_]?key|authorization|cookie|credential|password|secret|token)/iu;
+const SECRET_KEY_PATTERN = /(?:api[-_]?key|authorization|cookie|credential|password|secret|token)/iu;
 
 export function redactText(value, secrets = []) {
   let output = String(value ?? "");
@@ -21,9 +20,7 @@ export function redactValue(value, secrets = [], seen = new WeakSet()) {
   return Object.fromEntries(
     Object.entries(value).map(([key, item]) => [
       key,
-      SECRET_KEY_PATTERN.test(key)
-        ? "[REDACTED]"
-        : redactValue(item, secrets, seen),
+      SECRET_KEY_PATTERN.test(key) ? "[REDACTED]" : redactValue(item, secrets, seen),
     ]),
   );
 }

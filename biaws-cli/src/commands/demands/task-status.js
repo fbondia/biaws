@@ -26,10 +26,7 @@ export default class DemandTaskStatus extends WriteCommand {
       flags,
       "task",
       async (service) => {
-        const { request, task } = findTask(
-          await service.demand(args.demand),
-          args.task,
-        );
+        const { request, task } = findTask(await service.demand(args.demand), args.task);
         return {
           resource: "task",
           operation: "status.update",
@@ -42,8 +39,7 @@ export default class DemandTaskStatus extends WriteCommand {
           entity: task,
         };
       },
-      (service, plan) =>
-        service.updateTaskStatus(plan.requestId, plan.taskId, plan.status),
+      (service, plan) => service.updateTaskStatus(plan.requestId, plan.taskId, plan.status),
     );
   }
 }

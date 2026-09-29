@@ -17,26 +17,17 @@ const MCP_COMMAND = "npx";
 const MCP_ARGS = ["--yes", MCP_PACKAGE_SPEC];
 
 function skillTarget(client, projectDirectory) {
-  return path.join(
-    projectDirectory,
-    client === "claude" ? ".claude" : ".agents",
-    "skills",
-  );
+  return path.join(projectDirectory, client === "claude" ? ".claude" : ".agents", "skills");
 }
 
 function isExpectedClaudeServer(server) {
-  if (
-    server?.command === MCP_COMMAND &&
-    JSON.stringify(server.args || []) === JSON.stringify(MCP_ARGS)
-  ) {
+  if (server?.command === MCP_COMMAND && JSON.stringify(server.args || []) === JSON.stringify(MCP_ARGS)) {
     return true;
   }
   return (
     server?.command === "node" &&
     server.args?.length === 1 &&
-    /(?:^|[\\/])biaws-mcp[\\/](?:(?:dist[\\/])?src[\\/]index\.js|bin[\\/]biaws-mcp\.js)$/u.test(
-      server.args[0],
-    )
+    /(?:^|[\\/])biaws-mcp[\\/](?:(?:dist[\\/])?src[\\/]index\.js|bin[\\/]biaws-mcp\.js)$/u.test(server.args[0])
   );
 }
 
@@ -49,12 +40,7 @@ async function readOptional(filePath, fallback = "") {
   }
 }
 
-async function writeCodexConfiguration(
-  projectDirectory,
-  envFile,
-  workspaceId,
-  force,
-) {
+async function writeCodexConfiguration(projectDirectory, envFile, workspaceId, force) {
   const configPath = path.join(projectDirectory, ".codex", "config.toml");
   await mkdir(path.dirname(configPath), { recursive: true });
   let current = await readOptional(configPath);
@@ -69,10 +55,7 @@ async function writeCodexConfiguration(
     );
   }
   if (force) {
-    current = current.replace(
-      /\n?\[mcp_servers\.biaws\]\n(?:[^[\n].*\n?)*/gu,
-      "",
-    );
+    current = current.replace(/\n?\[mcp_servers\.biaws\]\n(?:[^[\n].*\n?)*/gu, "");
   }
   const managed = `${CODEX_BEGIN}
 [mcp_servers.biaws]
@@ -86,12 +69,7 @@ ${CODEX_END}
   return configPath;
 }
 
-async function writeClaudeConfiguration(
-  projectDirectory,
-  envFile,
-  workspaceId,
-  force,
-) {
+async function writeClaudeConfiguration(projectDirectory, envFile, workspaceId, force) {
   const configPath = path.join(projectDirectory, ".mcp.json");
   const raw = await readOptional(configPath, "{}");
   let config;
@@ -101,11 +79,7 @@ async function writeClaudeConfiguration(
     throw new Error(`JSON inválido em ${configPath}`);
   }
   config.mcpServers ||= {};
-  if (
-    config.mcpServers.biaws &&
-    !force &&
-    !isExpectedClaudeServer(config.mcpServers.biaws)
-  ) {
+  if (config.mcpServers.biaws && !force && !isExpectedClaudeServer(config.mcpServers.biaws)) {
     throw new Error(
       `Já existe uma configuração Claude diferente para o servidor biaws em ${configPath}; use --force para substituí-la`,
     );
@@ -123,12 +97,7 @@ async function writeClaudeConfiguration(
   return configPath;
 }
 
-async function resolveWorkspaceId(
-  api,
-  requestedWorkspaceId = "",
-  interactive = false,
-  prompts,
-) {
+async function resolveWorkspaceId(api, requestedWorkspaceId = "", interactive = false, prompts) {
   let identity;
   try {
     identity = await api.identity();
@@ -148,9 +117,7 @@ async function resolveWorkspaceId(
       type: "select",
       message: "Workspace do projeto",
       choices: workspaces.map((workspace) => ({
-        name: workspace.name
-          ? `${workspace.name} (${workspace.id})`
-          : workspace.id,
+        name: workspace.name ? `${workspace.name} (${workspace.id})` : workspace.id,
         value: workspace.id,
       })),
       ...(workspaceId ? { default: workspaceId } : {}),
@@ -171,17 +138,10 @@ async function resolveWorkspaceId(
 
 async function configure(api, client, options, context) {
   if (!["codex", "claude"].includes(client)) {
-    throw new Error(
-      "Informe o cliente: biaws workspace agent configure codex|claude",
-    );
+    throw new Error("Informe o cliente: biaws workspace agent configure codex|claude");
   }
   const projectDirectory = path.resolve(options.project || process.cwd());
-  const { workspaceId } = await resolveWorkspaceId(
-    api,
-    context.workspaceId,
-    options.interactive,
-    options.prompts,
-  );
+  const { workspaceId } = await resolveWorkspaceId(api, context.workspaceId, options.interactive, options.prompts);
   if (options.interactive) {
     const confirmed = await options.prompts.ask({
       name: "confirmConfiguration",
@@ -190,31 +150,18 @@ async function configure(api, client, options, context) {
       default: true,
     });
     if (!confirmed) {
-      throw new CliError(
-        "Configuração cancelada antes de qualquer alteração.",
-        {
-          code: "PROMPT_CANCELLED",
-          exitCode: 130,
-        },
-      );
+      throw new CliError("Configuração cancelada antes de qualquer alteração.", {
+        code: "PROMPT_CANCELLED",
+        exitCode: 130,
+      });
     }
   }
   const scopedApi = api.withWorkspace ? api.withWorkspace(workspaceId) : api;
   const target = skillTarget(client, projectDirectory);
   const configPath =
     client === "codex"
-      ? await writeCodexConfiguration(
-          projectDirectory,
-          context.envFile,
-          workspaceId,
-          options.force,
-        )
-      : await writeClaudeConfiguration(
-          projectDirectory,
-          context.envFile,
-          workspaceId,
-          options.force,
-        );
+      ? await writeCodexConfiguration(projectDirectory, context.envFile, workspaceId, options.force)
+      : await writeClaudeConfiguration(projectDirectory, context.envFile, workspaceId, options.force);
   const installation = await runSkillsCommand(scopedApi, "install-all", [], {
     target,
     force: options.force,
@@ -323,9 +270,7 @@ async function mcpStatus(envFile, workspaceId) {
       }
     });
     child.on("error", (error) => finish({ ok: false, detail: error.message }));
-    child.stdin.on("error", (error) =>
-      finish({ ok: false, detail: error.message }),
-    );
+    child.stdin.on("error", (error) => finish({ ok: false, detail: error.message }));
     child.on("exit", (code) => {
       if (!settled && code !== null) {
         finish({
@@ -362,9 +307,7 @@ function configurationStatus(client, contents, envFile, workspaceId) {
       contents.includes(`BIAWS_WORKSPACE_ID = ${JSON.stringify(workspaceId)}`);
     return {
       ok,
-      detail: ok
-        ? null
-        : "A configuração Codex não aponta para a instância selecionada",
+      detail: ok ? null : "A configuração Codex não aponta para a instância selecionada",
     };
   }
   try {
@@ -376,9 +319,7 @@ function configurationStatus(client, contents, envFile, workspaceId) {
       server.env?.BIAWS_WORKSPACE_ID === workspaceId;
     return {
       ok,
-      detail: ok
-        ? null
-        : "A configuração Claude não aponta para a instância selecionada",
+      detail: ok ? null : "A configuração Claude não aponta para a instância selecionada",
     };
   } catch {
     return { ok: false, detail: "Configuração Claude contém JSON inválido" };
@@ -387,9 +328,7 @@ function configurationStatus(client, contents, envFile, workspaceId) {
 
 async function doctor(api, client, options, context) {
   if (!["codex", "claude"].includes(client)) {
-    throw new Error(
-      "Informe o cliente: biaws workspace agent doctor codex|claude",
-    );
+    throw new Error("Informe o cliente: biaws workspace agent doctor codex|claude");
   }
   const projectDirectory = path.resolve(options.project || process.cwd());
   const target = skillTarget(client, projectDirectory);
@@ -411,12 +350,7 @@ async function doctor(api, client, options, context) {
     workspace: { ok: true, id: resolved.workspaceId },
     mcp,
     configuration: {
-      ...configurationStatus(
-        client,
-        configContents,
-        context.envFile,
-        resolved.workspaceId,
-      ),
+      ...configurationStatus(client, configContents, context.envFile, resolved.workspaceId),
       path: configPath,
     },
     skills: {
@@ -438,13 +372,7 @@ async function doctor(api, client, options, context) {
   return result;
 }
 
-export async function runAgentCommand(
-  api,
-  action,
-  positional,
-  options,
-  context,
-) {
+export async function runAgentCommand(api, action, positional, options, context) {
   const client = positional[0];
   if (action === "configure") return configure(api, client, options, context);
   if (action === "doctor") return doctor(api, client, options, context);

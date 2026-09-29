@@ -9,9 +9,7 @@ function referenceOf(item) {
 export function findTask(payload, reference) {
   const request = payload.request || payload;
   const matches = (request.tasks || []).filter(
-    (task) =>
-      referenceOf(task) === String(reference) ||
-      String(task.code || "") === String(reference),
+    (task) => referenceOf(task) === String(reference) || String(task.code || "") === String(reference),
   );
   if (matches.length === 0) {
     throw new CliError(`Tarefa ${reference} não encontrada na melhoria.`, {
@@ -20,13 +18,10 @@ export function findTask(payload, reference) {
     });
   }
   if (matches.length > 1) {
-    throw new CliError(
-      `A referência ${reference} identifica mais de uma tarefa.`,
-      {
-        code: "AMBIGUOUS_TASK_REFERENCE",
-        exitCode: 2,
-      },
-    );
+    throw new CliError(`A referência ${reference} identifica mais de uma tarefa.`, {
+      code: "AMBIGUOUS_TASK_REFERENCE",
+      exitCode: 2,
+    });
   }
   return { request, task: matches[0] };
 }
@@ -87,9 +82,7 @@ export class DomainWriteService {
       if (error?.statusCode !== 404) throw error;
       const query = new URLSearchParams({ code: String(id), limit: "2" });
       const payload = await this.api.request(`/requests?${query}`);
-      const matches = (payload.items || []).filter(
-        (item) => String(item.clientCode || "") === String(id),
-      );
+      const matches = (payload.items || []).filter((item) => String(item.clientCode || "") === String(id));
       if (matches.length === 1) return { request: matches[0] };
       if (matches.length > 1) {
         throw new CliError(`Código de melhoria ambíguo: ${id}.`, {
@@ -106,10 +99,10 @@ export class DomainWriteService {
   }
 
   updateTaskStatus(demandId, taskId, status) {
-    return this.api.request(
-      `/requests/${encodeURIComponent(demandId)}/tasks/${encodeURIComponent(taskId)}`,
-      { method: "PUT", body: JSON.stringify({ status }) },
-    );
+    return this.api.request(`/requests/${encodeURIComponent(demandId)}/tasks/${encodeURIComponent(taskId)}`, {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    });
   }
 
   updateIssueStatus(issueId, status) {

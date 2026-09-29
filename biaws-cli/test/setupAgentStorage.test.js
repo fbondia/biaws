@@ -1,25 +1,12 @@
 import assert from "node:assert/strict";
-import {
-  chmod,
-  copyFile,
-  mkdir,
-  mkdtemp,
-  readdir,
-  readFile,
-  realpath,
-  stat,
-  writeFile,
-} from "node:fs/promises";
+import { chmod, copyFile, mkdir, mkdtemp, readdir, readFile, realpath, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-const repositoryRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../..",
-);
+const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 async function createFakeRuntime(root) {
   const bin = path.join(root, "bin");
@@ -61,12 +48,7 @@ exit 1
   return bin;
 }
 
-function runSetup({
-  bin,
-  instances,
-  publicUrl = "https://ci.example.test",
-  extraArguments = [],
-}) {
+function runSetup({ bin, instances, publicUrl = "https://ci.example.test", extraArguments = [] }) {
   const publicUrlArguments = publicUrl ? ["--public-url", publicUrl] : [];
   return spawnSync(
     path.join(repositoryRoot, "scripts", "setup-server.sh"),
@@ -92,19 +74,14 @@ function runSetup({
 }
 
 test("setup stores bind mount paths and can return to Docker volumes", async () => {
-  const temporaryRoot = await mkdtemp(
-    path.join(os.tmpdir(), "biaws-setup-storage-"),
-  );
+  const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), "biaws-setup-storage-"));
   const instances = path.join(temporaryRoot, "instances");
   const instance = path.join(instances, "storage-test");
   const project = path.join(temporaryRoot, "project");
   const storage = path.join(temporaryRoot, "storage");
   await mkdir(instance, { recursive: true });
   await mkdir(project, { recursive: true });
-  await copyFile(
-    path.join(repositoryRoot, ".env.example"),
-    path.join(instance, ".env"),
-  );
+  await copyFile(path.join(repositoryRoot, ".env.example"), path.join(instance, ".env"));
   await writeFile(
     path.join(instance, ".env"),
     `${await readFile(path.join(instance, ".env"), "utf8")}\nBIAWS_WORKSPACE_ID=workspace-local\n`,
@@ -136,62 +113,26 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
 
   const configuredEnv = await readFile(path.join(instance, ".env"), "utf8");
   assert.doesNotMatch(configuredEnv, /^BIAWS_WORKSPACE_ID=/mu);
-  assert.match(
-    configuredEnv,
-    /^BIAWS_PUBLIC_URL=https:\/\/ci\.example\.test$/mu,
-  );
-  assert.match(
-    configuredEnv,
-    /^BIAWS_TRUSTED_ORIGINS=https:\/\/ci\.example\.test$/mu,
-  );
+  assert.match(configuredEnv, /^BIAWS_PUBLIC_URL=https:\/\/ci\.example\.test$/mu);
+  assert.match(configuredEnv, /^BIAWS_TRUSTED_ORIGINS=https:\/\/ci\.example\.test$/mu);
   assert.match(configuredEnv, /^BETTER_AUTH_SECURE_COOKIES=true$/mu);
   const canonicalStorage = await realpath(storage);
   assert.match(configuredEnv, /^MONGO_PORT=27017$/mu);
-  assert.match(
-    configuredEnv,
-    new RegExp(`^BIAWS_MONGO_DATA_PATH=${canonicalStorage}/mongo$`, "mu"),
-  );
+  assert.match(configuredEnv, new RegExp(`^BIAWS_MONGO_DATA_PATH=${canonicalStorage}/mongo$`, "mu"));
   assert.match(configuredEnv, /^BIAWS_API_RATE_LIMIT_MAX_REQUESTS=450$/mu);
   assert.match(configuredEnv, /^BIAWS_API_RATE_LIMIT_WINDOW_SECONDS=90$/mu);
   assert.match(configuredEnv, /^BETTER_AUTH_RATE_LIMIT_MAX_REQUESTS=80$/mu);
   assert.match(configuredEnv, /^BETTER_AUTH_RATE_LIMIT_WINDOW_SECONDS=20$/mu);
   assert.match(configuredEnv, /^BIAWS_API_KEY_RATE_LIMIT_MAX_REQUESTS=2400$/mu);
-  assert.match(
-    configuredEnv,
-    /^BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS=7200$/mu,
-  );
-  assert.match(
-    configuredEnv,
-    new RegExp(`^BIAWS_ISSUE_FILES_PATH=${canonicalStorage}/issues$`, "mu"),
-  );
-  assert.match(
-    configuredEnv,
-    new RegExp(`^BIAWS_REQUEST_FILES_PATH=${canonicalStorage}/requests$`, "mu"),
-  );
-  assert.match(
-    configuredEnv,
-    new RegExp(
-      `^BIAWS_DOCUMENT_FILES_PATH=${canonicalStorage}/documents$`,
-      "mu",
-    ),
-  );
-  assert.match(
-    configuredEnv,
-    new RegExp(`^BIAWS_SECRET_FILES_PATH=${canonicalStorage}/secrets$`, "mu"),
-  );
-  assert.match(
-    configuredEnv,
-    new RegExp(`^BIAWS_SECRETS_DIR=${canonicalStorage}/secrets$`, "mu"),
-  );
+  assert.match(configuredEnv, /^BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS=7200$/mu);
+  assert.match(configuredEnv, new RegExp(`^BIAWS_ISSUE_FILES_PATH=${canonicalStorage}/issues$`, "mu"));
+  assert.match(configuredEnv, new RegExp(`^BIAWS_REQUEST_FILES_PATH=${canonicalStorage}/requests$`, "mu"));
+  assert.match(configuredEnv, new RegExp(`^BIAWS_DOCUMENT_FILES_PATH=${canonicalStorage}/documents$`, "mu"));
+  assert.match(configuredEnv, new RegExp(`^BIAWS_SECRET_FILES_PATH=${canonicalStorage}/secrets$`, "mu"));
+  assert.match(configuredEnv, new RegExp(`^BIAWS_SECRETS_DIR=${canonicalStorage}/secrets$`, "mu"));
   const expectedSecretsKey = path.join(instance, ".secrets-master-key");
-  assert.match(
-    configuredEnv,
-    new RegExp(`^BIAWS_SECRETS_KEY_PATH=${expectedSecretsKey}$`, "mu"),
-  );
-  assert.match(
-    configuredEnv,
-    new RegExp(`^BIAWS_SECRETS_KEY_FILE=${expectedSecretsKey}$`, "mu"),
-  );
+  assert.match(configuredEnv, new RegExp(`^BIAWS_SECRETS_KEY_PATH=${expectedSecretsKey}$`, "mu"));
+  assert.match(configuredEnv, new RegExp(`^BIAWS_SECRETS_KEY_FILE=${expectedSecretsKey}$`, "mu"));
 
   const startScript = path.join(instance, "start.sh");
   const stopScript = path.join(instance, "stop.sh");
@@ -255,33 +196,25 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   assert.ok(archiveName);
   assert.ok(backupFiles.includes(`${archiveName}.sha256`));
 
-  const unconfirmedRestore = spawnSync(
-    restoreScript,
-    [path.join(backupDirectory, archiveName)],
-    {
-      encoding: "utf8",
-      env: {
-        ...process.env,
-        BIAWS_TEST_DOCKER_LOG: dockerLog,
-        PATH: `${bin}:${process.env.PATH}`,
-      },
+  const unconfirmedRestore = spawnSync(restoreScript, [path.join(backupDirectory, archiveName)], {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      BIAWS_TEST_DOCKER_LOG: dockerLog,
+      PATH: `${bin}:${process.env.PATH}`,
     },
-  );
+  });
   assert.equal(unconfirmedRestore.status, 2);
   assert.match(unconfirmedRestore.stderr, /use --yes para confirmar/u);
 
-  const restoreResult = spawnSync(
-    restoreScript,
-    [path.join(backupDirectory, archiveName), "--yes"],
-    {
-      encoding: "utf8",
-      env: {
-        ...process.env,
-        BIAWS_TEST_DOCKER_LOG: dockerLog,
-        PATH: `${bin}:${process.env.PATH}`,
-      },
+  const restoreResult = spawnSync(restoreScript, [path.join(backupDirectory, archiveName), "--yes"], {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      BIAWS_TEST_DOCKER_LOG: dockerLog,
+      PATH: `${bin}:${process.env.PATH}`,
     },
-  );
+  });
   assert.equal(restoreResult.status, 0, restoreResult.stderr);
 
   const dockerCommands = await readFile(dockerLog, "utf8");
@@ -292,14 +225,8 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
       "u",
     ),
   );
-  assert.match(
-    dockerCommands,
-    /exec -T mongo mongodump --db=biaws --archive --gzip/u,
-  );
-  assert.match(
-    dockerCommands,
-    /exec -T mongo mongorestore --nsInclude=biaws\.\* --archive --gzip --drop/u,
-  );
+  assert.match(dockerCommands, /exec -T mongo mongodump --db=biaws --archive --gzip/u);
+  assert.match(dockerCommands, /exec -T mongo mongorestore --nsInclude=biaws\.\* --archive --gzip --drop/u);
   assert.match(
     dockerCommands,
     new RegExp(
@@ -310,10 +237,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
 
   const otherInstance = path.join(instances, "other-instance");
   await mkdir(otherInstance, { recursive: true });
-  const otherEnv = await readFile(
-    path.join(repositoryRoot, ".env.example"),
-    "utf8",
-  );
+  const otherEnv = await readFile(path.join(repositoryRoot, ".env.example"), "utf8");
   await writeFile(
     path.join(otherInstance, ".env"),
     otherEnv
@@ -328,10 +252,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
     extraArguments: ["--mongo-port", "27018"],
   });
   assert.equal(conflictingPort.status, 2);
-  assert.match(
-    conflictingPort.stderr,
-    /A porta 27018 já pertence a outra instância/u,
-  );
+  assert.match(conflictingPort.stderr, /A porta 27018 já pertence a outra instância/u);
 
   const changedMongoPort = runSetup({
     bin,
@@ -360,10 +281,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
 
   await writeFile(
     path.join(instance, ".env"),
-    resetEnv.replace(
-      /^BIAWS_PUBLIC_URL=.*$/mu,
-      "BIAWS_PUBLIC_URL=http://localhost:4400",
-    ),
+    resetEnv.replace(/^BIAWS_PUBLIC_URL=.*$/mu, "BIAWS_PUBLIC_URL=http://localhost:4400"),
   );
   const localOrigin = runSetup({
     bin,
@@ -374,10 +292,7 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
   assert.equal(localOrigin.status, 0, localOrigin.stderr);
   const localEnv = await readFile(path.join(instance, ".env"), "utf8");
   assert.match(localEnv, /^BIAWS_PUBLIC_URL=http:\/\/localhost:4417$/mu);
-  assert.match(
-    localEnv,
-    /^BIAWS_TRUSTED_ORIGINS=http:\/\/localhost:4417,http:\/\/127\.0\.0\.1:4417$/mu,
-  );
+  assert.match(localEnv, /^BIAWS_TRUSTED_ORIGINS=http:\/\/localhost:4417,http:\/\/127\.0\.0\.1:4417$/mu);
   assert.match(localEnv, /^BETTER_AUTH_SECURE_COOKIES=false$/mu);
 
   const invalidOrigin = runSetup({
@@ -436,23 +351,8 @@ test("setup stores bind mount paths and can return to Docker volumes", async () 
     },
   );
   assert.equal(localSetup.status, 0, localSetup.stderr);
-  const nodeCommands = await readFile(
-    path.join(temporaryRoot, "node.log"),
-    "utf8",
-  );
+  const nodeCommands = await readFile(path.join(temporaryRoot, "node.log"), "utf8");
   const canonicalProject = await realpath(project);
-  assert.match(
-    nodeCommands,
-    new RegExp(
-      `workspace agent configure codex --project ${canonicalProject} --force`,
-      "u",
-    ),
-  );
-  assert.match(
-    nodeCommands,
-    new RegExp(
-      `workspace agent doctor codex --project ${canonicalProject}`,
-      "u",
-    ),
-  );
+  assert.match(nodeCommands, new RegExp(`workspace agent configure codex --project ${canonicalProject} --force`, "u"));
+  assert.match(nodeCommands, new RegExp(`workspace agent doctor codex --project ${canonicalProject}`, "u"));
 });

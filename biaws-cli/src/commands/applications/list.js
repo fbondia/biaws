@@ -1,8 +1,4 @@
-import {
-  connectionFlags,
-  listFlags,
-  ReadCommand,
-} from "../../domain/readCommand.js";
+import { connectionFlags, listFlags, ReadCommand } from "../../domain/readCommand.js";
 import { table } from "../../domain/readService.js";
 export default class ApplicationList extends ReadCommand {
   static description = "lista aplicações do workspace";

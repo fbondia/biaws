@@ -2,10 +2,7 @@ import assert from "node:assert/strict";
 import { PassThrough } from "node:stream";
 import test from "node:test";
 
-import {
-  ProgrammedPromptAdapter,
-  PromptCancelledError,
-} from "../src/core/prompts.js";
+import { ProgrammedPromptAdapter, PromptCancelledError } from "../src/core/prompts.js";
 import {
   buildExecutionPlan,
   confirmExecutionPlan,
@@ -79,12 +76,7 @@ test("flags skip prompts and conditional questions use programmed responses", as
     terminal: terminal(),
   });
 
-  assert.deepEqual(prompts.questions, [
-    "storage",
-    "directory",
-    "password",
-    "demo",
-  ]);
+  assert.deepEqual(prompts.questions, ["storage", "directory", "password", "demo"]);
   assert.equal(plan.get("name"), "local");
   assert.equal(plan.get("directory"), "/srv/biaws");
   assert.equal(plan.get("password"), "private-value");
@@ -213,21 +205,11 @@ test("EOF/cancellation and interaction mode conflicts have stable errors", async
     }),
     { code: "PROMPT_CANCELLED", exitCode: 130 },
   );
-  assert.throws(
-    () =>
-      normalizeWizardOptions(
-        { interactive: true, nonInteractive: true },
-        terminal(),
-      ),
-    { code: "INTERACTION_MODE_CONFLICT", exitCode: 2 },
-  );
-  assert.deepEqual(Object.keys(wizardFlags), [
-    "defaults",
-    "interactive",
-    "json",
-    "non-interactive",
-    "yes",
-  ]);
+  assert.throws(() => normalizeWizardOptions({ interactive: true, nonInteractive: true }, terminal()), {
+    code: "INTERACTION_MODE_CONFLICT",
+    exitCode: 2,
+  });
+  assert.deepEqual(Object.keys(wizardFlags), ["defaults", "interactive", "json", "non-interactive", "yes"]);
 });
 
 test("non-interactive confirmation requires --yes", async () => {

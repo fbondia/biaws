@@ -31,8 +31,7 @@ function identifyWorkspace(items, reference) {
   const matches = items.filter(
     (item) =>
       String(item.id) === normalized ||
-      String(item.name || "").toLocaleLowerCase("pt-BR") ===
-        normalized.toLocaleLowerCase("pt-BR"),
+      String(item.name || "").toLocaleLowerCase("pt-BR") === normalized.toLocaleLowerCase("pt-BR"),
   );
   if (matches.length === 1) return matches[0];
   if (matches.length > 1) {
@@ -52,10 +51,10 @@ async function chooseWorkspace(command, context, reference) {
   const items = payload.items || [];
   if (reference) return identifyWorkspace(items, reference);
   if (!context.isInteractive) {
-    throw new CliError(
-      "Informe o ID ou o nome do workspace em modo não interativo.",
-      { code: "WORKSPACE_SELECTION_REQUIRED", exitCode: 2 },
-    );
+    throw new CliError("Informe o ID ou o nome do workspace em modo não interativo.", {
+      code: "WORKSPACE_SELECTION_REQUIRED",
+      exitCode: 2,
+    });
   }
   if (!items.length) {
     throw new CliError("A chave de API não autoriza nenhum workspace.", {
@@ -78,14 +77,11 @@ async function chooseWorkspace(command, context, reference) {
 async function associate(command, flags, reference) {
   const context = await command.authenticatedContext(contextInput(flags));
   const workspace = await chooseWorkspace(command, context, reference);
-  const projectDirectory = path.resolve(
-    flags.project || command.adapters.cwd(),
-  );
-  const filePath = await writeWorkspaceConfiguration(
-    command.adapters.filesystem,
-    projectDirectory,
-    { profile: context.profileName, workspaceId: workspace.id },
-  );
+  const projectDirectory = path.resolve(flags.project || command.adapters.cwd());
+  const filePath = await writeWorkspaceConfiguration(command.adapters.filesystem, projectDirectory, {
+    profile: context.profileName,
+    workspaceId: workspace.id,
+  });
   const result = {
     file: filePath,
     profile: context.profileName,
@@ -142,10 +138,10 @@ export class WorkspaceCurrentCommand extends BaseCommand {
     const context = await this.commandContext({ project: flags.project });
     const workspace = context.configuration.workspace;
     if (!workspace?.config?.workspaceId) {
-      throw new CliError(
-        "A pasta não está associada a um workspace. Execute `biaws workspace init`.",
-        { code: "WORKSPACE_NOT_INITIALIZED", exitCode: 2 },
-      );
+      throw new CliError("A pasta não está associada a um workspace. Execute `biaws workspace init`.", {
+        code: "WORKSPACE_NOT_INITIALIZED",
+        exitCode: 2,
+      });
     }
     const result = {
       directory: workspace.directory,
@@ -181,11 +177,6 @@ export class WorkspaceUnlinkCommand extends BaseCommand {
     }
     await this.adapters.filesystem.rm(workspace.filePath);
     const result = { directory: workspace.directory, removed: true };
-    emit(
-      this,
-      flags.json,
-      result,
-      `Associação removida de ${workspace.directory}.`,
-    );
+    emit(this, flags.json, result, `Associação removida de ${workspace.directory}.`);
   }
 }

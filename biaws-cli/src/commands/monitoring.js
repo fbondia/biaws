@@ -48,12 +48,8 @@ function buildSignalPayload(options) {
     ...(options["signal-id"] ? { signalId: options["signal-id"] } : {}),
     ...(options["observed-at"] ? { observedAt: options["observed-at"] } : {}),
     ...(options.message ? { message: options.message } : {}),
-    ...(options["metadata-profile"]
-      ? { metadataProfile: options["metadata-profile"] }
-      : {}),
-    ...(templateId
-      ? { templateRef: { id: templateId, version: templateVersion } }
-      : {}),
+    ...(options["metadata-profile"] ? { metadataProfile: options["metadata-profile"] } : {}),
+    ...(templateId ? { templateRef: { id: templateId, version: templateVersion } } : {}),
     metadata: parseMetadata(options.metadata),
     ...(options.payload ? { payload: parsePayload(options.payload) } : {}),
   };
@@ -73,14 +69,11 @@ async function describeTemplate(api, _positional, options) {
   if (options.json) console.log(JSON.stringify(result, null, 2));
   else {
     const contract = result.contract;
-    console.log(
-      `${contract.name} v${contract.templateRef.version} (${contract.status})`,
-    );
+    console.log(`${contract.name} v${contract.templateRef.version} (${contract.status})`);
     console.log(`Entrada: ${contract.input.mediaType}`);
     console.log(`Transformação: ${contract.transformation.language}`);
     console.log(`Amostra: ${JSON.stringify(contract.input.sample)}`);
-    if (contract.output)
-      console.log(`Saída: ${JSON.stringify(contract.output)}`);
+    if (contract.output) console.log(`Saída: ${JSON.stringify(contract.output)}`);
   }
   return result;
 }
@@ -88,11 +81,7 @@ async function describeTemplate(api, _positional, options) {
 async function validateTemplate(api, _positional, options) {
   const { templateId, version } = requiredTemplate(options);
   if (!options.payload) throw new Error("Informe --payload.");
-  const result = await api.monitoring.validateTemplate(
-    templateId,
-    version,
-    parsePayload(options.payload),
-  );
+  const result = await api.monitoring.validateTemplate(templateId, version, parsePayload(options.payload));
   if (options.json) console.log(JSON.stringify(result, null, 2));
   else {
     const validation = result.validation;
@@ -104,10 +93,7 @@ async function validateTemplate(api, _positional, options) {
 }
 
 async function sendSignal(api, runtimeReference, options) {
-  const result = await api.monitoring.signal(
-    runtimeReference,
-    buildSignalPayload(options),
-  );
+  const result = await api.monitoring.signal(runtimeReference, buildSignalPayload(options));
   if (options.json) console.log(JSON.stringify(result, null, 2));
   else printSignal(result);
   return result;
@@ -141,16 +127,12 @@ const MONITORING_ACTIONS = {
 
 export async function runMonitoringCommand(api, action, positional, options) {
   const handler = MONITORING_ACTIONS[action];
-  if (!handler)
-    throw new Error(
-      `Ação de monitoramento desconhecida: ${action || "(vazia)"}`,
-    );
+  if (!handler) throw new Error(`Ação de monitoramento desconhecida: ${action || "(vazia)"}`);
   if (["describe", "validate"].includes(action)) {
     return handler(api, positional, options);
   }
   const runtimeReference = positional[0];
-  if (!runtimeReference)
-    throw new Error("Informe o UUID ou caminho do runtime.");
+  if (!runtimeReference) throw new Error("Informe o UUID ou caminho do runtime.");
   return handler(api, runtimeReference, options);
 }
 

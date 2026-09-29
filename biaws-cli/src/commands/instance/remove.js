@@ -1,20 +1,11 @@
 import { Flags } from "@oclif/core";
 
 import { LocalInstanceCommand } from "../../baseCommands.js";
-import {
-  contextFlags,
-  contextInput,
-  instanceArgument,
-} from "../../instance/command.js";
-import {
-  executeInstanceScript,
-  getInstance,
-  removeArguments,
-} from "../../instance/service.js";
+import { contextFlags, contextInput, instanceArgument } from "../../instance/command.js";
+import { executeInstanceScript, getInstance, removeArguments } from "../../instance/service.js";
 
 export default class InstanceRemove extends LocalInstanceCommand {
-  static description =
-    "remove uma instância preservando bind mounts externos por padrão";
+  static description = "remove uma instância preservando bind mounts externos por padrão";
   static args = { instance: instanceArgument };
   static flags = {
     ...contextFlags,
@@ -28,11 +19,7 @@ export default class InstanceRemove extends LocalInstanceCommand {
   async run() {
     const { args, flags } = await this.parse(InstanceRemove);
     const context = await this.localContext(contextInput(flags, args.instance));
-    const instance = await getInstance(
-      context,
-      this.adapters.filesystem,
-      args.instance,
-    );
+    const instance = await getInstance(context, this.adapters.filesystem, args.instance);
     if (!flags.yes) {
       if (!context.isInteractive)
         this.error("Remoção exige --yes em modo não interativo.", {

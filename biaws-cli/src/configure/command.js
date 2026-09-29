@@ -21,8 +21,7 @@ export const configureContextFlags = Object.freeze({
   interactive: Flags.boolean({
     char: "i",
     allowNo: true,
-    description:
-      "usa o modo assistente (padrão em terminais; use --no-interactive para desativar)",
+    description: "usa o modo assistente (padrão em terminais; use --no-interactive para desativar)",
   }),
   force: Flags.boolean({
     char: "f",
@@ -33,8 +32,7 @@ export const configureContextFlags = Object.freeze({
 
 export async function interactiveConfigureInput(command, flags) {
   const interactive =
-    flags.interactive === true ||
-    (flags.interactive !== false && command.adapters.terminal.isInteractive);
+    flags.interactive === true || (flags.interactive !== false && command.adapters.terminal.isInteractive);
   if (!interactive) {
     return { ...configureContextInput(flags), interactive: false };
   }
@@ -55,8 +53,7 @@ export async function interactiveConfigureInput(command, flags) {
     await command.adapters.prompts.ask({
       name: "envFile",
       message: "Arquivo privado da instância (BIAWS_ENV_FILE)",
-      default:
-        flags["env-file"] || command.adapters.environment.BIAWS_ENV_FILE || "",
+      default: flags["env-file"] || command.adapters.environment.BIAWS_ENV_FILE || "",
     }),
   ).trim();
   if (!envFile) {
@@ -92,9 +89,7 @@ export function legacyAgentContext(context) {
     apiKey: context.apiKey,
     apiUrl: context.apiUrl,
     envFile: context.envFile,
-    toolDirectory: context.repositoryRoot
-      ? path.join(context.repositoryRoot, "biaws-cli")
-      : context.toolDirectory,
+    toolDirectory: context.repositoryRoot ? path.join(context.repositoryRoot, "biaws-cli") : context.toolDirectory,
     workspaceId: context.workspaceId,
   };
 }

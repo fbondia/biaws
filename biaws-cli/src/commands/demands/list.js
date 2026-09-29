@@ -1,9 +1,5 @@
 import { Flags } from "@oclif/core";
-import {
-  connectionFlags,
-  listFlags,
-  ReadCommand,
-} from "../../domain/readCommand.js";
+import { connectionFlags, listFlags, ReadCommand } from "../../domain/readCommand.js";
 import { table } from "../../domain/readService.js";
 export default class DemandList extends ReadCommand {
   static description = "lista melhorias no escopo informado";

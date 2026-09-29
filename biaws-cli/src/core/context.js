@@ -14,10 +14,7 @@ export function parseEnv(contents) {
     if (separator < 1) continue;
     const key = line.slice(0, separator).trim();
     let value = line.slice(separator + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
     }
     parsed[key] = value.replace(/\\n/gu, "\n");
@@ -48,18 +45,11 @@ function normalizeApiUrl(value) {
       exitCode: 2,
     });
   }
-  if (
-    !["http:", "https:"].includes(parsed.protocol) ||
-    parsed.username ||
-    parsed.password
-  ) {
-    throw new CliError(
-      "A URL da API deve usar HTTP(S) e não conter credenciais.",
-      {
-        code: "INVALID_API_URL",
-        exitCode: 2,
-      },
-    );
+  if (!["http:", "https:"].includes(parsed.protocol) || parsed.username || parsed.password) {
+    throw new CliError("A URL da API deve usar HTTP(S) e não conter credenciais.", {
+      code: "INVALID_API_URL",
+      exitCode: 2,
+    });
   }
   parsed.password = "";
   return parsed.toString().replace(/\/+$/u, "");
@@ -74,36 +64,22 @@ export async function resolveCommandContext(options) {
     input.root || environment.BIAWS_ROOT ? "." : "..",
   );
   const instancesDirectory = path.resolve(
-    input.instancesDirectory ||
-      environment.BIAWS_INSTANCES_DIR ||
-      path.join(repositoryRoot, "instances"),
+    input.instancesDirectory || environment.BIAWS_INSTANCES_DIR || path.join(repositoryRoot, "instances"),
   );
-  const instanceName = String(
-    input.instance || environment.BIAWS_INSTANCE || "",
-  ).trim();
+  const instanceName = String(input.instance || environment.BIAWS_INSTANCE || "").trim();
   const instanceDirectory = path.resolve(
     input.instanceDirectory ||
       environment.BIAWS_INSTANCE_DIR ||
-      (instanceName
-        ? path.join(instancesDirectory, instanceName)
-        : instancesDirectory),
+      (instanceName ? path.join(instancesDirectory, instanceName) : instancesDirectory),
   );
-  const explicitEnvFile = String(
-    input.envFile || environment.BIAWS_ENV_FILE || "",
-  ).trim();
+  const explicitEnvFile = String(input.envFile || environment.BIAWS_ENV_FILE || "").trim();
   const envFile = explicitEnvFile
     ? path.resolve(explicitEnvFile)
     : instanceName
       ? path.join(instanceDirectory, ".env")
       : "";
-  const rootEnv = await readEnvFile(
-    options.filesystem,
-    path.join(repositoryRoot, ".env"),
-  );
-  const toolEnv = await readEnvFile(
-    options.filesystem,
-    path.join(toolDirectory, ".env"),
-  );
+  const rootEnv = await readEnvFile(options.filesystem, path.join(repositoryRoot, ".env"));
+  const toolEnv = await readEnvFile(options.filesystem, path.join(toolDirectory, ".env"));
   const instanceEnv = await readEnvFile(options.filesystem, envFile);
   const effectiveEnv = {
     ...rootEnv,
@@ -111,9 +87,7 @@ export async function resolveCommandContext(options) {
     ...toolEnv,
     ...instanceEnv,
   };
-  const projectDirectory = path.resolve(
-    input.project || options.cwd || repositoryRoot,
-  );
+  const projectDirectory = path.resolve(input.project || options.cwd || repositoryRoot);
   const configuration = await loadConfiguration({
     cwd: projectDirectory,
     environment,
@@ -182,10 +156,10 @@ export async function resolveAuthenticatedContext(options) {
     );
   }
   if (options.requireWorkspace && !context.workspaceId) {
-    throw new CliError(
-      "Workspace ausente. Execute `biaws workspace init` nesta pasta ou informe --workspace.",
-      { code: "WORKSPACE_REQUIRED", exitCode: 2 },
-    );
+    throw new CliError("Workspace ausente. Execute `biaws workspace init` nesta pasta ou informe --workspace.", {
+      code: "WORKSPACE_REQUIRED",
+      exitCode: 2,
+    });
   }
   return context;
 }

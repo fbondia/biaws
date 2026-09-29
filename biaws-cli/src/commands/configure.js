@@ -3,8 +3,7 @@ import { Help } from "@oclif/core";
 import { ProjectCommand } from "../baseCommands.js";
 
 export default class Configure extends ProjectCommand {
-  static description =
-    "Configura projetos, clientes de agentes e skills de desenvolvimento";
+  static description = "Configura projetos, clientes de agentes e skills de desenvolvimento";
   static examples = [
     "<%= config.bin %> configure codex",
     "<%= config.bin %> configure claude",

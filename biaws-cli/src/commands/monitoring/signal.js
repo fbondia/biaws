@@ -1,8 +1,5 @@
 import { Flags } from "@oclif/core";
-import {
-  createMonitoringCommand,
-  runtimeArgument,
-} from "../../commandFactories.js";
+import { createMonitoringCommand, runtimeArgument } from "../../commandFactories.js";
 
 export default createMonitoringCommand("signal", {
   description: "registra um sinal idempotente de saúde do runtime",

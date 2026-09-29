@@ -17,11 +17,13 @@ async function discover(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const filename = path.join(directory, entry.name);
     if (entry.isDirectory()) files.push(...(await discover(filename)));
-    else if (/\.test\.js$/.test(entry.name)) files.push(filename);
+    else if (/\.test\.(js|ts)$/.test(entry.name)) files.push(filename);
   }
   return files;
 }
-const files = (await discover(domain ? `test/${domain}` : "test"))
+const compiled = options.includes("--compiled");
+const testRoot = compiled ? "dist/biaws-api/test" : "test";
+const files = (await discover(domain ? `${testRoot}/${domain}` : testRoot))
   .sort()
   .filter((filename) => {
     const actual = /HttpIntegration|resourceReadsIntegration/.test(filename)
@@ -32,10 +34,14 @@ const files = (await discover(domain ? `test/${domain}` : "test"))
     return !layer || actual === layer;
   });
 if (!files.length) throw new Error("Nenhum teste encontrado");
-const child = spawn(process.execPath, ["--test", ...files], {
-  stdio: "inherit",
-  env: process.env,
-});
+const child = spawn(
+  process.execPath,
+  [...(compiled ? [] : ["--import", "tsx"]), "--test", ...files],
+  {
+    stdio: "inherit",
+    env: process.env,
+  },
+);
 child.on("exit", (code, signal) => {
   process.exitCode = code ?? (signal ? 1 : 0);
 });

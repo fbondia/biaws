@@ -6,28 +6,28 @@ relacionadas permanecem juntas.
 
 ```text
 requests/
-  index.js
-  queries.js
-  mutations.js
-  normalization.js
-  options.js
-  references.js
-  indexes.js
-  ordering.js
-  journeys.js
-  specification.js
-  legacyMigration.js
-  resources.js
+  index.ts
+  queries.ts
+  mutations.ts
+  normalization.ts
+  options.ts
+  references.ts
+  indexes.ts
+  ordering.ts
+  journeys.ts
+  specification.ts
+  legacyMigration.ts
+  resources.ts
   notes/
-    normalization.js
-    queries.js
-    mutations.js
+    normalization.ts
+    queries.ts
+    mutations.ts
   tasks/
-    normalization.js
-    queries.js
-    mutations.js
-    notes.js
-    attachments.js
+    normalization.ts
+    queries.ts
+    mutations.ts
+    notes.ts
+    attachments.ts
 ```
 
 As pastas de issues e documentos separam suas consultas e mutações de
@@ -39,15 +39,15 @@ eventos, templates, perfis de metadados, monitores ativos e execução com lease
 
 ## Dependências e API pública
 
-- `index.js` declara explicitamente as operações públicas do domínio consumidas
+- `index.ts` declara explicitamente as operações públicas do domínio consumidas
   por rotas, services e scripts; não reexporta indiscriminadamente helpers privados.
 - Módulos internos importam diretamente o módulo responsável pela operação,
-  evitando depender do próprio `index.js` ou criar ciclos por composição.
+  evitando depender do próprio `index.ts` ou criar ciclos por composição.
 - Normalização e filtros não dependem de mutações. Consultas compõem os dados dos
   filhos; mutações usam essa composição para conservar o contrato do agregado.
 - Índices, acesso às coleções e caches de inicialização mantêm uma única instância
   no módulo responsável. As opções configuráveis de melhorias permanecem em
-  `requests/options.js`, com os mesmos valores compartilhados e carregamento.
+  `requests/options.ts`, com os mesmos valores compartilhados e carregamento.
 - `shared/` contém contexto de conhecimento, referências, apoio de topologia e
   metadados de resources usados por mais de um domínio. Regras específicas ficam
   no domínio correspondente.
@@ -56,18 +56,20 @@ eventos, templates, perfis de metadados, monitores ativos e execução com lease
 
 ## Resources e compatibilidade
 
-`issues/resources.js`, `requests/resources.js` e `documents/resources.js` leem
-partes dos respectivos agregados. Helpers em `shared/resourceReads.js` cuidam de
+`issues/resources.ts`, `requests/resources.ts` e `documents/resources.ts` leem
+partes dos respectivos agregados. Helpers em `shared/resourceReads.ts` cuidam de
 paginação, contexto da resposta e metadados públicos de arquivos, sem consultar
 agregados de domínio. Arquivos de tarefa continuam validando o vínculo pelo módulo
-`requests/tasks/attachments.js`.
+`requests/tasks/attachments.ts`.
 
 Os consumidores usam os novos caminhos de módulos; não há arquivos de passagem
 com os nomes antigos. Contratos HTTP, schemas MCP, IDs, identificadores, auditoria
 e estrutura persistida permanecem compatíveis. A migração legada que já era
-executada durante leituras de melhorias continua em `requests/legacyMigration.js`.
+executada durante leituras de melhorias continua em `requests/legacyMigration.ts`.
 
 Para validar alterações, executar formatação, sintaxe e testes da API. A suíte HTTP
 e MongoDB cobre os contratos dos agregados, autorização, isolamento, índices,
 concorrência e recursos filhos. O teste de contrato de rotas protege os métodos,
 caminhos e a precedência dos 245 endpoints existentes.
+
+Os imports relativos no TypeScript usam extensão `.js` para resolver corretamente no ESM compilado.

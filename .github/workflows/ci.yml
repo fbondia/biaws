@@ -50,7 +50,9 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run check
+      - run: npm run build
       - run: npm test
+      - run: npm run test:compiled
       - run: npm audit --omit=dev --audit-level=high
 
   ui:
@@ -102,6 +104,21 @@ jobs:
             | "${install_prefix}/bin/biaws-mcp" > "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
           grep -F '"id":2' "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
           grep -F '"tools":[' "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
+
+  module-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            biaws-api/package-lock.json
+            biaws-mcp/package-lock.json
+      - run: npm ci --prefix biaws-api
+      - run: npm ci --prefix biaws-mcp
+      - run: node scripts/test-integration.mjs
 
   cli:
     name: CLI (Node ${{ matrix.node-version }}, ${{ matrix.os }})

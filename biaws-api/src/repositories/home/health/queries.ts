@@ -1,0 +1,352 @@
+import type { Filter, Document } from "mongodb";
+import type {
+  HealthRuntime,
+  HealthSignal,
+  NamedItem,
+  PendingExecution,
+} from "./model.js";
+interface HealthConfig {
+  applicationId?: string;
+  componentId?: string;
+  deploymentId?: string;
+  runtimeId?: string;
+  environment?: string;
+  includeConfigured?: boolean;
+}
+interface ActiveMonitorRow {
+  runtimeId: string;
+  manualRunRequest?: { id: string };
+  lease: { executionId: string };
+}
+interface DeploymentItem extends NamedItem {
+  environment?: string;
+}
+import type { Db } from "mongodb";
+import type { Actor } from "../../../types/http.js";
+import { applicationScope } from "../filters.js";
+import {
+  filterRuntimesByDeploymentEnvironment,
+  buildApplicationHealthItems,
+} from "./model.js";
+import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
+import { getMongoDatabase } from "../../../helpers/mongoClient.js";
+
+async function latestRuntimeMonitoringSignals(
+  database: Db,
+  workspaceId: string | null | undefined,
+  runtimeIds: string[],
+) {
+  if (!runtimeIds.length) return [];
+  return database
+    .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)
+    .aggregate<HealthSignal>([
+      {
+        $match: {
+          workspaceId,
+          runtimeId: { $in: runtimeIds },
+          $or: [
+            { origin: "passive" },
+            { origin: "active" },
+            { origin: "external" },
+            { origin: { $exists: false } },
+          ],
+        },
+      },
+      { $sort: { observedAt: -1, receivedAt: -1, id: -1 } },
+      { $group: { _id: "$runtimeId", signal: { $first: "$$ROOT" } } },
+      {
+        $project: {
+          _id: 0,
+          id: "$signal.id",
+          runtimeId: "$signal.runtimeId",
+          executionId: "$signal.executionId",
+          trigger: "$signal.trigger",
+          metadata: "$signal.metadata",
+          metadataProfile: "$signal.metadataProfile",
+          metadataPresentation: "$signal.metadataPresentation",
+          templatePresentation: "$signal.templateSnapshot.presentation",
+        },
+      },
+    ])
+    .toArray();
+}
+
+async function pendingRuntimeManualExecutions(
+  database: Db,
+  workspaceId: string | null | undefined,
+  runtimeIds: string[],
+) {
+  if (!runtimeIds.length) return [];
+  const monitors = await database
+    .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
+    .find({
+      workspaceId,
+      runtimeId: { $in: runtimeIds },
+      archivedAt: { $exists: false },
+      $or: [
+        { "manualRunRequest.id": { $exists: true } },
+        {
+          "lease.trigger": "manual",
+          "lease.completedAt": { $exists: false },
+        },
+      ],
+    })
+    .project<ActiveMonitorRow>({
+      _id: 0,
+      runtimeId: 1,
+      manualRunRequest: 1,
+      lease: 1,
+    })
+    .toArray();
+  return monitors.map((monitor) =>
+    monitor.manualRunRequest
+      ? {
+          id: monitor.manualRunRequest.id,
+          runtimeId: monitor.runtimeId,
+          status: "queued",
+        }
+      : {
+          id: monitor.lease.executionId,
+          runtimeId: monitor.runtimeId,
+          status: "running",
+        },
+  );
+}
+
+function applicationHealthApplicationFilter(
+  actor: Partial<Actor>,
+  config: HealthConfig,
+) {
+  const applicationIds = applicationScope(actor, "runtimes.read");
+  const configuredId = String(config.applicationId || "");
+  const filter: Filter<Document> = {
+    workspaceId: actor.workspaceId,
+    status: { $ne: "archived" },
+  };
+  if (configuredId) {
+    const available =
+      applicationIds === null || applicationIds.includes(configuredId);
+    filter.id = available ? configuredId : { $in: [] };
+  } else if (applicationIds) {
+    filter.id = { $in: applicationIds };
+  }
+  return { configuredId, filter };
+}
+
+async function configuredApplicationHealthRuntimeIds(
+  database: Db,
+  workspaceId: string | null | undefined,
+  applicationIds: string[],
+  includeConfigured: boolean,
+) {
+  if (!includeConfigured) return [];
+  return database
+    .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
+    .distinct("runtimeId", {
+      workspaceId,
+      applicationId: { $in: applicationIds },
+      archivedAt: { $exists: false },
+    });
+}
+
+function applicationHealthRuntimeFilter(
+  actor: Partial<Actor>,
+  config: HealthConfig,
+  applicationIds: string[],
+  configuredRuntimeIds: string[],
+) {
+  const monitoringFilter = config.includeConfigured
+    ? {
+        $or: [
+          { monitoring: { $exists: true, $ne: null } },
+          { id: { $in: configuredRuntimeIds } },
+        ],
+      }
+    : { monitoring: { $exists: true, $ne: null } };
+  return {
+    workspaceId: actor.workspaceId,
+    applicationId: { $in: applicationIds },
+    ...(config.componentId ? { componentId: config.componentId } : {}),
+    ...(config.deploymentId ? { deploymentId: config.deploymentId } : {}),
+    ...(config.runtimeId ? { id: config.runtimeId } : {}),
+    status: { $ne: "archived" },
+    ...monitoringFilter,
+  };
+}
+
+async function applicationHealthRuntimes(
+  database: Db,
+  actor: Partial<Actor>,
+  config: HealthConfig,
+  applicationIds: string[],
+  configuredRuntimeIds: string[],
+) {
+  if (!applicationIds.length) return [];
+  return database
+    .collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES)
+    .find(
+      applicationHealthRuntimeFilter(
+        actor,
+        config,
+        applicationIds,
+        configuredRuntimeIds,
+      ),
+    )
+    .project<HealthRuntime>({
+      _id: 0,
+      id: 1,
+      key: 1,
+      name: 1,
+      applicationId: 1,
+      componentId: 1,
+      deploymentId: 1,
+      serverId: 1,
+      status: 1,
+      monitoring: 1,
+      monitoringObservedAt: 1,
+    })
+    .toArray();
+}
+
+function applicationHealthReferenceIds(runtimes: HealthRuntime[]) {
+  return {
+    componentIds: [...new Set(runtimes.map(({ componentId }) => componentId))],
+    deploymentIds: [
+      ...new Set(runtimes.map(({ deploymentId }) => deploymentId)),
+    ],
+    serverIds: [
+      ...new Set(runtimes.map(({ serverId }) => serverId).filter(Boolean)),
+    ],
+  };
+}
+
+async function applicationHealthTopology(
+  database: Db,
+  workspaceId: string | null | undefined,
+  applicationIds: string[],
+  runtimes: HealthRuntime[],
+) {
+  const { componentIds, deploymentIds, serverIds } =
+    applicationHealthReferenceIds(runtimes);
+  const [components, deployments, servers] = await Promise.all([
+    componentIds.length
+      ? database
+          .collection(COLLECTION_NAMES.APPLICATION_COMPONENTS)
+          .find({
+            workspaceId,
+            applicationId: { $in: applicationIds },
+            id: { $in: componentIds },
+          })
+          .project<NamedItem>({ _id: 0, id: 1, key: 1, name: 1 })
+          .toArray()
+      : [],
+    deploymentIds.length
+      ? database
+          .collection(COLLECTION_NAMES.APPLICATION_DEPLOYMENTS)
+          .find({
+            workspaceId,
+            applicationId: { $in: applicationIds },
+            id: { $in: deploymentIds },
+          })
+          .project<DeploymentItem>({
+            _id: 0,
+            id: 1,
+            key: 1,
+            name: 1,
+            componentId: 1,
+            environment: 1,
+          })
+          .toArray()
+      : [],
+    serverIds.length
+      ? database
+          .collection(COLLECTION_NAMES.SERVERS)
+          .find({ workspaceId, id: { $in: serverIds } })
+          .project<NamedItem>({ _id: 0, id: 1, key: 1, name: 1 })
+          .toArray()
+      : [],
+  ]);
+  return { components, deployments, servers };
+}
+
+function materializeApplicationHealthRuntime(
+  runtime: HealthRuntime,
+  includeConfigured: boolean,
+) {
+  return includeConfigured && !runtime.monitoring
+    ? { ...runtime, status: "unknown" }
+    : runtime;
+}
+
+export async function applicationHealthMetric(
+  database: Db,
+  actor: Partial<Actor>,
+  config: HealthConfig,
+) {
+  const { configuredId, filter: applicationFilter } =
+    applicationHealthApplicationFilter(actor, config);
+  const applications = await database
+    .collection(COLLECTION_NAMES.APPLICATIONS)
+    .find(applicationFilter)
+    .project<NamedItem>({ _id: 0, id: 1, name: 1 })
+    .sort({ name: 1 })
+    .toArray();
+  const ids = applications.map(({ id }) => id);
+  const configuredRuntimeIds = await configuredApplicationHealthRuntimeIds(
+    database,
+    actor.workspaceId,
+    ids,
+    Boolean(config.includeConfigured),
+  );
+  const runtimes = await applicationHealthRuntimes(
+    database,
+    actor,
+    config,
+    ids,
+    configuredRuntimeIds,
+  );
+  const { components, deployments, servers } = await applicationHealthTopology(
+    database,
+    actor.workspaceId,
+    ids,
+    runtimes,
+  );
+  const filteredRuntimes = filterRuntimesByDeploymentEnvironment(
+    runtimes,
+    deployments,
+    config.environment,
+  );
+  const runtimeIds = filteredRuntimes.map(({ id }) => id);
+  const [latestSignals, pendingExecutions] = await Promise.all([
+    latestRuntimeMonitoringSignals(database, actor.workspaceId, runtimeIds),
+    pendingRuntimeManualExecutions(database, actor.workspaceId, runtimeIds),
+  ]);
+  const items = buildApplicationHealthItems({
+    applications,
+    components,
+    deployments,
+    latestSignals,
+    pendingExecutions,
+    runtimes: filteredRuntimes.map((runtime) =>
+      materializeApplicationHealthRuntime(
+        runtime,
+        Boolean(config.includeConfigured),
+      ),
+    ),
+    servers,
+  });
+  return {
+    kind: "health",
+    items,
+    applicationId: configuredId || null,
+    environment: config.environment || null,
+  };
+}
+
+export async function getApplicationHealthMetric(
+  actor: Actor,
+  config: HealthConfig = {},
+) {
+  const database = await getMongoDatabase();
+  return applicationHealthMetric(database, actor, config);
+}

@@ -1,0 +1,557 @@
+#!/usr/bin/env node
+import type { ApplicationDocument } from "../types/catalog.js";
+import type { ComponentDocument } from "../types/topology.js";
+import type { KnowledgeContext } from "../types/requests.js";
+import type { TaxonomyNode } from "../helpers/taxonomy.js";
+interface TaxonomyPackage {
+  taxonomy?: TaxonomyNode[];
+  tagGroups?: { id: string; tags: string[] }[];
+}
+import type { Db, WithId } from "mongodb";
+
+import "../config.js";
+
+import { ObjectId } from "mongodb";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { COLLECTION_NAMES } from "../database/collectionNames.js";
+import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
+import {
+  collectTaxonomyIds,
+  filterTaxonomyForApplication,
+} from "../helpers/taxonomy.js";
+import {
+  createIssue,
+  saveIssueClassification,
+} from "../repositories/issues/index.js";
+import { listOptionLists } from "../repositories/optionLists/index.js";
+import { createDocument } from "../repositories/documents/index.js";
+import { createResourceCollection } from "../repositories/resourceCollections/index.js";
+import {
+  createRequest,
+  createRequestTask,
+} from "../repositories/requests/index.js";
+import {
+  getIssueTaxonomy,
+  saveIssueTaxonomy,
+} from "../repositories/issues/taxonomy.js";
+import {
+  createApplication,
+  ensureDefaultWorkspace,
+} from "../repositories/catalog/index.js";
+import { createComponent } from "../repositories/components/index.js";
+import type { RepositoryQuery } from "../types/http.js";
+
+const SEED_ACTOR = "demo-seed";
+const DEMO_ISSUE_ID = "DEMO-INC-001";
+const DEMO_REQUEST_CODE = "DEMO-001";
+const DEMO_PROCEDURE_TITLE = "Primeiros passos no workspace";
+const DEMO_COLLECTION_NAME = "Demonstração";
+const DEMO_APPLICATION_KEY = "bondia-workspaces-demo";
+const DEMO_COMPONENT_KEY = "workspace-platform";
+
+export function demoCatalogSkipReason(
+  application: { status?: string } | null,
+  component?: { status?: string } | null,
+) {
+  if (application?.status && application.status !== "active") {
+    return "demo-application-archived";
+  }
+  if (component?.status && component.status !== "active") {
+    return "demo-component-archived";
+  }
+  return null;
+}
+
+function dateLabel(offsetDays = 0) {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+  return date.toISOString().slice(0, 10);
+}
+
+function monthLabel(offsetMonths = 0) {
+  const date = new Date();
+  date.setUTCDate(1);
+  date.setUTCMonth(date.getUTCMonth() + offsetMonths);
+  return date.toISOString().slice(0, 7);
+}
+
+async function ensureTaxonomy(query: RepositoryQuery) {
+  const current = await getIssueTaxonomy(query);
+  if (current.taxonomy) return { created: false, taxonomy: current.taxonomy };
+
+  const result = await saveIssueTaxonomy(
+    {
+      schemaVersion: 1,
+      source: {
+        kind: "demo-seed",
+        description: "Catálogo inicial criado pelo bootstrap open source.",
+      },
+      tagGroups: [
+        {
+          id: "ambiente",
+          label: "Ambiente",
+          color: "#175cd3",
+          tags: ["local", "homologacao", "producao"],
+        },
+        {
+          id: "tratamento",
+          label: "Tratamento",
+          color: "#067647",
+          tags: ["analise", "documentacao", "correcao"],
+        },
+      ],
+      taxonomy: [
+        {
+          id: "operacao",
+          label: "Operação",
+          children: [
+            { id: "acesso", label: "Acesso" },
+            { id: "integracao", label: "Integração" },
+          ],
+        },
+        {
+          id: "produto",
+          label: "Produto",
+          children: [
+            { id: "usabilidade", label: "Usabilidade" },
+            { id: "automacao", label: "Automação" },
+          ],
+        },
+      ],
+      updatedBy: SEED_ACTOR,
+    },
+    query,
+  );
+
+  return { created: true, taxonomy: result.taxonomy };
+}
+
+async function ensureCatalog(db: Db) {
+  const actor = { userId: SEED_ACTOR };
+  const workspace = await ensureDefaultWorkspace(actor);
+  let application: { id: string; status?: string } | null = await db
+    .collection<ApplicationDocument>(COLLECTION_NAMES.APPLICATIONS)
+    .findOne({
+      workspaceId: workspace.id,
+      key: DEMO_APPLICATION_KEY,
+    });
+  if (!application) {
+    application = await createApplication(
+      workspace.id,
+      {
+        key: DEMO_APPLICATION_KEY,
+        name: "Bondia Workspaces Demo",
+        description: "Aplicação fictícia usada pelos dados de demonstração.",
+        tags: ["demo"],
+      },
+      actor,
+    );
+  }
+  if (!application) throw new Error("Demo application is unavailable");
+  const applicationSkipReason = demoCatalogSkipReason(application);
+  if (applicationSkipReason) {
+    return {
+      workspace,
+      application,
+      component: null,
+      skipped: applicationSkipReason,
+    };
+  }
+  let component: { id: string; status?: string } | null = await db
+    .collection<ComponentDocument>(COLLECTION_NAMES.APPLICATION_COMPONENTS)
+    .findOne({
+      applicationId: application.id,
+      key: DEMO_COMPONENT_KEY,
+    });
+  if (!component) {
+    component = await createComponent(
+      application.id,
+      {
+        key: DEMO_COMPONENT_KEY,
+        name: "Plataforma de demonstração",
+        description: "Componente fictício afetado pelos registros do seed.",
+        type: "service",
+        tags: ["demo"],
+      },
+      actor,
+    );
+  }
+  if (!component) throw new Error("Demo component is unavailable");
+  return {
+    workspace,
+    application,
+    component,
+    skipped: demoCatalogSkipReason(application, component),
+  };
+}
+
+function availableTags(
+  taxonomyPackage: TaxonomyPackage | null,
+  requested: Record<string, string[]>,
+) {
+  const groups = new Map<string, Set<string>>(
+    (taxonomyPackage?.tagGroups || []).map((group) => [
+      String(group.id),
+      new Set((group.tags || []).map(String)),
+    ]),
+  );
+  return Object.fromEntries(
+    Object.entries(requested).flatMap(([groupId, tagIds]) => {
+      const available = groups.get(groupId);
+      if (!available) return [];
+      const tags = tagIds.filter((tagId) => available.has(tagId));
+      return tags.length ? [[groupId, tags]] : [];
+    }),
+  );
+}
+
+export function buildDemoClassifications(
+  taxonomyPackage: TaxonomyPackage | null,
+  applicationId: string,
+) {
+  const availableIds = new Set(
+    collectTaxonomyIds(
+      filterTaxonomyForApplication(
+        taxonomyPackage?.taxonomy || [],
+        applicationId,
+      ),
+    ),
+  );
+  const tags = availableTags(taxonomyPackage, {
+    ambiente: ["local"],
+    tratamento: ["analise"],
+  });
+  const procedureTags = availableTags(taxonomyPackage, {
+    ambiente: ["local"],
+    tratamento: ["documentacao"],
+  });
+  return {
+    issue: availableIds.has("integracao")
+      ? {
+          primaryTaxonomyId: "integracao",
+          secondaryTaxonomyIds: availableIds.has("automacao")
+            ? ["automacao"]
+            : [],
+          summary: "Exemplo de issue classificada para a experiência inicial.",
+          tags,
+          updatedBy: SEED_ACTOR,
+        }
+      : null,
+    procedure: availableIds.has("operacao")
+      ? {
+          primaryTaxonomyId: "operacao",
+          secondaryTaxonomyIds: availableIds.has("acesso") ? ["acesso"] : [],
+          tags: procedureTags,
+        }
+      : {},
+  };
+}
+
+async function ensureIssue(
+  db: Db,
+  context: KnowledgeContext,
+  query: RepositoryQuery,
+  classification: Record<string, unknown> | null,
+) {
+  const existing = await db.collection(COLLECTION_NAMES.ISSUES).findOne({
+    id: DEMO_ISSUE_ID,
+    workspaceId: context.workspaceId,
+  });
+  let created = false;
+
+  if (!existing) {
+    await createIssue(
+      {
+        id: DEMO_ISSUE_ID,
+        type: "incident",
+        status: "open",
+        title: "Falha intermitente na integração de demonstração",
+        text: "Registro fictício para explorar filtros, classificação e histórico do workspace.",
+        comment:
+          "A análise inicial indica que a ocorrência está restrita ao ambiente local.",
+        date: dateLabel(-2),
+        createdBy: SEED_ACTOR,
+        source: { kind: "demo-seed" },
+        ...context,
+      },
+      query,
+    );
+    created = true;
+  } else {
+    await db
+      .collection(COLLECTION_NAMES.ISSUES)
+      .updateOne(
+        { id: DEMO_ISSUE_ID, workspaceId: context.workspaceId },
+        { $set: { ...context, updatedAt: new Date(), updatedBy: SEED_ACTOR } },
+      );
+  }
+
+  if (classification) {
+    await saveIssueClassification(DEMO_ISSUE_ID, classification, query);
+  }
+
+  return {
+    created,
+    classificationApplied: Boolean(classification),
+    id: DEMO_ISSUE_ID,
+  };
+}
+
+async function ensureRequest(
+  db: Db,
+  context: KnowledgeContext,
+  query: RepositoryQuery,
+) {
+  const existing = await db.collection(COLLECTION_NAMES.REQUESTS).findOne({
+    clientCode: DEMO_REQUEST_CODE,
+    workspaceId: context.workspaceId,
+  });
+  let requestId;
+  let created = false;
+
+  if (existing) {
+    requestId = existing._id.toString();
+    await db
+      .collection(COLLECTION_NAMES.REQUESTS)
+      .updateOne(
+        { _id: existing._id },
+        { $set: { ...context, updatedAt: new Date(), updatedBy: SEED_ACTOR } },
+      );
+  } else {
+    const result = await createRequest(
+      {
+        clientCode: DEMO_REQUEST_CODE,
+        title: "Evoluir onboarding do workspace",
+        status: "Desenvolvimento",
+        estimatedDeliveryDate: dateLabel(20),
+        startDate: dateLabel(-10),
+        endDate: dateLabel(20),
+        estimatedJourneys: 12,
+        description:
+          "Melhoria fictícia que demonstra planejamento, checklist, jornadas e tarefas.",
+        checklist: [
+          {
+            label: "Solicitação",
+            done: true,
+            date: dateLabel(-12),
+            comment: "Necessidade registrada.",
+          },
+          {
+            label: "Especificação Técnica",
+            done: true,
+            date: dateLabel(-10),
+            comment: "Escopo inicial aprovado.",
+          },
+        ],
+        journeys: [
+          {
+            month: monthLabel(0),
+            plannedJourneys: 8,
+            executedJourneys: 4,
+            comment: "Primeira etapa.",
+          },
+          {
+            month: monthLabel(1),
+            plannedJourneys: 4,
+            executedJourneys: 0,
+            comment: "Conclusão prevista.",
+          },
+        ],
+        specification: {
+          sections: [
+            {
+              id: "objective",
+              title: "Objetivo",
+              content:
+                "Reduzir o tempo entre a instalação e a primeira navegação útil.",
+              order: 0,
+            },
+            {
+              id: "scope",
+              title: "Escopo de Atuação",
+              content:
+                "Compose, bootstrap seguro, dados fictícios e documentação de início rápido.",
+              order: 1,
+            },
+          ],
+        },
+        notes: [
+          {
+            date: dateLabel(-10),
+            content: "Seed criado exclusivamente com dados fictícios.",
+          },
+        ],
+        createdBy: SEED_ACTOR,
+        ...context,
+      },
+      query,
+    );
+    if (!result.request) throw new Error("Demo request is unavailable");
+    requestId = result.request.id;
+    created = true;
+  }
+
+  const task = await db.collection(COLLECTION_NAMES.REQUEST_TASKS).findOne({
+    requestId: new ObjectId(requestId),
+    code: "DEMO-TASK-001",
+  });
+  if (!task) {
+    await createRequestTask(
+      requestId,
+      {
+        code: "DEMO-TASK-001",
+        title: "Validar o ambiente local",
+        status: "Andamento",
+        startDate: dateLabel(-1),
+        endDate: dateLabel(2),
+        situation:
+          "Executar o fluxo de bootstrap e revisar as telas principais.",
+        description: "Confirmar API, UI, autenticação e dados de demonstração.",
+        specification:
+          "Registrar qualquer divergência encontrada durante a validação.",
+      },
+      query,
+    );
+  }
+
+  return { created, taskCreated: !task, id: requestId };
+}
+
+async function ensureProcedure(
+  db: Db,
+  context: KnowledgeContext,
+  query: RepositoryQuery,
+  classification: Record<string, unknown>,
+) {
+  const storedCollection = await db
+    .collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS)
+    .findOne({
+      workspaceId: context.workspaceId,
+      resourceType: "documents",
+      nameKey: DEMO_COLLECTION_NAME.toLocaleLowerCase("pt-BR"),
+      parentId: "",
+    });
+  let collection: { id: string } | null =
+    storedCollection && typeof storedCollection.id === "string"
+      ? { id: storedCollection.id }
+      : null;
+
+  if (!collection) {
+    const result = await createResourceCollection(
+      "documents",
+      {
+        name: DEMO_COLLECTION_NAME,
+        createdBy: SEED_ACTOR,
+      },
+      query,
+    );
+    collection = result.collection;
+  }
+  if (!collection) throw new Error("Demo document collection is unavailable");
+
+  const existing = await db.collection(COLLECTION_NAMES.DOCUMENTS).findOne({
+    title: DEMO_PROCEDURE_TITLE,
+    workspaceId: context.workspaceId,
+    documentType: "procedure",
+  });
+  if (existing) {
+    await db
+      .collection(COLLECTION_NAMES.DOCUMENTS)
+      .updateOne(
+        { id: existing.id, workspaceId: context.workspaceId },
+        { $set: { ...context, updatedAt: new Date(), updatedBy: SEED_ACTOR } },
+      );
+    return { created: false, id: existing.id };
+  }
+
+  const result = await createDocument(
+    {
+      documentType: "procedure",
+      title: DEMO_PROCEDURE_TITLE,
+      summary: "Como iniciar o ambiente e explorar os dados fictícios.",
+      markdown: [
+        "# Primeiros passos",
+        "",
+        "1. Acesse a UI em `http://localhost:4400`.",
+        "2. Entre com a credencial criada pelo bootstrap.",
+        "3. Explore Chamados, Melhorias e Documentação.",
+        "4. Crie uma chave de API na área da conta para usar MCP e CLI.",
+        "",
+        "> Todos os registros deste seed são fictícios e podem ser removidos.",
+      ].join("\n"),
+      collectionId: collection.id,
+      classification,
+      createdBy: SEED_ACTOR,
+      ...context,
+    },
+    query,
+  );
+
+  if (!result.document) throw new Error("Demo procedure is unavailable");
+  return { created: true, id: result.document.id };
+}
+
+export async function seedDemoData() {
+  const db = await getMongoDatabase();
+  const catalog = await ensureCatalog(db);
+  if (catalog.skipped) {
+    return {
+      database: db.databaseName,
+      skipped: catalog.skipped,
+      catalog: {
+        workspaceId: catalog.workspace.id,
+        applicationId: catalog.application.id,
+        componentId: catalog.component?.id || null,
+      },
+    };
+  }
+  if (!catalog.application || !catalog.component)
+    throw new Error("Demo catalog is unavailable");
+  const query = { workspaceId: catalog.workspace.id };
+  const optionLists = await listOptionLists(query);
+  const taxonomy = await ensureTaxonomy(query);
+  const context = {
+    workspaceId: catalog.workspace.id,
+    applicationId: catalog.application.id,
+    affectedComponentIds: [catalog.component.id],
+  };
+  const classifications = buildDemoClassifications(
+    taxonomy.taxonomy,
+    catalog.application.id,
+  );
+  const [issue, request, procedure] = await Promise.all([
+    ensureIssue(db, context, query, classifications.issue),
+    ensureRequest(db, context, query),
+    ensureProcedure(db, context, query, classifications.procedure),
+  ]);
+
+  return {
+    database: db.databaseName,
+    optionLists: optionLists.items.length,
+    taxonomyCreated: taxonomy.created,
+    catalog: {
+      workspaceId: catalog.workspace.id,
+      applicationId: catalog.application.id,
+      componentId: catalog.component.id,
+    },
+    issue,
+    request,
+    procedure,
+  };
+}
+
+const isMain =
+  Boolean(process.argv[1]) &&
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+
+if (isMain) {
+  seedDemoData()
+    .then((result) => console.log(JSON.stringify(result, null, 2)))
+    .catch((error: unknown) => {
+      console.error(error instanceof Error ? error.stack || error : error);
+      process.exitCode = 1;
+    })
+    .finally(closeMongoClient);
+}

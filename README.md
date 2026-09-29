@@ -450,6 +450,7 @@ API:
 ```bash
 cd biaws-api
 npm ci
+npm run build
 npm run bootstrap:admin
 npm run dev
 ```

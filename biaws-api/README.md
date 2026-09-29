@@ -17,7 +17,7 @@ do próprio repositório, nesta precedência:
 
 ## Organização das rotas
 
-`src/routes/<domínio>/index.js` compõe explicitamente o router. Cada endpoint
+`src/routes/<domínio>/index.ts` compõe explicitamente o router. Cada endpoint
 fica em um arquivo próprio, com método, caminho, autorização, handler e auditoria.
 Filhos como comentários, tarefas e anexos ficam em subpastas do domínio.
 Os mecanismos comuns ficam em `src/routes/shared`, incluindo tratamento de erros,
@@ -27,9 +27,35 @@ Consulte [src/routes/README.md](src/routes/README.md) para adicionar endpoints.
 
 Os repositories também são organizados por domínio. Módulos de consultas,
 mutações, normalização, contexto, índices e recursos filhos compõem as operações
-públicas expostas pelos `index.js`. As leituras granulares de resources pertencem
+públicas expostas pelos `index.ts`. As leituras granulares de resources pertencem
 a issues, melhorias e documentos; mecanismos comuns ficam em `repositories/shared`.
 Consulte [src/repositories/README.md](src/repositories/README.md).
+
+## TypeScript e execução
+
+A API usa TypeScript estrito com módulos ESM. Os imports relativos mantêm a
+extensão `.js`, que corresponde aos arquivos emitidos em `dist/`. O processo de
+produção, os comandos de bootstrap, seed e migração executam somente o JavaScript
+compilado. Para desenvolvimento, `npm run dev` usa `tsx`.
+
+```bash
+npm ci
+npm run typecheck
+npm run build
+npm test
+npm run test:compiled
+```
+
+O teste compilado recompila a API e os testes antes de executar a mesma suíte.
+As integrações precisam de `BIAWS_INTEGRATION_MONGO_URI`; a jornada HTTP também
+precisa de `BIAWS_HTTP_INTEGRATION=1`.
+
+As exceções JavaScript são `src/repositories/monitoring/templates/jsonataWorker.js`,
+executado isoladamente pelo Node sem loader TypeScript, e os nove módulos de
+cenário em `test/catalog/http/`, que preservam a jornada HTTP legada com respostas
+JSON dinâmicas. `scripts/build.mjs` e `scripts/test.mjs` são os launchers do build
+e do runner. O código de produção restante e os arquivos `.test.ts` são verificados
+por `npm run typecheck`.
 
 ## Ambiente
 
@@ -102,6 +128,7 @@ npm run dev
 ou:
 
 ```bash
+npm run build
 npm start
 ```
 

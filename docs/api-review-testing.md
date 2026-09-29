@@ -25,7 +25,7 @@ npm run test:http
 BIAWS_INTEGRATION_MONGO_URI=mongodb://127.0.0.1:37127/biaws_test BIAWS_HTTP_INTEGRATION=1 npm test
 ```
 
-A descoberta é recursiva e inclui somente arquivos `.test.js`, excluindo fixtures
+A descoberta é recursiva e inclui arquivos `.test.ts` e `.test.js`, excluindo fixtures
 e etapas auxiliares. `test:integration` seleciona MongoDB; `test:http` seleciona
 as jornadas HTTP. A flag `BIAWS_HTTP_INTEGRATION=1` habilita a jornada completa de
 sessão/API key. A URI habilita as outras integrações. Testes ignorados são

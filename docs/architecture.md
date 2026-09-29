@@ -54,7 +54,7 @@ domínios originais. Anexos ficam fora do documento, referenciados por `provider
 e `key`.
 
 Os nomes físicos das coleções são centralizados em
-`biaws-api/src/database/collectionNames.js` e seguem `lowerCamelCase` plural.
+`biaws-api/src/database/collectionNames.ts` e seguem `lowerCamelCase` plural.
 Modelos do Better Auth usam o prefixo `auth`; vínculos de usuário e workspace
 ficam em `workspaceMemberships`.
 

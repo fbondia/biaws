@@ -13,12 +13,20 @@ async function discover(directory) {
   return files.sort();
 }
 const filters = process.argv.slice(2);
+const listOnly = filters.includes("--list");
+if (listOnly) filters.splice(filters.indexOf("--list"), 1);
 const files = (await discover(root)).filter(
   (file) =>
     !filters.length ||
     filters.some((filter) => path.relative(root, file).includes(filter)),
 );
 if (!files.length) throw new Error("No test files matched");
+if (listOnly) {
+  process.stdout.write(
+    files.map((file) => path.relative(root, file)).join("\n") + "\n",
+  );
+  process.exit(0);
+}
 const result = spawnSync(process.execPath, ["--test", ...files], {
   stdio: "inherit",
 });

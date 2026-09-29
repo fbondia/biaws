@@ -80,3 +80,6 @@ pacote. O tarball inclui somente `dist/src` e o bootstrap `bin/biaws-mcp.js`;
 fontes `.ts`, testes e compilador ficam no checkout. A versão anunciada continua
 sincronizada com `package.json`. Para validar uma instalação limpa, execute o
 smoke acima nas duas eras do protocolo.
+
+A descoberta recursiva e os comandos por domínio estão em [testing.md](testing.md).
+Execute a suíte completa além da seleção do domínio alterado.

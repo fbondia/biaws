@@ -5,17 +5,19 @@ import type {
 } from "../../types/requests.js";
 import { isRecord } from "../../helpers/records.js";
 import type { Db } from "mongodb";
-import { defaultSpecificationSectionTitles } from "./options.js";
+import { requestOptions } from "./options.js";
 import { readString, readNumber } from "./support.js";
 import { SPECIFICATION_COLLECTION } from "./constants.js";
 
 function defaultSpecificationSections() {
-  return defaultSpecificationSectionTitles.map((title, index: number) => ({
-    id: `default-${index + 1}`,
-    title,
-    content: "",
-    order: index,
-  }));
+  return requestOptions.defaultSpecificationSectionTitles.map(
+    (title, index: number) => ({
+      id: `default-${index + 1}`,
+      title,
+      content: "",
+      order: index,
+    }),
+  );
 }
 
 export function normalizeSpecification(

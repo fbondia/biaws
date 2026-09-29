@@ -28,6 +28,7 @@
     "format:check": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --check .",
     "check": "npm run typecheck",
     "test": "node scripts/test.mjs",
+    "test:coverage": "node scripts/test.mjs --coverage",
     "test:unit": "node scripts/test.mjs --layer=unit",
     "test:integration": "node scripts/test.mjs --layer=mongo",
     "test:http": "node scripts/test.mjs --layer=http",

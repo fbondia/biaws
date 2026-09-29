@@ -1,5 +1,6 @@
 node_modules/
 dist/
+coverage/
 .scannerwork/
 biaws-api/sonar-project.properties
 biaws-cli/sonar-project.properties

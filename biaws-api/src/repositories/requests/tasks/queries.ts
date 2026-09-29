@@ -1,6 +1,6 @@
 import type { Db, ObjectId } from "mongodb";
 import { TASKS_COLLECTION, TASK_NOTES_COLLECTION } from "../constants.js";
-import { allTaskStatusOptions } from "../options.js";
+import { requestOptions } from "../options.js";
 import { compareRequestTasks } from "../../../../../shared/requestTaskSorting.js";
 
 export async function readTasks(db: Db, requestIds: ObjectId[]) {
@@ -11,7 +11,7 @@ export async function readTasks(db: Db, requestIds: ObjectId[]) {
     .find({ requestId: { $in: requestIds } })
     .toArray();
   rows.sort((first, second) =>
-    compareRequestTasks(first, second, allTaskStatusOptions),
+    compareRequestTasks(first, second, requestOptions.allTaskStatusOptions),
   );
   const taskIds = rows.map((row) => row._id);
   const noteRows = taskIds.length

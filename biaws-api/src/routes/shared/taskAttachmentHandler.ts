@@ -14,6 +14,21 @@ export const taskAttachmentUpload = multer({
 
 const withDemandReferences = createReferenceHandler("demand");
 
+function affectedFiles(
+  result: Awaited<ReturnType<typeof mutateTaskAttachments>>,
+) {
+  if ("uploaded" in result) return result.uploaded;
+  if ("attachment" in result) return [result.attachment];
+  if ("deleted" in result) return [result.deleted];
+  return [];
+}
+
+const auditActions = {
+  upload: "attachment_added",
+  tags: "attachment_tags_updated",
+  delete: "attachment_deleted",
+} as const;
+
 export const createTaskAttachmentHandler = (
   operation: "upload" | "tags" | "delete",
   permission: string,
@@ -30,23 +45,10 @@ export const createTaskAttachmentHandler = (
       },
       authorizationQuery(req.actor, permission, req.query),
     );
-    const files =
-      "uploaded" in result
-        ? result.uploaded
-        : "attachment" in result
-          ? [result.attachment]
-          : "deleted" in result
-            ? [result.deleted]
-            : [];
-    for (const file of files)
+    for (const file of affectedFiles(result))
       await recordAuditEvent({
         actor: req.actor,
-        action:
-          operation === "upload"
-            ? "attachment_added"
-            : operation === "tags"
-              ? "attachment_tags_updated"
-              : "attachment_deleted",
+        action: auditActions[operation],
         target: {
           type: "attachment",
           id: file.id || file.index,

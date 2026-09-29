@@ -1,4 +1,4 @@
-import { defaultRequestStatus, requestStatusOptions } from "./options.js";
+import { requestOptions } from "./options.js";
 
 export function createHttpError(
   statusCode: number | undefined,
@@ -39,15 +39,16 @@ export function readNumber(value: unknown, fieldName: string) {
 
 export function normalizeStatus(value: unknown, allowedHistoricalValue = "") {
   const status =
-    readString(value, defaultRequestStatus).trim() || defaultRequestStatus;
+    readString(value, requestOptions.defaultRequestStatus).trim() ||
+    requestOptions.defaultRequestStatus;
 
   if (
-    !requestStatusOptions.includes(status) &&
+    !requestOptions.requestStatusOptions.includes(status) &&
     status !== allowedHistoricalValue
   ) {
     throw createHttpError(
       422,
-      `Invalid request payload: status must be one of ${requestStatusOptions.join(", ")}`,
+      `Invalid request payload: status must be one of ${requestOptions.requestStatusOptions.join(", ")}`,
     );
   }
 

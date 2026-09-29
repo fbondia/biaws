@@ -4,11 +4,7 @@ import type {
   NoteDocument,
   TaskDocument,
 } from "../../types/requests.js";
-import {
-  checklistLabels,
-  allRequestStatusOptions,
-  defaultRequestStatus,
-} from "./options.js";
+import { requestOptions } from "./options.js";
 import {
   readString,
   assertDate,
@@ -25,7 +21,7 @@ import { normalizeStoredKnowledgeContext } from "../shared/knowledgeContext.js";
 export function normalizeChecklist(items: unknown) {
   const sourceItems: ChecklistInput[] = Array.isArray(items)
     ? items
-    : checklistLabels.map((label: string) => ({ label }));
+    : requestOptions.checklistLabels.map((label: string) => ({ label }));
   const byLabel = new Map(sourceItems.map((item) => [item?.label, item]));
   const labels = sourceItems
     .map((item) => String(item?.label || "").trim())
@@ -100,9 +96,11 @@ function normalizeRequestDocumentValue(
     id: document._id?.toString?.() ?? String(document._id),
     clientCode: document.clientCode || "",
     title: document.title || "",
-    status: allRequestStatusOptions.includes(document.status || "")
+    status: requestOptions.allRequestStatusOptions.includes(
+      document.status || "",
+    )
       ? document.status
-      : defaultRequestStatus,
+      : requestOptions.defaultRequestStatus,
     estimatedDeliveryDate: document.estimatedDeliveryDate || "",
     startDate: document.startDate || "",
     endDate: document.endDate || "",

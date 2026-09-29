@@ -16,14 +16,6 @@ const MIN_MAX_POINTS = 50;
 
 const MAX_MAX_POINTS = 1_000;
 
-const STATUS_LEVELS = Object.freeze({
-  stopped: 0,
-  unavailable: 1,
-  degraded: 2,
-  unknown: 3,
-  healthy: 4,
-});
-
 const LEVEL_STATUSES = Object.freeze([
   "stopped",
   "unavailable",
@@ -153,12 +145,15 @@ function statusCountProjection(status: string) {
 
 function statusSeverityProjection() {
   return {
-    $switch: {
-      branches: Object.entries(STATUS_LEVELS).map(([status, level]) => ({
-        case: { $eq: ["$status", status] },
-        then: level,
-      })),
-      default: STATUS_LEVELS.unknown,
+    $let: {
+      vars: { statusIndex: { $indexOfArray: [LEVEL_STATUSES, "$status"] } },
+      in: {
+        $cond: [
+          { $gte: ["$$statusIndex", 0] },
+          "$$statusIndex",
+          LEVEL_STATUSES.indexOf("unknown"),
+        ],
+      },
     },
   };
 }

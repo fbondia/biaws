@@ -1,4 +1,4 @@
-import { readdir } from "node:fs/promises";
+import { mkdir, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
 
@@ -22,6 +22,11 @@ async function discover(directory) {
   return files;
 }
 const compiled = options.includes("--compiled");
+const coverage = options.includes("--coverage");
+if (coverage) {
+  await mkdir("coverage", { recursive: true });
+  await rm("coverage/lcov.info", { force: true });
+}
 const testRoot = compiled ? "dist/biaws-api/test" : "test";
 const files = (await discover(domain ? `${testRoot}/${domain}` : testRoot))
   .sort()
@@ -36,7 +41,20 @@ const files = (await discover(domain ? `${testRoot}/${domain}` : testRoot))
 if (!files.length) throw new Error("Nenhum teste encontrado");
 const child = spawn(
   process.execPath,
-  [...(compiled ? [] : ["--import", "tsx"]), "--test", ...files],
+  [
+    ...(compiled ? [] : ["--import", "tsx"]),
+    ...(coverage
+      ? [
+          "--experimental-test-coverage",
+          "--test-reporter=dot",
+          "--test-reporter=lcov",
+          "--test-reporter-destination=stdout",
+          "--test-reporter-destination=coverage/lcov.info",
+        ]
+      : []),
+    "--test",
+    ...files,
+  ],
   {
     stdio: "inherit",
     env: process.env,

@@ -8,11 +8,7 @@ import {
   assertDate,
   dateInputValue,
 } from "../support.js";
-import {
-  defaultTaskStatus,
-  taskStatusOptions,
-  allTaskStatusOptions,
-} from "../options.js";
+import { requestOptions } from "../options.js";
 import { normalizeNoteDocument } from "../notes/normalization.js";
 
 export function normalizeTaskPayload(
@@ -21,7 +17,8 @@ export function normalizeTaskPayload(
 ) {
   const title = readString(payload.title).trim();
   const status =
-    readString(payload.status, defaultTaskStatus).trim() || defaultTaskStatus;
+    readString(payload.status, requestOptions.defaultTaskStatus).trim() ||
+    requestOptions.defaultTaskStatus;
   const startDate = readString(payload.startDate).trim();
   const endDate = readString(payload.endDate).trim();
 
@@ -32,12 +29,12 @@ export function normalizeTaskPayload(
     );
   }
   if (
-    !taskStatusOptions.includes(status) &&
+    !requestOptions.taskStatusOptions.includes(status) &&
     status !== allowedHistoricalStatus
   ) {
     throw createHttpError(
       422,
-      `Invalid request payload: task.status must be one of ${taskStatusOptions.join(", ")}`,
+      `Invalid request payload: task.status must be one of ${requestOptions.taskStatusOptions.join(", ")}`,
     );
   }
   assertDate(startDate, "task.startDate");
@@ -71,9 +68,9 @@ export function normalizeTaskDocument(
       document.requestId?.toString?.() ?? String(document.requestId || ""),
     code: document.code || "",
     title: document.title || "",
-    status: allTaskStatusOptions.includes(document.status || "")
+    status: requestOptions.allTaskStatusOptions.includes(document.status || "")
       ? document.status
-      : defaultTaskStatus,
+      : requestOptions.defaultTaskStatus,
     startDate: dateInputValue(document.startDate),
     endDate: dateInputValue(document.endDate),
     situation: document.situation || "",

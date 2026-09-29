@@ -1,0 +1,11 @@
+sonar.projectKey=BIAWS-API
+sonar.projectName=BIAWS API
+sonar.projectVersion=0.5.0
+sonar.host.url=http://localhost:9000
+sonar.sourceEncoding=UTF-8
+
+sonar.sources=src
+sonar.tests=test
+sonar.test.inclusions=test/**/*.test.ts
+sonar.exclusions=**/node_modules/**,coverage/**,dist/**
+sonar.javascript.lcov.reportPaths=coverage/lcov.info

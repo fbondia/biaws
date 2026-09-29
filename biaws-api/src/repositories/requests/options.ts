@@ -11,22 +11,16 @@ import {
 import { activeValues } from "../optionLists/normalization.js";
 import { getRequestOptionLists } from "../optionLists/queries.js";
 
-export let requestStatusOptions = REQUEST_STATUS_OPTIONS;
-
-export let allRequestStatusOptions = REQUEST_STATUS_OPTIONS;
-
-export let defaultRequestStatus = DEFAULT_REQUEST_STATUS;
-
-export let taskStatusOptions = REQUEST_TASK_STATUS_OPTIONS;
-
-export let allTaskStatusOptions = REQUEST_TASK_STATUS_OPTIONS;
-
-export let defaultTaskStatus = DEFAULT_REQUEST_TASK_STATUS;
-
-export let checklistLabels = REQUEST_CHECKLIST_ITEMS;
-
-export let defaultSpecificationSectionTitles =
-  REQUEST_SPECIFICATION_SECTION_TITLES;
+export const requestOptions = {
+  requestStatusOptions: REQUEST_STATUS_OPTIONS,
+  allRequestStatusOptions: REQUEST_STATUS_OPTIONS,
+  defaultRequestStatus: DEFAULT_REQUEST_STATUS,
+  taskStatusOptions: REQUEST_TASK_STATUS_OPTIONS,
+  allTaskStatusOptions: REQUEST_TASK_STATUS_OPTIONS,
+  defaultTaskStatus: DEFAULT_REQUEST_TASK_STATUS,
+  checklistLabels: REQUEST_CHECKLIST_ITEMS,
+  defaultSpecificationSectionTitles: REQUEST_SPECIFICATION_SECTION_TITLES,
+};
 
 export async function loadRequestOptions(db: Db, query: RepositoryQuery = {}) {
   const lists = await getRequestOptionLists({
@@ -34,22 +28,24 @@ export async function loadRequestOptions(db: Db, query: RepositoryQuery = {}) {
     authorizationScope: query.authorizationScope,
     workspaceId: query.workspaceId,
   });
-  requestStatusOptions = activeValues(lists.demandStatus);
-  allRequestStatusOptions = (lists.demandStatus?.items || []).map(
-    (item) => item.value,
-  );
-  defaultRequestStatus =
+  requestOptions.requestStatusOptions = activeValues(lists.demandStatus);
+  requestOptions.allRequestStatusOptions = (
+    lists.demandStatus?.items || []
+  ).map((item) => item.value);
+  requestOptions.defaultRequestStatus =
     lists.demandStatus?.defaultValue ||
-    requestStatusOptions[0] ||
+    requestOptions.requestStatusOptions[0] ||
     DEFAULT_REQUEST_STATUS;
-  taskStatusOptions = activeValues(lists.taskStatus);
-  allTaskStatusOptions = (lists.taskStatus?.items || []).map(
+  requestOptions.taskStatusOptions = activeValues(lists.taskStatus);
+  requestOptions.allTaskStatusOptions = (lists.taskStatus?.items || []).map(
     (item) => item.value,
   );
-  defaultTaskStatus =
+  requestOptions.defaultTaskStatus =
     lists.taskStatus?.defaultValue ||
-    taskStatusOptions[0] ||
+    requestOptions.taskStatusOptions[0] ||
     DEFAULT_REQUEST_TASK_STATUS;
-  checklistLabels = activeValues(lists.checklist);
-  defaultSpecificationSectionTitles = activeValues(lists.specificationSections);
+  requestOptions.checklistLabels = activeValues(lists.checklist);
+  requestOptions.defaultSpecificationSectionTitles = activeValues(
+    lists.specificationSections,
+  );
 }

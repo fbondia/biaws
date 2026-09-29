@@ -108,6 +108,36 @@ function validateAdditionalMetadata(value: unknown, key: string) {
   }
 }
 
+function validateResultMetadata(
+  definition: UnifiedResultContract,
+  metadata: Record<string, unknown>,
+) {
+  const fields = new Map(
+    definition.output.metadata.fields.map((field: MetadataField) => [
+      field.key,
+      field,
+    ]),
+  );
+  const unknownMetadataKeys = Object.keys(metadata).filter(
+    (key: string) => !fields.has(key),
+  );
+  if (
+    !definition.output.metadata.additionalProperties &&
+    unknownMetadataKeys.length
+  ) {
+    throw invalid(
+      `result.metadata contains undeclared fields: ${unknownMetadataKeys.join(", ")}`,
+    );
+  }
+  for (const key of unknownMetadataKeys) {
+    validateAdditionalMetadata(metadata[key], key);
+  }
+  for (const field of fields.values())
+    validateField(metadata[field.key], field);
+  for (const series of definition.presentation.series)
+    validateSeries(metadata, series);
+}
+
 export function validateUnifiedMonitoringTemplateResult(
   definition: UnifiedResultContract,
   value: unknown,
@@ -147,24 +177,7 @@ export function validateUnifiedMonitoringTemplateResult(
   if (!isRecord(metadata)) {
     throw invalid("result.metadata must be an object");
   }
-  const fields = new Map(
-    output.metadata.fields.map((field: MetadataField) => [field.key, field]),
-  );
-  const unknownMetadataKeys = Object.keys(metadata).filter(
-    (key: string) => !fields.has(key),
-  );
-  if (!output.metadata.additionalProperties && unknownMetadataKeys.length) {
-    throw invalid(
-      `result.metadata contains undeclared fields: ${unknownMetadataKeys.join(", ")}`,
-    );
-  }
-  for (const key of unknownMetadataKeys) {
-    validateAdditionalMetadata(metadata[key], key);
-  }
-  for (const field of fields.values())
-    validateField(metadata[field.key], field);
-  for (const series of definition.presentation.series)
-    validateSeries(metadata, series);
+  validateResultMetadata(definition, metadata);
   const normalized = {
     status: value.status,
     message: value.message || "",

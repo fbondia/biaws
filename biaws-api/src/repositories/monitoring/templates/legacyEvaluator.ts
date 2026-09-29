@@ -180,7 +180,9 @@ function normalizeLegacyDefinition(value: unknown) {
     throw invalid("definition.rules must contain between 1 and 20 rules");
   }
   return {
-    rules: value.rules.map(normalizeRule),
+    rules: value.rules.map((rule: unknown, index: number) =>
+      normalizeRule(rule, index),
+    ),
     defaultResult: normalizeResult(
       value.defaultResult || {
         status: "unknown",

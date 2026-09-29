@@ -1,11 +1,7 @@
 import type { Db, ObjectId } from "mongodb";
 import type { RequestDocument } from "../../types/requests.js";
 import type { RepositoryQuery } from "../../types/http.js";
-import {
-  loadRequestOptions,
-  allRequestStatusOptions,
-  defaultRequestStatus,
-} from "./options.js";
+import { loadRequestOptions, requestOptions } from "./options.js";
 import {
   REQUESTS_COLLECTION,
   JOURNEY_PERIODS_COLLECTION,
@@ -91,7 +87,7 @@ export async function listRequests(query: RepositoryQuery = {}) {
     .filter(Boolean);
   if (requestedStatuses.length) {
     const validStatuses = [...new Set(requestedStatuses)].filter((status) =>
-      allRequestStatusOptions.includes(status),
+      requestOptions.allRequestStatusOptions.includes(status),
     );
     filter.status =
       validStatuses.length === 1 ? validStatuses[0] : { $in: validStatuses };
@@ -164,7 +160,7 @@ export async function listRequestCollectionItems(query: RepositoryQuery = {}) {
     .filter(Boolean);
   if (requestedStatuses.length) {
     const validStatuses = [...new Set(requestedStatuses)].filter((status) =>
-      allRequestStatusOptions.includes(status),
+      requestOptions.allRequestStatusOptions.includes(status),
     );
     filter.status =
       validStatuses.length === 1 ? validStatuses[0] : { $in: validStatuses };
@@ -198,9 +194,9 @@ export async function listRequestCollectionItems(query: RepositoryQuery = {}) {
       id: document._id.toString(),
       clientCode: document.clientCode || "",
       title: document.title || "",
-      status: allRequestStatusOptions.includes(document.status)
+      status: requestOptions.allRequestStatusOptions.includes(document.status)
         ? document.status
-        : defaultRequestStatus,
+        : requestOptions.defaultRequestStatus,
       collectionId: document.collectionId || "",
       estimatedDeliveryDate: document.estimatedDeliveryDate || "",
       startDate: document.startDate || "",

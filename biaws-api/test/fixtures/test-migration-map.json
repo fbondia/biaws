@@ -1,0 +1,266 @@
+[
+  {
+    "from": "topologyRepository.test.js",
+    "to": "catalog/normalization.test.js",
+    "tests": [
+      "topology permissions are part of the canonical catalog",
+      "scoped topology filters escape search and pagination is bounded"
+    ]
+  },
+  {
+    "from": "topologyRepository.test.js",
+    "to": "components/normalization.test.js",
+    "tests": [
+      "component relationships are normalized and duplicate references are rejected"
+    ]
+  },
+  {
+    "from": "topologyRepository.test.js",
+    "to": "repositories/normalization.test.js",
+    "tests": [
+      "repository URL rejects credentials and secret query parameters",
+      "repository URL and identifier are mutable"
+    ]
+  },
+  {
+    "from": "topologyRepository.test.js",
+    "to": "servers/normalization.test.js",
+    "tests": [
+      "server payload limits lifecycle changes and credential-bearing addresses"
+    ]
+  },
+  {
+    "from": "topologyRepository.test.js",
+    "to": "deployments/normalization.test.js",
+    "tests": [
+      "deployment keeps its component immutable and validates source shape",
+      "deployment publications are append-only and materialize the latest release",
+      "deployment publication status is validated and can be updated"
+    ]
+  },
+  {
+    "from": "topologyRepository.test.js",
+    "to": "runtimes/normalization.test.js",
+    "tests": [
+      "runtime metadata is flat, bounded and rejects secret-like keys",
+      "runtime defaults monitoring retention and rejects embedded observations"
+    ]
+  },
+  {
+    "from": "topologyRepository.test.js",
+    "to": "monitoring/normalization.test.js",
+    "tests": [
+      "active monitor configuration is bounded and secret-free",
+      "active monitor lease requests require a bounded executor identity",
+      "monitoring signals validate status, idempotency key and secret-free metadata",
+      "monitoring metadata profiles validate their versioned field contract",
+      "monitoring payload accepts bounded nested JSON and rejects sensitive keys",
+      "monitoring expiration follows runtime retention and supports no expiration",
+      "manual monitoring observations use the unified event contract",
+      "monitoring signal history filters status and observed date range",
+      "monitoring health summary bounds long ranges with an effective resolution",
+      "monitoring health summary pipeline keeps the worst state in each bucket",
+      "monitoring health summary returns compact series and aggregate counts"
+    ]
+  },
+  {
+    "from": "accessRepository.test.js",
+    "to": "auth/accessRepository.test.js"
+  },
+  {
+    "from": "apiRateLimitMiddleware.test.js",
+    "to": "infrastructure/apiRateLimitMiddleware.test.js"
+  },
+  {
+    "from": "applicationContextIntegration.test.js",
+    "to": "catalog/applicationContextIntegration.test.js"
+  },
+  {
+    "from": "attachmentService.test.js",
+    "to": "attachments/attachmentService.test.js"
+  },
+  {
+    "from": "attachmentStorage.test.js",
+    "to": "attachments/attachmentStorage.test.js"
+  },
+  {
+    "from": "auditRepository.test.js",
+    "to": "audit/auditRepository.test.js"
+  },
+  {
+    "from": "authIndexes.test.js",
+    "to": "auth/authIndexes.test.js"
+  },
+  {
+    "from": "authenticationMiddleware.test.js",
+    "to": "auth/authenticationMiddleware.test.js"
+  },
+  {
+    "from": "authorizationMiddleware.test.js",
+    "to": "auth/authorizationMiddleware.test.js"
+  },
+  {
+    "from": "authorizationScopeIntegration.test.js",
+    "to": "auth/authorizationScopeIntegration.test.js"
+  },
+  {
+    "from": "bootstrapAdmin.test.js",
+    "to": "bootstrap/bootstrapAdmin.test.js"
+  },
+  {
+    "from": "bootstrapAgent.test.js",
+    "to": "bootstrap/bootstrapAgent.test.js"
+  },
+  {
+    "from": "catalogRepository.test.js",
+    "to": "catalog/catalogRepository.test.js"
+  },
+  {
+    "from": "config.test.js",
+    "to": "infrastructure/config.test.js"
+  },
+  {
+    "from": "demoSeed.test.js",
+    "to": "bootstrap/demoSeed.test.js"
+  },
+  {
+    "from": "demoSeedIntegration.test.js",
+    "to": "bootstrap/demoSeedIntegration.test.js"
+  },
+  {
+    "from": "documentsRepository.test.js",
+    "to": "documents/documentsRepository.test.js"
+  },
+  {
+    "from": "emailParser.test.js",
+    "to": "issues/emailParser.test.js"
+  },
+  {
+    "from": "homeRepository.test.js",
+    "to": "home/homeRepository.test.js"
+  },
+  {
+    "from": "httpLogging.test.js",
+    "to": "infrastructure/httpLogging.test.js"
+  },
+  {
+    "from": "integrationsRepository.test.js",
+    "to": "catalog/integrationsRepository.test.js"
+  },
+  {
+    "from": "issueClassification.test.js",
+    "to": "issues/issueClassification.test.js"
+  },
+  {
+    "from": "issueCommentsIntegration.test.js",
+    "to": "issues/issueCommentsIntegration.test.js"
+  },
+  {
+    "from": "issueConcurrencyIntegration.test.js",
+    "to": "issues/issueConcurrencyIntegration.test.js"
+  },
+  {
+    "from": "knowledgeContextRepository.test.js",
+    "to": "documents/knowledgeContextRepository.test.js"
+  },
+  {
+    "from": "localSecretProvider.test.js",
+    "to": "secrets/localSecretProvider.test.js"
+  },
+  {
+    "from": "monitoringMetadataProfileTemplates.test.js",
+    "to": "monitoring/monitoringMetadataProfileTemplates.test.js"
+  },
+  {
+    "from": "monitoringTemplateEvaluator.test.js",
+    "to": "monitoring/monitoringTemplateEvaluator.test.js"
+  },
+  {
+    "from": "monitoringUnifiedTemplateEvaluator.test.js",
+    "to": "monitoring/monitoringUnifiedTemplateEvaluator.test.js"
+  },
+  {
+    "from": "optionLists.test.js",
+    "to": "options/optionLists.test.js"
+  },
+  {
+    "from": "password.test.js",
+    "to": "auth/password.test.js"
+  },
+  {
+    "from": "permissions.test.js",
+    "to": "auth/permissions.test.js"
+  },
+  {
+    "from": "platformWorkspaceIntegration.test.js",
+    "to": "platform/platformWorkspaceIntegration.test.js"
+  },
+  {
+    "from": "query.test.js",
+    "to": "contracts/query.test.js"
+  },
+  {
+    "from": "referenceLookup.test.js",
+    "to": "contracts/referenceLookup.test.js"
+  },
+  {
+    "from": "requestJourneys.test.js",
+    "to": "requests/requestJourneys.test.js"
+  },
+  {
+    "from": "resourceCollectionsModel.test.js",
+    "to": "collections/resourceCollectionsModel.test.js"
+  },
+  {
+    "from": "resourceIdentifier.test.js",
+    "to": "contracts/resourceIdentifier.test.js"
+  },
+  {
+    "from": "resourceReadsIntegration.test.js",
+    "to": "contracts/resourceReadsIntegration.test.js"
+  },
+  {
+    "from": "resourceRoutesInventory.test.js",
+    "to": "contracts/resourceRoutesInventory.test.js"
+  },
+  {
+    "from": "routeContract.test.js",
+    "to": "contracts/routeContract.test.js"
+  },
+  {
+    "from": "secretsRepository.test.js",
+    "to": "secrets/secretsRepository.test.js"
+  },
+  {
+    "from": "secretsService.test.js",
+    "to": "secrets/secretsService.test.js"
+  },
+  {
+    "from": "skills.test.js",
+    "to": "skills/skills.test.js"
+  },
+  {
+    "from": "taxonomy.test.js",
+    "to": "taxonomy/taxonomy.test.js"
+  },
+  {
+    "from": "topologyDiagramsModel.test.js",
+    "to": "catalog/topologyDiagramsModel.test.js"
+  },
+  {
+    "from": "topologyHttpIntegration.test.js",
+    "to": "catalog/topologyHttpIntegration.test.js"
+  },
+  {
+    "from": "topologyIntegration.test.js",
+    "to": "catalog/topologyIntegration.test.js"
+  },
+  {
+    "from": "userPreferencesRepository.test.js",
+    "to": "preferences/userPreferencesRepository.test.js"
+  },
+  {
+    "from": "workspaceReplicationService.test.js",
+    "to": "replication/workspaceReplicationService.test.js"
+  }
+]

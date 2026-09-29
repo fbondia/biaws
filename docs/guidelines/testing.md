@@ -21,7 +21,7 @@ parte do risco.
 
 ## Regras gerais
 
-- arquivos terminam em `.test.js` e ficam em `test/` do módulo;
+- arquivos terminam em `.test.js` (ou `.test.ts` nos módulos TypeScript) e ficam em `test/` do módulo, agrupados por domínio;
 - nomes descrevem cenário e resultado esperado;
 - dados de teste são sintéticos e reconhecíveis;
 - testes não dependem de ordem ou estado deixado por outro teste;
@@ -120,3 +120,5 @@ cd biaws-cli && npm run format:check && npm run check && npm test
 O smoke completo de instalação é exercitado pela CI. Execute-o localmente quando
 a mudança afetar Compose, bootstrap, seed, configuração ou integração entre
 módulos.
+
+A API permite seleção por domínio e camada; veja [referência API-REVIEW](../api-review-testing.md).

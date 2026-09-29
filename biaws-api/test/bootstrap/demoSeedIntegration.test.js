@@ -1,0 +1,121 @@
+import {
+  isolatedDatabaseName,
+  restoreEnvironmentAfter,
+  availablePort,
+} from "../support/integration.js";
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { COLLECTION_NAMES } from "../../src/database/collectionNames.js";
+
+const integrationEnabled = Boolean(process.env.BIAWS_INTEGRATION_MONGO_URI);
+
+test(
+  "demo seed is workspace-scoped and idempotent",
+  { skip: !integrationEnabled },
+  async (t) => {
+    restoreEnvironmentAfter(t);
+    process.env.MONGO_URI = process.env.BIAWS_INTEGRATION_MONGO_URI;
+    process.env.MONGO_DB = isolatedDatabaseName();
+
+    const { closeMongoClient, getMongoDatabase } =
+      await import("../../src/helpers/mongoClient.js");
+    const { seedDemoData } = await import("../../src/scripts/seedDemo.js");
+    const { listRequests } =
+      await import("../../src/repositories/requests/index.js");
+    const db = await getMongoDatabase();
+
+    try {
+      await db.dropDatabase();
+      const first = await seedDemoData();
+      const second = await seedDemoData();
+      const workspaceId = first.catalog.workspaceId;
+
+      assert.equal(first.taxonomyCreated, true);
+      assert.equal(second.taxonomyCreated, false);
+      assert.equal(second.issue.created, false);
+      assert.equal(second.request.created, false);
+      assert.equal(second.request.taskCreated, false);
+      assert.equal(second.procedure.created, false);
+      assert.equal(
+        await db
+          .collection(COLLECTION_NAMES.OPTION_LISTS)
+          .countDocuments({ workspaceId }),
+        6,
+      );
+      assert.equal(
+        await db
+          .collection(COLLECTION_NAMES.OPTION_LISTS)
+          .countDocuments({ workspaceId: "" }),
+        0,
+      );
+      assert.equal(
+        await db
+          .collection(COLLECTION_NAMES.TAXONOMIES)
+          .countDocuments({ workspaceId }),
+        1,
+      );
+      assert.equal(
+        await db
+          .collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS)
+          .countDocuments({ workspaceId, resourceType: "documents" }),
+        1,
+      );
+      assert.equal(
+        await db
+          .collection(COLLECTION_NAMES.ISSUES)
+          .countDocuments({ workspaceId }),
+        1,
+      );
+      assert.equal(
+        await db
+          .collection(COLLECTION_NAMES.REQUESTS)
+          .countDocuments({ workspaceId }),
+        1,
+      );
+      assert.equal(
+        await db
+          .collection(COLLECTION_NAMES.DOCUMENTS)
+          .countDocuments({ workspaceId, documentType: "procedure" }),
+        1,
+      );
+      const demands = await listRequests({
+        workspaceId,
+        page: 1,
+        limit: 1,
+      });
+      assert.deepEqual(
+        {
+          page: demands.meta.page,
+          limit: demands.meta.limit,
+          returned: demands.meta.returned,
+          total: demands.meta.total,
+          totalPages: demands.meta.totalPages,
+        },
+        { page: 1, limit: 1, returned: 1, total: 1, totalPages: 1 },
+      );
+      const demandsByCode = await listRequests({
+        workspaceId,
+        code: "DEMO-001",
+        page: 1,
+        limit: 2,
+      });
+      assert.equal(demandsByCode.items.length, 1);
+      assert.equal(demandsByCode.items[0].clientCode, "DEMO-001");
+      assert.equal(
+        (
+          await listRequests({
+            workspaceId,
+            code: "DEMO-404",
+            page: 1,
+            limit: 2,
+          })
+        ).items.length,
+        0,
+      );
+    } finally {
+      await db.dropDatabase();
+      await closeMongoClient();
+    }
+  },
+);

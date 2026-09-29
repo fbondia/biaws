@@ -27,7 +27,10 @@
     "format": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --write .",
     "format:check": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --check .",
     "check": "find src test -name '*.js' -type f -exec node --check {} \\;",
-    "test": "node --test"
+    "test": "node scripts/test.mjs",
+    "test:unit": "node scripts/test.mjs --layer=unit",
+    "test:integration": "node scripts/test.mjs --layer=mongo",
+    "test:http": "node scripts/test.mjs --layer=http"
   },
   "dependencies": {
     "@better-auth/api-key": "1.7.5",

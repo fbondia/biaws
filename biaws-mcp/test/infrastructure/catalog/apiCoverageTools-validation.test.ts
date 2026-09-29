@@ -11,9 +11,7 @@ test("invalid inputs never reach HTTP", async () => {
         { entityType: "issue", entityId: "id", limit: 201 },
       ],
       ["audit_events_list", { entityType: "issue", entityId: " " }],
-      ["documents_list_revisions", { documentId: " " }],
-      ["documents_list_observations", { documentId: "doc", page: 1 }],
-      ["monitoring_runtime_targets_list", { workspaceId: "other" }],
+
       [
         "runtime_monitoring_signals_list",
         { runtimeReference: "r", limit: 101 },

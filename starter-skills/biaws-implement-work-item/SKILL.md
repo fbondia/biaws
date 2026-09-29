@@ -19,7 +19,7 @@ Quando o pedido citar apenas a melhoria, respeitar as tarefas existentes e depen
 
 ### 2. Localizar o código
 
-Usar aplicação e componentes afetados para consultar `applications_get_context`, `components_get` e `repositories_get`. Relacionar o repositório cadastrado ao checkout disponível; não escolher pasta apenas pelo nome.
+Usar aplicação e componentes afetados para consultar `applications_get_context`, `resources/read` de `biaws://workspaces/{workspaceId}/components/{componentId}` e `resources/read` de `biaws://workspaces/{workspaceId}/repositories/{repositoryId}`. Relacionar o repositório cadastrado ao checkout disponível; não escolher pasta apenas pelo nome.
 
 Ler todos os `AGENTS.md` aplicáveis e inspecionar o estado do Git antes de editar. Preservar alterações preexistentes do usuário.
 
@@ -59,3 +59,11 @@ Informar resultado implementado, arquivos alterados, validações, nota/status r
 - Não alterar versão ou histórico de publicação como efeito colateral.
 - Não acessar produção, segredos ou sistemas externos sem autorização específica.
 - Não fechar a melhoria inteira; o MCP exposto não possui operação para isso.
+
+## Leituras por resources
+
+As leituras específicas citadas nesta skill usam `resources/read`. Substituir
+`{workspaceId}` pelo workspace da configuração MCP, e as demais variáveis pelos
+IDs ou identificadores resolvidos nas buscas. Usar `resources/templates/list`
+para descobrir os contratos e seguir os links canônicos retornados. Clientes
+sem suporte a resources precisam ser atualizados para executar essas leituras.

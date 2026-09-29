@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { connectTestServer } from "../../helpers/sdk.js";
 import { readCases } from "./apiCoverageTools.fixtures.js";
-test("tools/list exposes all nine new tools with closed schemas", async (t) => {
+test("tools/list exposes remaining read tools with closed schemas", async (t) => {
   const session = await connectTestServer();
   t.after(() => session.close());
   const catalog = await session.client.listTools();

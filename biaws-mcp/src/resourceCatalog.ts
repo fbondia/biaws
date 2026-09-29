@@ -533,4 +533,56 @@ export const RESOURCE_CATALOG: ResourceDefinition[] = [
     description: "Taxonomia e grupos de tags aplicáveis à aplicação da issue.",
     mimeType: "application/json",
   },
+  {
+    uriTemplate: "biaws://workspaces/{workspaceId}/components/{componentId}",
+    path: "/api/catalog/components/{componentId}",
+    description:
+      "Leitura direta por ID/key com a permissão da entidade; sem leitura adicional de ancestrais.",
+    mimeType: "application/json",
+  },
+  {
+    uriTemplate:
+      "biaws://workspaces/{workspaceId}/integrations/{integrationId}",
+    path: "/api/catalog/integrations/{integrationId}",
+    description:
+      "Leitura direta por ID/key com a permissão da entidade; sem leitura adicional de ancestrais.",
+    mimeType: "application/json",
+  },
+  {
+    uriTemplate: "biaws://workspaces/{workspaceId}/repositories/{repositoryId}",
+    path: "/api/catalog/repositories/{repositoryId}",
+    description:
+      "Leitura direta por ID/key com a permissão da entidade; sem leitura adicional de ancestrais.",
+    mimeType: "application/json",
+  },
+  {
+    uriTemplate: "biaws://workspaces/{workspaceId}/deployments/{deploymentId}",
+    path: "/api/catalog/deployments/{deploymentId}",
+    description:
+      "Leitura direta por ID/key com a permissão da entidade; sem leitura adicional de ancestrais.",
+    mimeType: "application/json",
+  },
+  {
+    uriTemplate: "biaws://workspaces/{workspaceId}/runtimes/{runtimeId}",
+    path: "/api/catalog/runtimes/{runtimeId}",
+    description:
+      "Leitura direta por ID/key com a permissão da entidade; sem leitura adicional de ancestrais.",
+    mimeType: "application/json",
+  },
+  {
+    uriTemplate:
+      "biaws://workspaces/{workspaceId}/runtimes/{runtimeId}/monitoring/active-monitors",
+    path: "/api/monitoring/runtimes/{runtimeId}/active-monitors",
+    description:
+      "Configuração de monitores com runtimes.read; runtimeId aceita referência composta existente.",
+    mimeType: "application/json",
+  },
+  {
+    uriTemplate:
+      "biaws://workspaces/{workspaceId}/runtimes/{runtimeId}/monitoring/active-monitors/{monitorId}",
+    path: "/api/monitoring/runtimes/{runtimeId}/active-monitors/{monitorId}",
+    description:
+      "Configuração de monitores com runtimes.read; runtimeId aceita referência composta existente.",
+    mimeType: "application/json",
+  },
 ];

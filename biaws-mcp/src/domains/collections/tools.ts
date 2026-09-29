@@ -4,7 +4,6 @@ import { collectionTools as definitions } from "./schemas.js";
 import {
   createResourceCollection,
   deleteResourceCollection,
-  listResourceCollections,
   moveApplicationToCollection,
   moveDemandToCollection,
   moveDocumentToCollection,
@@ -14,10 +13,6 @@ import {
   updateResourceCollection,
 } from "./service.js";
 const handlers: Record<string, ToolHandler> = {
-  resource_collections_list: bindTool(
-    "resource_collections_list",
-    listResourceCollections,
-  ),
   resource_collections_create: bindTool(
     "resource_collections_create",
     createResourceCollection,

@@ -124,10 +124,15 @@ function matchResource(uri: unknown) {
       throw resourceError("INVALID_RESOURCE_URI", "Invalid URI encoding");
     }
     if (
-      Object.values(values).some(
-        (value) =>
+      Object.entries(values).some(
+        ([name, value]) =>
           !value ||
-          /[/\\\u0000-\u001f]/u.test(value) ||
+          /[\\\u0000-\u001f]/u.test(value) ||
+          (value.includes("/") &&
+            (name !== "templateId" ||
+              value
+                .split("/")
+                .some((part) => !part || part === "." || part === ".."))) ||
           value === "." ||
           value === "..",
       )
@@ -251,10 +256,13 @@ function canonicalValues(values: Record<string, string>, payload: ApiPayload) {
     runtimeId: "runtime",
     secretId: "secret",
     diagramId: "diagram",
+    templateId: "template",
   })) {
     if (values[name] && payload[key])
       values[name] = requireItem(apiEntitySchema.parse(payload[key])).id;
   }
+  if (values.runtimeId && typeof payload.meta?.runtimeId === "string")
+    values.runtimeId = payload.meta.runtimeId;
   if (values.fileId && payload.value?.id) values.fileId = payload.value.id;
   return values;
 }
@@ -382,7 +390,11 @@ export async function readResource({
   uri,
 }: { uri?: string } = {}): Promise<ReadResourceResult> {
   const { definition, values, params } = matchResource(uri);
-  await resolveHierarchy(values);
+  const directAncestor =
+    /\/(?:applications\/\{applicationId\}|servers\/\{serverId\})$/u.test(
+      definition.uriTemplate,
+    );
+  if (!directAncestor) await resolveHierarchy(values);
   const endpoint = new URL(
     replaceVariables(definition.path, values),
     "http://resource.invalid",
@@ -390,7 +402,9 @@ export async function readResource({
   const query = {
     ...params,
     ...Object.fromEntries(endpoint.searchParams),
-    ...(values.applicationId ? { applicationId: values.applicationId } : {}),
+    ...(!directAncestor && values.applicationId
+      ? { applicationId: values.applicationId }
+      : {}),
   };
   if (definition.mimeType !== "application/json") {
     if (definition.path.includes("/attachments/")) {

@@ -9,15 +9,7 @@ import {
   createRepository,
   createRuntime,
   createServer,
-  getApplication,
   getApplicationContext,
-  getComponent,
-  getDeployment,
-  getIntegration,
-  getRepository,
-  getRuntime,
-  getServer,
-  getWorkspace,
   listApplications,
   listComponents,
   listDeployments,
@@ -25,7 +17,6 @@ import {
   listRepositories,
   listRuntimes,
   listServers,
-  listWorkspaces,
   recordDeploymentPublication,
   updateApplication,
   updateComponent,
@@ -36,26 +27,24 @@ import {
   updateServer,
 } from "./service.js";
 const handlers: Record<string, ToolHandler> = {
-  workspaces_list: bindTool("workspaces_list", listWorkspaces),
-  workspaces_get: bindTool("workspaces_get", getWorkspace),
   applications_list: bindTool("applications_list", listApplications),
-  applications_get: bindTool("applications_get", getApplication),
+
   applications_get_context: bindTool(
     "applications_get_context",
     getApplicationContext,
   ),
   components_list: bindTool("components_list", listComponents),
-  components_get: bindTool("components_get", getComponent),
+
   integrations_list: bindTool("integrations_list", listIntegrations),
-  integrations_get: bindTool("integrations_get", getIntegration),
+
   repositories_list: bindTool("repositories_list", listRepositories),
-  repositories_get: bindTool("repositories_get", getRepository),
+
   servers_list: bindTool("servers_list", listServers),
-  servers_get: bindTool("servers_get", getServer),
+
   deployments_list: bindTool("deployments_list", listDeployments),
-  deployments_get: bindTool("deployments_get", getDeployment),
+
   runtimes_list: bindTool("runtimes_list", listRuntimes),
-  runtimes_get: bindTool("runtimes_get", getRuntime),
+
   applications_create: bindTool("applications_create", createApplication),
   applications_update: bindTool("applications_update", updateApplication),
   components_create: bindTool("components_create", createComponent),

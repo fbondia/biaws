@@ -13,15 +13,7 @@ import type {
   createRepository,
   createRuntime,
   createServer,
-  getApplication,
   getApplicationContext,
-  getComponent,
-  getDeployment,
-  getIntegration,
-  getRepository,
-  getRuntime,
-  getServer,
-  getWorkspace,
   listApplications,
   listComponents,
   listDeployments,
@@ -29,7 +21,6 @@ import type {
   listRepositories,
   listRuntimes,
   listServers,
-  listWorkspaces,
   recordDeploymentPublication,
   updateApplication,
   updateComponent,
@@ -42,7 +33,6 @@ import type {
 import type {
   createResourceCollection,
   deleteResourceCollection,
-  listResourceCollections,
   moveApplicationToCollection,
   moveDemandToCollection,
   moveDocumentToCollection,
@@ -95,9 +85,6 @@ import type {
 import type {
   addDocumentObservation,
   createDocument,
-  getDocument,
-  listDocumentObservations,
-  listDocumentRevisions,
   listDocumentTypes,
   loadKnowledgeContext,
   searchDocuments,
@@ -112,15 +99,8 @@ import type {
   createRuntimeActiveMonitor,
   deactivateMonitoringTemplate,
   getApplicationMonitoringHealth,
-  getMonitoringRuntimeTopology,
-  getMonitoringTemplate,
-  getMonitoringTemplateContract,
-  getMonitoringTemplateUsage,
   getRuntimeMonitoringHealthSummary,
-  listMonitoringMetadataProfiles,
-  listMonitoringRuntimeTargets,
   listMonitoringTemplates,
-  listRuntimeActiveMonitors,
   listRuntimeMonitoringResults,
   listRuntimeMonitoringSignals,
   previewMonitoringTemplate,
@@ -128,7 +108,6 @@ import type {
   validateMonitoringTemplateSample,
 } from "./domains/monitoring/service.js";
 import type {
-  getSecretMetadata,
   listSecretMetadata,
   registerSecretMetadata,
 } from "./domains/secrets/service.js";
@@ -178,23 +157,22 @@ export interface ToolResultMap {
   attachments_update_tags: Awaited<ReturnType<typeof updateAttachmentTags>>;
   attachments_delete: Awaited<ReturnType<typeof deleteAttachment>>;
   audit_events_list: Awaited<ReturnType<typeof listAuditEvents>>;
-  workspaces_list: Awaited<ReturnType<typeof listWorkspaces>>;
-  workspaces_get: Awaited<ReturnType<typeof getWorkspace>>;
+
   applications_list: Awaited<ReturnType<typeof listApplications>>;
-  applications_get: Awaited<ReturnType<typeof getApplication>>;
+
   applications_get_context: Awaited<ReturnType<typeof getApplicationContext>>;
   components_list: Awaited<ReturnType<typeof listComponents>>;
-  components_get: Awaited<ReturnType<typeof getComponent>>;
+
   integrations_list: Awaited<ReturnType<typeof listIntegrations>>;
-  integrations_get: Awaited<ReturnType<typeof getIntegration>>;
+
   repositories_list: Awaited<ReturnType<typeof listRepositories>>;
-  repositories_get: Awaited<ReturnType<typeof getRepository>>;
+
   servers_list: Awaited<ReturnType<typeof listServers>>;
-  servers_get: Awaited<ReturnType<typeof getServer>>;
+
   deployments_list: Awaited<ReturnType<typeof listDeployments>>;
-  deployments_get: Awaited<ReturnType<typeof getDeployment>>;
+
   runtimes_list: Awaited<ReturnType<typeof listRuntimes>>;
-  runtimes_get: Awaited<ReturnType<typeof getRuntime>>;
+
   applications_create: Awaited<ReturnType<typeof createApplication>>;
   applications_update: Awaited<ReturnType<typeof updateApplication>>;
   components_create: Awaited<ReturnType<typeof createComponent>>;
@@ -212,9 +190,7 @@ export interface ToolResultMap {
   >;
   runtimes_create: Awaited<ReturnType<typeof createRuntime>>;
   runtimes_update: Awaited<ReturnType<typeof updateRuntime>>;
-  resource_collections_list: Awaited<
-    ReturnType<typeof listResourceCollections>
-  >;
+
   resource_collections_create: Awaited<
     ReturnType<typeof createResourceCollection>
   >;
@@ -251,23 +227,11 @@ export interface ToolResultMap {
   knowledge_context_load: Awaited<ReturnType<typeof loadKnowledgeContext>>;
   document_types_list: Awaited<ReturnType<typeof listDocumentTypes>>;
   documents_search: Awaited<ReturnType<typeof searchDocuments>>;
-  documents_get: Awaited<ReturnType<typeof getDocument>>;
-  documents_list_revisions: Awaited<ReturnType<typeof listDocumentRevisions>>;
-  documents_list_observations: Awaited<
-    ReturnType<typeof listDocumentObservations>
-  >;
+
   documents_create: Awaited<ReturnType<typeof createDocument>>;
   documents_update: Awaited<ReturnType<typeof updateDocument>>;
   documents_add_observation: Awaited<ReturnType<typeof addDocumentObservation>>;
-  monitoring_runtime_topology_get: Awaited<
-    ReturnType<typeof getMonitoringRuntimeTopology>
-  >;
-  monitoring_runtime_targets_list: Awaited<
-    ReturnType<typeof listMonitoringRuntimeTargets>
-  >;
-  monitoring_metadata_profiles_list: Awaited<
-    ReturnType<typeof listMonitoringMetadataProfiles>
-  >;
+
   applications_monitoring_health_get: Awaited<
     ReturnType<typeof getApplicationMonitoringHealth>
   >;
@@ -277,7 +241,7 @@ export interface ToolResultMap {
   monitoring_templates_list: Awaited<
     ReturnType<typeof listMonitoringTemplates>
   >;
-  monitoring_templates_get: Awaited<ReturnType<typeof getMonitoringTemplate>>;
+
   monitoring_templates_preview: Awaited<
     ReturnType<typeof previewMonitoringTemplate>
   >;
@@ -287,12 +251,7 @@ export interface ToolResultMap {
   monitoring_templates_create_version: Awaited<
     ReturnType<typeof createMonitoringTemplateVersion>
   >;
-  monitoring_templates_get_usage: Awaited<
-    ReturnType<typeof getMonitoringTemplateUsage>
-  >;
-  monitoring_templates_get_contract: Awaited<
-    ReturnType<typeof getMonitoringTemplateContract>
-  >;
+
   monitoring_templates_validate: Awaited<
     ReturnType<typeof validateMonitoringTemplateSample>
   >;
@@ -311,9 +270,7 @@ export interface ToolResultMap {
   runtime_monitoring_health_summary: Awaited<
     ReturnType<typeof getRuntimeMonitoringHealthSummary>
   >;
-  runtime_active_monitors_list: Awaited<
-    ReturnType<typeof listRuntimeActiveMonitors>
-  >;
+
   runtime_active_monitors_create: Awaited<
     ReturnType<typeof createRuntimeActiveMonitor>
   >;
@@ -324,6 +281,6 @@ export interface ToolResultMap {
     ReturnType<typeof archiveRuntimeActiveMonitor>
   >;
   secrets_list: Awaited<ReturnType<typeof listSecretMetadata>>;
-  secrets_get: Awaited<ReturnType<typeof getSecretMetadata>>;
+
   secrets_register: Awaited<ReturnType<typeof registerSecretMetadata>>;
 }

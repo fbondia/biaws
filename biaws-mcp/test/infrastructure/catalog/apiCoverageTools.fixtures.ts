@@ -6,36 +6,7 @@ const readCases = [
     "/api/audit/demand/demand%2F1",
     { limit: "20" },
   ],
-  [
-    "documents_list_revisions",
-    { documentId: " doc/1 " },
-    "/api/knowledge/documents/doc%2F1/revisions",
-    {},
-  ],
-  [
-    "documents_list_observations",
-    { documentId: "doc-1" },
-    "/api/knowledge/documents/doc-1/observations",
-    {},
-  ],
-  [
-    "monitoring_runtime_topology_get",
-    {},
-    "/api/monitoring/runtime-topology",
-    {},
-  ],
-  [
-    "monitoring_runtime_targets_list",
-    {},
-    "/api/monitoring/runtime-targets",
-    {},
-  ],
-  [
-    "monitoring_metadata_profiles_list",
-    {},
-    "/api/monitoring/metadata-profiles",
-    {},
-  ],
+
   [
     "applications_monitoring_health_get",
     { applicationId: " app/1 ", includeConfigured: true },

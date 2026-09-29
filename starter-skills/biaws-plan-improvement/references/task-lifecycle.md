@@ -30,7 +30,7 @@ Identificar componente, artefato, repositório, ambiente e deployment confirmado
 
 Criar tarefa distinta da publicação e exigir `deploymentId`, versão, revisão quando disponível, repositório, ambiente, horário efetivo e evidência.
 
-O executor deve reler `deployments_get` e acrescentar uma entrada `deployed` ao histórico append-only usando `deployments_record_publication`. Nunca registrar antes da publicação nem usar entrada `planned` como substituto da tarefa.
+O executor deve reler `resources/read` de `biaws://workspaces/{workspaceId}/deployments/{deploymentId}` e acrescentar uma entrada `deployed` ao histórico append-only usando `deployments_record_publication`. Nunca registrar antes da publicação nem usar entrada `planned` como substituto da tarefa.
 
 ## Modelo mínimo
 
@@ -52,3 +52,11 @@ O executor deve reler `deployments_get` e acrescentar uma entrada `deployed` ao 
 ## Evidências esperadas
 - `<teste, versão, pipeline, publicação ou registro>`
 ```
+
+## Leituras por resources
+
+As leituras específicas citadas nesta skill usam `resources/read`. Substituir
+`{workspaceId}` pelo workspace da configuração MCP, e as demais variáveis pelos
+IDs ou identificadores resolvidos nas buscas. Usar `resources/templates/list`
+para descobrir os contratos e seguir os links canônicos retornados. Clientes
+sem suporte a resources precisam ser atualizados para executar essas leituras.

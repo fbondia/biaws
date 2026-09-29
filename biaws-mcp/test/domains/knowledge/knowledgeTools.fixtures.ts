@@ -8,4 +8,4 @@ function jsonResponse(payload: unknown = { ok: true }, status = 200) {
     headers: { "Content-Type": "application/json" },
   });
 }
-export { jsonResponse, SHARED_DOCUMENT_TYPE_CATALOG };
+export { SHARED_DOCUMENT_TYPE_CATALOG, jsonResponse };

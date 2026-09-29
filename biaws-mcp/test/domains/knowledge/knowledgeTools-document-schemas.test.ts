@@ -11,9 +11,7 @@ test("document tools expose one bounded discriminated knowledge API", () => {
     "knowledge_context_load",
     "document_types_list",
     "documents_search",
-    "documents_get",
-    "documents_list_revisions",
-    "documents_list_observations",
+
     "documents_create",
     "documents_update",
     "documents_add_observation",

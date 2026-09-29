@@ -23,15 +23,15 @@ Ler [references/monitoring-contracts.md](references/monitoring-contracts.md) ant
 
 Resolver `workspace → aplicação → componente → deployment → runtime`:
 
-1. usar `workspaces_list` e `workspaces_get` para confirmar o workspace;
-2. usar `applications_list`, `applications_get` e `applications_get_context` para localizar a aplicação;
-3. usar `components_list` e `components_get` para confirmar o componente;
-4. usar `deployments_list` e `deployments_get` para confirmar ambiente e deployment;
-5. usar `runtimes_list` e `runtimes_get` para obter o runtime e sua referência estável.
+1. usar `resources/read` de `biaws://workspaces` e `resources/read` de `biaws://workspaces/{workspaceId}` para confirmar o workspace;
+2. usar `applications_list`, `resources/read` de `biaws://workspaces/{workspaceId}/applications/{applicationId}` e `applications_get_context` para localizar a aplicação;
+3. usar `components_list` e `resources/read` de `biaws://workspaces/{workspaceId}/components/{componentId}` para confirmar o componente;
+4. usar `deployments_list` e `resources/read` de `biaws://workspaces/{workspaceId}/deployments/{deploymentId}` para confirmar ambiente e deployment;
+5. usar `runtimes_list` e `resources/read` de `biaws://workspaces/{workspaceId}/runtimes/{runtimeId}` para obter o runtime e sua referência estável.
 
 Apresentar candidatos quando houver ambiguidade material. Não escolher silenciosamente por semelhança de nome e não alterar o catálogo como efeito colateral.
 
-Usar `runtime_active_monitors_list` antes de propor criação para detectar duplicidade, reaproveitamento ou atualização. Em timeout ou resposta ambígua após uma escrita, listar novamente antes de repetir.
+Usar `resources/read` de `biaws://workspaces/{workspaceId}/runtimes/{runtimeId}/monitoring/active-monitors` antes de propor criação para detectar duplicidade, reaproveitamento ou atualização. Em timeout ou resposta ambígua após uma escrita, listar novamente antes de repetir.
 
 ## 2. Definir o provider
 
@@ -57,8 +57,8 @@ Se o usuário pedir implementação de um emissor externo, encaminhar para `biaw
 
 ## 3. Resolver ou modelar o template
 
-1. Usar `monitoring_templates_list` com versões ativas e `monitoring_templates_get_contract` para procurar contrato compatível.
-2. Usar `monitoring_templates_get` somente quando for necessário revisar uma definição completa ou criar nova versão.
+1. Usar `monitoring_templates_list` com versões ativas e `resources/read` de `biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}/versions/{version}/contract` para procurar contrato compatível.
+2. Usar `resources/read` de `biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}` somente quando for necessário revisar uma definição completa ou criar nova versão.
 3. Reutilizar uma versão ativa quando entrada, status, metadados e apresentação atenderem ao objetivo sem adaptação artificial.
 4. Para um novo contrato, construir definição `schemaVersion: "1"`, amostra sanitizada, transformação JSONata, contrato de saída e apresentação coerentes.
 5. Fazer a expressão retornar exatamente `{ status, message?, metadata }`. Declarar todo metadado produzido quando `additionalProperties` for `false`.
@@ -86,12 +86,12 @@ Perguntar somente por decisões materiais ausentes. O pedido para analisar, mode
 Quando autorizado:
 
 1. criar template com `monitoring_templates_create`, ou nova versão com `monitoring_templates_create_version`;
-2. reler com `monitoring_templates_get` e identificar a versão criada;
+2. reler com `resources/read` de `biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}` e identificar a versão criada;
 3. validar a versão persistida com `monitoring_templates_validate` e a amostra sanitizada;
 4. ativar com `monitoring_templates_activate` somente quando autorizado; lembrar que outra versão ativa do mesmo template será inativada;
 5. criar o monitor com `runtime_active_monitors_create` inicialmente desabilitado quando a execução ainda não estiver aprovada;
 6. atualizar com `runtime_active_monitors_update` para habilitar somente após a decisão correspondente;
-7. reler com `runtime_active_monitors_list` e conferir provider, configuração sanitizada, template, intervalo, timeout e estado.
+7. reler com `resources/read` de `biaws://workspaces/{workspaceId}/runtimes/{runtimeId}/monitoring/active-monitors` e conferir provider, configuração sanitizada, template, intervalo, timeout e estado.
 
 Para atualizar monitor existente, enviar somente campos mutáveis intencionais e preservar os demais. Não arquivar template ou monitor salvo como tentativa automática de rollback; informar a falha e pedir direção quando a reversão puder afetar histórico ou uso existente.
 
@@ -114,3 +114,11 @@ Não afirmar que o runtime está sendo monitorado apenas porque a configuração
 - Não criar monitor duplicado para contornar erro de atualização.
 - Não provisionar `biaws-monitor-executor` nesta skill.
 - Não inferir que falha do executor, DNS, credencial ou rede prova indisponibilidade do runtime.
+
+## Leituras por resources
+
+As leituras específicas citadas nesta skill usam `resources/read`. Substituir
+`{workspaceId}` pelo workspace da configuração MCP, e as demais variáveis pelos
+IDs ou identificadores resolvidos nas buscas. Usar `resources/templates/list`
+para descobrir os contratos e seguir os links canônicos retornados. Clientes
+sem suporte a resources precisam ser atualizados para executar essas leituras.

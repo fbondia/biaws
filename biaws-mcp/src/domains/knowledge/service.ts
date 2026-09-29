@@ -80,9 +80,7 @@ export async function searchDocuments(
   );
 }
 
-export async function getDocument(
-  args: ServiceArguments<"documents_get"> = {},
-) {
+export async function getDocument(args: { documentId?: string } = {}) {
   const documentId = String(args.documentId || "").trim();
   if (!documentId) throw new BiawsError("documentId is required");
   return fetchJson(`${BASE_PATH}/${encodeURIComponent(documentId)}`);
@@ -158,22 +156,4 @@ export async function loadKnowledgeContext(
     componentId: args.componentId || null,
     documents,
   };
-}
-
-function documentHistoryPath(args: Record<string, unknown>, suffix: string) {
-  const documentId = String(args.documentId || "").trim();
-  if (!documentId) throw new BiawsError("documentId is required");
-  return `${BASE_PATH}/${encodeURIComponent(documentId)}/${suffix}`;
-}
-
-export async function listDocumentRevisions(
-  args: ServiceArguments<"documents_list_revisions"> = {},
-) {
-  return fetchJson(documentHistoryPath(args, "revisions"));
-}
-
-export async function listDocumentObservations(
-  args: ServiceArguments<"documents_list_observations"> = {},
-) {
-  return fetchJson(documentHistoryPath(args, "observations"));
 }

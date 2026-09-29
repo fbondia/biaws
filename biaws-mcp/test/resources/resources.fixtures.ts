@@ -25,4 +25,4 @@ async function withApi(
 function json(value: unknown) {
   return Response.json(value);
 }
-export { json, W, withApi };
+export { W, json, withApi };

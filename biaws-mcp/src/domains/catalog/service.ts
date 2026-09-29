@@ -42,16 +42,6 @@ function mutationPayload(
   return payload;
 }
 
-export async function listWorkspaces() {
-  return fetchJson("/api/catalog/workspaces");
-}
-
-export async function getWorkspace(
-  args: ServiceArguments<"workspaces_get"> = {},
-) {
-  return fetchJson(entityPath("workspaces", requiredId(args, "workspaceId")));
-}
-
 export async function listApplications(
   args: ServiceArguments<"applications_list"> = {},
 ) {
@@ -59,14 +49,6 @@ export async function listApplications(
   return fetchJson(
     `${entityPath("workspaces", workspaceId)}/applications`,
     listParams(args),
-  );
-}
-
-export async function getApplication(
-  args: ServiceArguments<"applications_get"> = {},
-) {
-  return fetchJson(
-    entityPath("applications", requiredId(args, "applicationId")),
   );
 }
 
@@ -117,12 +99,6 @@ export async function listComponents(
   );
 }
 
-export async function getComponent(
-  args: ServiceArguments<"components_get"> = {},
-) {
-  return fetchJson(entityPath("components", requiredId(args, "componentId")));
-}
-
 export async function listIntegrations(
   args: ServiceArguments<"integrations_list"> = {},
 ) {
@@ -130,14 +106,6 @@ export async function listIntegrations(
   return fetchJson(
     `${entityPath("applications", applicationId)}/integrations`,
     listParams(args),
-  );
-}
-
-export async function getIntegration(
-  args: ServiceArguments<"integrations_get"> = {},
-) {
-  return fetchJson(
-    entityPath("integrations", requiredId(args, "integrationId")),
   );
 }
 
@@ -199,14 +167,6 @@ export async function listRepositories(
   );
 }
 
-export async function getRepository(
-  args: ServiceArguments<"repositories_get"> = {},
-) {
-  return fetchJson(
-    entityPath("repositories", requiredId(args, "repositoryId")),
-  );
-}
-
 export async function createRepository(
   args: ServiceArguments<"repositories_create"> = {},
 ) {
@@ -237,10 +197,6 @@ export async function listServers(args: ServiceArguments<"servers_list"> = {}) {
     `${entityPath("workspaces", workspaceId)}/servers`,
     listParams(args),
   );
-}
-
-export async function getServer(args: ServiceArguments<"servers_get"> = {}) {
-  return fetchJson(entityPath("servers", requiredId(args, "serverId")));
 }
 
 export async function createServer(
@@ -280,12 +236,6 @@ export async function listDeployments(
       "serverId",
     ]),
   );
-}
-
-export async function getDeployment(
-  args: ServiceArguments<"deployments_get"> = {},
-) {
-  return fetchJson(entityPath("deployments", requiredId(args, "deploymentId")));
 }
 
 export async function createDeployment(
@@ -332,10 +282,6 @@ export async function listRuntimes(
     `${entityPath("deployments", deploymentId)}/runtimes`,
     listParams(args, ["serverId", "kind"]),
   );
-}
-
-export async function getRuntime(args: ServiceArguments<"runtimes_get"> = {}) {
-  return fetchJson(entityPath("runtimes", requiredId(args, "runtimeId")));
 }
 
 export async function createRuntime(

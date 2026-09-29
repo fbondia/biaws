@@ -16,7 +16,7 @@ Resolver código ou ID com `demands_list`, chamar `demands_get` e usar `demands_
 ### 2. Reunir contexto técnico
 
 1. Confirmar aplicação e componentes afetados.
-2. Usar `applications_get_context`, `components_get`, `repositories_get` e `deployments_list` conforme necessário.
+2. Usar `applications_get_context`, `resources/read` de `biaws://workspaces/{workspaceId}/components/{componentId}`, `resources/read` de `biaws://workspaces/{workspaceId}/repositories/{repositoryId}` e `deployments_list` conforme necessário.
 3. Quando houver checkout autorizado, respeitar `AGENTS.md` e inspecionar documentação, manifests, pipelines, arquivos de versão, código e testes.
 4. Distinguir fatos, inferências e decisões pendentes.
 
@@ -48,3 +48,11 @@ Informar tarefas preservadas, novas e bloqueadas; ordem e dependências; aplica�
 - Não criar publicação planejada na topologia para representar intenção futura.
 - Não inventar ambiente, versão, responsável, prazo ou aprovação.
 - Não marcar tarefas como concluídas durante o planejamento.
+
+## Leituras por resources
+
+As leituras específicas citadas nesta skill usam `resources/read`. Substituir
+`{workspaceId}` pelo workspace da configuração MCP, e as demais variáveis pelos
+IDs ou identificadores resolvidos nas buscas. Usar `resources/templates/list`
+para descobrir os contratos e seguir os links canônicos retornados. Clientes
+sem suporte a resources precisam ser atualizados para executar essas leituras.

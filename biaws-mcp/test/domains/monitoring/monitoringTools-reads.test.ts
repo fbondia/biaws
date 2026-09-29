@@ -11,21 +11,7 @@ test(
         { status: "active", limit: 20 },
         "/api/monitoring/templates?status=active&limit=20",
       ],
-      [
-        "monitoring_templates_get",
-        { templateId: "health/api", version: "2" },
-        "/api/monitoring/templates/health%2Fapi?version=2",
-      ],
-      [
-        "monitoring_templates_get_usage",
-        { templateId: "health", version: "2" },
-        "/api/monitoring/templates/health/versions/2/usage",
-      ],
-      [
-        "monitoring_templates_get_contract",
-        { templateId: "health", version: "2" },
-        "/api/monitoring/templates/health/versions/2/contract",
-      ],
+
       [
         "runtime_monitoring_results_list",
         {
@@ -48,11 +34,6 @@ test(
           maxPoints: 400,
         },
         "/api/monitoring/runtimes/runtime%2Fkey/health-summary?observedFrom=2026-01-01&observedTo=2026-06-30&resolution=auto&maxPoints=400",
-      ],
-      [
-        "runtime_active_monitors_list",
-        { runtimeReference: "runtime/key", page: 2, limit: 10 },
-        "/api/monitoring/runtimes/runtime%2Fkey/active-monitors?page=2&limit=10",
       ],
     ] as const;
     for (const [name, args] of cases) await dispatchTool(name, args);

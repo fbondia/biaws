@@ -7,7 +7,6 @@ test("collection tools expose bounded resource types and explicit destination id
   assert.deepEqual(
     collectionTools.map(({ name }) => name),
     [
-      "resource_collections_list",
       "resource_collections_create",
       "resource_collections_update",
       "resource_collections_delete",
@@ -25,8 +24,8 @@ test("collection tools expose bounded resource types and explicit destination id
     assert.equal(registered.has(tool.name), true, tool.name);
   }
   assert.deepEqual(
-    required(registered.get("resource_collections_list")).inputSchema.properties
-      .resourceType.enum,
+    required(registered.get("resource_collections_create")).inputSchema
+      .properties.resourceType.enum,
     ["applications", "demands", "documents", "secrets", "skills", "servers"],
   );
   for (const name of [

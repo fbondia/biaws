@@ -1,6 +1,6 @@
 import type { ServiceArguments } from "../../contracts.js";
 import { BiawsError } from "../../errors.js";
-import { deleteJson, fetchJson, sendJson } from "../../httpClient.js";
+import { deleteJson, sendJson } from "../../httpClient.js";
 
 const RESOURCE_TYPES = new Set([
   "applications",
@@ -57,12 +57,6 @@ function collectionPayload(
     throw new BiawsError("at least one mutable field is required");
   }
   return payload;
-}
-
-export async function listResourceCollections(
-  args: ServiceArguments<"resource_collections_list"> = {},
-) {
-  return fetchJson(collectionsPath(resourceType(args)));
 }
 
 export async function createResourceCollection(

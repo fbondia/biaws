@@ -1,6 +1,6 @@
 # Resources hierárquicos do BIAWS
 
-O MCP expõe `resources/list`, `resources/templates/list` e `resources/read`, além das tools existentes. As leituras usam somente a API HTTP, com o mesmo workspace, autorização, timeout e cancelamento das tools.
+O MCP expõe `resources/list`, `resources/templates/list` e `resources/read`, com tools para buscas, filtros, projeções e mutações. As leituras usam somente a API HTTP, com o mesmo workspace, autorização, timeout e cancelamento das tools.
 
 ## Navegação
 
@@ -140,3 +140,12 @@ A API conserva `/api/requests`, `/api/knowledge/documents` e `/attachments`; a U
 As tools atuais de leitura permanecem disponíveis. Tools de busca, filtros, agregação, simulação e escrita continuam sendo operações de domínio; a refatoração não transforma automaticamente toda rota GET em resource. O MCP não anuncia subscriptions nem notificações de atualização enquanto essas funcionalidades não forem implementadas.
 
 As rotas agregadas da API mantêm o comportamento anterior. `includeComments=false` permite ler uma issue sem buscar toda a conversa. Novas rotas granulares de leitura retornam `context` com os IDs canônicos, `items` e `meta` para coleções ou `value` para itens.
+
+## Leituras diretas
+
+Entradas diretas `W/components/{componentId}`, `W/integrations/{integrationId}`,
+`W/repositories/{repositoryId}`, `W/deployments/{deploymentId}`,
+`W/runtimes/{runtimeId}` e `W/runtimes/{runtimeId}/monitoring/active-monitors`
+(incluindo seu filho `{monitorId}`) preservam as permissões das leituras retiradas
+sem consultar ancestrais. `W` é o workspace configurado. Os GETs correspondem às
+mesmas rotas dos itens no catálogo acima. Veja a [matriz de migração](read-migration.md).

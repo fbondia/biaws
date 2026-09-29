@@ -1,36 +1,6 @@
 import type { ToolDefinition } from "../../contracts.js";
 export const monitoringTools = [
   {
-    name: "monitoring_runtime_topology_get",
-    description:
-      "Consulta a topologia monitorada no escopo autorizado. A API retorna a árvore completa acessível sem paginação.",
-    inputSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {},
-    },
-  },
-  {
-    name: "monitoring_runtime_targets_list",
-    description:
-      "Lista os alvos de runtime monitorados no escopo autorizado. A API retorna todos os alvos acessíveis sem paginação.",
-    inputSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {},
-    },
-  },
-  {
-    name: "monitoring_metadata_profiles_list",
-    description:
-      "Lista os perfis de apresentação de metadados do workspace; exige permissão de leitura de runtimes no escopo de workspace. A API não oferece paginação.",
-    inputSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {},
-    },
-  },
-  {
     name: "applications_monitoring_health_get",
     description:
       "Consulta a saúde consolidada e os detalhes de monitoramento de uma aplicação. includeConfigured inclui runtimes com monitores configurados mesmo sem resultados recebidos.",
@@ -117,26 +87,7 @@ export const monitoringTools = [
       },
     },
   },
-  {
-    name: "monitoring_templates_get",
-    description:
-      "Obtém um template e suas versões no workspace configurado; version seleciona uma versão específica.",
-    inputSchema: {
-      type: "object",
-      required: ["templateId"],
-      additionalProperties: false,
-      properties: {
-        templateId: {
-          type: "string",
-          minLength: 1,
-        },
-        version: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "monitoring_templates_preview",
     description:
@@ -202,46 +153,7 @@ export const monitoringTools = [
       },
     },
   },
-  {
-    name: "monitoring_templates_get_usage",
-    description:
-      "Retorna o uso de uma versão de template por monitores e observações antes de manutenção ou arquivamento.",
-    inputSchema: {
-      type: "object",
-      required: ["templateId", "version"],
-      additionalProperties: false,
-      properties: {
-        templateId: {
-          type: "string",
-          minLength: 1,
-        },
-        version: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
-  {
-    name: "monitoring_templates_get_contract",
-    description:
-      "Obtém o contrato público de entrada, saída e apresentação de uma versão sem expor sua expressão.",
-    inputSchema: {
-      type: "object",
-      required: ["templateId", "version"],
-      additionalProperties: false,
-      properties: {
-        templateId: {
-          type: "string",
-          minLength: 1,
-        },
-        version: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "monitoring_templates_validate",
     description:
@@ -405,33 +317,7 @@ export const monitoringTools = [
       },
     },
   },
-  {
-    name: "runtime_active_monitors_list",
-    description:
-      "Lista os monitoramentos ativos configurados para um runtime acessível no workspace selecionado.",
-    inputSchema: {
-      type: "object",
-      required: ["runtimeReference"],
-      additionalProperties: false,
-      properties: {
-        runtimeReference: {
-          type: "string",
-          minLength: 1,
-        },
-        page: {
-          type: "integer",
-          minimum: 1,
-          default: 1,
-        },
-        limit: {
-          type: "integer",
-          minimum: 1,
-          maximum: 100,
-          default: 50,
-        },
-      },
-    },
-  },
+
   {
     name: "runtime_active_monitors_create",
     description:

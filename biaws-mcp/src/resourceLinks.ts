@@ -21,22 +21,18 @@ export function resourceLinksForTool(
   const W = `biaws://workspaces/${encodeURIComponent(workspaceId)}`;
   const encode = (value: unknown) => encodeURIComponent(String(value));
   const paths: Record<string, (item: ApiEntity) => string> = {
+    template: (item) => `${W}/monitoring/templates/${encode(item.id)}`,
     issue: (item) => `${W}/issues/${encode(item.id)}`,
     request: (item) => `${W}/demands/${encode(item.id)}`,
     document: (item) => `${W}/documents/${encode(item.id)}`,
     application: (item) => `${W}/applications/${encode(item.id)}`,
     server: (item) => `${W}/servers/${encode(item.id)}`,
     secret: (item) => `${W}/secrets/${encode(item.id)}`,
-    component: (item) =>
-      `${W}/applications/${encode(item.applicationId)}/components/${encode(item.id)}`,
-    integration: (item) =>
-      `${W}/applications/${encode(item.applicationId)}/integrations/${encode(item.id)}`,
-    repository: (item) =>
-      `${W}/applications/${encode(item.applicationId)}/repositories/${encode(item.id)}`,
-    deployment: (item) =>
-      `${W}/applications/${encode(item.applicationId)}/deployments/${encode(item.id)}`,
-    runtime: (item) =>
-      `${W}/applications/${encode(item.applicationId)}/deployments/${encode(item.deploymentId)}/runtimes/${encode(item.id)}`,
+    component: (item) => `${W}/components/${encode(item.id)}`,
+    integration: (item) => `${W}/integrations/${encode(item.id)}`,
+    repository: (item) => `${W}/repositories/${encode(item.id)}`,
+    deployment: (item) => `${W}/deployments/${encode(item.id)}`,
+    runtime: (item) => `${W}/runtimes/${encode(item.id)}`,
   };
   const links: ResourceLink[] = [];
   for (const [key, path] of Object.entries(paths)) {
@@ -45,6 +41,12 @@ export function resourceLinksForTool(
         ? undefined
         : apiEntitySchema.parse(result[key]);
     if (item?.id) links.push(link(path(item), item));
+  }
+  if (tool === "monitoring_templates_list") {
+    for (const item of Array.isArray(result.items) ? result.items : []) {
+      const entity = apiEntitySchema.parse(item);
+      if (entity.id) links.push(link(paths.template(entity), entity));
+    }
   }
   const domain = (
     {

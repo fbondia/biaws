@@ -77,7 +77,7 @@ título, resumo e Markdown. A
 permissão `documents.*` é híbrida: pode abranger todo o workspace ou aplicações
 selecionadas.
 
-O MCP expõe `document_types_list`, `documents_search`, `documents_get`,
+O MCP expõe `document_types_list`, `documents_search`, `resources/read` de `biaws://workspaces/{workspaceId}/documents/{documentId}`,
 `documents_create`, `documents_update` e `documents_add_observation`.
 `document_types_list` devolve o catálogo oficial de tipos, estados, contexto e
 campos específicos. `documents_create` usa um schema discriminado por tipo para

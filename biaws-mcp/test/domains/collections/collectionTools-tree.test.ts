@@ -14,13 +14,6 @@ test("resource collection tools route generic trees through the API", async () =
 
   const cases = [
     [
-      "resource_collections_list",
-      { resourceType: "applications" },
-      undefined,
-      "/api/resource-collections/applications",
-      undefined,
-    ],
-    [
       "resource_collections_create",
       { resourceType: "servers", name: "Produção", parentId: "infra" },
       "POST",

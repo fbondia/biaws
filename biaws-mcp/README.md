@@ -158,15 +158,15 @@ falha funcional ou da API, não fechamento do transporte.
 
 As consultas do catálogo são:
 
-- `workspaces_list` e `workspaces_get`;
-- `applications_list`, `applications_get` e
+- `resources/read` de `biaws://workspaces` e `resources/read` de `biaws://workspaces/{workspaceId}`;
+- `applications_list`, `resources/read` de `biaws://workspaces/{workspaceId}/applications/{applicationId}` e
   `applications_get_context`;
-- `components_list` e `components_get`;
-- `integrations_list` e `integrations_get`;
-- `repositories_list` e `repositories_get`;
-- `servers_list` e `servers_get`;
-- `deployments_list` e `deployments_get`;
-- `runtimes_list` e `runtimes_get`.
+- `components_list` e `resources/read` de `biaws://workspaces/{workspaceId}/components/{componentId}`;
+- `integrations_list` e `resources/read` de `biaws://workspaces/{workspaceId}/integrations/{integrationId}`;
+- `repositories_list` e `resources/read` de `biaws://workspaces/{workspaceId}/repositories/{repositoryId}`;
+- `servers_list` e `resources/read` de `biaws://workspaces/{workspaceId}/servers/{serverId}`;
+- `deployments_list` e `resources/read` de `biaws://workspaces/{workspaceId}/deployments/{deploymentId}`;
+- `runtimes_list` e `resources/read` de `biaws://workspaces/{workspaceId}/runtimes/{runtimeId}`.
 
 As escritas estruturadas são:
 
@@ -190,13 +190,13 @@ imutável. Arquivamento não
 Templates de monitoramento usam o workspace selecionado na configuração do
 servidor MCP e preservam as permissões, validações e auditoria da API:
 
-- `monitoring_templates_list` e `monitoring_templates_get`: consultam templates
+- `monitoring_templates_list` e `resources/read` de `biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}`: consultam templates
   e versões;
 - `monitoring_templates_preview`: testa uma definição com uma amostra JSON sem
   persistir;
 - `monitoring_templates_create` e `monitoring_templates_create_version`: criam
   a versão inicial ou uma nova versão em rascunho;
-- `monitoring_templates_get_usage` e `monitoring_templates_get_contract`:
+- `resources/read` de `biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}/versions/{version}/usage` e `resources/read` de `biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}/versions/{version}/contract`:
   consultam uso e contrato público;
 - `monitoring_templates_validate`: avalia uma amostra com uma versão persistida
   sem registrar observação;
@@ -207,7 +207,7 @@ servidor MCP e preservam as permissões, validações e auditoria da API:
 
 Monitoramentos ativos são configurados por referência pública ou ID do runtime:
 
-- `runtime_active_monitors_list`;
+- `resources/read` de `biaws://workspaces/{workspaceId}/runtimes/{runtimeId}/monitoring/active-monitors`;
 - `runtime_active_monitors_create`;
 - `runtime_active_monitors_update`;
 - `runtime_active_monitors_archive`.
@@ -232,7 +232,7 @@ monitor antes de provisionar o executor, crie-o com `enabled: false`.
 
 ### Coleções de recursos
 
-- `resource_collections_list`: lista a árvore de um tipo de recurso;
+- `resources/read` de `biaws://workspaces/{workspaceId}/collections/{resourceType}`: lista a árvore de um tipo de recurso;
 - `resource_collections_create`: cria uma coleção na raiz ou sob outra coleção;
 - `resource_collections_update`: renomeia ou reparenta uma coleção;
 - `resource_collections_delete`: exclui somente uma coleção vazia, sem
@@ -258,17 +258,17 @@ conhecimento.
 
 ### Histórico de documentos
 
-- `documents_list_revisions`: consulta até 100 revisões mais recentes.
-- `documents_list_observations`: consulta até 200 observações mais recentes.
+- `resources/read` de `biaws://workspaces/{workspaceId}/documents/{documentId}/revisions`: consulta até 100 revisões mais recentes.
+- `resources/read` de `biaws://workspaces/{workspaceId}/documents/{documentId}/observations`: consulta até 200 observações mais recentes.
 
 Ambas exigem `documentId` e preservam a autorização da API. Esses endpoints
 não oferecem paginação.
 
 ### Consultas de monitoramento
 
-- `monitoring_runtime_topology_get`: consulta a topologia monitorada.
-- `monitoring_runtime_targets_list`: lista os alvos de runtime monitorados.
-- `monitoring_metadata_profiles_list`: lista os perfis de apresentação de
+- `resources/read` de `biaws://workspaces/{workspaceId}/monitoring/runtime-topology`: consulta a topologia monitorada.
+- `resources/read` de `biaws://workspaces/{workspaceId}/monitoring/runtime-targets`: lista os alvos de runtime monitorados.
+- `resources/read` de `biaws://workspaces/{workspaceId}/monitoring/metadata-profiles`: lista os perfis de apresentação de
   metadados; exige leitura de runtimes no escopo de workspace.
 - `applications_monitoring_health_get`: consulta a saúde consolidada de uma
   aplicação; `includeConfigured` inclui runtimes com monitores configurados
@@ -398,7 +398,7 @@ permissões de anexos da melhoria pai.
 
 - `document_types_list`: consulta o contrato oficial de cada tipo, incluindo
   estados, contexto obrigatório e campos específicos de `details`;
-- `documents_search` e `documents_get`: localizam documentos e carregam seu
+- `documents_search` e `resources/read` de `biaws://workspaces/{workspaceId}/documents/{documentId}`: localizam documentos e carregam seu
   conteúdo completo sob demanda;
 - `documents_create`: cria regras, decisões, guidelines, features, referências
   técnicas e procedimentos usando um schema discriminado por `documentType`;
@@ -418,7 +418,7 @@ Componentes sempre devem estar ativos e pertencer à aplicação informada.
 
 - `secrets_list`: lista metadados, com filtros por aplicação, ambiente, estado
   de provisionamento e estado de arquivamento;
-- `secrets_get`: consulta os metadados de um registro;
+- `resources/read` de `biaws://workspaces/{workspaceId}/secrets/{secretId}`: consulta os metadados de um registro;
 - `secrets_register`: registra uma necessidade de segredo com identificação,
   descrição, tipo, formato esperado, aplicação, ambiente e coleção opcionais.
 
@@ -457,3 +457,11 @@ isoladas, e `notifications/cancelled` interrompe o HTTP associado sem bloquear
 as demais ferramentas.
 
 Para `issues_import_eml`, o agente deve fornecer `filename` e o conteúdo integral em `contentBase64`. Para efetivar a escrita, deve informar explicitamente `dryRun: false`; caso contrário, a ferramenta apenas retorna a issue, os comentários e os anexos que seriam importados.
+
+### Migração das leituras específicas
+
+A próxima publicação destas alterações retira 21 tools redundantes. Consulte
+[read-migration.md](docs/read-migration.md) para a matriz completa, os templates
+e as exceções preservadas. Clientes devem implementar `resources/read` e sua
+descoberta; nomes retirados retornam `TOOL_NOT_FOUND`, sem aliases. As leituras
+agregadas de issues e melhorias permanecem disponíveis com suas projeções.

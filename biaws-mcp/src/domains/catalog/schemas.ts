@@ -1,31 +1,6 @@
 import type { ToolDefinition } from "../../contracts.js";
 export const catalogTools = [
   {
-    name: "workspaces_list",
-    description:
-      "Lista os workspaces acessíveis. Nesta fase existe somente o workspace operacional padrão.",
-    inputSchema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {},
-    },
-  },
-  {
-    name: "workspaces_get",
-    description: "Obtém um workspace pelo ID público.",
-    inputSchema: {
-      type: "object",
-      required: ["workspaceId"],
-      additionalProperties: false,
-      properties: {
-        workspaceId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
-  {
     name: "applications_list",
     description:
       "Lista aplicações de um workspace com busca, status e paginação.",
@@ -63,21 +38,7 @@ export const catalogTools = [
       },
     },
   },
-  {
-    name: "applications_get",
-    description: "Obtém os dados de uma aplicação pelo ID público.",
-    inputSchema: {
-      type: "object",
-      required: ["applicationId"],
-      additionalProperties: false,
-      properties: {
-        applicationId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "applications_get_context",
     description:
@@ -161,21 +122,7 @@ export const catalogTools = [
       },
     },
   },
-  {
-    name: "components_get",
-    description: "Obtém um componente pelo ID público.",
-    inputSchema: {
-      type: "object",
-      required: ["componentId"],
-      additionalProperties: false,
-      properties: {
-        componentId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "integrations_list",
     description:
@@ -214,21 +161,7 @@ export const catalogTools = [
       },
     },
   },
-  {
-    name: "integrations_get",
-    description: "Obtém uma integração pelo ID público.",
-    inputSchema: {
-      type: "object",
-      required: ["integrationId"],
-      additionalProperties: false,
-      properties: {
-        integrationId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "repositories_list",
     description: "Lista repositórios de uma aplicação.",
@@ -277,21 +210,7 @@ export const catalogTools = [
       },
     },
   },
-  {
-    name: "repositories_get",
-    description: "Obtém um repositório pelo ID público.",
-    inputSchema: {
-      type: "object",
-      required: ["repositoryId"],
-      additionalProperties: false,
-      properties: {
-        repositoryId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "servers_list",
     description: "Lista servidores de um workspace.",
@@ -329,21 +248,7 @@ export const catalogTools = [
       },
     },
   },
-  {
-    name: "servers_get",
-    description: "Obtém um servidor pelo ID público.",
-    inputSchema: {
-      type: "object",
-      required: ["serverId"],
-      additionalProperties: false,
-      properties: {
-        serverId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "deployments_list",
     description:
@@ -398,21 +303,7 @@ export const catalogTools = [
       },
     },
   },
-  {
-    name: "deployments_get",
-    description: "Obtém um deployment pelo ID público.",
-    inputSchema: {
-      type: "object",
-      required: ["deploymentId"],
-      additionalProperties: false,
-      properties: {
-        deploymentId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "runtimes_list",
     description: "Lista runtimes de um deployment.",
@@ -466,21 +357,7 @@ export const catalogTools = [
       },
     },
   },
-  {
-    name: "runtimes_get",
-    description: "Obtém um runtime pelo ID público.",
-    inputSchema: {
-      type: "object",
-      required: ["runtimeId"],
-      additionalProperties: false,
-      properties: {
-        runtimeId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "applications_create",
     description:

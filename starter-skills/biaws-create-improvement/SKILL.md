@@ -17,9 +17,9 @@ Distinguir fatos fornecidos, fatos verificados, inferências e pontos sujeitos a
 
 ### 2. Resolver o contexto operacional
 
-1. Usar `workspaces_list` e `workspaces_get` quando o workspace não estiver inequívoco.
-2. Usar `applications_list`, `applications_get` e `applications_get_context` para confirmar a aplicação.
-3. Identificar componentes realmente afetados com `components_list` e `components_get`.
+1. Usar `resources/read` de `biaws://workspaces` e `resources/read` de `biaws://workspaces/{workspaceId}` quando o workspace não estiver inequívoco.
+2. Usar `applications_list`, `resources/read` de `biaws://workspaces/{workspaceId}/applications/{applicationId}` e `applications_get_context` para confirmar a aplicação.
+3. Identificar componentes realmente afetados com `components_list` e `resources/read` de `biaws://workspaces/{workspaceId}/components/{componentId}`.
 4. Consultar repositórios, integrações e deployments somente quando ajudarem a determinar impacto ou restrições.
 
 Não criar a melhoria sem `applicationId`. Não associar componente apenas por semelhança de nome.
@@ -54,3 +54,11 @@ Após criar, chamar `demands_get`, conferir aplicação, componentes, descriçã
 - Não acessar produção ou bancos externos ao contexto autorizado.
 - Não afirmar ausência de impacto sem investigar aplicação e componentes.
 - Não criar tarefas nesta skill; usar `biaws-plan-improvement`.
+
+## Leituras por resources
+
+As leituras específicas citadas nesta skill usam `resources/read`. Substituir
+`{workspaceId}` pelo workspace da configuração MCP, e as demais variáveis pelos
+IDs ou identificadores resolvidos nas buscas. Usar `resources/templates/list`
+para descobrir os contratos e seguir os links canônicos retornados. Clientes
+sem suporte a resources precisam ser atualizados para executar essas leituras.

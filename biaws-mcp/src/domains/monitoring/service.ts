@@ -68,12 +68,6 @@ export function listMonitoringTemplates(
   );
 }
 
-export function getMonitoringTemplate(
-  args: ServiceArguments<"monitoring_templates_get"> = {},
-) {
-  return fetchJson(templatePath(args), cleanParams({ version: args.version }));
-}
-
 export function previewMonitoringTemplate(
   args: ServiceArguments<"monitoring_templates_preview"> = {},
 ) {
@@ -95,18 +89,6 @@ export function createMonitoringTemplateVersion(
     {},
     "PATCH",
   );
-}
-
-export function getMonitoringTemplateUsage(
-  args: ServiceArguments<"monitoring_templates_get_usage"> = {},
-) {
-  return fetchJson(templateVersionPath(args, "usage"));
-}
-
-export function getMonitoringTemplateContract(
-  args: ServiceArguments<"monitoring_templates_get_contract"> = {},
-) {
-  return fetchJson(templateVersionPath(args, "contract"));
 }
 
 export function validateMonitoringTemplateSample(
@@ -143,15 +125,6 @@ export function archiveMonitoringTemplate(
   args: ServiceArguments<"monitoring_templates_archive"> = {},
 ) {
   return deleteJson(templateVersionPath(args));
-}
-
-export function listRuntimeActiveMonitors(
-  args: ServiceArguments<"runtime_active_monitors_list"> = {},
-) {
-  return fetchJson(
-    activeMonitorsPath(args),
-    cleanParams({ page: args.page, limit: args.limit }),
-  );
 }
 
 export function listRuntimeMonitoringResults(
@@ -210,18 +183,6 @@ export function archiveRuntimeActiveMonitor(
   args: ServiceArguments<"runtime_active_monitors_archive"> = {},
 ) {
   return deleteJson(activeMonitorsPath(args, true));
-}
-
-export async function getMonitoringRuntimeTopology() {
-  return fetchJson("/api/monitoring/runtime-topology");
-}
-
-export async function listMonitoringRuntimeTargets() {
-  return fetchJson("/api/monitoring/runtime-targets");
-}
-
-export async function listMonitoringMetadataProfiles() {
-  return fetchJson("/api/monitoring/metadata-profiles");
 }
 
 export async function getApplicationMonitoringHealth(

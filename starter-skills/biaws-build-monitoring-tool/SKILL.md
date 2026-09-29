@@ -15,11 +15,11 @@ Não editar código, instalar dependências, executar probes nem emitir sinais d
 
 Resolver a hierarquia completa `workspace → aplicação → componente → deployment → runtime`:
 
-1. usar `workspaces_list` e `workspaces_get` para confirmar o workspace;
-2. usar `applications_list`, `applications_get` e `applications_get_context` para identificar aplicações candidatas;
-3. usar `components_list` e `components_get` para confirmar a unidade observada;
-4. usar `deployments_list` e `deployments_get` para confirmar ambiente e configuração implantada;
-5. usar `runtimes_list` e `runtimes_get` para selecionar a instância ou grupo que receberá os sinais.
+1. usar `resources/read` de `biaws://workspaces` e `resources/read` de `biaws://workspaces/{workspaceId}` para confirmar o workspace;
+2. usar `applications_list`, `resources/read` de `biaws://workspaces/{workspaceId}/applications/{applicationId}` e `applications_get_context` para identificar aplicações candidatas;
+3. usar `components_list` e `resources/read` de `biaws://workspaces/{workspaceId}/components/{componentId}` para confirmar a unidade observada;
+4. usar `deployments_list` e `resources/read` de `biaws://workspaces/{workspaceId}/deployments/{deploymentId}` para confirmar ambiente e configuração implantada;
+5. usar `runtimes_list` e `resources/read` de `biaws://workspaces/{workspaceId}/runtimes/{runtimeId}` para selecionar a instância ou grupo que receberá os sinais.
 
 Relacionar candidatos ao pedido e às evidências locais. Informar IDs, nomes, ambiente, correspondência, confiança e lacunas. Não escolher silenciosamente entre candidatos plausíveis.
 
@@ -93,3 +93,11 @@ Não afirmar que o runtime passou a ser monitorado até a ferramenta estar impla
 - Não criar runtime fictício para acomodar uma ferramenta.
 - Não misturar monitoramento com alerta, remediação automática ou restart sem escopo e autorização próprios.
 - Não emitir sinais de saúde baseados apenas em configuração estática.
+
+## Leituras por resources
+
+As leituras específicas citadas nesta skill usam `resources/read`. Substituir
+`{workspaceId}` pelo workspace da configuração MCP, e as demais variáveis pelos
+IDs ou identificadores resolvidos nas buscas. Usar `resources/templates/list`
+para descobrir os contratos e seguir os links canônicos retornados. Clientes
+sem suporte a resources precisam ser atualizados para executar essas leituras.

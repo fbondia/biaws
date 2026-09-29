@@ -37,22 +37,7 @@ export const secretTools = [
       },
     },
   },
-  {
-    name: "secrets_get",
-    description:
-      "Obtém exclusivamente os metadados de um segredo. Nunca retorna seu valor ou arquivo.",
-    inputSchema: {
-      type: "object",
-      required: ["secretId"],
-      additionalProperties: false,
-      properties: {
-        secretId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "secrets_register",
     description:

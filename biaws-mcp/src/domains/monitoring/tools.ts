@@ -10,15 +10,8 @@ import {
   createRuntimeActiveMonitor,
   deactivateMonitoringTemplate,
   getApplicationMonitoringHealth,
-  getMonitoringRuntimeTopology,
-  getMonitoringTemplate,
-  getMonitoringTemplateContract,
-  getMonitoringTemplateUsage,
   getRuntimeMonitoringHealthSummary,
-  listMonitoringMetadataProfiles,
-  listMonitoringRuntimeTargets,
   listMonitoringTemplates,
-  listRuntimeActiveMonitors,
   listRuntimeMonitoringResults,
   listRuntimeMonitoringSignals,
   previewMonitoringTemplate,
@@ -26,18 +19,6 @@ import {
   validateMonitoringTemplateSample,
 } from "./service.js";
 const handlers: Record<string, ToolHandler> = {
-  monitoring_runtime_topology_get: bindTool(
-    "monitoring_runtime_topology_get",
-    getMonitoringRuntimeTopology,
-  ),
-  monitoring_runtime_targets_list: bindTool(
-    "monitoring_runtime_targets_list",
-    listMonitoringRuntimeTargets,
-  ),
-  monitoring_metadata_profiles_list: bindTool(
-    "monitoring_metadata_profiles_list",
-    listMonitoringMetadataProfiles,
-  ),
   applications_monitoring_health_get: bindTool(
     "applications_monitoring_health_get",
     getApplicationMonitoringHealth,
@@ -50,10 +31,7 @@ const handlers: Record<string, ToolHandler> = {
     "monitoring_templates_list",
     listMonitoringTemplates,
   ),
-  monitoring_templates_get: bindTool(
-    "monitoring_templates_get",
-    getMonitoringTemplate,
-  ),
+
   monitoring_templates_preview: bindTool(
     "monitoring_templates_preview",
     previewMonitoringTemplate,
@@ -66,14 +44,7 @@ const handlers: Record<string, ToolHandler> = {
     "monitoring_templates_create_version",
     createMonitoringTemplateVersion,
   ),
-  monitoring_templates_get_usage: bindTool(
-    "monitoring_templates_get_usage",
-    getMonitoringTemplateUsage,
-  ),
-  monitoring_templates_get_contract: bindTool(
-    "monitoring_templates_get_contract",
-    getMonitoringTemplateContract,
-  ),
+
   monitoring_templates_validate: bindTool(
     "monitoring_templates_validate",
     validateMonitoringTemplateSample,
@@ -98,10 +69,7 @@ const handlers: Record<string, ToolHandler> = {
     "runtime_monitoring_health_summary",
     getRuntimeMonitoringHealthSummary,
   ),
-  runtime_active_monitors_list: bindTool(
-    "runtime_active_monitors_list",
-    listRuntimeActiveMonitors,
-  ),
+
   runtime_active_monitors_create: bindTool(
     "runtime_active_monitors_create",
     createRuntimeActiveMonitor,

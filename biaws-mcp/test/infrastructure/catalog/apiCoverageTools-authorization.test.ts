@@ -18,8 +18,6 @@ test("API authorization failures are returned as MCP tool errors", async (t) => 
       for (const [name, args] of [
         ["issues_update", { issueId: "i", title: "Changed" }],
         ["audit_events_list", { entityType: "issue", entityId: "i" }],
-        ["documents_list_revisions", { documentId: "d" }],
-        ["monitoring_metadata_profiles_list", {}],
       ] as const) {
         const result = await session.client.callTool({ name, arguments: args });
         assert.equal(result.isError, true);

@@ -137,7 +137,7 @@ Template novo:
 ```text
 monitoring_templates_preview
 → monitoring_templates_create
-→ monitoring_templates_get
+→ resources/read (biaws://workspaces/{workspaceId}/monitoring/templates/{templateId})
 → monitoring_templates_validate
 → monitoring_templates_activate (com autorização)
 ```
@@ -145,18 +145,26 @@ monitoring_templates_preview
 Monitor novo:
 
 ```text
-runtime_active_monitors_list
+resources/read (biaws://workspaces/{workspaceId}/runtimes/{runtimeId}/monitoring/active-monitors)
 → runtime_active_monitors_create
-→ runtime_active_monitors_list
+→ resources/read (biaws://workspaces/{workspaceId}/runtimes/{runtimeId}/monitoring/active-monitors)
 → runtime_active_monitors_update para habilitar (quando autorizado)
 ```
 
 Atualização de template cria versão; nunca sobrescreve a anterior:
 
 ```text
-monitoring_templates_get
+resources/read (biaws://workspaces/{workspaceId}/monitoring/templates/{templateId})
 → monitoring_templates_preview
 → monitoring_templates_create_version
 → monitoring_templates_validate
 → monitoring_templates_activate (com autorização)
 ```
+
+## Leituras por resources
+
+As leituras específicas citadas nesta skill usam `resources/read`. Substituir
+`{workspaceId}` pelo workspace da configuração MCP, e as demais variáveis pelos
+IDs ou identificadores resolvidos nas buscas. Usar `resources/templates/list`
+para descobrir os contratos e seguir os links canônicos retornados. Clientes
+sem suporte a resources precisam ser atualizados para executar essas leituras.

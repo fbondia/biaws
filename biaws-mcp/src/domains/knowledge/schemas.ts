@@ -112,54 +112,7 @@ export const knowledgeTools = [
       },
     },
   },
-  {
-    name: "documents_get",
-    description:
-      "Obtém um documento com Markdown, metadados específicos e relações.",
-    inputSchema: {
-      type: "object",
-      required: ["documentId"],
-      additionalProperties: false,
-      properties: {
-        documentId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
-  {
-    name: "documents_list_revisions",
-    description:
-      "Consulta até 100 revisões mais recentes de um documento, em ordem decrescente de revisão. A API não oferece paginação deste histórico.",
-    inputSchema: {
-      type: "object",
-      required: ["documentId"],
-      additionalProperties: false,
-      properties: {
-        documentId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
-  {
-    name: "documents_list_observations",
-    description:
-      "Consulta até 200 observações mais recentes de um documento. A API não oferece paginação deste histórico.",
-    inputSchema: {
-      type: "object",
-      required: ["documentId"],
-      additionalProperties: false,
-      properties: {
-        documentId: {
-          type: "string",
-          minLength: 1,
-        },
-      },
-    },
-  },
+
   {
     name: "documents_create",
     description:

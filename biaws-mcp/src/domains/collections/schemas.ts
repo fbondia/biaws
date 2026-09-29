@@ -1,29 +1,6 @@
 import type { ToolDefinition } from "../../contracts.js";
 export const collectionTools = [
   {
-    name: "resource_collections_list",
-    description:
-      "Lista a árvore de coleções do tipo de recurso informado no workspace autenticado.",
-    inputSchema: {
-      type: "object",
-      required: ["resourceType"],
-      additionalProperties: false,
-      properties: {
-        resourceType: {
-          type: "string",
-          enum: [
-            "applications",
-            "demands",
-            "documents",
-            "secrets",
-            "skills",
-            "servers",
-          ],
-        },
-      },
-    },
-  },
-  {
     name: "resource_collections_create",
     description:
       "Cria uma coleção na raiz ou sob uma coleção pai do mesmo tipo e workspace.",

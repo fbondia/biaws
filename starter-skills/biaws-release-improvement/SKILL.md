@@ -17,7 +17,7 @@ Identificar a tarefa exata de versão, publicação ou registro. Parar diante de
 
 ### 2. Resolver os alvos
 
-Confirmar aplicação, componente, repositório, artefato, ambiente e deployment com `applications_get_context`, `components_get`, `repositories_get`, `deployments_list` e `deployments_get`.
+Confirmar aplicação, componente, repositório, artefato, ambiente e deployment com `applications_get_context`, `resources/read` de `biaws://workspaces/{workspaceId}/components/{componentId}`, `resources/read` de `biaws://workspaces/{workspaceId}/repositories/{repositoryId}`, `deployments_list` e `resources/read` de `biaws://workspaces/{workspaceId}/deployments/{deploymentId}`.
 
 Não inferir ambiente ou deployment pelo nome do diretório. Para múltiplos destinos, tratar cada publicação separadamente.
 
@@ -37,10 +37,10 @@ Não tratar build local, commit, tag ou upload intermediário como deployment co
 
 Registrar somente depois da publicação bem-sucedida:
 
-1. chamar `deployments_get` imediatamente antes da escrita;
+1. chamar `resources/read` de `biaws://workspaces/{workspaceId}/deployments/{deploymentId}` imediatamente antes da escrita;
 2. verificar se já existe publicação `deployed` com a mesma versão e revisão;
 3. chamar `deployments_record_publication` com `version`, `revision`, `repositoryId`, `status: "deployed"`, `publishedAt` efetivo e descrição concisa;
-4. chamar `deployments_get` novamente e verificar a nova entrada e os campos materializados de versão, revisão e data.
+4. chamar `resources/read` de `biaws://workspaces/{workspaceId}/deployments/{deploymentId}` novamente e verificar a nova entrada e os campos materializados de versão, revisão e data.
 
 Não enviar `recordedAt` ou `recordedBy` na nova entrada; o servidor os registra. Não criar entrada `planned` para representar intenção futura. Após timeout, reler antes de repetir para evitar duplicidade.
 
@@ -61,3 +61,11 @@ Informar versão anterior e nova, revisão, componente, repositório, ambiente, 
 - Não sobrescrever nem remover histórico de publicações.
 - Não registrar sucesso após falha parcial ou validação inconclusiva.
 - Não expor tokens, chaves, strings de conexão ou dados secretos de pipelines.
+
+## Leituras por resources
+
+As leituras específicas citadas nesta skill usam `resources/read`. Substituir
+`{workspaceId}` pelo workspace da configuração MCP, e as demais variáveis pelos
+IDs ou identificadores resolvidos nas buscas. Usar `resources/templates/list`
+para descobrir os contratos e seguir os links canônicos retornados. Clientes
+sem suporte a resources precisam ser atualizados para executar essas leituras.

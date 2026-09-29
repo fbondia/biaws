@@ -5,23 +5,21 @@ import { listTools } from "../../../src/tools.js";
 import { required } from "../../helpers/types.js";
 test("catalog tools are registered once with explicit bounded schemas", () => {
   const expected = [
-    "workspaces_list",
-    "workspaces_get",
     "applications_list",
-    "applications_get",
+
     "applications_get_context",
     "components_list",
-    "components_get",
+
     "integrations_list",
-    "integrations_get",
+
     "repositories_list",
-    "repositories_get",
+
     "servers_list",
-    "servers_get",
+
     "deployments_list",
-    "deployments_get",
+
     "runtimes_list",
-    "runtimes_get",
+
     "applications_create",
     "applications_update",
     "components_create",

@@ -1,3 +1,4 @@
+import { scalarText } from "../../runtime/text.js";
 import type { ApiEntity, ApiPayload } from "../../api/apiContracts.js";
 import type { ServiceArguments } from "../../mcp/tools/contracts.js";
 import { BiawsError } from "../../runtime/errors.js";
@@ -33,7 +34,7 @@ function flattenTaxonomy(
 }
 
 function findTaxonomyNode(
-  nodes: ApiEntity[] = [],
+  nodes: ApiEntity[],
   taxonomyId: string,
 ): ApiEntity | null {
   for (const node of nodes) {
@@ -45,7 +46,7 @@ function findTaxonomyNode(
 }
 
 function appendTaxonomyNode(
-  nodes: ApiEntity[] = [],
+  nodes: ApiEntity[],
   parentId: string,
   item: ApiEntity,
 ): ApiEntity[] {
@@ -66,7 +67,7 @@ function appendTaxonomyNode(
 }
 
 function updateTaxonomyNode(
-  nodes: ApiEntity[] = [],
+  nodes: ApiEntity[],
   taxonomyId: string,
   patch: Partial<ApiEntity>,
 ): ApiEntity[] {
@@ -127,9 +128,9 @@ async function saveWritableTaxonomy(
 }
 
 function tokenize(value: unknown) {
-  return String(value || "")
+  return scalarText(value || "")
     .normalize("NFKD")
-    .replace(/\p{Diacritic}/gu, "")
+    .replaceAll(/\p{Diacritic}/gu, "")
     .toLowerCase()
     .split(/[^a-z0-9]+/u)
     .filter((token) => token.length >= 3);
@@ -142,7 +143,7 @@ function scoreTaxonomyNode(
 ) {
   const normalizedNodeText = node.searchText
     .normalize("NFKD")
-    .replace(/\p{Diacritic}/gu, "");
+    .replaceAll(/\p{Diacritic}/gu, "");
   let score = 0;
 
   for (const token of tokens) {
@@ -344,7 +345,10 @@ export async function importEml(
   args: ServiceArguments<"issues_import_eml"> = {},
 ) {
   const filename = String(args.filename || "").trim();
-  const contentBase64 = String(args.contentBase64 || "").replace(/\s+/gu, "");
+  const contentBase64 = String(args.contentBase64 || "").replaceAll(
+    /\s+/gu,
+    "",
+  );
   if (!filename) throw new BiawsError("filename is required");
   if (!filename.toLowerCase().endsWith(".eml"))
     throw new BiawsError("filename must end with .eml");
@@ -501,24 +505,16 @@ export async function updateIssue(
   if (!Object.keys(payload).length)
     throw new BiawsError("At least one update field is required");
   if (Array.isArray(payload.affectedComponentIds)) {
-    payload.affectedComponentIds = payload.affectedComponentIds.map((id) => {
+    const componentIds = payload.affectedComponentIds.map((id) => {
       const value = String(id).trim();
       if (!value)
         throw new BiawsError("affectedComponentIds must contain nonblank IDs");
       return value;
     });
-    if (
-      new Set(
-        Array.isArray(payload.affectedComponentIds)
-          ? payload.affectedComponentIds
-          : [],
-      ).size !==
-      (Array.isArray(payload.affectedComponentIds)
-        ? payload.affectedComponentIds.length
-        : 0)
-    ) {
+    if (new Set(componentIds).size !== componentIds.length) {
       throw new BiawsError("affectedComponentIds must be unique");
     }
+    payload.affectedComponentIds = componentIds;
   }
   return sendJson(
     `/api/issues/${encodeURIComponent(issueId)}`,

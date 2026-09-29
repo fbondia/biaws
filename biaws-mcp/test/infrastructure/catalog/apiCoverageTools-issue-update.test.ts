@@ -31,3 +31,23 @@ test("issues_update writes only supplied mutable fields", async () => {
     assert.deepEqual(required(calls.at(-1)).body, { title: "Only title" });
   });
 });
+
+test("issue updates normalize component IDs and reject duplicates after trimming", async () => {
+  await withApi(null, async (calls) => {
+    await dispatchTool("issues_update", {
+      issueId: "issue-a",
+      affectedComponentIds: [" component-a ", "component-b"],
+    });
+    assert.deepEqual(calls[0].body, {
+      affectedComponentIds: ["component-a", "component-b"],
+    });
+    await assert.rejects(
+      dispatchTool("issues_update", {
+        issueId: "issue-a",
+        affectedComponentIds: ["component-a", " component-a "],
+      }),
+      /affectedComponentIds must be unique/u,
+    );
+    assert.equal(calls.length, 1);
+  });
+});

@@ -174,7 +174,7 @@ export const demandTools = [
             properties: {
               month: {
                 type: "string",
-                pattern: "^\\d{4}-(0[1-9]|1[0-2])$",
+                pattern: String.raw`^\d{4}-(0[1-9]|1[0-2])$`,
               },
               plannedJourneys: {
                 type: "number",

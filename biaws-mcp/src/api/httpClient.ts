@@ -1,3 +1,4 @@
+import { scalarText } from "../runtime/text.js";
 import { setTimeout as delay } from "node:timers/promises";
 import { parseApiPayload, type ApiPayload } from "./apiContracts.js";
 import { BiawsError, errorInfo } from "../runtime/errors.js";
@@ -64,7 +65,7 @@ function buildUrl(path: string, params: Record<string, unknown> = {}) {
 
   for (const [key, value] of Object.entries(params || {})) {
     if (value === undefined || value === null || value === "") continue;
-    url.searchParams.set(key, String(value));
+    url.searchParams.set(key, scalarText(value));
   }
 
   return url;
@@ -246,8 +247,8 @@ async function waitBeforeRetry(attempt: number, context: HttpContext) {
   });
   try {
     await delay(backoffMs, undefined, { signal: context.signal });
-  } catch (caught) {
-    const error = errorInfo(caught);
+  } catch (error_) {
+    const error = errorInfo(error_);
     throw transportError(error, context.url, context.externalSignal);
   }
 }
@@ -277,8 +278,8 @@ async function requestWithRetries<T>(
         statusCode: context.responseStatus,
       });
       return result;
-    } catch (caught) {
-      const cause = errorInfo(caught);
+    } catch (error_) {
+      const cause = errorInfo(error_);
       const error = normalizeRequestError(cause, context);
       const retry = shouldRetryRequest(error, attempt, context);
       context.logger?.[retry ? "warn" : "error"]("mcp_http_attempt_failed", {

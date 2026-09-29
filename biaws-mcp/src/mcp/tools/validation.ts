@@ -279,8 +279,10 @@ function validateOneOf(
     const eligible = discriminatedIndexes.length
       ? discriminatedIndexes.map((index) => candidates[index])
       : candidates;
-    const best = eligible.reduce((selected, candidate) =>
-      candidate.length < selected.length ? candidate : selected,
+    const best = eligible.reduce(
+      (selected, candidate) =>
+        candidate.length < selected.length ? candidate : selected,
+      eligible[0],
     );
     if (best.length) {
       fields.push(...best);

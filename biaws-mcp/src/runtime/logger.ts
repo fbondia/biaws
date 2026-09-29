@@ -1,3 +1,4 @@
+import { scalarText } from "./text.js";
 import { errorInfo } from "./errors.js";
 const LEVELS = Object.freeze({ debug: 10, info: 20, warn: 30, error: 40 });
 const SENSITIVE_KEY =
@@ -5,9 +6,9 @@ const SENSITIVE_KEY =
 
 function sanitizeText(value: unknown) {
   return String(value)
-    .replace(/Bearer\s+[^\s,;]+/giu, "Bearer [REDACTED]")
-    .replace(/(https?:\/\/)[^/@\s]+@/giu, "$1[REDACTED]@")
-    .replace(
+    .replaceAll(/Bearer\s+[^\s,;]+/giu, "Bearer [REDACTED]")
+    .replaceAll(/(https?:\/\/)[^/@\s]+@/giu, "$1[REDACTED]@")
+    .replaceAll(
       /([?&](?:token|key|secret|password)\s*=)[^&#\s]+/giu,
       "$1[REDACTED]",
     );
@@ -62,7 +63,7 @@ function sanitize(
 }
 
 function configuredLevel(level: unknown) {
-  const normalized = String(level || "info").toLowerCase();
+  const normalized = scalarText(level || "info").toLowerCase();
   return normalized in LEVELS ? (normalized as keyof typeof LEVELS) : "info";
 }
 

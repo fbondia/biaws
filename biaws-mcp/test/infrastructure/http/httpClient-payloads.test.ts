@@ -27,3 +27,47 @@ for (const payload of [
     assert.equal(calls, 1);
   });
 }
+
+test("unknown upstream fields survive schema validation at every level", async (t) => {
+  const previous = globalThis.fetch;
+  const payload = {
+    extension: { enabled: true },
+    meta: { total: 1, runtimeId: "runtime-a" },
+    request: {
+      id: "demand-a",
+      custom: "preserved",
+      specification: {
+        sections: [{ title: "Scope", extension: 7 }],
+        revision: 2,
+      },
+    },
+  };
+  globalThis.fetch = async () => Response.json(payload);
+  t.after(() => {
+    globalThis.fetch = previous;
+  });
+  assert.deepEqual(await fetchJson("/api/requests/demand-a"), payload);
+});
+
+test("query parameters preserve scalars and reject objects before HTTP", async (t) => {
+  const previous = globalThis.fetch;
+  const calls: URL[] = [];
+  globalThis.fetch = async (input) => {
+    calls.push(new URL(String(input)));
+    return Response.json({ items: [] });
+  };
+  t.after(() => {
+    globalThis.fetch = previous;
+  });
+  await fetchJson("/api/issues", {
+    page: 2,
+    includeArchived: false,
+    search: "example",
+  });
+  assert.equal(calls[0].search, "?page=2&includeArchived=false&search=example");
+  await assert.rejects(
+    fetchJson("/api/issues", { search: { id: "unexpected" } }),
+    /Expected a scalar text value/u,
+  );
+  assert.equal(calls.length, 1);
+});

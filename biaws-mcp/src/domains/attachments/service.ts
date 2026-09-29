@@ -1,3 +1,4 @@
+import { scalarText } from "../../runtime/text.js";
 type AttachmentArguments = ServiceArguments<
   | "attachments_upload"
   | "attachments_download"
@@ -44,7 +45,7 @@ function maxAttachmentBytes() {
 }
 
 function decodeBase64(value: unknown, filename: string) {
-  const encoded = String(value || "").replace(/\s+/gu, "");
+  const encoded = scalarText(value || "").replaceAll(/\s+/gu, "");
   if (!encoded) {
     throw domainError(`contentBase64 is required for ${filename}`);
   }
@@ -58,11 +59,9 @@ function decodeBase64(value: unknown, filename: string) {
   }
 
   const limit = maxAttachmentBytes();
-  const paddingBytes = encoded.endsWith("==")
-    ? 2
-    : encoded.endsWith("=")
-      ? 1
-      : 0;
+  let paddingBytes = 0;
+  if (encoded.endsWith("==")) paddingBytes = 2;
+  else if (encoded.endsWith("=")) paddingBytes = 1;
   const decodedBytes = (encoded.length / 4) * 3 - paddingBytes;
   if (decodedBytes > limit) {
     throw domainError(
@@ -134,8 +133,8 @@ function attachmentPath(
 }
 
 function filenameFromDisposition(value: string | null) {
-  const disposition = String(value || "");
-  const encoded = disposition.match(/filename\*=UTF-8''([^;]+)/iu)?.[1];
+  const disposition = scalarText(value || "");
+  const encoded = /filename\*=UTF-8''([^;]+)/iu.exec(disposition)?.[1];
   if (encoded) {
     try {
       return decodeURIComponent(encoded);
@@ -143,7 +142,7 @@ function filenameFromDisposition(value: string | null) {
       return encoded;
     }
   }
-  return disposition.match(/filename="([^"]*)"/iu)?.[1] || "attachment";
+  return /filename="([^"]*)"/iu.exec(disposition)?.[1] || "attachment";
 }
 
 export async function uploadAttachments(

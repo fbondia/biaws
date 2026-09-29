@@ -37,18 +37,25 @@ function documentPayload(
   };
 }
 
+function documentContext(config: {
+  applicationRequired?: boolean;
+  type: string;
+}) {
+  if (config.applicationRequired)
+    return { applicationId: "required", affectedComponentIds: "optional" };
+  if (config.type === "guideline")
+    return {
+      applicationId: "depends-on-details.scope",
+      affectedComponentIds: "required-when-scope-is-component",
+    };
+  return { applicationId: "optional", affectedComponentIds: "optional" };
+}
+
 export function listDocumentTypes() {
   return {
     documentTypes: Object.values(DOCUMENT_TYPE_CATALOG).map((config) => ({
       ...config,
-      context: config.applicationRequired
-        ? { applicationId: "required", affectedComponentIds: "optional" }
-        : config.type === "guideline"
-          ? {
-              applicationId: "depends-on-details.scope",
-              affectedComponentIds: "required-when-scope-is-component",
-            }
-          : { applicationId: "optional", affectedComponentIds: "optional" },
+      context: documentContext(config),
     })),
     commonRules: {
       workspaceId: "implicit-from-mcp-configuration",

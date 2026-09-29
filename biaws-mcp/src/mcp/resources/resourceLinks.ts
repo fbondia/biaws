@@ -10,6 +10,17 @@ function link(uri: string, item: ApiEntity): ResourceLink {
     mimeType: "application/json",
   };
 }
+function itemLinks(
+  items: unknown,
+  path: (item: ApiEntity) => string,
+): ResourceLink[] {
+  if (!Array.isArray(items)) return [];
+  return items.flatMap((value) => {
+    const item = apiEntitySchema.parse(value);
+    return item.id ? [link(path(item), item)] : [];
+  });
+}
+
 export function resourceLinksForTool(
   tool: string,
   value: unknown,
@@ -36,17 +47,11 @@ export function resourceLinksForTool(
   };
   const links: ResourceLink[] = [];
   for (const [key, path] of Object.entries(paths)) {
-    const item =
-      result[key] === undefined
-        ? undefined
-        : apiEntitySchema.parse(result[key]);
-    if (item?.id) links.push(link(path(item), item));
+    if (result[key] !== undefined)
+      links.push(...itemLinks([result[key]], path));
   }
   if (tool === "monitoring_templates_list") {
-    for (const item of Array.isArray(result.items) ? result.items : []) {
-      const entity = apiEntitySchema.parse(item);
-      if (entity.id) links.push(link(paths.template(entity), entity));
-    }
+    links.push(...itemLinks(result.items, paths.template));
   }
   const domain = (
     {
@@ -64,17 +69,10 @@ export function resourceLinksForTool(
     } as Record<string, string>
   )[tool.split("_")[0]];
   if (domain && /_(?:search|list|by_taxonomy)$/u.test(tool)) {
-    if (Array.isArray(result.items))
-      for (const value of result.items) {
-        const item = apiEntitySchema.parse(value);
-        if (item.id) links.push(link(paths[domain](item), item));
-      }
+    links.push(...itemLinks(result.items, paths[domain]));
   }
-  if (tool === "knowledge_context_load" && Array.isArray(result.documents)) {
-    for (const value of result.documents) {
-      const item = apiEntitySchema.parse(value);
-      if (item.id) links.push(link(paths.document(item), item));
-    }
+  if (tool === "knowledge_context_load") {
+    links.push(...itemLinks(result.documents, paths.document));
   }
   return links.filter((item) => !item.uri.includes("undefined"));
 }

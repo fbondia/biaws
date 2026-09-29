@@ -1,3 +1,4 @@
+import { scalarText } from "../../runtime/text.js";
 import type { ReadResourceResult } from "@modelcontextprotocol/server";
 import {
   apiEntitySchema,
@@ -25,7 +26,7 @@ function configuredWorkspace() {
 }
 
 function replaceVariables(template: string, values: Record<string, string>) {
-  return template.replace(/\{(\w+)\}/gu, (_: string, name: string) =>
+  return template.replaceAll(/\{(\w+)\}/gu, (_: string, name: string) =>
     encodeURIComponent(values[name]),
   );
 }
@@ -67,6 +68,68 @@ export function listResources({ cursor }: { cursor?: string } = {}) {
   return { resources };
 }
 
+function templateValues(definition: ResourceDefinition, base: string) {
+  const names: string[] = [];
+  const pattern = definition.uriTemplate
+    .split(/(\{\w+\})/u)
+    .map((part) => {
+      const match = /^\{(\w+)\}$/u.exec(part);
+      if (match) {
+        names.push(match[1]);
+        return "([^/]+)";
+      }
+      return part.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
+    })
+    .join("");
+  const match = new RegExp(`^${pattern}$`, "u").exec(base);
+  if (!match) return null;
+  let values;
+  try {
+    values = Object.fromEntries(
+      names.map((name, index) => [name, decodeURIComponent(match[index + 1])]),
+    );
+  } catch {
+    throw resourceError("INVALID_RESOURCE_URI", "Invalid URI encoding");
+  }
+  if (
+    Object.entries(values).some(
+      ([name, value]) =>
+        !value ||
+        /[\\\u0000-\u001f]/u.test(value) ||
+        (value.includes("/") &&
+          (name !== "templateId" ||
+            value
+              .split("/")
+              .some((part) => !part || part === "." || part === ".."))) ||
+        value === "." ||
+        value === "..",
+    )
+  ) {
+    throw resourceError("INVALID_RESOURCE_URI", "Invalid resource reference");
+  }
+  return values;
+}
+
+function resourceParams(url: URL) {
+  const params: Record<string, number> = {};
+  for (const [name, value] of url.searchParams) {
+    if (
+      !["page", "limit"].includes(name) ||
+      !/^[1-9]\d*$/u.test(value) ||
+      !Number.isSafeInteger(Number(value)) ||
+      (name === "limit" && Number(value) > 100) ||
+      Object.hasOwn(params, name)
+    ) {
+      throw resourceError(
+        "INVALID_RESOURCE_URI",
+        "Only a positive integer page and limit (1–100) are supported",
+      );
+    }
+    params[name] = Number(value);
+  }
+  return params;
+}
+
 function matchResource(uri: unknown) {
   if (
     typeof uri !== "string" ||
@@ -98,63 +161,9 @@ function matchResource(uri: unknown) {
   }
   const base = `biaws://workspaces${url.pathname}`;
   for (const definition of RESOURCE_CATALOG) {
-    const names: string[] = [];
-    const pattern = definition.uriTemplate
-      .split(/(\{\w+\})/u)
-      .map((part) => {
-        const match = part.match(/^\{(\w+)\}$/u);
-        if (match) {
-          names.push(match[1]);
-          return "([^/]+)";
-        }
-        return part.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
-      })
-      .join("");
-    const match = base.match(new RegExp(`^${pattern}$`, "u"));
-    if (!match) continue;
-    let values;
-    try {
-      values = Object.fromEntries(
-        names.map((name, index) => [
-          name,
-          decodeURIComponent(match[index + 1]),
-        ]),
-      );
-    } catch {
-      throw resourceError("INVALID_RESOURCE_URI", "Invalid URI encoding");
-    }
-    if (
-      Object.entries(values).some(
-        ([name, value]) =>
-          !value ||
-          /[\\\u0000-\u001f]/u.test(value) ||
-          (value.includes("/") &&
-            (name !== "templateId" ||
-              value
-                .split("/")
-                .some((part) => !part || part === "." || part === ".."))) ||
-          value === "." ||
-          value === "..",
-      )
-    ) {
-      throw resourceError("INVALID_RESOURCE_URI", "Invalid resource reference");
-    }
-    const params: Record<string, number> = {};
-    for (const [name, value] of url.searchParams) {
-      if (
-        !["page", "limit"].includes(name) ||
-        !/^[1-9]\d*$/u.test(value) ||
-        !Number.isSafeInteger(Number(value)) ||
-        (name === "limit" && Number(value) > 100) ||
-        Object.hasOwn(params, name)
-      ) {
-        throw resourceError(
-          "INVALID_RESOURCE_URI",
-          "Only a positive integer page and limit (1–100) are supported",
-        );
-      }
-      params[name] = Number(value);
-    }
+    const values = templateValues(definition, base);
+    if (!values) continue;
+    const params = resourceParams(url);
     if (
       values.workspaceId &&
       (!configuredWorkspace() || values.workspaceId !== configuredWorkspace())
@@ -235,13 +244,18 @@ async function resolveHierarchy(values: Record<string, string>) {
   }
 }
 
-function canonicalValues(values: Record<string, string>, payload: ApiPayload) {
+function canonicalContext(values: Record<string, string>, payload: ApiPayload) {
   const context = payload.context;
   if (context) {
     for (const name of ["issueId", "demandId", "documentId"])
       if (values[name]) values[name] = requireEntity(context).id;
-    if (values.taskId && context.taskId) values.taskId = String(context.taskId);
+    if (values.taskId && context.taskId)
+      values.taskId = scalarText(context.taskId);
   }
+}
+
+function canonicalValues(values: Record<string, string>, payload: ApiPayload) {
+  canonicalContext(values, payload);
   for (const [name, key] of Object.entries({
     workspaceId: "workspace",
     issueId: "issue",
@@ -275,17 +289,11 @@ function resourceLink(
   return { type: "resource_link" as const, uri, name, mimeType };
 }
 
-function addLinks(
+function childLinks(
   payload: ApiPayload,
   definition: ResourceDefinition,
   values: Record<string, string>,
-  params: Record<string, number> = {},
 ) {
-  const baseUri = replaceVariables(definition.uriTemplate, values);
-  const search = new URLSearchParams(
-    Object.entries(params).map(([key, value]) => [key, String(value)]),
-  ).toString();
-  const uri = baseUri + (search ? `?${search}` : "");
   const links = [];
   for (const child of RESOURCE_CATALOG) {
     if (!child.uriTemplate.startsWith(definition.uriTemplate + "/")) continue;
@@ -308,15 +316,25 @@ function addLinks(
         child.uriTemplate.slice(definition.uriTemplate.length + 1),
       ),
   );
+  if (childTemplate)
+    links.push(...collectionItemLinks(payload, childTemplate, values));
+  return links;
+}
+
+function collectionItemLinks(
+  payload: ApiPayload,
+  childTemplate: ResourceDefinition,
+  values: Record<string, string>,
+) {
+  const links = [];
   const items =
     payload.items ||
     payload.comments ||
     (payload.resource
       ? apiEntitySchema.parse(payload.resource).items
       : undefined);
-  if (childTemplate && Array.isArray(items)) {
-    const variable =
-      childTemplate.uriTemplate.match(/\{(\w+)\}$/u)?.[1] || "id";
+  if (Array.isArray(items)) {
+    const variable = /\{(\w+)\}$/u.exec(childTemplate.uriTemplate)?.[1] || "id";
     for (const item of items) {
       const id = variable === "revision" ? item.revision : item.id || item._id;
       if (id !== undefined && id !== null)
@@ -324,14 +342,42 @@ function addLinks(
           resourceLink(
             replaceVariables(childTemplate.uriTemplate, {
               ...values,
-              [variable]: String(id),
+              [variable]: scalarText(id),
             }),
-            item.title || item.name || String(item.filename || id),
+            item.title || item.name || scalarText(item.filename || id),
             childTemplate.mimeType,
           ),
         );
     }
   }
+  return links;
+}
+
+function addLinks(
+  payload: ApiPayload,
+  definition: ResourceDefinition,
+  values: Record<string, string>,
+  params: Record<string, number> = {},
+) {
+  const baseUri = replaceVariables(definition.uriTemplate, values);
+  const search = new URLSearchParams(
+    Object.entries(params).map(([key, value]) => [key, String(value)]),
+  ).toString();
+  const uri = baseUri + (search ? `?${search}` : "");
+  const links = childLinks(payload, definition, values);
+  links.push(
+    ...relatedLinks(payload, definition, values),
+    ...paginationLinks(payload, baseUri),
+  );
+  return { ...payload, uri, links };
+}
+
+function serverRuntimeLinks(
+  payload: ApiPayload,
+  definition: ResourceDefinition,
+  values: Record<string, string>,
+) {
+  const links = [];
   if (definition.uriTemplate.endsWith("/servers/{serverId}/runtimes")) {
     for (const item of payload.items || []) {
       if (item.id && item.applicationId && item.deploymentId)
@@ -343,6 +389,15 @@ function addLinks(
         );
     }
   }
+  return links;
+}
+
+function serverDeploymentLinks(
+  payload: ApiPayload,
+  definition: ResourceDefinition,
+  values: Record<string, string>,
+) {
+  const links = [];
   if (definition.uriTemplate.endsWith("/servers/{serverId}/deployments")) {
     for (const item of payload.items || []) {
       if (item.id && item.applicationId)
@@ -354,6 +409,15 @@ function addLinks(
         );
     }
   }
+  return links;
+}
+
+function documentReferenceLinks(
+  payload: ApiPayload,
+  definition: ResourceDefinition,
+  values: Record<string, string>,
+) {
+  const links = [];
   if (definition.uriTemplate.endsWith("/documents/{documentId}/references")) {
     for (const item of payload.items || [])
       if (item.targetDocumentId)
@@ -364,6 +428,20 @@ function addLinks(
           ),
         );
   }
+  return links;
+}
+
+function relatedLinks(
+  payload: ApiPayload,
+  definition: ResourceDefinition,
+  values: Record<string, string>,
+) {
+  const links = [];
+  links.push(
+    ...serverRuntimeLinks(payload, definition, values),
+    ...serverDeploymentLinks(payload, definition, values),
+    ...documentReferenceLinks(payload, definition, values),
+  );
   if (payload.issue?.applicationId) {
     links.push(
       resourceLink(
@@ -372,6 +450,11 @@ function addLinks(
       ),
     );
   }
+  return links;
+}
+
+function paginationLinks(payload: ApiPayload, baseUri: string) {
+  const links = [];
   if (payload.meta?.page && payload.meta?.limit) {
     const { page, limit, total } = payload.meta;
     const totalPages =
@@ -383,7 +466,7 @@ function addLinks(
     if (page > 1)
       links.push(resourceLink(pageUri(page - 1), "Página anterior"));
   }
-  return { ...payload, uri, links };
+  return links;
 }
 
 export async function readResource({
@@ -441,10 +524,10 @@ export async function readResource({
   let payload = await fetchJson(endpoint.pathname, query);
   canonicalValues(values, payload);
   // Preserve the API's aggregate endpoints while keeping item resources small.
-  if (/\/issues\/\{issueId\}$/u.test(definition.uriTemplate)) {
+  if (definition.uriTemplate.endsWith("/issues/{issueId}")) {
     const { attachments, ...issue } = requireItem(payload.issue);
     payload = { issue };
-  } else if (/\/demands\/\{demandId\}$/u.test(definition.uriTemplate)) {
+  } else if (definition.uriTemplate.endsWith("/demands/{demandId}")) {
     const {
       notes,
       tasks,
@@ -456,7 +539,7 @@ export async function readResource({
     } = requireItem(payload.request);
     payload = { request };
   }
-  if (/\/tasks\/\{taskId\}$/u.test(definition.uriTemplate) && payload.value) {
+  if (definition.uriTemplate.endsWith("/tasks/{taskId}") && payload.value) {
     const { notes, ...task } = payload.value;
     payload = { ...payload, value: task };
   }

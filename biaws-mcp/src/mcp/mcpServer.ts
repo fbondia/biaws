@@ -1,11 +1,11 @@
 import {
-  McpServer,
   ProtocolError,
   specTypeSchemas,
   type CallToolResult,
   type ResourceLink,
   type ServerContext,
 } from "@modelcontextprotocol/server";
+import { VersionedMcpServer } from "./versionedServer.js";
 import { randomUUID } from "node:crypto";
 import { errorInfo, isRecord } from "../runtime/errors.js";
 import type { Logger } from "../runtime/logger.js";
@@ -93,7 +93,7 @@ export function createBiawsMcpServer({
   shutdownSignal,
   era = "legacy",
 }: McpOptions = {}) {
-  const server = new McpServer(
+  const server = new VersionedMcpServer(
     { name: SERVER_NAME, version: SERVER_VERSION },
     {
       capabilities: { tools: {}, resources: {} },
@@ -130,8 +130,8 @@ export function createBiawsMcpServer({
         durationMs: Math.max(0, now() - startedAt),
       });
       return result;
-    } catch (caught) {
-      const error = errorInfo(caught);
+    } catch (error_) {
+      const error = errorInfo(error_);
       const cancelled = signal.aborted || error?.code === "REQUEST_CANCELLED";
       const expected =
         cancelled ||
@@ -165,23 +165,23 @@ export function createBiawsMcpServer({
     const { name, arguments: args = {} } = request.params;
     try {
       const result = await execute(name, ctx, () => dispatchTool(name, args));
-      const version = server.server.getNegotiatedProtocolVersion();
+      const version = server.protocolVersion;
       const links =
         era === "modern" || ["2025-11-25", "2025-06-18"].includes(version || "")
           ? resourceLinksForTool(name, result)
           : [];
       // The SDK encodes structured content according to the connection era.
       return toolResult(result, links);
-    } catch (caught) {
-      const error = errorInfo(caught);
+    } catch (error_) {
+      const error = errorInfo(error_);
       return toolErrorResult(error);
     }
   });
   server.server.setRequestHandler("resources/list", async (request) => {
     try {
       return listResources(request.params);
-    } catch (caught) {
-      const error = errorInfo(caught);
+    } catch (error_) {
+      const error = errorInfo(error_);
       throw new ProtocolError(-32602, error.message, publicToolError(error));
     }
   });
@@ -193,8 +193,8 @@ export function createBiawsMcpServer({
       return await execute("resources/read", ctx, () =>
         readResource(request.params),
       );
-    } catch (caught) {
-      const error = errorInfo(caught);
+    } catch (error_) {
+      const error = errorInfo(error_);
       throw new ProtocolError(
         error.statusCode === 404 || error.statusCode === 422 ? -32602 : -32603,
         error.message || "Resource read failed",
@@ -205,7 +205,7 @@ export function createBiawsMcpServer({
   return {
     server,
     async waitForIdle() {
-      await Promise.allSettled([...inFlight]);
+      await Promise.allSettled(inFlight);
     },
   };
 }

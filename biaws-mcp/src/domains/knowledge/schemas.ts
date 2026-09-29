@@ -285,7 +285,7 @@ export const knowledgeTools = [
         },
         definedAt: {
           type: "string",
-          pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+          pattern: String.raw`^\d{4}-\d{2}-\d{2}$`,
           description: "Data no formato YYYY-MM-DD.",
         },
         lastReviewedAt: {
@@ -322,7 +322,7 @@ export const knowledgeTools = [
                 },
                 effectiveFrom: {
                   type: "string",
-                  pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+                  pattern: String.raw`^\d{4}-\d{2}-\d{2}$`,
                   description: "Data no formato YYYY-MM-DD.",
                 },
               },
@@ -353,7 +353,7 @@ export const knowledgeTools = [
               properties: {
                 decidedAt: {
                   type: "string",
-                  pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+                  pattern: String.raw`^\d{4}-\d{2}-\d{2}$`,
                   description: "Data no formato YYYY-MM-DD.",
                 },
               },
@@ -786,7 +786,7 @@ export const knowledgeTools = [
         },
         definedAt: {
           type: "string",
-          pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+          pattern: String.raw`^\d{4}-\d{2}-\d{2}$`,
           description: "Data no formato YYYY-MM-DD.",
         },
         lastReviewedAt: {

@@ -1,3 +1,4 @@
+import { scalarText } from "../../runtime/text.js";
 import {
   requireEntity,
   type ApiEntity,
@@ -38,9 +39,9 @@ async function requestOptions() {
 }
 
 function normalizeText(value: unknown) {
-  return String(value || "")
+  return scalarText(value || "")
     .normalize("NFKD")
-    .replace(/\p{Diacritic}/gu, "")
+    .replaceAll(/\p{Diacritic}/gu, "")
     .toLowerCase();
 }
 
@@ -50,7 +51,7 @@ function todayLabel() {
 
 function parseDate(value: unknown) {
   if (!value) return null;
-  const date = new Date(`${String(value).slice(0, 10)}T00:00:00Z`);
+  const date = new Date(`${scalarText(value).slice(0, 10)}T00:00:00Z`);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
@@ -62,7 +63,7 @@ function daysBetween(start: unknown, end: unknown) {
 }
 
 function filterDemands(items: ApiEntity[], args: Record<string, unknown> = {}) {
-  const status = String(args.status || "").trim();
+  const status = scalarText(args.status || "").trim();
   const code = normalizeText(args.code);
   const text = normalizeText(args.text);
 
@@ -426,9 +427,11 @@ async function taskPayload(args: Partial<ApiEntity>, current: ApiEntity = {}) {
     status,
     startDate: String(args.startDate ?? current.startDate ?? ""),
     endDate: String(args.endDate ?? current.endDate ?? ""),
-    situation: String(args.situation ?? current.situation ?? ""),
+    situation: scalarText(args.situation ?? current.situation ?? ""),
     description: String(args.description ?? current.description ?? ""),
-    specification: String(args.specification ?? current.specification ?? ""),
+    specification: scalarText(
+      args.specification ?? current.specification ?? "",
+    ),
   };
 }
 
@@ -597,7 +600,7 @@ export async function updateDemandDescription(
 }
 
 function requiredText(value: unknown, field: string) {
-  const normalized = String(value || "").trim();
+  const normalized = scalarText(value || "").trim();
   if (!normalized) throw new BiawsError(`${field} is required`);
   return normalized;
 }

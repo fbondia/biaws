@@ -1,3 +1,4 @@
+import { scalarText } from "../../runtime/text.js";
 import type { ServiceArguments } from "../../mcp/tools/contracts.js";
 import { BiawsError } from "../../runtime/errors.js";
 import { deleteJson, sendJson } from "../../api/httpClient.js";
@@ -12,7 +13,7 @@ const RESOURCE_TYPES = new Set([
 ]);
 
 function requiredId(args: Record<string, unknown>, field: string) {
-  const value = String(args?.[field] || "").trim();
+  const value = scalarText(args?.[field] || "").trim();
   if (!value) throw new BiawsError(`${field} is required`);
   return value;
 }
@@ -36,7 +37,7 @@ function destinationCollectionId(args: Record<string, unknown> = {}) {
       "collectionId is required; use an empty string for root",
     );
   }
-  return String(args.collectionId || "").trim();
+  return scalarText(args.collectionId || "").trim();
 }
 
 function collectionPayload(
@@ -45,12 +46,12 @@ function collectionPayload(
 ) {
   const payload: { name?: string; parentId?: string } = {};
   if (Object.hasOwn(args, "name")) {
-    const name = String(args.name || "").trim();
+    const name = scalarText(args.name || "").trim();
     if (!name) throw new BiawsError("name is required");
     payload.name = name;
   }
   if (Object.hasOwn(args, "parentId")) {
-    payload.parentId = String(args.parentId || "").trim();
+    payload.parentId = scalarText(args.parentId || "").trim();
   }
   if (requireName && !payload.name) throw new BiawsError("name is required");
   if (!Object.keys(payload).length) {

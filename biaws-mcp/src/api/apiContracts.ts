@@ -80,89 +80,78 @@ const strings = [
 ];
 const numbers = ["estimatedJourneys", "plannedJourneys", "executedJourneys"];
 export const apiEntitySchema: z.ZodType<ApiEntity> = z.lazy(() =>
-  z
-    .object({
-      ...Object.fromEntries(strings.map((key) => [key, z.string().optional()])),
-      ...Object.fromEntries(numbers.map((key) => [key, z.number().optional()])),
-      active: z.boolean().optional(),
-      affectedComponentIds: z.array(z.string()).optional(),
-      applicationIds: z.array(z.string()).optional(),
-      children: z.array(apiEntitySchema).optional(),
-      items: z.array(apiEntitySchema).optional(),
-      tasks: z.array(apiEntitySchema).optional(),
-      notes: z.array(apiEntitySchema).optional(),
-      journeys: z.array(apiEntitySchema).optional(),
-      attachments: z.array(apiEntitySchema).optional(),
-      specification: z
-        .union([
-          z.string(),
-          z
-            .object({ sections: z.array(apiEntitySchema).optional() })
-            .passthrough(),
-        ])
+  z.looseObject({
+    ...Object.fromEntries(strings.map((key) => [key, z.string().optional()])),
+    ...Object.fromEntries(numbers.map((key) => [key, z.number().optional()])),
+    active: z.boolean().optional(),
+    affectedComponentIds: z.array(z.string()).optional(),
+    applicationIds: z.array(z.string()).optional(),
+    children: z.array(apiEntitySchema).optional(),
+    items: z.array(apiEntitySchema).optional(),
+    tasks: z.array(apiEntitySchema).optional(),
+    notes: z.array(apiEntitySchema).optional(),
+    journeys: z.array(apiEntitySchema).optional(),
+    attachments: z.array(apiEntitySchema).optional(),
+    specification: z
+      .union([
+        z.string(),
+        z.looseObject({ sections: z.array(apiEntitySchema).optional() }),
+      ])
+      .optional(),
+  }),
+);
+export const apiPayloadSchema = z.looseObject({
+  meta: z
+    .looseObject({
+      page: z.number().optional(),
+      limit: z.number().optional(),
+      total: z.number().optional(),
+      totalPages: z.number().optional(),
+    })
+    .optional(),
+  items: z.array(apiEntitySchema).optional(),
+  issue: apiEntitySchema.optional(),
+  request: apiEntitySchema.optional(),
+  document: apiEntitySchema.optional(),
+  application: apiEntitySchema.optional(),
+  component: apiEntitySchema.optional(),
+  repository: apiEntitySchema.optional(),
+  integration: apiEntitySchema.optional(),
+  deployment: apiEntitySchema.optional(),
+  runtime: apiEntitySchema.optional(),
+  server: apiEntitySchema.optional(),
+  secret: apiEntitySchema.optional(),
+  workspace: apiEntitySchema.optional(),
+  context: apiEntitySchema.optional(),
+  value: apiEntitySchema.optional(),
+  comments: z.array(apiEntitySchema).optional(),
+  uploaded: z.array(apiEntitySchema).optional(),
+  taxonomy: z
+    .looseObject({
+      schemaVersion: z.number().optional(),
+      source: z.unknown().optional(),
+      taxonomy: z.array(apiEntitySchema).optional(),
+      tagGroups: z
+        .array(
+          z.looseObject({
+            id: z.string(),
+            label: z.string().optional(),
+            tags: z.array(z.string()).optional(),
+          }),
+        )
         .optional(),
     })
-    .passthrough(),
-);
-export const apiPayloadSchema = z
-  .object({
-    meta: z
-      .object({
-        page: z.number().optional(),
-        limit: z.number().optional(),
-        total: z.number().optional(),
-        totalPages: z.number().optional(),
-      })
-      .passthrough()
-      .optional(),
-    items: z.array(apiEntitySchema).optional(),
-    issue: apiEntitySchema.optional(),
-    request: apiEntitySchema.optional(),
-    document: apiEntitySchema.optional(),
-    application: apiEntitySchema.optional(),
-    component: apiEntitySchema.optional(),
-    repository: apiEntitySchema.optional(),
-    integration: apiEntitySchema.optional(),
-    deployment: apiEntitySchema.optional(),
-    runtime: apiEntitySchema.optional(),
-    server: apiEntitySchema.optional(),
-    secret: apiEntitySchema.optional(),
-    workspace: apiEntitySchema.optional(),
-    context: apiEntitySchema.optional(),
-    value: apiEntitySchema.optional(),
-    comments: z.array(apiEntitySchema).optional(),
-    uploaded: z.array(apiEntitySchema).optional(),
-    taxonomy: z
-      .object({
-        schemaVersion: z.number().optional(),
-        source: z.unknown().optional(),
-        taxonomy: z.array(apiEntitySchema).optional(),
-        tagGroups: z
-          .array(
-            z
-              .object({
-                id: z.string(),
-                label: z.string().optional(),
-                tags: z.array(z.string()).optional(),
-              })
-              .passthrough(),
-          )
-          .optional(),
-      })
-      .passthrough()
-      .optional(),
-    error: z
-      .object({
-        code: z.string().optional(),
-        message: z.string().optional(),
-        requestId: z.string().optional(),
-        retryable: z.boolean().optional(),
-      })
-      .passthrough()
-      .optional(),
-    message: z.string().optional(),
-  })
-  .passthrough();
+    .optional(),
+  error: z
+    .looseObject({
+      code: z.string().optional(),
+      message: z.string().optional(),
+      requestId: z.string().optional(),
+      retryable: z.boolean().optional(),
+    })
+    .optional(),
+  message: z.string().optional(),
+});
 export type ApiPayload = z.infer<typeof apiPayloadSchema>;
 export type ApiMeta = NonNullable<ApiPayload["meta"]>;
 export function parseApiPayload(value: unknown): ApiPayload {

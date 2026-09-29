@@ -142,6 +142,11 @@ O catálogo está em `src/mcp/resources/resourceCatalog.json` e é carregado por
 compatibilidade com as rotas da API é verificada separadamente pela
 [suíte de integração entre módulos](../test/integration/README.md).
 
+As conversões de identificadores, textos e parâmetros HTTP rejeitam objetos e
+arrays onde se espera um valor escalar, evitando enviar `[object Object]` à
+API. A validação de respostas preserva campos adicionais da API para manter
+compatibilidade com extensões do contrato.
+
 ## Diagnóstico do transporte
 
 A partir da versão 0.5.0, o processo escreve um evento JSON por linha em

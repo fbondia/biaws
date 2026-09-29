@@ -22,7 +22,7 @@ function parseEnvFile(contents: string) {
       value = value.slice(1, -1);
     }
 
-    parsed[key] = value.replace(/\\n/g, "\n");
+    parsed[key] = value.replaceAll(String.raw`\n`, "\n");
   }
 
   return parsed;

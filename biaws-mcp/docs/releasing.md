@@ -34,11 +34,7 @@ que passa a referenciá-la. Atualize também `MCP_PACKAGE_VERSION` em
 cd biaws-mcp
 package_file="$(npm pack --pack-destination /tmp)"
 npm install --global --prefix /tmp/biaws-mcp-global "/tmp/${package_file}"
-printf '%s\n' \
-  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{}}}' \
-  '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
-  '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-  | /tmp/biaws-mcp-global/bin/biaws-mcp
+node scripts/smoke-client.mjs /tmp/biaws-mcp-global/bin/biaws-mcp
 ```
 
 Depois da publicação, valide também `npx --yes biaws-mcp@<versão>` com o mesmo
@@ -48,3 +44,30 @@ handshake.
 
 Prefira `npm deprecate biaws-mcp@<versão> "mensagem"` a `npm unpublish`.
 Publique uma versão corretiva e faça o CLI apontar explicitamente para ela.
+
+## Protocolo e SDK
+
+O servidor usa `@modelcontextprotocol/server` 2.2.0 (Node >=20; o pacote
+continua exigindo >=20.19.0), fixado no lock. `serveStdio` escolhe uma instância
+por conexão e delega framing, negociação, notificações e cancelamento ao SDK.
+A entrada atende `initialize` nas revisões 2024-11-05, 2025-03-26, 2025-06-18 e
+2025-11-25, e `server/discover` em 2026-07-28. O cliente oficial 2.2.0 testa as
+duas eras. Conteúdo estruturado e links seguem a codificação negociada; links
+são emitidos a partir de 2025-06-18. Recursos ausentes usam o erro numérico
+-32602 do SDK. EOF cancela operações pendentes: mantenha stdin aberto enquanto
+aguarda respostas.
+
+O catálogo usa a API pública `McpServer.server.setRequestHandler` para preservar
+JSON Schemas e os erros funcionais BIAWS com `isError`. Não há implementação
+paralela de JSON-RPC. O contexto de cada chamada recebe o signal do SDK;
+encerramento por sinal cancela HTTP e aguarda até cinco segundos.
+
+Referências verificadas em 2026-09-29:
+[release 2.2.0](https://github.com/modelcontextprotocol/typescript-sdk/releases/tag/v2.2.0)
+e [compatibilidade de protocolos](https://ts.sdk.modelcontextprotocol.io/v2/protocol-versions).
+
+Após instalar o tarball, use o cliente oficial para validar o executável:
+
+```bash
+node scripts/smoke-client.mjs /tmp/biaws-mcp-global/bin/biaws-mcp
+```

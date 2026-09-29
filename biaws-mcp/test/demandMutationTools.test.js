@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { dispatchTool, listTools } from "../src/tools.js";
-import { createMcpMessageHandler } from "../src/mcpServer.js";
+import { connectTestServer } from "./helpers/sdk.js";
 
 const demandId = "507f1f77bcf86cd799439011";
 const request = {
@@ -55,16 +55,12 @@ const newTools = [
   "demands_update_note",
   "demands_delete_note",
 ];
-test("tools/list advertises the six demand mutation contracts", async () => {
-  const messages = [];
-  const server = createMcpMessageHandler({
-    dispatchTool,
-    listTools,
-    writeMessage: (message) => messages.push(message),
-  });
-  await server.accept({ jsonrpc: "2.0", id: 1, method: "tools/list" });
+test("tools/list advertises the six demand mutation contracts", async (t) => {
+  const session = await connectTestServer();
+  t.after(() => session.close());
+  const catalog = await session.client.listTools();
   for (const name of newTools) {
-    const tool = messages[0].result.tools.find((item) => item.name === name);
+    const tool = catalog.tools.find((item) => item.name === name);
     assert.ok(tool, name);
     assert.equal(tool.inputSchema.additionalProperties, false);
     assert.ok(tool.inputSchema.required.includes("requestId"));
@@ -252,24 +248,15 @@ test("missing notes and journey months outside the period never mutate", async (
   });
 });
 
-test("API permission errors remain visible to MCP callers", async () => {
+test("API permission errors remain visible to MCP callers", async (t) => {
   await withApi(async () => {
-    const messages = [];
-    const server = createMcpMessageHandler({
-      dispatchTool,
-      listTools,
-      writeMessage: (message) => messages.push(message),
+    const session = await connectTestServer();
+    t.after(() => session.close());
+    const result = await session.client.callTool({
+      name: "demands_update_checklist",
+      arguments: { requestId: demandId, checklist: [] },
     });
-    await server.accept({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "tools/call",
-      params: {
-        name: "demands_update_checklist",
-        arguments: { requestId: demandId, checklist: [] },
-      },
-    });
-    assert.equal(messages[0].result.isError, true);
-    assert.equal(messages[0].result.structuredContent.error.status, 403);
+    assert.equal(result.isError, true);
+    assert.equal(result.structuredContent.error.status, 403);
   }, 403);
 });

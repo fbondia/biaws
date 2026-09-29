@@ -2,6 +2,10 @@
 
 Servidor MCP para agentes consultarem e atualizarem, de forma controlada, a base de conhecimento operacional mantida pelo `biaws-api`.
 
+O transporte stdio usa o SDK oficial `@modelcontextprotocol/server` 2.2.0,
+com compatibilidade para clientes MCP de 2024/2025 e 2026. A matriz de
+protocolos e a validação com cliente oficial estão em [releasing.md](docs/releasing.md).
+
 O servidor separa os domínios:
 
 - `workspaces_*`, `applications_*`, `components_*`, `repositories_*`,

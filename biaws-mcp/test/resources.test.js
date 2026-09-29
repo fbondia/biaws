@@ -5,7 +5,7 @@ import {
   listResources,
   listResourceTemplates,
 } from "../src/resources.js";
-import { createMcpMessageHandler } from "../src/mcpServer.js";
+import { connectTestServer } from "./helpers/sdk.js";
 import { currentRequestSignal } from "../src/requestContext.js";
 
 const W = "biaws://workspaces/workspace-a";
@@ -32,23 +32,17 @@ function json(value) {
   return Response.json(value);
 }
 
-test("the protocol advertises resources and discovers the hierarchy without subscriptions", async () => {
-  const messages = [];
-  const server = createMcpMessageHandler({
-    dispatchTool() {},
-    listTools: () => [],
-    writeMessage: (message) => messages.push(message),
-  });
-  await server.accept({ jsonrpc: "2.0", id: 1, method: "initialize" });
-  assert.deepEqual(messages[0].result.capabilities.resources, {});
-  await server.accept({
-    jsonrpc: "2.0",
-    id: 2,
-    method: "resources/templates/list",
-  });
+test("the protocol discovers the resource hierarchy without subscriptions", async (t) => {
+  const session = await connectTestServer();
+  t.after(() => session.close());
+  assert.equal(
+    session.client.getServerCapabilities().resources.subscribe,
+    undefined,
+  );
   assert.ok(
-    messages[1].result.resourceTemplates.some((item) =>
-      item.uriTemplate.endsWith("/issues/{issueId}/comments/{commentId}"),
+    (await session.client.listResourceTemplates()).resourceTemplates.some(
+      (item) =>
+        item.uriTemplate.endsWith("/issues/{issueId}/comments/{commentId}"),
     ),
   );
   assert.ok(
@@ -212,96 +206,78 @@ test("a resource outside a parent application fails instead of being mounted und
   );
 });
 
-test("resources/read returns a numeric protocol error when a read fails", async () => {
-  const messages = [];
-  const server = createMcpMessageHandler({
-    dispatchTool() {},
-    listTools: () => [],
+test("resources/read returns a numeric SDK protocol error when a read fails", async (t) => {
+  const session = await connectTestServer({
     readResource: async () => {
       throw Object.assign(new Error("Not found"), { statusCode: 404 });
     },
-    writeMessage: (message) => messages.push(message),
   });
-  await server.accept({
-    jsonrpc: "2.0",
-    id: 3,
-    method: "resources/read",
-    params: { uri: W },
-  });
-  assert.equal(messages[0].error.code, -32002);
-  assert.equal(messages[0].result, undefined);
+  t.after(() => session.close());
+  await assert.rejects(
+    session.client.readResource({ uri: W }),
+    (error) => error.code === -32602,
+  );
 });
 
-test("a resource read can be cancelled without blocking tools on the same connection", async () => {
-  const messages = [];
-  const server = createMcpMessageHandler({
+test("SDK cancels a resource read without blocking tools on the connection", async (t) => {
+  let started, aborted;
+  const ready = new Promise((resolve) => {
+    started = resolve;
+  });
+  const cancelled = new Promise((resolve) => {
+    aborted = resolve;
+  });
+  const session = await connectTestServer({
     dispatchTool: async () => ({ ok: true }),
-    listTools: () => [],
     readResource: async () =>
       new Promise((resolve, reject) => {
         currentRequestSignal().addEventListener(
           "abort",
-          () =>
+          () => {
+            aborted();
             reject(
               Object.assign(new Error("Cancelled"), {
                 code: "REQUEST_CANCELLED",
                 statusCode: 499,
               }),
-            ),
+            );
+          },
           { once: true },
         );
+        started();
       }),
-    writeMessage: (message) => messages.push(message),
   });
-  const pending = server.accept({
-    jsonrpc: "2.0",
-    id: 10,
-    method: "resources/read",
-    params: { uri: W },
-  });
-  await server.accept({
-    jsonrpc: "2.0",
-    id: 11,
-    method: "tools/call",
-    params: { name: "fast" },
-  });
-  assert.equal(messages[0].id, 11);
-  await server.accept({
-    jsonrpc: "2.0",
-    method: "notifications/cancelled",
-    params: { requestId: 10 },
-  });
-  await pending;
-  assert.equal(messages[1].error.data.code, "REQUEST_CANCELLED");
+  t.after(() => session.close());
+  const controller = new AbortController();
+  const pending = session.client.readResource(
+    { uri: W },
+    { signal: controller.signal },
+  );
+  const rejection = assert.rejects(pending);
+  await ready;
+  assert.deepEqual(
+    (await session.client.callTool({ name: "fast" })).structuredContent,
+    { ok: true },
+  );
+  controller.abort();
+  await rejection;
+  await cancelled;
 });
 
-test("search results link to resources when the negotiated protocol supports resource links", async () => {
+test("search results include canonical resource links on supporting protocols", async (t) => {
   await withApi(
     () => assert.fail("discovery does not call HTTP"),
     async () => {
-      const messages = [];
-      const server = createMcpMessageHandler({
+      const session = await connectTestServer({
         dispatchTool: async () => ({
           items: [{ id: "issue-a", title: "Incident" }],
         }),
-        listTools: () => [],
-        writeMessage: (message) => messages.push(message),
       });
-      await server.accept({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "initialize",
-        params: { protocolVersion: "2025-11-25" },
-      });
-      await server.accept({
-        jsonrpc: "2.0",
-        id: 2,
-        method: "tools/call",
-        params: { name: "issues_search" },
-      });
-      assert.equal(messages[1].result.content[1].type, "resource_link");
-      assert.equal(messages[1].result.content[1].uri, W + "/issues/issue-a");
-      assert.equal(messages[1].result.structuredContent.items[0].id, "issue-a");
+      t.after(() => session.close());
+      const result = await session.client.callTool({ name: "issues_search" });
+      assert.equal(result.content[1].type, "resource_link");
+      assert.equal(result.content[1].uri, W + "/issues/issue-a");
+      assert.equal(result.structuredContent.items[0].id, "issue-a");
     },
   );
 });

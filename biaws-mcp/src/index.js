@@ -3,8 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createLogger } from "./logger.js";
-import { createMcpMessageHandler, protocolError } from "./mcpServer.js";
-import { dispatchTool, listTools } from "./tools.js";
+import { serveStdio } from "@modelcontextprotocol/server/stdio";
+import { createBiawsMcpServer } from "./mcpServer.js";
 import { loadEnv } from "./loadEnv.js";
 import { SERVER_NAME, SERVER_VERSION } from "./version.js";
 
@@ -30,22 +30,20 @@ const logger = createLogger({
 // second fatal error while preserving stdout exclusively for MCP frames.
 process.stderr.on("error", () => {});
 
-function writeMessage(message) {
-  if (process.stdout.destroyed || process.stdout.writableEnded) {
-    const error = new Error("MCP stdout is not writable");
-    error.code = "MCP_STDOUT_CLOSED";
-    throw error;
-  }
-  process.stdout.write(`${JSON.stringify(message)}\n`);
-}
-
-const server = createMcpMessageHandler({
-  dispatchTool,
-  listTools,
-  writeMessage,
-  logger,
-});
-let buffer = "";
+const shutdownController = new AbortController();
+const instances = new Set();
+const connection = serveStdio(
+  ({ era }) => {
+    const instance = createBiawsMcpServer({
+      logger,
+      era,
+      shutdownSignal: shutdownController.signal,
+    });
+    instances.add(instance);
+    return instance.server;
+  },
+  { onerror: (error) => logger.error("mcp_transport_error", { error }) },
+);
 let shuttingDown = false;
 
 logger.info("mcp_server_started", {
@@ -58,28 +56,8 @@ logger.info("mcp_server_started", {
   ),
 });
 
-process.stdin.setEncoding("utf8");
-process.stdin.on("data", (chunk) => {
-  buffer += chunk;
-  const lines = buffer.split(/\r?\n/u);
-  buffer = lines.pop() || "";
-
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    try {
-      void server.accept(JSON.parse(line));
-    } catch (error) {
-      logger.warn("mcp_input_parse_failed", {
-        bytes: Buffer.byteLength(line),
-        error,
-      });
-      writeMessage(protocolError(null, -32700, "Parse error"));
-    }
-  }
-});
-
 process.stdin.on("end", () => {
-  logger.info("mcp_input_closed", { bufferedBytes: Buffer.byteLength(buffer) });
+  logger.info("mcp_input_closed", {});
   void shutdown({ reason: "stdin_end" });
 });
 
@@ -102,13 +80,13 @@ async function shutdown({ reason, signal, exitCode = 0, cancel = false }) {
     exitCode,
     cancelActiveRequests: cancel,
   });
-  if (cancel) server.cancelAll();
+  if (cancel) shutdownController.abort();
 
   const timeoutMs = 5_000;
   let timedOut = false;
   let timer;
   await Promise.race([
-    server.waitForIdle(),
+    Promise.all([...instances].map((instance) => instance.waitForIdle())),
     new Promise((resolve) => {
       timer = setTimeout(() => {
         timedOut = true;
@@ -120,6 +98,7 @@ async function shutdown({ reason, signal, exitCode = 0, cancel = false }) {
   if (timedOut) {
     logger.warn("mcp_shutdown_timed_out", { reason, timeoutMs });
   }
+  await connection.close();
   logger.info("mcp_server_stopped", {
     reason,
     exitCode,

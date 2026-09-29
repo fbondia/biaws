@@ -47,6 +47,10 @@
     "prepack": "npm run package:verify"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "2.2.0",
     "prettier": "^3.7.4"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.2.0"
   }
 }

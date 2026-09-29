@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { dispatchTool, listTools } from "../src/tools.js";
-import { createMcpMessageHandler } from "../src/mcpServer.js";
+import { connectTestServer } from "./helpers/sdk.js";
 
 const readCases = [
   [
@@ -95,18 +95,12 @@ async function withApi(handler, operation) {
   }
 }
 
-test("tools/list exposes all nine new tools with closed schemas", async () => {
-  const messages = [];
-  const server = createMcpMessageHandler({
-    dispatchTool,
-    listTools,
-    writeMessage: (message) => messages.push(message),
-  });
-  await server.accept({ jsonrpc: "2.0", id: 1, method: "tools/list" });
+test("tools/list exposes all nine new tools with closed schemas", async (t) => {
+  const session = await connectTestServer();
+  t.after(() => session.close());
+  const catalog = await session.client.listTools();
   for (const name of [...readCases.map(([name]) => name), "issues_update"]) {
-    const matches = messages[0].result.tools.filter(
-      (tool) => tool.name === name,
-    );
+    const matches = catalog.tools.filter((tool) => tool.name === name);
     assert.equal(matches.length, 1, name);
     assert.equal(matches[0].inputSchema.additionalProperties, false, name);
   }
@@ -213,7 +207,7 @@ test("invalid inputs never reach HTTP", async () => {
   });
 });
 
-test("API authorization failures are returned as MCP tool errors", async () => {
+test("API authorization failures are returned as MCP tool errors", async (t) => {
   await withApi(
     () => ({
       error: {
@@ -223,33 +217,18 @@ test("API authorization failures are returned as MCP tool errors", async () => {
       },
     }),
     async () => {
-      const messages = [];
-      const server = createMcpMessageHandler({
-        dispatchTool,
-        listTools,
-        writeMessage: (message) => messages.push(message),
-      });
+      const session = await connectTestServer();
+      t.after(() => session.close());
       for (const [name, args] of [
         ["issues_update", { issueId: "i", title: "Changed" }],
         ["audit_events_list", { entityType: "issue", entityId: "i" }],
         ["documents_list_revisions", { documentId: "d" }],
         ["monitoring_metadata_profiles_list", {}],
       ]) {
-        await server.accept({
-          jsonrpc: "2.0",
-          id: messages.length + 1,
-          method: "tools/call",
-          params: { name, arguments: args },
-        });
-        assert.equal(messages.at(-1).result.isError, true);
-        assert.equal(
-          messages.at(-1).result.structuredContent.error.status,
-          403,
-        );
-        assert.equal(
-          messages.at(-1).result.structuredContent.error.code,
-          "FORBIDDEN",
-        );
+        const result = await session.client.callTool({ name, arguments: args });
+        assert.equal(result.isError, true);
+        assert.equal(result.structuredContent.error.status, 403);
+        assert.equal(result.structuredContent.error.code, "FORBIDDEN");
       }
     },
   );

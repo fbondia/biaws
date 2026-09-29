@@ -1,5 +1,13 @@
 import path from "node:path";
 import os from "node:os";
+import {
+  appliedReleasePath,
+  readAvailableRelease,
+  readRelease,
+  recordAppliedRelease,
+  releaseDifferences,
+  validateRelease,
+} from "./release.js";
 
 import { CliError } from "../core/errors.js";
 import { parseEnv } from "../core/context.js";
@@ -35,10 +43,7 @@ function integer(value, label) {
 export function validateInstanceName(value) {
   const name = String(value || "").trim();
   if (!/^[a-z0-9][a-z0-9-]{0,62}$/u.test(name)) {
-    usageError(
-      "Nome de instância inválido: use letras minúsculas, números e hífens.",
-      "INVALID_INSTANCE_NAME",
-    );
+    usageError("Nome de instância inválido: use letras minúsculas, números e hífens.", "INVALID_INSTANCE_NAME");
   }
   return name;
 }
@@ -75,20 +80,11 @@ export function validatePublicUrl(value) {
 export function validateStoragePath(value, label) {
   if (!value) return "";
   const resolved = path.resolve(String(value));
-  if (
-    !path.isAbsolute(String(value)) ||
-    resolved === path.parse(resolved).root
-  ) {
-    usageError(
-      `${label} deve ser absoluto e não pode ser a raiz.`,
-      "UNSAFE_STORAGE_PATH",
-    );
+  if (!path.isAbsolute(String(value)) || resolved === path.parse(resolved).root) {
+    usageError(`${label} deve ser absoluto e não pode ser a raiz.`, "UNSAFE_STORAGE_PATH");
   }
   if (/[#$:'"\\]/u.test(String(value))) {
-    usageError(
-      `${label} contém caractere incompatível com Compose.`,
-      "UNSAFE_STORAGE_PATH",
-    );
+    usageError(`${label} contém caractere incompatível com Compose.`, "UNSAFE_STORAGE_PATH");
   }
   return resolved;
 }
@@ -100,10 +96,7 @@ function validateDistinctPaths(paths) {
       const left = `${populated[index]}${path.sep}`;
       const right = `${populated[nested]}${path.sep}`;
       if (left.startsWith(right) || right.startsWith(left)) {
-        usageError(
-          "Diretórios persistentes não podem ser iguais nem aninhados.",
-          "OVERLAPPING_STORAGE_PATHS",
-        );
+        usageError("Diretórios persistentes não podem ser iguais nem aninhados.", "OVERLAPPING_STORAGE_PATHS");
       }
     }
   }
@@ -132,10 +125,7 @@ export async function listInstances(context, filesystem) {
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     const directory = path.join(context.instancesDirectory, entry.name);
-    const contents = await readOptional(
-      filesystem,
-      path.join(directory, ".env"),
-    );
+    const contents = await readOptional(filesystem, path.join(directory, ".env"));
     if (contents === null) continue;
     const env = parseEnv(contents);
     instances.push({
@@ -145,12 +135,8 @@ export async function listInstances(context, filesystem) {
       mongoPort: Number(env.MONGO_PORT || 27_017),
       apiPort: Number(env.BIAWS_API_PORT || 3_100),
       uiPort: Number(env.BIAWS_UI_PORT || 4_400),
-      publicUrl:
-        env.BIAWS_PUBLIC_URL ||
-        `http://localhost:${env.BIAWS_UI_PORT || 4_400}`,
-      storage: Object.values(STORAGE_FIELDS).some((key) => env[key])
-        ? "directories"
-        : "volumes",
+      publicUrl: env.BIAWS_PUBLIC_URL || `http://localhost:${env.BIAWS_UI_PORT || 4_400}`,
+      storage: Object.values(STORAGE_FIELDS).some((key) => env[key]) ? "directories" : "volumes",
       env,
     });
   }
@@ -162,10 +148,7 @@ export async function getInstance(context, filesystem, name) {
   const selected = String(name || context.instanceName || "").trim();
   if (!selected && instances.length === 1) return instances[0];
   if (!selected) {
-    usageError(
-      "Informe a instância ou defina BIAWS_INSTANCE.",
-      "INSTANCE_REQUIRED",
-    );
+    usageError("Informe a instância ou defina BIAWS_INSTANCE.", "INSTANCE_REQUIRED");
   }
   const normalized = validateInstanceName(selected);
   const instance = instances.find((item) => item.name === normalized);
@@ -178,61 +161,32 @@ export async function getInstance(context, filesystem, name) {
   return instance;
 }
 
-function normalizeVersion(value, label) {
-  const version = String(value || "").trim();
-  if (
-    !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.test(version)
-  ) {
-    throw new CliError(`${label} inválida: ${version || "ausente"}.`, {
-      code: "INVALID_RELEASE_VERSION",
-    });
-  }
-  return version;
-}
-
 export async function getInstanceUpdateStatus(instance, context, filesystem) {
-  const manifestPath = path.join(
-    context.repositoryRoot,
-    "biaws-cli",
-    "package.json",
-  );
-  let manifest;
-  try {
-    manifest = JSON.parse(await filesystem.readFile(manifestPath, "utf8"));
-  } catch (error) {
-    throw new CliError(
-      `Não foi possível ler a versão da release em ${manifestPath}.`,
-      {
-        code: "RELEASE_VERSION_READ_FAILED",
-        cause: error,
-      },
-    );
+  const availableRelease = await readAvailableRelease(context.repositoryRoot, filesystem);
+  const installedRelease = await readRelease(appliedReleasePath(instance), filesystem, { optional: true });
+  const currentVersion = String(instance.env.BIAWS_VERSION || UNKNOWN_VERSION).trim() || UNKNOWN_VERSION;
+  const differences = releaseDifferences(installedRelease, availableRelease);
+  if (installedRelease && currentVersion !== installedRelease.version) {
+    differences.push({ field: "BIAWS_VERSION", current: currentVersion, available: availableRelease.version });
   }
-  const newVersion = normalizeVersion(manifest.version, "Versão da release");
-  const installed = String(instance.env.BIAWS_VERSION || "").trim();
-  const currentVersion =
-    installed && installed !== UNKNOWN_VERSION
-      ? normalizeVersion(installed, "Versão instalada")
-      : UNKNOWN_VERSION;
   return Object.freeze({
     instance: instance.name,
     currentVersion,
-    newVersion,
-    updateRequired: currentVersion !== newVersion,
+    newVersion: availableRelease.version,
+    legacyInstallation: installedRelease === null,
+    installedRelease,
+    availableRelease,
+    differences,
+    updateRequired: installedRelease === null || differences.length > 0,
   });
 }
 
 function resolveStorage(values, existing) {
   if (values.storage === "volumes") {
     if (Object.keys(STORAGE_FIELDS).some((field) => values[field])) {
-      usageError(
-        "Storage em volumes não pode ser combinado com caminhos do host.",
-        "STORAGE_MODE_CONFLICT",
-      );
+      usageError("Storage em volumes não pode ser combinado com caminhos do host.", "STORAGE_MODE_CONFLICT");
     }
-    return Object.fromEntries(
-      Object.keys(STORAGE_FIELDS).map((key) => [key, ""]),
-    );
+    return Object.fromEntries(Object.keys(STORAGE_FIELDS).map((key) => [key, ""]));
   }
   const root = validateStoragePath(values.storageRoot, "Raiz de storage");
   const storage = {};
@@ -245,16 +199,12 @@ function resolveStorage(values, existing) {
   };
   for (const [name, envName] of Object.entries(STORAGE_FIELDS)) {
     storage[name] = validateStoragePath(
-      values[name] ||
-        (root ? path.join(root, defaults[name]) : existing?.env[envName]),
+      values[name] || (root ? path.join(root, defaults[name]) : existing?.env[envName]),
       name,
     );
   }
   if (Object.values(storage).some((value) => !value)) {
-    usageError(
-      "Informe --storage-root ou todos os caminhos para storage em diretórios.",
-      "INCOMPLETE_STORAGE_PATHS",
-    );
+    usageError("Informe --storage-root ou todos os caminhos para storage em diretórios.", "INCOMPLETE_STORAGE_PATHS");
   }
   validateDistinctPaths(Object.values(storage));
   return storage;
@@ -265,63 +215,34 @@ export async function buildSetupConfiguration(values, context, filesystem) {
   const instances = await listInstances(context, filesystem);
   const existing = instances.find((item) => item.name === name);
   const ports = {
-    mongoPort: validatePort(
-      values.mongoPort ?? existing?.mongoPort ?? 27_017,
-      "Porta MongoDB",
-    ),
-    apiPort: validatePort(
-      values.apiPort ?? existing?.apiPort ?? 3_100,
-      "Porta API",
-    ),
-    uiPort: validatePort(
-      values.uiPort ?? existing?.uiPort ?? 4_400,
-      "Porta UI",
-    ),
+    mongoPort: validatePort(values.mongoPort ?? existing?.mongoPort ?? 27_017, "Porta MongoDB"),
+    apiPort: validatePort(values.apiPort ?? existing?.apiPort ?? 3_100, "Porta API"),
+    uiPort: validatePort(values.uiPort ?? existing?.uiPort ?? 4_400, "Porta UI"),
   };
   if (new Set(Object.values(ports)).size !== 3) {
-    usageError(
-      "MongoDB, API e UI devem usar portas distintas.",
-      "PORT_COLLISION",
-    );
+    usageError("MongoDB, API e UI devem usar portas distintas.", "PORT_COLLISION");
   }
   for (const instance of instances) {
     if (instance.name === name) continue;
-    const reserved = new Set([
-      instance.mongoPort,
-      instance.apiPort,
-      instance.uiPort,
-    ]);
+    const reserved = new Set([instance.mongoPort, instance.apiPort, instance.uiPort]);
     for (const port of Object.values(ports)) {
       if (reserved.has(port)) {
-        usageError(
-          `A porta ${port} já pertence à instância ${instance.name}.`,
-          "PORT_COLLISION",
-        );
+        usageError(`A porta ${port} já pertence à instância ${instance.name}.`, "PORT_COLLISION");
       }
     }
   }
   const storage = resolveStorage(values, existing);
   const previousStorage = existing
-    ? Object.fromEntries(
-        Object.entries(STORAGE_FIELDS).map(([key, envName]) => [
-          key,
-          existing.env[envName] || "",
-        ]),
-      )
+    ? Object.fromEntries(Object.entries(STORAGE_FIELDS).map(([key, envName]) => [key, existing.env[envName] || ""]))
     : null;
   const storageChanged = Boolean(
-    previousStorage &&
-    Object.keys(STORAGE_FIELDS).some(
-      (key) => previousStorage[key] !== storage[key],
-    ),
+    previousStorage && Object.keys(STORAGE_FIELDS).some((key) => previousStorage[key] !== storage[key]),
   );
   return Object.freeze({
     name,
     ...ports,
     ...storage,
-    publicUrl: validatePublicUrl(
-      values.publicUrl || `http://localhost:${ports.uiPort}`,
-    ),
+    publicUrl: validatePublicUrl(values.publicUrl || `http://localhost:${ports.uiPort}`),
     storage: values.storage,
     storageChanged,
     adminEmail: String(values.adminEmail).trim(),
@@ -331,22 +252,10 @@ export async function buildSetupConfiguration(values, context, filesystem) {
     disableRateLimit: Boolean(values.disableRateLimit),
     apiRateLimitMax: integer(values.apiRateLimitMax, "Rate limit da API"),
     apiRateLimitWindow: integer(values.apiRateLimitWindow, "Janela da API"),
-    authRateLimitMax: integer(
-      values.authRateLimitMax,
-      "Rate limit de autenticação",
-    ),
-    authRateLimitWindow: integer(
-      values.authRateLimitWindow,
-      "Janela de autenticação",
-    ),
-    apiKeyRateLimitMax: integer(
-      values.apiKeyRateLimitMax,
-      "Rate limit da chave de API",
-    ),
-    apiKeyRateLimitWindow: integer(
-      values.apiKeyRateLimitWindow,
-      "Janela da chave de API",
-    ),
+    authRateLimitMax: integer(values.authRateLimitMax, "Rate limit de autenticação"),
+    authRateLimitWindow: integer(values.authRateLimitWindow, "Janela de autenticação"),
+    apiKeyRateLimitMax: integer(values.apiKeyRateLimitMax, "Rate limit da chave de API"),
+    apiKeyRateLimitWindow: integer(values.apiKeyRateLimitWindow, "Janela da chave de API"),
     existing: Boolean(existing),
   });
 }
@@ -394,13 +303,7 @@ export function setupArguments(configuration, context) {
   return args;
 }
 
-export async function executeSetup(
-  configuration,
-  context,
-  processRunner,
-  environment,
-  options = {},
-) {
+export async function executeSetup(configuration, context, processRunner, environment, options = {}) {
   const args = setupArguments(configuration, context);
   await processRunner.run("bash", args, {
     cwd: context.repositoryRoot,
@@ -441,6 +344,7 @@ export function composeArguments(instance, context, operation) {
     "--project-name",
     `biaws-${instance.name}`,
   ];
+  if (operation === "services") return [...base, "ps", "--all", "--services"];
   if (operation === "start") return [...base, "up", "-d", "--wait"];
   if (operation === "update") return [...base, "up", "-d", "--build", "--wait"];
   if (operation === "validate") return [...base, "config", "--quiet"];
@@ -448,16 +352,10 @@ export function composeArguments(instance, context, operation) {
   return [...base, "ps", "--format", "json"];
 }
 
-export async function operateInstance(
-  instance,
-  context,
-  processRunner,
-  operation,
-  options = {},
-) {
+export async function operateInstance(instance, context, processRunner, operation, options = {}) {
   const result = await processRunner.run(
     "docker",
-    composeArguments(instance, context, operation),
+    [...composeArguments(instance, context, operation), ...(options.services || [])],
     {
       cwd: context.repositoryRoot,
       env: options.environment,
@@ -471,28 +369,25 @@ export async function validateInstanceUpdate(instance, context, processRunner) {
   return operateInstance(instance, context, processRunner, "validate");
 }
 
-export async function updateInstance(
-  instance,
-  context,
-  filesystem,
-  processRunner,
-  version,
-  environment = {},
-) {
-  const normalizedVersion = normalizeVersion(version, "Nova versão");
-  const result = await operateInstance(
-    instance,
-    context,
-    processRunner,
-    "update",
-    { environment: { ...environment, BIAWS_VERSION: normalizedVersion } },
-  );
-  const envContents = await filesystem.readFile(instance.envFile, "utf8");
-  const versionLine = `BIAWS_VERSION=${normalizedVersion}`;
-  const nextEnv = /^BIAWS_VERSION=.*$/mu.test(envContents)
-    ? envContents.replace(/^BIAWS_VERSION=.*$/gmu, versionLine)
-    : `${envContents.replace(/\s*$/u, "")}\n${versionLine}\n`;
-  await filesystem.writeFile(instance.envFile, nextEnv, { mode: 0o600 });
+export async function updateInstance(instance, context, filesystem, processRunner, release, environment = {}) {
+  const normalized = validateRelease(release);
+  const available = await readAvailableRelease(context.repositoryRoot, filesystem);
+  if (releaseDifferences(normalized, available).length) {
+    throw new CliError("A release mudou após a verificação; execute update novamente.", { code: "RELEASE_CHANGED" });
+  }
+  const existing = await operateInstance(instance, context, processRunner, "services", { environment });
+  const services = existing.output.split(/\s+/u).includes("monitor-executor")
+    ? ["mongo", "api", "ui", "monitor-executor"]
+    : [];
+  const result = await operateInstance(instance, context, processRunner, "update", {
+    environment: { ...environment, BIAWS_VERSION: normalized.version },
+    services,
+  });
+  const afterDeploy = await readAvailableRelease(context.repositoryRoot, filesystem);
+  if (releaseDifferences(normalized, afterDeploy).length) {
+    throw new CliError("A release mudou durante o deploy; execute update novamente.", { code: "RELEASE_CHANGED" });
+  }
+  await recordAppliedRelease(instance, normalized, filesystem);
   return result;
 }
 
@@ -512,10 +407,8 @@ export function backupArguments(instance, context, options = {}) {
     "--instances-dir",
     context.instancesDirectory,
   ];
-  if (options.output)
-    args.push("--output", validateArchivePath(options.output));
-  if (options.passwordFile)
-    args.push("--password-file", path.resolve(options.passwordFile));
+  if (options.output) args.push("--output", validateArchivePath(options.output));
+  if (options.passwordFile) args.push("--password-file", path.resolve(options.passwordFile));
   return args;
 }
 
@@ -530,8 +423,7 @@ export function restoreArguments(instance, context, options) {
     validateArchivePath(options.archive),
     "--yes",
   ];
-  if (options.passwordFile)
-    args.push("--password-file", path.resolve(options.passwordFile));
+  if (options.passwordFile) args.push("--password-file", path.resolve(options.passwordFile));
   return args;
 }
 
@@ -548,28 +440,15 @@ export function removeArguments(instance, context, options = {}) {
   return args;
 }
 
-export async function withPasswordFile(
-  filesystem,
-  password,
-  suppliedFile,
-  operation,
-) {
+export async function withPasswordFile(filesystem, password, suppliedFile, operation) {
   if (suppliedFile) return operation(path.resolve(suppliedFile));
   if (!password) {
-    usageError(
-      "Informe --password-file ou forneça a senha em modo interativo.",
-      "BACKUP_PASSWORD_REQUIRED",
-    );
+    usageError("Informe --password-file ou forneça a senha em modo interativo.", "BACKUP_PASSWORD_REQUIRED");
   }
   if (String(password).length < 12) {
-    usageError(
-      "A senha do backup deve ter pelo menos 12 caracteres.",
-      "WEAK_BACKUP_PASSWORD",
-    );
+    usageError("A senha do backup deve ter pelo menos 12 caracteres.", "WEAK_BACKUP_PASSWORD");
   }
-  const directory = await filesystem.mkdtemp(
-    path.join(os.tmpdir(), "biaws-password-"),
-  );
+  const directory = await filesystem.mkdtemp(path.join(os.tmpdir(), "biaws-password-"));
   const passwordFile = path.join(directory, "password");
   try {
     await filesystem.writeFile(passwordFile, `${password}\n`, { mode: 0o600 });
@@ -580,12 +459,7 @@ export async function withPasswordFile(
   }
 }
 
-export async function executeInstanceScript(
-  args,
-  context,
-  processRunner,
-  options = {},
-) {
+export async function executeInstanceScript(args, context, processRunner, options = {}) {
   const result = await processRunner.run("bash", args, {
     cwd: context.repositoryRoot,
     secrets: options.secrets || [],

@@ -1,11 +1,7 @@
 import { Flags } from "@oclif/core";
 
 import { LocalInstanceCommand } from "../../baseCommands.js";
-import {
-  contextFlags,
-  contextInput,
-  instanceArgument,
-} from "../../instance/command.js";
+import { contextFlags, contextInput, instanceArgument } from "../../instance/command.js";
 import {
   backupArguments,
   executeInstanceScript,
@@ -22,6 +18,10 @@ function versionCheckResult(instance, versionStatus, json) {
     `Instância: ${instance.name}`,
     `Versão atual: ${versionStatus.currentVersion}`,
     `Nova versão: ${versionStatus.newVersion}`,
+    ...(versionStatus.legacyInstallation ? ["Instalação legada: manifesto ainda não registrado."] : []),
+    ...versionStatus.differences.map(
+      ({ field, current, available }) => `${field}: ${current ?? "não registrado"} → ${available}`,
+    ),
     `Atualização necessária: ${versionStatus.updateRequired ? "sim" : "não"}`,
   ].join("\n");
 }
@@ -38,10 +38,10 @@ async function createUpdateBackup(command, instance, context, flags) {
   let password;
   if (!flags["password-file"]) {
     if (!context.isInteractive) {
-      command.error(
-        "Atualização exige --password-file ou --skip-backup em modo não interativo.",
-        { code: "BACKUP_PASSWORD_REQUIRED", exit: 2 },
-      );
+      command.error("Atualização exige --password-file ou --skip-backup em modo não interativo.", {
+        code: "BACKUP_PASSWORD_REQUIRED",
+        exit: 2,
+      });
     }
     password = await command.adapters.prompts.ask({
       name: "password",
@@ -50,20 +50,16 @@ async function createUpdateBackup(command, instance, context, flags) {
     });
   }
 
-  return withPasswordFile(
-    command.adapters.filesystem,
-    password,
-    flags["password-file"],
-    async (passwordFile) =>
-      executeInstanceScript(
-        backupArguments(instance, context, {
-          output: flags["backup-output"],
-          passwordFile,
-        }),
-        context,
-        command.adapters.processRunner,
-        { secrets: password ? [password] : [], silent: flags.json },
-      ),
+  return withPasswordFile(command.adapters.filesystem, password, flags["password-file"], async (passwordFile) =>
+    executeInstanceScript(
+      backupArguments(instance, context, {
+        output: flags["backup-output"],
+        passwordFile,
+      }),
+      context,
+      command.adapters.processRunner,
+      { secrets: password ? [password] : [], silent: flags.json },
+    ),
   );
 }
 
@@ -72,7 +68,7 @@ function updatedResult(instance, versionStatus, flags, backupOutput) {
     return `Instância ${instance.name} atualizada de ${versionStatus.currentVersion} para ${versionStatus.newVersion}. UI: ${instance.publicUrl}`;
   }
   return {
-    instance: instance.name,
+    ...versionStatus,
     operation: "update",
     currentVersion: versionStatus.currentVersion,
     newVersion: versionStatus.newVersion,
@@ -85,8 +81,7 @@ function updatedResult(instance, versionStatus, flags, backupOutput) {
 }
 
 export default class InstanceUpdate extends LocalInstanceCommand {
-  static description =
-    "reconstrói e atualiza os serviços preservando os dados da instância";
+  static description = "reconstrói e atualiza os serviços preservando os dados da instância";
   static args = { instance: instanceArgument };
   static flags = {
     ...contextFlags,
@@ -101,7 +96,7 @@ export default class InstanceUpdate extends LocalInstanceCommand {
       exclusive: ["backup-output", "password-file"],
     }),
     check: Flags.boolean({
-      description: "compara a versão instalada com a versão da release",
+      description: "compara o manifesto instalado com a release disponível",
       exclusive: ["backup-output", "password-file", "skip-backup", "force"],
     }),
     force: Flags.boolean({
@@ -114,51 +109,28 @@ export default class InstanceUpdate extends LocalInstanceCommand {
   async run() {
     const { args, flags } = await this.parse(InstanceUpdate);
     const context = await this.localContext(contextInput(flags, args.instance));
-    const instance = await getInstance(
-      context,
-      this.adapters.filesystem,
-      args.instance,
-    );
-    const versionStatus = await getInstanceUpdateStatus(
-      instance,
-      context,
-      this.adapters.filesystem,
-    );
+    const instance = await getInstance(context, this.adapters.filesystem, args.instance);
+    const versionStatus = await getInstanceUpdateStatus(instance, context, this.adapters.filesystem);
     if (flags.check) {
-      this.output({ json: flags.json }).result(
-        versionCheckResult(instance, versionStatus, flags.json),
-      );
+      this.output({ json: flags.json }).result(versionCheckResult(instance, versionStatus, flags.json));
       return;
     }
     if (!versionStatus.updateRequired && !flags.force) {
-      this.output({ json: flags.json }).result(
-        unchangedResult(instance, versionStatus, flags.json),
-      );
+      this.output({ json: flags.json }).result(unchangedResult(instance, versionStatus, flags.json));
       return;
     }
 
-    await validateInstanceUpdate(
-      instance,
-      context,
-      this.adapters.processRunner,
-    );
-    const backupOutput = await createUpdateBackup(
-      this,
-      instance,
-      context,
-      flags,
-    );
+    await validateInstanceUpdate(instance, context, this.adapters.processRunner);
+    const backupOutput = await createUpdateBackup(this, instance, context, flags);
 
     await updateInstance(
       instance,
       context,
       this.adapters.filesystem,
       this.adapters.processRunner,
-      versionStatus.newVersion,
+      versionStatus.availableRelease,
       this.adapters.environment,
     );
-    this.output({ json: flags.json }).result(
-      updatedResult(instance, versionStatus, flags, backupOutput),
-    );
+    this.output({ json: flags.json }).result(updatedResult(instance, versionStatus, flags, backupOutput));
   }
 }

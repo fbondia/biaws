@@ -8,6 +8,13 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Atualização de instalações passa a comparar `release.json` e o manifesto
+  aplicado, com versões independentes de API, UI e executor e revisão de
+  implantação; a versão da plataforma deixa de ser determinada pelo CLI.
+  Instalações legadas exigem atualização e `--check` mostra as diferenças.
+  Setup/update registram o manifesto somente após sucesso; restore invalida o
+  estado aplicado para exigir reconciliação com o checkout desejado.
+
 - API atualizada de `0.5.0` para `0.6.0` e MCP de `0.11.0` para `0.12.0`,
   consolidando as refatorações TypeScript, os contratos Zod e OpenAPI da API
   e a integração do MCP com o SDK oficial; versões de contratos, handshake,

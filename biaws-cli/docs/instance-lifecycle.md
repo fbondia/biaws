@@ -52,10 +52,18 @@ biaws admin instance update local --check
 biaws admin instance update local --check --json
 ```
 
-O resultado informa `currentVersion`, `newVersion` e `updateRequired`.
-Instâncias criadas antes desse mecanismo começam com `currentVersion` igual a
-`unknown` e são consideradas pendentes. Se as versões forem iguais, o comando
-não cria backup nem reconstrói containers; use `--force` para repetir o deploy.
+O resultado informa `currentVersion`, `newVersion`, `updateRequired`,
+`legacyInstallation`, `installedRelease`, `availableRelease` e `differences`.
+Cada diferença contém `field`, `current` e `available`; a saída textual também
+mostra as alterações. O manifesto `release.json` do checkout descreve a versão
+da plataforma, a revisão de implantação e as versões de API, UI e executor.
+Qualquer diferença nesses campos exige atualização, mesmo com a mesma versão
+geral. A versão do CLI e a do MCP não participam dessa comparação.
+
+Instâncias sem `instances/<nome>/release.json` são legadas e exigem atualização,
+mesmo com `BIAWS_VERSION` igual. Um snapshot inválido causa erro explícito.
+Quando o manifesto é igual, não há backup nem reconstrução; `--force` permite
+repetir o deploy. `--check` é somente leitura e não precisa executar Docker.
 
 Por padrão, o comando valida o arquivo Compose, solicita uma senha, cria um
 backup completo e então executa `up -d --build --wait`. Em automação, use um
@@ -70,10 +78,19 @@ local pode ser dispensada explicitamente com `--skip-backup`. O update preserva
 o project name, o `.env`, os volumes e os bind mounts da instância. Ele não
 executa `git pull` nem troca a versão do checkout.
 
-A versão implantada só é registrada depois que `up -d --build --wait` termina
-com sucesso. Ela também é exposta pelo `/api/health` e pelos labels dos
-containers de API e UI. A versão nova é lida do `biaws-cli/package.json` da
-raiz selecionada por `--root`/`BIAWS_ROOT`.
+O manifesto aplicado só é registrado depois que `up -d --build --wait` termina
+com sucesso. O update inclui o executor local já existente no projeto Compose;
+executores externos continuam sendo atualizados separadamente. Cada arquivo de
+estado é substituído atomicamente, preservando o `.env` e suas permissões
+privadas. Se o deploy falhar, o snapshot anterior permanece. Se a gravação do
+estado falhar após o deploy, o comando falha e deve ser repetido para reconciliar.
+
+`release.json` vem da raiz selecionada por `--root`/`BIAWS_ROOT` e deve estar
+sincronizado com os pacotes. Sua `version` é exposta pelo `/api/health` e pelos
+labels de API e UI. O setup registra o mesmo snapshot após o bootstrap; com
+`--skip-bootstrap`, ele não registra uma release. O restore invalida o snapshot
+porque não restaura imagens: execute update no checkout desejado depois dele.
+Consulte [o guia de versões](../../docs/versions.md) para preparar uma release.
 
 ## Smoke test Docker real
 

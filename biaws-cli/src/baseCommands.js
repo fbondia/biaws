@@ -1,36 +1,16 @@
-import {
-  access,
-  chmod,
-  mkdtemp,
-  mkdir,
-  readFile,
-  readdir,
-  stat,
-  rm,
-  writeFile,
-} from "node:fs/promises";
+import { access, chmod, mkdtemp, mkdir, readFile, readdir, rename, stat, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { Command } from "@oclif/core";
 
 import { createApiClient } from "./apiClient.js";
-import {
-  resolveAuthenticatedContext,
-  resolveCommandContext,
-} from "./core/context.js";
+import { resolveAuthenticatedContext, resolveCommandContext } from "./core/context.js";
 import { ProcessRunner } from "./core/processRunner.js";
 import { createPromptAdapter } from "./core/prompts.js";
-import {
-  CliLogger,
-  CliOutput,
-  createTerminalAdapter,
-} from "./core/terminal.js";
+import { CliLogger, CliOutput, createTerminalAdapter } from "./core/terminal.js";
 
-export const TOOL_DIRECTORY = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-);
+export const TOOL_DIRECTORY = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export function createCommandAdapters(overrides = {}) {
   const environment = overrides.environment || { ...process.env };
@@ -41,6 +21,7 @@ export function createCommandAdapters(overrides = {}) {
     mkdir,
     readFile,
     readdir,
+    rename,
     stat,
     rm,
     writeFile,
@@ -53,8 +34,7 @@ export function createCommandAdapters(overrides = {}) {
       stdout: terminal.stdout,
       stderr: terminal.stderr,
     });
-  const prompts =
-    overrides.prompts || createPromptAdapter(terminal, overrides.promptOptions);
+  const prompts = overrides.prompts || createPromptAdapter(terminal, overrides.promptOptions);
   return Object.freeze({
     apiFactory: overrides.apiFactory || createApiClient,
     cwd: overrides.cwd || (() => process.cwd()),
@@ -110,11 +90,7 @@ export class AuthenticatedApiCommand extends BaseCommand {
     });
     return Object.freeze({
       ...context,
-      api: this.adapters.apiFactory(
-        context.apiUrl,
-        context.apiKey,
-        context.workspaceId,
-      ),
+      api: this.adapters.apiFactory(context.apiUrl, context.apiKey, context.workspaceId),
     });
   }
 }

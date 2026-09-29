@@ -375,6 +375,9 @@ fi
 
 destination_env_snapshot="${WORK_DIR}/destination.env"
 cp -p "${ENV_FILE}" "${destination_env_snapshot}"
+# O restore recupera dados/configuração, não as imagens da release de origem.
+# Exige reconciliação via update antes de declarar uma release aplicada.
+rm -f -- "${INSTANCE_DIR}/release.json"
 merge_environment "${SOURCE_ENV}" "${ENV_FILE}"
 
 secrets_key_target="$(read_env_value_from "${destination_env_snapshot}" BIAWS_SECRETS_KEY_PATH)"

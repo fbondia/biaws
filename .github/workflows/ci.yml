@@ -21,6 +21,7 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/check-documentation.mjs
+      - run: node scripts/release-manifest.mjs check
 
   api:
     runs-on: ubuntu-latest
@@ -240,6 +241,18 @@ jobs:
             echo "Executor API key leaked into logs" >&2
             exit 1
           fi
+      - name: Verify release manifest and legacy update
+        run: |
+          npm ci --prefix biaws-cli
+          node biaws-cli/bin/biaws.js admin instance update ci --check --json > "${RUNNER_TEMP}/release-check.json"
+          node -e 'const s=require(process.argv[1]); if(s.updateRequired || s.legacyInstallation) process.exit(1)' "${RUNNER_TEMP}/release-check.json"
+          mv instances/ci/release.json "${RUNNER_TEMP}/applied-release.json"
+          node biaws-cli/bin/biaws.js admin instance update ci --check --json > "${RUNNER_TEMP}/legacy-check.json"
+          node -e 'const s=require(process.argv[1]); if(!s.updateRequired || !s.legacyInstallation) process.exit(1)' "${RUNNER_TEMP}/legacy-check.json"
+          node biaws-cli/bin/biaws.js admin instance update ci --skip-backup --json
+          node biaws-cli/bin/biaws.js admin instance update ci --json > "${RUNNER_TEMP}/unchanged.json"
+          node -e 'const s=require(process.argv[1]); if(s.updated || s.updateRequired || s.backupCreated) process.exit(1)' "${RUNNER_TEMP}/unchanged.json"
+          node --input-type=module -e 'import assert from "node:assert/strict"; import fs from "node:fs"; assert.deepEqual(JSON.parse(fs.readFileSync("release.json")), JSON.parse(fs.readFileSync("instances/ci/release.json")))'
       - name: Collect service logs
         if: failure()
         run: >-

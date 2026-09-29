@@ -4,17 +4,58 @@ Os componentes Node.js do BIAWS têm versões independentes. A fonte canônica
 de cada uma é o `package.json` do próprio componente, mas nem toda versão tem o
 mesmo significado operacional:
 
-| Componente               | Pacote                | Uso da versão                                                    |
-| ------------------------ | --------------------- | ---------------------------------------------------------------- |
-| `biaws-api`              | privado               | metadado npm e versão do documento OpenAPI                       |
-| `biaws-ui`               | privado               | metadado npm do componente; não é exposto pelo bundle            |
-| `biaws-mcp`              | público (`biaws-mcp`) | pacote npm e versão anunciada no handshake MCP                   |
-| `biaws-cli`              | público (`biaws`)     | pacote npm e versão da release da plataforma implantada pelo CLI |
-| `biaws-monitor-executor` | privado               | metadado npm do componente; não é exposto pelo runtime           |
+| Componente               | Pacote                | Uso da versão                                          |
+| ------------------------ | --------------------- | ------------------------------------------------------ |
+| `biaws-api`              | privado               | metadado npm e versão do documento OpenAPI             |
+| `biaws-ui`               | privado               | metadado npm do componente; não é exposto pelo bundle  |
+| `biaws-mcp`              | público (`biaws-mcp`) | pacote npm e versão anunciada no handshake MCP         |
+| `biaws-cli`              | público (`biaws`)     | pacote npm e versão da ferramenta de administração     |
+| `biaws-monitor-executor` | privado               | metadado npm do componente; não é exposto pelo runtime |
 
 `shared` e a raiz do repositório não têm versão própria. O arquivo
 `shared/package.json` é privado e não possui o campo `version`; o
 `package.json` da raiz está vazio.
+
+## Manifesto da instalação
+
+O arquivo `release.json` na raiz define a release da plataforma, independente
+da versão do CLI. Seu contrato contém:
+
+- `schemaVersion`: formato do manifesto, atualmente `1`;
+- `version`: versão SemVer da release, usada em `BIAWS_VERSION`, no health da API
+  e nos labels OCI;
+- `deploymentRevision`: inteiro positivo que deve aumentar quando Compose,
+  Dockerfiles, bootstrap, migrações ou configuração de implantação mudarem;
+- `components`: versões de `biaws-api`, `biaws-ui` e `biaws-monitor-executor`,
+  sincronizadas com os respectivos `package.json`.
+
+Ao alterar a versão de um desses componentes, atualize também sua entrada em
+`release.json`. O CLI, o setup e a CI rejeitam manifestos divergentes dos pacotes:
+
+```bash
+node scripts/release-manifest.mjs check
+```
+
+Cada release distribuída deve receber uma nova `version`. A detecção também
+compara cada componente e `deploymentRevision`, portanto uma alteração nesses
+campos exige atualização mesmo se a versão geral tiver sido mantida. O CLI e o
+MCP são ferramentas distribuídas separadamente e não integram esse manifesto.
+Executores externos mantêm seu processo de publicação e atualização próprio.
+
+Após o setup ou update concluir com sucesso, o manifesto aplicado é gravado em
+`instances/<instancia>/release.json`. `update --check` compara esse snapshot com
+o manifesto do checkout e mostra as diferenças; a ordem das chaves não importa.
+Instâncias sem snapshot são legadas e exigem uma atualização, mesmo que seu
+`BIAWS_VERSION` coincida. Manifestos inválidos geram erro, não são ignorados.
+Com manifestos iguais, o update não cria backup nem reconstrói; `--force`
+permite repetir a implantação. Não há comparação de commits nem `git pull`.
+
+O update continua reconstruindo a instalação completa e inclui o executor
+local se ele já existir no projeto Compose, mesmo sem ativar novamente o
+profile. O executor opcional ausente só é iniciado quando seu profile é
+habilitado. `setup --skip-bootstrap` não registra uma release aplicada. O restore
+invalida o snapshot, pois restaura dados e configuração, não imagens: execute
+update no checkout desejado para reconciliar a instalação.
 
 ## Regra geral
 
@@ -69,9 +110,10 @@ A versão independente da API é exposta no documento OpenAPI quando a
 documentação está habilitada. O endpoint
 `/api/health` não lê `biaws-api/package.json`: ele devolve `BIAWS_VERSION`,
 recebida pelo serviço `api` em `compose.yaml`. Essa variável representa a
-**release da plataforma**, descrita na seção do CLI, e não a versão independente
+**release da plataforma**, definida pelo manifesto, e não a versão independente
 do pacote da API. Portanto, não altere `.env.example`, `compose.yaml` ou testes
-de `BIAWS_VERSION` ao fazer somente um bump da API.
+de `BIAWS_VERSION` ao fazer somente um bump da API. Atualize a entrada
+`components.biaws-api` do manifesto.
 
 A API usa TypeScript estrito e executa JavaScript compilado em produção,
 inclusive nos comandos de bootstrap, seed e migração. O build emite
@@ -120,7 +162,8 @@ Arquivos obrigatórios:
 Não existe versão fixada no código da UI. Assim como na API, o label
 `org.opencontainers.image.version` de `compose.yaml` usa a release da plataforma
 (`BIAWS_VERSION`), não `biaws-ui/package.json`. Um bump isolado da UI não exige
-alterar Compose nem os exemplos de versões presentes nos testes de catálogo.
+alterar Compose nem os exemplos de versões presentes nos testes de catálogo;
+atualize `components.biaws-ui` em `release.json`.
 
 Validação do componente:
 
@@ -218,19 +261,11 @@ da versão do CLI para editar. Não confunda `MCP_PACKAGE_VERSION`, em
 `biaws-cli/src/commands/agent.js`, com a versão do CLI: ela só muda quando muda
 a versão do MCP instalada nos projetos.
 
-A versão do CLI também é a versão da **release da plataforma**. Os fluxos de
-setup e update leem `biaws-cli/package.json`, gravam `BIAWS_VERSION` no `.env`
-da instância e a propagam para:
-
-- o campo `version` de `/api/health`;
-- o label OCI de API e UI em `compose.yaml`;
-- a comparação `currentVersion`/`newVersion` de
-  `biaws admin instance update --check`.
-
-Assim, um bump do CLI faz uma instância reconstruída aparecer como uma nova
-release da plataforma, ainda que API e UI não tenham recebido bumps próprios.
-Não substitua manualmente `BIAWS_VERSION=unknown` em `.env.example`: o setup e o
-update gravam o valor efetivo na instância.
+A versão do CLI é independente da release da plataforma. Um bump do CLI não
+faz uma instalação precisar de atualização. Setup e update usam `release.json`
+da raiz selecionada por `--root`/`BIAWS_ROOT`; depois do sucesso, gravam sua
+`version` em `BIAWS_VERSION` e seu conteúdo no snapshot da instância.
+Não substitua manualmente `BIAWS_VERSION=unknown` em `.env.example`.
 
 Valide o pacote e a instalação empacotada:
 
@@ -269,7 +304,8 @@ Arquivos obrigatórios:
 
 - `biaws-monitor-executor/package.json`;
 - `biaws-monitor-executor/package-lock.json`, nas duas posições de versão do
-  projeto.
+  projeto;
+- `components.biaws-monitor-executor` em `release.json`.
 
 Não há constante de versão no runtime nem teste com a versão do pacote. O
 serviço local em `compose.yaml` é construído diretamente do checkout e não fixa
@@ -310,8 +346,10 @@ Quando uma mudança atravessar módulos, faça os bumps independentes necessári
 na mesma alteração e valide todos os consumidores. A ordem recomendada é:
 
 1. escolher as versões e atualizar `CHANGELOG.md`;
-2. atualizar manifestos, locks, constantes, testes e exemplos descritos acima;
-3. executar `node scripts/check-documentation.mjs`;
+2. atualizar manifestos, locks, constantes, testes e exemplos descritos acima,
+   incluindo `release.json` quando a instalação mudar;
+3. executar `node scripts/check-documentation.mjs` e
+   `node scripts/release-manifest.mjs check`;
 4. executar as validações de cada componente alterado;
 5. executar `npm run release:check` no MCP e no CLI se qualquer um deles ou o
    vínculo MCP/CLI tiver mudado;
@@ -329,6 +367,7 @@ do deploy.
 
 ## Checklist final
 
+- [ ] manifesto de release sincronizado e revisão de implantação atualizada quando aplicável;
 - [ ] `package.json`, `package-lock.json` e `packages[""]` têm a mesma versão;
 - [ ] referências fixas encontradas por `rg` foram classificadas e atualizadas
       quando pertencem ao componente;

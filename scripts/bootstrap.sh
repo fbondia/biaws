@@ -160,7 +160,8 @@ ui_port="${BIAWS_UI_PORT:-$(read_env_value "BIAWS_UI_PORT")}"
 api_port="${api_port:-3100}"
 ui_port="${ui_port:-4400}"
 
-compose up -d --build
+existing_services="$(compose ps --all --services)"
+compose up -d --build --wait mongo api ui
 
 echo "Aguardando a API ficar disponível..."
 for attempt in $(seq 1 60); do
@@ -264,6 +265,15 @@ compose exec -T api npm run seed:skills
 
 if [[ "${BIAWS_SKIP_DEMO_SEED:-0}" != "1" ]]; then
   compose exec -T api npm run seed:demo
+fi
+
+# Só inicie o executor após reconciliar sua identidade e o arquivo da chave.
+monitoring_profile=0
+case ",${COMPOSE_PROFILES:-$(read_env_value COMPOSE_PROFILES)}," in
+  *,active-monitoring,*) monitoring_profile=1 ;;
+esac
+if [[ "${monitoring_profile}" == "1" ]] || printf '%s\n' "${existing_services}" | grep -qx 'monitor-executor'; then
+  compose up -d --build --wait monitor-executor
 fi
 
 if [[ -n "${INSTANCE}" ]]; then

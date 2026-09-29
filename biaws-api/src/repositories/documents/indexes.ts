@@ -35,12 +35,7 @@ export async function ensureIndexes(db: Db) {
     }),
     db
       .collection(COLLECTION_NAMES.KNOWLEDGE_REVISIONS)
-      .createIndex(
-        { entityType: 1, entityId: 1, revision: -1 },
-        { unique: true },
-      ),
-    db
-      .collection(COLLECTION_NAMES.KNOWLEDGE_OBSERVATIONS)
-      .createIndex({ entityType: 1, entityId: 1, createdAt: -1 }),
+      .createIndex({ entityType: 1, entityId: 1, revision: -1 }, { unique: true }),
+    db.collection(COLLECTION_NAMES.KNOWLEDGE_OBSERVATIONS).createIndex({ entityType: 1, entityId: 1, createdAt: -1 }),
   ]);
 }

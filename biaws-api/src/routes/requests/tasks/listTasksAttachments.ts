@@ -7,12 +7,8 @@ export function registerListTasksAttachments(router: Router) {
   router.get(
     "/:id/tasks/:taskId/attachments",
     requireAllPermissions("tasks.attachment.read"),
-    createResourceReadHandler(
-      "demand",
-      "tasks.attachment.read",
-      async (req: Request, query: {} | undefined) => {
-        return readRequestAttachmentResource(req.params.id, req.params, query);
-      },
-    ),
+    createResourceReadHandler("demand", "tasks.attachment.read", async (req: Request, query: {} | undefined) => {
+      return readRequestAttachmentResource(req.params.id, req.params, query);
+    }),
   );
 }

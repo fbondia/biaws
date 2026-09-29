@@ -65,17 +65,14 @@ test("monitoring templates reject invalid expressions and sensitive samples befo
         rules: [
           {
             ...definition.rules[0],
-            conditions: [
-              { path: "evidence.status_code", operator: "matches", value: "[" },
-            ],
+            conditions: [{ path: "evidence.status_code", operator: "matches", value: "[" }],
           },
         ],
       }),
     (error) => errorStatusCode(error) === 422,
   );
   assert.throws(
-    () =>
-      sanitizeMonitoringTemplateSample({ evidence: { apiToken: "sensitive" } }),
+    () => sanitizeMonitoringTemplateSample({ evidence: { apiToken: "sensitive" } }),
     (error) => errorCode(error) === "INVALID_MONITORING_TEMPLATE",
   );
 });

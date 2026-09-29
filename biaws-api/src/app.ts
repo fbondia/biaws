@@ -2,22 +2,16 @@ import type { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import express from "express";
 import swaggerUi from "swagger-ui-express";
-import { accessSync, constants, mkdirSync } from "fs";
+import { accessSync, constants, mkdirSync } from "node:fs";
 
 import { authHandler, getAuthenticatedActor } from "./auth/auth.js";
-import {
-  requireAuthentication,
-  requireWorkspaceContext,
-} from "./auth/authenticationMiddleware.js";
+import { requireAuthentication, requireWorkspaceContext } from "./auth/authenticationMiddleware.js";
 import { getIssueBaseDir } from "./helpers/issueStorage.js";
 import { getServerConfig } from "./config.js";
 import { createAttachmentStorage } from "./storage/attachmentStorage.js";
 import { createApiRateLimitMiddleware } from "./rateLimit/apiRateLimitMiddleware.js";
 import { apiLogger } from "./logging/logger.js";
-import {
-  createErrorHandler,
-  createRequestLoggingMiddleware,
-} from "./logging/httpLogging.js";
+import { createErrorHandler, createRequestLoggingMiddleware } from "./logging/httpLogging.js";
 import { issuesRouter } from "./routes/issues/index.js";
 import { requestsRouter } from "./routes/requests/index.js";
 import { skillsRouter } from "./routes/skills/index.js";
@@ -73,34 +67,26 @@ export function createApp({ logger = apiLogger } = {}) {
 
   // Better Auth needs the original request body and must be mounted before
   // express.json(). Express 5 names the wildcard parameter.
-  app.get(
-    "/api/auth/me",
-    async (req: Request, res: Response, next: NextFunction) => {
-      try {
-        const actor = await getAuthenticatedActor(req);
-        if (!actor) {
-          res.status(401).json({
-            error: {
-              code: "UNAUTHENTICATED",
-              message: "A valid Better Auth session is required",
-            },
-          });
-          return;
-        }
-
-        res.json({ actor });
-      } catch (error) {
-        next(error);
+  app.get("/api/auth/me", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const actor = await getAuthenticatedActor(req);
+      if (!actor) {
+        res.status(401).json({
+          error: {
+            code: "UNAUTHENTICATED",
+            message: "A valid Better Auth session is required",
+          },
+        });
+        return;
       }
-    },
-  );
 
-  app.use(
-    "/api/auth/admin",
-    requireAuthentication,
-    requireWorkspaceContext,
-    requireIdentityAdminOperation,
-  );
+      res.json({ actor });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.use("/api/auth/admin", requireAuthentication, requireWorkspaceContext, requireIdentityAdminOperation);
   app.use(
     "/api/auth/api-key",
     requireAuthentication,
@@ -166,18 +152,9 @@ export function createApp({ logger = apiLogger } = {}) {
   app.use("/api/secrets", ...protectedRoute, secretsRouter);
   app.use("/api/knowledge", ...protectedRoute, knowledgeRecordsRouter);
   app.use("/api/preferences", ...protectedRoute, userPreferencesRouter);
-  app.use(
-    "/api/resource-collections",
-    ...protectedRoute,
-    resourceCollectionsRouter,
-  );
+  app.use("/api/resource-collections", ...protectedRoute, resourceCollectionsRouter);
   app.use("/api/monitoring", ...protectedRoute, monitoringRouter);
-  app.use(
-    "/api/catalog",
-    ...platformRoute,
-    catalogRouter,
-    catalogTopologyRouter,
-  );
+  app.use("/api/catalog", ...platformRoute, catalogRouter, catalogTopologyRouter);
 
   app.use((req: Request, res: Response) => {
     res.status(404).json({

@@ -8,11 +8,7 @@ export async function validateTarget(
   targetApplicationId: string | string[],
 ) {
   if (application.id === targetApplicationId) {
-    throw createCatalogError(
-      422,
-      "INTEGRATION_SELF_REFERENCE",
-      "an application cannot integrate with itself",
-    );
+    throw createCatalogError(422, "INTEGRATION_SELF_REFERENCE", "an application cannot integrate with itself");
   }
   try {
     return await requireOperationalApplication(targetApplicationId, {

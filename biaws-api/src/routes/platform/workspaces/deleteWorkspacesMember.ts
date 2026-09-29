@@ -7,10 +7,7 @@ export function registerDeleteWorkspacesMember(router: Router) {
   router.delete(
     "/workspaces/:workspaceId/members/:userId",
     asyncHandler(async (req: Request, res: Response) => {
-      const result = await removeWorkspaceMember(
-        req.params.workspaceId,
-        req.params.userId,
-      );
+      const result = await removeWorkspaceMember(req.params.workspaceId, req.params.userId);
       await recordAuditEvent({
         actor: req.actor,
         action: "membership.removed",

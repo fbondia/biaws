@@ -1,15 +1,7 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
-import {
-  getIntegration,
-  restoreIntegration,
-} from "../../../repositories/integrations/index.js";
-import {
-  sendNotFound,
-  scopedApplicationEntity,
-  auditMutation,
-  asyncHandler,
-} from "../helpers.js";
+import { getIntegration, restoreIntegration } from "../../../repositories/integrations/index.js";
+import { sendNotFound, scopedApplicationEntity, auditMutation, asyncHandler } from "../helpers.js";
 
 const parameter = "integrationId";
 

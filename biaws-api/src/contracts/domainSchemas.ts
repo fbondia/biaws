@@ -1,63 +1,57 @@
+import { textValue } from "../helpers/text.js";
 import { z } from "zod";
 
 // These schemas describe the HTTP boundary. Database relations, authorization,
 // dynamic option lists and uniqueness remain in the domain repositories.
 export const routeQuerySchema = z.record(z.string(), z.unknown());
-export const optionalObjectBodySchema = z.object({}).passthrough().optional();
+export const optionalObjectBodySchema = z.looseObject({}).optional();
 export const publicObjectSchema = z.record(z.string(), z.json());
 
 const legacyRequiredIssueText = (field: "title" | "text") =>
   z
     .unknown()
-    .transform((value) => String(value || "").trim())
+    .transform((value, context) => {
+      try {
+        return textValue(value || "").trim();
+      } catch {
+        context.addIssue({ code: "custom", message: `Invalid issue payload: ${field} must be text` });
+        return z.NEVER;
+      }
+    })
     .refine(Boolean, `Invalid issue payload: ${field} is required`);
 
-export const issueCreateBodySchema = z
-  .object({
-    title: legacyRequiredIssueText("title"),
-    text: legacyRequiredIssueText("text"),
-    type: z.unknown().optional(),
-    status: z.unknown().optional(),
-    date: z.unknown().optional(),
-    comment: z.unknown().optional(),
-    applicationId: z.unknown().optional(),
-    affectedComponentIds: z.unknown().optional(),
-  })
-  .passthrough();
+export const issueCreateBodySchema = z.looseObject({
+  title: legacyRequiredIssueText("title"),
+  text: legacyRequiredIssueText("text"),
+  type: z.unknown().optional(),
+  status: z.unknown().optional(),
+  date: z.unknown().optional(),
+  comment: z.unknown().optional(),
+  applicationId: z.unknown().optional(),
+  affectedComponentIds: z.unknown().optional(),
+});
 
 export type IssueCreateInput = z.input<typeof issueCreateBodySchema>;
 export type IssueCreateOutput = z.output<typeof issueCreateBodySchema>;
 
-export const issueResponseSchema = z
-  .object({
-    issue: z
-      .object({
-        _id: z.string(),
-        id: z.string(),
-        workspaceId: z.string(),
-      })
-      .passthrough(),
-  })
-  .passthrough();
+export const issueResponseSchema = z.looseObject({
+  issue: z.looseObject({
+    _id: z.string(),
+    id: z.string(),
+    workspaceId: z.string(),
+  }),
+});
 
-export const demandResponseSchema = z
-  .object({
-    request: z
-      .object({
-        id: z.string(),
-        workspaceId: z.string(),
-      })
-      .passthrough(),
-  })
-  .passthrough();
+export const demandResponseSchema = z.looseObject({
+  request: z.looseObject({
+    id: z.string(),
+    workspaceId: z.string(),
+  }),
+});
 
-export const monitoringTemplateResponseSchema = z
-  .object({
-    template: z
-      .object({ id: z.string(), name: z.string(), version: z.string() })
-      .passthrough(),
-  })
-  .passthrough();
+export const monitoringTemplateResponseSchema = z.looseObject({
+  template: z.looseObject({ id: z.string(), name: z.string(), version: z.string() }),
+});
 
 export const publicSecretSchema = z
   .object({
@@ -76,9 +70,7 @@ export const publicSecretSchema = z
     currentVersion: z.number(),
     versionCount: z.number(),
     contentKind: z.string(),
-    file: z
-      .object({ name: z.string(), mediaType: z.string(), size: z.number() })
-      .nullable(),
+    file: z.object({ name: z.string(), mediaType: z.string(), size: z.number() }).nullable(),
     createdAt: z.union([z.string(), z.date()]).optional(),
     createdBy: z.string().nullable().optional(),
     updatedAt: z.union([z.string(), z.date()]).optional(),
@@ -86,9 +78,7 @@ export const publicSecretSchema = z
   })
   .strict();
 
-export const secretResponseSchema = z
-  .object({ secret: publicSecretSchema })
-  .strict();
+export const secretResponseSchema = z.object({ secret: publicSecretSchema }).strict();
 
 export type PublicSecret = z.output<typeof publicSecretSchema>;
 
@@ -113,33 +103,23 @@ export const domainBodySchemas = {
 
 export type ContractDomain = keyof typeof domainBodySchemas;
 
-export function operationBodySchema(
-  domain: ContractDomain,
-  method: string,
-  routePath: string,
-): z.ZodType {
+export function operationBodySchema(domain: ContractDomain, method: string, routePath: string): z.ZodType {
   if (domain === "issuesRouter" && method === "post" && routePath === "/") {
     return issueCreateBodySchema;
   }
   return method === "get" ? z.unknown() : domainBodySchemas[domain];
 }
 
-export function operationResponseSchema(
-  domain: ContractDomain,
-  method: string,
-  routePath: string,
-): z.ZodType {
+export function operationResponseSchema(domain: ContractDomain, method: string, routePath: string): z.ZodType {
   if (
     domain === "issuesRouter" &&
-    ((method === "post" && routePath === "/") ||
-      (method === "get" && routePath === "/:id"))
+    ((method === "post" && routePath === "/") || (method === "get" && routePath === "/:id"))
   ) {
     return issueResponseSchema;
   }
   if (
     domain === "requestsRouter" &&
-    ((method === "post" && routePath === "/") ||
-      (method === "get" && routePath === "/:id"))
+    ((method === "post" && routePath === "/") || (method === "get" && routePath === "/:id"))
   ) {
     return demandResponseSchema;
   }
@@ -148,19 +128,12 @@ export function operationResponseSchema(
     ((["post", "get", "patch"].includes(method) &&
       ["/templates", "/templates/:templateId"].includes(routePath) &&
       !(method === "get" && routePath === "/templates")) ||
-      /^\/templates\/:templateId\/versions\/:version\/(activate|deactivate)$/u.test(
-        routePath,
-      ) ||
-      (method === "delete" &&
-        routePath === "/templates/:templateId/versions/:version"))
+      /^\/templates\/:templateId\/versions\/:version\/(activate|deactivate)$/u.test(routePath) ||
+      (method === "delete" && routePath === "/templates/:templateId/versions/:version"))
   ) {
     return monitoringTemplateResponseSchema;
   }
-  if (
-    domain === "secretsRouter" &&
-    routePath === "/:secretId" &&
-    method === "get"
-  ) {
+  if (domain === "secretsRouter" && routePath === "/:secretId" && method === "get") {
     return secretResponseSchema;
   }
   return publicObjectSchema;

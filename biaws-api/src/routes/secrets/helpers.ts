@@ -30,4 +30,4 @@ export function auditMetadata(secret: {
   };
 }
 
-export const asyncHandler = createReferenceHandler(undefined);
+export const asyncHandler = createReferenceHandler();

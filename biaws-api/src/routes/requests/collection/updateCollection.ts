@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  getRequest,
-  moveRequestToCollection,
-} from "../../../repositories/requests/index.js";
+import { getRequest, moveRequestToCollection } from "../../../repositories/requests/index.js";
 import { assertResourceCollection } from "../../../repositories/resourceCollections/index.js";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { scopedQuery, auditDemand, asyncHandler } from "../helpers.js";
@@ -20,11 +17,7 @@ export function registerUpdateCollection(router: Router) {
         req.actor.workspaceId,
         query,
       );
-      const result = await moveRequestToCollection(
-        req.params.id,
-        collectionId,
-        query,
-      );
+      const result = await moveRequestToCollection(req.params.id, collectionId, query);
       await auditDemand({
         req,
         action: "updated",

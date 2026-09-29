@@ -1,6 +1,5 @@
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { getMongoDatabase } from "../helpers/mongoClient.js";
-import type { ObjectId } from "mongodb";
 
 interface RateLimitDocument {
   _id: string;
@@ -14,9 +13,7 @@ let indexesPromise: Promise<string>;
 
 async function getCollection() {
   const database = await getMongoDatabase();
-  const collection = database.collection<RateLimitDocument>(
-    COLLECTION_NAMES.API_RATE_LIMITS,
-  );
+  const collection = database.collection<RateLimitDocument>(COLLECTION_NAMES.API_RATE_LIMITS);
   if (!indexesPromise) {
     indexesPromise = collection.createIndex(
       { expiresAt: 1 },
@@ -27,13 +24,7 @@ async function getCollection() {
   return collection;
 }
 
-export async function consumeApiRateLimit({
-  key,
-  windowSeconds,
-}: {
-  key: string;
-  windowSeconds: number;
-}) {
+export async function consumeApiRateLimit({ key, windowSeconds }: { key: string; windowSeconds: number }) {
   const now = Date.now();
   const windowMilliseconds = windowSeconds * 1_000;
   const windowStart = Math.floor(now / windowMilliseconds) * windowMilliseconds;

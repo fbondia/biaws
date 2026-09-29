@@ -1,9 +1,5 @@
 import { errorCode } from "../../src/helpers/error.js";
-import {
-  isolatedDatabaseName,
-  restoreEnvironmentAfter,
-  availablePort,
-} from "../support/integration.js";
+import { isolatedDatabaseName, restoreEnvironmentAfter, availablePort } from "../support/integration.js";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
@@ -21,12 +17,9 @@ test(
     process.env.MONGO_URI = process.env.BIAWS_INTEGRATION_MONGO_URI;
     process.env.MONGO_DB = isolatedDatabaseName();
 
-    const { closeMongoClient, getMongoDatabase } =
-      await import("../../src/helpers/mongoClient.js");
-    const { ensureDefaultWorkspace } =
-      await import("../../src/repositories/catalog/index.js");
-    const { INITIAL_PERMISSION_GROUPS } =
-      await import("../../src/repositories/access/index.js");
+    const { closeMongoClient, getMongoDatabase } = await import("../../src/helpers/mongoClient.js");
+    const { ensureDefaultWorkspace } = await import("../../src/repositories/catalog/index.js");
+    const { INITIAL_PERMISSION_GROUPS } = await import("../../src/repositories/access/index.js");
     const {
       getWorkspaceSummary,
       provisionWorkspace,
@@ -37,27 +30,23 @@ test(
 
     const db = await getMongoDatabase();
     try {
-      await db
-        .collection<{ _id: string; name: string; email: string }>(
-          COLLECTION_NAMES.AUTH_USERS,
-        )
-        .insertMany([
-          {
-            _id: "platform-admin-1",
-            name: "Admin 1",
-            email: "a1@example.test",
-          },
-          {
-            _id: "platform-admin-2",
-            name: "Admin 2",
-            email: "a2@example.test",
-          },
-          {
-            _id: "platform-member-3",
-            name: "Member 3",
-            email: "m3@example.test",
-          },
-        ]);
+      await db.collection<{ _id: string; name: string; email: string }>(COLLECTION_NAMES.AUTH_USERS).insertMany([
+        {
+          _id: "platform-admin-1",
+          name: "Admin 1",
+          email: "a1@example.test",
+        },
+        {
+          _id: "platform-admin-2",
+          name: "Admin 2",
+          email: "a2@example.test",
+        },
+        {
+          _id: "platform-member-3",
+          name: "Member 3",
+          email: "m3@example.test",
+        },
+      ]);
       const actor: { userId: string; workspaceId?: string } = {
         userId: "platform-admin-1",
       };
@@ -92,37 +81,20 @@ test(
         updatedAt: new Date(),
       });
       assert.deepEqual(
-        (
-          await setWorkspaceMemberGroups(
-            workspace.id,
-            "platform-member-3",
-            [legacyGroupId.toHexString()],
-            actor,
-          )
-        ).groupIds,
+        (await setWorkspaceMemberGroups(workspace.id, "platform-member-3", [legacyGroupId.toHexString()], actor))
+          .groupIds,
         [legacyGroupId.toHexString()],
       );
 
-      await setWorkspaceMemberGroups(
-        workspace.id,
-        "platform-admin-2",
-        [administrationGroupId],
-        actor,
-      );
+      await setWorkspaceMemberGroups(workspace.id, "platform-admin-2", [administrationGroupId], actor);
       await removeWorkspaceMember(workspace.id, "platform-admin-1");
       await assert.rejects(
         removeWorkspaceMember(workspace.id, "platform-admin-2"),
         (error) => errorCode(error) === "LAST_WORKSPACE_ADMIN",
       );
 
-      assert.equal(
-        (await setWorkspaceStatus(workspace.id, "archived", actor))?.status,
-        "archived",
-      );
-      assert.equal(
-        (await setWorkspaceStatus(workspace.id, "active", actor))?.status,
-        "active",
-      );
+      assert.equal((await setWorkspaceStatus(workspace.id, "archived", actor))?.status, "archived");
+      assert.equal((await setWorkspaceStatus(workspace.id, "active", actor))?.status, "active");
       await assert.rejects(
         setWorkspaceStatus(defaultWorkspace.id, "archived", actor),
         (error) => errorCode(error) === "DEFAULT_WORKSPACE_REQUIRED",

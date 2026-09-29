@@ -87,8 +87,7 @@ test("collection navigation mutations reject malformed input", () => {
   ]) {
     assert.throws(
       () => normalizeCollectionNavigationMutation(payload),
-      (error) =>
-        errorCode(error) === "INVALID_COLLECTION_NAVIGATION_PREFERENCE",
+      (error) => errorCode(error) === "INVALID_COLLECTION_NAVIGATION_PREFERENCE",
     );
   }
 });
@@ -107,10 +106,7 @@ test("collection navigation updates atomically add and remove per user", () => {
     "collectionNavigation.documents.collapsedCollectionIds": "collection-1",
   });
   assert.equal(collapsed.update.$pull, undefined);
-  assert.equal(
-    collapsed.update.$set["collectionNavigation.documents.updatedAt"],
-    now,
-  );
+  assert.equal(collapsed.update.$set["collectionNavigation.documents.updatedAt"], now);
 
   const expanded = buildCollectionNavigationUpdateOperation(
     "documents",

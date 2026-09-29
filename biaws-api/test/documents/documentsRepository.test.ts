@@ -11,12 +11,7 @@ import {
 } from "../../src/repositories/documents/index.js";
 
 test("documents keep type-specific lifecycle states in one model", () => {
-  assert.deepEqual(documentTypeConfig("business-rule").statuses, [
-    "draft",
-    "active",
-    "retired",
-    "archived",
-  ]);
+  assert.deepEqual(documentTypeConfig("business-rule").statuses, ["draft", "active", "retired", "archived"]);
   assert.deepEqual(documentTypeConfig("architecture-decision").statuses, [
     "proposed",
     "accepted",
@@ -24,12 +19,7 @@ test("documents keep type-specific lifecycle states in one model", () => {
     "superseded",
     "archived",
   ]);
-  assert.deepEqual(documentTypeConfig("procedure").statuses, [
-    "draft",
-    "published",
-    "deprecated",
-    "archived",
-  ]);
+  assert.deepEqual(documentTypeConfig("procedure").statuses, ["draft", "published", "deprecated", "archived"]);
   assert.equal(Object.keys(DOCUMENT_TYPES).length, 6);
 });
 
@@ -65,9 +55,7 @@ test("document payload normalizes its common envelope and typed details", () => 
   assert.equal(document.identifier, "quality-tests");
   assert.equal(document.details.scope, "workspace");
   assert.equal(document.source.mode, "repository");
-  assert.deepEqual(document.references, [
-    { targetDocumentId: "doc-1", relationship: "supported-by" },
-  ]);
+  assert.deepEqual(document.references, [{ targetDocumentId: "doc-1", relationship: "supported-by" }]);
   assert.deepEqual(document.classification, {
     primaryTaxonomyId: "",
     secondaryTaxonomyIds: [],
@@ -105,11 +93,7 @@ test("document type is immutable and validates type-specific status", () => {
     status: "published",
   });
   assert.throws(
-    () =>
-      normalizeDocumentPayload(
-        { documentType: "guideline" },
-        { ...current, documentType: "feature" },
-      ),
+    () => normalizeDocumentPayload({ documentType: "guideline" }, { ...current, documentType: "feature" }),
     /não pode ser alterado/u,
   );
   assert.throws(
@@ -138,9 +122,7 @@ test("document references require unified document ids", () => {
       },
     ],
   });
-  assert.deepEqual(document.references, [
-    { targetDocumentId: "decision-1", relationship: "supported-by" },
-  ]);
+  assert.deepEqual(document.references, [{ targetDocumentId: "decision-1", relationship: "supported-by" }]);
 });
 
 test("document replication copies its identifier and replaceable content", () => {
@@ -181,10 +163,7 @@ test("document identifier is optional, editable and validated", () => {
     summary: "Resumo inicial.",
     markdown: "# Inicial",
   });
-  const updated = normalizeDocumentPayload(
-    { identifier: "second-identifier" },
-    current,
-  );
+  const updated = normalizeDocumentPayload({ identifier: "second-identifier" }, current);
   assert.equal(updated.identifier, "second-identifier");
   assert.equal(
     normalizeDocumentPayload({

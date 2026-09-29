@@ -8,12 +8,7 @@ export function registerGetResourceCollection(router: Router) {
     "/:resourceType",
     authorize("read"),
     asyncHandler(async (req: Request, res: Response) => {
-      res.json(
-        await listResourceCollections(
-          req.params.resourceType,
-          query(req, "read"),
-        ),
-      );
+      res.json(await listResourceCollections(req.params.resourceType, query(req, "read")));
     }),
   );
 }

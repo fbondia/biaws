@@ -9,11 +9,7 @@ export function registerUpdateGroupsStatus(router: Router) {
     requireAllPermissions("roles.manage"),
     asyncHandler(async (req: Request, res: Response) => {
       res.json({
-        group: await setPermissionGroupActive(
-          req.params.groupId,
-          req.body.active,
-          req.actor,
-        ),
+        group: await setPermissionGroupActive(req.params.groupId, req.body.active, req.actor),
       });
     }),
   );

@@ -30,9 +30,7 @@ export function resolveMongoUri() {
   const uri = readEnv("MONGO_URI", "MONGODB_URI", "MONGODB_CONNECTION");
 
   if (!uri) {
-    throw new Error(
-      "Missing MongoDB connection string. Set MONGO_URI or MONGODB_CONNECTION in biaws/.env.",
-    );
+    throw new Error("Missing MongoDB connection string. Set MONGO_URI or MONGODB_CONNECTION in biaws/.env.");
   }
 
   return uri;
@@ -41,21 +39,11 @@ export function resolveMongoUri() {
 export function resolveDatabaseName(options: RepositoryOptions = {}) {
   const uri = resolveMongoUri();
   const fromOption = options.db || options.database;
-  const fromEnv = readEnv(
-    "MONGO_DB",
-    "MONGODB_DB",
-    "MONGODB_DATABASE",
-    "MONGO_DATABASE",
-    "DB_NAME",
-  );
-  const databaseName = String(
-    fromOption ?? fromEnv ?? getDatabaseNameFromUri(uri) ?? "",
-  ).trim();
+  const fromEnv = readEnv("MONGO_DB", "MONGODB_DB", "MONGODB_DATABASE", "MONGO_DATABASE", "DB_NAME");
+  const databaseName = String(fromOption ?? fromEnv ?? getDatabaseNameFromUri(uri) ?? "").trim();
 
   if (!databaseName) {
-    throw new Error(
-      "Missing MongoDB database. Set MONGO_DB/MONGODB_DATABASE, include it in MONGO_URI, or pass db.",
-    );
+    throw new Error("Missing MongoDB database. Set MONGO_DB/MONGODB_DATABASE, include it in MONGO_URI, or pass db.");
   }
 
   return databaseName;

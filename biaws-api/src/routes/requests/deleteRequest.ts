@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  deleteRequest,
-  getRequest,
-} from "../../repositories/requests/index.js";
+import { deleteRequest, getRequest } from "../../repositories/requests/index.js";
 import { requireAllPermissions } from "../../auth/authorizationMiddleware.js";
 import { scopedQuery, auditDemand, asyncHandler } from "./helpers.js";
 

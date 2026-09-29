@@ -4,10 +4,7 @@ import test from "node:test";
 import { normalizeUploadFilename } from "../../src/services/attachmentService.js";
 
 test("multipart filename mojibake is decoded from Latin-1 to UTF-8 and normalized", () => {
-  assert.equal(
-    normalizeUploadFilename("Endpoints API AutomacÌ§aÌo - v3.docx"),
-    "Endpoints API Automação - v3.docx",
-  );
+  assert.equal(normalizeUploadFilename("Endpoints API AutomacÌ§aÌo - v3.docx"), "Endpoints API Automação - v3.docx");
 });
 
 test("already valid Unicode filenames are preserved and normalized to NFC", () => {

@@ -12,29 +12,13 @@ import {
   requiredText,
 } from "../../shared/topology/normalization.js";
 import { createCatalogError } from "../../shared/topology/errors.js";
-import {
-  monitoringMetadataPresentation,
-  normalizeMonitoringMetadataProfile,
-} from "../metadataProfiles/model.js";
+import { monitoringMetadataPresentation, normalizeMonitoringMetadataProfile } from "../metadataProfiles/model.js";
 import { Document, ObjectId } from "mongodb";
 
-export function normalizeMonitoringSignal(
-  payload: Record<string, unknown> = {},
-  actor: Partial<Actor> = {},
-) {
+export function normalizeMonitoringSignal(payload: Record<string, unknown> = {}, actor: Partial<Actor> = {}) {
   assertAllowedFields(
     payload,
-    [
-      "signalId",
-      "status",
-      "observedAt",
-      "source",
-      "message",
-      "metadata",
-      "metadataProfile",
-      "payload",
-      "templateRef",
-    ],
+    ["signalId", "status", "observedAt", "source", "message", "metadata", "metadataProfile", "payload", "templateRef"],
     "monitoring signal",
   );
   const signalId = optionalText(payload.signalId, "signalId", 128);
@@ -46,10 +30,7 @@ export function normalizeMonitoringSignal(
     );
   }
   const metadata = normalizeMetadata(payload.metadata, {});
-  const metadataProfile = normalizeMonitoringMetadataProfile(
-    payload.metadataProfile,
-    metadata,
-  );
+  const metadataProfile = normalizeMonitoringMetadataProfile(payload.metadataProfile, metadata);
   return {
     signalId: signalId || null,
     status: normalizeEnum(payload.status, "status", SIGNAL_STATUSES),
@@ -63,10 +44,7 @@ export function normalizeMonitoringSignal(
   };
 }
 
-export function monitoringExpirationDate(
-  receivedAt: string | number | Date,
-  retentionDays: number,
-) {
+export function monitoringExpirationDate(receivedAt: string | number | Date, retentionDays: number) {
   const days = Number(retentionDays);
   if (!Number.isInteger(days) || days <= 0) return null;
   return new Date(new Date(receivedAt).getTime() + days * DAY_MS);
@@ -93,9 +71,7 @@ export function normalizeManualMonitoringObservation(
   );
 }
 
-export function monitoringEventResponse(
-  signal: Omit<Document & { _id: ObjectId } & { _id?: unknown }, "_id"> | null,
-) {
+export function monitoringEventResponse(signal: Omit<Document & { _id: ObjectId } & { _id?: unknown }, "_id"> | null) {
   const event = normalizeDocument(signal);
   const metadataPresentation =
     event?.templateSnapshot?.presentation ||
@@ -103,15 +79,12 @@ export function monitoringEventResponse(
     monitoringMetadataPresentation(event?.metadataProfile);
   return {
     ...event,
-    origin:
-      !event?.origin || event.origin === "external" ? "passive" : event.origin,
+    origin: !event?.origin || event.origin === "external" ? "passive" : event.origin,
     ...(metadataPresentation ? { metadataPresentation } : {}),
   };
 }
 
-export function timelineEvent(
-  signal: Omit<Document & { _id: ObjectId } & { _id?: unknown }, "_id"> | null,
-) {
+export function timelineEvent(signal: Omit<Document & { _id: ObjectId } & { _id?: unknown }, "_id"> | null) {
   return {
     ...monitoringEventResponse(signal),
     payload: signal?.payload ?? null,

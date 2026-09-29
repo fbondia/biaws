@@ -1,14 +1,8 @@
 import type { Router, Request, Response } from "express";
-import {
-  getPermissionGroup,
-  replicatePermissionGroup,
-} from "../../../repositories/access/index.js";
+import { getPermissionGroup, replicatePermissionGroup } from "../../../repositories/access/index.js";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
-import {
-  replicateAcrossWorkspaces,
-  sendReplicationResponse,
-} from "../../../services/workspaceReplicationService.js";
+import { replicateAcrossWorkspaces, sendReplicationResponse } from "../../../services/workspaceReplicationService.js";
 import { requireReplicationIdentifier } from "../../../helpers/resourceIdentifier.js";
 import { asyncHandler } from "../../shared/asyncHandler.js";
 
@@ -35,8 +29,7 @@ export function registerCreateGroupsReplicate(router: Router) {
       const batch = await replicateAcrossWorkspaces({
         actor: req.actor,
         forbiddenCode: "DESTINATION_GROUP_MANAGE_FORBIDDEN",
-        forbiddenMessage:
-          "Você não possui permissão para administrar grupos neste workspace",
+        forbiddenMessage: "Você não possui permissão para administrar grupos neste workspace",
         payload: req.body,
         permission: "roles.manage",
         resourceType: "permission_group",

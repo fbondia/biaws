@@ -1,15 +1,7 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
-import {
-  getDeployment,
-  restoreDeployment,
-} from "../../../repositories/deployments/index.js";
-import {
-  sendNotFound,
-  scopedApplicationEntity,
-  auditMutation,
-  asyncHandler,
-} from "../helpers.js";
+import { getDeployment, restoreDeployment } from "../../../repositories/deployments/index.js";
+import { sendNotFound, scopedApplicationEntity, auditMutation, asyncHandler } from "../helpers.js";
 
 const parameter = "deploymentId";
 

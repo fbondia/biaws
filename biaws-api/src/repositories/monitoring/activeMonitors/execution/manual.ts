@@ -20,11 +20,7 @@ export async function requestActiveMonitorExecution(
   };
   const current = await collection.findOne(filter);
   if (!current) {
-    throw createCatalogError(
-      404,
-      "ACTIVE_MONITOR_NOT_FOUND",
-      "Active monitor not found",
-    );
+    throw createCatalogError(404, "ACTIVE_MONITOR_NOT_FOUND", "Active monitor not found");
   }
   if (!current.enabled) {
     throw createCatalogError(
@@ -66,10 +62,7 @@ export async function requestActiveMonitorExecution(
       ...filter,
       enabled: true,
       manualRunRequest: { $exists: false },
-      $or: [
-        { "lease.trigger": { $ne: "manual" } },
-        { "lease.completedAt": { $exists: true } },
-      ],
+      $or: [{ "lease.trigger": { $ne: "manual" } }, { "lease.completedAt": { $exists: true } }],
     },
     {
       $set: {
@@ -96,7 +89,7 @@ export async function requestActiveMonitorExecution(
       execution: manualExecutionResponse(concurrent.manualRunRequest),
     };
   }
-  const concurrentManualLease = activeManualLease(concurrent || {});
+  const concurrentManualLease = activeManualLease(concurrent ?? {});
   if (concurrent && concurrentManualLease) {
     return {
       created: false,

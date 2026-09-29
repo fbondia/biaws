@@ -1,11 +1,7 @@
+import { textValue } from "../helpers/text.js";
 import type { SecretProviderContext } from "../types/secrets.js";
 import { errorCode } from "../helpers/error.js";
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-  randomUUID,
-} from "node:crypto";
+import { createCipheriv, createDecipheriv, randomBytes, randomUUID } from "node:crypto";
 import { link, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -17,11 +13,7 @@ const MAX_SECRET_BYTES = 64 * 1024;
 const DEFAULT_MAX_CONTENT_BYTES = 5 * 1024 * 1024;
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/u;
 
-function providerError(
-  code: string | number | undefined,
-  message: string | undefined,
-  cause?: unknown,
-) {
+function providerError(code: string | number | undefined, message: string | undefined, cause?: unknown) {
   const error = new Error(message, cause ? { cause } : undefined);
   error.code = code;
   error.statusCode = code === "SECRET_NOT_FOUND" ? 404 : 500;
@@ -29,12 +21,9 @@ function providerError(
 }
 
 function validateIdentifier(value: unknown, field: string) {
-  const normalized = String(value || "");
+  const normalized = textValue(value || "");
   if (!ID_PATTERN.test(normalized)) {
-    throw providerError(
-      "INVALID_SECRET_CONTEXT",
-      `${field} is invalid for local secret storage`,
-    );
+    throw providerError("INVALID_SECRET_CONTEXT", `${field} is invalid for local secret storage`);
   }
   return normalized;
 }
@@ -42,19 +31,12 @@ function validateIdentifier(value: unknown, field: string) {
 function versionNumber(value: unknown) {
   const version = Number(value);
   if (!Number.isSafeInteger(version) || version < 1) {
-    throw providerError(
-      "INVALID_SECRET_CONTEXT",
-      "version must be a positive integer",
-    );
+    throw providerError("INVALID_SECRET_CONTEXT", "version must be a positive integer");
   }
   return version;
 }
 
-function associatedData({
-  workspaceId,
-  secretId,
-  version,
-}: SecretProviderContext) {
+function associatedData({ workspaceId, secretId, version }: SecretProviderContext) {
   return Buffer.from(
     JSON.stringify({
       workspaceId: validateIdentifier(workspaceId, "workspaceId"),
@@ -69,9 +51,7 @@ function locatorFor(secretId: unknown, version: unknown) {
   return `${validateIdentifier(secretId, "secretId")}/version-${versionNumber(version)}.enc`;
 }
 
-function validateEnvelope(
-  envelope: unknown,
-): asserts envelope is EncryptedEnvelope {
+function validateEnvelope(envelope: unknown): asserts envelope is EncryptedEnvelope {
   if (
     !envelope ||
     typeof envelope !== "object" ||
@@ -86,10 +66,7 @@ function validateEnvelope(
     typeof envelope.ciphertext !== "string" ||
     typeof envelope.authTag !== "string"
   ) {
-    throw providerError(
-      "INVALID_SECRET_ENVELOPE",
-      "The encrypted secret file has an unsupported or invalid format",
-    );
+    throw providerError("INVALID_SECRET_ENVELOPE", "The encrypted secret file has an unsupported or invalid format");
   }
 }
 
@@ -122,37 +99,27 @@ export class LocalSecretProvider {
   }
 
   async encryptionKey() {
-    if (!this.keyPromise) {
-      this.keyPromise = readFile(this.keyFile).then((key: Buffer) => {
-        if (key.length !== KEY_BYTES) {
-          throw providerError(
-            "INVALID_SECRETS_MASTER_KEY",
-            `The local secrets master key must contain exactly ${KEY_BYTES} bytes`,
-          );
-        }
-        return key;
-      });
-    }
+    this.keyPromise ??= readFile(this.keyFile).then((key: Buffer) => {
+      if (key.length !== KEY_BYTES) {
+        throw providerError(
+          "INVALID_SECRETS_MASTER_KEY",
+          `The local secrets master key must contain exactly ${KEY_BYTES} bytes`,
+        );
+      }
+      return key;
+    });
     return this.keyPromise;
   }
 
   resolveLocator(locator: string) {
     const normalized = String(locator || "");
-    const match = normalized.match(
-      /^([A-Za-z0-9_-]{1,128})\/version-([1-9][0-9]*)\.enc$/u,
-    );
+    const match = /^([A-Za-z0-9_-]{1,128})\/version-([1-9]\d*)\.enc$/u.exec(normalized);
     if (!match) {
-      throw providerError(
-        "INVALID_SECRET_LOCATOR",
-        "The local secret locator is invalid",
-      );
+      throw providerError("INVALID_SECRET_LOCATOR", "The local secret locator is invalid");
     }
     const resolved = path.resolve(this.directory, normalized);
     if (!resolved.startsWith(`${this.directory}${path.sep}`)) {
-      throw providerError(
-        "INVALID_SECRET_LOCATOR",
-        "The local secret locator escapes the vault directory",
-      );
+      throw providerError("INVALID_SECRET_LOCATOR", "The local secret locator escapes the vault directory");
     }
     return resolved;
   }
@@ -167,9 +134,7 @@ export class LocalSecretProvider {
     const plaintext = Buffer.from(value, "utf8");
     if (plaintext.length > MAX_SECRET_BYTES) {
       plaintext.fill(0);
-      const error = new Error(
-        `Secret value must contain at most ${MAX_SECRET_BYTES} bytes`,
-      );
+      const error = new Error(`Secret value must contain at most ${MAX_SECRET_BYTES} bytes`);
       error.code = "INVALID_SECRET_VALUE";
       error.statusCode = 422;
       throw error;
@@ -184,11 +149,7 @@ export class LocalSecretProvider {
     }
   }
 
-  async putContent(
-    context: SecretProviderContext,
-    content: unknown,
-    { maxBytes = this.maxBytes } = {},
-  ) {
+  async putContent(context: SecretProviderContext, content: unknown, { maxBytes = this.maxBytes } = {}) {
     if (!Buffer.isBuffer(content) && !(content instanceof Uint8Array)) {
       const error = new Error("Secret content must be binary data");
       error.code = "INVALID_SECRET_VALUE";
@@ -198,9 +159,7 @@ export class LocalSecretProvider {
     const plaintext = Buffer.from(content);
     if (!plaintext.length || plaintext.length > maxBytes) {
       plaintext.fill(0);
-      const error = new Error(
-        `Secret content must contain between 1 and ${maxBytes} bytes`,
-      );
+      const error = new Error(`Secret content must contain between 1 and ${maxBytes} bytes`);
       error.code = "INVALID_SECRET_VALUE";
       error.statusCode = 422;
       throw error;
@@ -214,16 +173,9 @@ export class LocalSecretProvider {
     const nonce = randomBytes(NONCE_BYTES);
 
     try {
-      const cipher = createCipheriv(
-        ALGORITHM,
-        await this.encryptionKey(),
-        nonce,
-      );
+      const cipher = createCipheriv(ALGORITHM, await this.encryptionKey(), nonce);
       cipher.setAAD(associatedData(context));
-      const ciphertext = Buffer.concat([
-        cipher.update(plaintext),
-        cipher.final(),
-      ]);
+      const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
       const envelope = {
         format: FORMAT_VERSION,
         algorithm: ALGORITHM,
@@ -245,11 +197,7 @@ export class LocalSecretProvider {
     } catch (error) {
       await unlink(temporary).catch(() => {});
       if (errorCode(error) === "EEXIST") {
-        throw providerError(
-          "SECRET_VERSION_CONFLICT",
-          "The encrypted secret version already exists",
-          error,
-        );
+        throw providerError("SECRET_VERSION_CONFLICT", "The encrypted secret version already exists", error);
       }
       throw error;
     } finally {
@@ -257,10 +205,7 @@ export class LocalSecretProvider {
     }
   }
 
-  async getValue(
-    context: { workspaceId: string; secretId: string; version: number },
-    locator: string,
-  ) {
+  async getValue(context: { workspaceId: string; secretId: string; version: number }, locator: string) {
     const plaintext = await this.getContent(context, locator);
     try {
       return plaintext.toString("utf8");
@@ -276,35 +221,20 @@ export class LocalSecretProvider {
       envelope = JSON.parse(await readFile(filePath, "utf8"));
     } catch (error) {
       if (errorCode(error) === "ENOENT") {
-        throw providerError(
-          "SECRET_NOT_FOUND",
-          "The encrypted secret value was not found",
-          error,
-        );
+        throw providerError("SECRET_NOT_FOUND", "The encrypted secret value was not found", error);
       }
       if (error instanceof SyntaxError) {
-        throw providerError(
-          "INVALID_SECRET_ENVELOPE",
-          "The encrypted secret file is not valid JSON",
-          error,
-        );
+        throw providerError("INVALID_SECRET_ENVELOPE", "The encrypted secret file is not valid JSON", error);
       }
       throw error;
     }
     validateEnvelope(envelope);
 
     try {
-      const decipher = createDecipheriv(
-        ALGORITHM,
-        await this.encryptionKey(),
-        Buffer.from(envelope.nonce, "base64"),
-      );
+      const decipher = createDecipheriv(ALGORITHM, await this.encryptionKey(), Buffer.from(envelope.nonce, "base64"));
       decipher.setAAD(associatedData(context));
       decipher.setAuthTag(Buffer.from(envelope.authTag, "base64"));
-      const plaintext = Buffer.concat([
-        decipher.update(Buffer.from(envelope.ciphertext, "base64")),
-        decipher.final(),
-      ]);
+      const plaintext = Buffer.concat([decipher.update(Buffer.from(envelope.ciphertext, "base64")), decipher.final()]);
       return plaintext;
     } catch (error) {
       throw providerError(

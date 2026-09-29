@@ -1,24 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  buildDemoClassifications,
-  demoCatalogSkipReason,
-} from "../../src/scripts/seedDemo.js";
+import { buildDemoClassifications, demoCatalogSkipReason } from "../../src/scripts/seedDemo.js";
 
 test("demo seed respects an intentionally archived demo catalog", () => {
-  assert.equal(
-    demoCatalogSkipReason({ status: "archived" }, { status: "active" }),
-    "demo-application-archived",
-  );
-  assert.equal(
-    demoCatalogSkipReason({ status: "active" }, { status: "archived" }),
-    "demo-component-archived",
-  );
-  assert.equal(
-    demoCatalogSkipReason({ status: "active" }, { status: "active" }),
-    null,
-  );
+  assert.equal(demoCatalogSkipReason({ status: "archived" }, { status: "active" }), "demo-application-archived");
+  assert.equal(demoCatalogSkipReason({ status: "active" }, { status: "archived" }), "demo-component-archived");
+  assert.equal(demoCatalogSkipReason({ status: "active" }, { status: "active" }), null);
 });
 
 test("demo seed uses its default classification when it is applicable", () => {
@@ -27,11 +15,7 @@ test("demo seed uses its default classification when it is applicable", () => {
       taxonomy: [
         {
           id: "operacao",
-          children: [
-            { id: "acesso" },
-            { id: "integracao" },
-            { id: "automacao" },
-          ],
+          children: [{ id: "acesso" }, { id: "integracao" }, { id: "automacao" }],
         },
       ],
       tagGroups: [

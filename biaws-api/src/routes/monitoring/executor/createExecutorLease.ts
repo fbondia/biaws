@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { authorizationQuery, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { acquireDueActiveMonitors } from "../../../repositories/monitoring/activeMonitors/execution/index.js";
 import { asyncHandler } from "../helpers.js";
 
@@ -11,10 +8,7 @@ export function registerCreateExecutorLease(router: Router) {
     "/executor/leases",
     requireAllPermissions("monitoring.active.execute"),
     asyncHandler(async (req: Request, res: Response) => {
-      const { authorizationScope } = authorizationQuery(
-        req.actor,
-        "monitoring.active.execute",
-      );
+      const { authorizationScope } = authorizationQuery(req.actor, "monitoring.active.execute");
       res.json(await acquireDueActiveMonitors(authorizationScope, req.body));
     }),
   );

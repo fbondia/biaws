@@ -1,5 +1,9 @@
-import type { Logger, LogFields } from "../logging/logger.js";
+import { actorHasPermission, actorHasWorkspaceScope } from "../auth/authorizationMiddleware.js";
 import { isRecord } from "../helpers/records.js";
+import type { LogFields, Logger } from "../logging/logger.js";
+import { apiLogger, serializeError } from "../logging/logger.js";
+import { resolveUserAuthorization } from "../repositories/access/index.js";
+import type { Actor } from "../types/http.js";
 type Workspace = { id: string; name?: string; [field: string]: unknown };
 interface Destination<C> {
   destinationActor: Partial<Actor>;
@@ -14,71 +18,37 @@ interface Replicated {
 }
 interface ReplicationOptions<C> {
   actor: Partial<Actor>;
-  authorizeDestination?: (
-    destination: Omit<Destination<C>, "destinationContext">,
-  ) => Promise<C>;
+  authorizeDestination?: (destination: Omit<Destination<C>, "destinationContext">) => Promise<C>;
   forbiddenCode?: string;
   forbiddenMessage?: string;
   logger?: Logger;
   payload: Record<string, unknown>;
   permission?: string;
   replicate: (destination: Destination<C>) => Promise<Replicated>;
-  resolveAuthorization?: (
-    userId: string,
-    workspaceId: string,
-  ) => Promise<Partial<Actor>>;
+  resolveAuthorization?: (userId: string, workspaceId: string) => Promise<Partial<Actor>>;
   resourceType: string;
 }
-import type { Actor } from "../types/http.js";
-import type { Response } from "express";
-import {
-  actorHasPermission,
-  actorHasWorkspaceScope,
-} from "../auth/authorizationMiddleware.js";
-import { apiLogger, serializeError } from "../logging/logger.js";
-import { resolveUserAuthorization } from "../repositories/access/index.js";
 
 export const MAX_REPLICATION_WORKSPACES = 20;
 
-function httpError(
-  statusCode: number | undefined,
-  code: string | number | undefined,
-  message: string | undefined,
-) {
+function httpError(statusCode: number | undefined, code: string | number | undefined, message: string | undefined) {
   const error = new Error(message);
   error.statusCode = statusCode;
   error.code = code;
   return error;
 }
 
-export function normalizeReplicationDestinations(
-  payload: Record<string, unknown> = {},
-  currentWorkspaceId = "",
-) {
+export function normalizeReplicationDestinations(payload: Record<string, unknown> = {}, currentWorkspaceId = "") {
   const hasBatch = Object.hasOwn(payload, "destinationWorkspaceIds");
-  const rawDestinations = hasBatch
-    ? payload.destinationWorkspaceIds
-    : [payload.destinationWorkspaceId];
+  const rawDestinations = hasBatch ? payload.destinationWorkspaceIds : [payload.destinationWorkspaceId];
   if (!Array.isArray(rawDestinations)) {
-    throw httpError(
-      422,
-      "INVALID_DESTINATION_WORKSPACES",
-      "destinationWorkspaceIds deve ser uma lista",
-    );
+    throw httpError(422, "INVALID_DESTINATION_WORKSPACES", "destinationWorkspaceIds deve ser uma lista");
   }
   const destinationWorkspaceIds = [
-    ...new Set(
-      rawDestinations
-        .map((workspaceId) => String(workspaceId || "").trim())
-        .filter(Boolean),
-    ),
+    ...new Set(rawDestinations.map((workspaceId) => String(workspaceId || "").trim()).filter(Boolean)),
   ];
   if (!destinationWorkspaceIds.length) {
-    throw httpError(
-      422,
-      "DESTINATION_WORKSPACE_REQUIRED",
-      "Selecione ao menos um workspace de destino",
-    );
+    throw httpError(422, "DESTINATION_WORKSPACE_REQUIRED", "Selecione ao menos um workspace de destino");
   }
   if (destinationWorkspaceIds.length > MAX_REPLICATION_WORKSPACES) {
     throw httpError(
@@ -88,20 +58,12 @@ export function normalizeReplicationDestinations(
     );
   }
   if (destinationWorkspaceIds.includes(String(currentWorkspaceId || ""))) {
-    throw httpError(
-      422,
-      "SAME_WORKSPACE_REPLICATION",
-      "Selecione somente workspaces diferentes do atual",
-    );
+    throw httpError(422, "SAME_WORKSPACE_REPLICATION", "Selecione somente workspaces diferentes do atual");
   }
   return { destinationWorkspaceIds, legacyRequest: !hasBatch };
 }
 
-function destinationWorkspace(
-  actor: Partial<Actor>,
-  authorization: Partial<Actor>,
-  workspaceId: string,
-) {
+function destinationWorkspace(actor: Partial<Actor>, authorization: Partial<Actor>, workspaceId: string) {
   return (
     authorization.workspaces?.find(({ id }) => id === workspaceId) ||
     actor.workspaces?.find(({ id }) => id === workspaceId) || {
@@ -111,11 +73,7 @@ function destinationWorkspace(
   );
 }
 
-function publicReplicationError(
-  cause: unknown,
-  context: LogFields,
-  logger: Logger,
-) {
+function publicReplicationError(cause: unknown, context: LogFields, logger: Logger) {
   const error = (isRecord(cause) ? cause : {}) as Partial<Error>;
   const statusCode = Number(error?.statusCode || error?.status) || 500;
   if (statusCode >= 400 && statusCode < 500) {
@@ -123,9 +81,7 @@ function publicReplicationError(
       code: error.code || "REPLICATION_REJECTED",
       message: error.message || "A replicação foi recusada",
       statusCode,
-      ...(error.requiredPermissions
-        ? { requiredPermissions: error.requiredPermissions }
-        : {}),
+      ...(error.requiredPermissions ? { requiredPermissions: error.requiredPermissions } : {}),
     };
   }
   logger.error("workspace_replication_failed", {
@@ -151,23 +107,13 @@ export async function replicateAcrossWorkspaces<C = unknown>({
   resolveAuthorization = resolveUserAuthorization,
   resourceType,
 }: ReplicationOptions<C>) {
-  const normalized = normalizeReplicationDestinations(
-    payload,
-    actor.workspaceId || "",
-  );
+  const normalized = normalizeReplicationDestinations(payload, actor.workspaceId || "");
   const results = await Promise.all(
     normalized.destinationWorkspaceIds.map(async (workspaceId) => {
       try {
-        const authorization = await resolveAuthorization(
-          actor.userId || "",
-          workspaceId,
-        );
+        const authorization = await resolveAuthorization(actor.userId || "", workspaceId);
         const destinationActor = { ...actor, ...authorization };
-        const workspace = destinationWorkspace(
-          actor,
-          authorization,
-          workspaceId,
-        );
+        const workspace = destinationWorkspace(actor, authorization, workspaceId);
         let destinationContext: C | null = null;
         if (authorizeDestination) {
           destinationContext = await authorizeDestination({
@@ -198,8 +144,7 @@ export async function replicateAcrossWorkspaces<C = unknown>({
       } catch (error) {
         return {
           workspace:
-            actor.workspaces?.find(({ id }) => id === workspaceId) ||
-            destinationWorkspace(actor, {}, workspaceId),
+            actor.workspaces?.find(({ id }) => id === workspaceId) || destinationWorkspace(actor, {}, workspaceId),
           status: "failed",
           data: undefined,
           resource: undefined,
@@ -229,9 +174,7 @@ export async function replicateAcrossWorkspaces<C = unknown>({
   };
 }
 
-function publicResults(
-  results: Awaited<ReturnType<typeof replicateAcrossWorkspaces>>["results"],
-) {
+function publicResults(results: Awaited<ReturnType<typeof replicateAcrossWorkspaces>>["results"]) {
   return results.map(({ data, ...result }) => result);
 }
 
@@ -248,7 +191,7 @@ export function sendReplicationResponse(
       return;
     }
     res.status(201).json({
-      ...(first.data || {}),
+      ...first.data,
       destinationWorkspace: first.workspace,
       results,
       summary: batch.summary,

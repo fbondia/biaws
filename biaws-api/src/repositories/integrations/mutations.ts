@@ -4,15 +4,8 @@ import { validateTarget } from "./context.js";
 import { getCollection } from "./storage.js";
 import { getIntegration } from "./queries.js";
 import { randomUUID } from "node:crypto";
-import {
-  actorId,
-  archiveFields,
-  createBaseDocument,
-} from "../shared/topology/lifecycle.js";
-import {
-  createCatalogError,
-  duplicateKeyError,
-} from "../shared/topology/errors.js";
+import { actorId, archiveFields, createBaseDocument } from "../shared/topology/lifecycle.js";
+import { createCatalogError, duplicateKeyError } from "../shared/topology/errors.js";
 import { normalizeDocument } from "../shared/topology/normalization.js";
 import { requireOperationalApplication } from "../shared/topology/context.js";
 
@@ -56,23 +49,15 @@ export async function updateIntegration(
 ) {
   const current = await getIntegration(integrationId);
   if (!current) {
-    throw createCatalogError(
-      404,
-      "INTEGRATION_NOT_FOUND",
-      "Integration not found",
-    );
+    throw createCatalogError(404, "INTEGRATION_NOT_FOUND", "Integration not found");
   }
   if (current.status !== "active") {
-    throw createCatalogError(
-      409,
-      "INTEGRATION_ARCHIVED",
-      "Integration is archived",
-    );
+    throw createCatalogError(409, "INTEGRATION_ARCHIVED", "Integration is archived");
   }
-  const application = await requireOperationalApplication(
-    current.applicationId,
-    { active: true, workspaceId: current.workspaceId },
-  );
+  const application = await requireOperationalApplication(current.applicationId, {
+    active: true,
+    workspaceId: current.workspaceId,
+  });
   const normalized = normalizeIntegrationInput(payload, current);
   await validateTarget(application, normalized.targetApplicationId);
   try {
@@ -98,39 +83,19 @@ export async function updateIntegration(
   return getIntegration(current.id);
 }
 
-export async function archiveIntegration(
-  integrationId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function archiveIntegration(integrationId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getIntegration(integrationId);
   if (!current) {
-    throw createCatalogError(
-      404,
-      "INTEGRATION_NOT_FOUND",
-      "Integration not found",
-    );
+    throw createCatalogError(404, "INTEGRATION_NOT_FOUND", "Integration not found");
   }
   if (current.status === "archived") return current;
-  await (
-    await getCollection()
-  ).updateOne(
-    { id: current.id, status: "active" },
-    { $set: archiveFields(actor) },
-  );
+  await (await getCollection()).updateOne({ id: current.id, status: "active" }, { $set: archiveFields(actor) });
   return getIntegration(current.id);
 }
 
-export async function restoreIntegration(
-  integrationId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function restoreIntegration(integrationId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getIntegration(integrationId);
-  if (!current)
-    throw createCatalogError(
-      404,
-      "INTEGRATION_NOT_FOUND",
-      "Integration not found",
-    );
+  if (!current) throw createCatalogError(404, "INTEGRATION_NOT_FOUND", "Integration not found");
   if (current.status !== "archived") return current;
   await requireOperationalApplication(current.applicationId, {
     workspaceId: current.workspaceId,
@@ -157,18 +122,9 @@ export async function restoreIntegration(
 
 export async function deleteIntegration(integrationId: string | string[]) {
   const current = await getIntegration(integrationId);
-  if (!current)
-    throw createCatalogError(
-      404,
-      "INTEGRATION_NOT_FOUND",
-      "Integration not found",
-    );
+  if (!current) throw createCatalogError(404, "INTEGRATION_NOT_FOUND", "Integration not found");
   if (current.status !== "archived")
-    throw createCatalogError(
-      409,
-      "INTEGRATION_NOT_ARCHIVED",
-      "Only archived integrations can be permanently deleted",
-    );
+    throw createCatalogError(409, "INTEGRATION_NOT_ARCHIVED", "Only archived integrations can be permanently deleted");
   const result = await (
     await getCollection()
   ).deleteOne({
@@ -176,11 +132,6 @@ export async function deleteIntegration(integrationId: string | string[]) {
     workspaceId: current.workspaceId,
     status: "archived",
   });
-  if (!result.deletedCount)
-    throw createCatalogError(
-      409,
-      "INTEGRATION_DELETE_CONFLICT",
-      "Integration was not deleted",
-    );
+  if (!result.deletedCount) throw createCatalogError(409, "INTEGRATION_DELETE_CONFLICT", "Integration was not deleted");
   return current;
 }

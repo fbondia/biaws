@@ -9,20 +9,13 @@ import {
 } from "./constants.js";
 
 export async function ensureIndexes(db: Db) {
-  await db
-    .collection(REQUESTS_COLLECTION)
-    .createIndex({ workspaceId: 1, clientCode: 1 });
+  await db.collection(REQUESTS_COLLECTION).createIndex({ workspaceId: 1, clientCode: 1 });
   await db
     .collection(TASKS_COLLECTION)
-    .createIndex(
-      { requestId: 1, code: 1 },
-      { collation: { locale: "en", strength: 2 } },
-    );
+    .createIndex({ requestId: 1, code: 1 }, { collation: { locale: "en", strength: 2 } });
   await Promise.all([
     db.collection(REQUESTS_COLLECTION).createIndex({ updatedAt: -1 }),
-    db
-      .collection(REQUESTS_COLLECTION)
-      .createIndex({ listRank: -1, updatedAt: -1, createdAt: -1 }),
+    db.collection(REQUESTS_COLLECTION).createIndex({ listRank: -1, updatedAt: -1, createdAt: -1 }),
     db.collection(REQUESTS_COLLECTION).createIndex({
       workspaceId: 1,
       applicationId: 1,
@@ -47,21 +40,11 @@ export async function ensureIndexes(db: Db) {
       applicationId: 1,
       affectedComponentIds: 1,
     }),
-    db
-      .collection(JOURNEY_PERIODS_COLLECTION)
-      .createIndex({ requestId: 1, month: 1 }, { unique: true }),
-    db
-      .collection(SPECIFICATION_COLLECTION)
-      .createIndex({ requestId: 1 }, { unique: true }),
-    db
-      .collection(NOTES_COLLECTION)
-      .createIndex({ requestId: 1, date: -1, createdAt: -1 }),
-    db
-      .collection(TASKS_COLLECTION)
-      .createIndex({ requestId: 1, createdAt: -1 }),
-    db
-      .collection(TASK_NOTES_COLLECTION)
-      .createIndex({ requestId: 1, taskId: 1, date: -1, createdAt: -1 }),
+    db.collection(JOURNEY_PERIODS_COLLECTION).createIndex({ requestId: 1, month: 1 }, { unique: true }),
+    db.collection(SPECIFICATION_COLLECTION).createIndex({ requestId: 1 }, { unique: true }),
+    db.collection(NOTES_COLLECTION).createIndex({ requestId: 1, date: -1, createdAt: -1 }),
+    db.collection(TASKS_COLLECTION).createIndex({ requestId: 1, createdAt: -1 }),
+    db.collection(TASK_NOTES_COLLECTION).createIndex({ requestId: 1, taskId: 1, date: -1, createdAt: -1 }),
     db.collection(NOTES_COLLECTION).createIndex(
       { requestId: 1, legacySource: 1 },
       {

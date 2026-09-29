@@ -29,23 +29,13 @@ export async function loadRequestOptions(db: Db, query: RepositoryQuery = {}) {
     workspaceId: query.workspaceId,
   });
   requestOptions.requestStatusOptions = activeValues(lists.demandStatus);
-  requestOptions.allRequestStatusOptions = (
-    lists.demandStatus?.items || []
-  ).map((item) => item.value);
+  requestOptions.allRequestStatusOptions = (lists.demandStatus?.items || []).map((item) => item.value);
   requestOptions.defaultRequestStatus =
-    lists.demandStatus?.defaultValue ||
-    requestOptions.requestStatusOptions[0] ||
-    DEFAULT_REQUEST_STATUS;
+    lists.demandStatus?.defaultValue || requestOptions.requestStatusOptions[0] || DEFAULT_REQUEST_STATUS;
   requestOptions.taskStatusOptions = activeValues(lists.taskStatus);
-  requestOptions.allTaskStatusOptions = (lists.taskStatus?.items || []).map(
-    (item) => item.value,
-  );
+  requestOptions.allTaskStatusOptions = (lists.taskStatus?.items || []).map((item) => item.value);
   requestOptions.defaultTaskStatus =
-    lists.taskStatus?.defaultValue ||
-    requestOptions.taskStatusOptions[0] ||
-    DEFAULT_REQUEST_TASK_STATUS;
+    lists.taskStatus?.defaultValue || requestOptions.taskStatusOptions[0] || DEFAULT_REQUEST_TASK_STATUS;
   requestOptions.checklistLabels = activeValues(lists.checklist);
-  requestOptions.defaultSpecificationSectionTitles = activeValues(
-    lists.specificationSections,
-  );
+  requestOptions.defaultSpecificationSectionTitles = activeValues(lists.specificationSections);
 }

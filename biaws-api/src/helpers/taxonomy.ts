@@ -1,3 +1,4 @@
+import { textValue } from "./text.js";
 export interface TaxonomyNode {
   id?: string;
   name?: string;
@@ -13,13 +14,8 @@ const TAXONOMIES_COLLECTION = COLLECTION_NAMES.TAXONOMIES;
 const ACTIVE_TAXONOMY_KEY = "biaws";
 const ACTIVE_STATUS = "active";
 
-export function collectTaxonomyIdsWithDescendants(
-  nodes: TaxonomyNode[] = [],
-  selectedIds: unknown[] = [],
-) {
-  const selected = new Set(
-    selectedIds.map((id) => String(id || "").trim()).filter(Boolean),
-  );
+export function collectTaxonomyIdsWithDescendants(nodes: TaxonomyNode[] = [], selectedIds: unknown[] = []) {
+  const selected = new Set(selectedIds.map((id) => textValue(id || "").trim()).filter(Boolean));
   const result = new Set(selected);
 
   function visit(node: TaxonomyNode, ancestorSelected = false) {
@@ -37,9 +33,11 @@ export function collectTaxonomyIdsWithDescendants(
 }
 
 export function filterTaxonomyForApplication(
-  nodes: TaxonomyNode[] = [],
+  nodes: TaxonomyNode[] | undefined,
   applicationId: string | undefined,
 ): TaxonomyNode[] {
+  nodes ??= [];
+
   if (applicationId === undefined) return nodes;
 
   const normalizedApplicationId = String(applicationId || "").trim();
@@ -48,15 +46,10 @@ export function filterTaxonomyForApplication(
       ? node.applicationIds.map((id) => String(id || "").trim()).filter(Boolean)
       : [];
     const applies =
-      applicationIds.length === 0 ||
-      (normalizedApplicationId &&
-        applicationIds.includes(normalizedApplicationId));
+      applicationIds.length === 0 || (normalizedApplicationId && applicationIds.includes(normalizedApplicationId));
     if (!applies) return [];
 
-    const children = filterTaxonomyForApplication(
-      node.children || [],
-      normalizedApplicationId,
-    );
+    const children = filterTaxonomyForApplication(node.children || [], normalizedApplicationId);
     return [
       {
         ...node,
@@ -68,10 +61,7 @@ export function filterTaxonomyForApplication(
 
 export function collectTaxonomyIds(nodes: TaxonomyNode[] = []): string[] {
   return (nodes || [])
-    .flatMap((node) => [
-      String(node?.id || "").trim(),
-      ...collectTaxonomyIds(node?.children || []),
-    ])
+    .flatMap((node) => [String(node?.id || "").trim(), ...collectTaxonomyIds(node?.children || [])])
     .filter(Boolean);
 }
 
@@ -81,11 +71,7 @@ export async function assertTaxonomyIdsApplicable(
   workspaceId = "",
   applicationId: string | null = null,
 ) {
-  const normalizedIds = [
-    ...new Set(
-      taxonomyIds.map((id) => String(id || "").trim()).filter(Boolean),
-    ),
-  ];
+  const normalizedIds = [...new Set(taxonomyIds.map((id) => textValue(id || "").trim()).filter(Boolean))];
   if (!normalizedIds.length) return;
 
   const taxonomy = await db
@@ -101,34 +87,19 @@ export async function assertTaxonomyIdsApplicable(
       status: ACTIVE_STATUS,
     });
   const availableIds = new Set(
-    collectTaxonomyIds(
-      filterTaxonomyForApplication(
-        taxonomy?.taxonomy || [],
-        String(applicationId || "").trim(),
-      ),
-    ),
+    collectTaxonomyIds(filterTaxonomyForApplication(taxonomy?.taxonomy || [], String(applicationId || "").trim())),
   );
   const unavailable = normalizedIds.filter((id) => !availableIds.has(id));
   if (unavailable.length) {
-    const error = new Error(
-      `Taxonomy items are not available for the related application: ${unavailable.join(", ")}`,
-    );
+    const error = new Error(`Taxonomy items are not available for the related application: ${unavailable.join(", ")}`);
     error.statusCode = 422;
     error.code = "TAXONOMY_NOT_APPLICABLE";
     throw error;
   }
 }
 
-export async function expandTaxonomyIds(
-  db: Db,
-  taxonomyIds: unknown[] = [],
-  workspaceId = "",
-) {
-  const normalizedIds = [
-    ...new Set(
-      taxonomyIds.map((id) => String(id || "").trim()).filter(Boolean),
-    ),
-  ];
+export async function expandTaxonomyIds(db: Db, taxonomyIds: unknown[] = [], workspaceId = "") {
+  const normalizedIds = [...new Set(taxonomyIds.map((id) => textValue(id || "").trim()).filter(Boolean))];
   if (!normalizedIds.length) return [];
 
   const taxonomy = await db
@@ -144,8 +115,5 @@ export async function expandTaxonomyIds(
       status: ACTIVE_STATUS,
     });
 
-  return collectTaxonomyIdsWithDescendants(
-    taxonomy?.taxonomy || [],
-    normalizedIds,
-  );
+  return collectTaxonomyIdsWithDescendants(taxonomy?.taxonomy || [], normalizedIds);
 }

@@ -21,16 +21,11 @@ export function registerCreateImportsEml(router: Router) {
     "/imports/eml",
     requireAllPermissions("issues.import.eml"),
     uploadEml.single("file"),
-    requireBodyFieldPermissions(
-      { classification: "issues.classification.update" },
-      null,
-    ),
+    requireBodyFieldPermissions({ classification: "issues.classification.update" }, null),
     requireEmlClassificationAccess,
     asyncHandler(async (req: Request, res: Response) => {
       if (!req.file) {
-        const error = new Error(
-          "Invalid EML import: multipart field 'file' is required",
-        );
+        const error = new Error("Invalid EML import: multipart field 'file' is required");
         error.statusCode = 422;
         throw error;
       }
@@ -48,16 +43,11 @@ export function registerCreateImportsEml(router: Router) {
         type: req.body.type,
         workspaceId: req.body.workspaceId,
         applicationId: req.body.applicationId,
-        affectedComponentIds: parseAffectedComponentIds(
-          req.body.affectedComponentIds,
-        ),
+        affectedComponentIds: parseAffectedComponentIds(req.body.affectedComponentIds),
         classification: parseClassification(req.body.classification),
-        sanitizationConfig: dryRun
-          ? parseSanitizationConfig(req.body.sanitizationConfig)
-          : undefined,
+        sanitizationConfig: dryRun ? parseSanitizationConfig(req.body.sanitizationConfig) : undefined,
         actor: req.actor.email || req.actor.userId,
-        authorizationScope: authorizationQuery(req.actor, "issues.import.eml")
-          .authorizationScope,
+        authorizationScope: authorizationQuery(req.actor, "issues.import.eml").authorizationScope,
       });
       if (!dryRun) {
         await recordAuditEvent({
@@ -69,9 +59,7 @@ export function registerCreateImportsEml(router: Router) {
             label: result.issue?.title,
           },
           after: result.issue,
-          summary: result.createdIssue
-            ? "Issue criada por importação EML"
-            : "EML incorporado à issue",
+          summary: result.createdIssue ? "Issue criada por importação EML" : "EML incorporado à issue",
           metadata: {
             ...knowledgeContextMetadata(result.issue),
             insertedComments: result.insertedComments,
@@ -80,7 +68,7 @@ export function registerCreateImportsEml(router: Router) {
           },
         });
       }
-      res.status(dryRun ? 200 : result.createdIssue ? 201 : 200).json(result);
+      res.status(!dryRun && result.createdIssue ? 201 : 200).json(result);
     }),
   );
 }

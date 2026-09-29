@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { RepositoryQuery } from "../../types/http.js";
 import { DOCUMENT_TYPES, documentTypeConfig } from "./types.js";
 import { buildKnowledgeContextFilter } from "../shared/knowledgeContext.js";
@@ -5,7 +6,7 @@ import type { Filter, Document } from "mongodb";
 
 function textFilter(search: string) {
   if (!search) return null;
-  const escaped = search.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+  const escaped = search.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
   return {
     $or: [
       { identifier: { $regex: escaped, $options: "i" } },
@@ -19,7 +20,7 @@ function textFilter(search: string) {
 export function combinedFilter(query: RepositoryQuery = {}) {
   const contextFilter = buildKnowledgeContextFilter(query);
   if (
-    String(query.includeWorkspace || "") === "true" &&
+    textValue(query.includeWorkspace || "") === "true" &&
     query.authorizationScope?.workspace === true &&
     String(query.applicationId || "").trim()
   ) {
@@ -27,20 +28,17 @@ export function combinedFilter(query: RepositoryQuery = {}) {
       $in: [String(query.applicationId).trim(), null],
     };
   }
-  const conditions: Filter<Document>[] = [
-    contextFilter,
-    { documentType: { $in: Object.keys(DOCUMENT_TYPES) } },
-  ];
-  const search = String(query.search || "").trim();
-  const documentType = String(query.documentType || "").trim();
-  const status = String(query.status || "").trim();
-  const collectionId = String(query.collectionId || "").trim();
+  const conditions: Filter<Document>[] = [contextFilter, { documentType: { $in: Object.keys(DOCUMENT_TYPES) } }];
+  const search = textValue(query.search || "").trim();
+  const documentType = textValue(query.documentType || "").trim();
+  const status = textValue(query.status || "").trim();
+  const collectionId = textValue(query.collectionId || "").trim();
   if (search) conditions.push(textFilter(search)!);
   if (documentType) {
     documentTypeConfig(documentType);
     conditions.push({ documentType });
   }
-  if (String(query.currentOnly || "") === "true") {
+  if (textValue(query.currentOnly || "") === "true") {
     conditions.push({
       $or: Object.entries(DOCUMENT_TYPES).flatMap(([type, config]) =>
         config.currentStatuses.map((currentStatus) => ({
@@ -51,11 +49,8 @@ export function combinedFilter(query: RepositoryQuery = {}) {
     });
   }
   if (status) conditions.push({ status });
-  else if (String(query.includeArchived || "") !== "true")
-    conditions.push({ status: { $ne: "archived" } });
+  else if (textValue(query.includeArchived || "") !== "true") conditions.push({ status: { $ne: "archived" } });
   if (collectionId) conditions.push({ collectionId });
-  const effective = conditions.filter(
-    (entry) => entry && Object.keys(entry).length,
-  );
+  const effective = conditions.filter((entry) => entry && Object.keys(entry).length);
   return effective.length > 1 ? { $and: effective } : effective[0] || {};
 }

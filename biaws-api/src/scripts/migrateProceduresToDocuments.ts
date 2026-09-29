@@ -22,26 +22,20 @@ const PERMISSION_MAP: Readonly<Record<string, string>> = Object.freeze({
 });
 
 function dateOnly(value: unknown, fallback = new Date()) {
-  const date =
-    value instanceof Date
-      ? value
-      : new Date(
-          typeof value === "string" || typeof value === "number"
-            ? value
-            : fallback,
-        );
-  return Number.isNaN(date.getTime())
-    ? new Date(fallback).toISOString().slice(0, 10)
-    : date.toISOString().slice(0, 10);
+  let date;
+  if (value instanceof Date) {
+    date = value;
+  } else {
+    date = new Date(typeof value === "string" || typeof value === "number" ? value : fallback);
+  }
+  return Number.isNaN(date.getTime()) ? new Date(fallback).toISOString().slice(0, 10) : date.toISOString().slice(0, 10);
 }
 
 function migratedAttachments(attachments: Array<Record<string, unknown>> = []) {
   return attachments.map((attachment) => ({
     ...attachment,
     source: {
-      ...(attachment.source && typeof attachment.source === "object"
-        ? attachment.source
-        : {}),
+      ...(attachment.source && typeof attachment.source === "object" ? attachment.source : {}),
       entityType: "documents",
     },
   }));
@@ -49,8 +43,7 @@ function migratedAttachments(attachments: Array<Record<string, unknown>> = []) {
 
 function migratedDocument(procedure: WithId<Document>) {
   const createdAt = procedure.createdAt || procedure.updatedAt || new Date();
-  const createdBy =
-    procedure.createdBy || procedure.updatedBy || "biaws-migration";
+  const createdBy = procedure.createdBy || procedure.updatedBy || "biaws-migration";
   return {
     id: procedure.id,
     workspaceId: procedure.workspaceId,
@@ -95,27 +88,16 @@ function migratedCollection(collection: WithId<Document>) {
     createdAt: collection.createdAt,
     createdBy: collection.createdBy || "biaws-migration",
     updatedAt: collection.updatedAt || collection.createdAt,
-    updatedBy:
-      collection.updatedBy || collection.createdBy || "biaws-migration",
+    updatedBy: collection.updatedBy || collection.createdBy || "biaws-migration",
     migratedFrom: "procedureCollection",
   };
 }
 
 function migratedPermissions(permissions: string[] = []) {
-  return [
-    ...new Set(
-      permissions.map(
-        (permission: string) => PERMISSION_MAP[permission] || permission,
-      ),
-    ),
-  ];
+  return [...new Set(permissions.map((permission: string) => PERMISSION_MAP[permission] || permission))];
 }
 
-async function assertNoCollisions(
-  db: Db,
-  procedures: WithId<Document>[],
-  collections: WithId<Document>[],
-) {
+async function assertNoCollisions(db: Db, procedures: WithId<Document>[], collections: WithId<Document>[]) {
   const [documentCollisions, collectionIdCollisions] = await Promise.all([
     db.collection(COLLECTION_NAMES.DOCUMENTS).countDocuments({
       id: { $in: procedures.map(({ id }) => id) },
@@ -174,10 +156,7 @@ async function migratePreferences(db: Db) {
     const documents = preference.collectionNavigation?.documents || {};
     const procedures = preference.collectionNavigation?.procedures || {};
     const collapsedCollectionIds = [
-      ...new Set([
-        ...(documents.collapsedCollectionIds || []),
-        ...(procedures.collapsedCollectionIds || []),
-      ]),
+      ...new Set([...(documents.collapsedCollectionIds || []), ...(procedures.collapsedCollectionIds || [])]),
     ];
     const result = await preferences.updateOne(
       { _id: preference._id },
@@ -200,10 +179,7 @@ async function migratePreferences(db: Db) {
 async function migrate() {
   const db = await getMongoDatabase();
   const procedures = await db.collection(LEGACY_PROCEDURES).find({}).toArray();
-  const collections = await db
-    .collection(LEGACY_COLLECTIONS)
-    .find({})
-    .toArray();
+  const collections = await db.collection(LEGACY_COLLECTIONS).find({}).toArray();
   const summary: {
     apply: boolean;
     database: string;
@@ -224,10 +200,7 @@ async function migrate() {
     database: db.databaseName,
     sourceProcedures: procedures.length,
     sourceCollections: collections.length,
-    sourceAttachments: procedures.reduce(
-      (total, procedure) => total + (procedure.attachments || []).length,
-      0,
-    ),
+    sourceAttachments: procedures.reduce((total, procedure) => total + (procedure.attachments || []).length, 0),
     runtimeLinks: await db
       .collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES)
       .aggregate([
@@ -245,68 +218,62 @@ async function migrate() {
   }
 
   if (collections.length) {
-    const result = await db
-      .collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS)
-      .bulkWrite(
-        collections.map((collection) => ({
-          updateOne: {
-            filter: { id: collection.id },
-            update: { $setOnInsert: migratedCollection(collection) },
-            upsert: true,
-          },
-        })),
-      );
+    const result = await db.collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS).bulkWrite(
+      collections.map((collection) => ({
+        updateOne: {
+          filter: { id: collection.id },
+          update: { $setOnInsert: migratedCollection(collection) },
+          upsert: true,
+        },
+      })),
+    );
     summary.collectionsMigrated = result.upsertedCount;
   } else summary.collectionsMigrated = 0;
 
   if (procedures.length) {
-    const documentResult = await db
-      .collection(COLLECTION_NAMES.DOCUMENTS)
-      .bulkWrite(
-        procedures.map((procedure) => {
-          const document = migratedDocument(procedure);
-          return {
-            updateOne: {
-              filter: { id: document.id },
-              update: { $setOnInsert: document },
-              upsert: true,
-            },
-          };
-        }),
-      );
+    const documentResult = await db.collection(COLLECTION_NAMES.DOCUMENTS).bulkWrite(
+      procedures.map((procedure) => {
+        const document = migratedDocument(procedure);
+        return {
+          updateOne: {
+            filter: { id: document.id },
+            update: { $setOnInsert: document },
+            upsert: true,
+          },
+        };
+      }),
+    );
     summary.documentsMigrated = documentResult.upsertedCount;
 
-    const revisionResult = await db
-      .collection(COLLECTION_NAMES.KNOWLEDGE_REVISIONS)
-      .bulkWrite(
-        procedures.map((procedure) => {
-          const document = migratedDocument(procedure);
-          return {
-            updateOne: {
-              filter: {
+    const revisionResult = await db.collection(COLLECTION_NAMES.KNOWLEDGE_REVISIONS).bulkWrite(
+      procedures.map((procedure) => {
+        const document = migratedDocument(procedure);
+        return {
+          updateOne: {
+            filter: {
+              entityType: "document",
+              entityId: document.id,
+              revision: 1,
+            },
+            update: {
+              $setOnInsert: {
+                id: `migration:procedure:${document.id}:revision:1`,
+                workspaceId: document.workspaceId,
+                applicationId: document.applicationId,
                 entityType: "document",
                 entityId: document.id,
                 revision: 1,
+                snapshot: document,
+                summary: "Procedimento migrado para documento",
+                createdAt: document.updatedAt,
+                createdBy: document.updatedBy,
               },
-              update: {
-                $setOnInsert: {
-                  id: `migration:procedure:${document.id}:revision:1`,
-                  workspaceId: document.workspaceId,
-                  applicationId: document.applicationId,
-                  entityType: "document",
-                  entityId: document.id,
-                  revision: 1,
-                  snapshot: document,
-                  summary: "Procedimento migrado para documento",
-                  createdAt: document.updatedAt,
-                  createdBy: document.updatedBy,
-                },
-              },
-              upsert: true,
             },
-          };
-        }),
-      );
+            upsert: true,
+          },
+        };
+      }),
+    );
     summary.revisionsMigrated = revisionResult.upsertedCount;
   } else {
     summary.documentsMigrated = 0;
@@ -316,17 +283,12 @@ async function migrate() {
   const runtimes = db.collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES);
   let runtimesMigrated = 0;
   for await (const runtime of runtimes.find({
-    $or: [
-      { procedureIds: { $exists: true } },
-      { procedureMarkdown: { $exists: true } },
-    ],
+    $or: [{ procedureIds: { $exists: true } }, { procedureMarkdown: { $exists: true } }],
   })) {
-    const documentLinks = (runtime.procedureIds || []).map(
-      (documentId: string) => ({
-        documentId,
-        purpose: "operation",
-      }),
-    );
+    const documentLinks = (runtime.procedureIds || []).map((documentId: string) => ({
+      documentId,
+      purpose: "operation",
+    }));
     const result = await runtimes.updateOne(
       { _id: runtime._id },
       {
@@ -362,14 +324,8 @@ async function migrate() {
 
   const audit = db.collection(COLLECTION_NAMES.AUDIT_EVENTS);
   const [targetAudit, rootAudit] = await Promise.all([
-    audit.updateMany(
-      { "target.type": "procedure" },
-      { $set: { "target.type": "document" } },
-    ),
-    audit.updateMany(
-      { "root.type": "procedure" },
-      { $set: { "root.type": "document" } },
-    ),
+    audit.updateMany({ "target.type": "procedure" }, { $set: { "target.type": "document" } }),
+    audit.updateMany({ "root.type": "procedure" }, { $set: { "root.type": "document" } }),
   ]);
   const collectionAudit = await audit.updateMany(
     { "target.type": "procedure_collection" },
@@ -385,38 +341,33 @@ async function migrate() {
     collectionAudit.modifiedCount +
     collectionRootAudit.modifiedCount;
 
-  const [procedureDocuments, documentCollections, danglingRuntimeLinks] =
-    await Promise.all([
-      db.collection(COLLECTION_NAMES.DOCUMENTS).countDocuments({
-        id: { $in: procedures.map(({ id }) => id) },
-        documentType: "procedure",
-      }),
-      db.collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS).countDocuments({
-        id: { $in: collections.map(({ id }) => id) },
-        resourceType: "documents",
-      }),
-      runtimes
-        .aggregate([
-          { $unwind: "$documentLinks" },
-          {
-            $lookup: {
-              from: COLLECTION_NAMES.DOCUMENTS,
-              localField: "documentLinks.documentId",
-              foreignField: "id",
-              as: "documents",
-            },
+  const [procedureDocuments, documentCollections, danglingRuntimeLinks] = await Promise.all([
+    db.collection(COLLECTION_NAMES.DOCUMENTS).countDocuments({
+      id: { $in: procedures.map(({ id }) => id) },
+      documentType: "procedure",
+    }),
+    db.collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS).countDocuments({
+      id: { $in: collections.map(({ id }) => id) },
+      resourceType: "documents",
+    }),
+    runtimes
+      .aggregate([
+        { $unwind: "$documentLinks" },
+        {
+          $lookup: {
+            from: COLLECTION_NAMES.DOCUMENTS,
+            localField: "documentLinks.documentId",
+            foreignField: "id",
+            as: "documents",
           },
-          { $match: { documents: { $size: 0 } } },
-          { $count: "count" },
-        ])
-        .toArray()
-        .then((items) => items[0]?.count || 0),
-    ]);
-  if (
-    procedureDocuments !== procedures.length ||
-    documentCollections !== collections.length ||
-    danglingRuntimeLinks
-  ) {
+        },
+        { $match: { documents: { $size: 0 } } },
+        { $count: "count" },
+      ])
+      .toArray()
+      .then((items) => items[0]?.count || 0),
+  ]);
+  if (procedureDocuments !== procedures.length || documentCollections !== collections.length || danglingRuntimeLinks) {
     throw new Error(
       `Migration validation failed: documents=${procedureDocuments}/${procedures.length}, collections=${documentCollections}/${collections.length}, danglingRuntimeLinks=${danglingRuntimeLinks}`,
     );

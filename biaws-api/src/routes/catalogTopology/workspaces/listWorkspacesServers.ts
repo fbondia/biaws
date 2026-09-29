@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  requireAllPermissions,
-  requireWorkspaceScope,
-} from "../../../auth/authorizationMiddleware.js";
+import { requireAllPermissions, requireWorkspaceScope } from "../../../auth/authorizationMiddleware.js";
 import { listServers } from "../../../repositories/servers/index.js";
 import { asyncHandler } from "../helpers.js";
 

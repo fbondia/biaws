@@ -1,9 +1,6 @@
 import type { Router, Request, Response } from "express";
 import { createIssue } from "../../repositories/issues/index.js";
-import {
-  authorizationQuery,
-  requireBodyFieldPermissions,
-} from "../../auth/authorizationMiddleware.js";
+import { authorizationQuery, requireBodyFieldPermissions } from "../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../repositories/audit/index.js";
 import { knowledgeContextMetadata } from "../../repositories/shared/knowledgeContext.js";
 import { asyncHandler } from "./helpers.js";
@@ -11,10 +8,7 @@ import { asyncHandler } from "./helpers.js";
 export function registerCreateIssue(router: Router) {
   router.post(
     "/",
-    requireBodyFieldPermissions(
-      { comment: "issues.comment.create" },
-      "issues.create",
-    ),
+    requireBodyFieldPermissions({ comment: "issues.comment.create" }, "issues.create"),
     asyncHandler(async (req: Request, res: Response) => {
       const result = await createIssue(
         { ...req.body, createdBy: req.actor.email || req.actor.userId },

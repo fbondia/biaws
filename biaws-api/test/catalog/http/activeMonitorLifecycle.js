@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 
 export async function activeMonitorLifecycle(scenarioContext) {
-  const { request, adminCookie, application, deployment, runtime } =
-    scenarioContext;
+  const { request, adminCookie, application, deployment, runtime } = scenarioContext;
   const templateDefinition = {
     rules: [
       {
@@ -46,29 +45,23 @@ export async function activeMonitorLifecycle(scenarioContext) {
 
   assert.equal(template.status, "draft");
 
-  const templatePreviewResponse = await request(
-    "/api/monitoring/templates/preview",
-    {
-      cookie: adminCookie,
-      method: "POST",
-      body: {
-        definition: templateDefinition,
-        sample: {
-          evidence: { response: { status: 200 } },
-          metadata: {},
-          context: { provider: "rest" },
-        },
+  const templatePreviewResponse = await request("/api/monitoring/templates/preview", {
+    cookie: adminCookie,
+    method: "POST",
+    body: {
+      definition: templateDefinition,
+      sample: {
+        evidence: { response: { status: 200 } },
+        metadata: {},
+        context: { provider: "rest" },
       },
-      origin: true,
     },
-  );
+    origin: true,
+  });
 
   assert.equal(templatePreviewResponse.status, 200);
 
-  assert.equal(
-    (await templatePreviewResponse.json()).preview.result.status,
-    "healthy",
-  );
+  assert.equal((await templatePreviewResponse.json()).preview.result.status, "healthy");
 
   const templateActivateResponse = await request(
     `/api/monitoring/templates/${template.id}/versions/${template.version}/activate`,
@@ -77,25 +70,22 @@ export async function activeMonitorLifecycle(scenarioContext) {
 
   assert.equal(templateActivateResponse.status, 200);
 
-  const activeMonitorResponse = await request(
-    `/api/monitoring/runtimes/${runtime.id}/active-monitors`,
-    {
-      cookie: adminCookie,
-      method: "POST",
-      body: {
-        name: "Billing health",
-        provider: "rest",
-        intervalSeconds: 60,
-        timeoutSeconds: 10,
-        configuration: {
-          target: "https://billing-http.example.test/health",
-          expectedStatus: 200,
-        },
-        templateRef: { id: template.id, version: template.version },
+  const activeMonitorResponse = await request(`/api/monitoring/runtimes/${runtime.id}/active-monitors`, {
+    cookie: adminCookie,
+    method: "POST",
+    body: {
+      name: "Billing health",
+      provider: "rest",
+      intervalSeconds: 60,
+      timeoutSeconds: 10,
+      configuration: {
+        target: "https://billing-http.example.test/health",
+        expectedStatus: 200,
       },
-      origin: true,
+      templateRef: { id: template.id, version: template.version },
     },
-  );
+    origin: true,
+  });
 
   assert.equal(activeMonitorResponse.status, 201);
 
@@ -105,10 +95,7 @@ export async function activeMonitorLifecycle(scenarioContext) {
 
   assert.equal(activeMonitor.version, 1);
 
-  const monitoredTopologyResponse = await request(
-    "/api/monitoring/runtime-topology",
-    { cookie: adminCookie },
-  );
+  const monitoredTopologyResponse = await request("/api/monitoring/runtime-topology", { cookie: adminCookie });
 
   assert.equal(monitoredTopologyResponse.status, 200);
 
@@ -120,10 +107,7 @@ export async function activeMonitorLifecycle(scenarioContext) {
 
   assert.ok(monitoredTopology.runtimeIds.includes(runtime.id));
 
-  const monitoredTargetsResponse = await request(
-    "/api/monitoring/runtime-targets",
-    { cookie: adminCookie },
-  );
+  const monitoredTargetsResponse = await request("/api/monitoring/runtime-targets", { cookie: adminCookie });
 
   assert.equal(monitoredTargetsResponse.status, 200);
 
@@ -141,23 +125,18 @@ export async function activeMonitorLifecycle(scenarioContext) {
 
   assert.deepEqual(monitoredTarget.monitorNames, ["Billing health"]);
 
-  const panelPreferenceResponse = await request(
-    "/api/preferences/monitoring-panel",
-    {
-      cookie: adminCookie,
-      method: "PUT",
-      body: {
-        widgets: [{ runtimeId: runtime.id, size: "large" }],
-      },
-      origin: true,
+  const panelPreferenceResponse = await request("/api/preferences/monitoring-panel", {
+    cookie: adminCookie,
+    method: "PUT",
+    body: {
+      widgets: [{ runtimeId: runtime.id, size: "large" }],
     },
-  );
+    origin: true,
+  });
 
   assert.equal(panelPreferenceResponse.status, 200);
 
-  assert.deepEqual((await panelPreferenceResponse.json()).runtimeIds, [
-    runtime.id,
-  ]);
+  assert.deepEqual((await panelPreferenceResponse.json()).runtimeIds, [runtime.id]);
 
   const savedPanelPreference = await (
     await request("/api/preferences/monitoring-panel", {
@@ -167,9 +146,7 @@ export async function activeMonitorLifecycle(scenarioContext) {
 
   assert.deepEqual(savedPanelPreference.runtimeIds, [runtime.id]);
 
-  assert.deepEqual(savedPanelPreference.widgets, [
-    { runtimeId: runtime.id, size: "large" },
-  ]);
+  assert.deepEqual(savedPanelPreference.widgets, [{ runtimeId: runtime.id, size: "large" }]);
 
   const activeMonitorList = await (
     await request(`/api/monitoring/runtimes/${runtime.id}/active-monitors`, {
@@ -196,34 +173,28 @@ export async function activeMonitorLifecycle(scenarioContext) {
 
   assert.ok(lease.leaseToken);
 
-  const renewResponse = await request(
-    `/api/monitoring/executor/leases/${lease.leaseToken}/renew`,
-    {
-      cookie: adminCookie,
-      method: "POST",
-      body: { executorId: "integration-runner", leaseSeconds: 60 },
-      origin: true,
-    },
-  );
+  const renewResponse = await request(`/api/monitoring/executor/leases/${lease.leaseToken}/renew`, {
+    cookie: adminCookie,
+    method: "POST",
+    body: { executorId: "integration-runner", leaseSeconds: 60 },
+    origin: true,
+  });
 
   assert.equal(renewResponse.status, 200);
 
-  const activeResultResponse = await request(
-    `/api/monitoring/executor/leases/${lease.leaseToken}/results`,
-    {
-      cookie: adminCookie,
-      method: "POST",
-      body: {
-        executorId: "integration-runner",
-        status: "healthy",
-        observedAt: "2026-07-30T12:00:00.000Z",
-        source: "active-rest",
-        metadata: { duration_ms: 25 },
-        payload: { response: { status: 200 } },
-      },
-      origin: true,
+  const activeResultResponse = await request(`/api/monitoring/executor/leases/${lease.leaseToken}/results`, {
+    cookie: adminCookie,
+    method: "POST",
+    body: {
+      executorId: "integration-runner",
+      status: "healthy",
+      observedAt: "2026-07-30T12:00:00.000Z",
+      source: "active-rest",
+      metadata: { duration_ms: 25 },
+      payload: { response: { status: 200 } },
     },
-  );
+    origin: true,
+  });
 
   assert.equal(activeResultResponse.status, 201);
 
@@ -246,19 +217,16 @@ export async function activeMonitorLifecycle(scenarioContext) {
 
   assert.equal(activeResult.signal.templateSnapshot.name, "REST health");
 
-  const duplicateActiveResult = await request(
-    `/api/monitoring/executor/leases/${lease.leaseToken}/results`,
-    {
-      cookie: adminCookie,
-      method: "POST",
-      body: {
-        executorId: "integration-runner",
-        status: "healthy",
-        source: "active-rest",
-      },
-      origin: true,
+  const duplicateActiveResult = await request(`/api/monitoring/executor/leases/${lease.leaseToken}/results`, {
+    cookie: adminCookie,
+    method: "POST",
+    body: {
+      executorId: "integration-runner",
+      status: "healthy",
+      source: "active-rest",
     },
-  );
+    origin: true,
+  });
 
   assert.equal(duplicateActiveResult.status, 200);
 

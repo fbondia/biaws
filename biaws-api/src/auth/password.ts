@@ -8,18 +8,10 @@ export const ARGON2ID_OPTIONS = Object.freeze({
   outputLen: 32,
 });
 
-export async function hashPassword(
-  password: string | Uint8Array<ArrayBufferLike>,
-) {
+export async function hashPassword(password: string | Uint8Array<ArrayBufferLike>) {
   return hash(password, ARGON2ID_OPTIONS);
 }
 
-export async function verifyPassword({
-  hash: passwordHash,
-  password,
-}: {
-  hash: string;
-  password: string;
-}) {
+export async function verifyPassword({ hash: passwordHash, password }: { hash: string; password: string }) {
   return verify(passwordHash, password, ARGON2ID_OPTIONS);
 }

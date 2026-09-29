@@ -3,17 +3,8 @@ import { EventEmitter } from "node:events";
 import test from "node:test";
 import type { Request, Response } from "express";
 
-import {
-  createErrorHandler,
-  createRequestLoggingMiddleware,
-} from "../../src/logging/httpLogging.js";
-import {
-  createLogger,
-  type LogEntry,
-  type Logger,
-  redactLogText,
-  serializeError,
-} from "../../src/logging/logger.js";
+import { createErrorHandler, createRequestLoggingMiddleware } from "../../src/logging/httpLogging.js";
+import { createLogger, type LogEntry, type Logger, redactLogText, serializeError } from "../../src/logging/logger.js";
 
 function captureLogger() {
   const entries: LogEntry[] = [];
@@ -128,9 +119,7 @@ test("access logs describe API usage without recording secrets or query strings"
   assert.equal(res.statusCode, 200);
   assert.equal(res.getHeader("x-request-id"), "caller-request-123");
 
-  const accessLog = entries.find(
-    ({ event }) => event === "http_request_completed",
-  );
+  const accessLog = entries.find(({ event }) => event === "http_request_completed");
   assert.ok(accessLog);
   assert.equal(accessLog.level, "info");
   assert.equal(accessLog.path, "/ok");
@@ -152,15 +141,8 @@ test("unexpected failures expose only a correlation id and keep details in logs"
     path: "/internal-error",
     headers: { "x-request-id": "internal-failure-123" },
   });
-  const error = new Error(
-    "MongoDB failed at mongodb://user:password@example.test",
-  );
-  createErrorHandler(logger)(
-    error,
-    req as unknown as Request,
-    res as unknown as Response,
-    () => {},
-  );
+  const error = new Error("MongoDB failed at mongodb://user:password@example.test");
+  createErrorHandler(logger)(error, req as unknown as Request, res as unknown as Response, () => {});
 
   assert.equal(res.statusCode, 500);
   assert.deepEqual(res.body, {
@@ -172,9 +154,7 @@ test("unexpected failures expose only a correlation id and keep details in logs"
   });
   assert.doesNotMatch(JSON.stringify(res.body), /password/u);
 
-  const failureLog = entries.find(
-    ({ event }) => event === "http_request_failed",
-  );
+  const failureLog = entries.find(({ event }) => event === "http_request_failed");
   assert.ok(failureLog);
   assert.equal(failureLog.level, "error");
   assert.equal(failureLog.requestId, "internal-failure-123");
@@ -183,10 +163,7 @@ test("unexpected failures expose only a correlation id and keep details in logs"
     "MongoDB failed at mongodb://[REDACTED]@example.test",
   );
   assert.doesNotMatch(JSON.stringify(failureLog), /user:password/u);
-  assert.match(
-    (failureLog.error as { stack: string }).stack,
-    /httpLogging\.test/u,
-  );
+  assert.match((failureLog.error as { stack: string }).stack, /httpLogging\.test/u);
 });
 
 test("functional 4xx errors remain actionable and health checks are quiet", () => {
@@ -202,12 +179,7 @@ test("functional 4xx errors remain actionable and health checks are quiet", () =
   const error = new Error("The supplied filter is invalid");
   error.statusCode = 422;
   error.code = "INVALID_FILTER";
-  createErrorHandler(logger)(
-    error,
-    req as unknown as Request,
-    res as unknown as Response,
-    () => {},
-  );
+  createErrorHandler(logger)(error, req as unknown as Request, res as unknown as Response, () => {});
 
   assert.equal(res.statusCode, 422);
   assert.deepEqual(res.body, {
@@ -217,12 +189,7 @@ test("functional 4xx errors remain actionable and health checks are quiet", () =
       requestId: "client-error-123",
     },
   });
-  assert.ok(
-    entries.some(
-      ({ level, event }) =>
-        level === "warn" && event === "http_request_rejected",
-    ),
-  );
+  assert.ok(entries.some(({ level, event }) => level === "warn" && event === "http_request_rejected"));
 });
 
 test("functional 4xx errors preserve explicitly public structured details", () => {
@@ -245,12 +212,7 @@ test("functional 4xx errors preserve explicitly public structured details", () =
     requiredPermissions: ["issues.write"],
     retryable: false,
   });
-  createErrorHandler(logger)(
-    error,
-    req as unknown as Request,
-    res as unknown as Response,
-    () => {},
-  );
+  createErrorHandler(logger)(error, req as unknown as Request, res as unknown as Response, () => {});
 
   assert.deepEqual(res.body, {
     error: {
@@ -290,4 +252,26 @@ test("common credentials are redacted before error details reach logs", () => {
     text,
     'Bearer [REDACTED] password="[REDACTED]" clientSecret="[REDACTED]" API_KEY=[REDACTED] biaws_[REDACTED]',
   );
+});
+
+test("log redaction protects all secret key aliases after regex decomposition", () => {
+  for (const key of [
+    "password",
+    "passwd",
+    "pwd",
+    "secret",
+    "secretValue",
+    "client_secret",
+    "client-secret",
+    "token",
+    "credential",
+    "authorization",
+    "apiKey",
+    "api_key",
+    "private-key",
+    "connectionString",
+  ]) {
+    assert.equal(redactLogText(`"${key}":"synthetic-sensitive-value"`), `"${key}":"[REDACTED]"`);
+    assert.equal(redactLogText(`${key}='synthetic-sensitive-value'`), `${key}='[REDACTED]'`);
+  }
 });

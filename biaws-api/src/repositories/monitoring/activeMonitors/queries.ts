@@ -6,10 +6,7 @@ import { activeMonitorCollection } from "./storage.js";
 import { normalizeDocument } from "../../shared/topology/normalization.js";
 import { pagination } from "../../shared/topology/filters.js";
 
-export async function listRuntimeActiveMonitors(
-  runtimeId: string,
-  query: RepositoryQuery = {},
-) {
+export async function listRuntimeActiveMonitors(runtimeId: string, query: RepositoryQuery = {}) {
   const runtime = await requireRuntime(runtimeId, query.workspaceId);
   const { page, limit, skip } = pagination(query);
   const collection = await activeMonitorCollection();
@@ -19,12 +16,7 @@ export async function listRuntimeActiveMonitors(
     archivedAt: { $exists: false },
   };
   const [items, total] = await Promise.all([
-    collection
-      .find(filter)
-      .sort({ nameKey: 1, id: 1 })
-      .skip(skip)
-      .limit(limit)
-      .toArray(),
+    collection.find(filter).sort({ nameKey: 1, id: 1 }).skip(skip).limit(limit).toArray(),
     collection.countDocuments(filter),
   ]);
   return {
@@ -46,10 +38,7 @@ export async function getRuntimeActiveMonitor(
 export async function getRuntimeActiveMonitor(
   runtimeId: string,
   monitorId: string | string[],
-  {
-    workspaceId,
-    includeLease = false,
-  }: { workspaceId?: string | null; includeLease?: boolean } = {},
+  { workspaceId, includeLease = false }: { workspaceId?: string | null; includeLease?: boolean } = {},
 ) {
   const runtime = await requireRuntime(runtimeId, workspaceId);
   const collection = await activeMonitorCollection();

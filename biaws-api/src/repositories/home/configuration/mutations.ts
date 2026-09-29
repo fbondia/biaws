@@ -4,19 +4,10 @@ import { validateConfiguredApplications } from "./context.js";
 import { homeCollection } from "../storage.js";
 import type { Actor } from "../../../types/http.js";
 
-export async function saveHomeConfiguration(
-  payload: Record<string, unknown> = {},
-  actor: Partial<Actor> = {},
-) {
-  const unknown = Object.keys(payload || {}).filter(
-    (key: string) => key !== "widgets",
-  );
+export async function saveHomeConfiguration(payload: Record<string, unknown> = {}, actor: Partial<Actor> = {}) {
+  const unknown = Object.keys(payload || {}).filter((key: string) => key !== "widgets");
   if (unknown.length) {
-    throw homeError(
-      422,
-      "INVALID_HOME_CONFIGURATION",
-      `unknown home fields: ${unknown.join(", ")}`,
-    );
+    throw homeError(422, "INVALID_HOME_CONFIGURATION", `unknown home fields: ${unknown.join(", ")}`);
   }
   const widgets = normalizeHomeWidgets(payload.widgets, actor);
   await validateConfiguredApplications(widgets, actor);

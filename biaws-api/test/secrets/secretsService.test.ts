@@ -33,10 +33,7 @@ test("secret creation rejects unknown fields before storing a value", async () =
 });
 
 test("metadata updates cannot smuggle a new secret value", async () => {
-  await assert.rejects(
-    updateSecret("secret-a", { value: "private-value" }, actor),
-    { code: "INVALID_SECRET" },
-  );
+  await assert.rejects(updateSecret("secret-a", { value: "private-value" }, actor), { code: "INVALID_SECRET" });
 });
 
 test("pending registrations cannot smuggle a secret value", async () => {
@@ -71,10 +68,7 @@ test("pending registrations require the immutable content format", async () => {
 });
 
 test("secret identifiers cannot be changed after creation", async () => {
-  await assert.rejects(
-    updateSecret("secret-a", { identifier: "replacement" }, actor),
-    { code: "INVALID_SECRET" },
-  );
+  await assert.rejects(updateSecret("secret-a", { identifier: "replacement" }, actor), { code: "INVALID_SECRET" });
 });
 
 test("secret file metadata is normalized without exposing its content", () => {

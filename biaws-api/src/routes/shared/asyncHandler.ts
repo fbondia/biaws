@@ -1,5 +1,4 @@
-import type { RequestHandler } from "express";
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { resolveRouteReferences } from "./resolveRouteReferences.js";
 
 export function asyncHandler(handler: RequestHandler) {
@@ -12,15 +11,10 @@ export function asyncHandler(handler: RequestHandler) {
   };
 }
 
-export function createReferenceHandler(
-  rootType?: string | ((req: Request) => string | undefined),
-) {
+export function createReferenceHandler(rootType?: string | ((req: Request) => string | undefined)) {
   return (handler: RequestHandler) =>
     asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-      await resolveRouteReferences(
-        req,
-        typeof rootType === "function" ? rootType(req) : rootType,
-      );
+      await resolveRouteReferences(req, typeof rootType === "function" ? rootType(req) : rootType);
       await handler(req, res, next);
     });
 }

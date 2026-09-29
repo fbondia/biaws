@@ -1,8 +1,4 @@
-import {
-  isolatedDatabaseName,
-  restoreEnvironmentAfter,
-  availablePort,
-} from "../support/integration.js";
+import { isolatedDatabaseName, restoreEnvironmentAfter, availablePort } from "../support/integration.js";
 import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -16,8 +12,7 @@ import {
 } from "../../src/repositories/monitoring/metadataProfiles/templateSeeds.js";
 
 const integrationEnabled =
-  Boolean(process.env.BIAWS_INTEGRATION_MONGO_URI) &&
-  process.env.BIAWS_HTTP_INTEGRATION === "1";
+  Boolean(process.env.BIAWS_INTEGRATION_MONGO_URI) && process.env.BIAWS_HTTP_INTEGRATION === "1";
 
 import { authenticationAndCatalogFixture } from "./http/authenticationAndCatalogFixture.js";
 import { passiveSignals } from "./http/passiveSignals.js";
@@ -35,14 +30,11 @@ test(
     restoreEnvironmentAfter(t);
     const port = await availablePort();
     const baseUrl = `http://127.0.0.1:${port}`;
-    const issueDirectory = await mkdtemp(
-      path.join(tmpdir(), "biaws-phase2-http-"),
-    );
+    const issueDirectory = await mkdtemp(path.join(tmpdir(), "biaws-phase2-http-"));
     Object.assign(process.env, {
       MONGO_URI: process.env.BIAWS_INTEGRATION_MONGO_URI,
       MONGO_DB: isolatedDatabaseName(),
-      BETTER_AUTH_SECRET:
-        "phase2-integration-secret-with-more-than-32-characters",
+      BETTER_AUTH_SECRET: "phase2-integration-secret-with-more-than-32-characters",
       BETTER_AUTH_URL: baseUrl,
       BETTER_AUTH_TRUSTED_ORIGINS: baseUrl,
       BIAWS_API_HOST: "127.0.0.1",
@@ -54,12 +46,9 @@ test(
     const { createApp } = await import("../../src/app.js");
     const { getAuth } = await import("../../src/auth/auth.js");
     const { bootstrapAdmin } = await import("../../src/auth/bootstrapAdmin.js");
-    const { closeMongoClient, getMongoDatabase } =
-      await import("../../src/helpers/mongoClient.js");
-    const { setUserGroups } =
-      await import("../../src/repositories/access/index.js");
-    const { ensureDefaultWorkspace } =
-      await import("../../src/repositories/catalog/index.js");
+    const { closeMongoClient, getMongoDatabase } = await import("../../src/helpers/mongoClient.js");
+    const { setUserGroups } = await import("../../src/repositories/access/index.js");
+    const { ensureDefaultWorkspace } = await import("../../src/repositories/catalog/index.js");
 
     const database = await getMongoDatabase();
     await database.dropDatabase();
@@ -72,8 +61,7 @@ test(
       password,
       name: "Phase 2 administrator",
       log() {},
-      assignAdministration: (userId) =>
-        setUserGroups(userId, ["administration"], { userId }),
+      assignAdministration: (userId) => setUserGroups(userId, ["administration"], { userId }),
     });
     await ensureDefaultWorkspace({ userId: admin.user.id });
     const reader = await auth.api.createUser({
@@ -86,13 +74,8 @@ test(
     });
     await setUserGroups(reader.user.id, ["support"], { userId: admin.user.id });
     await database
-      .collection<{ _id: string; permissions: string[] }>(
-        COLLECTION_NAMES.PERMISSION_GROUPS,
-      )
-      .updateOne(
-        { _id: "administration" },
-        { $pull: { permissions: "runtimes.read" } },
-      );
+      .collection<{ _id: string; permissions: string[] }>(COLLECTION_NAMES.PERMISSION_GROUPS)
+      .updateOne({ _id: "administration" }, { $pull: { permissions: "runtimes.read" } });
 
     const server = createApp().listen(port, "127.0.0.1");
     await new Promise((resolve, reject) => {
@@ -180,9 +163,7 @@ test(
       const reviewed = await overview(recovery);
       await legacyShell(reviewed);
     } finally {
-      await new Promise<void>((resolve, reject) =>
-        server.close((error) => (error ? reject(error) : resolve())),
-      );
+      await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
       await database.dropDatabase();
       await closeMongoClient();
       await rm(issueDirectory, { recursive: true, force: true });

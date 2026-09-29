@@ -1,15 +1,7 @@
 import type { Router, Request, Response } from "express";
-import {
-  deleteRequestTaskNote,
-  getRequest,
-} from "../../../repositories/requests/index.js";
+import { deleteRequestTaskNote, getRequest } from "../../../repositories/requests/index.js";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
-import {
-  nestedById,
-  scopedQuery,
-  auditDemand,
-  asyncHandler,
-} from "../helpers.js";
+import { nestedById, scopedQuery, auditDemand, asyncHandler } from "../helpers.js";
 
 export function registerDeleteTasksNote(router: Router) {
   router.delete(
@@ -18,17 +10,9 @@ export function registerDeleteTasksNote(router: Router) {
     asyncHandler(async (req: Request, res: Response) => {
       const query = scopedQuery(req, "tasks.note.delete");
       const beforeDemand = (await getRequest(req.params.id, query)).request;
-      if (!beforeDemand)
-        return res
-          .status(404)
-          .json({ error: { code: "NOT_FOUND", message: "Demand not found" } });
+      if (!beforeDemand) return res.status(404).json({ error: { code: "NOT_FOUND", message: "Demand not found" } });
       const beforeTask = nestedById(beforeDemand.tasks, req.params.taskId);
-      const result = await deleteRequestTaskNote(
-        req.params.id,
-        req.params.taskId,
-        req.params.noteId,
-        query,
-      );
+      const result = await deleteRequestTaskNote(req.params.id, req.params.taskId, req.params.noteId, query);
       if (!result.request) throw new Error("Updated demand could not be read");
       const afterTask = nestedById(result.request.tasks, req.params.taskId);
       await auditDemand({

@@ -14,12 +14,8 @@ async function run() {
   const serverConfig = getServerConfig();
   const database = await getMongoDatabase();
   const auth = await getAuth();
-  const email = String(
-    process.env.BIAWS_BOOTSTRAP_AGENT_EMAIL || "agent@localhost.invalid",
-  ).toLowerCase();
-  const name = String(
-    process.env.BIAWS_BOOTSTRAP_AGENT_NAME || "Bondia Workspaces Agent",
-  );
+  const email = String(process.env.BIAWS_BOOTSTRAP_AGENT_EMAIL || "agent@localhost.invalid").toLowerCase();
+  const name = String(process.env.BIAWS_BOOTSTRAP_AGENT_NAME || "Bondia Workspaces Agent");
   const password = randomBytes(32).toString("base64url");
   const workspace = await ensureDefaultWorkspace();
 
@@ -29,9 +25,7 @@ async function run() {
     email,
     password,
     name,
-    existingApiKey: String(
-      process.env.BIAWS_BOOTSTRAP_AGENT_API_KEY || "",
-    ).trim(),
+    existingApiKey: String(process.env.BIAWS_BOOTSTRAP_AGENT_API_KEY || "").trim(),
     rateLimit: serverConfig.rateLimit.apiKey,
     assignAgent: (userId) =>
       setUserGroups(
@@ -46,9 +40,11 @@ async function run() {
   console.log(`BIAWS_AGENT_WORKSPACE_ID=${workspace.id}`);
 }
 
-run()
-  .catch((error: unknown) => {
-    console.error(errorMessage(error));
-    process.exitCode = 1;
-  })
-  .finally(closeMongoClient);
+try {
+  await run();
+} catch (error: unknown) {
+  console.error(errorMessage(error));
+  process.exitCode = 1;
+} finally {
+  await closeMongoClient();
+}

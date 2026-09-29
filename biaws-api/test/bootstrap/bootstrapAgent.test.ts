@@ -6,9 +6,7 @@ import { defaultKeyHasher } from "@better-auth/api-key";
 import { bootstrapAgent } from "../../src/auth/bootstrapAgent.js";
 import { COLLECTION_NAMES } from "../../src/database/collectionNames.js";
 
-function databaseWith(
-  user: { _id: { toString: () => string }; email: string } | null,
-) {
+function databaseWith(user: { _id: { toString: () => string }; email: string } | null) {
   return {
     collection(name: unknown) {
       assert.equal(name, COLLECTION_NAMES.AUTH_USERS);
@@ -152,10 +150,7 @@ test("bootstrap preserves and reconciles a valid existing API key", async () => 
             expiresAt: new Date(Date.now() + 60_000),
           };
         },
-        async updateOne(
-          filter: unknown,
-          operation: NonNullable<typeof update>["operation"],
-        ) {
+        async updateOne(filter: unknown, operation: NonNullable<typeof update>["operation"]) {
           update = { filter, operation };
         },
       };

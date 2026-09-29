@@ -17,5 +17,11 @@ export const IGNORED_FIELDS = new Set([
   "token",
 ]);
 
-export const SECRET_FIELD_PATTERN =
-  /(?:password|passwd|pwd|secret(?:value)?|token|credential|authorization|api[-_.]?key|private[-_.]?key|connection[-_.]?string|ciphertext|auth[-_.]?tag|encrypted[-_.]?data[-_.]?key)/iu;
+const SECRET_FIELD_PATTERNS = [
+  /password|passwd|pwd|secret(?:value)?|token|credential|authorization|ciphertext/iu,
+  /api[-_.]?key|private[-_.]?key|connection[-_.]?string/iu,
+  /auth[-_.]?tag|encrypted[-_.]?data[-_.]?key/iu,
+];
+export const SECRET_FIELD_PATTERN = {
+  test: (key: string) => SECRET_FIELD_PATTERNS.some((pattern) => pattern.test(key)),
+};

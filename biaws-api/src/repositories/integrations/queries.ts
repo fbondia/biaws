@@ -4,24 +4,16 @@ import type { WithId } from "mongodb";
 import { getCollection } from "./storage.js";
 import { STATUSES } from "./constants.js";
 import { COLLECTION_NAMES } from "../../database/collectionNames.js";
-import {
-  buildScopedListFilter,
-  pagination,
-} from "../shared/topology/filters.js";
+import { buildScopedListFilter, pagination } from "../shared/topology/filters.js";
 import { createCatalogError } from "../shared/topology/errors.js";
 import { normalizeDocument } from "../shared/topology/normalization.js";
 import { requireOperationalApplication } from "../shared/topology/context.js";
 
-function publicIntegration(
-  document: WithId<IntegrationDocument>,
-): IntegrationDocument {
+function publicIntegration(document: WithId<IntegrationDocument>): IntegrationDocument {
   return normalizeDocument(document) as IntegrationDocument;
 }
 
-export async function listIntegrations(
-  applicationId: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function listIntegrations(applicationId: string | string[], query: RepositoryQuery = {}) {
   const application = await requireOperationalApplication(applicationId);
   const collection = await getCollection();
   const filter = buildScopedListFilter({
@@ -32,12 +24,7 @@ export async function listIntegrations(
   });
   const { page, limit, skip } = pagination(query);
   const [documents, total] = await Promise.all([
-    collection
-      .find(filter)
-      .sort({ name: 1, id: 1 })
-      .skip(skip)
-      .limit(limit)
-      .toArray(),
+    collection.find(filter).sort({ name: 1, id: 1 }).skip(skip).limit(limit).toArray(),
     collection.countDocuments(filter),
   ]);
   return {
@@ -55,10 +42,7 @@ export async function listIntegrations(
 
 export async function getIntegration(
   integrationId: string | string[],
-  {
-    applicationId,
-    workspaceId,
-  }: { applicationId?: string; workspaceId?: string } = {},
+  { applicationId, workspaceId }: { applicationId?: string; workspaceId?: string } = {},
 ) {
   const collection = await getCollection();
   const filter: Record<string, string> = { id: String(integrationId) };
@@ -73,19 +57,13 @@ export async function getIntegration(
   return integration;
 }
 
-export async function assertNoActiveApplicationIntegrations(
-  workspaceId: string,
-  applicationId: string,
-) {
+export async function assertNoActiveApplicationIntegrations(workspaceId: string, applicationId: string) {
   const count = await (
     await getCollection()
   ).countDocuments({
     workspaceId: String(workspaceId),
     status: "active",
-    $or: [
-      { applicationId: String(applicationId) },
-      { targetApplicationId: String(applicationId) },
-    ],
+    $or: [{ applicationId: String(applicationId) }, { targetApplicationId: String(applicationId) }],
   });
   if (count) {
     throw createCatalogError(

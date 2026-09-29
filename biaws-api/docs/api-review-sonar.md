@@ -10,15 +10,15 @@ Análise da árvore de código de 2026-09-29 no projeto [BIAWS-API](http://local
 
 ## Achados e Quality Gate
 
-| Indicador da API | Resultado |
-| --- | ---: |
-| Issues abertas Blocker ou impacto High | 12 antes das correções; **0** após a reanálise |
-| Issues abertas totais | 443, de impacto Low ou Medium |
-| Bugs / vulnerabilidades / code smells | 0 / 1 / 442 |
-| Issues por qualidade de software: confiabilidade / segurança / manutenibilidade | 34 / 1 / 442 |
-| Security hotspots | 4; 0% revisados |
-| Cobertura Sonar | 66,5% |
-| Duplicação total / duplicação de código novo | 2,3% / 2,26131% (limite 3%) |
+| Indicador da API                                                                |                                      Resultado |
+| ------------------------------------------------------------------------------- | ---------------------------------------------: |
+| Issues abertas Blocker ou impacto High                                          | 12 antes das correções; **0** após a reanálise |
+| Issues abertas totais                                                           |                  443, de impacto Low ou Medium |
+| Bugs / vulnerabilidades / code smells                                           |                                    0 / 1 / 442 |
+| Issues por qualidade de software: confiabilidade / segurança / manutenibilidade |                                   34 / 1 / 442 |
+| Security hotspots                                                               |                                4; 0% revisados |
+| Cobertura Sonar                                                                 |                                          66,5% |
+| Duplicação total / duplicação de código novo                                    |                    2,3% / 2,26131% (limite 3%) |
 
 As condições de Blocker, High e duplicação de código novo estão **OK**. A condição `new_security_hotspots_reviewed` está **ERROR** (0% contra 100%). O token de análise do projeto recebe HTTP 403 ao consultar os detalhes dos hotspots, e a interface local exige login; a revisão requer uma identidade Sonar com acesso apropriado. O gate não deve ser apresentado como aprovado. A vulnerabilidade Medium remanescente é `typescript:S2068` em `src/auth/authorizationMiddleware.ts:301`; deve ser examinada junto com os hotspots por alguém com acesso de revisão.
 

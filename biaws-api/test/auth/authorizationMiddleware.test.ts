@@ -28,13 +28,7 @@ function responseRecorder() {
 }
 
 test("authorization is based on permissions, not group names", () => {
-  assert.equal(
-    actorHasPermission(
-      { groups: [{ id: "administration" }], permissions: [] },
-      "issues.read",
-    ),
-    false,
-  );
+  assert.equal(actorHasPermission({ groups: [{ id: "administration" }], permissions: [] }, "issues.read"), false);
 });
 
 test("application authorization is permission-specific and server-owned", () => {
@@ -47,10 +41,7 @@ test("application authorization is permission-specific and server-owned", () => 
     },
   };
   assert.equal(actorCanAccessApplication(actor, "issues.read", "app-b"), true);
-  assert.equal(
-    actorCanAccessApplication(actor, "issues.update", "app-b"),
-    false,
-  );
+  assert.equal(actorCanAccessApplication(actor, "issues.update", "app-b"), false);
   assert.deepEqual(
     authorizationQuery(actor, "issues.update", {
       workspaceId: "forged",
@@ -66,23 +57,16 @@ test("application authorization is permission-specific and server-owned", () => 
 
 test("required permission returns a structured 403", () => {
   const res = responseRecorder();
-  requireAllPermissions("issues.read")(
-    { actor: { permissions: [] } },
-    res,
-    () => {
-      assert.fail("must not call next");
-    },
-  );
+  requireAllPermissions("issues.read")({ actor: { permissions: [] } }, res, () => {
+    assert.fail("must not call next");
+  });
   assert.equal(res.statusCode, 403);
   assert.ok(res.payload);
   assert.equal(res.payload.error.code, "FORBIDDEN");
 });
 
 test("technical admin receives platform permissions without workspace permissions", () => {
-  assert.deepEqual(platformPermissionsForTechnicalRole("admin"), [
-    "platform.workspaces.manage",
-    "platform.audit.read",
-  ]);
+  assert.deepEqual(platformPermissionsForTechnicalRole("admin"), ["platform.workspaces.manage", "platform.audit.read"]);
   assert.deepEqual(platformPermissionsForTechnicalRole("user"), []);
 
   const res = responseRecorder();
@@ -119,10 +103,7 @@ test("field authorization requires every permission represented in the patch", (
   );
   assert.equal(res.statusCode, 403);
   assert.ok(res.payload);
-  assert.deepEqual(res.payload.error.requiredPermissions, [
-    "issues.status.update",
-    "issues.update",
-  ]);
+  assert.deepEqual(res.payload.error.requiredPermissions, ["issues.status.update", "issues.update"]);
 });
 
 test("database override is rejected before repository access", () => {

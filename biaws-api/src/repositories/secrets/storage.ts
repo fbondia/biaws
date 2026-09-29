@@ -5,12 +5,10 @@ import { getMongoDatabase } from "../../helpers/mongoClient.js";
 let collectionPromise: ReturnType<typeof initializeCollections> | undefined;
 
 export async function getCollections() {
-  if (!collectionPromise) {
-    collectionPromise = initializeCollections().catch((error: unknown) => {
-      collectionPromise = undefined;
-      throw error;
-    });
-  }
+  collectionPromise ??= initializeCollections().catch((error: unknown) => {
+    collectionPromise = undefined;
+    throw error;
+  });
   return collectionPromise;
 }
 
@@ -19,10 +17,7 @@ async function initializeCollections() {
   const secrets = db.collection<SecretDocument>(COLLECTION_NAMES.SECRETS);
   await Promise.all([
     secrets.createIndex({ id: 1 }, { unique: true }),
-    secrets.createIndex(
-      { workspaceId: 1, applicationId: 1, normalizedName: 1 },
-      { unique: true },
-    ),
+    secrets.createIndex({ workspaceId: 1, applicationId: 1, normalizedName: 1 }, { unique: true }),
     secrets.createIndex(
       { workspaceId: 1, identifier: 1 },
       {

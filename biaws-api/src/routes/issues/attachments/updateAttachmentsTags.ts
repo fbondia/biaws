@@ -1,9 +1,6 @@
 import type { Request, Router, Response } from "express";
 import { updateAttachmentTags } from "../../../services/attachmentService.js";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { authorizationQuery, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
 import { knowledgeContextMetadata } from "../../../repositories/shared/knowledgeContext.js";
 import { asyncHandler, rootDocument } from "../../shared/attachmentHelpers.js";

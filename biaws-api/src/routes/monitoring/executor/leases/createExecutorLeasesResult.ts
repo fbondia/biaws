@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../../../auth/authorizationMiddleware.js";
+import { authorizationQuery, requireAllPermissions } from "../../../../auth/authorizationMiddleware.js";
 import { recordActiveRuntimeMonitoringObservation } from "../../../../repositories/monitoring/events/index.js";
 import {
   claimActiveMonitorResult,
@@ -16,25 +13,10 @@ export function registerCreateExecutorLeasesResult(router: Router) {
     "/executor/leases/:leaseToken/results",
     requireAllPermissions("monitoring.active.execute"),
     asyncHandler(async (req: Request, res: Response) => {
-      const { authorizationScope } = authorizationQuery(
-        req.actor,
-        "monitoring.active.execute",
-      );
-      const monitor = await claimActiveMonitorResult(
-        req.params.leaseToken,
-        req.body?.executorId,
-        authorizationScope,
-      );
-      const result = await recordActiveRuntimeMonitoringObservation(
-        monitor,
-        req.body,
-        req.actor,
-      );
-      await completeActiveMonitorExecution(
-        monitor,
-        req.params.leaseToken,
-        result.signal,
-      );
+      const { authorizationScope } = authorizationQuery(req.actor, "monitoring.active.execute");
+      const monitor = await claimActiveMonitorResult(req.params.leaseToken, req.body?.executorId, authorizationScope);
+      const result = await recordActiveRuntimeMonitoringObservation(monitor, req.body, req.actor);
+      await completeActiveMonitorExecution(monitor, req.params.leaseToken, result.signal);
       if (result.created) {
         await recordAuditEvent({
           actor: req.actor,

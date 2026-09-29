@@ -6,10 +6,7 @@ import { scopedQuery, auditDemand, asyncHandler } from "./helpers.js";
 export function registerCreateRequest(router: Router) {
   router.post(
     "/",
-    requireBodyFieldPermissions(
-      { specification: "demands.specification.update" },
-      "demands.create",
-    ),
+    requireBodyFieldPermissions({ specification: "demands.specification.update" }, "demands.create"),
     asyncHandler(async (req: Request, res: Response) => {
       const result = await createRequest(
         { ...req.body, createdBy: req.actor.email || req.actor.userId },

@@ -8,9 +8,7 @@ export function registerListCollectionItems(router: Router) {
     "/collection-items",
     requireAllPermissions("demands.read"),
     asyncHandler(async (req: Request, res: Response) => {
-      res.json(
-        await listRequestCollectionItems(scopedQuery(req, "demands.read")),
-      );
+      res.json(await listRequestCollectionItems(scopedQuery(req, "demands.read")));
     }),
   );
 }

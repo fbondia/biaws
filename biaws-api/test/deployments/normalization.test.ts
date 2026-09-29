@@ -4,10 +4,7 @@ import test from "node:test";
 
 import { PERMISSION_CATALOG } from "../../../shared/index.js";
 import { normalizeComponentInput } from "../../src/repositories/components/index.js";
-import {
-  normalizeDeploymentInput,
-  normalizeRuntimeInput,
-} from "../../src/repositories/deployments/index.js";
+import { normalizeDeploymentInput, normalizeRuntimeInput } from "../../src/repositories/deployments/index.js";
 import { normalizeRepositoryInput } from "../../src/repositories/repositories/index.js";
 import { normalizeServerInput } from "../../src/repositories/servers/index.js";
 import {
@@ -30,10 +27,7 @@ import {
   normalizeRuntimeMonitoringSummaryQuery,
   runtimeMonitoringSummaryResponse,
 } from "../../src/repositories/monitoring/events/summary.js";
-import {
-  buildScopedListFilter,
-  pagination,
-} from "../../src/repositories/shared/topology/index.js";
+import { buildScopedListFilter, pagination } from "../../src/repositories/shared/topology/index.js";
 
 test("deployment keeps its component immutable and validates source shape", () => {
   const current = normalizeDeploymentInput({
@@ -45,9 +39,7 @@ test("deployment keeps its component immutable and validates source shape", () =
   });
   assert.throws(
     () => normalizeDeploymentInput({ componentId: "component-2" }, current),
-    (error) =>
-      errorStatusCode(error) === 409 &&
-      errorCode(error) === "DEPLOYMENT_COMPONENT_IMMUTABLE",
+    (error) => errorStatusCode(error) === 409 && errorCode(error) === "DEPLOYMENT_COMPONENT_IMMUTABLE",
   );
   assert.throws(
     () =>
@@ -57,9 +49,7 @@ test("deployment keeps its component immutable and validates source shape", () =
         componentId: "component-1",
         source: { revision: "abc123" },
       }),
-    (error) =>
-      errorStatusCode(error) === 422 &&
-      errorCode(error) === "INVALID_DEPLOYMENT_SOURCE",
+    (error) => errorStatusCode(error) === 422 && errorCode(error) === "INVALID_DEPLOYMENT_SOURCE",
   );
 });
 
@@ -90,19 +80,10 @@ test("deployment publications are append-only and materialize the latest release
   assert.equal(deployment.version, "2.4.0");
   assert.equal(deployment.source.revision, "abc123");
   assert.equal(deployment.source.repositoryId, "repository-1");
-  assert.equal(
-    deployment.deployedAt?.toISOString(),
-    "2026-07-30T12:00:00.000Z",
-  );
+  assert.equal(deployment.deployedAt?.toISOString(), "2026-07-30T12:00:00.000Z");
   assert.throws(
-    () =>
-      normalizeDeploymentInput(
-        { publications: [] },
-        { ...deployment, id: "deployment-1" },
-      ),
-    (error) =>
-      errorStatusCode(error) === 409 &&
-      errorCode(error) === "CATALOG_HISTORY_IMMUTABLE",
+    () => normalizeDeploymentInput({ publications: [] }, { ...deployment, id: "deployment-1" }),
+    (error) => errorStatusCode(error) === 409 && errorCode(error) === "CATALOG_HISTORY_IMMUTABLE",
   );
 });
 

@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { RepositoryQuery } from "../../types/http.js";
 import { COLLECTION_NAMES } from "../../database/collectionNames.js";
 import {
@@ -10,22 +11,15 @@ import { WithId, Document } from "mongodb";
 const COLLECTION = COLLECTION_NAMES.EMAIL_SANITIZATION_CONFIGS;
 
 function workspaceId(query: RepositoryQuery = {}) {
-  return String(
-    query.authorizationScope?.workspaceId || query.workspaceId || "",
-  );
+  return String(query.authorizationScope?.workspaceId || query.workspaceId || "");
 }
 
-function response(
-  document: WithId<Document> | null,
-  effectiveWorkspaceId: string,
-) {
+function response(document: WithId<Document> | null, effectiveWorkspaceId: string) {
   return {
     workspaceId: effectiveWorkspaceId,
     source: document ? "stored" : "default",
     version: document?.version || 0,
-    config: normalizeEmailSanitizationConfig(
-      document?.config || DEFAULT_EMAIL_SANITIZATION_CONFIG,
-    ),
+    config: normalizeEmailSanitizationConfig(document?.config || DEFAULT_EMAIL_SANITIZATION_CONFIG),
     updatedAt: document?.updatedAt || null,
     updatedBy: document?.updatedBy || "",
   };
@@ -38,9 +32,7 @@ async function collection(query: RepositoryQuery = {}) {
   return { collection: result, workspaceId: workspaceId(query) };
 }
 
-export async function getEmailSanitizationConfiguration(
-  query: RepositoryQuery = {},
-) {
+export async function getEmailSanitizationConfiguration(query: RepositoryQuery = {}) {
   const context = await collection(query);
   const document = await context.collection.findOne({
     workspaceId: context.workspaceId,
@@ -61,7 +53,7 @@ export async function saveEmailSanitizationConfiguration(
       $set: {
         config,
         updatedAt: now,
-        updatedBy: String(query.actor || ""),
+        updatedBy: textValue(query.actor || ""),
       },
       $setOnInsert: {
         workspaceId: context.workspaceId,
@@ -71,8 +63,5 @@ export async function saveEmailSanitizationConfiguration(
     },
     { upsert: true },
   );
-  return response(
-    await context.collection.findOne({ workspaceId: context.workspaceId }),
-    context.workspaceId,
-  );
+  return response(await context.collection.findOne({ workspaceId: context.workspaceId }), context.workspaceId);
 }

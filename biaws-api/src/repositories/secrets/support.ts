@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import { isRecord } from "../../helpers/records.js";
 export function secretError(
   statusCode: number | undefined,
@@ -15,25 +16,17 @@ export function normalizedName(value: string) {
 }
 
 export function requiredText(value: unknown, field: string, maxLength: number) {
-  const normalized = String(value || "").trim();
+  const normalized = textValue(value || "").trim();
   if (!normalized || normalized.length > maxLength) {
-    throw secretError(
-      422,
-      "INVALID_SECRET",
-      `${field} must contain between 1 and ${maxLength} characters`,
-    );
+    throw secretError(422, "INVALID_SECRET", `${field} must contain between 1 and ${maxLength} characters`);
   }
   return normalized;
 }
 
 export function optionalText(value: unknown, field: string, maxLength: number) {
-  const normalized = String(value || "").trim();
+  const normalized = textValue(value || "").trim();
   if (normalized.length > maxLength) {
-    throw secretError(
-      422,
-      "INVALID_SECRET",
-      `${field} must contain at most ${maxLength} characters`,
-    );
+    throw secretError(422, "INVALID_SECRET", `${field} must contain at most ${maxLength} characters`);
   }
   return normalized;
 }
@@ -47,9 +40,5 @@ export function duplicateSecretError(error: unknown) {
       "A secret with this identifier already exists in the workspace",
     );
   }
-  throw secretError(
-    409,
-    "SECRET_NAME_CONFLICT",
-    "A secret with this name already exists in the selected scope",
-  );
+  throw secretError(409, "SECRET_NAME_CONFLICT", "A secret with this name already exists in the selected scope");
 }

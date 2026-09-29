@@ -1,10 +1,10 @@
-import type { Filter, Document } from "mongodb";
-import type {
-  HealthRuntime,
-  HealthSignal,
-  NamedItem,
-  PendingExecution,
-} from "./model.js";
+import type { Db, Document, Filter } from "mongodb";
+import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
+import { getMongoDatabase } from "../../../helpers/mongoClient.js";
+import type { Actor } from "../../../types/http.js";
+import { applicationScope } from "../filters.js";
+import type { HealthRuntime, HealthSignal, NamedItem } from "./model.js";
+import { buildApplicationHealthItems, filterRuntimesByDeploymentEnvironment } from "./model.js";
 interface HealthConfig {
   applicationId?: string;
   componentId?: string;
@@ -21,15 +21,6 @@ interface ActiveMonitorRow {
 interface DeploymentItem extends NamedItem {
   environment?: string;
 }
-import type { Db } from "mongodb";
-import type { Actor } from "../../../types/http.js";
-import { applicationScope } from "../filters.js";
-import {
-  filterRuntimesByDeploymentEnvironment,
-  buildApplicationHealthItems,
-} from "./model.js";
-import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
-import { getMongoDatabase } from "../../../helpers/mongoClient.js";
 
 async function latestRuntimeMonitoringSignals(
   database: Db,
@@ -44,12 +35,7 @@ async function latestRuntimeMonitoringSignals(
         $match: {
           workspaceId,
           runtimeId: { $in: runtimeIds },
-          $or: [
-            { origin: "passive" },
-            { origin: "active" },
-            { origin: "external" },
-            { origin: { $exists: false } },
-          ],
+          $or: [{ origin: "passive" }, { origin: "active" }, { origin: "external" }, { origin: { $exists: false } }],
         },
       },
       { $sort: { observedAt: -1, receivedAt: -1, id: -1 } },
@@ -113,10 +99,7 @@ async function pendingRuntimeManualExecutions(
   );
 }
 
-function applicationHealthApplicationFilter(
-  actor: Partial<Actor>,
-  config: HealthConfig,
-) {
+function applicationHealthApplicationFilter(actor: Partial<Actor>, config: HealthConfig) {
   const applicationIds = applicationScope(actor, "runtimes.read");
   const configuredId = String(config.applicationId || "");
   const filter: Filter<Document> = {
@@ -124,8 +107,7 @@ function applicationHealthApplicationFilter(
     status: { $ne: "archived" },
   };
   if (configuredId) {
-    const available =
-      applicationIds === null || applicationIds.includes(configuredId);
+    const available = applicationIds === null || applicationIds.includes(configuredId);
     filter.id = available ? configuredId : { $in: [] };
   } else if (applicationIds) {
     filter.id = { $in: applicationIds };
@@ -140,13 +122,11 @@ async function configuredApplicationHealthRuntimeIds(
   includeConfigured: boolean,
 ) {
   if (!includeConfigured) return [];
-  return database
-    .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
-    .distinct("runtimeId", {
-      workspaceId,
-      applicationId: { $in: applicationIds },
-      archivedAt: { $exists: false },
-    });
+  return database.collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS).distinct("runtimeId", {
+    workspaceId,
+    applicationId: { $in: applicationIds },
+    archivedAt: { $exists: false },
+  });
 }
 
 function applicationHealthRuntimeFilter(
@@ -157,10 +137,7 @@ function applicationHealthRuntimeFilter(
 ) {
   const monitoringFilter = config.includeConfigured
     ? {
-        $or: [
-          { monitoring: { $exists: true, $ne: null } },
-          { id: { $in: configuredRuntimeIds } },
-        ],
+        $or: [{ monitoring: { $exists: true, $ne: null } }, { id: { $in: configuredRuntimeIds } }],
       }
     : { monitoring: { $exists: true, $ne: null } };
   return {
@@ -184,14 +161,7 @@ async function applicationHealthRuntimes(
   if (!applicationIds.length) return [];
   return database
     .collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES)
-    .find(
-      applicationHealthRuntimeFilter(
-        actor,
-        config,
-        applicationIds,
-        configuredRuntimeIds,
-      ),
-    )
+    .find(applicationHealthRuntimeFilter(actor, config, applicationIds, configuredRuntimeIds))
     .project<HealthRuntime>({
       _id: 0,
       id: 1,
@@ -211,12 +181,8 @@ async function applicationHealthRuntimes(
 function applicationHealthReferenceIds(runtimes: HealthRuntime[]) {
   return {
     componentIds: [...new Set(runtimes.map(({ componentId }) => componentId))],
-    deploymentIds: [
-      ...new Set(runtimes.map(({ deploymentId }) => deploymentId)),
-    ],
-    serverIds: [
-      ...new Set(runtimes.map(({ serverId }) => serverId).filter(Boolean)),
-    ],
+    deploymentIds: [...new Set(runtimes.map(({ deploymentId }) => deploymentId))],
+    serverIds: [...new Set(runtimes.map(({ serverId }) => serverId).filter(Boolean))],
   };
 }
 
@@ -226,8 +192,7 @@ async function applicationHealthTopology(
   applicationIds: string[],
   runtimes: HealthRuntime[],
 ) {
-  const { componentIds, deploymentIds, serverIds } =
-    applicationHealthReferenceIds(runtimes);
+  const { componentIds, deploymentIds, serverIds } = applicationHealthReferenceIds(runtimes);
   const [components, deployments, servers] = await Promise.all([
     componentIds.length
       ? database
@@ -269,22 +234,12 @@ async function applicationHealthTopology(
   return { components, deployments, servers };
 }
 
-function materializeApplicationHealthRuntime(
-  runtime: HealthRuntime,
-  includeConfigured: boolean,
-) {
-  return includeConfigured && !runtime.monitoring
-    ? { ...runtime, status: "unknown" }
-    : runtime;
+function materializeApplicationHealthRuntime(runtime: HealthRuntime, includeConfigured: boolean) {
+  return includeConfigured && !runtime.monitoring ? { ...runtime, status: "unknown" } : runtime;
 }
 
-export async function applicationHealthMetric(
-  database: Db,
-  actor: Partial<Actor>,
-  config: HealthConfig,
-) {
-  const { configuredId, filter: applicationFilter } =
-    applicationHealthApplicationFilter(actor, config);
+export async function applicationHealthMetric(database: Db, actor: Partial<Actor>, config: HealthConfig) {
+  const { configuredId, filter: applicationFilter } = applicationHealthApplicationFilter(actor, config);
   const applications = await database
     .collection(COLLECTION_NAMES.APPLICATIONS)
     .find(applicationFilter)
@@ -298,24 +253,14 @@ export async function applicationHealthMetric(
     ids,
     Boolean(config.includeConfigured),
   );
-  const runtimes = await applicationHealthRuntimes(
-    database,
-    actor,
-    config,
-    ids,
-    configuredRuntimeIds,
-  );
+  const runtimes = await applicationHealthRuntimes(database, actor, config, ids, configuredRuntimeIds);
   const { components, deployments, servers } = await applicationHealthTopology(
     database,
     actor.workspaceId,
     ids,
     runtimes,
   );
-  const filteredRuntimes = filterRuntimesByDeploymentEnvironment(
-    runtimes,
-    deployments,
-    config.environment,
-  );
+  const filteredRuntimes = filterRuntimesByDeploymentEnvironment(runtimes, deployments, config.environment);
   const runtimeIds = filteredRuntimes.map(({ id }) => id);
   const [latestSignals, pendingExecutions] = await Promise.all([
     latestRuntimeMonitoringSignals(database, actor.workspaceId, runtimeIds),
@@ -328,10 +273,7 @@ export async function applicationHealthMetric(
     latestSignals,
     pendingExecutions,
     runtimes: filteredRuntimes.map((runtime) =>
-      materializeApplicationHealthRuntime(
-        runtime,
-        Boolean(config.includeConfigured),
-      ),
+      materializeApplicationHealthRuntime(runtime, Boolean(config.includeConfigured)),
     ),
     servers,
   });
@@ -343,10 +285,7 @@ export async function applicationHealthMetric(
   };
 }
 
-export async function getApplicationHealthMetric(
-  actor: Actor,
-  config: HealthConfig = {},
-) {
+export async function getApplicationHealthMetric(actor: Actor, config: HealthConfig = {}) {
   const database = await getMongoDatabase();
   return applicationHealthMetric(database, actor, config);
 }

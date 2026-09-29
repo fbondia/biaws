@@ -1,8 +1,4 @@
-export {
-  sanitizeAuditValue,
-  calculateAuditChanges,
-  buildAuditEvent,
-} from "./normalization.js";
+export { sanitizeAuditValue, calculateAuditChanges, buildAuditEvent } from "./normalization.js";
 
 export { buildAuditFilter } from "./filters.js";
 

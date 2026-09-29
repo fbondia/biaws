@@ -1,17 +1,12 @@
+import { textValue } from "../../../helpers/text.js";
 import { optionalText } from "../../shared/topology/normalization.js";
 import { evaluateMonitoringTemplateReference } from "../templates/evaluation.js";
-import type {
-  ActiveMonitorDocument,
-  MonitorLease,
-  MonitorTemplateRef,
-} from "../../../types/monitoring.js";
+import type { ActiveMonitorDocument, MonitorLease, MonitorTemplateRef } from "../../../types/monitoring.js";
 import { isRecord } from "../../../helpers/records.js";
 import { errorStatusCode } from "../../../helpers/error.js";
 
 type ActiveObservationMonitor = ActiveMonitorDocument & { lease: MonitorLease };
-type MonitoringEvaluation = NonNullable<
-  Awaited<ReturnType<typeof evaluateMonitoringTemplateReference>>
->;
+type MonitoringEvaluation = NonNullable<Awaited<ReturnType<typeof evaluateMonitoringTemplateReference>>>;
 type TemplateFailure = Record<string, unknown> & { statusCode: number };
 
 export async function evaluateActiveMonitoringTemplate(
@@ -42,16 +37,12 @@ export async function evaluateActiveMonitoringTemplate(
 }
 
 function failedTemplateMetadata(evaluationFailure: TemplateFailure) {
-  const details = isRecord(evaluationFailure.publicDetails)
-    ? evaluationFailure.publicDetails
-    : {};
+  const details = isRecord(evaluationFailure.publicDetails) ? evaluationFailure.publicDetails : {};
   const diagnostic = isRecord(details.diagnostic) ? details.diagnostic : {};
   return {
     failure_kind: "template_evaluation",
     failure_stage: "template",
-    diagnostic_code: String(
-      diagnostic.code || evaluationFailure.code || "TEMPLATE_EVALUATION_FAILED",
-    ).slice(0, 100),
+    diagnostic_code: textValue(diagnostic.code || evaluationFailure.code || "TEMPLATE_EVALUATION_FAILED").slice(0, 100),
   };
 }
 
@@ -73,19 +64,14 @@ export function activeObservationPayload(
 ) {
   return {
     signalId: `active:${monitor.id}:${monitor.lease.executionId}`,
-    status: evaluationFailure
-      ? "unknown"
-      : evaluation?.result.status || payload.status,
+    status: evaluationFailure ? "unknown" : evaluation?.result.status || payload.status,
     observedAt: payload.observedAt,
-    source:
-      optionalText(payload.source, "source", 160) ||
-      `${monitor.provider}:${monitor.name}`,
+    source: optionalText(payload.source, "source", 160) || `${monitor.provider}:${monitor.name}`,
     message: evaluationFailure
       ? "Monitoring template evaluation failed"
       : evaluation?.result.message || payload.message,
     metadata: activeObservationMetadata(payload, evaluation, evaluationFailure),
-    metadataProfile:
-      evaluation || evaluationFailure ? undefined : payload.metadataProfile,
+    metadataProfile: evaluation || evaluationFailure ? undefined : payload.metadataProfile,
     payload: monitor.provider === "shell" ? undefined : payload.payload,
   };
 }
@@ -109,8 +95,6 @@ export function activeObservationEventContext(
           templateMatch: evaluation.matchedRule,
         }
       : {}),
-    ...(evaluationFailure?.templateSnapshot
-      ? { templateSnapshot: evaluationFailure.templateSnapshot }
-      : {}),
+    ...(evaluationFailure?.templateSnapshot ? { templateSnapshot: evaluationFailure.templateSnapshot } : {}),
   };
 }

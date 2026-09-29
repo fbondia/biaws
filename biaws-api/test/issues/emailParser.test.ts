@@ -106,13 +106,7 @@ test("EML sanitization rules can be configured for subject and body", async () =
 
 test("disabled EML sanitization rules remain in the resulting body", async () => {
   const eml = Buffer.from(
-    [
-      "Subject: Teste",
-      "Content-Type: text/plain; charset=utf-8",
-      "",
-      "Texto",
-      "NÃO REMOVER",
-    ].join("\r\n"),
+    ["Subject: Teste", "Content-Type: text/plain; charset=utf-8", "", "Texto", "NÃO REMOVER"].join("\r\n"),
   );
   const parsed = await parseEmlBuffer(eml, {
     sanitizationConfig: {
@@ -171,12 +165,7 @@ test("EML issue type and code detection uses configured type metadata", async ()
 
 test("EML detection prefers a code capture over a classification-only match", async () => {
   const eml = Buffer.from(
-    [
-      "Subject: Erro ao tratar REQ12345",
-      "Content-Type: text/plain; charset=utf-8",
-      "",
-      "Detalhes.",
-    ].join("\r\n"),
+    ["Subject: Erro ao tratar REQ12345", "Content-Type: text/plain; charset=utf-8", "", "Detalhes."].join("\r\n"),
   );
   const parsed = await parseEmlBuffer(eml);
 

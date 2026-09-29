@@ -8,50 +8,32 @@ import { ObjectId } from "mongodb";
 import { buildKnowledgeContextFilter } from "../shared/knowledgeContext.js";
 import { ObjectIdLike } from "bson";
 
-export async function requestReferenceId(
-  db: Db,
-  reference: unknown,
-  query: RepositoryQuery,
-) {
-  const document = await findByReference(
-    db.collection(REQUESTS_COLLECTION),
-    reference,
-    {
-      idField: "_id",
-      identifierField: "clientCode",
-      filter: buildKnowledgeContextFilter(query),
-      projection: { _id: 1 },
-    },
-  );
+export async function requestReferenceId(db: Db, reference: unknown, query: RepositoryQuery) {
+  const document = await findByReference(db.collection(REQUESTS_COLLECTION), reference, {
+    idField: "_id",
+    identifierField: "clientCode",
+    filter: buildKnowledgeContextFilter(query),
+    projection: { _id: 1 },
+  });
   if (!document) throw createHttpError(404, "Request not found");
   return document._id;
 }
 
-export async function taskReferenceId(
-  db: Db,
-  reference: unknown,
-  requestId: ObjectId,
-) {
-  const document = await findByReference(
-    db.collection(TASKS_COLLECTION),
-    reference,
-    {
-      idField: "_id",
-      identifierField: "code",
-      caseInsensitive: true,
-      filter: { requestId },
-      projection: { _id: 1 },
-    },
-  );
+export async function taskReferenceId(db: Db, reference: unknown, requestId: ObjectId) {
+  const document = await findByReference(db.collection(TASKS_COLLECTION), reference, {
+    idField: "_id",
+    identifierField: "code",
+    caseInsensitive: true,
+    filter: { requestId },
+    projection: { _id: 1 },
+  });
   if (!document) throw createHttpError(404, "Request task not found");
   return document._id;
 }
 
-export function requestNoteObjectId(
-  id: string | Uint8Array<ArrayBufferLike> | ObjectId | ObjectIdLike,
-) {
+export function requestNoteObjectId(id: string | Uint8Array<ArrayBufferLike> | ObjectId | ObjectIdLike) {
   if (!ObjectId.isValid(id)) {
-    throw createHttpError(404, `Request note not found: ${id}`);
+    throw createHttpError(404, "Request note not found");
   }
 
   return new ObjectId(id);
@@ -68,10 +50,7 @@ export async function touchRequest(db: Db, requestId: ObjectId, now: Date) {
   );
 }
 
-export function requestFilter(
-  requestId: ObjectId,
-  query: RepositoryQuery = {},
-): Filter<RequestDocument> {
+export function requestFilter(requestId: ObjectId, query: RepositoryQuery = {}): Filter<RequestDocument> {
   return {
     _id: requestId,
     ...buildKnowledgeContextFilter(query),

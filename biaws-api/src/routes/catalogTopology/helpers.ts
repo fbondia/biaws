@@ -13,25 +13,16 @@ export function sendNotFound(res: Response, type: string) {
   });
 }
 
-export async function scopedApplicationEntity<
-  T extends { applicationId: string | null },
->(
+export async function scopedApplicationEntity<T extends { applicationId: string | null }>(
   req: Request,
   permission: string,
-  getter: (
-    id: string | string[],
-    query: { workspaceId?: string },
-  ) => Promise<T | null>,
+  getter: (id: string | string[], query: { workspaceId?: string }) => Promise<T | null>,
   id: string | string[],
 ): Promise<T | null> {
   const entity = await getter(id, {
     workspaceId: req.actor.workspaceId ?? undefined,
   });
-  if (
-    !entity ||
-    !entity.applicationId ||
-    !actorCanAccessApplication(req.actor, permission, entity.applicationId)
-  ) {
+  if (!entity || !entity.applicationId || !actorCanAccessApplication(req.actor, permission, entity.applicationId)) {
     return null;
   }
   return entity;
@@ -79,4 +70,4 @@ export async function auditMutation({
   });
 }
 
-export const asyncHandler = createReferenceHandler(undefined);
+export const asyncHandler = createReferenceHandler();

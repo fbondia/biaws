@@ -1,12 +1,6 @@
 import type { Router, Request, Response } from "express";
 import { listDocumentRevisions } from "../../../repositories/documents/index.js";
-import {
-  authorize,
-  query,
-  currentDocument,
-  sendNotFound,
-  asyncHandler,
-} from "../helpers.js";
+import { authorize, query, currentDocument, sendNotFound, asyncHandler } from "../helpers.js";
 
 export function registerListDocumentsRevisions(router: Router) {
   router.get(

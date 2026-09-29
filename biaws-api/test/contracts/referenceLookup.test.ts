@@ -20,14 +20,10 @@ test("an ID wins over a colliding identifier without running the fallback", asyn
     },
   };
   assert.equal(
-    await findByReference(
-      collection as unknown as Collection<{ id: string }>,
-      "INC1",
-      {
-        filter,
-        identifierField: "identifier",
-      },
-    ),
+    await findByReference(collection as unknown as Collection<{ id: string }>, "INC1", {
+      filter,
+      identifierField: "identifier",
+    }),
     document,
   );
 });
@@ -53,18 +49,12 @@ test("a non-ObjectId identifier uses the same authorized filter and detects ambi
     },
   };
   await assert.rejects(
-    findByReference(
-      collection as unknown as Collection<{ _id: string }>,
-      "MEL1",
-      {
-        filter,
-        idField: "_id",
-        identifierField: "clientCode",
-      },
-    ),
-    (error) =>
-      errorStatusCode(error) === 409 &&
-      errorCode(error) === "AMBIGUOUS_REFERENCE",
+    findByReference(collection as unknown as Collection<{ _id: string }>, "MEL1", {
+      filter,
+      idField: "_id",
+      identifierField: "clientCode",
+    }),
+    (error) => errorStatusCode(error) === 409 && errorCode(error) === "AMBIGUOUS_REFERENCE",
   );
 });
 
@@ -89,15 +79,11 @@ test("a valid but absent ObjectId also falls back to the business code", async (
     },
   };
   const reference = "507f1f77bcf86cd799439011";
-  const found = await findByReference(
-    collection as unknown as Collection<{ _id: string }>,
-    reference,
-    {
-      idField: "_id",
-      identifierField: "code",
-      filter: { requestId: "parent" },
-    },
-  );
+  const found = await findByReference(collection as unknown as Collection<{ _id: string }>, reference, {
+    idField: "_id",
+    identifierField: "code",
+    filter: { requestId: "parent" },
+  });
   assert.ok(found);
   assert.equal(found._id, "found");
   assert.equal(String(calls[0].$and[1]._id), reference);

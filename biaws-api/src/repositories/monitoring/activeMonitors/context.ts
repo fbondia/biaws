@@ -11,14 +11,12 @@ export async function validateTemplateRef(
 ) {
   if (!templateRef) return;
   const database = await getMongoDatabase();
-  const template = await database
-    .collection(COLLECTION_NAMES.RUNTIME_MONITORING_TEMPLATES)
-    .findOne({
-      id: templateRef.id,
-      version: templateRef.version,
-      workspaceId: runtime.workspaceId,
-      status: allowInactive ? { $ne: "archived" } : "active",
-    });
+  const template = await database.collection(COLLECTION_NAMES.RUNTIME_MONITORING_TEMPLATES).findOne({
+    id: templateRef.id,
+    version: templateRef.version,
+    workspaceId: runtime.workspaceId,
+    status: allowInactive ? { $ne: "archived" } : "active",
+  });
   if (!template) {
     throw createCatalogError(
       422,
@@ -28,10 +26,7 @@ export async function validateTemplateRef(
   }
 }
 
-export async function requireRuntime(
-  runtimeId: string | string[],
-  workspaceId: string | null | undefined,
-) {
+export async function requireRuntime(runtimeId: string | string[], workspaceId: string | null | undefined) {
   const runtime = await getRuntime(runtimeId, {
     workspaceId: workspaceId ?? undefined,
   });

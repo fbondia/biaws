@@ -25,9 +25,7 @@ export function identityIdCandidates(userId: string) {
   return candidates;
 }
 
-export function groupIdCandidates(
-  groupIds: readonly unknown[],
-): (string | ObjectId)[] {
+export function groupIdCandidates(groupIds: readonly unknown[]): (string | ObjectId)[] {
   return [...new Set(groupIds.map(String))].flatMap((groupId) =>
     ObjectId.isValid(groupId) ? [groupId, new ObjectId(groupId)] : [groupId],
   );

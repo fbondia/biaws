@@ -7,9 +7,7 @@ function utcPeriodStart(period: string, now = new Date()) {
   if (period === "month") {
     return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   }
-  const start = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const day = start.getUTCDay();
   start.setUTCDate(start.getUTCDate() - (day === 0 ? 6 : day - 1));
   return start;
@@ -22,12 +20,10 @@ export async function issuePeriodMetric(
   now: Date | undefined,
 ) {
   const period = config.period || "week";
-  const count = await database
-    .collection(COLLECTION_NAMES.ISSUES)
-    .countDocuments({
-      ...scopedFilter(actor, "issues.read"),
-      "dates.receivedEmailAt": { $gte: utcPeriodStart(period, now), $lte: now },
-    });
+  const count = await database.collection(COLLECTION_NAMES.ISSUES).countDocuments({
+    ...scopedFilter(actor, "issues.read"),
+    "dates.receivedEmailAt": { $gte: utcPeriodStart(period, now), $lte: now },
+  });
   return {
     kind: "stat",
     value: count,
@@ -37,11 +33,7 @@ export async function issuePeriodMetric(
   };
 }
 
-export async function issueBreakdownMetric(
-  database: Db,
-  actor: Partial<Actor>,
-  field: string,
-) {
+export async function issueBreakdownMetric(database: Db, actor: Partial<Actor>, field: string) {
   const rows = await database
     .collection(COLLECTION_NAMES.ISSUES)
     .aggregate([

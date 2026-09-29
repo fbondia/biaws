@@ -4,10 +4,7 @@ import test from "node:test";
 
 import { PERMISSION_CATALOG } from "../../../shared/index.js";
 import { normalizeComponentInput } from "../../src/repositories/components/index.js";
-import {
-  normalizeDeploymentInput,
-  normalizeRuntimeInput,
-} from "../../src/repositories/deployments/index.js";
+import { normalizeDeploymentInput, normalizeRuntimeInput } from "../../src/repositories/deployments/index.js";
 import { normalizeRepositoryInput } from "../../src/repositories/repositories/index.js";
 import { normalizeServerInput } from "../../src/repositories/servers/index.js";
 import {
@@ -30,10 +27,7 @@ import {
   normalizeRuntimeMonitoringSummaryQuery,
   runtimeMonitoringSummaryResponse,
 } from "../../src/repositories/monitoring/events/summary.js";
-import {
-  buildScopedListFilter,
-  pagination,
-} from "../../src/repositories/shared/topology/index.js";
+import { buildScopedListFilter, pagination } from "../../src/repositories/shared/topology/index.js";
 
 test("active monitor configuration is bounded and secret-free", () => {
   const monitor = normalizeActiveMonitorInput({
@@ -116,10 +110,11 @@ test("active monitor configuration is bounded and secret-free", () => {
 });
 
 test("active monitor lease requests require a bounded executor identity", () => {
-  assert.deepEqual(
-    normalizeActiveMonitorLeaseRequest({ executorId: "runner-1" }),
-    { executorId: "runner-1", limit: 1, leaseSeconds: 60 },
-  );
+  assert.deepEqual(normalizeActiveMonitorLeaseRequest({ executorId: "runner-1" }), {
+    executorId: "runner-1",
+    limit: 1,
+    leaseSeconds: 60,
+  });
   assert.throws(
     () =>
       normalizeActiveMonitorLeaseRequest({
@@ -149,17 +144,9 @@ test("monitoring signals validate status, idempotency key and secret-free metada
   assert.equal(signal.signalId, "zabbix:billing-api:42");
   assert.equal(signal.status, "degraded");
   assert.equal(signal.recordedBy, "monitor-1");
-  assert.ok(
-    signal.payload &&
-      typeof signal.payload === "object" &&
-      !Array.isArray(signal.payload),
-  );
+  assert.ok(signal.payload && typeof signal.payload === "object" && !Array.isArray(signal.payload));
   const httpPayload = signal.payload.http;
-  assert.ok(
-    httpPayload &&
-      typeof httpPayload === "object" &&
-      !Array.isArray(httpPayload),
-  );
+  assert.ok(httpPayload && typeof httpPayload === "object" && !Array.isArray(httpPayload));
   assert.equal(httpPayload.status, 503);
   assert.equal(signal.observedAt.toISOString(), "2026-07-31T15:00:00.000Z");
   assert.throws(
@@ -228,9 +215,7 @@ test("monitoring metadata profiles validate their versioned field contract", () 
       pool_utilization_percent: 60,
     },
   });
-  const apiPresentation = monitoringMetadataPresentation(
-    apiSignal.metadataProfile,
-  );
+  const apiPresentation = monitoringMetadataPresentation(apiSignal.metadataProfile);
   assert.ok(apiPresentation);
   assert.equal(apiPresentation.label, "Saúde da API de Automações");
   assert.equal(apiPresentation.fields[2].key, "connection_pool_up");
@@ -338,10 +323,7 @@ test("monitoring signal history filters status and observed date range", () => {
   assert.equal(filter.status, "degraded");
   assert.ok(filter.observedAt?.$gte);
   assert.ok(filter.observedAt.$lt);
-  assert.equal(
-    filter.observedAt.$gte.toISOString(),
-    "2026-07-01T00:00:00.000Z",
-  );
+  assert.equal(filter.observedAt.$gte.toISOString(), "2026-07-01T00:00:00.000Z");
   assert.equal(filter.observedAt.$lt.toISOString(), "2026-08-01T00:00:00.000Z");
   const instantFilter = buildRuntimeMonitoringSignalFilter(
     { id: "runtime-1", workspaceId: "workspace-1" },
@@ -352,20 +334,10 @@ test("monitoring signal history filters status and observed date range", () => {
   );
   assert.ok(instantFilter.observedAt?.$gte);
   assert.ok(instantFilter.observedAt.$lte);
-  assert.equal(
-    instantFilter.observedAt.$gte.toISOString(),
-    "2026-07-31T13:15:00.000Z",
-  );
-  assert.equal(
-    instantFilter.observedAt.$lte.toISOString(),
-    "2026-07-31T15:45:00.000Z",
-  );
+  assert.equal(instantFilter.observedAt.$gte.toISOString(), "2026-07-31T13:15:00.000Z");
+  assert.equal(instantFilter.observedAt.$lte.toISOString(), "2026-07-31T15:45:00.000Z");
   assert.throws(
-    () =>
-      buildRuntimeMonitoringSignalFilter(
-        { id: "runtime-1", workspaceId: "workspace-1" },
-        { status: "invalid" },
-      ),
+    () => buildRuntimeMonitoringSignalFilter({ id: "runtime-1", workspaceId: "workspace-1" }, { status: "invalid" }),
     (error) => errorStatusCode(error) === 422,
   );
   assert.throws(
@@ -423,27 +395,23 @@ test("monitoring health summary returns compact series and aggregate counts", ()
     observedTo: "2026-08-02",
     resolution: "1h",
   });
-  const summary = runtimeMonitoringSummaryResponse(
-    { id: "runtime-1" },
-    settings,
-    [
-      {
-        _id: {
-          bucket: new Date("2026-08-01T10:00:00.000Z"),
-          seriesId: "monitor:http",
-        },
-        degradedCount: 1,
-        eventCount: 8,
-        healthyCount: 7,
-        label: "HTTP",
-        monitorId: "http",
-        stoppedCount: 0,
-        unavailableCount: 0,
-        unknownCount: 0,
-        worstSeverity: 2,
+  const summary = runtimeMonitoringSummaryResponse({ id: "runtime-1" }, settings, [
+    {
+      _id: {
+        bucket: new Date("2026-08-01T10:00:00.000Z"),
+        seriesId: "monitor:http",
       },
-    ],
-  );
+      degradedCount: 1,
+      eventCount: 8,
+      healthyCount: 7,
+      label: "HTTP",
+      monitorId: "http",
+      stoppedCount: 0,
+      unavailableCount: 0,
+      unknownCount: 0,
+      worstSeverity: 2,
+    },
+  ]);
   assert.equal(summary.meta.eventCount, 8);
   assert.equal(summary.meta.pointCount, 1);
   assert.equal(summary.meta.statusCounts.healthy, 7);

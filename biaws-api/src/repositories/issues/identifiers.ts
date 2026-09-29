@@ -1,25 +1,16 @@
+import { textValue } from "../../helpers/text.js";
 import type { Db } from "mongodb";
 import { createHttpError } from "./support.js";
 import { ISSUES_COLLECTION } from "./constants.js";
 
 export function parseIssueDate(value: unknown, fallback = new Date()) {
   if (!value) return fallback;
-  if (
-    typeof value !== "string" &&
-    typeof value !== "number" &&
-    !(value instanceof Date)
-  ) {
-    throw createHttpError(
-      422,
-      "Invalid issue payload: date must be a valid date",
-    );
+  if (typeof value !== "string" && typeof value !== "number" && !(value instanceof Date)) {
+    throw createHttpError(422, "Invalid issue payload: date must be a valid date");
   }
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) {
-    throw createHttpError(
-      422,
-      `Invalid issue payload: date must be a valid date`,
-    );
+    throw createHttpError(422, `Invalid issue payload: date must be a valid date`);
   }
   return date;
 }
@@ -32,7 +23,7 @@ export async function generateIssueId(db: Db, date = new Date()) {
   const prefix = `${formatDateLabel(date)}-`;
   const existing = await db
     .collection(ISSUES_COLLECTION)
-    .find({ id: { $regex: `^${prefix}\\d{3}$` } })
+    .find({ id: { $regex: String.raw`^${prefix}\d{3}$` } })
     .project({ id: 1 })
     .sort({ id: -1 })
     .limit(1)
@@ -44,12 +35,9 @@ export async function generateIssueId(db: Db, date = new Date()) {
 }
 
 export function normalizeIssueIdentifier(value: unknown) {
-  const identifier = String(value || "").trim();
+  const identifier = textValue(value || "").trim();
   if (identifier.length > 100 || /[\s/\\]/u.test(identifier)) {
-    throw createHttpError(
-      422,
-      "Issue identifier must contain at most 100 characters without whitespace or slashes",
-    );
+    throw createHttpError(422, "Issue identifier must contain at most 100 characters without whitespace or slashes");
   }
   return identifier || null;
 }

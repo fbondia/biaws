@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-import type { ApplicationDocument } from "../types/catalog.js";
-import type { ComponentDocument } from "../types/topology.js";
-import type { KnowledgeContext } from "../types/requests.js";
+import type { Db } from "mongodb";
 import type { TaxonomyNode } from "../helpers/taxonomy.js";
+import type { ApplicationDocument } from "../types/catalog.js";
+import type { KnowledgeContext } from "../types/requests.js";
+import type { ComponentDocument } from "../types/topology.js";
 interface TaxonomyPackage {
   taxonomy?: TaxonomyNode[];
   tagGroups?: { id: string; tags: string[] }[];
 }
-import type { Db, WithId } from "mongodb";
 
 import "../config.js";
 
@@ -17,30 +17,15 @@ import { fileURLToPath } from "node:url";
 
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
-import {
-  collectTaxonomyIds,
-  filterTaxonomyForApplication,
-} from "../helpers/taxonomy.js";
-import {
-  createIssue,
-  saveIssueClassification,
-} from "../repositories/issues/index.js";
-import { listOptionLists } from "../repositories/optionLists/index.js";
-import { createDocument } from "../repositories/documents/index.js";
-import { createResourceCollection } from "../repositories/resourceCollections/index.js";
-import {
-  createRequest,
-  createRequestTask,
-} from "../repositories/requests/index.js";
-import {
-  getIssueTaxonomy,
-  saveIssueTaxonomy,
-} from "../repositories/issues/taxonomy.js";
-import {
-  createApplication,
-  ensureDefaultWorkspace,
-} from "../repositories/catalog/index.js";
+import { collectTaxonomyIds, filterTaxonomyForApplication } from "../helpers/taxonomy.js";
+import { createApplication, ensureDefaultWorkspace } from "../repositories/catalog/index.js";
 import { createComponent } from "../repositories/components/index.js";
+import { createDocument } from "../repositories/documents/index.js";
+import { createIssue, saveIssueClassification } from "../repositories/issues/index.js";
+import { getIssueTaxonomy, saveIssueTaxonomy } from "../repositories/issues/taxonomy.js";
+import { listOptionLists } from "../repositories/optionLists/index.js";
+import { createRequest, createRequestTask } from "../repositories/requests/index.js";
+import { createResourceCollection } from "../repositories/resourceCollections/index.js";
 import type { RepositoryQuery } from "../types/http.js";
 
 const SEED_ACTOR = "demo-seed";
@@ -51,10 +36,7 @@ const DEMO_COLLECTION_NAME = "Demonstração";
 const DEMO_APPLICATION_KEY = "bondia-workspaces-demo";
 const DEMO_COMPONENT_KEY = "workspace-platform";
 
-export function demoCatalogSkipReason(
-  application: { status?: string } | null,
-  component?: { status?: string } | null,
-) {
+export function demoCatalogSkipReason(application: { status?: string } | null, component?: { status?: string } | null) {
   if (application?.status && application.status !== "active") {
     return "demo-application-archived";
   }
@@ -137,18 +119,16 @@ async function ensureCatalog(db: Db) {
       workspaceId: workspace.id,
       key: DEMO_APPLICATION_KEY,
     });
-  if (!application) {
-    application = await createApplication(
-      workspace.id,
-      {
-        key: DEMO_APPLICATION_KEY,
-        name: "Bondia Workspaces Demo",
-        description: "Aplicação fictícia usada pelos dados de demonstração.",
-        tags: ["demo"],
-      },
-      actor,
-    );
-  }
+  application ??= await createApplication(
+    workspace.id,
+    {
+      key: DEMO_APPLICATION_KEY,
+      name: "Bondia Workspaces Demo",
+      description: "Aplicação fictícia usada pelos dados de demonstração.",
+      tags: ["demo"],
+    },
+    actor,
+  );
   if (!application) throw new Error("Demo application is unavailable");
   const applicationSkipReason = demoCatalogSkipReason(application);
   if (applicationSkipReason) {
@@ -165,19 +145,17 @@ async function ensureCatalog(db: Db) {
       applicationId: application.id,
       key: DEMO_COMPONENT_KEY,
     });
-  if (!component) {
-    component = await createComponent(
-      application.id,
-      {
-        key: DEMO_COMPONENT_KEY,
-        name: "Plataforma de demonstração",
-        description: "Componente fictício afetado pelos registros do seed.",
-        type: "service",
-        tags: ["demo"],
-      },
-      actor,
-    );
-  }
+  component ??= await createComponent(
+    application.id,
+    {
+      key: DEMO_COMPONENT_KEY,
+      name: "Plataforma de demonstração",
+      description: "Componente fictício afetado pelos registros do seed.",
+      type: "service",
+      tags: ["demo"],
+    },
+    actor,
+  );
   if (!component) throw new Error("Demo component is unavailable");
   return {
     workspace,
@@ -187,15 +165,9 @@ async function ensureCatalog(db: Db) {
   };
 }
 
-function availableTags(
-  taxonomyPackage: TaxonomyPackage | null,
-  requested: Record<string, string[]>,
-) {
+function availableTags(taxonomyPackage: TaxonomyPackage | null, requested: Record<string, string[]>) {
   const groups = new Map<string, Set<string>>(
-    (taxonomyPackage?.tagGroups || []).map((group) => [
-      String(group.id),
-      new Set((group.tags || []).map(String)),
-    ]),
+    (taxonomyPackage?.tagGroups || []).map((group) => [String(group.id), new Set((group.tags || []).map(String))]),
   );
   return Object.fromEntries(
     Object.entries(requested).flatMap(([groupId, tagIds]) => {
@@ -207,17 +179,9 @@ function availableTags(
   );
 }
 
-export function buildDemoClassifications(
-  taxonomyPackage: TaxonomyPackage | null,
-  applicationId: string,
-) {
+export function buildDemoClassifications(taxonomyPackage: TaxonomyPackage | null, applicationId: string) {
   const availableIds = new Set(
-    collectTaxonomyIds(
-      filterTaxonomyForApplication(
-        taxonomyPackage?.taxonomy || [],
-        applicationId,
-      ),
-    ),
+    collectTaxonomyIds(filterTaxonomyForApplication(taxonomyPackage?.taxonomy || [], applicationId)),
   );
   const tags = availableTags(taxonomyPackage, {
     ambiente: ["local"],
@@ -231,9 +195,7 @@ export function buildDemoClassifications(
     issue: availableIds.has("integracao")
       ? {
           primaryTaxonomyId: "integracao",
-          secondaryTaxonomyIds: availableIds.has("automacao")
-            ? ["automacao"]
-            : [],
+          secondaryTaxonomyIds: availableIds.has("automacao") ? ["automacao"] : [],
           summary: "Exemplo de issue classificada para a experiência inicial.",
           tags,
           updatedBy: SEED_ACTOR,
@@ -261,7 +223,14 @@ async function ensureIssue(
   });
   let created = false;
 
-  if (!existing) {
+  if (existing) {
+    await db
+      .collection(COLLECTION_NAMES.ISSUES)
+      .updateOne(
+        { id: DEMO_ISSUE_ID, workspaceId: context.workspaceId },
+        { $set: { ...context, updatedAt: new Date(), updatedBy: SEED_ACTOR } },
+      );
+  } else {
     await createIssue(
       {
         id: DEMO_ISSUE_ID,
@@ -269,8 +238,7 @@ async function ensureIssue(
         status: "open",
         title: "Falha intermitente na integração de demonstração",
         text: "Registro fictício para explorar filtros, classificação e histórico do workspace.",
-        comment:
-          "A análise inicial indica que a ocorrência está restrita ao ambiente local.",
+        comment: "A análise inicial indica que a ocorrência está restrita ao ambiente local.",
         date: dateLabel(-2),
         createdBy: SEED_ACTOR,
         source: { kind: "demo-seed" },
@@ -279,13 +247,6 @@ async function ensureIssue(
       query,
     );
     created = true;
-  } else {
-    await db
-      .collection(COLLECTION_NAMES.ISSUES)
-      .updateOne(
-        { id: DEMO_ISSUE_ID, workspaceId: context.workspaceId },
-        { $set: { ...context, updatedAt: new Date(), updatedBy: SEED_ACTOR } },
-      );
   }
 
   if (classification) {
@@ -299,11 +260,7 @@ async function ensureIssue(
   };
 }
 
-async function ensureRequest(
-  db: Db,
-  context: KnowledgeContext,
-  query: RepositoryQuery,
-) {
+async function ensureRequest(db: Db, context: KnowledgeContext, query: RepositoryQuery) {
   const existing = await db.collection(COLLECTION_NAMES.REQUESTS).findOne({
     clientCode: DEMO_REQUEST_CODE,
     workspaceId: context.workspaceId,
@@ -315,10 +272,7 @@ async function ensureRequest(
     requestId = existing._id.toString();
     await db
       .collection(COLLECTION_NAMES.REQUESTS)
-      .updateOne(
-        { _id: existing._id },
-        { $set: { ...context, updatedAt: new Date(), updatedBy: SEED_ACTOR } },
-      );
+      .updateOne({ _id: existing._id }, { $set: { ...context, updatedAt: new Date(), updatedBy: SEED_ACTOR } });
   } else {
     const result = await createRequest(
       {
@@ -329,8 +283,7 @@ async function ensureRequest(
         startDate: dateLabel(-10),
         endDate: dateLabel(20),
         estimatedJourneys: 12,
-        description:
-          "Melhoria fictícia que demonstra planejamento, checklist, jornadas e tarefas.",
+        description: "Melhoria fictícia que demonstra planejamento, checklist, jornadas e tarefas.",
         checklist: [
           {
             label: "Solicitação",
@@ -364,15 +317,13 @@ async function ensureRequest(
             {
               id: "objective",
               title: "Objetivo",
-              content:
-                "Reduzir o tempo entre a instalação e a primeira navegação útil.",
+              content: "Reduzir o tempo entre a instalação e a primeira navegação útil.",
               order: 0,
             },
             {
               id: "scope",
               title: "Escopo de Atuação",
-              content:
-                "Compose, bootstrap seguro, dados fictícios e documentação de início rápido.",
+              content: "Compose, bootstrap seguro, dados fictícios e documentação de início rápido.",
               order: 1,
             },
           ],
@@ -406,11 +357,9 @@ async function ensureRequest(
         status: "Andamento",
         startDate: dateLabel(-1),
         endDate: dateLabel(2),
-        situation:
-          "Executar o fluxo de bootstrap e revisar as telas principais.",
+        situation: "Executar o fluxo de bootstrap e revisar as telas principais.",
         description: "Confirmar API, UI, autenticação e dados de demonstração.",
-        specification:
-          "Registrar qualquer divergência encontrada durante a validação.",
+        specification: "Registrar qualquer divergência encontrada durante a validação.",
       },
       query,
     );
@@ -425,18 +374,14 @@ async function ensureProcedure(
   query: RepositoryQuery,
   classification: Record<string, unknown>,
 ) {
-  const storedCollection = await db
-    .collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS)
-    .findOne({
-      workspaceId: context.workspaceId,
-      resourceType: "documents",
-      nameKey: DEMO_COLLECTION_NAME.toLocaleLowerCase("pt-BR"),
-      parentId: "",
-    });
+  const storedCollection = await db.collection(COLLECTION_NAMES.RESOURCE_COLLECTIONS).findOne({
+    workspaceId: context.workspaceId,
+    resourceType: "documents",
+    nameKey: DEMO_COLLECTION_NAME.toLocaleLowerCase("pt-BR"),
+    parentId: "",
+  });
   let collection: { id: string } | null =
-    storedCollection && typeof storedCollection.id === "string"
-      ? { id: storedCollection.id }
-      : null;
+    storedCollection && typeof storedCollection.id === "string" ? { id: storedCollection.id } : null;
 
   if (!collection) {
     const result = await createResourceCollection(
@@ -507,8 +452,7 @@ export async function seedDemoData() {
       },
     };
   }
-  if (!catalog.application || !catalog.component)
-    throw new Error("Demo catalog is unavailable");
+  if (!catalog.application || !catalog.component) throw new Error("Demo catalog is unavailable");
   const query = { workspaceId: catalog.workspace.id };
   const optionLists = await listOptionLists(query);
   const taxonomy = await ensureTaxonomy(query);
@@ -517,10 +461,7 @@ export async function seedDemoData() {
     applicationId: catalog.application.id,
     affectedComponentIds: [catalog.component.id],
   };
-  const classifications = buildDemoClassifications(
-    taxonomy.taxonomy,
-    catalog.application.id,
-  );
+  const classifications = buildDemoClassifications(taxonomy.taxonomy, catalog.application.id);
   const [issue, request, procedure] = await Promise.all([
     ensureIssue(db, context, query, classifications.issue),
     ensureRequest(db, context, query),
@@ -542,16 +483,16 @@ export async function seedDemoData() {
   };
 }
 
-const isMain =
-  Boolean(process.argv[1]) &&
-  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+const isMain = Boolean(process.argv[1]) && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 
 if (isMain) {
-  seedDemoData()
-    .then((result) => console.log(JSON.stringify(result, null, 2)))
-    .catch((error: unknown) => {
-      console.error(error instanceof Error ? error.stack || error : error);
-      process.exitCode = 1;
-    })
-    .finally(closeMongoClient);
+  try {
+    const result = await seedDemoData();
+    console.log(JSON.stringify(result, null, 2));
+  } catch (error: unknown) {
+    console.error(error instanceof Error ? error.stack || error : error);
+    process.exitCode = 1;
+  } finally {
+    await closeMongoClient();
+  }
 }

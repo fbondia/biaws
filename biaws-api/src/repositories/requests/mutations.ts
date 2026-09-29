@@ -1,13 +1,9 @@
+import { textValue } from "../../helpers/text.js";
 import type { RepositoryQuery } from "../../types/http.js";
 import type { RequestDocument } from "../../types/requests.js";
 import { loadRequestOptions } from "./options.js";
 import { ensureIndexes } from "./indexes.js";
-import {
-  ensureRequestListRanks,
-  nextTopListRank,
-  readListRankNeighbor,
-  calculateMovedListRank,
-} from "./ordering.js";
+import { ensureRequestListRanks, nextTopListRank, readListRankNeighbor, calculateMovedListRank } from "./ordering.js";
 import { normalizeRequestPayload } from "./normalization.js";
 import { normalizeLegacyNotesPayload } from "./notes/normalization.js";
 import {
@@ -32,10 +28,7 @@ import {
 } from "../shared/knowledgeContext.js";
 import { assertResourceCollection } from "../resourceCollections/queries.js";
 
-export async function createRequest(
-  payload: Record<string, unknown> = {},
-  query: RepositoryQuery = {},
-) {
+export async function createRequest(payload: Record<string, unknown> = {}, query: RepositoryQuery = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   await loadRequestOptions(db, query);
   await ensureIndexes(db);
@@ -47,12 +40,7 @@ export async function createRequest(
     authorizationScope: query.authorizationScope,
     create: true,
   });
-  request.collectionId = await assertResourceCollection(
-    "demands",
-    request.collectionId,
-    context.workspaceId,
-    query,
-  );
+  request.collectionId = await assertResourceCollection("demands", request.collectionId, context.workspaceId, query);
   const initialNotes = normalizeLegacyNotesPayload(payload.notes);
   const now = new Date();
   const result = await db.collection(REQUESTS_COLLECTION).insertOne({
@@ -60,9 +48,9 @@ export async function createRequest(
     ...context,
     listRank: await nextTopListRank(db),
     createdAt: now,
-    createdBy: String(payload.createdBy || "biaws-api"),
+    createdBy: textValue(payload.createdBy || "biaws-api"),
     updatedAt: now,
-    updatedBy: String(payload.createdBy || "biaws-api"),
+    updatedBy: textValue(payload.createdBy || "biaws-api"),
   });
 
   await syncJourneyPeriods(db, result.insertedId, journeys, now);
@@ -85,24 +73,18 @@ export async function updateRequest(
   await ensureRequestListRanks(db);
 
   const requestId = await requestReferenceId(db, requestIdValue, query);
-  const existing = await db
-    .collection<RequestDocument>(REQUESTS_COLLECTION)
-    .findOne(requestFilter(requestId, query));
+  const existing = await db.collection<RequestDocument>(REQUESTS_COLLECTION).findOne(requestFilter(requestId, query));
 
   if (!existing) {
     throw createHttpError(404, `Request not found: ${requestIdValue}`);
   }
 
-  const [existingJourneyPeriodsByRequestId, existingSpecificationByRequestId] =
-    await Promise.all([
-      readJourneyPeriods(db, [requestId]),
-      readSpecifications(db, [requestId]),
-    ]);
-  const existingJourneyPeriods =
-    existingJourneyPeriodsByRequestId.get(requestId.toString()) || [];
-  const existingSpecification = existingSpecificationByRequestId.get(
-    requestId.toString(),
-  );
+  const [existingJourneyPeriodsByRequestId, existingSpecificationByRequestId] = await Promise.all([
+    readJourneyPeriods(db, [requestId]),
+    readSpecifications(db, [requestId]),
+  ]);
+  const existingJourneyPeriods = existingJourneyPeriodsByRequestId.get(requestId.toString()) || [];
+  const existingSpecification = existingSpecificationByRequestId.get(requestId.toString());
   const { request, journeys, specification } = normalizeRequestPayload(
     {
       ...existing,
@@ -119,36 +101,24 @@ export async function updateRequest(
         authorizationScope: query.authorizationScope,
       })
     : normalizeStoredKnowledgeContext(existing);
-  request.collectionId = await assertResourceCollection(
-    "demands",
-    request.collectionId,
-    context.workspaceId,
-    query,
-  );
+  request.collectionId = await assertResourceCollection("demands", request.collectionId, context.workspaceId, query);
   const now = new Date();
 
-  await db
-    .collection<RequestDocument>(REQUESTS_COLLECTION)
-    .updateOne(requestFilter(requestId, query), {
-      $set: {
-        ...request,
-        ...context,
-        updatedAt: now,
-        updatedBy: String(payload.updatedBy || "biaws-ui"),
-      },
-      $unset: {
-        notes: "",
-      },
-    });
+  await db.collection<RequestDocument>(REQUESTS_COLLECTION).updateOne(requestFilter(requestId, query), {
+    $set: {
+      ...request,
+      ...context,
+      updatedAt: now,
+      updatedBy: textValue(payload.updatedBy || "biaws-ui"),
+    },
+    $unset: {
+      notes: "",
+    },
+  });
   await syncJourneyPeriods(db, requestId, journeys, now);
   await syncSpecification(db, requestId, specification, now);
   if (typeof payload.notes === "string") {
-    await syncLegacyNotes(
-      db,
-      requestId,
-      normalizeLegacyNotesPayload(payload.notes),
-      now,
-    );
+    await syncLegacyNotes(db, requestId, normalizeLegacyNotesPayload(payload.notes), now);
   }
 
   return {
@@ -166,9 +136,7 @@ export async function reorderRequest(
   await ensureRequestListRanks(db);
 
   const requestId = await requestReferenceId(db, requestIdValue, query);
-  const existing = await db
-    .collection<RequestDocument>(REQUESTS_COLLECTION)
-    .findOne(requestFilter(requestId, query));
+  const existing = await db.collection<RequestDocument>(REQUESTS_COLLECTION).findOne(requestFilter(requestId, query));
 
   if (!existing) {
     throw createHttpError(404, `Request not found: ${requestIdValue}`);
@@ -190,13 +158,11 @@ export async function reorderRequest(
   );
   const listRank = calculateMovedListRank(previousRank, nextRank);
 
-  await db
-    .collection<RequestDocument>(REQUESTS_COLLECTION)
-    .updateOne(requestFilter(requestId, query), {
-      $set: {
-        listRank,
-      },
-    });
+  await db.collection<RequestDocument>(REQUESTS_COLLECTION).updateOne(requestFilter(requestId, query), {
+    $set: {
+      listRank,
+    },
+  });
 
   return {
     request: await readRequestById(db, requestId, query),
@@ -212,14 +178,12 @@ export async function moveRequestToCollection(
   await ensureIndexes(db);
 
   const requestId = await requestReferenceId(db, requestIdValue, query);
-  const result = await db
-    .collection<RequestDocument>(REQUESTS_COLLECTION)
-    .updateOne(requestFilter(requestId, query), {
-      $set: {
-        collectionId: String(collectionId || ""),
-        updatedAt: new Date(),
-      },
-    });
+  const result = await db.collection<RequestDocument>(REQUESTS_COLLECTION).updateOne(requestFilter(requestId, query), {
+    $set: {
+      collectionId: String(collectionId || ""),
+      updatedAt: new Date(),
+    },
+  });
   if (!result.matchedCount) {
     throw createHttpError(404, `Request not found: ${requestIdValue}`);
   }
@@ -227,10 +191,7 @@ export async function moveRequestToCollection(
   return { request: await readRequestById(db, requestId, query) };
 }
 
-export async function deleteRequest(
-  requestIdValue: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function deleteRequest(requestIdValue: string | string[], query: RepositoryQuery = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   await ensureIndexes(db);
 

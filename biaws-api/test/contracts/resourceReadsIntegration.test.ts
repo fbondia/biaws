@@ -1,8 +1,4 @@
-import {
-  isolatedDatabaseName,
-  restoreEnvironmentAfter,
-  availablePort,
-} from "../support/integration.js";
+import { isolatedDatabaseName, restoreEnvironmentAfter, availablePort } from "../support/integration.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -14,11 +10,7 @@ import type { Request, Response, NextFunction } from "express";
 import { Readable } from "node:stream";
 import { COLLECTION_NAMES as C } from "../../src/database/collectionNames.js";
 import type { Server } from "node:http";
-import {
-  errorCode,
-  errorMessage,
-  errorStatusCode,
-} from "../../src/helpers/error.js";
+import { errorCode, errorMessage, errorStatusCode } from "../../src/helpers/error.js";
 
 interface ResourceResponse {
   context: { id?: string; taskId?: string };
@@ -33,9 +25,7 @@ interface ResourceResponse {
   attachment: { tags: string[] };
 }
 
-async function readResourceResponse(
-  response: Response | globalThis.Response,
-): Promise<ResourceResponse> {
+async function readResourceResponse(response: Response | globalThis.Response): Promise<ResourceResponse> {
   return (await (response as globalThis.Response).json()) as ResourceResponse;
 }
 
@@ -52,23 +42,16 @@ test(
       BIAWS_REQUEST_DIR: directory,
       BIAWS_DOCUMENT_DIR: directory,
     });
-    const { getMongoDatabase, closeMongoClient } =
-      await import("../../src/helpers/mongoClient.js");
+    const { getMongoDatabase, closeMongoClient } = await import("../../src/helpers/mongoClient.js");
     const { ensureDefaultWorkspace, createApplication, createWorkspace } =
       await import("../../src/repositories/catalog/index.js");
-    const { createIssue, getIssue } =
-      await import("../../src/repositories/issues/index.js");
-    const { getRequest, updateRequestTask } =
-      await import("../../src/repositories/requests/index.js");
-    const { createDocument, getDocument } =
-      await import("../../src/repositories/documents/index.js");
+    const { createIssue, getIssue } = await import("../../src/repositories/issues/index.js");
+    const { getRequest, updateRequestTask } = await import("../../src/repositories/requests/index.js");
+    const { createDocument, getDocument } = await import("../../src/repositories/documents/index.js");
     const { issuesRouter } = await import("../../src/routes/issues/index.js");
-    const { requestsRouter } =
-      await import("../../src/routes/requests/index.js");
-    const { knowledgeRecordsRouter } =
-      await import("../../src/routes/knowledgeRecords/index.js");
-    const { installRouteContracts } =
-      await import("../../src/contracts/routeContracts.js");
+    const { requestsRouter } = await import("../../src/routes/requests/index.js");
+    const { knowledgeRecordsRouter } = await import("../../src/routes/knowledgeRecords/index.js");
+    const { installRouteContracts } = await import("../../src/contracts/routeContracts.js");
     installRouteContracts([
       { domain: "issuesRouter", prefix: "/api/issues", router: issuesRouter },
       {
@@ -93,16 +76,8 @@ test(
         { key: "resource-other", name: "Other workspace" },
         { userId: "resource-test" },
       );
-      const app = await createApplication(
-        workspace.id,
-        { key: "resource-app", name: "Resource App" },
-        {},
-      );
-      const hiddenApp = await createApplication(
-        workspace.id,
-        { key: "hidden-app", name: "Hidden App" },
-        {},
-      );
+      const app = await createApplication(workspace.id, { key: "resource-app", name: "Resource App" }, {});
+      const hiddenApp = await createApplication(workspace.id, { key: "hidden-app", name: "Hidden App" }, {});
       const context = {
         workspaceId: workspace.id,
         applicationId: app.id,
@@ -172,10 +147,7 @@ test(
         date: "2026-09-29",
         content: "Task evidence",
       });
-      assert.equal(
-        (await getRequest("MEL123", query)).request?.id,
-        String(demandId),
-      );
+      assert.equal((await getRequest("MEL123", query)).request?.id, String(demandId));
       const updated = await updateRequestTask(
         "MEL123",
         "TASK1",
@@ -183,8 +155,7 @@ test(
         query,
       );
       assert.equal(updated.request?.tasks[0].status, "Andamento");
-      const { uploadAttachments } =
-        await import("../../src/services/attachmentService.js");
+      const { uploadAttachments } = await import("../../src/services/attachmentService.js");
       await uploadAttachments(
         "requests",
         "MEL123",
@@ -218,10 +189,7 @@ test(
           query,
         )
       ).document;
-      assert.equal(
-        (await getDocument("resource-guide", query)).document?.id,
-        doc?.id,
-      );
+      assert.equal((await getDocument("resource-guide", query)).document?.id, doc?.id);
       const permissions = [
         "issues.read",
         "issues.comment.create",
@@ -242,10 +210,7 @@ test(
         userId: "resource-test",
         permissions,
         permissionScopes: Object.fromEntries(
-          permissions.map((permission) => [
-            permission,
-            { workspace: false, applicationIds: [app.id] },
-          ]),
+          permissions.map((permission) => [permission, { workspace: false, applicationIds: [app.id] }]),
         ),
       };
       const http = express();
@@ -260,13 +225,11 @@ test(
       http.use("/api/issues", issuesRouter);
       http.use("/api/requests", requestsRouter);
       http.use("/api/knowledge", knowledgeRecordsRouter);
-      http.use(
-        (error: unknown, _req: Request, res: Response, _next: NextFunction) => {
-          res.status(errorStatusCode(error) || 500).json({
-            error: { code: errorCode(error), message: errorMessage(error) },
-          });
-        },
-      );
+      http.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+        res.status(errorStatusCode(error) || 500).json({
+          error: { code: errorCode(error), message: errorMessage(error) },
+        });
+      });
       server = http.listen(0, "127.0.0.1");
       const listeningServer = server;
       await new Promise((resolve, reject) => {
@@ -291,9 +254,7 @@ test(
         body: JSON.stringify({ text: "Second comment" }),
       });
       assert.equal(response.status, 201);
-      const event = await db
-        .collection(C.AUDIT_EVENTS)
-        .findOne({ action: "comment_added" });
+      const event = await db.collection(C.AUDIT_EVENTS).findOne({ action: "comment_added" });
       assert.equal(event?.rootId, "issue-id");
       assert.equal((await getIssue("INC123", query)).comments.length, 2);
       response = await request("/api/requests/MEL123/tasks/TASK1/notes");
@@ -307,17 +268,11 @@ test(
       assert.equal(files.items[0].filename, "synthetic.txt");
       assert.equal(files.items[0].storage, undefined);
       const fileId = files.items[0].id;
-      response = await request(
-        `/api/requests/MEL123/tasks/TASK1/attachments/${fileId}`,
-      );
+      response = await request(`/api/requests/MEL123/tasks/TASK1/attachments/${fileId}`);
       assert.equal(response.status, 200);
       assert.equal(await response.text(), "hello");
       const multipart = new FormData();
-      multipart.append(
-        "files",
-        new Blob(["transport"], { type: "text/plain" }),
-        "transport.txt",
-      );
+      multipart.append("files", new Blob(["transport"], { type: "text/plain" }), "transport.txt");
       response = await request("/api/requests/MEL123/tasks/TASK1/attachments", {
         method: "POST",
         body: multipart,
@@ -330,41 +285,22 @@ test(
       assert.equal(uploaded.uploaded[0]?.storage, undefined);
       const transportedId = uploaded.uploaded[0]?.id;
       assert.ok(transportedId);
-      response = await request(
-        `/api/requests/MEL123/tasks/TASK1/attachments/${transportedId}`,
-      );
+      response = await request(`/api/requests/MEL123/tasks/TASK1/attachments/${transportedId}`);
       assert.equal(response.status, 200);
       assert.equal(await response.text(), "transport");
       assert.ok(
-        await db
-          .collection(C.AUDIT_EVENTS)
-          .findOne({ action: "attachment_added", "target.id": transportedId }),
+        await db.collection(C.AUDIT_EVENTS).findOne({ action: "attachment_added", "target.id": transportedId }),
       );
-      response = await request(
-        `/api/requests/MEL123/tasks/TASK1/attachments/${fileId}/tags`,
-        {
-          method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ tags: ["evidence"] }),
-        },
-      );
+      response = await request(`/api/requests/MEL123/tasks/TASK1/attachments/${fileId}/tags`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ tags: ["evidence"] }),
+      });
       assert.equal(response.status, 200);
-      assert.deepEqual((await readResourceResponse(response)).attachment.tags, [
-        "evidence",
-        "task1",
-      ]);
-      assert.equal(
-        (await request(`/api/requests/MEL456/tasks/${taskId}/notes`)).status,
-        404,
-      );
-      assert.equal(
-        (await request("/api/issues/INC-HIDDEN/comments")).status,
-        404,
-      );
-      assert.equal(
-        (await request("/api/issues/other-issue/comments")).status,
-        404,
-      );
+      assert.deepEqual((await readResourceResponse(response)).attachment.tags, ["evidence", "task1"]);
+      assert.equal((await request(`/api/requests/MEL456/tasks/${taskId}/notes`)).status, 404);
+      assert.equal((await request("/api/issues/INC-HIDDEN/comments")).status, 404);
+      assert.equal((await request("/api/issues/other-issue/comments")).status, 404);
       assert.equal(
         (
           await request("/api/issues/INC123/comments", {
@@ -373,32 +309,21 @@ test(
         ).status,
         403,
       );
-      response = await request(
-        "/api/knowledge/documents/resource-guide/content",
-      );
+      response = await request("/api/knowledge/documents/resource-guide/content");
       assert.equal(response.status, 200);
       assert.equal(await response.text(), "# Synthetic guide");
-      assert.equal(
-        (await request("/api/knowledge/documents/resource-guide/revisions/1"))
-          .status,
-        200,
-      );
+      assert.equal((await request("/api/knowledge/documents/resource-guide/revisions/1")).status, 200);
       await db.collection(C.REQUESTS).insertOne({
         ...context,
         clientCode: "MEL123",
         title: "Ambiguous duplicate",
       });
       assert.equal((await request("/api/requests/MEL123/tasks")).status, 409);
-      assert.equal(
-        (await request(`/api/requests/${demandId}/tasks`)).status,
-        200,
-      );
+      assert.equal((await request(`/api/requests/${demandId}/tasks`)).status, 200);
     } finally {
       if (server) {
         const closingServer = server;
-        await new Promise<void>((resolve) =>
-          closingServer.close(() => resolve()),
-        );
+        await new Promise<void>((resolve) => closingServer.close(() => resolve()));
       }
       await db.dropDatabase();
       await closeMongoClient();

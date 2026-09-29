@@ -15,17 +15,9 @@ export function validateDetailsContext(
     );
   }
   if (scope !== "workspace" && !context.applicationId) {
-    throw httpError(
-      422,
-      "INVALID_DOCUMENT_DETAILS",
-      "Guidelines de aplicação ou componente exigem applicationId",
-    );
+    throw httpError(422, "INVALID_DOCUMENT_DETAILS", "Guidelines de aplicação ou componente exigem applicationId");
   }
   if (scope === "component" && !context.affectedComponentIds.length) {
-    throw httpError(
-      422,
-      "INVALID_DOCUMENT_DETAILS",
-      "Guidelines de componente exigem ao menos um componente afetado",
-    );
+    throw httpError(422, "INVALID_DOCUMENT_DETAILS", "Guidelines de componente exigem ao menos um componente afetado");
   }
 }

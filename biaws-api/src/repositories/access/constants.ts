@@ -10,6 +10,4 @@ export const MAX_SCOPE_APPLICATIONS = 250;
 export const permissionIds = PERMISSION_CATALOG.map(({ id }) => id);
 
 export const permissionsStartingWith = (...prefixes: string[]) =>
-  permissionIds.filter((id) =>
-    prefixes.some((prefix: string) => id.startsWith(prefix)),
-  );
+  permissionIds.filter((id) => prefixes.some((prefix: string) => id.startsWith(prefix)));

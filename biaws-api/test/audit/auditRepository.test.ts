@@ -71,9 +71,7 @@ test("audit event preserves the responsible user and contextual root", () => {
     authenticationMethod: "session",
   });
   assert.equal(event.rootId, "demand-1");
-  assert.deepEqual(event.changes, [
-    { field: "status", before: "Pendente", after: "Concluído" },
-  ]);
+  assert.deepEqual(event.changes, [{ field: "status", before: "Pendente", after: "Concluído" }]);
 });
 
 test("audit filter isolates a root while including its direct target history", () => {
@@ -83,18 +81,26 @@ test("audit filter isolates a root while including its direct target history", (
       { "target.type": "task", "target.id": "task-1" },
     ],
   });
-  assert.equal(
-    JSON.stringify(buildAuditFilter("task", "task-1")).includes("task-2"),
-    false,
-  );
+  assert.equal(JSON.stringify(buildAuditFilter("task", "task-1")).includes("task-2"), false);
 });
 
 test("creation differences are expanded into individual fields", () => {
-  assert.deepEqual(
-    calculateAuditChanges(null, { title: "Nova", status: "open" }),
-    [
-      { field: "status", before: null, after: "open" },
-      { field: "title", before: null, after: "Nova" },
-    ],
-  );
+  assert.deepEqual(calculateAuditChanges(null, { title: "Nova", status: "open" }), [
+    { field: "status", before: null, after: "open" },
+    { field: "title", before: null, after: "Nova" },
+  ]);
+});
+
+test("audit sanitization removes secret aliases with every supported separator", () => {
+  for (const separator of ["", "-", "_", "."]) {
+    const fields = [
+      "api" + separator + "key",
+      "private" + separator + "key",
+      "connection" + separator + "string",
+      "auth" + separator + "tag",
+      "encrypted" + separator + "data" + separator + "key",
+    ];
+    const record = Object.fromEntries(fields.map((field) => [field, "synthetic-sensitive-value"]));
+    assert.deepEqual(sanitizeAuditValue({ ...record, title: "Example" }), { title: "Example" });
+  }
 });

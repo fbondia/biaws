@@ -1,9 +1,6 @@
 import type { Router, Request, Response } from "express";
 import { recordAuditEvent } from "../../repositories/audit/index.js";
-import {
-  createDocument,
-  documentTypeConfig,
-} from "../../repositories/documents/index.js";
+import { createDocument, documentTypeConfig } from "../../repositories/documents/index.js";
 import { knowledgeContextMetadata } from "../../repositories/shared/knowledgeContext.js";
 import { authorize, query, actorId, typeFor, asyncHandler } from "./helpers.js";
 
@@ -22,10 +19,7 @@ export function registerCreateDocument(router: Router) {
         });
         return;
       }
-      const result = await createDocument(
-        { ...req.body, documentType, createdBy: actorId(req) },
-        query(req, "create"),
-      );
+      const result = await createDocument({ ...req.body, documentType, createdBy: actorId(req) }, query(req, "create"));
       const document = result.document;
       if (!document) throw new Error("Created document could not be read");
       await recordAuditEvent({

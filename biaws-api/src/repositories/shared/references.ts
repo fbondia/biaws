@@ -1,23 +1,13 @@
-import { errorCode } from "../../helpers/error.js";
-import type { RepositoryQuery } from "../../types/http.js";
 import { ObjectId } from "mongodb";
 import { COLLECTION_NAMES as C } from "../../database/collectionNames.js";
 import { getMongoDatabase } from "../../helpers/mongoClient.js";
-import {
-  findByReference,
-  referenceError,
-} from "../../helpers/referenceLookup.js";
+import { findByReference, referenceError } from "../../helpers/referenceLookup.js";
+import type { RepositoryQuery } from "../../types/http.js";
 import { buildKnowledgeContextFilter } from "./knowledgeContext.js";
-import { ObjectIdLike } from "bson";
 
 const ENTITIES: Record<
   string,
-  readonly [
-    collection: string,
-    idField: string,
-    identifierField: string,
-    lowercase?: boolean,
-  ]
+  readonly [collection: string, idField: string, identifierField: string, lowercase?: boolean]
 > = {
   issue: [C.ISSUES, "id", "identifier"],
   demand: [C.REQUESTS, "_id", "clientCode"],
@@ -41,16 +31,14 @@ export async function resolveEntityReference(
   additions = {},
 ) {
   const config = ENTITIES[type];
-  if (!config)
-    throw referenceError(404, "NOT_FOUND", "Unsupported entity reference");
+  if (!config) throw referenceError(404, "NOT_FOUND", "Unsupported entity reference");
   const [collectionName, idField, identifierField, lowercase] = config;
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const context = buildKnowledgeContextFilter(query);
   if (type === "workspace") {
     delete context.workspaceId;
     delete context.applicationId;
-    const workspaceId =
-      query.authorizationScope?.workspaceId || query.workspaceId;
+    const workspaceId = query.authorizationScope?.workspaceId || query.workspaceId;
     if (workspaceId) context.id = workspaceId;
   }
   if (type === "application" && context.applicationId) {
@@ -59,31 +47,22 @@ export async function resolveEntityReference(
   }
   // Tasks inherit tenancy from their already-authorized demand.
   const filter = type === "task" ? additions : { ...context, ...additions };
-  const document = await findByReference(
-    db.collection(collectionName),
-    reference,
-    {
-      filter,
-      idField,
-      identifierField,
-      lowercase,
-      caseInsensitive: type === "task",
-      projection: {
-        _id: 1,
-        id: 1,
-        workspaceId: 1,
-        applicationId: 1,
-        deploymentId: 1,
-        requestId: 1,
-      },
+  const document = await findByReference(db.collection(collectionName), reference, {
+    filter,
+    idField,
+    identifierField,
+    lowercase,
+    caseInsensitive: type === "task",
+    projection: {
+      _id: 1,
+      id: 1,
+      workspaceId: 1,
+      applicationId: 1,
+      deploymentId: 1,
+      requestId: 1,
     },
-  );
-  if (!document)
-    throw referenceError(
-      404,
-      "NOT_FOUND",
-      "Item not found in the authorized scope",
-    );
+  });
+  if (!document) throw referenceError(404, "NOT_FOUND", "Item not found in the authorized scope");
   return String(document[idField]);
 }
 
@@ -97,21 +76,12 @@ export async function resolveTaskReference(
   });
 }
 
-export async function resolveAuditReference(
-  type: string,
-  reference: string,
-  query: RepositoryQuery = {},
-) {
+export async function resolveAuditReference(type: string, reference: string, query: RepositoryQuery = {}) {
   if (!ENTITIES[type]) return reference;
   try {
-    if (type !== "task")
-      return await resolveEntityReference(type, reference, query);
+    if (type !== "task") return await resolveEntityReference(type, reference, query);
     if (query.demandId) {
-      const demandId = await resolveEntityReference(
-        "demand",
-        query.demandId,
-        query,
-      );
+      const demandId = await resolveEntityReference("demand", query.demandId, query);
       return await resolveTaskReference(reference, demandId, query);
     }
     const db = await getMongoDatabase({
@@ -143,11 +113,7 @@ export async function resolveAuditReference(
     }
     const matches = await lookup({ code: String(reference) });
     if (matches.length > 1)
-      throw referenceError(
-        409,
-        "AMBIGUOUS_REFERENCE",
-        "The task identifier is ambiguous; use its ID or demandId",
-      );
+      throw referenceError(409, "AMBIGUOUS_REFERENCE", "The task identifier is ambiguous; use its ID or demandId");
     return matches.length ? String(matches[0]._id) : reference;
   } catch (error) {
     // Audit history must remain readable after the entity has been deleted.

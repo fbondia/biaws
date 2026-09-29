@@ -7,10 +7,7 @@ import { getSkill } from "./queries.js";
 import { getMongoDatabase } from "../../helpers/mongoClient.js";
 import { errorCode } from "../../helpers/error.js";
 
-export async function publishSkill(
-  payload: Record<string, unknown> = {},
-  query: RepositoryQuery = {},
-) {
+export async function publishSkill(payload: Record<string, unknown> = {}, query: RepositoryQuery = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const collection = db.collection(SKILLS_COLLECTION);
   await ensureIndexes(collection);
@@ -24,32 +21,20 @@ export async function publishSkill(
     await collection.insertOne({
       ...normalized,
       workspaceId: workspaceId(query),
-      collectionId:
-        query.forceRootCollection === true
-          ? ""
-          : String(current?.collectionId || ""),
+      collectionId: query.forceRootCollection === true ? "" : String(current?.collectionId || ""),
       status: "published",
       createdAt: now,
       updatedAt: now,
     });
   } catch (error) {
     if (errorCode(error) === 11000) {
-      throw createHttpError(
-        409,
-        `Skill version already exists: ${normalized.skillId}@${normalized.version}`,
-      );
+      throw createHttpError(409, `Skill version already exists: ${normalized.skillId}@${normalized.version}`);
     }
     throw error;
   }
-  const published = await getSkill(
-    normalized.skillId,
-    normalized.version,
-    query,
-  );
+  const published = await getSkill(normalized.skillId, normalized.version, query);
   if (!published.skill)
-    throw new Error(
-      `Published skill could not be read: ${normalized.skillId}@${normalized.version}`,
-    );
+    throw new Error(`Published skill could not be read: ${normalized.skillId}@${normalized.version}`);
   return { ...published, skill: published.skill };
 }
 
@@ -68,10 +53,7 @@ export async function deprecateSkill(
     { $set: { status: "deprecated", updatedAt: new Date() } },
   );
   if (!result.matchedCount) {
-    throw createHttpError(
-      404,
-      `Skill version not found: ${skillId}@${version}`,
-    );
+    throw createHttpError(404, `Skill version not found: ${skillId}@${version}`);
   }
   return getSkill(skillId, version, query);
 }

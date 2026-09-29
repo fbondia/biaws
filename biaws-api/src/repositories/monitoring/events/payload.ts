@@ -1,17 +1,9 @@
-import {
-  PAYLOAD_LIMITS,
-  PAYLOAD_KEY_PATTERN,
-  PROHIBITED_PAYLOAD_KEY,
-} from "./constants.js";
+import { PAYLOAD_LIMITS, PAYLOAD_KEY_PATTERN, PROHIBITED_PAYLOAD_KEY } from "./constants.js";
 import { createCatalogError } from "../../shared/topology/errors.js";
 
-type JsonValue =
-  string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
-function assertMonitoringPayloadTraversal(
-  state: { nodes: number },
-  depth: number,
-) {
+function assertMonitoringPayloadTraversal(state: { nodes: number }, depth: number) {
   state.nodes += 1;
   if (state.nodes > PAYLOAD_LIMITS.nodes) {
     throw createCatalogError(
@@ -54,12 +46,7 @@ function normalizeMonitoringPayloadArray(
     );
   }
   return entry.map((item, index: number) =>
-    normalizeMonitoringPayloadEntry(
-      item,
-      `${field}[${index}]`,
-      depth + 1,
-      state,
-    ),
+    normalizeMonitoringPayloadEntry(item, `${field}[${index}]`, depth + 1, state),
   );
 }
 
@@ -69,11 +56,7 @@ function assertMonitoringPayloadKey(key: string) {
     PROHIBITED_PAYLOAD_KEY.test(key) ||
     ["constructor", "prototype"].includes(key.toLowerCase())
   ) {
-    throw createCatalogError(
-      422,
-      "INVALID_MONITORING_PAYLOAD",
-      `payload key is invalid or prohibited: ${key}`,
-    );
+    throw createCatalogError(422, "INVALID_MONITORING_PAYLOAD", `payload key is invalid or prohibited: ${key}`);
   }
 }
 
@@ -86,12 +69,7 @@ function normalizeMonitoringPayloadObject(
   const normalized: Record<string, JsonValue> = {};
   for (const [key, item] of Object.entries(entry)) {
     assertMonitoringPayloadKey(key);
-    normalized[key] = normalizeMonitoringPayloadEntry(
-      item,
-      `${field}.${key}`,
-      depth + 1,
-      state,
-    );
+    normalized[key] = normalizeMonitoringPayloadEntry(item, `${field}.${key}`, depth + 1, state);
   }
   return normalized;
 }
@@ -103,11 +81,7 @@ function normalizeMonitoringPayloadEntry(
   state: { nodes: number },
 ): JsonValue {
   assertMonitoringPayloadTraversal(state, depth);
-  if (
-    entry === null ||
-    typeof entry === "boolean" ||
-    (typeof entry === "number" && Number.isFinite(entry))
-  ) {
+  if (entry === null || typeof entry === "boolean" || (typeof entry === "number" && Number.isFinite(entry))) {
     return entry;
   }
   if (typeof entry === "string") {
@@ -119,25 +93,14 @@ function normalizeMonitoringPayloadEntry(
   if (entry && typeof entry === "object") {
     return normalizeMonitoringPayloadObject(entry, field, depth, state);
   }
-  throw createCatalogError(
-    422,
-    "INVALID_MONITORING_PAYLOAD",
-    `${field} must contain valid JSON values`,
-  );
+  throw createCatalogError(422, "INVALID_MONITORING_PAYLOAD", `${field} must contain valid JSON values`);
 }
 
 export function normalizeMonitoringPayload(value: unknown) {
   if (value === undefined) return null;
   const state = { nodes: 0 };
-  const normalized = normalizeMonitoringPayloadEntry(
-    value,
-    "payload",
-    0,
-    state,
-  );
-  if (
-    Buffer.byteLength(JSON.stringify(normalized), "utf8") > PAYLOAD_LIMITS.bytes
-  ) {
+  const normalized = normalizeMonitoringPayloadEntry(value, "payload", 0, state);
+  if (Buffer.byteLength(JSON.stringify(normalized), "utf8") > PAYLOAD_LIMITS.bytes) {
     throw createCatalogError(
       422,
       "INVALID_MONITORING_PAYLOAD",

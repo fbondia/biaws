@@ -4,10 +4,7 @@ import test from "node:test";
 
 import { PERMISSION_CATALOG } from "../../../shared/index.js";
 import { normalizeComponentInput } from "../../src/repositories/components/index.js";
-import {
-  normalizeDeploymentInput,
-  normalizeRuntimeInput,
-} from "../../src/repositories/deployments/index.js";
+import { normalizeDeploymentInput, normalizeRuntimeInput } from "../../src/repositories/deployments/index.js";
 import { normalizeRepositoryInput } from "../../src/repositories/repositories/index.js";
 import { normalizeServerInput } from "../../src/repositories/servers/index.js";
 import {
@@ -30,10 +27,7 @@ import {
   normalizeRuntimeMonitoringSummaryQuery,
   runtimeMonitoringSummaryResponse,
 } from "../../src/repositories/monitoring/events/summary.js";
-import {
-  buildScopedListFilter,
-  pagination,
-} from "../../src/repositories/shared/topology/index.js";
+import { buildScopedListFilter, pagination } from "../../src/repositories/shared/topology/index.js";
 
 test("runtime metadata is flat, bounded and rejects secret-like keys", () => {
   const runtime = normalizeRuntimeInput({
@@ -59,9 +53,7 @@ test("runtime metadata is flat, bounded and rejects secret-like keys", () => {
         name: "Pod 1",
         metadata: { apiToken: "secret" },
       }),
-    (error) =>
-      errorStatusCode(error) === 422 &&
-      errorCode(error) === "INVALID_RUNTIME_METADATA",
+    (error) => errorStatusCode(error) === 422 && errorCode(error) === "INVALID_RUNTIME_METADATA",
   );
   assert.throws(
     () =>
@@ -70,9 +62,7 @@ test("runtime metadata is flat, bounded and rejects secret-like keys", () => {
         name: "Pod 1",
         metadata: { nested: { value: true } },
       }),
-    (error) =>
-      errorStatusCode(error) === 422 &&
-      errorCode(error) === "INVALID_RUNTIME_METADATA",
+    (error) => errorStatusCode(error) === 422 && errorCode(error) === "INVALID_RUNTIME_METADATA",
   );
 });
 
@@ -106,11 +96,7 @@ test("runtime defaults monitoring retention and rejects embedded observations", 
     (error) => errorCode(error) === "INVALID_RUNTIME_DOCUMENTS",
   );
   assert.throws(
-    () =>
-      normalizeRuntimeInput(
-        { observations: [] },
-        { ...runtime, id: "runtime-1" },
-      ),
+    () => normalizeRuntimeInput({ observations: [] }, { ...runtime, id: "runtime-1" }),
     (error) => errorCode(error) === "INVALID_CATALOG_PAYLOAD",
   );
   assert.throws(

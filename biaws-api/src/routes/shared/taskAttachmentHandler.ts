@@ -14,9 +14,7 @@ export const taskAttachmentUpload = multer({
 
 const withDemandReferences = createReferenceHandler("demand");
 
-function affectedFiles(
-  result: Awaited<ReturnType<typeof mutateTaskAttachments>>,
-) {
+function affectedFiles(result: Awaited<ReturnType<typeof mutateTaskAttachments>>) {
   if ("uploaded" in result) return result.uploaded;
   if ("attachment" in result) return [result.attachment];
   if ("deleted" in result) return [result.deleted];
@@ -29,10 +27,7 @@ const auditActions = {
   delete: "attachment_deleted",
 } as const;
 
-export const createTaskAttachmentHandler = (
-  operation: "upload" | "tags" | "delete",
-  permission: string,
-) =>
+export const createTaskAttachmentHandler = (operation: "upload" | "tags" | "delete", permission: string) =>
   withDemandReferences(async (req: Request, res: Response) => {
     const result = await mutateTaskAttachments(
       operation,

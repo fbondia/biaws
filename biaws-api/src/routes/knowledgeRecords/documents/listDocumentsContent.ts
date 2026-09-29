@@ -7,20 +7,10 @@ export function registerListDocumentsContent(router: Router) {
   router.get(
     "/documents/:id/content",
     requireAllPermissions("documents.read"),
-    createResourceReadHandler(
-      "document",
-      "documents.read",
-      async (req: Request, query: {} | undefined) => {
-        const result = await readDocumentResource(
-          req.params.id,
-          "content",
-          req.params,
-          query,
-        );
-        if (!("value" in result))
-          throw new Error("Document content response is missing a value");
-        return { markdown: String(result.value) };
-      },
-    ),
+    createResourceReadHandler("document", "documents.read", async (req: Request, query: {} | undefined) => {
+      const result = await readDocumentResource(req.params.id, "content", req.params, query);
+      if (!("value" in result)) throw new Error("Document content response is missing a value");
+      return { markdown: String(result.value) };
+    }),
   );
 }

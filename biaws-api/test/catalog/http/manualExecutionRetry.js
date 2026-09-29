@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 
 export async function manualExecutionRetry(scenarioContext) {
-  const { request, adminCookie, manualExecutionRoute, manualExecution } =
-    scenarioContext;
+  const { request, adminCookie, manualExecutionRoute, manualExecution } = scenarioContext;
   const secondManualExecutionResponse = await request(manualExecutionRoute, {
     cookie: adminCookie,
     method: "POST",
@@ -16,10 +15,7 @@ export async function manualExecutionRetry(scenarioContext) {
 
   assert.equal(secondManualExecution.created, true);
 
-  assert.notEqual(
-    secondManualExecution.execution.id,
-    manualExecution.execution.id,
-  );
+  assert.notEqual(secondManualExecution.execution.id, manualExecution.execution.id);
   return {
     ...scenarioContext,
     secondManualExecutionResponse,

@@ -29,18 +29,11 @@ test("integration identifier is mutable while its target remains immutable", () 
     targetApplicationId: "application-2",
   };
   assert.throws(
-    () =>
-      normalizeIntegrationInput(
-        { name: "Customer API v2", targetApplicationId: "application-3" },
-        current,
-      ),
+    () => normalizeIntegrationInput({ name: "Customer API v2", targetApplicationId: "application-3" }, current),
     (error) => errorCode(error) === "INTEGRATION_TARGET_IMMUTABLE",
   );
   assert.equal(
-    normalizeIntegrationInput(
-      { key: "new-key", targetApplicationId: "application-2" },
-      current,
-    ).key,
+    normalizeIntegrationInput({ key: "new-key", targetApplicationId: "application-2" }, current).key,
     "new-key",
   );
 });

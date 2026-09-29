@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { Response } from "express";
 import { ParsedQs } from "qs";
 export function sendNotFound(
@@ -8,7 +9,7 @@ export function sendNotFound(
   res.status(404).json({
     error: {
       code: "NOT_FOUND",
-      message: `Skill not found: ${skillId}${version ? `@${version}` : ""}`,
+      message: `Skill not found: ${skillId}${version ? "@" + textValue(version) : ""}`,
     },
   });
 }

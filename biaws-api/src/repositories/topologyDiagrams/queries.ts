@@ -5,10 +5,7 @@ import { summary, normalizeDiagram } from "./normalization.js";
 import { pagination } from "../shared/topology/filters.js";
 import { requireOperationalApplication } from "../shared/topology/context.js";
 
-export async function listTopologyDiagrams(
-  applicationId: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function listTopologyDiagrams(applicationId: string | string[], query: RepositoryQuery = {}) {
   const application = await requireOperationalApplication(applicationId);
   const collection = await diagramsCollection();
   const { page, limit, skip } = pagination(query);
@@ -17,12 +14,7 @@ export async function listTopologyDiagrams(
     applicationId: application.id,
   };
   const [documents, total] = await Promise.all([
-    collection
-      .find(filter)
-      .sort({ updatedAt: -1, name: 1, id: 1 })
-      .skip(skip)
-      .limit(limit)
-      .toArray(),
+    collection.find(filter).sort({ updatedAt: -1, name: 1, id: 1 }).skip(skip).limit(limit).toArray(),
     collection.countDocuments(filter),
   ]);
   return {
@@ -40,10 +32,7 @@ export async function listTopologyDiagrams(
 
 export async function getTopologyDiagram(
   diagramId: string | string[],
-  {
-    applicationId,
-    workspaceId,
-  }: { applicationId?: string; workspaceId?: string } = {},
+  { applicationId, workspaceId }: { applicationId?: string; workspaceId?: string } = {},
 ) {
   const collection = await diagramsCollection();
   const filter: Record<string, string> = { id: String(diagramId) };

@@ -7,18 +7,9 @@ export function registerGetDocumentsObservation(router: Router) {
   router.get(
     "/documents/:id/observations/:observationId",
     requireAllPermissions("documents.read"),
-    createResourceReadHandler(
-      "document",
-      "documents.read",
-      async (req: Request, query: {} | undefined) => {
-        const result = await readDocumentResource(
-          req.params.id,
-          "observation",
-          req.params,
-          query,
-        );
-        return result;
-      },
-    ),
+    createResourceReadHandler("document", "documents.read", async (req: Request, query: {} | undefined) => {
+      const result = await readDocumentResource(req.params.id, "observation", req.params, query);
+      return result;
+    }),
   );
 }

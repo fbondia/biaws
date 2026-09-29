@@ -4,10 +4,7 @@ import test from "node:test";
 
 import { PERMISSION_CATALOG } from "../../../shared/index.js";
 import { normalizeComponentInput } from "../../src/repositories/components/index.js";
-import {
-  normalizeDeploymentInput,
-  normalizeRuntimeInput,
-} from "../../src/repositories/deployments/index.js";
+import { normalizeDeploymentInput, normalizeRuntimeInput } from "../../src/repositories/deployments/index.js";
 import { normalizeRepositoryInput } from "../../src/repositories/repositories/index.js";
 import { normalizeServerInput } from "../../src/repositories/servers/index.js";
 import {
@@ -30,21 +27,11 @@ import {
   normalizeRuntimeMonitoringSummaryQuery,
   runtimeMonitoringSummaryResponse,
 } from "../../src/repositories/monitoring/events/summary.js";
-import {
-  buildScopedListFilter,
-  pagination,
-} from "../../src/repositories/shared/topology/index.js";
+import { buildScopedListFilter, pagination } from "../../src/repositories/shared/topology/index.js";
 
 test("topology permissions are part of the canonical catalog", () => {
   const permissions = new Set(PERMISSION_CATALOG.map(({ id }) => id));
-  for (const domain of [
-    "components",
-    "integrations",
-    "repositories",
-    "servers",
-    "deployments",
-    "runtimes",
-  ]) {
+  for (const domain of ["components", "integrations", "repositories", "servers", "deployments", "runtimes"]) {
     for (const operation of ["read", "create", "update", "archive"]) {
       assert.equal(permissions.has(`${domain}.${operation}`), true);
     }
@@ -74,8 +61,6 @@ test("scoped topology filters escape search and pagination is bounded", () => {
   });
   assert.throws(
     () => pagination({ page: "0" }),
-    (error) =>
-      errorStatusCode(error) === 422 &&
-      errorCode(error) === "INVALID_CATALOG_PAGINATION",
+    (error) => errorStatusCode(error) === 422 && errorCode(error) === "INVALID_CATALOG_PAGINATION",
   );
 });

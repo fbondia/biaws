@@ -14,6 +14,13 @@ campos obrigatórios. Operações sem regra de transporte estável usam um objet
 aberto, para preservar campos desconhecidos, `null`, strings vazias e enums
 configurados pelo workspace.
 
+A normalização compartilhada de texto preserva valores escalares, datas e IDs
+MongoDB, além das listas já aceitas pelos filtros legados. Objetos sem uma
+representação textual de domínio são rejeitados com 422, em vez de gravar ou
+consultar o texto `[object Object]`. Na criação de issues, essa rejeição mantém
+o formato Zod de erro por campo. Schemas abertos preservam os campos adicionais
+da API.
+
 Os tipos `IssueCreateInput` e `IssueCreateOutput` mostram a diferença entre o
 payload recebido e os campos transformados. Os demais contratos seguem o mesmo
 padrão conforme as regras forem extraídas das normalizações legadas. Regras que

@@ -4,15 +4,8 @@ import { validateRelationships } from "./context.js";
 import { getComponent } from "./queries.js";
 import { randomUUID } from "node:crypto";
 import { COLLECTION_NAMES } from "../../database/collectionNames.js";
-import {
-  actorId,
-  archiveFields,
-  createBaseDocument,
-} from "../shared/topology/lifecycle.js";
-import {
-  createCatalogError,
-  duplicateKeyError,
-} from "../shared/topology/errors.js";
+import { actorId, archiveFields, createBaseDocument } from "../shared/topology/lifecycle.js";
+import { createCatalogError, duplicateKeyError } from "../shared/topology/errors.js";
 import { getTopologyCollections } from "../shared/topology/storage.js";
 import { normalizeDocument } from "../shared/topology/normalization.js";
 import { requireOperationalApplication } from "../shared/topology/context.js";
@@ -41,11 +34,7 @@ export async function createComponent(
   try {
     await components.insertOne(document);
   } catch (error) {
-    duplicateKeyError(
-      error,
-      "COMPONENT_KEY_CONFLICT",
-      "A component with this key already exists in the application",
-    );
+    duplicateKeyError(error, "COMPONENT_KEY_CONFLICT", "A component with this key already exists in the application");
   }
   return normalizeDocument(document);
 }
@@ -60,19 +49,12 @@ export async function updateComponent(
     throw createCatalogError(404, "COMPONENT_NOT_FOUND", "Component not found");
   }
   if (current.status !== "active") {
-    throw createCatalogError(
-      409,
-      "COMPONENT_ARCHIVED",
-      "Component is archived",
-    );
+    throw createCatalogError(409, "COMPONENT_ARCHIVED", "Component is archived");
   }
-  const application = await requireOperationalApplication(
-    current.applicationId,
-    {
-      active: true,
-      workspaceId: current.workspaceId,
-    },
-  );
+  const application = await requireOperationalApplication(current.applicationId, {
+    active: true,
+    workspaceId: current.workspaceId,
+  });
   const normalized = normalizeComponentInput(payload, current);
   const candidate = { ...current, ...normalized };
   await validateRelationships(application, candidate);
@@ -95,11 +77,7 @@ export async function updateComponent(
       },
     );
   } catch (error) {
-    duplicateKeyError(
-      error,
-      "COMPONENT_KEY_CONFLICT",
-      "A component with this key already exists in the application",
-    );
+    duplicateKeyError(error, "COMPONENT_KEY_CONFLICT", "A component with this key already exists in the application");
   }
   if (!result.matchedCount) {
     throw createCatalogError(
@@ -111,10 +89,7 @@ export async function updateComponent(
   return getComponent(current.id);
 }
 
-export async function archiveComponent(
-  componentId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function archiveComponent(componentId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getComponent(componentId);
   if (!current) {
     throw createCatalogError(404, "COMPONENT_NOT_FOUND", "Component not found");
@@ -154,10 +129,7 @@ export async function archiveComponent(
   return getComponent(current.id);
 }
 
-export async function restoreComponent(
-  componentId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function restoreComponent(componentId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getComponent(componentId);
   if (!current) {
     throw createCatalogError(404, "COMPONENT_NOT_FOUND", "Component not found");
@@ -188,11 +160,7 @@ export async function deleteComponent(componentId: string | string[]) {
     throw createCatalogError(404, "COMPONENT_NOT_FOUND", "Component not found");
   }
   if (current.status !== "archived") {
-    throw createCatalogError(
-      409,
-      "COMPONENT_NOT_ARCHIVED",
-      "Only archived components can be permanently deleted",
-    );
+    throw createCatalogError(409, "COMPONENT_NOT_ARCHIVED", "Only archived components can be permanently deleted");
   }
   const { components, deployments, db } = await getTopologyCollections();
   const scope = {
@@ -200,50 +168,24 @@ export async function deleteComponent(componentId: string | string[]) {
     applicationId: current.applicationId,
   };
   const counts = await Promise.all([
-    components.countDocuments(
-      { ...scope, "dependencies.componentId": current.id },
-      { limit: 1 },
-    ),
-    deployments.countDocuments(
-      { ...scope, componentId: current.id },
-      { limit: 1 },
-    ),
+    components.countDocuments({ ...scope, "dependencies.componentId": current.id }, { limit: 1 }),
+    deployments.countDocuments({ ...scope, componentId: current.id }, { limit: 1 }),
     db
       .collection(COLLECTION_NAMES.DOCUMENTS)
-      .countDocuments(
-        { ...scope, affectedComponentIds: current.id },
-        { limit: 1 },
-      ),
-    db
-      .collection(COLLECTION_NAMES.ISSUES)
-      .countDocuments(
-        { ...scope, affectedComponentIds: current.id },
-        { limit: 1 },
-      ),
+      .countDocuments({ ...scope, affectedComponentIds: current.id }, { limit: 1 }),
+    db.collection(COLLECTION_NAMES.ISSUES).countDocuments({ ...scope, affectedComponentIds: current.id }, { limit: 1 }),
     db
       .collection(COLLECTION_NAMES.REQUESTS)
-      .countDocuments(
-        { ...scope, affectedComponentIds: current.id },
-        { limit: 1 },
-      ),
+      .countDocuments({ ...scope, affectedComponentIds: current.id }, { limit: 1 }),
   ]);
   if (counts.some(Boolean)) {
-    throw createCatalogError(
-      409,
-      "COMPONENT_HAS_DEPENDENCIES",
-      "Remova as dependências antes de excluir o componente",
-    );
+    throw createCatalogError(409, "COMPONENT_HAS_DEPENDENCIES", "Remova as dependências antes de excluir o componente");
   }
   const result = await components.deleteOne({
     id: current.id,
     ...scope,
     status: "archived",
   });
-  if (!result.deletedCount)
-    throw createCatalogError(
-      409,
-      "COMPONENT_DELETE_CONFLICT",
-      "Component was not deleted",
-    );
+  if (!result.deletedCount) throw createCatalogError(409, "COMPONENT_DELETE_CONFLICT", "Component was not deleted");
   return current;
 }

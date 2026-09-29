@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  requireAllPermissions,
-  requireApplicationAccess,
-} from "../../../auth/authorizationMiddleware.js";
+import { requireAllPermissions, requireApplicationAccess } from "../../../auth/authorizationMiddleware.js";
 import { createTopologyDiagram } from "../../../repositories/topologyDiagrams/index.js";
 import { auditMutation, asyncHandler } from "../helpers.js";
 
@@ -12,11 +9,7 @@ export function registerCreateApplicationsTopologyDiagram(router: Router) {
     requireAllPermissions("applications.update"),
     requireApplicationAccess("applications.update"),
     asyncHandler(async (req: Request, res: Response) => {
-      const diagram = await createTopologyDiagram(
-        req.params.applicationId,
-        req.body,
-        req.actor,
-      );
+      const diagram = await createTopologyDiagram(req.params.applicationId, req.body, req.actor);
       await auditMutation({
         req,
         type: "topology-diagram",

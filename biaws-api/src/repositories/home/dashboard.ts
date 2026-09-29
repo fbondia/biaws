@@ -16,28 +16,18 @@ async function resolveWidgetMetric(
   instance: ReturnType<typeof normalizeHomeWidgets>[number],
   now: Date,
 ) {
-  if (instance.widgetId === "issues-period")
-    return issuePeriodMetric(database, actor, instance.config, now);
-  if (instance.widgetId === "open-issues-by-application")
-    return issueBreakdownMetric(database, actor, "applicationId");
-  if (instance.widgetId === "open-issues-by-type")
-    return issueBreakdownMetric(database, actor, "type");
-  if (instance.widgetId === "pending-tasks")
-    return buildPendingTasksMetric(database, actor);
-  if (instance.widgetId === "application-health")
-    return applicationHealthMetric(database, actor, instance.config);
+  if (instance.widgetId === "issues-period") return issuePeriodMetric(database, actor, instance.config, now);
+  if (instance.widgetId === "open-issues-by-application") return issueBreakdownMetric(database, actor, "applicationId");
+  if (instance.widgetId === "open-issues-by-type") return issueBreakdownMetric(database, actor, "type");
+  if (instance.widgetId === "pending-tasks") return buildPendingTasksMetric(database, actor);
+  if (instance.widgetId === "application-health") return applicationHealthMetric(database, actor, instance.config);
   return { kind: "unknown" };
 }
 
-export async function getHomeDashboard(
-  actor: Actor,
-  { now = new Date() } = {},
-) {
+export async function getHomeDashboard(actor: Actor, { now = new Date() } = {}) {
   const database = await getMongoDatabase();
   const configuration = await getHomeConfiguration(actor);
-  const catalog = HOME_WIDGET_CATALOG.filter(({ permission }) =>
-    hasPermission(actor, permission),
-  );
+  const catalog = HOME_WIDGET_CATALOG.filter(({ permission }) => hasPermission(actor, permission));
   const dataEntries = await Promise.all(
     configuration.widgets.map(async (instance) => [
       instance.id,

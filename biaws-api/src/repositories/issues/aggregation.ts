@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import { Collection, Document } from "mongodb";
 import type { RepositoryQuery } from "../../types/http.js";
 function withDateType(filter: Document, datePath: string) {
@@ -6,9 +7,7 @@ function withDateType(filter: Document, datePath: string) {
   return {
     ...filter,
     [datePath]: {
-      ...(existingDateFilter &&
-      typeof existingDateFilter === "object" &&
-      !Array.isArray(existingDateFilter)
+      ...(existingDateFilter && typeof existingDateFilter === "object" && !Array.isArray(existingDateFilter)
         ? existingDateFilter
         : {}),
       $type: "date",
@@ -39,10 +38,7 @@ function normalizeDateFieldBucket(bucket: Document) {
     key: bucket._id ?? "sem valor",
     count: bucket.count,
     ...Object.fromEntries(
-      (bucket.fields || []).map((field: Document) => [
-        String(field.key ?? "sem valor"),
-        field.count,
-      ]),
+      (bucket.fields || []).map((field: Document) => [String(field.key ?? "sem valor"), field.count]),
     ),
   };
 }
@@ -60,11 +56,7 @@ function normalizeTaxonomyBucket(bucket: Document) {
   };
 }
 
-export async function aggregateByField(
-  collection: Collection<Document>,
-  filter: {},
-  fieldName: string,
-) {
+export async function aggregateByField(collection: Collection<Document>, filter: {}, fieldName: string) {
   const rows = await collection
     .aggregate([
       { $match: filter },
@@ -83,12 +75,8 @@ export async function aggregateByField(
   return rows.map((row) => normalizeBucket(row));
 }
 
-export async function aggregateByTaxonomy(
-  collection: Collection<Document>,
-  filter: {},
-  options: RepositoryQuery = {},
-) {
-  const datePath = String(options.datePath || "dates.receivedEmailAt");
+export async function aggregateByTaxonomy(collection: Collection<Document>, filter: {}, options: RepositoryQuery = {}) {
+  const datePath = textValue(options.datePath || "dates.receivedEmailAt");
   const rows = await collection
     .aggregate([
       {
@@ -120,12 +108,8 @@ export async function aggregateByTaxonomy(
   return rows.map(normalizeTaxonomyBucket);
 }
 
-export async function aggregateByDate(
-  collection: Collection<Document>,
-  filter: {},
-  options: RepositoryQuery,
-) {
-  const datePath = String(options.datePath || "dates.receivedEmailAt");
+export async function aggregateByDate(collection: Collection<Document>, filter: {}, options: RepositoryQuery) {
+  const datePath = textValue(options.datePath || "dates.receivedEmailAt");
   if (options.interval === "week") {
     const rows = await collection
       .aggregate([
@@ -184,7 +168,7 @@ export async function aggregateByDateAndField(
   options: RepositoryQuery,
   fieldName: string,
 ) {
-  const datePath = String(options.datePath || "dates.receivedEmailAt");
+  const datePath = textValue(options.datePath || "dates.receivedEmailAt");
   const rows = await collection
     .aggregate([
       { $match: withDateType(filter, datePath) },

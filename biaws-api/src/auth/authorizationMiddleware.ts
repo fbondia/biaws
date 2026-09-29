@@ -1,7 +1,7 @@
-import type { MiddlewareRequest, ErrorResponsePort } from "../types/http.js";
-import type { Response, Request, NextFunction } from "express";
+import type { NextFunction } from "express";
+import { textValue } from "../helpers/text.js";
 import { resolveEntityReference } from "../repositories/shared/references.js";
-import type { Actor } from "../types/http.js";
+import type { Actor, ErrorResponsePort, MiddlewareRequest } from "../types/http.js";
 
 function forbidden(res: ErrorResponsePort, requiredPermissions: string[]) {
   res.status(403).json({
@@ -13,36 +13,20 @@ function forbidden(res: ErrorResponsePort, requiredPermissions: string[]) {
   });
 }
 
-export function actorHasPlatformPermission(
-  actor: Partial<Actor> | null | undefined,
-  permission: string,
-) {
-  return (
-    Array.isArray(actor?.platformPermissions) &&
-    actor.platformPermissions.includes(permission)
-  );
+export function actorHasPlatformPermission(actor: Partial<Actor> | null | undefined, permission: string) {
+  return Array.isArray(actor?.platformPermissions) && actor.platformPermissions.includes(permission);
 }
 
 export function platformPermissionsForTechnicalRole(role: string) {
   const roles = String(role || "user")
     .split(",")
     .map((entry) => entry.trim());
-  return roles.includes("admin")
-    ? ["platform.workspaces.manage", "platform.audit.read"]
-    : [];
+  return roles.includes("admin") ? ["platform.workspaces.manage", "platform.audit.read"] : [];
 }
 
 export function requirePlatformPermissions(...requiredPermissions: string[]) {
-  return function platformAuthorizationMiddleware(
-    req: MiddlewareRequest,
-    res: ErrorResponsePort,
-    next: NextFunction,
-  ) {
-    if (
-      !requiredPermissions.every((permission: string) =>
-        actorHasPlatformPermission(req.actor, permission),
-      )
-    ) {
+  return function platformAuthorizationMiddleware(req: MiddlewareRequest, res: ErrorResponsePort, next: NextFunction) {
+    if (!requiredPermissions.every((permission: string) => actorHasPlatformPermission(req.actor, permission))) {
       forbidden(res, requiredPermissions);
       return;
     }
@@ -50,19 +34,11 @@ export function requirePlatformPermissions(...requiredPermissions: string[]) {
   };
 }
 
-export function actorHasPermission(
-  actor: Partial<Actor> | undefined,
-  permission: string,
-) {
-  return (
-    Array.isArray(actor?.permissions) && actor.permissions.includes(permission)
-  );
+export function actorHasPermission(actor: Partial<Actor> | undefined, permission: string) {
+  return Array.isArray(actor?.permissions) && actor.permissions.includes(permission);
 }
 
-export function actorPermissionScope(
-  actor: Partial<Actor> | null | undefined,
-  permission: string,
-) {
+export function actorPermissionScope(actor: Partial<Actor> | null | undefined, permission: string) {
   return actor?.permissionScopes?.[permission] || null;
 }
 
@@ -72,41 +48,26 @@ export function actorCanAccessApplication(
   applicationId: string | string[],
 ) {
   const scope = actorPermissionScope(actor, permission);
-  return Boolean(
-    scope?.workspace ||
-    scope?.applicationIds?.includes(String(applicationId || "")),
-  );
+  return Boolean(scope?.workspace || scope?.applicationIds?.includes(String(applicationId || "")));
 }
 
-export function actorHasWorkspaceScope(
-  actor: Partial<Actor> | undefined,
-  permission: string,
-) {
+export function actorHasWorkspaceScope(actor: Partial<Actor> | undefined, permission: string) {
   return actorPermissionScope(actor, permission)?.workspace === true;
 }
 
-export function authorizationQuery(
-  actor: Partial<Actor> | undefined,
-  permission: string,
-  query = {},
-) {
+export function authorizationQuery(actor: Partial<Actor> | undefined, permission: string, query = {}) {
   const scope = actorPermissionScope(actor, permission);
   return {
     ...query,
     authorizationScope: {
       workspaceId: actor?.workspaceId || "",
       workspace: scope?.workspace === true,
-      applicationIds: scope?.workspace
-        ? []
-        : [...(scope?.applicationIds || [])],
+      applicationIds: scope?.workspace ? [] : [...(scope?.applicationIds || [])],
     },
   };
 }
 
-export function requireApplicationAccess(
-  permission: string,
-  parameter = "applicationId",
-) {
+export function requireApplicationAccess(permission: string, parameter = "applicationId") {
   return async function applicationAuthorizationMiddleware(
     req: MiddlewareRequest,
     res: ErrorResponsePort,
@@ -121,9 +82,7 @@ export function requireApplicationAccess(
     } catch (error) {
       return next(error);
     }
-    if (
-      !actorCanAccessApplication(req.actor, permission, req.params![parameter])
-    ) {
+    if (!actorCanAccessApplication(req.actor, permission, req.params![parameter])) {
       res.status(404).json({
         error: {
           code: "APPLICATION_NOT_FOUND",
@@ -154,11 +113,7 @@ export function requireApplicationPermissions(...permissions: string[]) {
       return next(error);
     }
     const applicationId = req.params!.applicationId;
-    if (
-      !permissions.every((permission: string) =>
-        actorCanAccessApplication(req.actor, permission, applicationId),
-      )
-    ) {
+    if (!permissions.every((permission: string) => actorCanAccessApplication(req.actor, permission, applicationId))) {
       res.status(404).json({
         error: {
           code: "APPLICATION_NOT_FOUND",
@@ -177,16 +132,10 @@ export function requireWorkspaceScope(permission: string) {
     res: ErrorResponsePort,
     next: NextFunction,
   ) {
-    const requestedWorkspaceId = String(
-      req.params?.workspaceId ||
-        req.body?.workspaceId ||
-        req.actor?.workspaceId ||
-        "",
+    const requestedWorkspaceId = textValue(
+      req.params?.workspaceId || req.body?.workspaceId || req.actor?.workspaceId || "",
     );
-    if (
-      requestedWorkspaceId !== req.actor?.workspaceId ||
-      !actorHasWorkspaceScope(req.actor, permission)
-    ) {
+    if (requestedWorkspaceId !== req.actor?.workspaceId || !actorHasWorkspaceScope(req.actor, permission)) {
       res.status(404).json({
         error: {
           code: "WORKSPACE_NOT_FOUND",
@@ -200,16 +149,8 @@ export function requireWorkspaceScope(permission: string) {
 }
 
 export function requireAllPermissions(...requiredPermissions: string[]) {
-  return function authorizationMiddleware(
-    req: MiddlewareRequest,
-    res: ErrorResponsePort,
-    next: NextFunction,
-  ) {
-    if (
-      !requiredPermissions.every((permission: string) =>
-        actorHasPermission(req.actor, permission),
-      )
-    ) {
+  return function authorizationMiddleware(req: MiddlewareRequest, res: ErrorResponsePort, next: NextFunction) {
+    if (!requiredPermissions.every((permission: string) => actorHasPermission(req.actor, permission))) {
       forbidden(res, requiredPermissions);
       return;
     }
@@ -219,16 +160,8 @@ export function requireAllPermissions(...requiredPermissions: string[]) {
 }
 
 export function requireAnyPermission(...requiredPermissions: string[]) {
-  return function authorizationMiddleware(
-    req: MiddlewareRequest,
-    res: ErrorResponsePort,
-    next: NextFunction,
-  ) {
-    if (
-      !requiredPermissions.some((permission: string) =>
-        actorHasPermission(req.actor, permission),
-      )
-    ) {
+  return function authorizationMiddleware(req: MiddlewareRequest, res: ErrorResponsePort, next: NextFunction) {
+    if (!requiredPermissions.some((permission: string) => actorHasPermission(req.actor, permission))) {
       forbidden(res, requiredPermissions);
       return;
     }
@@ -240,11 +173,7 @@ export function requireBodyFieldPermissions(
   fieldPermissions: Record<string, string>,
   fallbackPermission: string | null,
 ) {
-  return function fieldAuthorizationMiddleware(
-    req: MiddlewareRequest,
-    res: ErrorResponsePort,
-    next: NextFunction,
-  ) {
+  return function fieldAuthorizationMiddleware(req: MiddlewareRequest, res: ErrorResponsePort, next: NextFunction) {
     const fields = Object.keys(req.body || {});
     const required = [
       ...new Set(
@@ -253,11 +182,7 @@ export function requireBodyFieldPermissions(
           .filter((permission): permission is string => Boolean(permission)),
       ),
     ];
-    if (
-      !required.every((permission: string) =>
-        actorHasPermission(req.actor, permission),
-      )
-    ) {
+    if (!required.every((permission: string) => actorHasPermission(req.actor, permission))) {
       forbidden(res, required);
       return;
     }
@@ -266,11 +191,7 @@ export function requireBodyFieldPermissions(
   };
 }
 
-export function rejectDatabaseOverride(
-  req: MiddlewareRequest,
-  res: ErrorResponsePort,
-  next: NextFunction,
-) {
+export function rejectDatabaseOverride(req: MiddlewareRequest, res: ErrorResponsePort, next: NextFunction) {
   const hasOverride =
     Object.hasOwn(req.query || {} || {}, "db") ||
     Object.hasOwn(req.query || {} || {}, "database") ||
@@ -288,11 +209,7 @@ export function rejectDatabaseOverride(
   next();
 }
 
-export function requireIdentityAdminOperation(
-  req: MiddlewareRequest,
-  res: ErrorResponsePort,
-  next: NextFunction,
-) {
+export function requireIdentityAdminOperation(req: MiddlewareRequest, res: ErrorResponsePort, next: NextFunction) {
   const permissionByPath: Record<string, string> = {
     "/list-users": "users.read",
     "/create-user": "users.create",

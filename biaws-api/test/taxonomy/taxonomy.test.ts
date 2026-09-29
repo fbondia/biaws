@@ -31,21 +31,17 @@ test("includes the selected taxonomy and all of its descendants", () => {
 });
 
 test("includes only the selected subtree", () => {
-  assert.deepEqual(
-    collectTaxonomyIdsWithDescendants(taxonomy, ["permissoes"]),
-    ["permissoes", "perfil-acesso"],
-  );
+  assert.deepEqual(collectTaxonomyIdsWithDescendants(taxonomy, ["permissoes"]), ["permissoes", "perfil-acesso"]);
 });
 
 test("combines multiple selections without duplicates and preserves unknown ids", () => {
-  assert.deepEqual(
-    collectTaxonomyIdsWithDescendants(taxonomy, [
-      "usuario",
-      "criacao-usuario",
-      "legado",
-    ]),
-    ["usuario", "criacao-usuario", "legado", "permissoes", "perfil-acesso"],
-  );
+  assert.deepEqual(collectTaxonomyIdsWithDescendants(taxonomy, ["usuario", "criacao-usuario", "legado"]), [
+    "usuario",
+    "criacao-usuario",
+    "legado",
+    "permissoes",
+    "perfil-acesso",
+  ]);
 });
 
 test("filters taxonomy to shared nodes and nodes assigned to an application", () => {
@@ -60,24 +56,16 @@ test("filters taxonomy to shared nodes and nodes assigned to an application", ()
     { id: "only-a", applicationIds: ["a"] },
   ];
 
-  assert.deepEqual(
-    collectTaxonomyIds(filterTaxonomyForApplication(scopedTaxonomy, "a")),
-    ["shared", "app-a", "only-a"],
-  );
-  assert.deepEqual(
-    collectTaxonomyIds(filterTaxonomyForApplication(scopedTaxonomy, "b")),
-    ["shared", "app-b"],
-  );
+  assert.deepEqual(collectTaxonomyIds(filterTaxonomyForApplication(scopedTaxonomy, "a")), [
+    "shared",
+    "app-a",
+    "only-a",
+  ]);
+  assert.deepEqual(collectTaxonomyIds(filterTaxonomyForApplication(scopedTaxonomy, "b")), ["shared", "app-b"]);
 });
 
 test("returns only shared taxonomy for workspace-level knowledge", () => {
-  const scopedTaxonomy = [
-    { id: "shared" },
-    { id: "specific", applicationIds: ["a"] },
-  ];
+  const scopedTaxonomy = [{ id: "shared" }, { id: "specific", applicationIds: ["a"] }];
 
-  assert.deepEqual(
-    collectTaxonomyIds(filterTaxonomyForApplication(scopedTaxonomy, "")),
-    ["shared"],
-  );
+  assert.deepEqual(collectTaxonomyIds(filterTaxonomyForApplication(scopedTaxonomy, "")), ["shared"]);
 });

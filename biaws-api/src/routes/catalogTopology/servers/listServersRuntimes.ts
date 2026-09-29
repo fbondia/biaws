@@ -1,12 +1,6 @@
 import type { Router, Request, Response } from "express";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
-import {
-  getServer,
-  listServerRuntimes,
-} from "../../../repositories/servers/index.js";
+import { authorizationQuery, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
+import { getServer, listServerRuntimes } from "../../../repositories/servers/index.js";
 import { sendNotFound, asyncHandler } from "../helpers.js";
 
 export function registerListServersRuntimes(router: Router) {
@@ -19,10 +13,7 @@ export function registerListServersRuntimes(router: Router) {
       });
       if (!server) return sendNotFound(res, "server");
       res.json(
-        await listServerRuntimes(
-          req.params.serverId,
-          authorizationQuery(req.actor, "runtimes.read", req.query),
-        ),
+        await listServerRuntimes(req.params.serverId, authorizationQuery(req.actor, "runtimes.read", req.query)),
       );
     }),
   );

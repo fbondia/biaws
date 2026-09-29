@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  requireAllPermissions,
-  requireApplicationAccess,
-} from "../../../auth/authorizationMiddleware.js";
+import { requireAllPermissions, requireApplicationAccess } from "../../../auth/authorizationMiddleware.js";
 import { createIntegration } from "../../../repositories/integrations/index.js";
 import { auditMutation, asyncHandler } from "../helpers.js";
 
@@ -12,11 +9,7 @@ export function registerCreateApplicationsIntegration(router: Router) {
     requireAllPermissions("integrations.create"),
     requireApplicationAccess("integrations.create"),
     asyncHandler(async (req: Request, res: Response) => {
-      const integration = await createIntegration(
-        req.params.applicationId,
-        req.body,
-        req.actor,
-      );
+      const integration = await createIntegration(req.params.applicationId, req.body, req.actor);
       await auditMutation({
         req,
         type: "integration",

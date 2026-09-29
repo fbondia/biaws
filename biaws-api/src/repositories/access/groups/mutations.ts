@@ -1,3 +1,4 @@
+import { textValue } from "../../../helpers/text.js";
 import type { Actor } from "../../../types/http.js";
 import type { WorkspaceDocument } from "../../../types/catalog.js";
 import { errorCode } from "../../../helpers/error.js";
@@ -9,17 +10,12 @@ import { normalizeGroupInput, normalizeGroup } from "../normalization.js";
 import { randomUUID } from "node:crypto";
 import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
 
-export async function ensureWorkspacePermissionGroups(
-  workspaceId: string,
-  actor: Partial<Actor> = {},
-) {
+export async function ensureWorkspacePermissionGroups(workspaceId: string, actor: Partial<Actor> = {}) {
   const { db, groups } = await getCollections();
-  const workspace = await db
-    .collection<WorkspaceDocument>(COLLECTION_NAMES.WORKSPACES)
-    .findOne({
-      id: String(workspaceId),
-      status: "active",
-    });
+  const workspace = await db.collection<WorkspaceDocument>(COLLECTION_NAMES.WORKSPACES).findOne({
+    id: String(workspaceId),
+    status: "active",
+  });
   if (!workspace) {
     throw createHttpError(404, "WORKSPACE_NOT_FOUND", "Workspace not found");
   }
@@ -27,16 +23,13 @@ export async function ensureWorkspacePermissionGroups(
   return listPermissionGroups({ workspaceId: workspace.id });
 }
 
-export async function createPermissionGroup(
-  payload: Record<string, unknown> = {},
-  actor: Actor,
-) {
+export async function createPermissionGroup(payload: Record<string, unknown> | undefined, actor: Actor) {
+  payload ??= {};
+
   const { db, groups, defaultWorkspace } = await getCollections();
   const now = new Date();
   const group = normalizeGroupInput(payload);
-  const workspaceId = String(
-    payload.workspaceId || actor?.workspaceId || defaultWorkspace.id,
-  );
+  const workspaceId = textValue(payload.workspaceId || actor?.workspaceId || defaultWorkspace.id);
   const workspace = await db.collection(COLLECTION_NAMES.WORKSPACES).findOne({
     id: workspaceId,
     status: "active",
@@ -45,13 +38,11 @@ export async function createPermissionGroup(
     throw createHttpError(404, "WORKSPACE_NOT_FOUND", "Workspace not found");
   }
   if (group.scope.type === "applications") {
-    const applicationCount = await db
-      .collection(COLLECTION_NAMES.APPLICATIONS)
-      .countDocuments({
-        id: { $in: group.scope.applicationIds },
-        workspaceId,
-        status: "active",
-      });
+    const applicationCount = await db.collection(COLLECTION_NAMES.APPLICATIONS).countDocuments({
+      id: { $in: group.scope.applicationIds },
+      workspaceId,
+      status: "active",
+    });
     if (applicationCount !== group.scope.applicationIds.length) {
       throw createHttpError(
         422,
@@ -90,11 +81,7 @@ export async function createPermissionGroup(
           "Já existe um grupo com este identificador no workspace",
         );
       }
-      throw createHttpError(
-        409,
-        "GROUP_NAME_CONFLICT",
-        "A group with this name already exists",
-      );
+      throw createHttpError(409, "GROUP_NAME_CONFLICT", "A group with this name already exists");
     }
     throw error;
   }
@@ -103,33 +90,27 @@ export async function createPermissionGroup(
 
 export async function updatePermissionGroup(
   groupId: string | string[],
-  payload: Record<string, unknown> = {},
+  payload: Record<string, unknown> | undefined,
   actor: Actor,
 ) {
+  payload ??= {};
+
   const { db, groups, defaultWorkspace } = await getCollections();
-  const workspaceId = String(
-    payload.workspaceId || actor?.workspaceId || defaultWorkspace.id,
-  );
+  const workspaceId = textValue(payload.workspaceId || actor?.workspaceId || defaultWorkspace.id);
   const current = await groups.findOne({
     _id: { $in: groupIdCandidates([groupId]) },
     workspaceId,
   });
   if (!current) {
-    throw createHttpError(
-      404,
-      "GROUP_NOT_FOUND",
-      `Group not found: ${groupId}`,
-    );
+    throw createHttpError(404, "GROUP_NOT_FOUND", `Group not found: ${groupId}`);
   }
   const group = normalizeGroupInput(payload, current);
   if (group.scope.type === "applications") {
-    const applicationCount = await db
-      .collection(COLLECTION_NAMES.APPLICATIONS)
-      .countDocuments({
-        id: { $in: group.scope.applicationIds },
-        workspaceId,
-        status: "active",
-      });
+    const applicationCount = await db.collection(COLLECTION_NAMES.APPLICATIONS).countDocuments({
+      id: { $in: group.scope.applicationIds },
+      workspaceId,
+      status: "active",
+    });
     if (applicationCount !== group.scope.applicationIds.length) {
       throw createHttpError(
         422,
@@ -151,11 +132,7 @@ export async function updatePermissionGroup(
       { returnDocument: "after" },
     );
     if (!result) {
-      throw createHttpError(
-        404,
-        "GROUP_NOT_FOUND",
-        `Group not found: ${groupId}`,
-      );
+      throw createHttpError(404, "GROUP_NOT_FOUND", `Group not found: ${groupId}`);
     }
     return normalizeGroup(result);
   } catch (error) {
@@ -174,21 +151,13 @@ export async function updatePermissionGroup(
           "Já existe um grupo com este identificador no workspace",
         );
       }
-      throw createHttpError(
-        409,
-        "GROUP_NAME_CONFLICT",
-        "A group with this name already exists",
-      );
+      throw createHttpError(409, "GROUP_NAME_CONFLICT", "A group with this name already exists");
     }
     throw error;
   }
 }
 
-export async function setPermissionGroupActive(
-  groupId: string | string[],
-  active: boolean,
-  actor: Partial<Actor>,
-) {
+export async function setPermissionGroupActive(groupId: string | string[], active: boolean, actor: Partial<Actor>) {
   if (typeof active !== "boolean") {
     throw createHttpError(422, "INVALID_GROUP", "active must be a boolean");
   }
@@ -206,11 +175,7 @@ export async function setPermissionGroupActive(
     { returnDocument: "after" },
   );
   if (!result) {
-    throw createHttpError(
-      404,
-      "GROUP_NOT_FOUND",
-      `Group not found: ${groupId}`,
-    );
+    throw createHttpError(404, "GROUP_NOT_FOUND", `Group not found: ${groupId}`);
   }
   return normalizeGroup(result);
 }

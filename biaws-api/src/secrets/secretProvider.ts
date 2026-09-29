@@ -5,9 +5,7 @@ let provider: LocalSecretProvider;
 
 export function createSecretProvider(config = getServerConfig().secrets) {
   if (config.provider !== "local") {
-    const error = new Error(
-      `Unsupported secrets provider: ${config.provider || "missing"}`,
-    );
+    const error = new Error(`Unsupported secrets provider: ${config.provider || "missing"}`);
     error.code = "UNSUPPORTED_SECRETS_PROVIDER";
     throw error;
   }

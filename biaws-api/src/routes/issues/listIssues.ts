@@ -1,9 +1,6 @@
 import type { Router, Request, Response } from "express";
 import { listIssues } from "../../repositories/issues/index.js";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../auth/authorizationMiddleware.js";
+import { authorizationQuery, requireAllPermissions } from "../../auth/authorizationMiddleware.js";
 import { asyncHandler } from "./helpers.js";
 
 export function registerListIssues(router: Router) {
@@ -11,11 +8,7 @@ export function registerListIssues(router: Router) {
     "/",
     requireAllPermissions("issues.read"),
     asyncHandler(async (req: Request, res: Response) => {
-      res.json(
-        await listIssues(
-          authorizationQuery(req.actor, "issues.read", req.query),
-        ),
-      );
+      res.json(await listIssues(authorizationQuery(req.actor, "issues.read", req.query)));
     }),
   );
 }

@@ -25,31 +25,13 @@ function normalizeSync(value: unknown, current: Partial<RepositorySync> = {}) {
     };
   }
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw createCatalogError(
-      422,
-      "INVALID_REPOSITORY_SYNC",
-      "sync must be an object",
-    );
+    throw createCatalogError(422, "INVALID_REPOSITORY_SYNC", "sync must be an object");
   }
   assertAllowedFields(value, ["mode", "lastSyncedAt", "state"], "sync");
   return {
-    mode: normalizeEnum(
-      value.mode,
-      "sync.mode",
-      REPOSITORY_SYNC_MODES,
-      current.mode || "manual",
-    ),
-    lastSyncedAt: normalizeDate(
-      value.lastSyncedAt,
-      "sync.lastSyncedAt",
-      current.lastSyncedAt,
-    ),
-    state: normalizeEnum(
-      value.state,
-      "sync.state",
-      REPOSITORY_SYNC_STATES,
-      current.state || "never",
-    ),
+    mode: normalizeEnum(value.mode, "sync.mode", REPOSITORY_SYNC_MODES, current.mode || "manual"),
+    lastSyncedAt: normalizeDate(value.lastSyncedAt, "sync.lastSyncedAt", current.lastSyncedAt),
+    state: normalizeEnum(value.state, "sync.state", REPOSITORY_SYNC_STATES, current.state || "never"),
   };
 }
 
@@ -59,36 +41,14 @@ export function normalizeRepositoryInput(
 ) {
   assertAllowedFields(
     payload,
-    [
-      "key",
-      "name",
-      "description",
-      "provider",
-      "organization",
-      "url",
-      "defaultBranch",
-      "sync",
-    ],
+    ["key", "name", "description", "provider", "organization", "url", "defaultBranch", "sync"],
     "repository",
   );
   return {
     key: normalizeKey(payload.key, current?.key),
-    name: requiredText(
-      payload.name ?? current?.name,
-      "name",
-      CATALOG_LIMITS.name,
-    ),
-    description: optionalText(
-      payload.description ?? current?.description,
-      "description",
-      CATALOG_LIMITS.description,
-    ),
-    provider: normalizeEnum(
-      payload.provider,
-      "provider",
-      REPOSITORY_PROVIDERS,
-      current?.provider || "other",
-    ),
+    name: requiredText(payload.name ?? current?.name, "name", CATALOG_LIMITS.name),
+    description: optionalText(payload.description ?? current?.description, "description", CATALOG_LIMITS.description),
+    provider: normalizeEnum(payload.provider, "provider", REPOSITORY_PROVIDERS, current?.provider || "other"),
     organization: optionalText(
       payload.organization ?? current?.organization,
       "organization",

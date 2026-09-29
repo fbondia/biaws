@@ -1,4 +1,5 @@
-import type { PathOrFileDescriptor } from "fs";
+import { textValue } from "./text.js";
+import type { PathOrFileDescriptor } from "node:fs";
 import type { IssueTypeItem } from "./issueTypeDetection.js";
 type CompiledSanitization = ReturnType<typeof compileEmailSanitizationConfig>;
 interface EmlOptions {
@@ -8,26 +9,26 @@ interface EmlOptions {
   issueTypeItems?: IssueTypeItem[];
   sanitizationConfig?: unknown;
 }
-import crypto from "crypto";
-import { readFileSync } from "fs";
+import crypto from "node:crypto";
+import { readFileSync } from "node:fs";
 import { simpleParser, type Source } from "mailparser";
 import { compileEmailSanitizationConfig } from "./emailSanitization.js";
 import { detectIssueTypeFromSubject } from "./issueTypeDetection.js";
 
 function escapeRegex(value: unknown) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return String(value).replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 function cleanupSubject(subject: unknown, config: CompiledSanitization) {
-  let cleaned = String(subject || "Sem assunto").trim();
+  let cleaned = textValue(subject || "Sem assunto").trim();
   let prefixFound = true;
 
   while (prefixFound) {
     prefixFound = false;
 
     for (const prefix of config.subjectPrefixes) {
-      const separator = prefix.startsWith("[") ? "[:\\s-]*" : "[:\\]\\s-]+";
-      const regex = new RegExp(`^\\s*${escapeRegex(prefix)}${separator}`, "iu");
+      const separator = prefix.startsWith("[") ? String.raw`[:\s-]*` : String.raw`[:\]\s-]+`;
+      const regex = new RegExp(String.raw`^\s*${escapeRegex(prefix)}${separator}`, "iu");
       if (regex.test(cleaned)) {
         cleaned = cleaned.replace(regex, "").trim();
         prefixFound = true;
@@ -40,17 +41,17 @@ function cleanupSubject(subject: unknown, config: CompiledSanitization) {
 }
 
 function cleanupGarbage(text: unknown, config: CompiledSanitization) {
-  let cleaned = String(text || "");
+  let cleaned = textValue(text || "");
 
   for (const rule of config.bodyRules) {
     if (rule.enabled) cleaned = cleaned.replace(rule.regex, "").trim();
   }
 
   if (config.options.collapseBlankLines) {
-    cleaned = cleaned.replace(/(\r?\n){3,}/gu, "\n\n");
+    cleaned = cleaned.replaceAll(/(\r?\n){3,}/gu, "\n\n");
   }
   if (config.options.trimLineEndings) {
-    cleaned = cleaned.replace(/[ \t]+\n/gu, "\n");
+    cleaned = cleaned.replaceAll(/[ \t]+\n/gu, "\n");
   }
   return cleaned.trim();
 }
@@ -79,7 +80,7 @@ function splitMailBody(text: string, config: CompiledSanitization) {
 }
 
 function extractHeaders(text: unknown) {
-  const lines = String(text || "").split(/\r?\n/u);
+  const lines = textValue(text || "").split(/\r?\n/u);
   const bodyStartIndex = lines.findIndex((line, index: number) => {
     return line.trim() === "" || index > 50;
   });
@@ -100,20 +101,13 @@ function extractHeaders(text: unknown) {
       headers.to = value;
     } else if (key.startsWith("cc")) {
       headers.cc = value;
-    } else if (
-      key.startsWith("sent") ||
-      key.startsWith("enviada em") ||
-      key.startsWith("enviado")
-    ) {
+    } else if (key.startsWith("sent") || key.startsWith("enviada em") || key.startsWith("enviado")) {
       headers.date = value;
     }
   }
 
   const bodyStart = bodyStartIndex === 1 ? 0 : bodyStartIndex;
-  const body = lines
-    .slice(bodyStart >= 0 ? bodyStart : 0)
-    .join("\n")
-    .trim();
+  const body = lines.slice(Math.max(bodyStart, 0)).join("\n").trim();
 
   return { headers, body };
 }
@@ -132,12 +126,10 @@ function replaceCIDReferences(
   }[],
 ) {
   const cidMap = Object.fromEntries(
-    attachments
-      .filter((attachment) => attachment.cid)
-      .map((attachment) => [attachment.cid, attachment.filename]),
+    attachments.filter((attachment) => attachment.cid).map((attachment) => [attachment.cid, attachment.filename]),
   );
 
-  return String(text || "").replace(/\[cid:([^\]]+)\]/gu, (_, cid) => {
+  return String(text || "").replaceAll(/\[cid:([^\]]+)\]/gu, (_, cid) => {
     const name = cidMap[cid];
     return name ? `[anexo: ${name}]` : `[cid:${cid}]`;
   });
@@ -159,65 +151,53 @@ function parseDateValue(value: string | number | Date | undefined) {
 }
 
 function selectMainMessage<T>(messages: T[]): T | null {
-  return messages[messages.length - 1] || messages[0] || null;
+  return messages.at(-1) ?? messages[0] ?? null;
 }
 
 export async function parseEmlBuffer(
   content: Source,
-  {
-    sourceFile = "",
-    type,
-    defaultType = "request",
-    issueTypeItems = [],
-    sanitizationConfig,
-  }: EmlOptions = {},
+  { sourceFile = "", type, defaultType = "request", issueTypeItems = [], sanitizationConfig }: EmlOptions = {},
 ) {
   const config = compileEmailSanitizationConfig(sanitizationConfig);
   const parsed = await simpleParser(content);
   const body = parsed.text || parsed.html || "";
   const subject = cleanupSubject(parsed.subject, config);
-  const attachments = (parsed.attachments || []).map(
-    (attachment, index: number) => ({
-      index,
-      filename: attachment.filename || "sem_nome",
-      contentType: attachment.contentType,
-      size: attachment.size,
-      checksum: attachment.checksum || null,
-      contentDisposition: attachment.contentDisposition || null,
-      cid: attachment.cid || null,
-      tags: ["Anexo E-Mail"],
-    }),
-  );
-  const attachmentContents = (parsed.attachments || []).map(
-    (attachment, index: number) => ({
-      index,
-      filename: attachment.filename || "sem_nome",
-      contentType: attachment.contentType,
-      checksum: attachment.checksum || null,
-      content: attachment.content,
-    }),
-  );
-  const messages = splitMailBody(body, config).map(
-    (message: string, index: number) => {
-      const { headers, body: messageBody } = extractHeaders(message);
-      const sanitizedBody = cleanupGarbage(messageBody, config);
-      const cleanedBody = config.options.replaceCidReferences
-        ? replaceCIDReferences(sanitizedBody, attachments)
-        : sanitizedBody;
-      const date = parseDateValue(headers.date);
+  const attachments = (parsed.attachments || []).map((attachment, index: number) => ({
+    index,
+    filename: attachment.filename || "sem_nome",
+    contentType: attachment.contentType,
+    size: attachment.size,
+    checksum: attachment.checksum || null,
+    contentDisposition: attachment.contentDisposition || null,
+    cid: attachment.cid || null,
+    tags: ["Anexo E-Mail"],
+  }));
+  const attachmentContents = (parsed.attachments || []).map((attachment, index: number) => ({
+    index,
+    filename: attachment.filename || "sem_nome",
+    contentType: attachment.contentType,
+    checksum: attachment.checksum || null,
+    content: attachment.content,
+  }));
+  const messages = splitMailBody(body, config).map((message: string, index: number) => {
+    const { headers, body: messageBody } = extractHeaders(message);
+    const sanitizedBody = cleanupGarbage(messageBody, config);
+    const cleanedBody = config.options.replaceCidReferences
+      ? replaceCIDReferences(sanitizedBody, attachments)
+      : sanitizedBody;
+    const date = parseDateValue(headers.date);
 
-      return {
-        index,
-        hash: hashText(cleanedBody),
-        text: cleanedBody,
-        from: headers.from || "",
-        to: headers.to || "",
-        cc: headers.cc || "",
-        date,
-        rawDate: headers.date || "",
-      };
-    },
-  );
+    return {
+      index,
+      hash: hashText(cleanedBody),
+      text: cleanedBody,
+      from: headers.from || "",
+      to: headers.to || "",
+      cc: headers.cc || "",
+      date,
+      rawDate: headers.date || "",
+    };
+  });
   const mainMessage = selectMainMessage(messages);
   const receivedEmailAt = parseDateValue(parsed.date);
   const firstThreadEmailAt =

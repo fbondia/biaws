@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  requireAllPermissions,
-  requireWorkspaceScope,
-} from "../../../auth/authorizationMiddleware.js";
+import { requireAllPermissions, requireWorkspaceScope } from "../../../auth/authorizationMiddleware.js";
 import {
   createMonitoringTemplateVersion,
   getMonitoringTemplate,
@@ -18,11 +15,7 @@ export function registerUpdateTemplate(router: Router) {
       const before = await getMonitoringTemplate(req.params.templateId, {
         workspaceId: req.actor.workspaceId ?? undefined,
       });
-      const template = await createMonitoringTemplateVersion(
-        req.params.templateId,
-        req.body,
-        req.actor,
-      );
+      const template = await createMonitoringTemplateVersion(req.params.templateId, req.body, req.actor);
       await auditTemplateMutation({
         req,
         action: "version_created",

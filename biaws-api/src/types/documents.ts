@@ -1,5 +1,4 @@
-import type { Document } from "mongodb";
-import type { ObjectId } from "mongodb";
+import type { Document, ObjectId } from "mongodb";
 import type { KnowledgeContextInput } from "./requests.js";
 export interface DocumentReference {
   targetDocumentId: string;
@@ -30,10 +29,7 @@ export interface KnowledgeDocument extends KnowledgeContextInput {
   updatedAt?: Date;
 }
 
-export type PublicStoredKnowledgeDocument = Omit<
-  KnowledgeDocument,
-  "_id" | "id"
-> &
+export type PublicStoredKnowledgeDocument = Omit<KnowledgeDocument, "_id" | "id"> &
   Pick<
     StoredKnowledgeDocument,
     | "id"

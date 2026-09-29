@@ -1,3 +1,8 @@
+function newTraversalState() {
+  return { nodes: 0 };
+}
+
+import { textValue } from "../../../helpers/text.js";
 import type { JsonValue } from "./resultTypes.js";
 import { RUNTIME_STATUSES } from "../../../../../shared/index.js";
 import {
@@ -13,9 +18,7 @@ import {
   normalizeUnifiedMonitoringTemplateDefinition,
 } from "./unifiedDefinition.js";
 
-const RESULT_STATUSES = RUNTIME_STATUSES.filter(
-  (status) => status !== "archived",
-);
+const RESULT_STATUSES = RUNTIME_STATUSES.filter((status) => status !== "archived");
 
 const MATCH_MODES = ["all", "any"];
 
@@ -31,46 +34,32 @@ const OPERATORS = [
   "matches",
 ];
 
-const PATH_PATTERN =
-  /^(?:evidence|metadata|context)(?:\.[A-Za-z0-9_-]+){0,8}$/u;
+const PATH_PATTERN = /^(?:evidence|metadata|context)(?:\.[A-Za-z0-9_-]+){0,8}$/u;
 
 const PROHIBITED_KEY =
   /(?:password|passwd|pwd|secret|token|credential|authorization|api[-_.]?key|private[-_.]?key|kubeconfig|connection[-_.]?string)/iu;
 
-const TEMPLATE_PATTERN =
-  /\{\{\s*((?:evidence|metadata|context)(?:\.[A-Za-z0-9_-]+){0,8})\s*\}\}/gu;
+const TEMPLATE_PATTERN = /\{\{\s*((?:evidence|metadata|context)(?:\.[A-Za-z0-9_-]+){0,8})\s*\}\}/gu;
 
 function invalid(message: string) {
   return createCatalogError(422, "INVALID_MONITORING_TEMPLATE", message);
 }
 
-function safeJson(
-  value: unknown,
-  field: string,
-  depth = 0,
-  state = { nodes: 0 },
-): JsonValue {
+function safeJson(value: unknown, field: string, depth = 0, state: { nodes: number } = newTraversalState()): JsonValue {
   state.nodes += 1;
   if (state.nodes > 1_000 || depth > 8) {
     throw invalid(`${field} is too deeply nested or contains too many values`);
   }
-  if (
-    value === null ||
-    typeof value === "boolean" ||
-    (typeof value === "number" && Number.isFinite(value))
-  ) {
+  if (value === null || typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value))) {
     return value;
   }
   if (typeof value === "string") {
-    if (value.length > 8_000)
-      throw invalid(`${field} contains a string that is too long`);
+    if (value.length > 8_000) throw invalid(`${field} contains a string that is too long`);
     return value;
   }
   if (Array.isArray(value)) {
     if (value.length > 100) throw invalid(`${field} contains too many items`);
-    return value.map((item, index: number) =>
-      safeJson(item, `${field}[${index}]`, depth + 1, state),
-    );
+    return value.map((item, index: number) => safeJson(item, `${field}[${index}]`, depth + 1, state));
   }
   if (!value || typeof value !== "object") {
     throw invalid(`${field} must contain JSON-compatible values`);
@@ -101,19 +90,10 @@ function normalizeResult(value: unknown, field: string) {
 function normalizeCondition(value: unknown, field: string) {
   assertAllowedFields(value, ["path", "operator", "value"], field);
   const path = requiredText(value.path, `${field}.path`, 180);
-  if (
-    !PATH_PATTERN.test(path) ||
-    path.split(".").some((part) => PROHIBITED_KEY.test(part))
-  ) {
-    throw invalid(
-      `${field}.path must reference a safe evidence, metadata or context field`,
-    );
+  if (!PATH_PATTERN.test(path) || path.split(".").some((part) => PROHIBITED_KEY.test(part))) {
+    throw invalid(`${field}.path must reference a safe evidence, metadata or context field`);
   }
-  const operator = normalizeEnum(
-    value.operator,
-    `${field}.operator`,
-    OPERATORS,
-  );
+  const operator = normalizeEnum(value.operator, `${field}.operator`, OPERATORS);
   if (operator !== "exists" && !Object.hasOwn(value, "value")) {
     throw invalid(`${field}.value is required for ${operator}`);
   }
@@ -126,9 +106,7 @@ function normalizeCondition(value: unknown, field: string) {
   }
   if (operator === "matches") {
     if (typeof normalized.value !== "string" || normalized.value.length > 200) {
-      throw invalid(
-        `${field}.value must be a regular expression with at most 200 characters`,
-      );
+      throw invalid(`${field}.value must be a regular expression with at most 200 characters`);
     }
     try {
       new RegExp(normalized.value, "u");
@@ -142,22 +120,14 @@ function normalizeCondition(value: unknown, field: string) {
 function normalizeRule(value: unknown, index: number) {
   const field = `definition.rules[${index}]`;
   assertAllowedFields(value, ["label", "match", "conditions", "result"], field);
-  if (
-    !Array.isArray(value.conditions) ||
-    !value.conditions.length ||
-    value.conditions.length > 20
-  ) {
-    throw invalid(
-      `${field}.conditions must contain between 1 and 20 conditions`,
-    );
+  if (!Array.isArray(value.conditions) || !value.conditions.length || value.conditions.length > 20) {
+    throw invalid(`${field}.conditions must contain between 1 and 20 conditions`);
   }
   return {
-    label:
-      optionalText(value.label, `${field}.label`, 160) || `Regra ${index + 1}`,
+    label: optionalText(value.label, `${field}.label`, 160) || `Regra ${index + 1}`,
     match: normalizeEnum(value.match, `${field}.match`, MATCH_MODES, "all"),
-    conditions: value.conditions.map(
-      (condition: unknown, conditionIndex: number) =>
-        normalizeCondition(condition, `${field}.conditions[${conditionIndex}]`),
+    conditions: value.conditions.map((condition: unknown, conditionIndex: number) =>
+      normalizeCondition(condition, `${field}.conditions[${conditionIndex}]`),
     ),
     result: normalizeResult(value.result, `${field}.result`),
   };
@@ -172,17 +142,11 @@ export function normalizeMonitoringTemplateDefinition(value: unknown = {}) {
 
 function normalizeLegacyDefinition(value: unknown) {
   assertAllowedFields(value, ["rules", "defaultResult"], "template definition");
-  if (
-    !Array.isArray(value.rules) ||
-    !value.rules.length ||
-    value.rules.length > 20
-  ) {
+  if (!Array.isArray(value.rules) || !value.rules.length || value.rules.length > 20) {
     throw invalid("definition.rules must contain between 1 and 20 rules");
   }
   return {
-    rules: value.rules.map((rule: unknown, index: number) =>
-      normalizeRule(rule, index),
-    ),
+    rules: value.rules.map((rule: unknown, index: number) => normalizeRule(rule, index)),
     defaultResult: normalizeResult(
       value.defaultResult || {
         status: "unknown",
@@ -200,20 +164,12 @@ export function sanitizeMonitoringTemplateSample(value: unknown = {}) {
 
 function valueAtPath(sample: unknown, path: string) {
   return path.split(".").reduce<unknown>((current, segment: string) => {
-    if (
-      !current ||
-      typeof current !== "object" ||
-      !Object.hasOwn(current, segment)
-    )
-      return undefined;
+    if (!current || typeof current !== "object" || !Object.hasOwn(current, segment)) return undefined;
     return Reflect.get(current, segment);
   }, sample);
 }
 
-function compare(
-  actual: unknown,
-  condition: ReturnType<typeof normalizeCondition>,
-) {
+function compare(actual: unknown, condition: ReturnType<typeof normalizeCondition>) {
   const expected = condition.value;
   switch (condition.operator) {
     case "equals":
@@ -221,67 +177,43 @@ function compare(
     case "not_equals":
       return actual !== expected;
     case "greater_than":
-      return (
-        typeof actual === "number" &&
-        typeof expected === "number" &&
-        actual > expected
-      );
+      return typeof actual === "number" && typeof expected === "number" && actual > expected;
     case "greater_than_or_equal":
-      return (
-        typeof actual === "number" &&
-        typeof expected === "number" &&
-        actual >= expected
-      );
+      return typeof actual === "number" && typeof expected === "number" && actual >= expected;
     case "less_than":
-      return (
-        typeof actual === "number" &&
-        typeof expected === "number" &&
-        actual < expected
-      );
+      return typeof actual === "number" && typeof expected === "number" && actual < expected;
     case "less_than_or_equal":
-      return (
-        typeof actual === "number" &&
-        typeof expected === "number" &&
-        actual <= expected
-      );
+      return typeof actual === "number" && typeof expected === "number" && actual <= expected;
     case "contains":
       return typeof actual === "string"
-        ? actual.includes(String(expected))
+        ? actual.includes(textValue(expected))
         : Array.isArray(actual) && actual.includes(expected);
     case "exists":
-      return condition.value === false
-        ? actual === undefined
-        : actual !== undefined;
+      return condition.value === false ? actual === undefined : actual !== undefined;
     case "matches":
-      return (
-        typeof actual === "string" &&
-        new RegExp(String(expected), "u").test(actual)
-      );
+      return typeof actual === "string" && new RegExp(textValue(expected), "u").test(actual);
     default:
       return false;
   }
 }
 
 function renderMessage(message: string, sample: JsonValue) {
-  return message.replace(TEMPLATE_PATTERN, (_match, path) => {
+  return message.replaceAll(TEMPLATE_PATTERN, (_match, path) => {
     const value = valueAtPath(sample, path);
-    return value === undefined || value === null
-      ? ""
-      : typeof value === "object"
-        ? JSON.stringify(value)
-        : String(value);
+    if (value === undefined || value === null) {
+      return "";
+    } else if (typeof value === "object") {
+      return JSON.stringify(value);
+    } else {
+      return textValue(value);
+    }
   });
 }
 
-export function evaluateMonitoringTemplate(
-  definition: unknown,
-  rawSample: unknown = {},
-) {
+export function evaluateMonitoringTemplate(definition: unknown, rawSample: unknown = {}) {
   if (isUnifiedMonitoringTemplateDefinition(definition)) {
     normalizeUnifiedMonitoringTemplateDefinition(definition);
-    throw invalid(
-      "JSONata template evaluation is not available in this implementation phase",
-    );
+    throw invalid("JSONata template evaluation is not available in this implementation phase");
   }
   const normalizedDefinition = normalizeLegacyDefinition(definition);
   const sample = sanitizeMonitoringTemplateSample(rawSample);
@@ -317,9 +249,7 @@ export function evaluateMonitoringTemplate(
   const result = selected?.rule.result || normalizedDefinition.defaultResult;
   return {
     result: { ...result, message: renderMessage(result.message, sample) },
-    matchedRule: selected
-      ? { label: selected.rule.label, index: selected.ruleIndex }
-      : null,
+    matchedRule: selected ? { label: selected.rule.label, index: selected.ruleIndex } : null,
     diagnostics,
   };
 }

@@ -89,25 +89,18 @@ test("JSONata evaluates calculations and aligned series in an isolated worker", 
 });
 
 test("JSONata diagnostics are sanitized and invalid output contracts are rejected", async () => {
-  await assert.rejects(
-    evaluateUnifiedMonitoringTemplate(definition("not valid ["), {}),
-    (error) => {
-      assert.equal(errorCode(error), "MONITORING_TEMPLATE_EVALUATION_FAILED");
-      assert.ok(
-        error instanceof Error &&
-          isRecord(error) &&
-          isRecord(error.publicDetails) &&
-          isRecord(error.publicDetails.diagnostic),
-      );
-      assert.deepEqual(Object.keys(error.publicDetails.diagnostic).sort(), [
-        "code",
-        "phase",
-        "position",
-      ]);
-      assert.doesNotMatch(error.stack || "", /node_modules[\\/]jsonata[\\/]/u);
-      return true;
-    },
-  );
+  await assert.rejects(evaluateUnifiedMonitoringTemplate(definition("not valid ["), {}), (error) => {
+    assert.equal(errorCode(error), "MONITORING_TEMPLATE_EVALUATION_FAILED");
+    assert.ok(
+      error instanceof Error &&
+        isRecord(error) &&
+        isRecord(error.publicDetails) &&
+        isRecord(error.publicDetails.diagnostic),
+    );
+    assert.deepEqual(Object.keys(error.publicDetails.diagnostic).sort(), ["code", "phase", "position"]);
+    assert.doesNotMatch(error.stack || "", /node_modules[\\/]jsonata[\\/]/u);
+    return true;
+  });
   await assert.rejects(
     evaluateUnifiedMonitoringTemplate(
       definition(
@@ -126,21 +119,17 @@ test("JSONata diagnostics are sanitized and invalid output contracts are rejecte
     fields: [],
     series: [],
   };
-  await assert.rejects(
-    evaluateUnifiedMonitoringTemplate(additionalPropertiesDefinition, {}),
-    { code: "INVALID_MONITORING_TEMPLATE_RESULT" },
-  );
+  await assert.rejects(evaluateUnifiedMonitoringTemplate(additionalPropertiesDefinition, {}), {
+    code: "INVALID_MONITORING_TEMPLATE_RESULT",
+  });
 });
 
 test("JSONata workers enforce cancellation and timeout", async () => {
   const controller = new AbortController();
   controller.abort();
-  await assert.rejects(
-    evaluateJsonataIsolated("1 + 1", {}, { signal: controller.signal }),
-    {
-      code: "MONITORING_TEMPLATE_EVALUATION_CANCELLED",
-    },
-  );
+  await assert.rejects(evaluateJsonataIsolated("1 + 1", {}, { signal: controller.signal }), {
+    code: "MONITORING_TEMPLATE_EVALUATION_CANCELLED",
+  });
   await assert.rejects(evaluateJsonataIsolated("1 + 1", {}, { timeoutMs: 1 }), {
     code: "MONITORING_TEMPLATE_EVALUATION_TIMEOUT",
   });
@@ -148,19 +137,14 @@ test("JSONata workers enforce cancellation and timeout", async () => {
 
 test("unified definitions reject custom functions and dynamic evaluation", () => {
   for (const expression of ["function($value) { $value }", '$eval("1 + 1")']) {
-    assert.throws(
-      () => normalizeMonitoringTemplateDefinition(definition(expression)),
-      {
-        code: "INVALID_MONITORING_TEMPLATE",
-      },
-    );
+    assert.throws(() => normalizeMonitoringTemplateDefinition(definition(expression)), {
+      code: "INVALID_MONITORING_TEMPLATE",
+    });
   }
 });
 
 test("unified definitions accept date-indexed JSON input but keep metadata keys strict", () => {
-  const dateIndexed = definition(
-    '{"status": "healthy", "message": "ok", "metadata": {"average": 1}}',
-  );
+  const dateIndexed = definition('{"status": "healthy", "message": "ok", "metadata": {"average": 1}}');
   dateIndexed.input.sample = { dailyCounts: { "2026-08-12": 4 } };
   assert.doesNotThrow(() => normalizeMonitoringTemplateDefinition(dateIndexed));
 

@@ -1,13 +1,7 @@
 import type { Router, Request, Response } from "express";
-import {
-  actorCanAccessApplication,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { actorCanAccessApplication, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
-import {
-  deleteApplication,
-  getApplication,
-} from "../../../repositories/catalog/index.js";
+import { deleteApplication, getApplication } from "../../../repositories/catalog/index.js";
 import { sendNotFound, asyncHandler } from "../helpers.js";
 
 export function registerDeleteApplicationsPermanent(router: Router) {
@@ -15,11 +9,7 @@ export function registerDeleteApplicationsPermanent(router: Router) {
     "/applications/:applicationId/permanent",
     requireAllPermissions("applications.archive"),
     asyncHandler(async (req: Request, res: Response) => {
-      const before = actorCanAccessApplication(
-        req.actor,
-        "applications.archive",
-        req.params.applicationId,
-      )
+      const before = actorCanAccessApplication(req.actor, "applications.archive", req.params.applicationId)
         ? await getApplication(req.params.applicationId, {
             workspaceId: req.actor.workspaceId,
           })

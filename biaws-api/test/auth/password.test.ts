@@ -10,8 +10,5 @@ test("Argon2id hashes and verifies a password without storing plaintext", async 
   assert.match(passwordHash, /^\$argon2id\$/u);
   assert.equal(passwordHash.includes(password), false);
   assert.equal(await verifyPassword({ hash: passwordHash, password }), true);
-  assert.equal(
-    await verifyPassword({ hash: passwordHash, password: "senha incorreta" }),
-    false,
-  );
+  assert.equal(await verifyPassword({ hash: passwordHash, password: "senha incorreta" }), false);
 });

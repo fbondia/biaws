@@ -51,10 +51,7 @@ test("unified template definitions reject sensitive and undeclared presentation 
           ...definition.output,
           metadata: {
             ...definition.output.metadata,
-            fields: [
-              ...definition.output.metadata.fields,
-              { key: "api_token", type: "string", required: false },
-            ],
+            fields: [...definition.output.metadata.fields, { key: "api_token", type: "string", required: false }],
           },
         },
       }),
@@ -82,8 +79,7 @@ test("unified template definitions reject sensitive and undeclared presentation 
 });
 
 test("integrated profile migration is workspace-scoped and idempotent", async () => {
-  const documents: Array<{ workspaceId: string; id: string; version: string }> =
-    [];
+  const documents: Array<{ workspaceId: string; id: string; version: string }> = [];
   const database = {
     collection(name: string) {
       if (name === "runtimeMonitoringSignals") {
@@ -94,9 +90,7 @@ test("integrated profile migration is workspace-scoped and idempotent", async ()
                 return this;
               },
               async toArray() {
-                return [
-                  { _id: "workspace-used", profiles: ["sgmp-health/v1"] },
-                ];
+                return [{ _id: "workspace-used", profiles: ["sgmp-health/v1"] }];
               },
             };
           },
@@ -105,11 +99,7 @@ test("integrated profile migration is workspace-scoped and idempotent", async ()
       if (name === "runtimeMonitoringTemplates") {
         return {
           async createIndex() {},
-          async countDocuments(filter: {
-            workspaceId: string;
-            id: string;
-            version: string;
-          }) {
+          async countDocuments(filter: { workspaceId: string; id: string; version: string }) {
             return documents.some(
               (document) =>
                 document.workspaceId === filter.workspaceId &&
@@ -139,23 +129,15 @@ test("integrated profile migration is workspace-scoped and idempotent", async ()
     },
   };
 
-  const first = await migrateIntegratedMonitoringProfiles(
-    database as unknown as Db,
-    {
-      apply: true,
-    },
-  );
-  const second = await migrateIntegratedMonitoringProfiles(
-    database as unknown as Db,
-    {
-      apply: true,
-    },
-  );
+  const first = await migrateIntegratedMonitoringProfiles(database as unknown as Db, {
+    apply: true,
+  });
+  const second = await migrateIntegratedMonitoringProfiles(database as unknown as Db, {
+    apply: true,
+  });
   assert.equal(first.templatesCreated, 2);
   assert.equal(second.templatesCreated, 0);
   assert.equal(second.existingTemplates, 2);
   assert.equal(documents.length, 2);
-  assert.ok(
-    documents.every(({ workspaceId }) => workspaceId === "workspace-used"),
-  );
+  assert.ok(documents.every(({ workspaceId }) => workspaceId === "workspace-used"));
 });

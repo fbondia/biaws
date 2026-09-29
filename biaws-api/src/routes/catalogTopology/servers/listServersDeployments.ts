@@ -1,12 +1,6 @@
 import type { Router, Request, Response } from "express";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
-import {
-  getServer,
-  listServerDeployments,
-} from "../../../repositories/servers/index.js";
+import { authorizationQuery, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
+import { getServer, listServerDeployments } from "../../../repositories/servers/index.js";
 import { sendNotFound, asyncHandler } from "../helpers.js";
 
 export function registerListServersDeployments(router: Router) {
@@ -19,10 +13,7 @@ export function registerListServersDeployments(router: Router) {
       });
       if (!server) return sendNotFound(res, "server");
       res.json(
-        await listServerDeployments(
-          req.params.serverId,
-          authorizationQuery(req.actor, "deployments.read", req.query),
-        ),
+        await listServerDeployments(req.params.serverId, authorizationQuery(req.actor, "deployments.read", req.query)),
       );
     }),
   );

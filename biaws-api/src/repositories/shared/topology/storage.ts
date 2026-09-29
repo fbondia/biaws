@@ -17,30 +17,23 @@ import { getMongoDatabase } from "../../../helpers/mongoClient.js";
 let collectionsPromise: ReturnType<typeof initializeCollections> | undefined;
 
 export async function getTopologyCollections() {
-  if (!collectionsPromise) {
-    collectionsPromise = initializeCollections().catch((error: unknown) => {
-      collectionsPromise = undefined;
-      throw error;
-    });
-  }
+  collectionsPromise ??= initializeCollections().catch((error: unknown) => {
+    collectionsPromise = undefined;
+    throw error;
+  });
   return collectionsPromise;
 }
 
 async function initializeCollections() {
   const db = await getMongoDatabase();
   const components = db.collection<ComponentDocument>(COMPONENTS_COLLECTION);
-  const repositories = db.collection<RepositoryDocument>(
-    REPOSITORIES_COLLECTION,
-  );
+  const repositories = db.collection<RepositoryDocument>(REPOSITORIES_COLLECTION);
   const servers = db.collection<ServerDocument>(SERVERS_COLLECTION);
   const deployments = db.collection<DeploymentDocument>(DEPLOYMENTS_COLLECTION);
   const runtimes = db.collection<RuntimeDocument>(RUNTIMES_COLLECTION);
   await Promise.all([
     components.createIndex({ id: 1 }, { unique: true }),
-    components.createIndex(
-      { workspaceId: 1, applicationId: 1, key: 1 },
-      { unique: true },
-    ),
+    components.createIndex({ workspaceId: 1, applicationId: 1, key: 1 }, { unique: true }),
     components.createIndex({
       workspaceId: 1,
       applicationId: 1,
@@ -65,10 +58,7 @@ async function initializeCollections() {
       "dependencies.componentId": 1,
     }),
     repositories.createIndex({ id: 1 }, { unique: true }),
-    repositories.createIndex(
-      { workspaceId: 1, applicationId: 1, key: 1 },
-      { unique: true },
-    ),
+    repositories.createIndex({ workspaceId: 1, applicationId: 1, key: 1 }, { unique: true }),
     repositories.createIndex({
       workspaceId: 1,
       applicationId: 1,
@@ -94,10 +84,7 @@ async function initializeCollections() {
       id: 1,
     }),
     deployments.createIndex({ id: 1 }, { unique: true }),
-    deployments.createIndex(
-      { workspaceId: 1, applicationId: 1, key: 1 },
-      { unique: true },
-    ),
+    deployments.createIndex({ workspaceId: 1, applicationId: 1, key: 1 }, { unique: true }),
     deployments.createIndex({
       workspaceId: 1,
       applicationId: 1,
@@ -118,10 +105,7 @@ async function initializeCollections() {
       id: 1,
     }),
     runtimes.createIndex({ id: 1 }, { unique: true }),
-    runtimes.createIndex(
-      { workspaceId: 1, applicationId: 1, deploymentId: 1, key: 1 },
-      { unique: true },
-    ),
+    runtimes.createIndex({ workspaceId: 1, applicationId: 1, deploymentId: 1, key: 1 }, { unique: true }),
     runtimes.createIndex({
       workspaceId: 1,
       applicationId: 1,

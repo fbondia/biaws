@@ -48,22 +48,14 @@ async function acquireExpiredLease(
   );
 }
 
-async function acquireDueLease(
-  collection: MonitorCollection,
-  scope: ExecutorScope,
-  request: LeaseRequest,
-  now: Date,
-) {
+async function acquireDueLease(collection: MonitorCollection, scope: ExecutorScope, request: LeaseRequest, now: Date) {
   const candidate = await collection.findOne(
     {
       ...scope,
       enabled: true,
       archivedAt: { $exists: false },
       nextRunAt: { $lte: now },
-      $or: [
-        { lease: { $exists: false } },
-        { "lease.completedAt": { $exists: true } },
-      ],
+      $or: [{ lease: { $exists: false } }, { "lease.completedAt": { $exists: true } }],
     },
     { sort: { nextRunAt: 1, id: 1 } },
   );
@@ -87,9 +79,7 @@ async function acquireDueLease(
     },
     {
       $set: {
-        nextRunAt: new Date(
-          scheduledFor.getTime() + candidate.intervalSeconds * 1_000,
-        ),
+        nextRunAt: new Date(scheduledFor.getTime() + candidate.intervalSeconds * 1_000),
         lease: {
           token: randomUUID(),
           executionId: randomUUID(),
@@ -181,15 +171,11 @@ export async function acquireDueActiveMonitors(
   const scope = executorScopeFilter(authorizationScope);
   const collection = await activeMonitorCollection();
   const items = [];
-  for (
-    let attempt = 0;
-    items.length < request.limit && attempt < request.limit * 4;
-    attempt += 1
-  ) {
+  for (let attempt = 0; items.length < request.limit && attempt < request.limit * 4; attempt += 1) {
     const now = new Date();
     const monitor =
-      (await acquireManualLease(collection, scope, request, now)) ||
-      (await acquireExpiredLease(collection, scope, request, now)) ||
+      (await acquireManualLease(collection, scope, request, now)) ??
+      (await acquireExpiredLease(collection, scope, request, now)) ??
       (await acquireDueLease(collection, scope, request, now));
     if (!monitor) break;
     items.push(leaseResponse(monitor));
@@ -218,20 +204,14 @@ export async function renewActiveMonitorLease(
     },
     {
       $set: {
-        "lease.leasedUntil": new Date(
-          now.getTime() + request.leaseSeconds * 1_000,
-        ),
+        "lease.leasedUntil": new Date(now.getTime() + request.leaseSeconds * 1_000),
         updatedAt: now,
       },
     },
     { returnDocument: "after" },
   );
   if (!monitor) {
-    throw createCatalogError(
-      409,
-      "ACTIVE_MONITOR_LEASE_LOST",
-      "Active monitor lease is no longer valid",
-    );
+    throw createCatalogError(409, "ACTIVE_MONITOR_LEASE_LOST", "Active monitor lease is no longer valid");
   }
   return leaseResponse(monitor);
 }

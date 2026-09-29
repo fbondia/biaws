@@ -1,9 +1,5 @@
 import type { Actor } from "../../../types/http.js";
-import {
-  createHttpError,
-  identityIdCandidates,
-  groupIdCandidates,
-} from "../support.js";
+import { createHttpError, identityIdCandidates, groupIdCandidates } from "../support.js";
 import { getCollections } from "../storage.js";
 import { getUserAccess } from "./queries.js";
 
@@ -14,22 +10,12 @@ export async function setUserGroups(
   { workspaceId }: { workspaceId?: string } = {},
 ) {
   if (!Array.isArray(groupIds)) {
-    throw createHttpError(
-      422,
-      "INVALID_USER_GROUPS",
-      "groupIds must be an array",
-    );
+    throw createHttpError(422, "INVALID_USER_GROUPS", "groupIds must be an array");
   }
   const normalizedGroupIds = [...new Set(groupIds.map(String))];
-  const { groups, userAccess, users, defaultWorkspace } =
-    await getCollections();
-  const effectiveWorkspaceId = String(
-    workspaceId || actor?.workspaceId || defaultWorkspace.id,
-  );
-  const userExists = await users.countDocuments(
-    { _id: { $in: identityIdCandidates(userId) } },
-    { limit: 1 },
-  );
+  const { groups, userAccess, users, defaultWorkspace } = await getCollections();
+  const effectiveWorkspaceId = String(workspaceId || actor?.workspaceId || defaultWorkspace.id);
+  const userExists = await users.countDocuments({ _id: { $in: identityIdCandidates(userId) } }, { limit: 1 });
   if (!userExists) {
     throw createHttpError(404, "USER_NOT_FOUND", `User not found: ${userId}`);
   }
@@ -42,11 +28,7 @@ export async function setUserGroups(
     .project({ _id: 1 })
     .toArray();
   if (validGroups.length !== normalizedGroupIds.length) {
-    throw createHttpError(
-      422,
-      "INVALID_USER_GROUPS",
-      "All associated groups must exist and be active",
-    );
+    throw createHttpError(422, "INVALID_USER_GROUPS", "All associated groups must exist and be active");
   }
 
   const currentAccess = await userAccess.findOne({
@@ -59,9 +41,7 @@ export async function setUserGroups(
     $or: [{ systemKey: "administration" }, { _id: "administration" }],
     active: true,
   });
-  const administrationGroupId = administrationGroup
-    ? String(administrationGroup._id)
-    : "";
+  const administrationGroupId = administrationGroup ? String(administrationGroup._id) : "";
   if (
     administrationGroupId &&
     currentAccess?.groupIds?.includes(administrationGroupId) &&
@@ -72,11 +52,7 @@ export async function setUserGroups(
       groupIds: administrationGroupId,
     });
     if (administratorCount <= 1) {
-      throw createHttpError(
-        409,
-        "LAST_WORKSPACE_ADMIN",
-        "The last workspace administrator cannot be removed",
-      );
+      throw createHttpError(409, "LAST_WORKSPACE_ADMIN", "The last workspace administrator cannot be removed");
     }
   }
 
@@ -112,20 +88,13 @@ export async function removeUserAccess(userId: string, workspaceId?: string) {
     $or: [{ systemKey: "administration" }, { _id: "administration" }],
     active: true,
   });
-  if (
-    administrationGroup &&
-    access.groupIds?.includes(String(administrationGroup._id))
-  ) {
+  if (administrationGroup && access.groupIds?.includes(String(administrationGroup._id))) {
     const administratorCount = await userAccess.countDocuments({
       workspaceId: effectiveWorkspaceId,
       groupIds: String(administrationGroup._id),
     });
     if (administratorCount <= 1) {
-      throw createHttpError(
-        409,
-        "LAST_WORKSPACE_ADMIN",
-        "The last workspace administrator cannot be removed",
-      );
+      throw createHttpError(409, "LAST_WORKSPACE_ADMIN", "The last workspace administrator cannot be removed");
     }
   }
   const result = await userAccess.deleteOne({

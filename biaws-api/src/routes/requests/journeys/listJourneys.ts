@@ -7,18 +7,9 @@ export function registerListJourneys(router: Router) {
   router.get(
     "/:id/journeys",
     requireAllPermissions("demands.read"),
-    createResourceReadHandler(
-      "demand",
-      "demands.read",
-      async (req: Request, query: {} | undefined) => {
-        const result = await readRequestResource(
-          req.params.id,
-          "journeys",
-          req.params,
-          query,
-        );
-        return result;
-      },
-    ),
+    createResourceReadHandler("demand", "demands.read", async (req: Request, query: {} | undefined) => {
+      const result = await readRequestResource(req.params.id, "journeys", req.params, query);
+      return result;
+    }),
   );
 }

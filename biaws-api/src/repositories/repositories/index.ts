@@ -1,10 +1,6 @@
 export { normalizeRepositoryInput } from "./normalization.js";
 
-export {
-  listRepositories,
-  getRepository,
-  listRepositoryComponents,
-} from "./queries.js";
+export { listRepositories, getRepository, listRepositoryComponents } from "./queries.js";
 
 export {
   createRepository,

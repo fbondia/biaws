@@ -21,7 +21,4 @@ export const RESOURCE_CONFIG = Object.freeze({
   servers: { collection: COLLECTION_NAMES.SERVERS, label: "servidores" },
 });
 
-export const APPLICATION_SCOPED_COLLECTION_TYPES = new Set([
-  "documents",
-  "demands",
-]);
+export const APPLICATION_SCOPED_COLLECTION_TYPES = new Set(["documents", "demands"]);

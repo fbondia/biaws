@@ -1,29 +1,15 @@
-import type { ObjectId } from "mongodb";
+import type { Db, ObjectId } from "mongodb";
 import type { Journey } from "../../types/requests.js";
-import type { Db } from "mongodb";
-import {
-  isMonthString,
-  createHttpError,
-  readNumber,
-  readString,
-  monthKeysBetween,
-} from "./support.js";
 import { JOURNEY_PERIODS_COLLECTION } from "./constants.js";
+import { createHttpError, isMonthString, monthKeysBetween, readNumber, readString } from "./support.js";
 
-export function normalizeJourneyPeriods(
-  payloadJourneyPeriods: unknown = [],
-  startDate = "",
-  endDate = "",
-) {
+export function normalizeJourneyPeriods(payloadJourneyPeriods: unknown = [], startDate = "", endDate = "") {
   const journeysByMonth = new Map<string, Partial<Journey>>();
 
   if (Array.isArray(payloadJourneyPeriods)) {
     for (const [index, item] of payloadJourneyPeriods.entries()) {
       if (!isMonthString(item?.month)) {
-        throw createHttpError(
-          422,
-          `Invalid request payload: journeys[${index}].month must be YYYY-MM`,
-        );
+        throw createHttpError(422, `Invalid request payload: journeys[${index}].month must be YYYY-MM`);
       }
 
       const plannedJourneys = readNumber(
@@ -79,12 +65,7 @@ export async function readJourneyPeriods(db: Db, requestIds: ObjectId[]) {
   return byRequestId;
 }
 
-export async function syncJourneyPeriods(
-  db: Db,
-  requestId: ObjectId,
-  journeys: Journey[],
-  now: Date,
-) {
+export async function syncJourneyPeriods(db: Db, requestId: ObjectId, journeys: Journey[], now: Date) {
   const journeyPeriodsCollection = db.collection(JOURNEY_PERIODS_COLLECTION);
   await journeyPeriodsCollection.deleteMany({ requestId });
 

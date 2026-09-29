@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { Actor } from "../../types/http.js";
 import type { Request, Response } from "express";
 import {
@@ -7,10 +8,7 @@ import {
   authorizationQuery,
   requireAllPermissions,
 } from "../../auth/authorizationMiddleware.js";
-import {
-  documentTypeConfig,
-  getDocument,
-} from "../../repositories/documents/index.js";
+import { documentTypeConfig, getDocument } from "../../repositories/documents/index.js";
 import { createReferenceHandler } from "../shared/asyncHandler.js";
 
 export function authorize(operation: string) {
@@ -28,13 +26,8 @@ export function actorId(req: Request) {
   return req.actor.email || req.actor.userId;
 }
 
-export function typeFor(
-  req: Request,
-  payload: { documentType?: unknown } = {},
-) {
-  const documentType = String(
-    payload.documentType || req.query.documentType || "",
-  );
+export function typeFor(req: Request, payload: { documentType?: unknown } = {}) {
+  const documentType = textValue(payload.documentType || req.query.documentType || "");
   if (documentType) documentTypeConfig(documentType);
   return documentType;
 }
@@ -50,10 +43,7 @@ export function sendNotFound(res: Response) {
   });
 }
 
-export function replicationPermissionError(
-  permission: string,
-  message: string | undefined,
-) {
+export function replicationPermissionError(permission: string, message: string | undefined) {
   const error = new Error(message);
   error.statusCode = 403;
   error.code = "DESTINATION_DOCUMENT_WRITE_FORBIDDEN";
@@ -61,17 +51,10 @@ export function replicationPermissionError(
   return error;
 }
 
-export function canUpdateReplicatedDocument(
-  actor: Partial<Actor>,
-  document: { applicationId: string | null },
-) {
+export function canUpdateReplicatedDocument(actor: Partial<Actor>, document: { applicationId: string | null }) {
   if (!actorHasPermission(actor, "documents.update")) return false;
   return document.applicationId
-    ? actorCanAccessApplication(
-        actor,
-        "documents.update",
-        document.applicationId,
-      )
+    ? actorCanAccessApplication(actor, "documents.update", document.applicationId)
     : actorHasWorkspaceScope(actor, "documents.update");
 }
 

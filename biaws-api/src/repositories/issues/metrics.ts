@@ -1,12 +1,7 @@
 import type { RepositoryQuery } from "../../types/http.js";
 import { ISSUES_COLLECTION } from "./constants.js";
 import { buildExpandedIssueFilter } from "./filters.js";
-import {
-  aggregateByDate,
-  aggregateByDateAndField,
-  aggregateByField,
-  aggregateByTaxonomy,
-} from "./aggregation.js";
+import { aggregateByDate, aggregateByDateAndField, aggregateByField, aggregateByTaxonomy } from "./aggregation.js";
 import { getSummaryOptions } from "../../helpers/query.js";
 import { getMongoDatabase } from "../../helpers/mongoClient.js";
 
@@ -18,17 +13,16 @@ export async function summarizeIssues(query: RepositoryQuery = {}) {
   const weekOptions = getSummaryOptions(query, "week");
   const monthOptions = getSummaryOptions(query, "month");
   const yearOptions = getSummaryOptions(query, "year");
-  const [total, byDate, byWeek, byMonth, byYear, byType, byStatus, byTaxonomy] =
-    await Promise.all([
-      collection.countDocuments(filter),
-      aggregateByDate(collection, filter, dayOptions),
-      aggregateByDate(collection, filter, weekOptions),
-      aggregateByDateAndField(collection, filter, monthOptions, "type"),
-      aggregateByDateAndField(collection, filter, yearOptions, "type"),
-      aggregateByField(collection, filter, "type"),
-      aggregateByField(collection, filter, "status"),
-      aggregateByTaxonomy(collection, filter, dayOptions),
-    ]);
+  const [total, byDate, byWeek, byMonth, byYear, byType, byStatus, byTaxonomy] = await Promise.all([
+    collection.countDocuments(filter),
+    aggregateByDate(collection, filter, dayOptions),
+    aggregateByDate(collection, filter, weekOptions),
+    aggregateByDateAndField(collection, filter, monthOptions, "type"),
+    aggregateByDateAndField(collection, filter, yearOptions, "type"),
+    aggregateByField(collection, filter, "type"),
+    aggregateByField(collection, filter, "status"),
+    aggregateByTaxonomy(collection, filter, dayOptions),
+  ]);
 
   return {
     meta: {
@@ -57,19 +51,21 @@ function getAggregateDateOptions(query: {} | undefined, groupBy: string) {
   return null;
 }
 
-export async function aggregateIssues(
-  query: RepositoryQuery = {},
-  groupBy: string,
-) {
+export async function aggregateIssues(query: RepositoryQuery | undefined, groupBy: string) {
+  query ??= {};
+
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const collection = db.collection(ISSUES_COLLECTION);
   const filter = await buildExpandedIssueFilter(db, query);
   const summaryOptions = getAggregateDateOptions(query, groupBy);
-  const items = summaryOptions
-    ? await aggregateByDate(collection, filter, summaryOptions)
-    : groupBy === "taxonomy"
-      ? await aggregateByTaxonomy(collection, filter, getSummaryOptions(query))
-      : await aggregateByField(collection, filter, groupBy);
+  let items;
+  if (summaryOptions) {
+    items = await aggregateByDate(collection, filter, summaryOptions);
+  } else if (groupBy === "taxonomy") {
+    items = await aggregateByTaxonomy(collection, filter, getSummaryOptions(query));
+  } else {
+    items = await aggregateByField(collection, filter, groupBy);
+  }
 
   return {
     meta: {

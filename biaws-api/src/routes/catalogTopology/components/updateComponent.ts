@@ -1,33 +1,16 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
-import {
-  getComponent,
-  updateComponent,
-} from "../../../repositories/components/index.js";
-import {
-  sendNotFound,
-  scopedApplicationEntity,
-  auditMutation,
-  asyncHandler,
-} from "../helpers.js";
+import { getComponent, updateComponent } from "../../../repositories/components/index.js";
+import { sendNotFound, scopedApplicationEntity, auditMutation, asyncHandler } from "../helpers.js";
 
 export function registerUpdateComponent(router: Router) {
   router.patch(
     "/components/:componentId",
     requireAllPermissions("components.update"),
     asyncHandler(async (req: Request, res: Response) => {
-      const before = await scopedApplicationEntity(
-        req,
-        "components.update",
-        getComponent,
-        req.params.componentId,
-      );
+      const before = await scopedApplicationEntity(req, "components.update", getComponent, req.params.componentId);
       if (!before) return sendNotFound(res, "component");
-      const after = await updateComponent(
-        req.params.componentId,
-        req.body,
-        req.actor,
-      );
+      const after = await updateComponent(req.params.componentId, req.body, req.actor);
       if (!after) throw new Error("Mutation result is unavailable");
       await auditMutation({
         req,

@@ -6,16 +6,9 @@ export { getHomeConfiguration } from "./configuration/queries.js";
 
 export { saveHomeConfiguration } from "./configuration/mutations.js";
 
-export {
-  pendingTasksPagination,
-  buildPendingTasksMetric,
-  getPendingTasksMetric,
-} from "./metrics/tasks.js";
+export { pendingTasksPagination, buildPendingTasksMetric, getPendingTasksMetric } from "./metrics/tasks.js";
 
-export {
-  filterRuntimesByDeploymentEnvironment,
-  buildApplicationHealthItems,
-} from "./health/model.js";
+export { filterRuntimesByDeploymentEnvironment, buildApplicationHealthItems } from "./health/model.js";
 
 export { getApplicationHealthMetric } from "./health/queries.js";
 

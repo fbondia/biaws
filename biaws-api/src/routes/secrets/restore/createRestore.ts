@@ -1,10 +1,7 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
-import {
-  getAccessibleSecret,
-  restoreSecret,
-} from "../../../services/secretsService.js";
+import { getAccessibleSecret, restoreSecret } from "../../../services/secretsService.js";
 import { auditTarget, auditMetadata, asyncHandler } from "../helpers.js";
 
 export function registerCreateRestore(router: Router) {

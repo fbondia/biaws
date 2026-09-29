@@ -1,11 +1,7 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { listRuntimeMonitoringTimeline } from "../../../repositories/monitoring/events/index.js";
-import {
-  scopedRuntime,
-  sendRuntimeNotFound,
-  asyncHandler,
-} from "../helpers.js";
+import { scopedRuntime, sendRuntimeNotFound, asyncHandler } from "../helpers.js";
 
 export function registerListRuntimesTimeline(router: Router) {
   router.get(

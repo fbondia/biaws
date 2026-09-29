@@ -4,18 +4,11 @@ import type { Db } from "mongodb";
 import { createHttpError } from "../support.js";
 import { getCollections } from "../storage.js";
 import { normalizeGroup } from "../normalization.js";
-import {
-  updatePermissionGroup,
-  createPermissionGroup,
-  ensureWorkspacePermissionGroups,
-} from "./mutations.js";
+import { updatePermissionGroup, createPermissionGroup, ensureWorkspacePermissionGroups } from "./mutations.js";
 import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
 import { requireReplicationIdentifier } from "../../../helpers/resourceIdentifier.js";
 
-export function permissionGroupReplicationPayload(
-  group: Partial<GroupDocument> = {},
-  applicationIds: string[] = [],
-) {
+export function permissionGroupReplicationPayload(group: Partial<GroupDocument> = {}, applicationIds: string[] = []) {
   const applicationScope = group.scope?.type === "applications";
   if (applicationScope && !applicationIds.length) {
     throw createHttpError(
@@ -35,11 +28,7 @@ export function permissionGroupReplicationPayload(
   };
 }
 
-async function replicatedGroupApplicationIds(
-  db: Db,
-  group: GroupDocument,
-  destinationWorkspaceId: string,
-) {
+async function replicatedGroupApplicationIds(db: Db, group: GroupDocument, destinationWorkspaceId: string) {
   if (group.scope?.type !== "applications") return [];
   const applications = db.collection<{
     id: string;
@@ -57,11 +46,7 @@ async function replicatedGroupApplicationIds(
     .project({ _id: 0, id: 1, key: 1 })
     .toArray();
   if (sourceApplications.length !== sourceIds.length) {
-    throw createHttpError(
-      422,
-      "INVALID_GROUP_SCOPE",
-      "O grupo de origem referencia aplicações ausentes ou inativas",
-    );
+    throw createHttpError(422, "INVALID_GROUP_SCOPE", "O grupo de origem referencia aplicações ausentes ou inativas");
   }
   const keys = sourceApplications.map(({ key }) => key);
   const destinationApplications = await applications
@@ -79,35 +64,19 @@ async function replicatedGroupApplicationIds(
       "O workspace de destino não possui todas as aplicações do escopo do grupo",
     );
   }
-  const destinationByKey = new Map(
-    destinationApplications.map((application) => [
-      application.key,
-      application,
-    ]),
-  );
+  const destinationByKey = new Map(destinationApplications.map((application) => [application.key, application]));
   return keys.map((key) => {
     const application = destinationByKey.get(key);
     if (!application)
-      throw createHttpError(
-        422,
-        "GROUP_SCOPE_APPLICATION_MAPPING_MISSING",
-        "Aplicação de destino ausente",
-      );
+      throw createHttpError(422, "GROUP_SCOPE_APPLICATION_MAPPING_MISSING", "Aplicação de destino ausente");
     return String(application.id);
   });
 }
 
-export async function replicatePermissionGroup(
-  group: GroupDocument,
-  destinationActor: Actor,
-) {
+export async function replicatePermissionGroup(group: GroupDocument, destinationActor: Actor) {
   const { db, groups } = await getCollections();
   const destinationWorkspaceId = String(destinationActor.workspaceId || "");
-  const applicationIds = await replicatedGroupApplicationIds(
-    db,
-    group,
-    destinationWorkspaceId,
-  );
+  const applicationIds = await replicatedGroupApplicationIds(db, group, destinationWorkspaceId);
   const payload = permissionGroupReplicationPayload(group, applicationIds);
   if (!group.system) {
     requireReplicationIdentifier(group, "grupo personalizado");
@@ -121,11 +90,7 @@ export async function replicatePermissionGroup(
     if (current) {
       return {
         before: current,
-        group: await updatePermissionGroup(
-          current.id,
-          payload,
-          destinationActor,
-        ),
+        group: await updatePermissionGroup(current.id, payload, destinationActor),
         status: "replaced",
       };
     }
@@ -136,16 +101,9 @@ export async function replicatePermissionGroup(
     };
   }
   if (!group.systemKey) {
-    throw createHttpError(
-      422,
-      "INVALID_SYSTEM_GROUP",
-      "O grupo de sistema não possui uma chave de correspondência",
-    );
+    throw createHttpError(422, "INVALID_SYSTEM_GROUP", "O grupo de sistema não possui uma chave de correspondência");
   }
-  await ensureWorkspacePermissionGroups(
-    destinationWorkspaceId,
-    destinationActor,
-  );
+  await ensureWorkspacePermissionGroups(destinationWorkspaceId, destinationActor);
   const current = normalizeGroup(
     await groups.findOne({
       workspaceId: destinationWorkspaceId,

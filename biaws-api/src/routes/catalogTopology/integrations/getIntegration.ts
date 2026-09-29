@@ -1,11 +1,7 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { getIntegration } from "../../../repositories/integrations/index.js";
-import {
-  sendNotFound,
-  scopedApplicationEntity,
-  asyncHandler,
-} from "../helpers.js";
+import { sendNotFound, scopedApplicationEntity, asyncHandler } from "../helpers.js";
 
 export function registerGetIntegration(router: Router) {
   router.get(

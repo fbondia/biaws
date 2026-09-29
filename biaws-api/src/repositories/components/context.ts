@@ -9,18 +9,10 @@ export async function validateRelationships(
   },
 ) {
   const { components, repositories } = await getTopologyCollections();
-  const repositoryIds = component.repositoryLinks.map(
-    ({ repositoryId }) => repositoryId,
-  );
-  const dependencyIds = component.dependencies.map(
-    ({ componentId }) => componentId,
-  );
+  const repositoryIds = component.repositoryLinks.map(({ repositoryId }) => repositoryId);
+  const dependencyIds = component.dependencies.map(({ componentId }) => componentId);
   if (component.id && dependencyIds.includes(component.id)) {
-    throw createCatalogError(
-      422,
-      "COMPONENT_SELF_DEPENDENCY",
-      "a component cannot depend on itself",
-    );
+    throw createCatalogError(422, "COMPONENT_SELF_DEPENDENCY", "a component cannot depend on itself");
   }
 
   const [repositoryCount, dependencyCount] = await Promise.all([

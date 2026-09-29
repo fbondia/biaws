@@ -1,23 +1,14 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { getDeployment } from "../../../repositories/deployments/index.js";
-import {
-  sendNotFound,
-  scopedApplicationEntity,
-  asyncHandler,
-} from "../helpers.js";
+import { sendNotFound, scopedApplicationEntity, asyncHandler } from "../helpers.js";
 
 export function registerGetDeployment(router: Router) {
   router.get(
     "/deployments/:deploymentId",
     requireAllPermissions("deployments.read"),
     asyncHandler(async (req: Request, res: Response) => {
-      const deployment = await scopedApplicationEntity(
-        req,
-        "deployments.read",
-        getDeployment,
-        req.params.deploymentId,
-      );
+      const deployment = await scopedApplicationEntity(req, "deployments.read", getDeployment, req.params.deploymentId);
       if (!deployment) return sendNotFound(res, "deployment");
       res.json({ deployment });
     }),

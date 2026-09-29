@@ -1,9 +1,6 @@
 import type { Router, Request, Response } from "express";
 import { createIssueComment } from "../../../repositories/issues/index.js";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { authorizationQuery, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
 import { knowledgeContextMetadata } from "../../../repositories/shared/knowledgeContext.js";
 import { asyncHandler } from "../helpers.js";
@@ -13,19 +10,13 @@ export function registerCreateComment(router: Router) {
     "/:id/comments",
     requireAllPermissions("issues.comment.create"),
     asyncHandler(async (req: Request, res: Response) => {
-      const query = authorizationQuery(
-        req.actor,
-        "issues.comment.create",
-        req.query,
-      );
+      const query = authorizationQuery(req.actor, "issues.comment.create", req.query);
       const result = await createIssueComment(
         req.params.id,
         { ...req.body, createdBy: req.actor.email || req.actor.userId },
         query,
       );
-      const comment = result.comments.find(
-        (item) => String(item._id) === result.createdCommentId,
-      );
+      const comment = result.comments.find((item) => String(item._id) === result.createdCommentId);
       await recordAuditEvent({
         actor: req.actor,
         action: "comment_added",

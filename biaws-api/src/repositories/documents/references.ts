@@ -6,10 +6,7 @@ import { httpError } from "./support.js";
 import { DOCUMENT_TYPES } from "./types.js";
 import { COLLECTION_NAMES } from "../../database/collectionNames.js";
 
-export function normalizeReferences(
-  value: unknown,
-  current: DocumentReference[] = [],
-) {
+export function normalizeReferences(value: unknown, current: DocumentReference[] = []) {
   if (value === undefined) return current || [];
   if (!Array.isArray(value) || value.length > MAX_REFERENCES) {
     throw httpError(
@@ -21,19 +18,11 @@ export function normalizeReferences(
   const seen = new Set();
   return value.map((entry, index: number) => {
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
-      throw httpError(
-        422,
-        "INVALID_DOCUMENT_REFERENCES",
-        `references[${index}] é inválida`,
-      );
+      throw httpError(422, "INVALID_DOCUMENT_REFERENCES", `references[${index}] é inválida`);
     }
     const targetDocumentId = String(entry.targetDocumentId || "").trim();
     const relationship = String(entry.relationship || "related").trim();
-    if (
-      !targetDocumentId ||
-      !relationship ||
-      relationship.length > MAX_RELATIONSHIP
-    ) {
+    if (!targetDocumentId || !relationship || relationship.length > MAX_RELATIONSHIP) {
       throw httpError(
         422,
         "INVALID_DOCUMENT_REFERENCES",
@@ -42,11 +31,7 @@ export function normalizeReferences(
     }
     const key = `${targetDocumentId}:${relationship}`;
     if (seen.has(key)) {
-      throw httpError(
-        422,
-        "DUPLICATE_DOCUMENT_REFERENCE",
-        `Referência duplicada: ${key}`,
-      );
+      throw httpError(422, "DUPLICATE_DOCUMENT_REFERENCE", `Referência duplicada: ${key}`);
     }
     seen.add(key);
     return { targetDocumentId, relationship };
@@ -62,11 +47,7 @@ export async function validateReferences(
 ) {
   for (const reference of references) {
     if (reference.targetDocumentId === ownId) {
-      throw httpError(
-        422,
-        "SELF_DOCUMENT_REFERENCE",
-        "Um documento não pode referenciar a si mesmo",
-      );
+      throw httpError(422, "SELF_DOCUMENT_REFERENCE", "Um documento não pode referenciar a si mesmo");
     }
     const target = await db.collection(COLLECTION_NAMES.DOCUMENTS).findOne({
       id: reference.targetDocumentId,

@@ -7,18 +7,9 @@ export function registerGetComment(router: Router) {
   router.get(
     "/:id/comments/:commentId",
     requireAllPermissions("issues.read"),
-    createResourceReadHandler(
-      "issue",
-      "issues.read",
-      async (req: Request, query: {} | undefined) => {
-        const result = await readIssueResource(
-          req.params.id,
-          "comment",
-          req.params,
-          query,
-        );
-        return result;
-      },
-    ),
+    createResourceReadHandler("issue", "issues.read", async (req: Request, query: {} | undefined) => {
+      const result = await readIssueResource(req.params.id, "comment", req.params, query);
+      return result;
+    }),
   );
 }

@@ -2,11 +2,7 @@ import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../../auth/authorizationMiddleware.js";
 import { requestActiveMonitorExecution } from "../../../../repositories/monitoring/activeMonitors/execution/index.js";
 import { recordAuditEvent } from "../../../../repositories/audit/index.js";
-import {
-  scopedRuntime,
-  sendRuntimeNotFound,
-  asyncHandler,
-} from "../../helpers.js";
+import { scopedRuntime, sendRuntimeNotFound, asyncHandler } from "../../helpers.js";
 
 export function registerCreateRuntimesActiveMonitorsExecution(router: Router) {
   router.post(
@@ -15,11 +11,7 @@ export function registerCreateRuntimesActiveMonitorsExecution(router: Router) {
     asyncHandler(async (req: Request, res: Response) => {
       const runtime = await scopedRuntime(req, "monitoring.active.request");
       if (!runtime) return sendRuntimeNotFound(res);
-      const result = await requestActiveMonitorExecution(
-        runtime,
-        req.params.monitorId,
-        req.actor,
-      );
+      const result = await requestActiveMonitorExecution(runtime, req.params.monitorId, req.actor);
       if (result.created) {
         await recordAuditEvent({
           actor: req.actor,

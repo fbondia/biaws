@@ -25,11 +25,8 @@ export async function createRequestTaskNote(
   const requestId = await requestReferenceId(db, requestIdValue, query);
   const taskId = await taskReferenceId(db, taskIdValue, requestId);
   await ensureRequestExists(db, requestId, requestIdValue, query);
-  const task = await db
-    .collection(TASKS_COLLECTION)
-    .findOne({ _id: taskId, requestId }, { projection: { _id: 1 } });
-  if (!task)
-    throw createHttpError(404, `Request task not found: ${taskIdValue}`);
+  const task = await db.collection(TASKS_COLLECTION).findOne({ _id: taskId, requestId }, { projection: { _id: 1 } });
+  if (!task) throw createHttpError(404, `Request task not found: ${taskIdValue}`);
 
   const note = normalizeNotePayload(payload);
   const now = new Date();
@@ -68,8 +65,7 @@ export async function updateRequestTaskNote(
       { _id: noteId, requestId, taskId },
       { $set: { date: note.date, content: note.content, updatedAt: now } },
     );
-  if (!result.matchedCount)
-    throw createHttpError(404, `Request task note not found: ${noteIdValue}`);
+  if (!result.matchedCount) throw createHttpError(404, `Request task note not found: ${noteIdValue}`);
   await touchRequest(db, requestId, now);
 
   return { request: await readRequestById(db, requestId, query) };
@@ -88,11 +84,8 @@ export async function deleteRequestTaskNote(
   const taskId = await taskReferenceId(db, taskIdValue, requestId);
   const noteId = requestNoteObjectId(String(noteIdValue));
   await ensureRequestExists(db, requestId, requestIdValue, query);
-  const result = await db
-    .collection(TASK_NOTES_COLLECTION)
-    .deleteOne({ _id: noteId, requestId, taskId });
-  if (!result.deletedCount)
-    throw createHttpError(404, `Request task note not found: ${noteIdValue}`);
+  const result = await db.collection(TASK_NOTES_COLLECTION).deleteOne({ _id: noteId, requestId, taskId });
+  if (!result.deletedCount) throw createHttpError(404, `Request task note not found: ${noteIdValue}`);
   const now = new Date();
   await touchRequest(db, requestId, now);
 

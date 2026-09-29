@@ -4,16 +4,11 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import {
-  buildAttachmentStorageKey,
-  writeIssueMirror,
-} from "../../src/helpers/issueStorage.js";
+import { buildAttachmentStorageKey, writeIssueMirror } from "../../src/helpers/issueStorage.js";
 import { createAttachmentStorage } from "../../src/storage/attachmentStorage.js";
 
 test("local provider stores and reads an attachment through a provider-neutral key", async () => {
-  const rootDir = await mkdtemp(
-    path.join(os.tmpdir(), "issue-attachment-storage-"),
-  );
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "issue-attachment-storage-"));
   const storage = createAttachmentStorage({
     attachmentStorageLocalDir: rootDir,
   });
@@ -40,18 +35,13 @@ test("local provider stores and reads an attachment through a provider-neutral k
   });
   assert.equal(await storage.exists({ key }), true);
   assert.equal((await storage.read({ key })).toString(), "conteudo");
-  assert.equal(
-    (await readFile(path.join(rootDir, key))).toString(),
-    "conteudo",
-  );
+  assert.equal((await readFile(path.join(rootDir, key))).toString(), "conteudo");
   assert.equal(await storage.delete({ key }), true);
   assert.equal(await storage.exists({ key }), false);
 });
 
 test("local provider rejects keys outside its configured root", async () => {
-  const rootDir = await mkdtemp(
-    path.join(os.tmpdir(), "issue-attachment-storage-"),
-  );
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "issue-attachment-storage-"));
   const storage = createAttachmentStorage({
     attachmentStorageLocalDir: rootDir,
   });
@@ -81,8 +71,5 @@ test("issue mirror is created below its reference month", async () => {
   ]);
 
   assert.equal(mirror.issueDir, path.join(rootDir, "2025-11", "REQ123"));
-  assert.equal(
-    JSON.parse(await readFile(mirror.issueJson, "utf8")).id,
-    "REQ123",
-  );
+  assert.equal(JSON.parse(await readFile(mirror.issueJson, "utf8")).id, "REQ123");
 });

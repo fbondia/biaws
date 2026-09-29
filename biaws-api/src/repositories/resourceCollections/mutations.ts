@@ -1,9 +1,6 @@
+import { textValue } from "../../helpers/text.js";
 import type { RepositoryQuery } from "../../types/http.js";
-import {
-  assertResourceCollectionType,
-  normalizeName,
-  normalizeDocument,
-} from "./normalization.js";
+import { assertResourceCollectionType, normalizeName, normalizeDocument } from "./normalization.js";
 import { workspaceId, duplicateError, httpError } from "./support.js";
 import { collections } from "./storage.js";
 import { assertParent } from "./context.js";
@@ -17,7 +14,7 @@ export async function createResourceCollection(
 ) {
   const type = assertResourceCollectionType(resourceType);
   const name = normalizeName(payload.name);
-  const parentId = String(payload.parentId || "").trim();
+  const parentId = textValue(payload.parentId || "").trim();
   const currentWorkspaceId = workspaceId(query);
   const { collection } = await collections(query);
   await assertParent(collection, {
@@ -34,9 +31,9 @@ export async function createResourceCollection(
     nameKey: name.toLocaleLowerCase("pt-BR"),
     parentId,
     createdAt: now,
-    createdBy: String(payload.createdBy || ""),
+    createdBy: textValue(payload.createdBy || ""),
     updatedAt: now,
-    updatedBy: String(payload.createdBy || ""),
+    updatedBy: textValue(payload.createdBy || ""),
   };
   try {
     await collection.insertOne(document);
@@ -63,11 +60,9 @@ export async function updateResourceCollection(
   if (!current) {
     throw httpError(404, "COLLECTION_NOT_FOUND", "Coleção não encontrada");
   }
-  const name = Object.hasOwn(payload, "name")
-    ? normalizeName(payload.name)
-    : current.name;
+  const name = Object.hasOwn(payload, "name") ? normalizeName(payload.name) : current.name;
   const parentId = Object.hasOwn(payload, "parentId")
-    ? String(payload.parentId || "").trim()
+    ? textValue(payload.parentId || "").trim()
     : String(current.parentId || "");
   await assertParent(collection, {
     parentId,
@@ -84,7 +79,7 @@ export async function updateResourceCollection(
           nameKey: name.toLocaleLowerCase("pt-BR"),
           parentId,
           updatedAt: new Date(),
-          updatedBy: String(payload.updatedBy || ""),
+          updatedBy: textValue(payload.updatedBy || ""),
         },
       },
     );

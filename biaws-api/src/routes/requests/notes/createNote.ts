@@ -1,17 +1,7 @@
 import type { Router, Request, Response } from "express";
-import {
-  createRequestNote,
-  getRequest,
-} from "../../../repositories/requests/index.js";
+import { createRequestNote, getRequest } from "../../../repositories/requests/index.js";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
-import {
-  documentId,
-  nestedById,
-  scopedQuery,
-  auditDemand,
-  requireDemandDocument,
-  asyncHandler,
-} from "../helpers.js";
+import { documentId, nestedById, scopedQuery, auditDemand, requireDemandDocument, asyncHandler } from "../helpers.js";
 
 export function registerCreateNote(router: Router) {
   router.post(
@@ -19,9 +9,7 @@ export function registerCreateNote(router: Router) {
     requireAllPermissions("demands.note.create"),
     asyncHandler(async (req: Request, res: Response) => {
       const query = scopedQuery(req, "demands.note.create");
-      const before = requireDemandDocument(
-        (await getRequest(req.params.id, query)).request,
-      );
+      const before = requireDemandDocument((await getRequest(req.params.id, query)).request);
       const result = await createRequestNote(req.params.id, req.body, query);
       const added = (requireDemandDocument(result.request).notes || []).find(
         (note) => !nestedById(before.notes, documentId(note)),

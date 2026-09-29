@@ -2,12 +2,7 @@ import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
 import { writeSecretFile } from "../../../services/secretsService.js";
-import {
-  uploadSecretFile,
-  auditTarget,
-  auditMetadata,
-  asyncHandler,
-} from "../helpers.js";
+import { uploadSecretFile, auditTarget, auditMetadata, asyncHandler } from "../helpers.js";
 
 export function registerReplaceFile(router: Router) {
   router.put(
@@ -15,11 +10,7 @@ export function registerReplaceFile(router: Router) {
     requireAllPermissions("secrets.value.write"),
     uploadSecretFile.single("file"),
     asyncHandler(async (req: Request, res: Response) => {
-      const secret = await writeSecretFile(
-        req.params.secretId,
-        req.file,
-        req.actor,
-      );
+      const secret = await writeSecretFile(req.params.secretId, req.file, req.actor);
       await recordAuditEvent({
         actor: req.actor,
         action: "version.created",

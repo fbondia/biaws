@@ -1,15 +1,8 @@
-import {
-  DEPLOYMENT_STATUSES,
-  RUNTIME_STATUSES,
-} from "../../../../shared/index.js";
+import { DEPLOYMENT_STATUSES, RUNTIME_STATUSES } from "../../../../shared/index.js";
 
-export const MUTABLE_DEPLOYMENT_STATUSES = DEPLOYMENT_STATUSES.filter(
-  (status) => status !== "archived",
-);
+export const MUTABLE_DEPLOYMENT_STATUSES = DEPLOYMENT_STATUSES.filter((status) => status !== "archived");
 
-export const MUTABLE_RUNTIME_STATUSES = RUNTIME_STATUSES.filter(
-  (status) => status !== "archived",
-);
+export const MUTABLE_RUNTIME_STATUSES = RUNTIME_STATUSES.filter((status) => status !== "archived");
 
 export const MAX_HISTORY_ITEMS = 200;
 

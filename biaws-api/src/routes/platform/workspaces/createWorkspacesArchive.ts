@@ -5,8 +5,6 @@ import { changeWorkspaceStatus } from "../helpers.js";
 export function registerCreateWorkspacesArchive(router: Router) {
   router.post(
     "/workspaces/:workspaceId/archive",
-    asyncHandler((req: Request, res: Response) =>
-      changeWorkspaceStatus(req, res, "archived"),
-    ),
+    asyncHandler((req: Request, res: Response) => changeWorkspaceStatus(req, res, "archived")),
   );
 }

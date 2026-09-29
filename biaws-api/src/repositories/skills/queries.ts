@@ -1,13 +1,11 @@
+type SkillVersionQuery = string | ParsedQs | (string | ParsedQs)[] | undefined;
+import { textValue } from "../../helpers/text.js";
 import type { RepositoryQuery } from "../../types/http.js";
 import type { SkillDocument, PublicSkillDocument } from "../../types/skills.js";
 import { SKILLS_COLLECTION } from "./constants.js";
 import { ensureIndexes } from "./indexes.js";
 import { workspaceId } from "./support.js";
-import {
-  compareSemver,
-  normalizeDocument,
-  withoutFileContents,
-} from "./normalization.js";
+import { compareSemver, normalizeDocument, withoutFileContents } from "./normalization.js";
 import { getMongoDatabase } from "../../helpers/mongoClient.js";
 import { ParsedQs } from "qs";
 
@@ -25,10 +23,7 @@ export async function listSkills(query: RepositoryQuery = {}) {
   const grouped = new Map();
   for (const document of documents) {
     const current = grouped.get(document.skillId);
-    if (
-      !current ||
-      compareSemver(document.version, current.latestVersion) > 0
-    ) {
+    if (!current || compareSemver(document.version, current.latestVersion) > 0) {
       grouped.set(document.skillId, {
         skillId: document.skillId,
         name: document.name,
@@ -53,9 +48,8 @@ export async function listSkills(query: RepositoryQuery = {}) {
   const items = [...grouped.values()]
     .map((item) => ({
       ...item,
-      versions: item.versions.sort(
-        (a: { version: string }, b: { version: string }) =>
-          compareSemver(b.version, a.version),
+      versions: item.versions.sort((a: { version: string }, b: { version: string }) =>
+        compareSemver(b.version, a.version),
       ),
     }))
     .sort((a, b) => a.skillId.localeCompare(b.skillId));
@@ -71,7 +65,7 @@ export async function listSkills(query: RepositoryQuery = {}) {
 
 export function getSkill(
   skillId: string | string[],
-  version: string | ParsedQs | (string | ParsedQs)[] | undefined,
+  version: SkillVersionQuery,
   query: RepositoryQuery,
   options: RepositoryQuery & { includeContents: true },
 ): Promise<{
@@ -80,7 +74,7 @@ export function getSkill(
 }>;
 export function getSkill(
   skillId: string | string[],
-  version: string | ParsedQs | (string | ParsedQs)[] | undefined,
+  version: SkillVersionQuery,
   query?: RepositoryQuery,
   options?: RepositoryQuery,
 ): Promise<{
@@ -89,7 +83,7 @@ export function getSkill(
 }>;
 export async function getSkill(
   skillId: string | string[],
-  version: string | ParsedQs | (string | ParsedQs)[] | undefined,
+  version: SkillVersionQuery,
   query: RepositoryQuery = {},
   options: RepositoryQuery = {},
 ): Promise<{
@@ -104,7 +98,7 @@ export async function getSkill(
     document = await collection.findOne({
       workspaceId: workspaceId(query),
       skillId: String(skillId),
-      version: String(version),
+      version: textValue(version),
     });
   } else {
     const candidates = await collection
@@ -114,14 +108,10 @@ export async function getSkill(
         ...(query.includeDeprecated === "true" ? {} : { status: "published" }),
       })
       .toArray();
-    document = candidates.sort((a, b) =>
-      compareSemver(b.version, a.version),
-    )[0];
+    document = candidates.toSorted((a, b) => compareSemver(b.version, a.version))[0];
   }
   const selectedDocument = document ?? null;
-  const skill = options.includeContents
-    ? normalizeDocument(selectedDocument)
-    : withoutFileContents(selectedDocument);
+  const skill = options.includeContents ? normalizeDocument(selectedDocument) : withoutFileContents(selectedDocument);
   return {
     meta: { database: db.databaseName, collection: SKILLS_COLLECTION },
     skill,

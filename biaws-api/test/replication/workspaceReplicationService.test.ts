@@ -12,31 +12,21 @@ import {
 
 test("replication destinations support batches, remove duplicates and preserve legacy calls", () => {
   assert.deepEqual(
-    normalizeReplicationDestinations(
-      { destinationWorkspaceIds: [" target-b ", "target-a", "target-b"] },
-      "source",
-    ),
+    normalizeReplicationDestinations({ destinationWorkspaceIds: [" target-b ", "target-a", "target-b"] }, "source"),
     {
       destinationWorkspaceIds: ["target-b", "target-a"],
       legacyRequest: false,
     },
   );
-  assert.deepEqual(
-    normalizeReplicationDestinations(
-      { destinationWorkspaceId: "target-a" },
-      "source",
-    ),
-    { destinationWorkspaceIds: ["target-a"], legacyRequest: true },
-  );
+  assert.deepEqual(normalizeReplicationDestinations({ destinationWorkspaceId: "target-a" }, "source"), {
+    destinationWorkspaceIds: ["target-a"],
+    legacyRequest: true,
+  });
 });
 
 test("replication destinations reject the source workspace and excessive batches", () => {
   assert.throws(
-    () =>
-      normalizeReplicationDestinations(
-        { destinationWorkspaceIds: ["source"] },
-        "source",
-      ),
+    () => normalizeReplicationDestinations({ destinationWorkspaceIds: ["source"] }, "source"),
     (error) => errorCode(error) === "SAME_WORKSPACE_REPLICATION",
   );
   assert.throws(
@@ -71,10 +61,7 @@ test("multi-workspace replication returns success and authorization failure per 
     payload: { destinationWorkspaceIds: ["allowed", "forbidden"] },
     permission: "documents.create",
     resourceType: "document",
-    resolveAuthorization: async (
-      _userId,
-      workspaceId,
-    ): Promise<Partial<Actor>> => ({
+    resolveAuthorization: async (_userId, workspaceId): Promise<Partial<Actor>> => ({
       workspaceId,
       workspaces: actor.workspaces,
       permissions: workspaceId === "allowed" ? ["documents.create"] : [],
@@ -162,9 +149,7 @@ test("destination-specific authorization can choose create or replace context", 
 
   assert.equal(batch.results[0].status, "replaced");
   assert.ok(
-    batch.results[0].resource &&
-      typeof batch.results[0].resource === "object" &&
-      "id" in batch.results[0].resource,
+    batch.results[0].resource && typeof batch.results[0].resource === "object" && "id" in batch.results[0].resource,
   );
   assert.equal(batch.results[0].resource.id, "existing-target");
 });

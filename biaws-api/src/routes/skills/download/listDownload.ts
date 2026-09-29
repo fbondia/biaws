@@ -1,9 +1,6 @@
 import type { Router, Request, Response } from "express";
 import { getSkill } from "../../../repositories/skills/index.js";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { authorizationQuery, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { asyncHandler } from "../../shared/asyncHandler.js";
 import { sendNotFound } from "../helpers.js";
 
@@ -20,8 +17,7 @@ export function registerListDownload(router: Router) {
           includeContents: true,
         },
       );
-      if (!result.skill)
-        return sendNotFound(res, req.params.skillId, req.params.version);
+      if (!result.skill) return sendNotFound(res, req.params.skillId, req.params.version);
       res.setHeader("Content-Type", "application/vnd.biaws.skill+json");
       res.setHeader(
         "Content-Disposition",

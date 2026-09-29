@@ -1,15 +1,7 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
-import {
-  getIntegration,
-  updateIntegration,
-} from "../../../repositories/integrations/index.js";
-import {
-  sendNotFound,
-  scopedApplicationEntity,
-  auditMutation,
-  asyncHandler,
-} from "../helpers.js";
+import { getIntegration, updateIntegration } from "../../../repositories/integrations/index.js";
+import { sendNotFound, scopedApplicationEntity, auditMutation, asyncHandler } from "../helpers.js";
 
 export function registerUpdateIntegration(router: Router) {
   router.patch(
@@ -23,11 +15,7 @@ export function registerUpdateIntegration(router: Router) {
         req.params.integrationId,
       );
       if (!before) return sendNotFound(res, "integration");
-      const after = await updateIntegration(
-        req.params.integrationId,
-        req.body,
-        req.actor,
-      );
+      const after = await updateIntegration(req.params.integrationId, req.body, req.actor);
       if (!after) throw new Error("Mutation result is unavailable");
       await auditMutation({
         req,

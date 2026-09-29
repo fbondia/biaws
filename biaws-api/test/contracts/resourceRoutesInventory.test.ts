@@ -35,14 +35,7 @@ function isResourceDefinition(value: unknown): value is ResourceDefinition {
 }
 
 test("every advertised MCP resource has a GET route in the API", () => {
-  const catalogPath = path.join(
-    WORKSPACE_ROOT,
-    "biaws-mcp",
-    "src",
-    "mcp",
-    "resources",
-    "resourceCatalog.json",
-  );
+  const catalogPath = path.join(WORKSPACE_ROOT, "biaws-mcp", "src", "mcp", "resources", "resourceCatalog.json");
   const catalog: unknown = JSON.parse(readFileSync(catalogPath, "utf8"));
   assert.ok(Array.isArray(catalog) && catalog.every(isResourceDefinition));
   const resources: ResourceDefinition[] = catalog;
@@ -60,19 +53,11 @@ test("every advertised MCP resource has a GET route in the API", () => {
   const routes = mounts.flatMap(([base, router]) =>
     (router.stack as unknown as RouteLayer[])
       .filter((layer) => layer.route?.methods.get)
-      .map((layer) =>
-        (base + layer.route!.path).replace(/\/$/u, "").replace(/:\w+/gu, "{}"),
-      ),
+      .map((layer) => (base + layer.route!.path).replace(/\/$/u, "").replace(/:\w+/gu, "{}")),
   );
   for (const resource of resources) {
     const resourcePath = resource.path.split("?")[0].replace(/\{\w+\}/gu, "{}");
-    assert.ok(
-      routes.includes(resourcePath),
-      `${resource.uriTemplate} -> ${resource.path}`,
-    );
+    assert.ok(routes.includes(resourcePath), `${resource.uriTemplate} -> ${resource.path}`);
   }
-  assert.equal(
-    new Set(resources.map((resource) => resource.uriTemplate)).size,
-    resources.length,
-  );
+  assert.equal(new Set(resources.map((resource) => resource.uriTemplate)).size, resources.length);
 });

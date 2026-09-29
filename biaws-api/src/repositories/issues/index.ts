@@ -2,10 +2,7 @@ export { listIssues, getIssue, listIssuesByTaxonomy } from "./queries.js";
 
 export { createIssue, updateIssue } from "./mutations.js";
 
-export {
-  createIssueComment,
-  updateIssueComment,
-} from "./comments/mutations.js";
+export { createIssueComment, updateIssueComment } from "./comments/mutations.js";
 
 export { saveIssueClassification } from "./classification.js";
 

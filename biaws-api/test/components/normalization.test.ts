@@ -4,10 +4,7 @@ import test from "node:test";
 
 import { PERMISSION_CATALOG } from "../../../shared/index.js";
 import { normalizeComponentInput } from "../../src/repositories/components/index.js";
-import {
-  normalizeDeploymentInput,
-  normalizeRuntimeInput,
-} from "../../src/repositories/deployments/index.js";
+import { normalizeDeploymentInput, normalizeRuntimeInput } from "../../src/repositories/deployments/index.js";
 import { normalizeRepositoryInput } from "../../src/repositories/repositories/index.js";
 import { normalizeServerInput } from "../../src/repositories/servers/index.js";
 import {
@@ -30,10 +27,7 @@ import {
   normalizeRuntimeMonitoringSummaryQuery,
   runtimeMonitoringSummaryResponse,
 } from "../../src/repositories/monitoring/events/summary.js";
-import {
-  buildScopedListFilter,
-  pagination,
-} from "../../src/repositories/shared/topology/index.js";
+import { buildScopedListFilter, pagination } from "../../src/repositories/shared/topology/index.js";
 
 test("component relationships are normalized and duplicate references are rejected", () => {
   assert.deepEqual(
@@ -78,8 +72,6 @@ test("component relationships are normalized and duplicate references are reject
           { repositoryId: "repository-1", role: "documentation" },
         ],
       }),
-    (error) =>
-      errorStatusCode(error) === 422 &&
-      errorCode(error) === "INVALID_COMPONENT_RELATIONSHIP",
+    (error) => errorStatusCode(error) === 422 && errorCode(error) === "INVALID_COMPONENT_RELATIONSHIP",
   );
 });

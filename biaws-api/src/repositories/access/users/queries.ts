@@ -1,9 +1,6 @@
 import { getCollections } from "../storage.js";
 
-export async function getUserAccess(
-  userId: string | string[],
-  { workspaceId }: { workspaceId?: string } = {},
-) {
+export async function getUserAccess(userId: string | string[], { workspaceId }: { workspaceId?: string } = {}) {
   const { userAccess, defaultWorkspace } = await getCollections();
   const effectiveWorkspaceId = String(workspaceId || defaultWorkspace.id);
   const document = await userAccess.findOne({
@@ -17,16 +14,9 @@ export async function getUserAccess(
   };
 }
 
-export async function getUsersAccess(
-  userIds: string[],
-  { workspaceId }: { workspaceId?: string } = {},
-) {
+export async function getUsersAccess(userIds: string[], { workspaceId }: { workspaceId?: string } = {}) {
   const normalizedUserIds = [
-    ...new Set(
-      (Array.isArray(userIds) ? userIds : [])
-        .map((userId) => String(userId || "").trim())
-        .filter(Boolean),
-    ),
+    ...new Set((Array.isArray(userIds) ? userIds : []).map((userId) => String(userId || "").trim()).filter(Boolean)),
   ];
 
   if (!normalizedUserIds.length) return [];

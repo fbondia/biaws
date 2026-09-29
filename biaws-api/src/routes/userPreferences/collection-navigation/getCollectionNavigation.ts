@@ -6,9 +6,7 @@ export function registerGetCollectionNavigation(router: Router) {
   router.get(
     "/collection-navigation/:context",
     asyncHandler(async (req: Request, res: Response) => {
-      res.json(
-        await getCollectionNavigationPreference(req.params.context, req.actor),
-      );
+      res.json(await getCollectionNavigationPreference(req.params.context, req.actor));
     }),
   );
 }

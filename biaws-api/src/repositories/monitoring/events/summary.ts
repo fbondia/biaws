@@ -1,10 +1,8 @@
+import { textValue } from "../../../helpers/text.js";
 import type { RepositoryQuery } from "../../../types/http.js";
 import type { Document } from "mongodb";
 import { createCatalogError } from "../../shared/topology/errors.js";
-import {
-  normalizeDate,
-  normalizeEnum,
-} from "../../shared/topology/normalization.js";
+import { normalizeDate, normalizeEnum } from "../../shared/topology/normalization.js";
 
 const DAY_MS = 86_400_000;
 
@@ -16,13 +14,7 @@ const MIN_MAX_POINTS = 50;
 
 const MAX_MAX_POINTS = 1_000;
 
-const LEVEL_STATUSES = Object.freeze([
-  "stopped",
-  "unavailable",
-  "degraded",
-  "unknown",
-  "healthy",
-] as const);
+const LEVEL_STATUSES = Object.freeze(["stopped", "unavailable", "degraded", "unknown", "healthy"] as const);
 type SummaryStatus = (typeof LEVEL_STATUSES)[number];
 
 export interface MonitoringSummaryRow {
@@ -49,19 +41,16 @@ const RESOLUTIONS = Object.freeze([
   { id: "30d", milliseconds: 30 * DAY_MS, binSize: 30, unit: "day" },
 ]);
 
-export const MONITORING_SUMMARY_RESOLUTIONS = Object.freeze([
-  "auto",
-  ...RESOLUTIONS.map(({ id }) => id),
-]);
+export const MONITORING_SUMMARY_RESOLUTIONS = Object.freeze(["auto", ...RESOLUTIONS.map(({ id }) => id)]);
 
 function dateOnly(value: unknown) {
-  return /^\d{4}-\d{2}-\d{2}$/u.test(String(value || ""));
+  return /^\d{4}-\d{2}-\d{2}$/u.test(textValue(value || ""));
 }
 
 function inclusiveObservedTo(value: unknown, now: Date) {
   const normalized = normalizeDate(value, "observedTo", now) || now;
   if (!dateOnly(value)) return normalized;
-  const inclusiveEnd = new Date(normalized.getTime());
+  const inclusiveEnd = new Date(normalized);
   inclusiveEnd.setUTCDate(inclusiveEnd.getUTCDate() + 1);
   inclusiveEnd.setUTCMilliseconds(inclusiveEnd.getUTCMilliseconds() - 1);
   return inclusiveEnd;
@@ -69,11 +58,7 @@ function inclusiveObservedTo(value: unknown, now: Date) {
 
 function normalizeMaxPoints(value: unknown) {
   const normalized = Number(value ?? DEFAULT_MAX_POINTS);
-  if (
-    !Number.isInteger(normalized) ||
-    normalized < MIN_MAX_POINTS ||
-    normalized > MAX_MAX_POINTS
-  ) {
+  if (!Number.isInteger(normalized) || normalized < MIN_MAX_POINTS || normalized > MAX_MAX_POINTS) {
     throw createCatalogError(
       422,
       "INVALID_MONITORING_SUMMARY",
@@ -83,47 +68,25 @@ function normalizeMaxPoints(value: unknown) {
   return normalized;
 }
 
-function effectiveResolution(
-  requested: string,
-  rangeMilliseconds: number,
-  maxPoints: number,
-) {
+function effectiveResolution(requested: string, rangeMilliseconds: number, maxPoints: number) {
   const minimumMilliseconds = Math.ceil(rangeMilliseconds / maxPoints);
-  const automaticIndex = RESOLUTIONS.findIndex(
-    ({ milliseconds }) => milliseconds >= minimumMilliseconds,
-  );
-  const safeAutomaticIndex =
-    automaticIndex < 0 ? RESOLUTIONS.length - 1 : automaticIndex;
+  const automaticIndex = RESOLUTIONS.findIndex(({ milliseconds }) => milliseconds >= minimumMilliseconds);
+  const safeAutomaticIndex = automaticIndex < 0 ? RESOLUTIONS.length - 1 : automaticIndex;
   if (requested === "auto") return RESOLUTIONS[safeAutomaticIndex];
   const requestedIndex = RESOLUTIONS.findIndex(({ id }) => id === requested);
   return RESOLUTIONS[Math.max(requestedIndex, safeAutomaticIndex)];
 }
 
-export function normalizeRuntimeMonitoringSummaryQuery(
-  query: RepositoryQuery = {},
-  now = new Date(),
-) {
+export function normalizeRuntimeMonitoringSummaryQuery(query: RepositoryQuery = {}, now = new Date()) {
   const observedTo = inclusiveObservedTo(query.observedTo, new Date(now));
   const observedFrom =
-    normalizeDate(
-      query.observedFrom,
-      "observedFrom",
-      new Date(observedTo.getTime() - DEFAULT_RANGE_MS),
-    ) || new Date(observedTo.getTime() - DEFAULT_RANGE_MS);
+    normalizeDate(query.observedFrom, "observedFrom", new Date(observedTo.getTime() - DEFAULT_RANGE_MS)) ||
+    new Date(observedTo.getTime() - DEFAULT_RANGE_MS);
   if (observedFrom > observedTo) {
-    throw createCatalogError(
-      422,
-      "INVALID_MONITORING_SUMMARY",
-      "observedTo must be on or after observedFrom",
-    );
+    throw createCatalogError(422, "INVALID_MONITORING_SUMMARY", "observedTo must be on or after observedFrom");
   }
   const maxPoints = normalizeMaxPoints(query.maxPoints);
-  const requestedResolution = normalizeEnum(
-    query.resolution,
-    "resolution",
-    MONITORING_SUMMARY_RESOLUTIONS,
-    "auto",
-  );
+  const requestedResolution = normalizeEnum(query.resolution, "resolution", MONITORING_SUMMARY_RESOLUTIONS, "auto");
   const resolution = effectiveResolution(
     requestedResolution,
     observedTo.getTime() - observedFrom.getTime() + 1,
@@ -148,11 +111,7 @@ function statusSeverityProjection() {
     $let: {
       vars: { statusIndex: { $indexOfArray: [LEVEL_STATUSES, "$status"] } },
       in: {
-        $cond: [
-          { $gte: ["$$statusIndex", 0] },
-          "$$statusIndex",
-          LEVEL_STATUSES.indexOf("unknown"),
-        ],
+        $cond: [{ $gte: ["$$statusIndex", 0] }, "$$statusIndex", LEVEL_STATUSES.indexOf("unknown")],
       },
     },
   };
@@ -168,11 +127,7 @@ function seriesIdProjection() {
           { $eq: ["$origin", "manual"] },
           "origin:manual",
           {
-            $cond: [
-              { $eq: ["$origin", "active"] },
-              "origin:active",
-              "origin:passive",
-            ],
+            $cond: [{ $eq: ["$origin", "active"] }, "origin:active", "origin:passive"],
           },
         ],
       },
@@ -194,11 +149,7 @@ function seriesLabelProjection() {
               { $eq: ["$origin", "manual"] },
               "Observações manuais",
               {
-                $cond: [
-                  { $eq: ["$origin", "active"] },
-                  "Monitor ativo",
-                  "Sinais passivos",
-                ],
+                $cond: [{ $eq: ["$origin", "active"] }, "Monitor ativo", "Sinais passivos"],
               },
             ],
           },
@@ -222,11 +173,7 @@ export function buildRuntimeMonitoringSummaryPipeline(
         monitorName: 1,
         observedAt: 1,
         origin: {
-          $cond: [
-            { $in: ["$origin", ["active", "manual"]] },
-            "$origin",
-            "passive",
-          ],
+          $cond: [{ $in: ["$origin", ["active", "manual"]] }, "$origin", "passive"],
         },
         severity: statusSeverityProjection(),
         status: 1,
@@ -321,10 +268,7 @@ export function runtimeMonitoringSummaryResponse(
     eventCount += row.eventCount;
     const bucketStart = new Date(row._id.bucket);
     const bucketEnd = new Date(
-      Math.min(
-        bucketStart.getTime() + settings.resolution.milliseconds - 1,
-        settings.observedTo.getTime(),
-      ),
+      Math.min(bucketStart.getTime() + settings.resolution.milliseconds - 1, settings.observedTo.getTime()),
     );
     series.points.push({
       eventCount: row.eventCount,

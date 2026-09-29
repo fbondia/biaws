@@ -12,10 +12,7 @@ import {
   updateDocument,
 } from "../../../repositories/documents/index.js";
 import { knowledgeContextMetadata } from "../../../repositories/shared/knowledgeContext.js";
-import {
-  replicateAcrossWorkspaces,
-  sendReplicationResponse,
-} from "../../../services/workspaceReplicationService.js";
+import { replicateAcrossWorkspaces, sendReplicationResponse } from "../../../services/workspaceReplicationService.js";
 import { requireReplicationIdentifier } from "../../../helpers/resourceIdentifier.js";
 import type { PublicStoredKnowledgeDocument } from "../../../types/documents.js";
 import {
@@ -40,14 +37,8 @@ export function registerCreateDocumentsReplicate(router: Router) {
         current: PublicStoredKnowledgeDocument | null;
       }>({
         actor: req.actor,
-        authorizeDestination: async ({
-          destinationActor,
-          destinationWorkspaceId,
-        }) => {
-          const current = await getDocumentByIdentifier(
-            identifier,
-            destinationWorkspaceId,
-          );
+        authorizeDestination: async ({ destinationActor, destinationWorkspaceId }) => {
+          const current = await getDocumentByIdentifier(identifier, destinationWorkspaceId);
           if (current) {
             if (!canUpdateReplicatedDocument(destinationActor, current)) {
               throw replicationPermissionError(
@@ -69,14 +60,12 @@ export function registerCreateDocumentsReplicate(router: Router) {
           return { current: null };
         },
         forbiddenCode: "DESTINATION_DOCUMENT_CREATE_FORBIDDEN",
-        forbiddenMessage:
-          "Você não possui permissão para criar documentos gerais neste workspace",
+        forbiddenMessage: "Você não possui permissão para criar documentos gerais neste workspace",
         payload: req.body,
         permission: "documents.create",
         resourceType: "document",
         replicate: async ({ destinationActor, destinationContext }) => {
-          if (!destinationContext)
-            throw new Error("Destination document context is unavailable");
+          if (!destinationContext) throw new Error("Destination document context is unavailable");
           const before = destinationContext.current;
           const result = before
             ? await updateDocument(
@@ -100,8 +89,7 @@ export function registerCreateDocumentsReplicate(router: Router) {
                 },
               );
           const document = result.document;
-          if (!document)
-            throw new Error("Replicated document could not be read");
+          if (!document) throw new Error("Replicated document could not be read");
           await recordAuditEvent({
             actor: destinationActor,
             action: before ? "updated" : "created",

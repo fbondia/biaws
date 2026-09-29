@@ -11,10 +11,7 @@ import {
   type IssueCreateInput,
   type IssueCreateOutput,
 } from "../../src/contracts/domainSchemas.js";
-import {
-  collectRouteContracts,
-  installRouteContracts,
-} from "../../src/contracts/routeContracts.js";
+import { collectRouteContracts, installRouteContracts } from "../../src/contracts/routeContracts.js";
 import { contractRouters } from "../../src/contracts/routers.js";
 import { publicSecret } from "../../src/repositories/secrets/index.js";
 import { availablePort } from "../support/integration.js";
@@ -22,19 +19,14 @@ import { availablePort } from "../support/integration.js";
 test("every protected route has parameter, query, body and public response schemas", () => {
   const contracts = collectRouteContracts(contractRouters);
   assert.equal(contracts.length, 245);
-  assert.equal(
-    new Set(contracts.map(({ method, path }) => `${method} ${path}`)).size,
-    245,
-  );
+  assert.equal(new Set(contracts.map(({ method, path }) => `${method} ${path}`)).size, 245);
   for (const contract of contracts) {
     assert.ok(contract.params);
     assert.ok(contract.query);
     assert.ok(contract.body);
     assert.ok(contract.response);
   }
-  const issueCreation = contracts.find(
-    ({ method, path }) => method === "post" && path === "/api/issues",
-  );
+  const issueCreation = contracts.find(({ method, path }) => method === "post" && path === "/api/issues");
   assert.ok(issueCreation);
   assert.equal(issueCreation.body, issueCreateBodySchema);
   assert.deepEqual(issueCreation.query.parse({ page: "invalid", limit: "" }), {
@@ -51,10 +43,7 @@ test("issue input/output types follow legacy string coercion and required text",
   const missing = issueCreateBodySchema.safeParse({ title: "  ", text: "x" });
   assert.equal(missing.success, false);
   if (!missing.success) {
-    assert.equal(
-      missing.error.issues[0]?.message,
-      "Invalid issue payload: title is required",
-    );
+    assert.equal(missing.error.issues[0]?.message, "Invalid issue payload: title is required");
   }
 });
 
@@ -69,19 +58,9 @@ test("the public secret response excludes stored versions and locators", () => {
     currentVersion: 1,
     versions: [{ version: 1, locator: "private/secret.enc" }],
   });
-  assert.deepEqual(
-    secretResponseSchema.parse({ secret }).secret,
-    publicSecretSchema.parse(secret),
-  );
-  assert.equal(
-    publicSecretSchema.safeParse({ ...secret, versions: [] }).success,
-    false,
-  );
-  assert.equal(
-    publicSecretSchema.safeParse({ ...secret, locator: "private/secret.enc" })
-      .success,
-    false,
-  );
+  assert.deepEqual(secretResponseSchema.parse({ secret }).secret, publicSecretSchema.parse(secret));
+  assert.equal(publicSecretSchema.safeParse({ ...secret, versions: [] }).success, false);
+  assert.equal(publicSecretSchema.safeParse({ ...secret, locator: "private/secret.enc" }).success, false);
 });
 
 test("generic responses accept serialized JSON and reject raw Mongo values", () => {
@@ -92,24 +71,14 @@ test("generic responses accept serialized JSON and reject raw Mongo values", () 
     }).success,
     true,
   );
-  assert.equal(
-    publicObjectSchema.safeParse({ _id: new ObjectId() }).success,
-    false,
-  );
-  assert.equal(
-    publicObjectSchema.safeParse({ updatedAt: new Date() }).success,
-    false,
-  );
+  assert.equal(publicObjectSchema.safeParse({ _id: new ObjectId() }).success, false);
+  assert.equal(publicObjectSchema.safeParse({ updatedAt: new Date() }).success, false);
 });
 
 test("HTTP boundary applies Zod after routing and preserves the 422 error shape", async () => {
   const router = Router();
-  router.post("/", (req: Request, res: Response) =>
-    res.json({ title: req.body.title }),
-  );
-  installRouteContracts([
-    { domain: "issuesRouter", prefix: "/api/issues", router },
-  ]);
+  router.post("/", (req: Request, res: Response) => res.json({ title: req.body.title }));
+  installRouteContracts([{ domain: "issuesRouter", prefix: "/api/issues", router }]);
   const app = express();
   app.use(express.json());
   app.use("/api/issues", router);
@@ -164,8 +133,14 @@ test("HTTP boundary applies Zod after routing and preserves the 422 error shape"
       },
     });
   } finally {
-    await new Promise<void>((resolve, reject) =>
-      server.close((error) => (error ? reject(error) : resolve())),
-    );
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
   }
+});
+
+test("issue text objects produce structured validation errors and preserve extra fields", () => {
+  const invalid = issueCreateBodySchema.safeParse({ title: { unexpected: true }, text: "Details" });
+  assert.equal(invalid.success, false);
+  if (!invalid.success) assert.deepEqual(invalid.error.issues[0].path, ["title"]);
+  const valid = issueCreateBodySchema.parse({ title: "Example", text: "Details", extension: { active: true } });
+  assert.deepEqual(valid.extension, { active: true });
 });

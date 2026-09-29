@@ -15,10 +15,7 @@ export const PERMISSIONS = Object.freeze({
   servers: { read: "servers.read", manage: "servers.update" },
 });
 
-export function authorize(
-  operation: "read" | "manage",
-  { workspace = false } = {},
-) {
+export function authorize(operation: "read" | "manage", { workspace = false } = {}) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const type = assertResourceCollectionType(req.params.resourceType);

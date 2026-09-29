@@ -1,19 +1,19 @@
-import type { AuthorizationScope } from "../../types/http.js";
 import type { Filter } from "mongodb";
+import { findByReference } from "../../helpers/referenceLookup.js";
+import { textValue } from "../../helpers/text.js";
+import type { AuthorizationScope, RepositoryQuery } from "../../types/http.js";
 import type { SecretDocument } from "../../types/secrets.js";
-import type { RepositoryQuery } from "../../types/http.js";
+import { SECRET_ENVIRONMENTS } from "./constants.js";
+import { accessFilter } from "./filters.js";
+import { publicSecret } from "./normalization.js";
 import { getCollections } from "./storage.js";
 import { secretError } from "./support.js";
-import { accessFilter } from "./filters.js";
-import { SECRET_ENVIRONMENTS } from "./constants.js";
-import { publicSecret } from "./normalization.js";
-import { findByReference } from "../../helpers/referenceLookup.js";
 
 export async function listSecrets(query: RepositoryQuery = {}) {
   const { secrets } = await getCollections();
   const page = Math.max(1, Number(query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(query.limit) || 25));
-  const status = String(query.status || "").trim();
+  const status = textValue(query.status || "").trim();
   if (status && !["active", "archived"].includes(status)) {
     throw secretError(422, "INVALID_SECRET_FILTER", "status is invalid");
   }
@@ -21,33 +21,28 @@ export async function listSecrets(query: RepositoryQuery = {}) {
     ...accessFilter(query.authorizationScope || {}),
   };
   if (status) filter.status = status;
-  else if (String(query.includeArchived || "").toLowerCase() !== "true") {
+  else if (textValue(query.includeArchived || "").toLowerCase() !== "true") {
     filter.status = "active";
   }
   if (query.applicationId) {
     filter.applicationId = String(query.applicationId);
   }
   if (query.environment !== undefined) {
-    const environment = String(query.environment || "").trim();
+    const environment = textValue(query.environment || "").trim();
     if (!SECRET_ENVIRONMENTS.has(environment)) {
       throw secretError(422, "INVALID_SECRET_FILTER", "environment is invalid");
     }
     filter.environment = environment;
   }
   if (query.provisioningStatus) {
-    const provisioningStatus = String(query.provisioningStatus).trim();
+    const provisioningStatus = textValue(query.provisioningStatus).trim();
     if (!["pending", "ready"].includes(provisioningStatus)) {
-      throw secretError(
-        422,
-        "INVALID_SECRET_FILTER",
-        "provisioningStatus is invalid",
-      );
+      throw secretError(422, "INVALID_SECRET_FILTER", "provisioningStatus is invalid");
     }
-    filter.provisioningStatus =
-      provisioningStatus === "ready" ? { $in: ["ready", null] } : "pending";
+    filter.provisioningStatus = provisioningStatus === "ready" ? { $in: ["ready", null] } : "pending";
   }
   if (query.collectionId !== undefined) {
-    const collectionId = String(query.collectionId || "").trim();
+    const collectionId = textValue(query.collectionId || "").trim();
     filter.collectionId = collectionId || { $in: ["", null] };
   }
   const [documents, total] = await Promise.all([
@@ -70,10 +65,7 @@ export async function listSecrets(query: RepositoryQuery = {}) {
   };
 }
 
-export async function getSecretDocument(
-  secretId: unknown,
-  authorizationScope: AuthorizationScope,
-) {
+export async function getSecretDocument(secretId: unknown, authorizationScope: AuthorizationScope) {
   const { secrets } = await getCollections();
   return findByReference(secrets, secretId, {
     filter: accessFilter(authorizationScope),

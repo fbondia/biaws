@@ -1,37 +1,27 @@
+import { textValue } from "../../helpers/text.js";
 import type { HomeWidget, WidgetConfiguration } from "./widgets.js";
 import { isRecord } from "../../helpers/records.js";
 import type { Actor } from "../../types/http.js";
 import { homeError, hasPermission } from "./support.js";
-import {
-  MAX_WIDGETS,
-  widgetById,
-  WIDGET_SIZES,
-  defaultConfiguration,
-} from "./widgets.js";
+import { MAX_WIDGETS, widgetById, WIDGET_SIZES, defaultConfiguration } from "./widgets.js";
 import { randomUUID } from "node:crypto";
 import { DEPLOYMENT_ENVIRONMENTS } from "../../../../shared/index.js";
 
 function normalizeIssuesPeriodConfiguration(value: Record<string, unknown>) {
-  const period = String(value.period || "week");
+  const period = textValue(value.period || "week");
   if (!["week", "month"].includes(period)) {
-    throw homeError(
-      422,
-      "INVALID_HOME_CONFIGURATION",
-      "period must be week or month",
-    );
+    throw homeError(422, "INVALID_HOME_CONFIGURATION", "period must be week or month");
   }
   return { period };
 }
 
-function normalizeApplicationHealthConfiguration(
-  value: Record<string, unknown>,
-) {
-  const environment = String(value.environment || "").trim();
-  const applicationId = String(value.applicationId || "").trim();
-  const componentId = String(value.componentId || "").trim();
-  const deploymentId = String(value.deploymentId || "").trim();
-  const runtimeId = String(value.runtimeId || "").trim();
-  const requestedPresentation = String(value.presentation || "list").trim();
+function normalizeApplicationHealthConfiguration(value: Record<string, unknown>) {
+  const environment = textValue(value.environment || "").trim();
+  const applicationId = textValue(value.applicationId || "").trim();
+  const componentId = textValue(value.componentId || "").trim();
+  const deploymentId = textValue(value.deploymentId || "").trim();
+  const runtimeId = textValue(value.runtimeId || "").trim();
+  const requestedPresentation = textValue(value.presentation || "list").trim();
   if (environment && !DEPLOYMENT_ENVIRONMENTS.includes(environment)) {
     throw homeError(
       422,
@@ -40,17 +30,9 @@ function normalizeApplicationHealthConfiguration(
     );
   }
   if (!["list", "tabs"].includes(requestedPresentation)) {
-    throw homeError(
-      422,
-      "INVALID_HOME_CONFIGURATION",
-      "presentation must be list or tabs",
-    );
+    throw homeError(422, "INVALID_HOME_CONFIGURATION", "presentation must be list or tabs");
   }
-  if (
-    (componentId && !applicationId) ||
-    (deploymentId && !componentId) ||
-    (runtimeId && !deploymentId)
-  ) {
+  if ((componentId && !applicationId) || (deploymentId && !componentId) || (runtimeId && !deploymentId)) {
     throw homeError(
       422,
       "INVALID_HOME_CONFIGURATION",
@@ -67,20 +49,11 @@ function normalizeApplicationHealthConfiguration(
   };
 }
 
-function normalizeConfiguration(
-  widget: HomeWidget,
-  value: unknown = {},
-): WidgetConfiguration {
+function normalizeConfiguration(widget: HomeWidget, value: unknown = {}): WidgetConfiguration {
   if (!isRecord(value)) {
-    throw homeError(
-      422,
-      "INVALID_HOME_CONFIGURATION",
-      "widget config must be an object",
-    );
+    throw homeError(422, "INVALID_HOME_CONFIGURATION", "widget config must be an object");
   }
-  const allowed = new Set(
-    (widget.configuration?.fields || []).map(({ key }) => key),
-  );
+  const allowed = new Set((widget.configuration?.fields || []).map(({ key }) => key));
   const unknown = Object.keys(value).filter((key: string) => !allowed.has(key));
   if (unknown.length) {
     throw homeError(
@@ -98,60 +71,34 @@ function normalizeConfiguration(
   return {};
 }
 
-export function normalizeHomeWidgets(
-  value: unknown,
-  actor: Partial<Actor> = {},
-) {
+export function normalizeHomeWidgets(value: unknown, actor: Partial<Actor> = {}) {
   if (!Array.isArray(value) || value.length > MAX_WIDGETS) {
-    throw homeError(
-      422,
-      "INVALID_HOME_CONFIGURATION",
-      `widgets must be an array with at most ${MAX_WIDGETS} items`,
-    );
+    throw homeError(422, "INVALID_HOME_CONFIGURATION", `widgets must be an array with at most ${MAX_WIDGETS} items`);
   }
   const ids = new Set();
   return value.map((item, index: number) => {
     if (!item || typeof item !== "object" || Array.isArray(item)) {
-      throw homeError(
-        422,
-        "INVALID_HOME_CONFIGURATION",
-        `widgets[${index}] must be an object`,
-      );
+      throw homeError(422, "INVALID_HOME_CONFIGURATION", `widgets[${index}] must be an object`);
     }
     const widget = widgetById.get(String(item.widgetId || ""));
     if (!widget || !hasPermission(actor, widget.permission)) {
-      throw homeError(
-        422,
-        "INVALID_HOME_WIDGET",
-        `widget is unavailable: ${item.widgetId || "unknown"}`,
-      );
+      throw homeError(422, "INVALID_HOME_WIDGET", `widget is unavailable: ${item.widgetId || "unknown"}`);
     }
     const id = String(item.id || randomUUID()).trim();
     if (!id || id.length > 128 || ids.has(id)) {
-      throw homeError(
-        422,
-        "INVALID_HOME_CONFIGURATION",
-        `widgets[${index}].id must be unique`,
-      );
+      throw homeError(422, "INVALID_HOME_CONFIGURATION", `widgets[${index}].id must be unique`);
     }
     ids.add(id);
     const requestedSize = String(item.size || widget.defaultSize);
     const size = requestedSize === "medium" ? "medium-2" : requestedSize;
     if (!WIDGET_SIZES.has(size)) {
-      throw homeError(
-        422,
-        "INVALID_HOME_CONFIGURATION",
-        `widgets[${index}].size is invalid`,
-      );
+      throw homeError(422, "INVALID_HOME_CONFIGURATION", `widgets[${index}].size is invalid`);
     }
     return {
       id,
       widgetId: widget.id,
       size,
-      config: normalizeConfiguration(
-        widget,
-        item.config ?? defaultConfiguration(widget.id),
-      ),
+      config: normalizeConfiguration(widget, item.config ?? defaultConfiguration(widget.id)),
     };
   });
 }

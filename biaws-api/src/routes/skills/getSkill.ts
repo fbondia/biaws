@@ -1,9 +1,6 @@
 import type { Router, Request, Response } from "express";
 import { getSkill } from "../../repositories/skills/index.js";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../auth/authorizationMiddleware.js";
+import { authorizationQuery, requireAllPermissions } from "../../auth/authorizationMiddleware.js";
 import { asyncHandler } from "../shared/asyncHandler.js";
 import { sendNotFound } from "./helpers.js";
 
@@ -17,8 +14,7 @@ export function registerGetSkill(router: Router) {
         req.query.version,
         authorizationQuery(req.actor, "skills.read", req.query),
       );
-      if (!result.skill)
-        return sendNotFound(res, req.params.skillId, req.query.version);
+      if (!result.skill) return sendNotFound(res, req.params.skillId, req.query.version);
       res.json(result);
     }),
   );

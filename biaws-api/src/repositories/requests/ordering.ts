@@ -13,9 +13,7 @@ function dateRank(value: string | number | Date | null | undefined) {
 
 export function requestListRank(document: Document | null) {
   const rank = Number(document?.listRank);
-  return Number.isFinite(rank)
-    ? rank
-    : dateRank(document?.updatedAt || document?.createdAt);
+  return Number.isFinite(rank) ? rank : dateRank(document?.updatedAt || document?.createdAt);
 }
 
 export async function ensureRequestListRanks(db: Db) {
@@ -64,46 +62,31 @@ export async function readListRankNeighbor(
   if (!requestIdValue) return null;
 
   const requestId = await requestReferenceId(db, requestIdValue, query);
-  const request = await db
-    .collection<RequestDocument>(REQUESTS_COLLECTION)
-    .findOne(
-      {
-        ...requestFilter(requestId, query),
-        collectionId: collectionId ? collectionId : { $in: ["", null] },
-      },
-      {
-        projection: { listRank: 1, updatedAt: 1, createdAt: 1 },
-      },
-    );
+  const request = await db.collection<RequestDocument>(REQUESTS_COLLECTION).findOne(
+    {
+      ...requestFilter(requestId, query),
+      collectionId: collectionId || { $in: ["", null] },
+    },
+    {
+      projection: { listRank: 1, updatedAt: 1, createdAt: 1 },
+    },
+  );
 
   if (!request) {
-    throw createHttpError(
-      422,
-      `Invalid request payload: ${fieldName} request not found`,
-    );
+    throw createHttpError(422, `Invalid request payload: ${fieldName} request not found`);
   }
 
   return requestListRank(request);
 }
 
-export function calculateMovedListRank(
-  previousRank: number | null,
-  nextRank: number | null,
-) {
-  if (
-    previousRank !== null &&
-    Number.isFinite(previousRank) &&
-    nextRank !== null &&
-    Number.isFinite(nextRank)
-  ) {
+export function calculateMovedListRank(previousRank: number | null, nextRank: number | null) {
+  if (previousRank !== null && Number.isFinite(previousRank) && nextRank !== null && Number.isFinite(nextRank)) {
     if (previousRank > nextRank) return (previousRank + nextRank) / 2;
     return previousRank + LIST_RANK_STEP;
   }
 
-  if (nextRank !== null && Number.isFinite(nextRank))
-    return nextRank + LIST_RANK_STEP;
-  if (previousRank !== null && Number.isFinite(previousRank))
-    return previousRank - LIST_RANK_STEP;
+  if (nextRank !== null && Number.isFinite(nextRank)) return nextRank + LIST_RANK_STEP;
+  if (previousRank !== null && Number.isFinite(previousRank)) return previousRank - LIST_RANK_STEP;
 
   return Date.now();
 }

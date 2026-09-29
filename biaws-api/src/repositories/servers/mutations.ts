@@ -4,15 +4,8 @@ import { getServer } from "./queries.js";
 import { MUTABLE_SERVER_STATUSES } from "./constants.js";
 import { randomUUID } from "node:crypto";
 import { assertResourceCollection } from "../resourceCollections/queries.js";
-import {
-  actorId,
-  archiveFields,
-  createBaseDocument,
-} from "../shared/topology/lifecycle.js";
-import {
-  createCatalogError,
-  duplicateKeyError,
-} from "../shared/topology/errors.js";
+import { actorId, archiveFields, createBaseDocument } from "../shared/topology/lifecycle.js";
+import { createCatalogError, duplicateKeyError } from "../shared/topology/errors.js";
 import { getTopologyCollections } from "../shared/topology/storage.js";
 import { normalizeDocument } from "../shared/topology/normalization.js";
 import { requireOperationalWorkspace } from "../shared/topology/context.js";
@@ -39,11 +32,7 @@ export async function createServer(
   try {
     await servers.insertOne(document);
   } catch (error) {
-    duplicateKeyError(
-      error,
-      "SERVER_KEY_CONFLICT",
-      "A server with this key already exists in the workspace",
-    );
+    duplicateKeyError(error, "SERVER_KEY_CONFLICT", "A server with this key already exists in the workspace");
   }
   return normalizeDocument(document);
 }
@@ -80,26 +69,15 @@ export async function updateServer(
       },
     );
   } catch (error) {
-    duplicateKeyError(
-      error,
-      "SERVER_KEY_CONFLICT",
-      "A server with this key already exists in the workspace",
-    );
+    duplicateKeyError(error, "SERVER_KEY_CONFLICT", "A server with this key already exists in the workspace");
   }
   if (!result.matchedCount) {
-    throw createCatalogError(
-      409,
-      "SERVER_CONCURRENT_UPDATE",
-      "Server changed concurrently; reload and try again",
-    );
+    throw createCatalogError(409, "SERVER_CONCURRENT_UPDATE", "Server changed concurrently; reload and try again");
   }
   return getServer(current.id);
 }
 
-export async function archiveServer(
-  serverId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function archiveServer(serverId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getServer(serverId);
   if (!current) {
     throw createCatalogError(404, "SERVER_NOT_FOUND", "Server not found");
@@ -112,11 +90,7 @@ export async function archiveServer(
     status: { $ne: "archived" },
   });
   if (activeRuntimes) {
-    throw createCatalogError(
-      409,
-      "SERVER_IN_USE",
-      "Archive or move runtimes before archiving the server",
-    );
+    throw createCatalogError(409, "SERVER_IN_USE", "Archive or move runtimes before archiving the server");
   }
   await servers.updateOne(
     {
@@ -134,19 +108,14 @@ export async function archiveServer(
   return getServer(current.id);
 }
 
-export async function restoreServer(
-  serverId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function restoreServer(serverId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getServer(serverId);
   if (!current) {
     throw createCatalogError(404, "SERVER_NOT_FOUND", "Server not found");
   }
   if (current.status !== "archived") return current;
   await requireOperationalWorkspace(current.workspaceId, { active: true });
-  const restoredStatus = MUTABLE_SERVER_STATUSES.includes(
-    current.archivedFromStatus || "",
-  )
+  const restoredStatus = MUTABLE_SERVER_STATUSES.includes(current.archivedFromStatus || "")
     ? current.archivedFromStatus
     : "active";
   const { servers } = await getTopologyCollections();
@@ -174,11 +143,7 @@ export async function deleteServer(serverId: string | string[]) {
     throw createCatalogError(404, "SERVER_NOT_FOUND", "Server not found");
   }
   if (current.status !== "archived") {
-    throw createCatalogError(
-      409,
-      "SERVER_NOT_ARCHIVED",
-      "Only archived servers can be permanently deleted",
-    );
+    throw createCatalogError(409, "SERVER_NOT_ARCHIVED", "Only archived servers can be permanently deleted");
   }
   const { runtimes, servers } = await getTopologyCollections();
   const runtimeCount = await runtimes.countDocuments(
@@ -198,11 +163,7 @@ export async function deleteServer(serverId: string | string[]) {
     status: "archived",
   });
   if (!result.deletedCount) {
-    throw createCatalogError(
-      409,
-      "SERVER_DELETE_CONFLICT",
-      "Server was not deleted",
-    );
+    throw createCatalogError(409, "SERVER_DELETE_CONFLICT", "Server was not deleted");
   }
   return current;
 }
@@ -216,11 +177,7 @@ export async function moveServerToCollection(
   if (!current) {
     throw createCatalogError(404, "SERVER_NOT_FOUND", "Server not found");
   }
-  const normalizedCollectionId = await assertResourceCollection(
-    "servers",
-    collectionId,
-    current.workspaceId,
-  );
+  const normalizedCollectionId = await assertResourceCollection("servers", collectionId, current.workspaceId);
   const { servers } = await getTopologyCollections();
   await servers.updateOne(
     { id: current.id, workspaceId: current.workspaceId },

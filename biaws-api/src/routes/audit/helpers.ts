@@ -18,11 +18,7 @@ export const readPermissionByType = {
   runtime: "runtimes.read",
 };
 
-export function authorizeAuditRead(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export function authorizeAuditRead(req: Request, res: Response, next: NextFunction) {
   const entityType = String(req.params.entityType);
   const permission = Object.hasOwn(readPermissionByType, entityType)
     ? readPermissionByType[entityType as keyof typeof readPermissionByType]

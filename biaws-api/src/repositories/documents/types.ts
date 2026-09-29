@@ -9,11 +9,7 @@ export function documentTypeConfig(type: string) {
     ? DOCUMENT_TYPES[normalized as keyof typeof DOCUMENT_TYPES]
     : undefined;
   if (!config) {
-    throw httpError(
-      422,
-      "INVALID_DOCUMENT_TYPE",
-      `Tipo de documento não suportado: ${type}`,
-    );
+    throw httpError(422, "INVALID_DOCUMENT_TYPE", `Tipo de documento não suportado: ${type}`);
   }
   return { ...config, type: normalized };
 }

@@ -1,19 +1,15 @@
+import { textValue } from "../helpers/text.js";
 import { createLocalAttachmentStorage } from "./localAttachmentStorage.js";
 
 const SUPPORTED_PROVIDERS = new Set(["local"]);
 
 function readOption(options: Record<string, unknown>, key: string) {
-  return (
-    options?.[key] ??
-    options?.[key.replace(/-([a-z])/gu, (_, letter) => letter.toUpperCase())]
-  );
+  return options?.[key] ?? options?.[key.replaceAll(/-([a-z])/gu, (_, letter) => letter.toUpperCase())];
 }
 
 function readProvider(options: Record<string, unknown>) {
-  return String(
-    readOption(options, "attachment-storage-provider") ||
-      process.env.ATTACHMENT_STORAGE_PROVIDER ||
-      "local",
+  return textValue(
+    readOption(options, "attachment-storage-provider") || process.env.ATTACHMENT_STORAGE_PROVIDER || "local",
   )
     .trim()
     .toLowerCase();
@@ -24,9 +20,9 @@ export function createAttachmentStorage(options: object = {}) {
 
   if (!SUPPORTED_PROVIDERS.has(provider)) {
     throw new Error(
-      `Unsupported attachment storage provider: ${provider}. Supported providers: ${[
-        ...SUPPORTED_PROVIDERS,
-      ].join(", ")}`,
+      `Unsupported attachment storage provider: ${provider}. Supported providers: ${[...SUPPORTED_PROVIDERS].join(
+        ", ",
+      )}`,
     );
   }
 

@@ -14,21 +14,19 @@ extendZodWithOpenApi(z);
 
 const errorSchema = z
   .object({
-    error: z
-      .object({
-        code: z.string(),
-        message: z.string(),
-        fields: z
-          .array(
-            z.object({
-              path: z.string(),
-              code: z.string(),
-              message: z.string(),
-            }),
-          )
-          .optional(),
-      })
-      .passthrough(),
+    error: z.looseObject({
+      code: z.string(),
+      message: z.string(),
+      fields: z
+        .array(
+          z.object({
+            path: z.string(),
+            code: z.string(),
+            message: z.string(),
+          }),
+        )
+        .optional(),
+    }),
   })
   .openapi({
     example: {
@@ -36,26 +34,16 @@ const errorSchema = z
     },
   });
 
-const commonQuerySchema = z
-  .object({
-    page: z
-      .string()
-      .optional()
-      .describe("Página; interpretação e defaults dependem da operação"),
-    limit: z
-      .string()
-      .optional()
-      .describe("Limite; interpretação e defaults dependem da operação"),
-  })
-  .passthrough();
+const commonQuerySchema = z.looseObject({
+  page: z.string().optional().describe("Página; interpretação e defaults dependem da operação"),
+  limit: z.string().optional().describe("Limite; interpretação e defaults dependem da operação"),
+});
 
 const workspaceHeaderSchema = z.object({
   "X-Biaws-Workspace-Id": z
     .string()
     .optional()
-    .describe(
-      "Necessário quando a identidade possui acesso a múltiplos workspaces; dispensado em rotas de plataforma",
-    ),
+    .describe("Necessário quando a identidade possui acesso a múltiplos workspaces; dispensado em rotas de plataforma"),
 });
 
 const multipartPaths = new Set([
@@ -77,7 +65,7 @@ const binaryPaths = new Set([
 ]);
 
 function operationId(contract: RouteContract) {
-  return `${contract.domain.replace(/Router$/u, "")}_${contract.method}_${contract.routePath.replace(/[^A-Za-z0-9]+/gu, "_").replace(/^_|_$/gu, "") || "root"}`;
+  return `${contract.domain.replace(/Router$/u, "")}_${contract.method}_${contract.routePath.replaceAll(/[^A-Za-z0-9]+/gu, "_").replaceAll(/^_|_$/gu, "") || "root"}`;
 }
 
 function bodyContent(contract: RouteContract) {
@@ -86,14 +74,12 @@ function bodyContent(contract: RouteContract) {
     const property = key.includes("/attachments") ? "files" : "file";
     return {
       "multipart/form-data": {
-        schema: z
-          .object({
-            [property]:
-              property === "files"
-                ? z.array(z.string().openapi({ format: "binary" }))
-                : z.string().openapi({ format: "binary" }),
-          })
-          .passthrough(),
+        schema: z.looseObject({
+          [property]:
+            property === "files"
+              ? z.array(z.string().openapi({ format: "binary" }))
+              : z.string().openapi({ format: "binary" }),
+        }),
       },
     };
   }
@@ -123,31 +109,22 @@ function responseContent(contract: RouteContract): ZodContentObject {
   }
   const schema =
     contract.response === publicObjectSchema
-      ? z
-          .object({})
-          .passthrough()
-          .describe(
-            "Objeto JSON público; formato específico permanece no contrato do domínio",
-          )
+      ? z.looseObject({}).describe("Objeto JSON público; formato específico permanece no contrato do domínio")
       : contract.response;
   return { "application/json": { schema } };
 }
 
-function successStatuses(
-  contract: RouteContract,
-): Record<string, ResponseConfig> {
+function successStatuses(contract: RouteContract): Record<string, ResponseConfig> {
   const response = {
     description: "Resposta pública",
     content: responseContent(contract),
   };
   if (contract.method === "post") return { 200: response, 201: response };
-  if (contract.method === "patch" && contract.domain === "monitoringRouter")
-    return { 200: response, 201: response };
+  if (contract.method === "patch" && contract.domain === "monitoringRouter") return { 200: response, 201: response };
   return { 200: response };
 }
 
-let cachedDocument:
-  ReturnType<OpenApiGeneratorV31["generateDocument"]> | undefined;
+let cachedDocument: ReturnType<OpenApiGeneratorV31["generateDocument"]> | undefined;
 
 export function buildOpenApiDocument() {
   if (cachedDocument) return cachedDocument;
@@ -157,8 +134,7 @@ export function buildOpenApiDocument() {
     type: "apiKey",
     in: "cookie",
     name: "biaws.session_token",
-    description:
-      "Sessão Better Auth obtida pelo login; o navegador envia o cookie automaticamente.",
+    description: "Sessão Better Auth obtida pelo login; o navegador envia o cookie automaticamente.",
   });
   registry.registerComponent("securitySchemes", "bearerApiKey", {
     type: "http",
@@ -172,19 +148,16 @@ export function buildOpenApiDocument() {
   for (const contract of contracts) {
     registry.registerPath({
       method: contract.method as "get" | "post" | "put" | "patch" | "delete",
-      path: contract.path.replace(/:([A-Za-z][A-Za-z0-9_]*)/gu, "{$1}"),
+      path: contract.path.replaceAll(/:([A-Za-z]\w*)/gu, "{$1}"),
       operationId: operationId(contract),
       tags: [contract.domain.replace(/Router$/u, "")],
       summary: `${contract.method.toUpperCase()} ${contract.path}`,
-      description:
-        "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
+      description: "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
       security: [{ sessionCookie: [] }, { bearerApiKey: [] }],
       request: {
         params: contract.params as z.ZodObject<z.ZodRawShape>,
         query: commonQuerySchema,
-        ...(contract.domain === "platformRouter"
-          ? {}
-          : { headers: workspaceHeaderSchema }),
+        ...(contract.domain === "platformRouter" ? {} : { headers: workspaceHeaderSchema }),
         ...(contract.method === "get" || contract.method === "delete"
           ? {}
           : { body: { content: bodyContent(contract) } }),
@@ -247,23 +220,17 @@ export function buildOpenApiDocument() {
         description: "Documento OpenAPI 3.1",
         content: {
           "application/json": {
-            schema: z
-              .object({
-                openapi: z.literal("3.1.0"),
-                info: z
-                  .object({ title: z.string(), version: z.string() })
-                  .passthrough(),
-                paths: z.object({}).passthrough(),
-              })
-              .passthrough(),
+            schema: z.looseObject({
+              openapi: z.literal("3.1.0"),
+              info: z.looseObject({ title: z.string(), version: z.string() }),
+              paths: z.looseObject({}),
+            }),
           },
         },
       },
     },
   });
-  cachedDocument = new OpenApiGeneratorV31(
-    registry.definitions,
-  ).generateDocument({
+  cachedDocument = new OpenApiGeneratorV31(registry.definitions).generateDocument({
     openapi: "3.1.0",
     info: {
       title: "Bondia Workspaces API",

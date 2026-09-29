@@ -9,28 +9,21 @@ export async function getCollections() {
   const db = await getMongoDatabase();
   const groups = db.collection<GroupDocument>(GROUPS_COLLECTION);
   const userAccess = db.collection(USER_ACCESS_COLLECTION);
-  const users = db.collection<{ _id: string | import("mongodb").ObjectId }>(
-    COLLECTION_NAMES.AUTH_USERS,
-  );
+  const users = db.collection<{ _id: string | import("mongodb").ObjectId }>(COLLECTION_NAMES.AUTH_USERS);
   const workspace = await ensureDefaultWorkspace();
 
   const groupIndexes = await groups.indexes().catch(() => []);
   const accessIndexes = await userAccess.indexes().catch(() => []);
   const legacyNameIndex = groupIndexes.find(
-    ({ name, key, unique }) =>
-      unique && name === "normalizedName_1" && key?.normalizedName === 1,
+    ({ name, key, unique }) => unique && name === "normalizedName_1" && key?.normalizedName === 1,
   );
   if (legacyNameIndex?.name) await groups.dropIndex(legacyNameIndex.name);
   const legacyUserIndex = accessIndexes.find(
-    ({ name, key, unique }) =>
-      unique && name === "userId_1" && key?.userId === 1,
+    ({ name, key, unique }) => unique && name === "userId_1" && key?.userId === 1,
   );
   if (legacyUserIndex?.name) await userAccess.dropIndex(legacyUserIndex.name);
   await Promise.all([
-    groups.createIndex(
-      { workspaceId: 1, normalizedName: 1 },
-      { unique: true, name: "workspace_group_name_unique" },
-    ),
+    groups.createIndex({ workspaceId: 1, normalizedName: 1 }, { unique: true, name: "workspace_group_name_unique" }),
     groups.createIndex(
       { workspaceId: 1, identifier: 1 },
       {
@@ -40,10 +33,7 @@ export async function getCollections() {
       },
     ),
     groups.createIndex({ workspaceId: 1, active: 1, name: 1 }),
-    userAccess.createIndex(
-      { userId: 1, workspaceId: 1 },
-      { unique: true, name: "user_workspace_access_unique" },
-    ),
+    userAccess.createIndex({ userId: 1, workspaceId: 1 }, { unique: true, name: "user_workspace_access_unique" }),
     userAccess.createIndex({ workspaceId: 1, groupIds: 1 }),
   ]);
 

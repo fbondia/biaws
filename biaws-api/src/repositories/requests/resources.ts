@@ -1,11 +1,6 @@
 import type { RepositoryQuery } from "../../types/http.js";
 import { getRequest } from "./queries.js";
-import {
-  required,
-  byId,
-  resourceResponse,
-  attachmentResourceResponse,
-} from "../shared/resourceReads.js";
+import { required, byId, resourceResponse, attachmentResourceResponse } from "../shared/resourceReads.js";
 import { taskAttachmentContext } from "./tasks/attachments.js";
 import { ParamsDictionary } from "express-serve-static-core";
 import { isRecord } from "../../helpers/records.js";
@@ -51,9 +46,7 @@ export async function readRequestResource(
       break;
   }
   if (part === "tasks" && query.status && Array.isArray(value))
-    value = value.filter(
-      (item: unknown) => isRecord(item) && item.status === query.status,
-    );
+    value = value.filter((item: unknown) => isRecord(item) && item.status === query.status);
 
   return resourceResponse(root, value, params, query);
 }
@@ -66,12 +59,7 @@ export async function readRequestAttachmentResource(
   const root = required((await getRequest(id, query)).request);
   let attachments = root.attachments || [];
   if (params.taskId) {
-    const context = await taskAttachmentContext(
-      id,
-      params.taskId,
-      query,
-      params.attachmentId,
-    );
+    const context = await taskAttachmentContext(id, params.taskId, query, params.attachmentId);
     attachments = context.attachments;
   }
   return attachmentResourceResponse(root, attachments, params, query);

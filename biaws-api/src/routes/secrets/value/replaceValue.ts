@@ -9,11 +9,7 @@ export function registerReplaceValue(router: Router) {
     "/:secretId/value",
     requireAllPermissions("secrets.value.write"),
     asyncHandler(async (req: Request, res: Response) => {
-      const secret = await writeSecretValue(
-        req.params.secretId,
-        req.body?.value,
-        req.actor,
-      );
+      const secret = await writeSecretValue(req.params.secretId, req.body?.value, req.actor);
       await recordAuditEvent({
         actor: req.actor,
         action: "version.created",

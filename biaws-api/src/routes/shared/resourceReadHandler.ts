@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { Request, Response } from "express";
 import type { RepositoryQuery } from "../../types/http.js";
 import { isRecord } from "../../helpers/records.js";
@@ -15,14 +16,11 @@ export function createResourceReadHandler(
     const fields = isRecord(result) ? result : {};
     if (fields.binary) {
       res.set({
-        "Content-Type": String(
-          fields.contentType || "application/octet-stream",
-        ),
+        "Content-Type": textValue(fields.contentType || "application/octet-stream"),
         "X-Content-Type-Options": "nosniff",
       });
       res.send(fields.content);
-    } else if (fields.markdown !== undefined)
-      res.type("text/markdown").send(fields.markdown);
-    else res.json(result);
+    } else if (fields.markdown === undefined) res.json(result);
+    else res.type("text/markdown").send(fields.markdown);
   });
 }

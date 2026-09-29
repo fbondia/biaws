@@ -1,17 +1,11 @@
 import { bootstrapUserId } from "./bootstrapTypes.js";
-import type {
-  BootstrapRecord,
-  BootstrapDatabase,
-  BootstrapAgentAuth,
-} from "./bootstrapTypes.js";
+import type { BootstrapRecord, BootstrapDatabase, BootstrapAgentAuth } from "./bootstrapTypes.js";
 import type { getServerConfig } from "../config.js";
 import { defaultKeyHasher } from "@better-auth/api-key";
 
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 
-function apiKeyRateLimitFields(
-  rateLimit: ReturnType<typeof getServerConfig>["rateLimit"]["apiKey"],
-) {
+function apiKeyRateLimitFields(rateLimit: ReturnType<typeof getServerConfig>["rateLimit"]["apiKey"]) {
   return {
     rateLimitEnabled: rateLimit.enabled,
     rateLimitTimeWindow: rateLimit.windowSeconds * 1_000,
@@ -45,15 +39,15 @@ export async function bootstrapAgent({
   log?: (value: string) => void;
 }) {
   const normalizedEmail = email.toLowerCase();
-  let user: BootstrapRecord | null = await database
-    .collection(COLLECTION_NAMES.AUTH_USERS)
-    .findOne({
-      email: normalizedEmail,
-      banned: { $ne: true },
-    });
+  let user: BootstrapRecord | null = await database.collection(COLLECTION_NAMES.AUTH_USERS).findOne({
+    email: normalizedEmail,
+    banned: { $ne: true },
+  });
   let created = false;
 
-  if (!user) {
+  if (user) {
+    log(`Technical agent identity already exists: ${user.email}`);
+  } else {
     const result = await auth.api.createUser({
       body: {
         email: normalizedEmail,
@@ -65,8 +59,6 @@ export async function bootstrapAgent({
     user = result.user;
     created = true;
     log(`Technical agent identity created: ${user.email}`);
-  } else {
-    log(`Technical agent identity already exists: ${user.email}`);
   }
 
   const userId = bootstrapUserId(user);
@@ -81,13 +73,10 @@ export async function bootstrapAgent({
       referenceId: userId,
       enabled: { $ne: false },
     });
-    const hasExpired =
-      storedApiKey?.expiresAt &&
-      new Date(storedApiKey.expiresAt).getTime() <= Date.now();
+    const hasExpired = storedApiKey?.expiresAt && new Date(storedApiKey.expiresAt).getTime() <= Date.now();
 
     if (storedApiKey && !hasExpired) {
-      if (!apiKeys.updateOne)
-        throw new Error("API key collection does not support updateOne");
+      if (!apiKeys.updateOne) throw new Error("API key collection does not support updateOne");
       await apiKeys.updateOne(
         { _id: storedApiKey._id },
         {

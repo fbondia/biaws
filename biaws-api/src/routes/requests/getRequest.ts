@@ -8,9 +8,7 @@ export function registerGetRequest(router: Router) {
     "/:id",
     requireAllPermissions("demands.read"),
     asyncHandler(async (req: Request, res: Response) => {
-      res.json(
-        await getRequest(req.params.id, scopedQuery(req, "demands.read")),
-      );
+      res.json(await getRequest(req.params.id, scopedQuery(req, "demands.read")));
     }),
   );
 }

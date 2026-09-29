@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { Db, ObjectId } from "mongodb";
 import type { RequestDocument } from "../../types/requests.js";
 import type { RepositoryQuery } from "../../types/http.js";
@@ -24,26 +25,15 @@ import { getPagination } from "../../helpers/query.js";
 import { getMongoDatabase } from "../../helpers/mongoClient.js";
 import { buildKnowledgeContextFilter } from "../shared/knowledgeContext.js";
 
-export async function readRequestById(
-  db: Db,
-  requestId: ObjectId,
-  query: RepositoryQuery = {},
-) {
+export async function readRequestById(db: Db, requestId: ObjectId, query: RepositoryQuery = {}) {
   await loadRequestOptions(db, query);
-  const request = await db
-    .collection<RequestDocument>(REQUESTS_COLLECTION)
-    .findOne(requestFilter(requestId, query));
+  const request = await db.collection<RequestDocument>(REQUESTS_COLLECTION).findOne(requestFilter(requestId, query));
 
   if (!request) return null;
 
   await migrateLegacyNotes(db, [request]);
 
-  const [
-    journeyPeriodsByRequestId,
-    specificationByRequestId,
-    notesByRequestId,
-    tasksByRequestId,
-  ] = await Promise.all([
+  const [journeyPeriodsByRequestId, specificationByRequestId, notesByRequestId, tasksByRequestId] = await Promise.all([
     readJourneyPeriods(db, [requestId]),
     readSpecifications(db, [requestId]),
     readNotes(db, [requestId]),
@@ -58,10 +48,7 @@ export async function readRequestById(
   );
 }
 
-export async function getRequest(
-  requestIdValue: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function getRequest(requestIdValue: string | string[], query: RepositoryQuery = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const requestId = await requestReferenceId(db, requestIdValue, query);
   return { request: await readRequestById(db, requestId, query) };
@@ -78,10 +65,9 @@ export async function listRequests(query: RepositoryQuery = {}) {
   if (clientCode) filter.clientCode = clientCode;
   if (Object.hasOwn(query, "collectionId")) {
     const collectionId = readString(query.collectionId).trim();
-    filter.collectionId =
-      collectionId === "__root__" ? { $in: ["", null] } : collectionId;
+    filter.collectionId = collectionId === "__root__" ? { $in: ["", null] } : collectionId;
   }
-  const requestedStatuses = String(query.status || "")
+  const requestedStatuses = textValue(query.status || "")
     .split(",")
     .map((status) => status.trim())
     .filter(Boolean);
@@ -89,8 +75,7 @@ export async function listRequests(query: RepositoryQuery = {}) {
     const validStatuses = [...new Set(requestedStatuses)].filter((status) =>
       requestOptions.allRequestStatusOptions.includes(status),
     );
-    filter.status =
-      validStatuses.length === 1 ? validStatuses[0] : { $in: validStatuses };
+    filter.status = validStatuses.length === 1 ? validStatuses[0] : { $in: validStatuses };
   }
   const pagination = getPagination(query);
   const [requests, total] = await Promise.all([
@@ -105,12 +90,7 @@ export async function listRequests(query: RepositoryQuery = {}) {
   ]);
   await migrateLegacyNotes(db, requests);
   const requestIds = requests.map((request) => request._id);
-  const [
-    journeyPeriodsByRequestId,
-    specificationByRequestId,
-    notesByRequestId,
-    tasksByRequestId,
-  ] = await Promise.all([
+  const [journeyPeriodsByRequestId, specificationByRequestId, notesByRequestId, tasksByRequestId] = await Promise.all([
     readJourneyPeriods(db, requestIds),
     readSpecifications(db, requestIds),
     readNotes(db, requestIds),
@@ -154,7 +134,7 @@ export async function listRequestCollectionItems(query: RepositoryQuery = {}) {
   await ensureRequestListRanks(db);
 
   const filter = buildKnowledgeContextFilter(query);
-  const requestedStatuses = String(query.status || "")
+  const requestedStatuses = textValue(query.status || "")
     .split(",")
     .map((status) => status.trim())
     .filter(Boolean);
@@ -162,8 +142,7 @@ export async function listRequestCollectionItems(query: RepositoryQuery = {}) {
     const validStatuses = [...new Set(requestedStatuses)].filter((status) =>
       requestOptions.allRequestStatusOptions.includes(status),
     );
-    filter.status =
-      validStatuses.length === 1 ? validStatuses[0] : { $in: validStatuses };
+    filter.status = validStatuses.length === 1 ? validStatuses[0] : { $in: validStatuses };
   }
 
   const items = await db

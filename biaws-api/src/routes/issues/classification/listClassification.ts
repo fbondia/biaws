@@ -7,18 +7,9 @@ export function registerListClassification(router: Router) {
   router.get(
     "/:id/classification",
     requireAllPermissions("issues.read"),
-    createResourceReadHandler(
-      "issue",
-      "issues.read",
-      async (req: Request, query: {} | undefined) => {
-        const result = await readIssueResource(
-          req.params.id,
-          "classification",
-          req.params,
-          query,
-        );
-        return result;
-      },
-    ),
+    createResourceReadHandler("issue", "issues.read", async (req: Request, query: {} | undefined) => {
+      const result = await readIssueResource(req.params.id, "classification", req.params, query);
+      return result;
+    }),
   );
 }

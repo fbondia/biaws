@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  compareSemver,
-  normalizeSkillPayload,
-  skillReplicationPayload,
-} from "../../src/repositories/skills/index.js";
+import { compareSemver, normalizeSkillPayload, skillReplicationPayload } from "../../src/repositories/skills/index.js";
 
 test("normalizes a versioned skill package and calculates checksums", () => {
   const skill = normalizeSkillPayload({
@@ -87,4 +83,18 @@ test("skill replication copies the package without operational metadata", () => 
     dependencies: { tools: ["biaws"] },
     files: [{ path: "SKILL.md", contentBase64: "Y29udGVudA==" }],
   });
+});
+
+test("semantic versions reject leading zeroes and empty prerelease segments", () => {
+  const payload = {
+    skillId: "biaws-example",
+    description: "Example skill",
+    files: [{ path: "SKILL.md", content: "example" }],
+  };
+  for (const version of ["01.2.3", "1.02.3", "1.2.03", "1.2.3-alpha..1", "1.2.3-", "1.2.3-alpha."]) {
+    assert.throws(() => normalizeSkillPayload({ ...payload, version }), /version/u);
+  }
+  for (const version of ["0.0.0", "1.2.3-alpha.1", "10.20.30"]) {
+    assert.equal(normalizeSkillPayload({ ...payload, version }).version, version);
+  }
 });

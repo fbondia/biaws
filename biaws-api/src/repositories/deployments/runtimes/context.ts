@@ -30,14 +30,12 @@ export async function validateRuntimeDocuments(
   if (!runtime.documentLinks.length) return;
   const { db } = await getTopologyCollections();
   const documentIds = runtime.documentLinks.map(({ documentId }) => documentId);
-  const matched = await db
-    .collection(COLLECTION_NAMES.DOCUMENTS)
-    .countDocuments({
-      id: { $in: documentIds },
-      workspaceId: deployment.workspaceId,
-      applicationId: { $in: [deployment.applicationId, null] },
-      status: { $ne: "archived" },
-    });
+  const matched = await db.collection(COLLECTION_NAMES.DOCUMENTS).countDocuments({
+    id: { $in: documentIds },
+    workspaceId: deployment.workspaceId,
+    applicationId: { $in: [deployment.applicationId, null] },
+    status: { $ne: "archived" },
+  });
   if (matched !== documentIds.length) {
     throw createCatalogError(
       422,

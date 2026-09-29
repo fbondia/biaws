@@ -20,24 +20,14 @@ const actor = {
 test("home catalog starts with extensible configured widget definitions", () => {
   assert.deepEqual(
     HOME_WIDGET_CATALOG.map(({ id }) => id),
-    [
-      "issues-period",
-      "open-issues-by-application",
-      "open-issues-by-type",
-      "pending-tasks",
-      "application-health",
-    ],
+    ["issues-period", "open-issues-by-application", "open-issues-by-type", "pending-tasks", "application-health"],
   );
-  const monitoring = HOME_WIDGET_CATALOG.find(
-    ({ id }) => id === "application-health",
-  );
+  const monitoring = HOME_WIDGET_CATALOG.find(({ id }) => id === "application-health");
   assert.ok(monitoring);
   assert.equal(monitoring.configuration.fields[0].type, "application");
   assert.equal(monitoring.configuration.fields[1].key, "environment");
   assert.equal(monitoring.configuration.fields[1].type, "select");
-  const presentationField = monitoring.configuration.fields.find(
-    ({ key }) => key === "presentation",
-  );
+  const presentationField = monitoring.configuration.fields.find(({ key }) => key === "presentation");
   assert.ok(presentationField?.options);
   assert.deepEqual(
     presentationField.options.map(({ value }) => value),
@@ -349,17 +339,10 @@ test("application health filters runtimes by deployment environment", () => {
     { id: "deployment-test", environment: "test" },
   ];
   assert.deepEqual(
-    filterRuntimesByDeploymentEnvironment(
-      runtimes,
-      deployments,
-      "production",
-    ).map(({ id }) => id),
+    filterRuntimesByDeploymentEnvironment(runtimes, deployments, "production").map(({ id }) => id),
     ["runtime-production"],
   );
-  assert.equal(
-    filterRuntimesByDeploymentEnvironment(runtimes, deployments).length,
-    2,
-  );
+  assert.equal(filterRuntimesByDeploymentEnvironment(runtimes, deployments).length, 2);
 });
 
 test("application health groups only monitored runtimes with topology and server", () => {
@@ -454,12 +437,6 @@ test("application health groups only monitored runtimes with topology and server
   assert.equal(runtime.latestSignal.metadata.disk_usage_percent, 72.5);
   assert.equal(runtime.latestSignal.metadataProfile, "sgmp-health/v1");
   assert.ok(runtime.latestSignal.metadataPresentation);
-  assert.equal(
-    runtime.latestSignal.metadataPresentation.label,
-    "Saúde configurável",
-  );
-  assert.equal(
-    runtime.latestSignal.metadataPresentation.fields[0].format,
-    "percent",
-  );
+  assert.equal(runtime.latestSignal.metadataPresentation.label, "Saúde configurável");
+  assert.equal(runtime.latestSignal.metadataPresentation.fields[0].format, "percent");
 });

@@ -1,37 +1,19 @@
-import type {
-  TaskDocument,
-  KnowledgeContext,
-} from "../../../types/requests.js";
-import {
-  readString,
-  createHttpError,
-  assertDate,
-  dateInputValue,
-} from "../support.js";
+import type { TaskDocument, KnowledgeContext } from "../../../types/requests.js";
+import { readString, createHttpError, assertDate, dateInputValue } from "../support.js";
 import { requestOptions } from "../options.js";
 import { normalizeNoteDocument } from "../notes/normalization.js";
 
-export function normalizeTaskPayload(
-  payload: Record<string, unknown> = {},
-  allowedHistoricalStatus = "",
-) {
+export function normalizeTaskPayload(payload: Record<string, unknown> = {}, allowedHistoricalStatus = "") {
   const title = readString(payload.title).trim();
   const status =
-    readString(payload.status, requestOptions.defaultTaskStatus).trim() ||
-    requestOptions.defaultTaskStatus;
+    readString(payload.status, requestOptions.defaultTaskStatus).trim() || requestOptions.defaultTaskStatus;
   const startDate = readString(payload.startDate).trim();
   const endDate = readString(payload.endDate).trim();
 
   if (!title) {
-    throw createHttpError(
-      422,
-      "Invalid request payload: task.title is required",
-    );
+    throw createHttpError(422, "Invalid request payload: task.title is required");
   }
-  if (
-    !requestOptions.taskStatusOptions.includes(status) &&
-    status !== allowedHistoricalStatus
-  ) {
+  if (!requestOptions.taskStatusOptions.includes(status) && status !== allowedHistoricalStatus) {
     throw createHttpError(
       422,
       `Invalid request payload: task.status must be one of ${requestOptions.taskStatusOptions.join(", ")}`,
@@ -40,10 +22,7 @@ export function normalizeTaskPayload(
   assertDate(startDate, "task.startDate");
   assertDate(endDate, "task.endDate");
   if (startDate && endDate && endDate < startDate) {
-    throw createHttpError(
-      422,
-      "Invalid request payload: task.endDate must be on or after task.startDate",
-    );
+    throw createHttpError(422, "Invalid request payload: task.endDate must be on or after task.startDate");
   }
 
   return {
@@ -58,14 +37,10 @@ export function normalizeTaskPayload(
   };
 }
 
-export function normalizeTaskDocument(
-  document: TaskDocument,
-  context: Partial<KnowledgeContext> = {},
-) {
+export function normalizeTaskDocument(document: TaskDocument, context: Partial<KnowledgeContext> = {}) {
   return {
     id: document._id?.toString?.() ?? String(document._id),
-    requestId:
-      document.requestId?.toString?.() ?? String(document.requestId || ""),
+    requestId: document.requestId?.toString?.() ?? String(document.requestId || ""),
     code: document.code || "",
     title: document.title || "",
     status: requestOptions.allTaskStatusOptions.includes(document.status || "")
@@ -76,9 +51,7 @@ export function normalizeTaskDocument(
     situation: document.situation || "",
     description: document.description || "",
     specification: document.specification || "",
-    notes: Array.isArray(document.notes)
-      ? document.notes.map(normalizeNoteDocument)
-      : [],
+    notes: Array.isArray(document.notes) ? document.notes.map(normalizeNoteDocument) : [],
     ...context,
     createdAt: document.createdAt || null,
     updatedAt: document.updatedAt || null,

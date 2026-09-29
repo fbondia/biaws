@@ -1,12 +1,9 @@
+import { textValue } from "../../helpers/text.js";
 import type { StoredKnowledgeDocument } from "../../types/documents.js";
 import type { UpdateFilter } from "mongodb";
 import { isRecord } from "../../helpers/records.js";
 import type { RepositoryQuery } from "../../types/http.js";
-import {
-  normalizeDocumentPayload,
-  normalizeStoredDocument,
-  restoredDocumentStatus,
-} from "./normalization.js";
+import { normalizeDocumentPayload, normalizeStoredDocument, restoredDocumentStatus } from "./normalization.js";
 import { documentTypeConfig } from "./types.js";
 import { ensureIndexes } from "./indexes.js";
 import { validateDetailsContext } from "./context.js";
@@ -25,27 +22,20 @@ import {
 import { assertResourceCollection } from "../resourceCollections/queries.js";
 import { assertTaxonomyIdsApplicable } from "../../helpers/taxonomy.js";
 
-export async function createDocument(
-  payload: Record<string, unknown> = {},
-  query: RepositoryQuery = {},
-) {
+export async function createDocument(payload: Record<string, unknown> = {}, query: RepositoryQuery = {}) {
   const normalized = normalizeDocumentPayload(payload);
   const config = documentTypeConfig(normalized.documentType);
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   await ensureIndexes(db);
   const context = await resolveKnowledgeContext(db, payload, null, {
-    applicationRequired:
-      query.allowWorkspaceContext === true ? false : config.applicationRequired,
+    applicationRequired: query.allowWorkspaceContext === true ? false : config.applicationRequired,
     authorizationScope: query.authorizationScope,
     create: true,
   });
   validateDetailsContext(normalized, context);
   await assertTaxonomyIdsApplicable(
     db,
-    [
-      normalized.classification.primaryTaxonomyId,
-      ...normalized.classification.secondaryTaxonomyIds,
-    ],
+    [normalized.classification.primaryTaxonomyId, ...normalized.classification.secondaryTaxonomyIds],
     context.workspaceId,
     context.applicationId,
   );
@@ -55,12 +45,7 @@ export async function createDocument(
     context.workspaceId,
     query,
   );
-  await validateReferences(
-    db,
-    normalized.references,
-    context.workspaceId,
-    query.authorizationScope,
-  );
+  await validateReferences(db, normalized.references, context.workspaceId, query.authorizationScope);
   const now = new Date();
   const document = {
     id: randomUUID(),
@@ -68,21 +53,14 @@ export async function createDocument(
     ...normalized,
     attachments: [],
     createdAt: now,
-    createdBy: String(payload.createdBy || "biaws-api"),
+    createdBy: textValue(payload.createdBy || "biaws-api"),
     updatedAt: now,
-    updatedBy: String(payload.createdBy || "biaws-api"),
+    updatedBy: textValue(payload.createdBy || "biaws-api"),
   };
   try {
-    await db
-      .collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS)
-      .insertOne(document);
+    await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).insertOne(document);
   } catch (error) {
-    if (
-      isRecord(error) &&
-      error.code === 11000 &&
-      isRecord(error.keyPattern) &&
-      error.keyPattern.identifier
-    ) {
+    if (isRecord(error) && error.code === 11000 && isRecord(error.keyPattern) && error.keyPattern.identifier) {
       throw httpError(
         409,
         "DOCUMENT_IDENTIFIER_CONFLICT",
@@ -103,11 +81,8 @@ export async function updateDocument(
   id = (await requireDocument(id, query)).id;
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const filter = { id: String(id), ...buildKnowledgeContextFilter(query) };
-  const current = await db
-    .collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS)
-    .findOne(filter);
-  if (!current)
-    throw httpError(404, "DOCUMENT_NOT_FOUND", "Documento não encontrado");
+  const current = await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).findOne(filter);
+  if (!current) throw httpError(404, "DOCUMENT_NOT_FOUND", "Documento não encontrado");
   const normalized = normalizeDocumentPayload(payload, current);
   const config = documentTypeConfig(normalized.documentType);
   const context = knowledgeContextWasProvided(payload)
@@ -123,10 +98,7 @@ export async function updateDocument(
   validateDetailsContext(normalized, context);
   await assertTaxonomyIdsApplicable(
     db,
-    [
-      normalized.classification.primaryTaxonomyId,
-      ...normalized.classification.secondaryTaxonomyIds,
-    ],
+    [normalized.classification.primaryTaxonomyId, ...normalized.classification.secondaryTaxonomyIds],
     context.workspaceId,
     context.applicationId,
   );
@@ -136,28 +108,15 @@ export async function updateDocument(
     context.workspaceId,
     query,
   );
-  await validateReferences(
-    db,
-    normalized.references,
-    context.workspaceId,
-    query.authorizationScope,
-    String(id),
-  );
+  await validateReferences(db, normalized.references, context.workspaceId, query.authorizationScope, String(id));
   const updatedAt = new Date();
-  const updatedBy = String(payload.updatedBy || "biaws-api");
+  const updatedBy = textValue(payload.updatedBy || "biaws-api");
   try {
-    await db
-      .collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS)
-      .updateOne(filter, {
-        $set: { ...context, ...normalized, updatedAt, updatedBy },
-      });
+    await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).updateOne(filter, {
+      $set: { ...context, ...normalized, updatedAt, updatedBy },
+    });
   } catch (error) {
-    if (
-      isRecord(error) &&
-      error.code === 11000 &&
-      isRecord(error.keyPattern) &&
-      error.keyPattern.identifier
-    ) {
+    if (isRecord(error) && error.code === 11000 && isRecord(error.keyPattern) && error.keyPattern.identifier) {
       throw httpError(
         409,
         "DOCUMENT_IDENTIFIER_CONFLICT",
@@ -166,19 +125,12 @@ export async function updateDocument(
     }
     throw error;
   }
-  const document = await db
-    .collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS)
-    .findOne({
-      id: String(id),
-      workspaceId: current.workspaceId,
-    });
+  const document = await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).findOne({
+    id: String(id),
+    workspaceId: current.workspaceId,
+  });
   if (!document) throw new Error("Updated document is unavailable");
-  await appendRevision(
-    db,
-    document,
-    updatedBy,
-    String(payload.changeSummary || "Documento atualizado"),
-  );
+  await appendRevision(db, document, updatedBy, textValue(payload.changeSummary || "Documento atualizado"));
   return {
     meta: { database: db.databaseName, collection: COLLECTION_NAMES.DOCUMENTS },
     document: normalizeStoredDocument(document),
@@ -206,16 +158,14 @@ export async function archiveDocument(
       db: query.db,
       database: query.database,
     });
-    await db
-      .collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS)
-      .updateOne(
-        {
-          id: String(id),
-          workspaceId: current.workspaceId,
-          status: "archived",
-        },
-        { $set: { archivedFromStatus: current.status } },
-      );
+    await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).updateOne(
+      {
+        id: String(id),
+        workspaceId: current.workspaceId,
+        status: "archived",
+      },
+      { $set: { archivedFromStatus: current.status } },
+    );
   }
   return result;
 }
@@ -241,35 +191,23 @@ export async function restoreDocument(
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   await db
     .collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS)
-    .updateOne(
-      { id: String(id), workspaceId: current.workspaceId },
-      { $unset: { archivedFromStatus: "" } },
-    );
+    .updateOne({ id: String(id), workspaceId: current.workspaceId }, { $unset: { archivedFromStatus: "" } });
   if (!result.document) throw new Error("Restored document is unavailable");
   delete result.document.archivedFromStatus;
   return result;
 }
 
-export async function deleteDocument(
-  id: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function deleteDocument(id: string | string[], query: RepositoryQuery = {}) {
   id = (await requireDocument(id, query)).id;
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   await ensureIndexes(db);
   const filter = { id: String(id), ...buildKnowledgeContextFilter(query) };
-  const document = await db
-    .collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS)
-    .findOne(filter);
+  const document = await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).findOne(filter);
   if (!document) {
     throw httpError(404, "DOCUMENT_NOT_FOUND", "Documento não encontrado");
   }
   if (document.status !== "archived") {
-    throw httpError(
-      409,
-      "DOCUMENT_NOT_ARCHIVED",
-      "Somente documentos arquivados podem ser excluídos definitivamente",
-    );
+    throw httpError(409, "DOCUMENT_NOT_ARCHIVED", "Somente documentos arquivados podem ser excluídos definitivamente");
   }
 
   const result = await db
@@ -288,17 +226,15 @@ export async function deleteDocument(
       entityType: "document",
       entityId: String(id),
     }),
-    db
-      .collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS)
-      .updateMany(
-        {
-          workspaceId: document.workspaceId,
-          "references.targetDocumentId": String(id),
-        },
-        {
-          $pull: { references: { targetDocumentId: String(id) } },
-        } as unknown as UpdateFilter<StoredKnowledgeDocument>,
-      ),
+    db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).updateMany(
+      {
+        workspaceId: document.workspaceId,
+        "references.targetDocumentId": String(id),
+      },
+      {
+        $pull: { references: { targetDocumentId: String(id) } },
+      } as unknown as UpdateFilter<StoredKnowledgeDocument>,
+    ),
   ]);
 
   return {

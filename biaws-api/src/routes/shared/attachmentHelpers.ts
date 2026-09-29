@@ -20,15 +20,15 @@ export const asyncHandler = createReferenceHandler(
     })[req.baseUrl],
 );
 
-export function rootDocument(
-  result: Record<string, unknown> | null | undefined,
-  entityType: string,
-) {
-  const key =
-    entityType === "requests"
-      ? "request"
-      : entityType === "issues"
-        ? "issue"
-        : "document";
+export function rootDocument(result: Record<string, unknown> | null | undefined, entityType: string) {
+  let key;
+  if (entityType === "requests") {
+    key = "request";
+  } else if (entityType === "issues") {
+    key = "issue";
+  } else {
+    key = "document";
+  }
+
   return result?.[key];
 }

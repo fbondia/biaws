@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  normalizeChecklist,
-  normalizeJourneyPeriods,
-} from "../../src/repositories/requests/index.js";
+import { normalizeChecklist, normalizeJourneyPeriods } from "../../src/repositories/requests/index.js";
 
 test("checklist defaults are only added when the field is omitted", () => {
   assert.ok(normalizeChecklist(undefined).length > 0);

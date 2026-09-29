@@ -4,15 +4,8 @@ import { validateDeploymentRelationships } from "./context.js";
 import { getDeployment } from "./queries.js";
 import { randomUUID } from "node:crypto";
 import { DEPLOYMENT_STATUSES } from "../../../../shared/index.js";
-import {
-  actorId,
-  archiveFields,
-  createBaseDocument,
-} from "../shared/topology/lifecycle.js";
-import {
-  createCatalogError,
-  duplicateKeyError,
-} from "../shared/topology/errors.js";
+import { actorId, archiveFields, createBaseDocument } from "../shared/topology/lifecycle.js";
+import { createCatalogError, duplicateKeyError } from "../shared/topology/errors.js";
 import { getTopologyCollections } from "../shared/topology/storage.js";
 import { normalizeDocument } from "../shared/topology/normalization.js";
 import { requireOperationalApplication } from "../shared/topology/context.js";
@@ -41,11 +34,7 @@ export async function createDeployment(
   try {
     await deployments.insertOne(document);
   } catch (error) {
-    duplicateKeyError(
-      error,
-      "DEPLOYMENT_KEY_CONFLICT",
-      "A deployment with this key already exists in the application",
-    );
+    duplicateKeyError(error, "DEPLOYMENT_KEY_CONFLICT", "A deployment with this key already exists in the application");
   }
   return normalizeDocument(document);
 }
@@ -57,26 +46,15 @@ export async function updateDeployment(
 ) {
   const current = await getDeployment(deploymentId);
   if (!current) {
-    throw createCatalogError(
-      404,
-      "DEPLOYMENT_NOT_FOUND",
-      "Deployment not found",
-    );
+    throw createCatalogError(404, "DEPLOYMENT_NOT_FOUND", "Deployment not found");
   }
   if (current.status === "archived") {
-    throw createCatalogError(
-      409,
-      "DEPLOYMENT_ARCHIVED",
-      "Deployment is archived",
-    );
+    throw createCatalogError(409, "DEPLOYMENT_ARCHIVED", "Deployment is archived");
   }
-  const application = await requireOperationalApplication(
-    current.applicationId,
-    {
-      active: true,
-      workspaceId: current.workspaceId,
-    },
-  );
+  const application = await requireOperationalApplication(current.applicationId, {
+    active: true,
+    workspaceId: current.workspaceId,
+  });
   const normalized = normalizeDeploymentInput(payload, current, actor);
   await validateDeploymentRelationships(application, normalized);
   const { deployments } = await getTopologyCollections();
@@ -98,11 +76,7 @@ export async function updateDeployment(
       },
     );
   } catch (error) {
-    duplicateKeyError(
-      error,
-      "DEPLOYMENT_KEY_CONFLICT",
-      "A deployment with this key already exists in the application",
-    );
+    duplicateKeyError(error, "DEPLOYMENT_KEY_CONFLICT", "A deployment with this key already exists in the application");
   }
   if (!result.matchedCount) {
     throw createCatalogError(
@@ -114,17 +88,10 @@ export async function updateDeployment(
   return getDeployment(current.id);
 }
 
-export async function archiveDeployment(
-  deploymentId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function archiveDeployment(deploymentId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getDeployment(deploymentId);
   if (!current) {
-    throw createCatalogError(
-      404,
-      "DEPLOYMENT_NOT_FOUND",
-      "Deployment not found",
-    );
+    throw createCatalogError(404, "DEPLOYMENT_NOT_FOUND", "Deployment not found");
   }
   if (current.status === "archived") return current;
   const { deployments, runtimes } = await getTopologyCollections();
@@ -135,11 +102,7 @@ export async function archiveDeployment(
     status: { $ne: "archived" },
   });
   if (activeRuntimes) {
-    throw createCatalogError(
-      409,
-      "DEPLOYMENT_IN_USE",
-      "Archive all runtimes before archiving the deployment",
-    );
+    throw createCatalogError(409, "DEPLOYMENT_IN_USE", "Archive all runtimes before archiving the deployment");
   }
   await deployments.updateOne(
     {
@@ -153,25 +116,16 @@ export async function archiveDeployment(
   return getDeployment(current.id);
 }
 
-export async function restoreDeployment(
-  deploymentId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function restoreDeployment(deploymentId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getDeployment(deploymentId);
-  if (!current)
-    throw createCatalogError(
-      404,
-      "DEPLOYMENT_NOT_FOUND",
-      "Deployment not found",
-    );
+  if (!current) throw createCatalogError(404, "DEPLOYMENT_NOT_FOUND", "Deployment not found");
   if (current.status !== "archived") return current;
   await requireOperationalApplication(current.applicationId, {
     workspaceId: current.workspaceId,
     active: true,
   });
   const restoredStatus =
-    DEPLOYMENT_STATUSES.includes(current.archivedFromStatus || "") &&
-    current.archivedFromStatus !== "archived"
+    DEPLOYMENT_STATUSES.includes(current.archivedFromStatus || "") && current.archivedFromStatus !== "archived"
       ? current.archivedFromStatus
       : "inactive";
   const { deployments } = await getTopologyCollections();
@@ -191,39 +145,21 @@ export async function restoreDeployment(
 
 export async function deleteDeployment(deploymentId: string | string[]) {
   const current = await getDeployment(deploymentId);
-  if (!current)
-    throw createCatalogError(
-      404,
-      "DEPLOYMENT_NOT_FOUND",
-      "Deployment not found",
-    );
+  if (!current) throw createCatalogError(404, "DEPLOYMENT_NOT_FOUND", "Deployment not found");
   if (current.status !== "archived")
-    throw createCatalogError(
-      409,
-      "DEPLOYMENT_NOT_ARCHIVED",
-      "Only archived deployments can be permanently deleted",
-    );
+    throw createCatalogError(409, "DEPLOYMENT_NOT_ARCHIVED", "Only archived deployments can be permanently deleted");
   const { deployments, runtimes } = await getTopologyCollections();
   const runtimeCount = await runtimes.countDocuments(
     { workspaceId: current.workspaceId, deploymentId: current.id },
     { limit: 1 },
   );
   if (runtimeCount)
-    throw createCatalogError(
-      409,
-      "DEPLOYMENT_HAS_DEPENDENCIES",
-      "Exclua os runtimes antes de excluir o deployment",
-    );
+    throw createCatalogError(409, "DEPLOYMENT_HAS_DEPENDENCIES", "Exclua os runtimes antes de excluir o deployment");
   const result = await deployments.deleteOne({
     id: current.id,
     workspaceId: current.workspaceId,
     status: "archived",
   });
-  if (!result.deletedCount)
-    throw createCatalogError(
-      409,
-      "DEPLOYMENT_DELETE_CONFLICT",
-      "Deployment was not deleted",
-    );
+  if (!result.deletedCount) throw createCatalogError(409, "DEPLOYMENT_DELETE_CONFLICT", "Deployment was not deleted");
   return current;
 }

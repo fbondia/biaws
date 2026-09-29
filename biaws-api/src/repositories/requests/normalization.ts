@@ -1,16 +1,7 @@
-import type {
-  ChecklistInput,
-  RequestDocument,
-  NoteDocument,
-  TaskDocument,
-} from "../../types/requests.js";
+import { textValue } from "../../helpers/text.js";
+import type { ChecklistInput, RequestDocument, NoteDocument, TaskDocument } from "../../types/requests.js";
 import { requestOptions } from "./options.js";
-import {
-  readString,
-  assertDate,
-  normalizeStatus,
-  readNumber,
-} from "./support.js";
+import { readString, assertDate, normalizeStatus, readNumber } from "./support.js";
 import { normalizeJourneyPeriods } from "./journeys.js";
 import { normalizeSpecification } from "./specification.js";
 import { normalizeNoteDocument } from "./notes/normalization.js";
@@ -24,10 +15,8 @@ export function normalizeChecklist(items: unknown) {
     : requestOptions.checklistLabels.map((label: string) => ({ label }));
   const byLabel = new Map(sourceItems.map((item) => [item?.label, item]));
   const labels = sourceItems
-    .map((item) => String(item?.label || "").trim())
-    .filter((label: string, index: number, values) =>
-      Boolean(label && values.indexOf(label) === index),
-    );
+    .map((item) => textValue(item?.label || "").trim())
+    .filter((label: string, index: number, values) => Boolean(label && values.indexOf(label) === index));
 
   return labels.map((label: string) => {
     const item = byLabel.get(label) || {};
@@ -44,10 +33,7 @@ export function normalizeChecklist(items: unknown) {
   });
 }
 
-export function normalizeRequestPayload(
-  payload: Record<string, unknown> = {},
-  allowedHistoricalStatus = "",
-) {
+export function normalizeRequestPayload(payload: Record<string, unknown> = {}, allowedHistoricalStatus = "") {
   const title = readString(payload.title).trim();
   const estimatedDeliveryDate = readString(payload.estimatedDeliveryDate);
   const startDate = readString(payload.startDate);
@@ -65,19 +51,12 @@ export function normalizeRequestPayload(
       estimatedDeliveryDate,
       startDate,
       endDate,
-      estimatedJourneys: readNumber(
-        payload.estimatedJourneys,
-        "estimatedJourneys",
-      ),
+      estimatedJourneys: readNumber(payload.estimatedJourneys, "estimatedJourneys"),
       description: readString(payload.description),
       collectionId: readString(payload.collectionId).trim(),
       checklist: normalizeChecklist(payload.checklist),
     },
-    journeys: normalizeJourneyPeriods(
-      payload.journeys ?? payload.billing,
-      startDate,
-      endDate,
-    ),
+    journeys: normalizeJourneyPeriods(payload.journeys ?? payload.billing, startDate, endDate),
     specification: normalizeSpecification(payload.specification),
   };
 }
@@ -96,9 +75,7 @@ function normalizeRequestDocumentValue(
     id: document._id?.toString?.() ?? String(document._id),
     clientCode: document.clientCode || "",
     title: document.title || "",
-    status: requestOptions.allRequestStatusOptions.includes(
-      document.status || "",
-    )
+    status: requestOptions.allRequestStatusOptions.includes(document.status || "")
       ? document.status
       : requestOptions.defaultRequestStatus,
     estimatedDeliveryDate: document.estimatedDeliveryDate || "",
@@ -110,15 +87,9 @@ function normalizeRequestDocumentValue(
     notes: notes.map(normalizeNoteDocument),
     tasks: tasks.map((task) => normalizeTaskDocument(task, context)),
     checklist: normalizeChecklist(document.checklist),
-    journeys: normalizeJourneyPeriods(
-      journeys,
-      document.startDate || "",
-      document.endDate || "",
-    ),
+    journeys: normalizeJourneyPeriods(journeys, document.startDate || "", document.endDate || ""),
     specification: normalizeSpecification(specification),
-    attachments: Array.isArray(document.attachments)
-      ? document.attachments
-      : [],
+    attachments: Array.isArray(document.attachments) ? document.attachments : [],
     ...context,
     listRank: requestListRank(document),
     createdAt: document.createdAt || null,

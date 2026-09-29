@@ -7,18 +7,9 @@ export function registerListChecklist(router: Router) {
   router.get(
     "/:id/checklist",
     requireAllPermissions("demands.read"),
-    createResourceReadHandler(
-      "demand",
-      "demands.read",
-      async (req: Request, query: {} | undefined) => {
-        const result = await readRequestResource(
-          req.params.id,
-          "checklist",
-          req.params,
-          query,
-        );
-        return result;
-      },
-    ),
+    createResourceReadHandler("demand", "demands.read", async (req: Request, query: {} | undefined) => {
+      const result = await readRequestResource(req.params.id, "checklist", req.params, query);
+      return result;
+    }),
   );
 }

@@ -1,16 +1,10 @@
 import { executorScopeFilter } from "./support.js";
 import { activeMonitorCollection } from "../storage.js";
-import type {
-  ActiveMonitorDocument,
-  MonitorLease,
-} from "../../../../types/monitoring.js";
+import type { ActiveMonitorDocument, MonitorLease } from "../../../../types/monitoring.js";
 import type { AuthorizationScope } from "../../../../types/http.js";
 import { isRecord } from "../../../../helpers/records.js";
 import { createCatalogError } from "../../../shared/topology/errors.js";
-import {
-  normalizeDocument,
-  requiredText,
-} from "../../../shared/topology/normalization.js";
+import { normalizeDocument, requiredText } from "../../../shared/topology/normalization.js";
 
 export async function claimActiveMonitorResult(
   leaseToken: string | string[],
@@ -27,20 +21,13 @@ export async function claimActiveMonitorResult(
       archivedAt: { $exists: false },
       "lease.token": String(leaseToken),
       "lease.executorId": requiredText(executorId, "executorId", 160),
-      $or: [
-        { "lease.leasedUntil": { $gt: now } },
-        { "lease.completedAt": { $exists: true } },
-      ],
+      $or: [{ "lease.leasedUntil": { $gt: now } }, { "lease.completedAt": { $exists: true } }],
     },
     { $set: { "lease.publishingAt": now, updatedAt: now } },
     { returnDocument: "after" },
   );
   if (!monitor?.lease) {
-    throw createCatalogError(
-      409,
-      "ACTIVE_MONITOR_LEASE_LOST",
-      "Active monitor lease is no longer valid",
-    );
+    throw createCatalogError(409, "ACTIVE_MONITOR_LEASE_LOST", "Active monitor lease is no longer valid");
   }
   return normalizeDocument(monitor) as ActiveMonitorDocument & {
     lease: MonitorLease;
@@ -58,11 +45,7 @@ export async function completeActiveMonitorExecution(
     typeof event.status !== "string" ||
     !(event.observedAt instanceof Date)
   ) {
-    throw createCatalogError(
-      422,
-      "INVALID_MONITORING_EVENT",
-      "Completed monitoring event is invalid",
-    );
+    throw createCatalogError(422, "INVALID_MONITORING_EVENT", "Completed monitoring event is invalid");
   }
   const now = new Date();
   const collection = await activeMonitorCollection();
@@ -89,10 +72,6 @@ export async function completeActiveMonitorExecution(
     },
   );
   if (!result.matchedCount) {
-    throw createCatalogError(
-      409,
-      "ACTIVE_MONITOR_LEASE_LOST",
-      "Active monitor lease changed before completion",
-    );
+    throw createCatalogError(409, "ACTIVE_MONITOR_LEASE_LOST", "Active monitor lease changed before completion");
   }
 }

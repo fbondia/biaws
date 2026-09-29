@@ -29,22 +29,15 @@ test("initial groups use only canonical permissions", () => {
 });
 
 test("monitor executor group has only its execution permission", () => {
-  const executor = INITIAL_PERMISSION_GROUPS.find(
-    ({ id }) => id === "monitor-executor",
-  );
+  const executor = INITIAL_PERMISSION_GROUPS.find(({ id }) => id === "monitor-executor");
   assert.ok(executor);
   assert.deepEqual(executor.permissions, ["monitoring.active.execute"]);
 });
 
 test("administration initial group contains every permission", () => {
-  const administration = INITIAL_PERMISSION_GROUPS.find(
-    ({ id }) => id === "administration",
-  );
+  const administration = INITIAL_PERMISSION_GROUPS.find(({ id }) => id === "administration");
   assert.ok(administration);
-  assert.deepEqual(
-    [...administration.permissions].sort(),
-    PERMISSION_CATALOG.map(({ id }) => id).sort(),
-  );
+  assert.deepEqual([...administration.permissions].sort(), PERMISSION_CATALOG.map(({ id }) => id).sort());
 });
 
 test("system group provisioning preserves edited permission matrices", () => {
@@ -69,18 +62,13 @@ test("system group provisioning preserves edited permission matrices", () => {
 });
 
 test("agent operator excludes administrative and catalog publication permissions", () => {
-  const agent = INITIAL_PERMISSION_GROUPS.find(
-    ({ id }) => id === "agent-operator",
-  );
+  const agent = INITIAL_PERMISSION_GROUPS.find(({ id }) => id === "agent-operator");
   assert.ok(agent);
   assert.ok(agent.permissions.includes("skills.read"));
   assert.ok(agent.permissions.includes("issues.create"));
   for (const domain of ["issues", "demands", "documents"]) {
     for (const operation of ["read", "create", "update", "delete"]) {
-      assert.ok(
-        agent.permissions.includes(`${domain}.attachment.${operation}`),
-        `${domain}.attachment.${operation}`,
-      );
+      assert.ok(agent.permissions.includes(`${domain}.attachment.${operation}`), `${domain}.attachment.${operation}`);
     }
   }
   assert.ok(agent.permissions.includes("tasks.attachment.read"));
@@ -91,17 +79,12 @@ test("agent operator excludes administrative and catalog publication permissions
   assert.ok(!agent.permissions.includes("secrets.value.reveal"));
   assert.ok(
     agent.permissions.every(
-      (permission) =>
-        !["users.", "roles.", "api_keys.", "audit."].some((prefix) =>
-          permission.startsWith(prefix),
-        ),
+      (permission) => !["users.", "roles.", "api_keys.", "audit."].some((prefix) => permission.startsWith(prefix)),
     ),
   );
   assert.ok(
     !agent.permissions.some(
-      (permission) =>
-        permission.endsWith(".archive") ||
-        ["skills.publish", "skills.deprecate"].includes(permission),
+      (permission) => permission.endsWith(".archive") || ["skills.publish", "skills.deprecate"].includes(permission),
     ),
   );
 });
@@ -195,10 +178,7 @@ test("custom group identifier is optional, editable and validated", () => {
     permissions: ["issues.read"],
   });
   assert.equal(group.identifier, "support-team");
-  assert.equal(
-    normalizeGroupInput({ name: "Sem chave", permissions: [] }).identifier,
-    null,
-  );
+  assert.equal(normalizeGroupInput({ name: "Sem chave", permissions: [] }).identifier, null);
   assert.equal(
     normalizeGroupInput(
       {

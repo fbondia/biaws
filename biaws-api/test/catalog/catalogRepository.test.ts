@@ -48,9 +48,7 @@ test("normalizes an application payload without persisting derived names", () =>
 test("rejects invalid application identifiers and accepts identifier changes", () => {
   assert.throws(
     () => normalizeApplicationInput({ key: "Billing API", name: "Billing" }),
-    (error) =>
-      errorCode(error) === "INVALID_CATALOG_KEY" &&
-      errorStatusCode(error) === 422,
+    (error) => errorCode(error) === "INVALID_CATALOG_KEY" && errorStatusCode(error) === 422,
   );
   assert.equal(
     normalizeApplicationInput(
@@ -74,9 +72,7 @@ test("rejects links with embedded credentials and unknown fields", () => {
       normalizeApplicationInput({
         key: "billing",
         name: "Billing",
-        links: [
-          { label: "Private", url: "https://user:secret@example.test/repo" },
-        ],
+        links: [{ label: "Private", url: "https://user:secret@example.test/repo" }],
       }),
     (error) => errorCode(error) === "INVALID_CATALOG_URL",
   );
@@ -100,22 +96,12 @@ test("application filters are workspace-bound and escape search expressions", ()
   assert.equal(keyPattern.test("api.*"), true);
   assert.equal(keyPattern.test("api-anything"), false);
 
-  assert.deepEqual(
-    buildApplicationFilter("workspace-1", { includeArchived: "true" }),
-    { workspaceId: "workspace-1" },
-  );
+  assert.deepEqual(buildApplicationFilter("workspace-1", { includeArchived: "true" }), { workspaceId: "workspace-1" });
 });
 
 test("application filters support assigned and root collections", () => {
-  assert.equal(
-    buildApplicationFilter("workspace-1", { collectionId: "collection-1" })
-      .collectionId,
-    "collection-1",
-  );
-  assert.deepEqual(
-    buildApplicationFilter("workspace-1", { collectionId: "" }).collectionId,
-    { $in: ["", null] },
-  );
+  assert.equal(buildApplicationFilter("workspace-1", { collectionId: "collection-1" }).collectionId, "collection-1");
+  assert.deepEqual(buildApplicationFilter("workspace-1", { collectionId: "" }).collectionId, { $in: ["", null] });
 });
 
 test("permanent application deletion checks every owned and referenced resource", () => {
@@ -139,14 +125,9 @@ test("permanent application deletion checks every owned and referenced resource"
   );
   assert.deepEqual(dependencies[1][2], {
     workspaceId: "workspace-1",
-    $or: [
-      { applicationId: "application-1" },
-      { targetApplicationId: "application-1" },
-    ],
+    $or: [{ applicationId: "application-1" }, { targetApplicationId: "application-1" }],
   });
-  for (const [, , filter] of dependencies.filter(
-    ([label]) => label !== "integrações",
-  )) {
+  for (const [, , filter] of dependencies.filter(([label]) => label !== "integrações")) {
     assert.equal(filter.workspaceId, "workspace-1");
     assert.equal(filter.applicationId, "application-1");
   }

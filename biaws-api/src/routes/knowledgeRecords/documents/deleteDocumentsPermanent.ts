@@ -3,13 +3,7 @@ import { recordAuditEvent } from "../../../repositories/audit/index.js";
 import { deleteDocument } from "../../../repositories/documents/index.js";
 import { deleteStoredAttachments } from "../../../services/attachmentService.js";
 import { knowledgeContextMetadata } from "../../../repositories/shared/knowledgeContext.js";
-import {
-  authorize,
-  query,
-  currentDocument,
-  sendNotFound,
-  asyncHandler,
-} from "../helpers.js";
+import { authorize, query, currentDocument, sendNotFound, asyncHandler } from "../helpers.js";
 
 export function registerDeleteDocumentsPermanent(router: Router) {
   router.delete(
@@ -19,10 +13,7 @@ export function registerDeleteDocumentsPermanent(router: Router) {
       const before = await currentDocument(req, "archive");
       if (!before) return sendNotFound(res);
       const result = await deleteDocument(req.params.id, query(req, "archive"));
-      const attachmentCleanup = await deleteStoredAttachments(
-        "documents",
-        before,
-      );
+      const attachmentCleanup = await deleteStoredAttachments("documents", before);
       await recordAuditEvent({
         actor: req.actor,
         action: "deleted",

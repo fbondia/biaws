@@ -9,12 +9,9 @@ export function registerReplaceUsersGroups(router: Router) {
     requireAllPermissions("users.update", "roles.manage"),
     asyncHandler(async (req: Request, res: Response) => {
       res.json({
-        access: await setUserGroups(
-          String(req.params.userId),
-          req.body.groupIds,
-          req.actor,
-          { workspaceId: req.actor.workspaceId ?? undefined },
-        ),
+        access: await setUserGroups(String(req.params.userId), req.body.groupIds, req.actor, {
+          workspaceId: req.actor.workspaceId ?? undefined,
+        }),
       });
     }),
   );

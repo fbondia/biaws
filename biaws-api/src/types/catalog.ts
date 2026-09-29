@@ -1,5 +1,4 @@
-import type { Document } from "mongodb";
-import type { ObjectId } from "mongodb";
+import type { Document, ObjectId } from "mongodb";
 import type { IssueTypeItem } from "../helpers/issueTypeDetection.js";
 export interface OptionItem {
   value: string;

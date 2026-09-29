@@ -2,15 +2,8 @@ import type { Actor } from "../../types/http.js";
 import { normalizeRepositoryInput } from "./normalization.js";
 import { getRepository } from "./queries.js";
 import { randomUUID } from "node:crypto";
-import {
-  actorId,
-  archiveFields,
-  createBaseDocument,
-} from "../shared/topology/lifecycle.js";
-import {
-  createCatalogError,
-  duplicateKeyError,
-} from "../shared/topology/errors.js";
+import { actorId, archiveFields, createBaseDocument } from "../shared/topology/lifecycle.js";
+import { createCatalogError, duplicateKeyError } from "../shared/topology/errors.js";
 import { getTopologyCollections } from "../shared/topology/storage.js";
 import { normalizeDocument } from "../shared/topology/normalization.js";
 import { requireOperationalApplication } from "../shared/topology/context.js";
@@ -38,11 +31,7 @@ export async function createRepository(
   try {
     await repositories.insertOne(document);
   } catch (error) {
-    duplicateKeyError(
-      error,
-      "REPOSITORY_KEY_CONFLICT",
-      "A repository with this key already exists in the application",
-    );
+    duplicateKeyError(error, "REPOSITORY_KEY_CONFLICT", "A repository with this key already exists in the application");
   }
   return normalizeDocument(document);
 }
@@ -54,18 +43,10 @@ export async function updateRepository(
 ) {
   const current = await getRepository(repositoryId);
   if (!current) {
-    throw createCatalogError(
-      404,
-      "REPOSITORY_NOT_FOUND",
-      "Repository not found",
-    );
+    throw createCatalogError(404, "REPOSITORY_NOT_FOUND", "Repository not found");
   }
   if (current.status !== "active") {
-    throw createCatalogError(
-      409,
-      "REPOSITORY_ARCHIVED",
-      "Repository is archived",
-    );
+    throw createCatalogError(409, "REPOSITORY_ARCHIVED", "Repository is archived");
   }
   await requireOperationalApplication(current.applicationId, {
     active: true,
@@ -91,11 +72,7 @@ export async function updateRepository(
       },
     );
   } catch (error) {
-    duplicateKeyError(
-      error,
-      "REPOSITORY_KEY_CONFLICT",
-      "A repository with this key already exists in the application",
-    );
+    duplicateKeyError(error, "REPOSITORY_KEY_CONFLICT", "A repository with this key already exists in the application");
   }
   if (!result.matchedCount) {
     throw createCatalogError(
@@ -107,21 +84,13 @@ export async function updateRepository(
   return getRepository(current.id);
 }
 
-export async function archiveRepository(
-  repositoryId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function archiveRepository(repositoryId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getRepository(repositoryId);
   if (!current) {
-    throw createCatalogError(
-      404,
-      "REPOSITORY_NOT_FOUND",
-      "Repository not found",
-    );
+    throw createCatalogError(404, "REPOSITORY_NOT_FOUND", "Repository not found");
   }
   if (current.status === "archived") return current;
-  const { components, deployments, repositories } =
-    await getTopologyCollections();
+  const { components, deployments, repositories } = await getTopologyCollections();
   const [linkedComponents, linkedDeployments] = await Promise.all([
     components.countDocuments({
       workspaceId: current.workspaceId,
@@ -133,10 +102,7 @@ export async function archiveRepository(
       workspaceId: current.workspaceId,
       applicationId: current.applicationId,
       status: { $ne: "archived" },
-      $or: [
-        { repositoryId: current.id },
-        { "source.repositoryId": current.id },
-      ],
+      $or: [{ repositoryId: current.id }, { "source.repositoryId": current.id }],
     }),
   ]);
   if (linkedComponents || linkedDeployments) {
@@ -158,17 +124,9 @@ export async function archiveRepository(
   return getRepository(current.id);
 }
 
-export async function restoreRepository(
-  repositoryId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function restoreRepository(repositoryId: string | string[], actor: Partial<Actor> = {}) {
   const current = await getRepository(repositoryId);
-  if (!current)
-    throw createCatalogError(
-      404,
-      "REPOSITORY_NOT_FOUND",
-      "Repository not found",
-    );
+  if (!current) throw createCatalogError(404, "REPOSITORY_NOT_FOUND", "Repository not found");
   if (current.status !== "archived") return current;
   await requireOperationalApplication(current.applicationId, {
     workspaceId: current.workspaceId,
@@ -191,36 +149,20 @@ export async function restoreRepository(
 
 export async function deleteRepository(repositoryId: string | string[]) {
   const current = await getRepository(repositoryId);
-  if (!current)
-    throw createCatalogError(
-      404,
-      "REPOSITORY_NOT_FOUND",
-      "Repository not found",
-    );
+  if (!current) throw createCatalogError(404, "REPOSITORY_NOT_FOUND", "Repository not found");
   if (current.status !== "archived")
-    throw createCatalogError(
-      409,
-      "REPOSITORY_NOT_ARCHIVED",
-      "Only archived repositories can be permanently deleted",
-    );
-  const { components, deployments, repositories } =
-    await getTopologyCollections();
+    throw createCatalogError(409, "REPOSITORY_NOT_ARCHIVED", "Only archived repositories can be permanently deleted");
+  const { components, deployments, repositories } = await getTopologyCollections();
   const scope = {
     workspaceId: current.workspaceId,
     applicationId: current.applicationId,
   };
   const counts = await Promise.all([
-    components.countDocuments(
-      { ...scope, "repositoryLinks.repositoryId": current.id },
-      { limit: 1 },
-    ),
+    components.countDocuments({ ...scope, "repositoryLinks.repositoryId": current.id }, { limit: 1 }),
     deployments.countDocuments(
       {
         ...scope,
-        $or: [
-          { repositoryId: current.id },
-          { "source.repositoryId": current.id },
-        ],
+        $or: [{ repositoryId: current.id }, { "source.repositoryId": current.id }],
       },
       { limit: 1 },
     ),
@@ -236,11 +178,6 @@ export async function deleteRepository(repositoryId: string | string[]) {
     ...scope,
     status: "archived",
   });
-  if (!result.deletedCount)
-    throw createCatalogError(
-      409,
-      "REPOSITORY_DELETE_CONFLICT",
-      "Repository was not deleted",
-    );
+  if (!result.deletedCount) throw createCatalogError(409, "REPOSITORY_DELETE_CONFLICT", "Repository was not deleted");
   return current;
 }

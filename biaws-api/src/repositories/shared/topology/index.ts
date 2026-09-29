@@ -30,7 +30,4 @@ export { pagination, escapeRegex, buildScopedListFilter } from "./filters.js";
 
 export { getTopologyCollections } from "./storage.js";
 
-export {
-  requireOperationalWorkspace,
-  requireOperationalApplication,
-} from "./context.js";
+export { requireOperationalWorkspace, requireOperationalApplication } from "./context.js";

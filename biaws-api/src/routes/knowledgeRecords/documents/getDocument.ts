@@ -1,10 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  authorize,
-  currentDocument,
-  sendNotFound,
-  asyncHandler,
-} from "../helpers.js";
+import { authorize, currentDocument, sendNotFound, asyncHandler } from "../helpers.js";
 
 export function registerGetDocument(router: Router) {
   router.get(

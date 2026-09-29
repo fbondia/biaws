@@ -1,9 +1,6 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
-import {
-  archiveServer,
-  getServer,
-} from "../../../repositories/servers/index.js";
+import { archiveServer, getServer } from "../../../repositories/servers/index.js";
 import { sendNotFound, auditMutation, asyncHandler } from "../helpers.js";
 
 export function registerUpdateServersArchive(router: Router) {

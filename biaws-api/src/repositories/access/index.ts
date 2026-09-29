@@ -1,13 +1,6 @@
-export {
-  INITIAL_PERMISSION_GROUPS,
-  buildSystemGroupSeedPipeline,
-} from "./seeds.js";
+export { INITIAL_PERMISSION_GROUPS, buildSystemGroupSeedPipeline } from "./seeds.js";
 
-export {
-  normalizeGroupInput,
-  calculateEffectivePermissions,
-  calculatePermissionScopes,
-} from "./normalization.js";
+export { normalizeGroupInput, calculateEffectivePermissions, calculatePermissionScopes } from "./normalization.js";
 
 export { listPermissionGroups, getPermissionGroup } from "./groups/queries.js";
 
@@ -18,10 +11,7 @@ export {
   setPermissionGroupActive,
 } from "./groups/mutations.js";
 
-export {
-  permissionGroupReplicationPayload,
-  replicatePermissionGroup,
-} from "./groups/replication.js";
+export { permissionGroupReplicationPayload, replicatePermissionGroup } from "./groups/replication.js";
 
 export { getUserAccess, getUsersAccess } from "./users/queries.js";
 

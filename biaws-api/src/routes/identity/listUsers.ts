@@ -22,9 +22,7 @@ export function registerListUsers(router: Router) {
           workspaceId: req.actor.workspaceId ?? undefined,
         },
       );
-      const groupIdsByUser = new Map(
-        accessItems.map(({ userId, groupIds }) => [userId, groupIds]),
-      );
+      const groupIdsByUser = new Map(accessItems.map(({ userId, groupIds }) => [userId, groupIds]));
 
       res.json({
         ...payload,

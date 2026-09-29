@@ -1,12 +1,6 @@
 import type { Router, Request, Response } from "express";
-import {
-  requireAllPermissions,
-  requireWorkspaceScope,
-} from "../../../auth/authorizationMiddleware.js";
-import {
-  archiveMonitoringTemplate,
-  getMonitoringTemplate,
-} from "../../../repositories/monitoring/templates/index.js";
+import { requireAllPermissions, requireWorkspaceScope } from "../../../auth/authorizationMiddleware.js";
+import { archiveMonitoringTemplate, getMonitoringTemplate } from "../../../repositories/monitoring/templates/index.js";
 import { auditTemplateMutation, asyncHandler } from "../helpers.js";
 
 export function registerDeleteTemplatesVersion(router: Router) {
@@ -19,11 +13,7 @@ export function registerDeleteTemplatesVersion(router: Router) {
         version: req.params.version,
         workspaceId: req.actor.workspaceId ?? undefined,
       });
-      const template = await archiveMonitoringTemplate(
-        req.params.templateId,
-        req.params.version,
-        req.actor,
-      );
+      const template = await archiveMonitoringTemplate(req.params.templateId, req.params.version, req.actor);
       await auditTemplateMutation({
         req,
         action: "archived",

@@ -2,17 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Server } from "node:http";
 import { createApp } from "../../src/app.js";
-import {
-  availablePort,
-  restoreEnvironmentAfter,
-} from "../support/integration.js";
+import { availablePort, restoreEnvironmentAfter } from "../support/integration.js";
 
 const enabled = Boolean(process.env.BIAWS_HTTP_INTEGRATION);
 
 async function closeServer(server: Server) {
-  await new Promise<void>((resolve, reject) =>
-    server.close((error) => (error ? reject(error) : resolve())),
-  );
+  await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
 }
 
 test(
@@ -50,31 +45,24 @@ test(
 
       const document = await fetch(`${base}/api/openapi.json`);
       assert.equal(document.status, 200);
-      assert.equal(
-        ((await document.json()) as { openapi: string }).openapi,
-        "3.1.0",
-      );
+      assert.equal(((await document.json()) as { openapi: string }).openapi, "3.1.0");
     } finally {
       await closeServer(server);
     }
   },
 );
 
-test(
-  "documentation routes are disabled together by configuration",
-  { skip: !enabled },
-  async (t) => {
-    restoreEnvironmentAfter(t);
-    process.env.BIAWS_API_DOCS_ENABLED = "false";
-    const port = await availablePort();
-    const server = createApp().listen(port, "127.0.0.1");
-    try {
-      for (const path of ["/api/docs/", "/api/openapi.json"]) {
-        const response = await fetch(`http://127.0.0.1:${port}${path}`);
-        assert.equal(response.status, 404);
-      }
-    } finally {
-      await closeServer(server);
+test("documentation routes are disabled together by configuration", { skip: !enabled }, async (t) => {
+  restoreEnvironmentAfter(t);
+  process.env.BIAWS_API_DOCS_ENABLED = "false";
+  const port = await availablePort();
+  const server = createApp().listen(port, "127.0.0.1");
+  try {
+    for (const path of ["/api/docs/", "/api/openapi.json"]) {
+      const response = await fetch(`http://127.0.0.1:${port}${path}`);
+      assert.equal(response.status, 404);
     }
-  },
-);
+  } finally {
+    await closeServer(server);
+  }
+});

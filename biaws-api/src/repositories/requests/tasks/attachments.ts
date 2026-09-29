@@ -44,16 +44,11 @@ export async function taskAttachmentContext(
     );
   }
   const attachments = tag
-    ? (request.attachments || [])
-        .filter(isTaskAttachment)
-        .filter((file) => (file.tags || []).includes(tag))
+    ? (request.attachments || []).filter(isTaskAttachment).filter((file) => (file.tags || []).includes(tag))
     : [];
   if (
     attachmentId &&
-    !attachments.some(
-      (file) =>
-        file.id === attachmentId || String(file.index) === String(attachmentId),
-    )
+    !attachments.some((file) => file.id === attachmentId || String(file.index) === String(attachmentId))
   ) {
     throw referenceError(404, "NOT_FOUND", "File does not belong to this task");
   }

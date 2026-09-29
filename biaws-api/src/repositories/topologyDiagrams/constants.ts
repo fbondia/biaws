@@ -11,19 +11,9 @@ export const TOPOLOGY_CONNECTION_TYPES = Object.freeze([
   "other",
 ]);
 
-export const TOPOLOGY_CONNECTION_DIRECTIONS = Object.freeze([
-  "none",
-  "forward",
-  "reverse",
-  "both",
-]);
+export const TOPOLOGY_CONNECTION_DIRECTIONS = Object.freeze(["none", "forward", "reverse", "both"]);
 
-export const TOPOLOGY_CONNECTION_LINE_TYPES = Object.freeze([
-  "default",
-  "smoothstep",
-  "step",
-  "straight",
-]);
+export const TOPOLOGY_CONNECTION_LINE_TYPES = Object.freeze(["default", "smoothstep", "step", "straight"]);
 
 export const TOPOLOGY_CONNECTION_HANDLES = Object.freeze([
   "",

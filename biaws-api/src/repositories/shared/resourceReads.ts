@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { RepositoryQuery } from "../../types/http.js";
 import { getPagination } from "../../helpers/query.js";
 import { referenceError } from "../../helpers/referenceLookup.js";
@@ -25,17 +26,10 @@ export function byId<T extends { id?: unknown; _id?: unknown }>(
   items: readonly T[] | null | undefined,
   id: unknown,
 ): T {
-  return required(
-    (items || []).find(
-      (item) => String(item.id || item._id || "") === String(id),
-    ),
-  );
+  return required((items || []).find((item) => textValue(item.id || item._id || "") === textValue(id)));
 }
 
-export function pageResource<T>(
-  items: readonly T[],
-  query: RepositoryQuery = {},
-) {
+export function pageResource<T>(items: readonly T[], query: RepositoryQuery = {}) {
   const { page, limit, skip } = getPagination(query);
   return {
     items: items.slice(skip, skip + limit),
@@ -50,22 +44,13 @@ export function pageResource<T>(
 
 export function publicAttachment(attachment: unknown) {
   if (!isRecord(attachment)) {
-    throw referenceError(
-      422,
-      "INVALID_ATTACHMENT",
-      "Attachment metadata is invalid",
-    );
+    throw referenceError(422, "INVALID_ATTACHMENT", "Attachment metadata is invalid");
   }
   const { storage, ...metadata } = attachment;
   return { ...metadata, id: attachment.id || String(attachment.index) };
 }
 
-export function resourceResponse(
-  root: ResourceRoot,
-  value: unknown,
-  params: ResourceParams,
-  query: RepositoryQuery,
-) {
+export function resourceResponse(root: ResourceRoot, value: unknown, params: ResourceParams, query: RepositoryQuery) {
   const context = {
     id: root.id,
     workspaceId: root.workspaceId,
@@ -93,10 +78,7 @@ export function attachmentResourceResponse(
   if (params.attachmentId) {
     const attachment = required(
       attachments.find(
-        (file) =>
-          isRecord(file) &&
-          (file.id === params.attachmentId ||
-            String(file.index) === params.attachmentId),
+        (file) => isRecord(file) && (file.id === params.attachmentId || String(file.index) === params.attachmentId),
       ),
     );
     return { context, value: publicAttachment(attachment) };

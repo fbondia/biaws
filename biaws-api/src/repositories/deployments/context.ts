@@ -4,10 +4,7 @@ import type { DeploymentFields } from "../../types/topology.js";
 
 export async function validateDeploymentRelationships(
   application: { id: string; workspaceId: string },
-  deployment: Pick<
-    DeploymentFields,
-    "componentId" | "repositoryId" | "publications"
-  >,
+  deployment: Pick<DeploymentFields, "componentId" | "repositoryId" | "publications">,
 ) {
   const { components, repositories } = await getTopologyCollections();
   const publicationRepositoryIds = [
@@ -17,31 +14,29 @@ export async function validateDeploymentRelationships(
         .filter((id): id is string => typeof id === "string" && id.length > 0),
     ),
   ];
-  const [component, repository, publicationRepositoryCount] = await Promise.all(
-    [
-      components.findOne({
-        id: deployment.componentId,
-        workspaceId: application.workspaceId,
-        applicationId: application.id,
-        status: "active",
-      }),
-      deployment.repositoryId
-        ? repositories.findOne({
-            id: deployment.repositoryId,
-            workspaceId: application.workspaceId,
-            applicationId: application.id,
-            status: "active",
-          })
-        : null,
-      publicationRepositoryIds.length
-        ? repositories.countDocuments({
-            id: { $in: publicationRepositoryIds },
-            workspaceId: application.workspaceId,
-            applicationId: application.id,
-          })
-        : 0,
-    ],
-  );
+  const [component, repository, publicationRepositoryCount] = await Promise.all([
+    components.findOne({
+      id: deployment.componentId,
+      workspaceId: application.workspaceId,
+      applicationId: application.id,
+      status: "active",
+    }),
+    deployment.repositoryId
+      ? repositories.findOne({
+          id: deployment.repositoryId,
+          workspaceId: application.workspaceId,
+          applicationId: application.id,
+          status: "active",
+        })
+      : null,
+    publicationRepositoryIds.length
+      ? repositories.countDocuments({
+          id: { $in: publicationRepositoryIds },
+          workspaceId: application.workspaceId,
+          applicationId: application.id,
+        })
+      : 0,
+  ]);
   if (!component) {
     throw createCatalogError(
       422,

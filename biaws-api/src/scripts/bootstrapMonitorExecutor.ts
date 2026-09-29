@@ -8,21 +8,14 @@ import { getServerConfig } from "../config.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
 import { errorMessage } from "../helpers/error.js";
 import { setUserGroups } from "../repositories/access/index.js";
-import {
-  ensureDefaultWorkspace,
-  getWorkspace,
-} from "../repositories/catalog/index.js";
+import { ensureDefaultWorkspace, getWorkspace } from "../repositories/catalog/index.js";
 
 async function run() {
   const serverConfig = getServerConfig();
   const database = await getMongoDatabase();
   const auth = await getAuth();
-  const requestedWorkspaceId = String(
-    process.env.BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_WORKSPACE_ID || "",
-  ).trim();
-  const workspace = requestedWorkspaceId
-    ? await getWorkspace(requestedWorkspaceId)
-    : await ensureDefaultWorkspace();
+  const requestedWorkspaceId = String(process.env.BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_WORKSPACE_ID || "").trim();
+  const workspace = requestedWorkspaceId ? await getWorkspace(requestedWorkspaceId) : await ensureDefaultWorkspace();
   if (!workspace) {
     throw new Error("Requested monitor executor workspace was not found");
   }
@@ -30,19 +23,13 @@ async function run() {
     auth,
     database,
     email: String(
-      process.env.BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_EMAIL ||
-        "monitor-executor@localhost.invalid",
+      process.env.BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_EMAIL || "monitor-executor@localhost.invalid",
     ).toLowerCase(),
-    name: String(
-      process.env.BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_NAME ||
-        "Bondia Workspaces Monitor Executor",
-    ),
+    name: String(process.env.BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_NAME || "Bondia Workspaces Monitor Executor"),
     password: randomBytes(32).toString("base64url"),
     keyName: "BIAWS monitor executor",
     metadataKind: "bootstrap-monitor-executor",
-    existingApiKey: String(
-      process.env.BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_API_KEY || "",
-    ).trim(),
+    existingApiKey: String(process.env.BIAWS_BOOTSTRAP_MONITOR_EXECUTOR_API_KEY || "").trim(),
     rateLimit: serverConfig.rateLimit.apiKey,
     assignAgent: (userId) =>
       setUserGroups(
@@ -57,9 +44,11 @@ async function run() {
   console.log(`BIAWS_MONITOR_EXECUTOR_WORKSPACE_ID=${workspace.id}`);
 }
 
-run()
-  .catch((error: unknown) => {
-    console.error(errorMessage(error));
-    process.exitCode = 1;
-  })
-  .finally(closeMongoClient);
+try {
+  await run();
+} catch (error: unknown) {
+  console.error(errorMessage(error));
+  process.exitCode = 1;
+} finally {
+  await closeMongoClient();
+}

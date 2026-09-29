@@ -1,10 +1,6 @@
 import type { RepositoryQuery } from "../../types/http.js";
 import { getIssue } from "./queries.js";
-import {
-  required,
-  resourceResponse,
-  attachmentResourceResponse,
-} from "../shared/resourceReads.js";
+import { required, resourceResponse, attachmentResourceResponse } from "../shared/resourceReads.js";
 import { COLLECTION_NAMES as C } from "../../database/collectionNames.js";
 import { getMongoDatabase } from "../../helpers/mongoClient.js";
 import { ObjectId } from "mongodb";
@@ -35,10 +31,7 @@ export async function readIssueResource(
       applicationId: root.applicationId,
     };
     if (part === "comment") {
-      if (
-        typeof params.commentId !== "string" ||
-        !ObjectId.isValid(params.commentId)
-      )
+      if (typeof params.commentId !== "string" || !ObjectId.isValid(params.commentId))
         throw referenceError(404, "NOT_FOUND", "Comment not found");
       const comment = required(
         await comments.findOne({
@@ -51,12 +44,7 @@ export async function readIssueResource(
     await comments.createIndex({ issueId: 1, date: -1, _id: -1 });
     const { page, limit, skip } = getPagination(query);
     const [items, total] = await Promise.all([
-      comments
-        .find(filter)
-        .sort({ date: -1, _id: -1 })
-        .skip(skip)
-        .limit(limit)
-        .toArray(),
+      comments.find(filter).sort({ date: -1, _id: -1 }).skip(skip).limit(limit).toArray(),
       comments.countDocuments(filter),
     ]);
     return {
@@ -80,13 +68,6 @@ export async function readIssueAttachmentResource(
   params: ParamsDictionary,
   query: RepositoryQuery = {},
 ) {
-  const root = required(
-    (await getIssue(id, { ...query, includeComments: false })).issue,
-  );
-  return attachmentResourceResponse(
-    root,
-    root.attachments || [],
-    params,
-    query,
-  );
+  const root = required((await getIssue(id, { ...query, includeComments: false })).issue);
+  return attachmentResourceResponse(root, root.attachments || [], params, query);
 }

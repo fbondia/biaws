@@ -1,8 +1,5 @@
 import type { Request, Response } from "express";
-import {
-  actorCanAccessApplication,
-  authorizationQuery,
-} from "../../auth/authorizationMiddleware.js";
+import { actorCanAccessApplication, authorizationQuery } from "../../auth/authorizationMiddleware.js";
 import { getRuntimeByReference } from "../../repositories/deployments/index.js";
 import { recordAuditEvent } from "../../repositories/audit/index.js";
 import { createReferenceHandler } from "../shared/asyncHandler.js";
@@ -18,13 +15,9 @@ interface AuditTemplate extends AuditMonitor {
 export async function scopedRuntime(req: Request, permission: string) {
   const runtime = await getRuntimeByReference(req.params.runtimeReference, {
     workspaceId: req.actor.workspaceId ?? undefined,
-    authorizationScope: authorizationQuery(req.actor, permission)
-      .authorizationScope,
+    authorizationScope: authorizationQuery(req.actor, permission).authorizationScope,
   });
-  return runtime &&
-    actorCanAccessApplication(req.actor, permission, runtime.applicationId)
-    ? runtime
-    : null;
+  return runtime && actorCanAccessApplication(req.actor, permission, runtime.applicationId) ? runtime : null;
 }
 
 export function sendRuntimeNotFound(res: Response) {
@@ -101,4 +94,4 @@ export async function auditTemplateMutation({
   });
 }
 
-export const asyncHandler = createReferenceHandler(undefined);
+export const asyncHandler = createReferenceHandler();

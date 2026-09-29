@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  requireAllPermissions,
-  requireApplicationAccess,
-} from "../../../auth/authorizationMiddleware.js";
+import { requireAllPermissions, requireApplicationAccess } from "../../../auth/authorizationMiddleware.js";
 import { listTopologyDiagrams } from "../../../repositories/topologyDiagrams/index.js";
 import { asyncHandler } from "../helpers.js";
 

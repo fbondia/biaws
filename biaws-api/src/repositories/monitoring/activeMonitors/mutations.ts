@@ -3,10 +3,7 @@ import { requireRuntime, validateTemplateRef } from "./context.js";
 import { duplicateMonitorName, publicActiveMonitor } from "./normalization.js";
 import { getRuntimeActiveMonitor } from "./queries.js";
 import { randomUUID } from "node:crypto";
-import {
-  MAX_ACTIVE_MONITORS_PER_RUNTIME,
-  normalizeActiveMonitorInput,
-} from "./input.js";
+import { MAX_ACTIVE_MONITORS_PER_RUNTIME, normalizeActiveMonitorInput } from "./input.js";
 import { activeMonitorCollection } from "./storage.js";
 import { actorId } from "../../shared/topology/lifecycle.js";
 import { createCatalogError } from "../../shared/topology/errors.js";
@@ -68,17 +65,9 @@ export async function updateRuntimeActiveMonitor(
     includeLease: true,
   });
   if (!current) {
-    throw createCatalogError(
-      404,
-      "ACTIVE_MONITOR_NOT_FOUND",
-      "Active monitor not found",
-    );
+    throw createCatalogError(404, "ACTIVE_MONITOR_NOT_FOUND", "Active monitor not found");
   }
-  if (
-    !current.lease?.completedAt &&
-    current.lease?.leasedUntil &&
-    new Date(current.lease.leasedUntil) > new Date()
-  ) {
+  if (!current.lease?.completedAt && current.lease?.leasedUntil && new Date(current.lease.leasedUntil) > new Date()) {
     throw createCatalogError(
       409,
       "ACTIVE_MONITOR_EXECUTING",
@@ -87,19 +76,16 @@ export async function updateRuntimeActiveMonitor(
   }
   const normalized = normalizeActiveMonitorInput(payload, current);
   await validateTemplateRef(normalized.templateRef, runtime, {
-    allowInactive:
-      JSON.stringify(normalized.templateRef) ===
-      JSON.stringify(current.templateRef),
+    allowInactive: JSON.stringify(normalized.templateRef) === JSON.stringify(current.templateRef),
   });
   const scheduleChanged =
     normalized.enabled !== current.enabled ||
     normalized.intervalSeconds !== current.intervalSeconds ||
     normalized.provider !== current.provider ||
-    JSON.stringify(normalized.configuration) !==
-      JSON.stringify(current.configuration) ||
-    JSON.stringify(normalized.templateRef) !==
-      JSON.stringify(current.templateRef);
+    JSON.stringify(normalized.configuration) !== JSON.stringify(current.configuration) ||
+    JSON.stringify(normalized.templateRef) !== JSON.stringify(current.templateRef);
   const now = new Date();
+  const nextRunAt = scheduleChanged ? now : current.nextRunAt;
   const collection = await activeMonitorCollection();
   let result;
   try {
@@ -114,11 +100,7 @@ export async function updateRuntimeActiveMonitor(
       {
         $set: {
           ...normalized,
-          nextRunAt: normalized.enabled
-            ? scheduleChanged
-              ? now
-              : current.nextRunAt
-            : null,
+          nextRunAt: normalized.enabled ? nextRunAt : null,
           version: current.version + 1,
           updatedAt: now,
           updatedBy: actorId(actor),
@@ -143,27 +125,15 @@ export async function updateRuntimeActiveMonitor(
   return publicActiveMonitor(result);
 }
 
-export async function archiveRuntimeActiveMonitor(
-  runtimeId: string,
-  monitorId: string,
-  actor: Partial<Actor> = {},
-) {
+export async function archiveRuntimeActiveMonitor(runtimeId: string, monitorId: string, actor: Partial<Actor> = {}) {
   const current = await getRuntimeActiveMonitor(runtimeId, monitorId, {
     workspaceId: actor.workspaceId,
     includeLease: true,
   });
   if (!current) {
-    throw createCatalogError(
-      404,
-      "ACTIVE_MONITOR_NOT_FOUND",
-      "Active monitor not found",
-    );
+    throw createCatalogError(404, "ACTIVE_MONITOR_NOT_FOUND", "Active monitor not found");
   }
-  if (
-    !current.lease?.completedAt &&
-    current.lease?.leasedUntil &&
-    new Date(current.lease.leasedUntil) > new Date()
-  ) {
+  if (!current.lease?.completedAt && current.lease?.leasedUntil && new Date(current.lease.leasedUntil) > new Date()) {
     throw createCatalogError(
       409,
       "ACTIVE_MONITOR_EXECUTING",

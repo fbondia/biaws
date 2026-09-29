@@ -17,11 +17,7 @@ export async function assertParent(
 ) {
   if (!parentId) return;
   if (parentId === movingId) {
-    throw httpError(
-      422,
-      "INVALID_COLLECTION_PARENT",
-      "Uma coleção não pode ser movida para dentro dela mesma",
-    );
+    throw httpError(422, "INVALID_COLLECTION_PARENT", "Uma coleção não pode ser movida para dentro dela mesma");
   }
   const visited = new Set<string>();
   let currentId = parentId;
@@ -40,11 +36,7 @@ export async function assertParent(
       resourceType,
     });
     if (!current) {
-      throw httpError(
-        422,
-        "COLLECTION_PARENT_NOT_FOUND",
-        `Coleção pai não encontrada: ${currentId}`,
-      );
+      throw httpError(422, "COLLECTION_PARENT_NOT_FOUND", `Coleção pai não encontrada: ${currentId}`);
     }
     currentId = String(current.parentId || "").trim();
   }

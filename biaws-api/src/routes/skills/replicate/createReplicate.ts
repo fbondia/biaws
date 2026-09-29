@@ -1,18 +1,8 @@
 import type { Router, Request, Response } from "express";
-import {
-  getSkill,
-  publishSkill,
-  skillReplicationPayload,
-} from "../../../repositories/skills/index.js";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { getSkill, publishSkill, skillReplicationPayload } from "../../../repositories/skills/index.js";
+import { authorizationQuery, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
-import {
-  replicateAcrossWorkspaces,
-  sendReplicationResponse,
-} from "../../../services/workspaceReplicationService.js";
+import { replicateAcrossWorkspaces, sendReplicationResponse } from "../../../services/workspaceReplicationService.js";
 import { asyncHandler } from "../../shared/asyncHandler.js";
 import { sendNotFound } from "../helpers.js";
 
@@ -36,8 +26,7 @@ export function registerCreateReplicate(router: Router) {
       const batch = await replicateAcrossWorkspaces({
         actor: req.actor,
         forbiddenCode: "DESTINATION_SKILL_PUBLISH_FORBIDDEN",
-        forbiddenMessage:
-          "Você não possui permissão para publicar skills neste workspace",
+        forbiddenMessage: "Você não possui permissão para publicar skills neste workspace",
         payload: req.body,
         permission: "skills.publish",
         resourceType: "skill",

@@ -64,27 +64,21 @@ export async function passiveSignals(scenarioContext) {
 
   assert.equal((await duplicateSignalResponse.json()).created, false);
 
-  const runtimePath = [
-    updatedApplication.key,
-    updatedComponent.key,
-    updatedDeployment.key,
-    updatedRuntime.key,
-  ].join(".");
-
-  const oldSignalResponse = await request(
-    `/api/monitoring/runtimes/${runtimePath}/signals`,
-    {
-      cookie: adminCookie,
-      method: "POST",
-      body: {
-        signalId: "monitor:event:1",
-        status: "healthy",
-        observedAt: "2026-07-31T14:00:00.000Z",
-        source: "integration-monitor",
-      },
-      origin: true,
-    },
+  const runtimePath = [updatedApplication.key, updatedComponent.key, updatedDeployment.key, updatedRuntime.key].join(
+    ".",
   );
+
+  const oldSignalResponse = await request(`/api/monitoring/runtimes/${runtimePath}/signals`, {
+    cookie: adminCookie,
+    method: "POST",
+    body: {
+      signalId: "monitor:event:1",
+      status: "healthy",
+      observedAt: "2026-07-31T14:00:00.000Z",
+      source: "integration-monitor",
+    },
+    origin: true,
+  });
 
   assert.equal(oldSignalResponse.status, 201);
 
@@ -106,15 +100,9 @@ export async function passiveSignals(scenarioContext) {
 
   assert.equal(signals.items[0].metadataProfile, "sgmp-health/v1");
 
-  assert.equal(
-    signals.items[0].metadataPresentation.fields[2].format,
-    "percent",
-  );
+  assert.equal(signals.items[0].metadataPresentation.fields[2].format, "percent");
 
-  assert.equal(
-    signals.items[0].metadataPresentation.series[0].visualization,
-    "line",
-  );
+  assert.equal(signals.items[0].metadataPresentation.series[0].visualization, "line");
 
   const profilesResponse = await request("/api/monitoring/metadata-profiles", {
     cookie: adminCookie,
@@ -137,10 +125,7 @@ export async function passiveSignals(scenarioContext) {
     apply: true,
   });
 
-  const repeatedProfileMigration = await migrateIntegratedMonitoringProfiles(
-    database,
-    { apply: true },
-  );
+  const repeatedProfileMigration = await migrateIntegratedMonitoringProfiles(database, { apply: true });
 
   assert.equal(profileMigration.eligibleWorkspaces, 1);
 
@@ -170,19 +155,14 @@ export async function passiveSignals(scenarioContext) {
 
   assert.equal(migratedTemplates[0].definition.schemaVersion, "1");
 
-  assert.equal(
-    migratedTemplates[0].definition.transformation.language,
-    "jsonata",
-  );
+  assert.equal(migratedTemplates[0].definition.transformation.language, "jsonata");
 
   assert.equal(
-    await database
-      .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)
-      .countDocuments({
-        workspaceId: runtime.workspaceId,
-        metadataProfile: "sgmp-health/v1",
-        templateRef: { $exists: false },
-      }),
+    await database.collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS).countDocuments({
+      workspaceId: runtime.workspaceId,
+      metadataProfile: "sgmp-health/v1",
+      templateRef: { $exists: false },
+    }),
     1,
   );
 
@@ -199,21 +179,18 @@ export async function passiveSignals(scenarioContext) {
 
   assert.equal(filteredSignals.items[0].signalId, "monitor:event:1");
 
-  const manualObservationResponse = await request(
-    `/api/monitoring/runtimes/${runtime.id}/manual-observations`,
-    {
-      cookie: adminCookie,
-      method: "POST",
-      body: {
-        status: "unavailable",
-        observedAt: "2026-07-31T16:00:00.000Z",
-        source: "operador",
-        message: "Indisponibilidade confirmada manualmente",
-        metadata: { ticket: "INC-42" },
-      },
-      origin: true,
+  const manualObservationResponse = await request(`/api/monitoring/runtimes/${runtime.id}/manual-observations`, {
+    cookie: adminCookie,
+    method: "POST",
+    body: {
+      status: "unavailable",
+      observedAt: "2026-07-31T16:00:00.000Z",
+      source: "operador",
+      message: "Indisponibilidade confirmada manualmente",
+      metadata: { ticket: "INC-42" },
     },
-  );
+    origin: true,
+  });
 
   assert.equal(manualObservationResponse.status, 201);
 
@@ -223,10 +200,9 @@ export async function passiveSignals(scenarioContext) {
 
   assert.ok(manualObservation.signal.expiresAt);
 
-  const timelineResponse = await request(
-    `/api/monitoring/runtimes/${runtime.id}/timeline?limit=10`,
-    { cookie: adminCookie },
-  );
+  const timelineResponse = await request(`/api/monitoring/runtimes/${runtime.id}/timeline?limit=10`, {
+    cookie: adminCookie,
+  });
 
   assert.equal(timelineResponse.status, 200);
 
@@ -273,10 +249,7 @@ export async function passiveSignals(scenarioContext) {
   ).json();
 
   for (const event of retainedTimeline.items) {
-    assert.equal(
-      new Date(event.expiresAt) - new Date(event.receivedAt),
-      20 * 86_400_000,
-    );
+    assert.equal(new Date(event.expiresAt) - new Date(event.receivedAt), 20 * 86_400_000);
   }
   return {
     ...scenarioContext,

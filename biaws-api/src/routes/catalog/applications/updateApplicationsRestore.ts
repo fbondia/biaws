@@ -1,13 +1,7 @@
 import type { Router, Request, Response } from "express";
-import {
-  actorCanAccessApplication,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { actorCanAccessApplication, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
-import {
-  getApplication,
-  restoreApplication,
-} from "../../../repositories/catalog/index.js";
+import { getApplication, restoreApplication } from "../../../repositories/catalog/index.js";
 import { sendNotFound, asyncHandler } from "../helpers.js";
 
 export function registerUpdateApplicationsRestore(router: Router) {
@@ -15,11 +9,7 @@ export function registerUpdateApplicationsRestore(router: Router) {
     "/applications/:applicationId/restore",
     requireAllPermissions("applications.archive"),
     asyncHandler(async (req: Request, res: Response) => {
-      const before = actorCanAccessApplication(
-        req.actor,
-        "applications.archive",
-        req.params.applicationId,
-      )
+      const before = actorCanAccessApplication(req.actor, "applications.archive", req.params.applicationId)
         ? await getApplication(req.params.applicationId, {
             workspaceId: req.actor.workspaceId,
           })
@@ -28,10 +18,7 @@ export function registerUpdateApplicationsRestore(router: Router) {
         sendNotFound(res, "APPLICATION_NOT_FOUND", "Application not found");
         return;
       }
-      const after = await restoreApplication(
-        req.params.applicationId,
-        req.actor,
-      );
+      const after = await restoreApplication(req.params.applicationId, req.actor);
       if (!after) throw new Error("Mutation result is unavailable");
       if (before.status !== after.status) {
         await recordAuditEvent({

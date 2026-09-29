@@ -1,16 +1,8 @@
 import type { Actor } from "../../../types/http.js";
 import { requireWorkspace, getWorkspace } from "../workspaces/queries.js";
 import { getCollections } from "../storage.js";
-import {
-  normalizeApplicationInput,
-  applicationDeletionDependencies,
-} from "./normalization.js";
-import {
-  actorId,
-  duplicateApplicationError,
-  normalizeDocument,
-  createHttpError,
-} from "../support.js";
+import { normalizeApplicationInput, applicationDeletionDependencies } from "./normalization.js";
+import { actorId, duplicateApplicationError, normalizeDocument, createHttpError } from "../support.js";
 import { getApplication } from "./queries.js";
 import { randomUUID } from "node:crypto";
 import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
@@ -51,18 +43,10 @@ export async function updateApplication(
   const { applications } = await getCollections();
   const current = await getApplication(applicationId);
   if (!current) {
-    throw createHttpError(
-      404,
-      "APPLICATION_NOT_FOUND",
-      "Application not found",
-    );
+    throw createHttpError(404, "APPLICATION_NOT_FOUND", "Application not found");
   }
   if (current.status !== "active") {
-    throw createHttpError(
-      409,
-      "APPLICATION_ARCHIVED",
-      "Application is archived",
-    );
+    throw createHttpError(409, "APPLICATION_ARCHIVED", "Application is archived");
   }
   const normalized = normalizeApplicationInput(payload, current);
   const updatedAt = new Date();
@@ -83,18 +67,11 @@ export async function updateApplication(
   return getApplication(current.id);
 }
 
-export async function archiveApplication(
-  applicationId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function archiveApplication(applicationId: string | string[], actor: Partial<Actor> = {}) {
   const { applications } = await getCollections();
   const current = await getApplication(applicationId);
   if (!current) {
-    throw createHttpError(
-      404,
-      "APPLICATION_NOT_FOUND",
-      "Application not found",
-    );
+    throw createHttpError(404, "APPLICATION_NOT_FOUND", "Application not found");
   }
   if (current.status === "archived") return current;
   await applications.updateOne(
@@ -112,27 +89,16 @@ export async function archiveApplication(
   return getApplication(current.id);
 }
 
-export async function restoreApplication(
-  applicationId: string | string[],
-  actor: Partial<Actor> = {},
-) {
+export async function restoreApplication(applicationId: string | string[], actor: Partial<Actor> = {}) {
   const { applications } = await getCollections();
   const current = await getApplication(applicationId);
   if (!current) {
-    throw createHttpError(
-      404,
-      "APPLICATION_NOT_FOUND",
-      "Application not found",
-    );
+    throw createHttpError(404, "APPLICATION_NOT_FOUND", "Application not found");
   }
   if (current.status !== "archived") return current;
   const workspace = await getWorkspace(current.workspaceId);
-  if (!workspace || workspace.status !== "active") {
-    throw createHttpError(
-      409,
-      "WORKSPACE_ARCHIVED",
-      "Reactivate the workspace before restoring the application",
-    );
+  if (workspace?.status !== "active") {
+    throw createHttpError(409, "WORKSPACE_ARCHIVED", "Reactivate the workspace before restoring the application");
   }
   const now = new Date();
   await applications.updateOne(
@@ -153,28 +119,16 @@ export async function deleteApplication(applicationId: string | string[]) {
   const { applications, db } = await getCollections();
   const current = await getApplication(applicationId);
   if (!current) {
-    throw createHttpError(
-      404,
-      "APPLICATION_NOT_FOUND",
-      "Application not found",
-    );
+    throw createHttpError(404, "APPLICATION_NOT_FOUND", "Application not found");
   }
   if (current.status !== "archived") {
-    throw createHttpError(
-      409,
-      "APPLICATION_NOT_ARCHIVED",
-      "Only archived applications can be permanently deleted",
-    );
+    throw createHttpError(409, "APPLICATION_NOT_ARCHIVED", "Only archived applications can be permanently deleted");
   }
   const dependencies = applicationDeletionDependencies(current);
   const counts = await Promise.all(
-    dependencies.map(([, collection, filter]) =>
-      db.collection(collection).countDocuments(filter, { limit: 1 }),
-    ),
+    dependencies.map(([, collection, filter]) => db.collection(collection).countDocuments(filter, { limit: 1 })),
   );
-  const blocking = dependencies
-    .filter((_, index: number) => counts[index] > 0)
-    .map(([label]) => label);
+  const blocking = dependencies.filter((_, index: number) => counts[index] > 0).map(([label]) => label);
   if (blocking.length) {
     throw createHttpError(
       409,
@@ -188,18 +142,12 @@ export async function deleteApplication(applicationId: string | string[]) {
     status: "archived",
   });
   if (!result.deletedCount) {
-    throw createHttpError(
-      409,
-      "APPLICATION_DELETE_CONFLICT",
-      "Application was not deleted",
-    );
+    throw createHttpError(409, "APPLICATION_DELETE_CONFLICT", "Application was not deleted");
   }
-  await db
-    .collection(COLLECTION_NAMES.APPLICATION_TOPOLOGY_DIAGRAMS)
-    .deleteMany({
-      workspaceId: current.workspaceId,
-      applicationId: current.id,
-    });
+  await db.collection(COLLECTION_NAMES.APPLICATION_TOPOLOGY_DIAGRAMS).deleteMany({
+    workspaceId: current.workspaceId,
+    applicationId: current.id,
+  });
   return current;
 }
 
@@ -211,17 +159,9 @@ export async function moveApplicationToCollection(
   const { applications } = await getCollections();
   const current = await getApplication(applicationId);
   if (!current) {
-    throw createHttpError(
-      404,
-      "APPLICATION_NOT_FOUND",
-      "Application not found",
-    );
+    throw createHttpError(404, "APPLICATION_NOT_FOUND", "Application not found");
   }
-  const normalizedCollectionId = await assertResourceCollection(
-    "applications",
-    collectionId,
-    current.workspaceId,
-  );
+  const normalizedCollectionId = await assertResourceCollection("applications", collectionId, current.workspaceId);
   await applications.updateOne(
     { id: current.id, workspaceId: current.workspaceId },
     {

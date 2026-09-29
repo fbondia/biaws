@@ -4,10 +4,7 @@ import { normalizeDiagramPayload, normalizeDiagram } from "./normalization.js";
 import { getTopologyDiagram } from "./queries.js";
 import { randomUUID } from "node:crypto";
 import { actorId } from "../shared/topology/lifecycle.js";
-import {
-  createCatalogError,
-  duplicateKeyError,
-} from "../shared/topology/errors.js";
+import { createCatalogError, duplicateKeyError } from "../shared/topology/errors.js";
 import { requireOperationalApplication } from "../shared/topology/context.js";
 
 export async function createTopologyDiagram(
@@ -50,11 +47,7 @@ export async function updateTopologyDiagram(
 ) {
   const current = await getTopologyDiagram(diagramId);
   if (!current) {
-    throw createCatalogError(
-      404,
-      "TOPOLOGY_DIAGRAM_NOT_FOUND",
-      "Topology diagram not found",
-    );
+    throw createCatalogError(404, "TOPOLOGY_DIAGRAM_NOT_FOUND", "Topology diagram not found");
   }
   await requireOperationalApplication(current.applicationId, { active: true });
   const value = normalizeDiagramPayload(payload, current);

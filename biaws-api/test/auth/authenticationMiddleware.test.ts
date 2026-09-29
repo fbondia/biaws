@@ -2,10 +2,7 @@ type ErrorPayload = { error: { code: string; requiredPermissions?: string[] } };
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  createAuthenticationMiddleware,
-  requireWorkspaceContext,
-} from "../../src/auth/authenticationMiddleware.js";
+import { createAuthenticationMiddleware, requireWorkspaceContext } from "../../src/auth/authenticationMiddleware.js";
 
 function responseRecorder() {
   return {
@@ -25,9 +22,7 @@ function responseRecorder() {
 test("authentication middleware rejects a request without credentials", async () => {
   const response = responseRecorder();
   let nextCalled = false;
-  const requireAuthentication = createAuthenticationMiddleware(
-    async () => null,
-  );
+  const requireAuthentication = createAuthenticationMiddleware(async () => null);
 
   await requireAuthentication({ headers: {} }, response, () => {
     nextCalled = true;
@@ -41,10 +36,8 @@ test("authentication middleware rejects a request without credentials", async ()
 
 test("workspace context is required when no workspace was resolved", () => {
   const response = responseRecorder();
-  requireWorkspaceContext(
-    { actor: { workspaceId: null, workspaces: [{ id: "a" }, { id: "b" }] } },
-    response,
-    () => assert.fail("must not call next"),
+  requireWorkspaceContext({ actor: { workspaceId: null, workspaces: [{ id: "a" }, { id: "b" }] } }, response, () =>
+    assert.fail("must not call next"),
   );
   assert.equal(response.statusCode, 400);
   assert.ok(response.payload);

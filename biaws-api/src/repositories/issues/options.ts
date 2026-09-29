@@ -20,11 +20,8 @@ export async function loadIssueOptions(db: Db, query: RepositoryQuery = {}) {
 
   return {
     types: types.length ? types : ISSUE_TYPE_OPTIONS.map((item) => item.value),
-    statuses: statuses.length
-      ? statuses
-      : ISSUE_STATUS_OPTIONS.map((item) => item.value),
+    statuses: statuses.length ? statuses : ISSUE_STATUS_OPTIONS.map((item) => item.value),
     defaultType: lists.types?.defaultValue || types[0] || DEFAULT_ISSUE_TYPE,
-    defaultStatus:
-      lists.statuses?.defaultValue || statuses[0] || DEFAULT_ISSUE_STATUS,
+    defaultStatus: lists.statuses?.defaultValue || statuses[0] || DEFAULT_ISSUE_STATUS,
   };
 }

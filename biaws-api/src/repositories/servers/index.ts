@@ -1,11 +1,6 @@
 export { normalizeServerInput } from "./normalization.js";
 
-export {
-  listServers,
-  getServer,
-  listServerRuntimes,
-  listServerDeployments,
-} from "./queries.js";
+export { listServers, getServer, listServerRuntimes, listServerDeployments } from "./queries.js";
 
 export {
   createServer,

@@ -8,11 +8,7 @@ export function registerListDocuments(router: Router) {
     authorize("read"),
     asyncHandler(async (req: Request, res: Response) => {
       const documentType = typeFor(req);
-      res.json(
-        await listDocuments(
-          query(req, "read", documentType ? { documentType } : {}),
-        ),
-      );
+      res.json(await listDocuments(query(req, "read", documentType ? { documentType } : {})));
     }),
   );
 }

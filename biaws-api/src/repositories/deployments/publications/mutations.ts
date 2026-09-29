@@ -17,22 +17,12 @@ export async function recordDeploymentPublication(
 ) {
   const current = await getDeployment(deploymentId);
   if (!current) {
-    throw createCatalogError(
-      404,
-      "DEPLOYMENT_NOT_FOUND",
-      "Deployment not found",
-    );
+    throw createCatalogError(404, "DEPLOYMENT_NOT_FOUND", "Deployment not found");
   }
   if (current.status === "archived") {
-    throw createCatalogError(
-      409,
-      "DEPLOYMENT_ARCHIVED",
-      "Deployment is archived",
-    );
+    throw createCatalogError(409, "DEPLOYMENT_ARCHIVED", "Deployment is archived");
   }
-  const storedPublications = Array.isArray(current.publications)
-    ? current.publications
-    : null;
+  const storedPublications = Array.isArray(current.publications) ? current.publications : null;
   const materializesLegacyHistory =
     (!storedPublications || storedPublications.length === 0) &&
     Boolean(current.version || current.source?.revision || current.deployedAt);
@@ -46,13 +36,10 @@ export async function recordDeploymentPublication(
       `publications cannot contain more than ${MAX_HISTORY_ITEMS} items`,
     );
   }
-  const application = await requireOperationalApplication(
-    current.applicationId,
-    {
-      active: true,
-      workspaceId: current.workspaceId,
-    },
-  );
+  const application = await requireOperationalApplication(current.applicationId, {
+    active: true,
+    workspaceId: current.workspaceId,
+  });
   const publication = normalizePublication(
     {
       ...payload,
@@ -70,8 +57,7 @@ export async function recordDeploymentPublication(
     publications: [...currentPublications, publication],
   });
 
-  const canAppendToStoredHistory =
-    storedPublications !== null && !materializesLegacyHistory;
+  const canAppendToStoredHistory = storedPublications !== null && !materializesLegacyHistory;
   const set: {
     updatedAt: Date;
     updatedBy: string;
@@ -90,6 +76,10 @@ export async function recordDeploymentPublication(
     };
     set.deployedAt = publication.publishedAt;
   }
+  let historyFilter;
+  if (canAppendToStoredHistory) historyFilter = { [`publications.${MAX_HISTORY_ITEMS - 1}`]: { $exists: false } };
+  else if (storedPublications) historyFilter = { publications: { $size: 0 } };
+  else historyFilter = { publications: { $exists: false } };
   const { deployments } = await getTopologyCollections();
   const result = await deployments.updateOne(
     {
@@ -97,11 +87,7 @@ export async function recordDeploymentPublication(
       workspaceId: current.workspaceId,
       applicationId: current.applicationId,
       status: { $ne: "archived" },
-      ...(canAppendToStoredHistory
-        ? { [`publications.${MAX_HISTORY_ITEMS - 1}`]: { $exists: false } }
-        : storedPublications
-          ? { publications: { $size: 0 } }
-          : { publications: { $exists: false } }),
+      ...historyFilter,
     },
     canAppendToStoredHistory
       ? { $push: { publications: publication }, $set: set }

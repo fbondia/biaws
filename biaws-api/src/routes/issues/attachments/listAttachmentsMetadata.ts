@@ -7,12 +7,8 @@ export function registerListAttachmentsMetadata(router: Router) {
   router.get(
     "/:id/attachments/:attachmentId/metadata",
     requireAllPermissions("issues.attachment.read"),
-    createResourceReadHandler(
-      "issue",
-      "issues.attachment.read",
-      async (req: Request, query: {} | undefined) => {
-        return readIssueAttachmentResource(req.params.id, req.params, query);
-      },
-    ),
+    createResourceReadHandler("issue", "issues.attachment.read", async (req: Request, query: {} | undefined) => {
+      return readIssueAttachmentResource(req.params.id, req.params, query);
+    }),
   );
 }

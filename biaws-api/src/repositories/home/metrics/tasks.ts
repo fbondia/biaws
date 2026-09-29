@@ -1,24 +1,16 @@
-import type { RepositoryQuery } from "../../../types/http.js";
 import type { Db } from "mongodb";
-import type { Actor } from "../../../types/http.js";
-import {
-  DEFAULT_PENDING_TASKS_LIMIT,
-  COMPLETED_TASK_STATUSES,
-} from "../widgets.js";
-import { scopedFilter } from "../filters.js";
 import { REQUEST_TASK_STATUS_OPTIONS } from "../../../../../shared/requestConstants.js";
 import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
 import { getMongoDatabase } from "../../../helpers/mongoClient.js";
 import { getPagination } from "../../../helpers/query.js";
-import {
-  OPTION_LIST_KEYS,
-  OPTION_LISTS_COLLECTION,
-} from "../../optionLists/constants.js";
+import { textValue } from "../../../helpers/text.js";
+import type { Actor, RepositoryQuery } from "../../../types/http.js";
+import { OPTION_LIST_KEYS, OPTION_LISTS_COLLECTION } from "../../optionLists/constants.js";
+import { scopedFilter } from "../filters.js";
+import { COMPLETED_TASK_STATUSES, DEFAULT_PENDING_TASKS_LIMIT } from "../widgets.js";
 
 export function pendingTasksPagination(query: RepositoryQuery = {}) {
-  const requestedLimit = String(query.limit ?? "").trim()
-    ? query.limit
-    : DEFAULT_PENDING_TASKS_LIMIT;
+  const requestedLimit = textValue(query.limit ?? "").trim() ? query.limit : DEFAULT_PENDING_TASKS_LIMIT;
   return getPagination({ ...query, limit: requestedLimit });
 }
 
@@ -35,22 +27,14 @@ async function pendingTaskStatusOptions(database: Db, actor: Partial<Actor>) {
     .map(({ value }) => value)
     .filter(Boolean);
 
-  return configuredStatuses.length
-    ? configuredStatuses
-    : REQUEST_TASK_STATUS_OPTIONS;
+  return configuredStatuses.length ? configuredStatuses : REQUEST_TASK_STATUS_OPTIONS;
 }
 
-export async function buildPendingTasksMetric(
-  database: Db,
-  actor: Partial<Actor>,
-  query: RepositoryQuery = {},
-) {
+export async function buildPendingTasksMetric(database: Db, actor: Partial<Actor>, query: RepositoryQuery = {}) {
   const pagination = pendingTasksPagination(query);
   const statusOptions = await pendingTaskStatusOptions(database, actor);
   const requests = await database
-    .collection<{ clientCode?: string; title?: string }>(
-      COLLECTION_NAMES.REQUESTS,
-    )
+    .collection<{ clientCode?: string; title?: string }>(COLLECTION_NAMES.REQUESTS)
     .find(scopedFilter(actor, "demands.read"))
     .project({ _id: 1, clientCode: 1, title: 1 })
     .toArray();
@@ -84,20 +68,12 @@ export async function buildPendingTasksMetric(
                     position: { $indexOfArray: [statusOptions, "$status"] },
                   },
                   in: {
-                    $cond: [
-                      { $gte: ["$$position", 0] },
-                      "$$position",
-                      statusOptions.length,
-                    ],
+                    $cond: [{ $gte: ["$$position", 0] }, "$$position", statusOptions.length],
                   },
                 },
               },
               __taskIdentifier: {
-                $cond: [
-                  { $gt: [{ $strLenCP: { $ifNull: ["$code", ""] } }, 0] },
-                  "$code",
-                  { $toString: "$_id" },
-                ],
+                $cond: [{ $gt: [{ $strLenCP: { $ifNull: ["$code", ""] } }, 0] }, "$code", { $toString: "$_id" }],
               },
             },
           },
@@ -148,10 +124,7 @@ export async function buildPendingTasksMetric(
   };
 }
 
-export async function getPendingTasksMetric(
-  actor: Actor,
-  query: RepositoryQuery = {},
-) {
+export async function getPendingTasksMetric(actor: Actor, query: RepositoryQuery = {}) {
   const database = await getMongoDatabase();
   return buildPendingTasksMetric(database, actor, query);
 }

@@ -7,18 +7,9 @@ export function registerGetTasksNote(router: Router) {
   router.get(
     "/:id/tasks/:taskId/notes/:noteId",
     requireAllPermissions("demands.read"),
-    createResourceReadHandler(
-      "demand",
-      "demands.read",
-      async (req: Request, query: {} | undefined) => {
-        const result = await readRequestResource(
-          req.params.id,
-          "task-note",
-          req.params,
-          query,
-        );
-        return result;
-      },
-    ),
+    createResourceReadHandler("demand", "demands.read", async (req: Request, query: {} | undefined) => {
+      const result = await readRequestResource(req.params.id, "task-note", req.params, query);
+      return result;
+    }),
   );
 }

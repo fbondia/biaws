@@ -23,8 +23,7 @@ export async function availablePort() {
     reservation.listen(0, "127.0.0.1", () => resolve());
   });
   const address = reservation.address();
-  if (!address || typeof address === "string")
-    throw new Error("Port reservation has no TCP address");
+  if (!address || typeof address === "string") throw new Error("Port reservation has no TCP address");
   const port = address.port;
   await new Promise<void>((resolve, reject) => {
     reservation.close((error) => (error ? reject(error) : resolve()));

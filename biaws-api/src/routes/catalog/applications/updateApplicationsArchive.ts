@@ -1,14 +1,8 @@
 import type { Router, Request, Response } from "express";
-import {
-  actorCanAccessApplication,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { actorCanAccessApplication, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
 import { assertApplicationCanArchive } from "../../../repositories/deployments/index.js";
-import {
-  archiveApplication,
-  getApplication,
-} from "../../../repositories/catalog/index.js";
+import { archiveApplication, getApplication } from "../../../repositories/catalog/index.js";
 import { sendNotFound, asyncHandler } from "../helpers.js";
 
 export function registerUpdateApplicationsArchive(router: Router) {
@@ -16,11 +10,7 @@ export function registerUpdateApplicationsArchive(router: Router) {
     "/applications/:applicationId/archive",
     requireAllPermissions("applications.archive"),
     asyncHandler(async (req: Request, res: Response) => {
-      const before = actorCanAccessApplication(
-        req.actor,
-        "applications.archive",
-        req.params.applicationId,
-      )
+      const before = actorCanAccessApplication(req.actor, "applications.archive", req.params.applicationId)
         ? await getApplication(req.params.applicationId, {
             workspaceId: req.actor.workspaceId,
           })
@@ -32,10 +22,7 @@ export function registerUpdateApplicationsArchive(router: Router) {
       if (before.status !== "archived") {
         await assertApplicationCanArchive(req.params.applicationId);
       }
-      const after = await archiveApplication(
-        req.params.applicationId,
-        req.actor,
-      );
+      const after = await archiveApplication(req.params.applicationId, req.actor);
       if (!after) throw new Error("Mutation result is unavailable");
       if (before.status !== after.status) {
         await recordAuditEvent({

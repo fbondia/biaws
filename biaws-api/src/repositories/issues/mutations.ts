@@ -1,10 +1,7 @@
 import type { RepositoryQuery } from "../../types/http.js";
 import { ensureIndexes } from "./indexes.js";
 import { loadIssueOptions } from "./options.js";
-import {
-  normalizeIssueCreatePayload,
-  normalizeIssuePatchPayload,
-} from "./normalization.js";
+import { normalizeIssueCreatePayload, normalizeIssuePatchPayload } from "./normalization.js";
 import { generateIssueId } from "./identifiers.js";
 import { ISSUES_COLLECTION, COMMENTS_COLLECTION } from "./constants.js";
 import { createHttpError, ensureIssueExists } from "./support.js";
@@ -19,10 +16,7 @@ import {
   resolveKnowledgeContext,
 } from "../shared/knowledgeContext.js";
 
-export async function createIssue(
-  payload: Record<string, unknown> = {},
-  query: RepositoryQuery = {},
-) {
+export async function createIssue(payload: Record<string, unknown> = {}, query: RepositoryQuery = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   await ensureIndexes(db);
   const issueOptions = await loadIssueOptions(db, query);
@@ -34,9 +28,7 @@ export async function createIssue(
   });
   const now = new Date();
   const issueId = issue.id || (await generateIssueId(db, issue.date));
-  const existing = await db
-    .collection(ISSUES_COLLECTION)
-    .findOne({ id: issueId }, { projection: { id: 1 } });
+  const existing = await db.collection(ISSUES_COLLECTION).findOne({ id: issueId }, { projection: { id: 1 } });
 
   if (existing) {
     throw createHttpError(409, `Issue already exists: ${issueId}`);
@@ -94,8 +86,7 @@ export async function createIssue(
   }
 
   const created = await getIssue(issueId, query);
-  if (!created.issue)
-    throw createHttpError(500, `Created issue could not be read: ${issueId}`);
+  if (!created.issue) throw createHttpError(500, `Created issue could not be read: ${issueId}`);
   return {
     ...created,
     issueId,
@@ -126,10 +117,7 @@ export async function updateIssue(
     Object.assign(patch, context);
     await assertTaxonomyIdsApplicable(
       db,
-      [
-        current.classification?.primaryTaxonomyId,
-        ...(current.classification?.secondaryTaxonomyIds || []),
-      ],
+      [current.classification?.primaryTaxonomyId, ...(current.classification?.secondaryTaxonomyIds || [])],
       context.workspaceId,
       context.applicationId,
     );
@@ -140,7 +128,7 @@ export async function updateIssue(
     patch["dates.closedAt"] = patch.status === "closed" ? now : null;
   }
 
-  const result = await collection.updateOne(
+  await collection.updateOne(
     { id: issueId, ...buildKnowledgeContextFilter(query) },
     {
       $set: {

@@ -1,9 +1,7 @@
 import type { Db, IndexSpecification, CreateIndexesOptions } from "mongodb";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 
-const AUTH_INDEXES: Readonly<
-  Record<string, [IndexSpecification, CreateIndexesOptions][]>
-> = Object.freeze({
+const AUTH_INDEXES: Readonly<Record<string, [IndexSpecification, CreateIndexesOptions][]>> = Object.freeze({
   [COLLECTION_NAMES.AUTH_USERS]: [
     [{ email: 1 }, { name: "auth_user_email_unique", unique: true }],
     [{ role: 1, banned: 1 }, { name: "auth_user_admin_lookup" }],
@@ -18,17 +16,11 @@ const AUTH_INDEXES: Readonly<
   [COLLECTION_NAMES.AUTH_SESSIONS]: [
     [{ token: 1 }, { name: "auth_session_token_unique", unique: true }],
     [{ userId: 1 }, { name: "auth_session_user" }],
-    [
-      { expiresAt: 1 },
-      { name: "auth_session_expiration_ttl", expireAfterSeconds: 0 },
-    ],
+    [{ expiresAt: 1 }, { name: "auth_session_expiration_ttl", expireAfterSeconds: 0 }],
   ],
   [COLLECTION_NAMES.AUTH_VERIFICATIONS]: [
     [{ identifier: 1 }, { name: "auth_verification_identifier" }],
-    [
-      { expiresAt: 1 },
-      { name: "auth_verification_expiration_ttl", expireAfterSeconds: 0 },
-    ],
+    [{ expiresAt: 1 }, { name: "auth_verification_expiration_ttl", expireAfterSeconds: 0 }],
   ],
   [COLLECTION_NAMES.AUTH_API_KEYS]: [
     [{ key: 1 }, { name: "auth_api_key_hash_unique", unique: true }],
@@ -47,9 +39,7 @@ const AUTH_INDEXES: Readonly<
 export async function ensureAuthIndexes(database: Db) {
   await Promise.all(
     Object.entries(AUTH_INDEXES).flatMap(([collectionName, indexes]) =>
-      indexes.map(([keys, options]) =>
-        database.collection(collectionName).createIndex(keys, options),
-      ),
+      indexes.map(([keys, options]) => database.collection(collectionName).createIndex(keys, options)),
     ),
   );
 }

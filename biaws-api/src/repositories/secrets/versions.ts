@@ -8,11 +8,7 @@ import type { UpdateFilter } from "mongodb";
 
 export async function addSecretVersion(
   current: SecretDocument,
-  {
-    locator,
-    actor,
-    content,
-  }: { locator: string; actor: Actor; content: SecretContent },
+  { locator, actor, content }: { locator: string; actor: Actor; content: SecretContent },
   authorizationScope: AuthorizationScope,
 ) {
   const { secrets } = await getCollections();
@@ -53,11 +49,7 @@ export async function addSecretVersion(
     { returnDocument: "after" },
   );
   if (!document) {
-    throw secretError(
-      409,
-      "SECRET_VERSION_CONFLICT",
-      "The secret changed while the new version was being stored",
-    );
+    throw secretError(409, "SECRET_VERSION_CONFLICT", "The secret changed while the new version was being stored");
   }
   return publicSecret(document);
 }

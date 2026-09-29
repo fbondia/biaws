@@ -29,9 +29,7 @@ export function parseSanitizationConfig(value: string | null | undefined) {
   try {
     return typeof value === "string" ? JSON.parse(value) : value;
   } catch {
-    const error = new Error(
-      "Invalid EML sanitization configuration: expected valid JSON",
-    );
+    const error = new Error("Invalid EML sanitization configuration: expected valid JSON");
     error.statusCode = 422;
     throw error;
   }
@@ -46,26 +44,16 @@ export function parseClassification(value: string | null | undefined) {
     }
     return parsed;
   } catch {
-    const error = new Error(
-      "Invalid EML classification: expected a valid JSON object",
-    );
+    const error = new Error("Invalid EML classification: expected a valid JSON object");
     error.statusCode = 422;
     throw error;
   }
 }
 
-export function requireEmlClassificationAccess(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export function requireEmlClassificationAccess(req: Request, res: Response, next: NextFunction) {
   if (
     req.body?.classification &&
-    !actorCanAccessApplication(
-      req.actor,
-      "issues.classification.update",
-      req.body.applicationId,
-    )
+    !actorCanAccessApplication(req.actor, "issues.classification.update", req.body.applicationId)
   ) {
     res.status(404).json({
       error: {

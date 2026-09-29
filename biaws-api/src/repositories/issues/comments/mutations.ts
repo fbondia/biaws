@@ -1,11 +1,7 @@
 import type { RepositoryQuery } from "../../../types/http.js";
 import { ensureIndexes } from "../indexes.js";
 import { ensureIssueExists, createHttpError } from "../support.js";
-import {
-  normalizeCommentPayload,
-  hashComment,
-  commentObjectId,
-} from "./normalization.js";
+import { normalizeCommentPayload, hashComment, commentObjectId } from "./normalization.js";
 import { COMMENTS_COLLECTION, ISSUES_COLLECTION } from "../constants.js";
 import { getIssue } from "../queries.js";
 import { getMongoDatabase } from "../../../helpers/mongoClient.js";

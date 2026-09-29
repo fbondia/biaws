@@ -5,8 +5,6 @@ import { changeWorkspaceStatus } from "../helpers.js";
 export function registerCreateWorkspacesReactivate(router: Router) {
   router.post(
     "/workspaces/:workspaceId/reactivate",
-    asyncHandler((req: Request, res: Response) =>
-      changeWorkspaceStatus(req, res, "active"),
-    ),
+    asyncHandler((req: Request, res: Response) => changeWorkspaceStatus(req, res, "active")),
   );
 }

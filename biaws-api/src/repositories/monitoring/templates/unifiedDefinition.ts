@@ -1,13 +1,12 @@
-import type { JsonValue, MetadataField } from "./resultTypes.js";
+function newTraversalState() {
+  return { nodes: 0 };
+}
+
 import { RUNTIME_STATUSES } from "../../../../../shared/index.js";
-import {
-  assertAllowedFields,
-  normalizeEnum,
-  requiredText,
-} from "../../shared/topology/normalization.js";
 import { createCatalogError } from "../../shared/topology/errors.js";
+import { assertAllowedFields, normalizeEnum, requiredText } from "../../shared/topology/normalization.js";
 import { normalizeMonitoringTemplatePresentation } from "./presentation.js";
-import { Document, ObjectId } from "mongodb";
+import type { JsonValue, MetadataField } from "./resultTypes.js";
 
 const FIELD_TYPES = ["boolean", "number", "integer", "string", "array"];
 
@@ -38,21 +37,12 @@ function safeInputKey(value: string, field: string) {
   return key;
 }
 
-function safeJson(
-  value: unknown,
-  field: string,
-  depth = 0,
-  state = { nodes: 0 },
-): JsonValue {
+function safeJson(value: unknown, field: string, depth = 0, state: { nodes: number } = newTraversalState()): JsonValue {
   state.nodes += 1;
   if (state.nodes > 1_000 || depth > 8) {
     throw invalid(`${field} is too deeply nested or contains too many values`);
   }
-  if (
-    value === null ||
-    typeof value === "boolean" ||
-    (typeof value === "number" && Number.isFinite(value))
-  ) {
+  if (value === null || typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value))) {
     return value;
   }
   if (typeof value === "string") {
@@ -61,9 +51,7 @@ function safeJson(
   }
   if (Array.isArray(value)) {
     if (value.length > 100) throw invalid(`${field} contains too many items`);
-    return value.map((item, index: number) =>
-      safeJson(item, `${field}[${index}]`, depth + 1, state),
-    );
+    return value.map((item, index: number) => safeJson(item, `${field}[${index}]`, depth + 1, state));
   }
   if (!value || typeof value !== "object") {
     throw invalid(`${field} must contain JSON-compatible values`);
@@ -78,50 +66,27 @@ function safeJson(
 
 function normalizeMetadataField(value: unknown, index: number) {
   const field = `definition.output.metadata.fields[${index}]`;
-  assertAllowedFields(
-    value,
-    [
-      "key",
-      "type",
-      "required",
-      "enum",
-      "minimum",
-      "maximum",
-      "items",
-      "maxItems",
-    ],
-    field,
-  );
+  assertAllowedFields(value, ["key", "type", "required", "enum", "minimum", "maximum", "items", "maxItems"], field);
   const result: MetadataField = {
     key: safeKey(value.key, `${field}.key`),
     type: normalizeEnum(value.type, `${field}.type`, FIELD_TYPES),
     required: value.required === true,
   };
   if (value.enum !== undefined) {
-    if (
-      !Array.isArray(value.enum) ||
-      !value.enum.length ||
-      value.enum.length > 50
-    ) {
+    if (!Array.isArray(value.enum) || !value.enum.length || value.enum.length > 50) {
       throw invalid(`${field}.enum must contain between 1 and 50 values`);
     }
-    result.enum = value.enum.map((item, itemIndex) =>
-      safeJson(item, `${field}.enum[${itemIndex}]`),
-    );
+    result.enum = value.enum.map((item, itemIndex) => safeJson(item, `${field}.enum[${itemIndex}]`));
   }
   for (const key of ["minimum", "maximum"] as const) {
     if (value[key] !== undefined) {
       if (typeof value[key] !== "number" || !Number.isFinite(value[key])) {
         throw invalid(`${field}.${key} must be a finite number`);
       }
-      result[key] = value[key] as number;
+      result[key] = value[key];
     }
   }
-  if (
-    result.minimum !== undefined &&
-    result.maximum !== undefined &&
-    result.minimum > result.maximum
-  ) {
+  if (result.minimum !== undefined && result.maximum !== undefined && result.minimum > result.maximum) {
     throw invalid(`${field}.minimum must not exceed maximum`);
   }
   if (result.type === "array") {
@@ -131,12 +96,7 @@ function normalizeMetadataField(value: unknown, index: number) {
       FIELD_TYPES.filter((type) => type !== "array"),
     );
     const maxItems = value.maxItems ?? 100;
-    if (
-      typeof maxItems !== "number" ||
-      !Number.isInteger(maxItems) ||
-      maxItems < 1 ||
-      maxItems > 100
-    ) {
+    if (typeof maxItems !== "number" || !Number.isInteger(maxItems) || maxItems < 1 || maxItems > 100) {
       throw invalid(`${field}.maxItems must be between 1 and 100`);
     }
     result.maxItems = maxItems;
@@ -149,73 +109,36 @@ function normalizeMetadataField(value: unknown, index: number) {
 export function isUnifiedMonitoringTemplateDefinition(
   value: unknown,
 ): value is ReturnType<typeof normalizeUnifiedMonitoringTemplateDefinition> {
-  const candidate = value as
-    { schemaVersion?: unknown; transformation?: unknown } | null | undefined;
-  return (
-    candidate?.schemaVersion !== undefined ||
-    candidate?.transformation !== undefined
-  );
+  const candidate = value as { schemaVersion?: unknown; transformation?: unknown } | null | undefined;
+  return candidate?.schemaVersion !== undefined || candidate?.transformation !== undefined;
 }
 
-export function normalizeUnifiedMonitoringTemplateDefinition(
-  value: unknown = {},
-) {
+export function normalizeUnifiedMonitoringTemplateDefinition(value: unknown = {}) {
   assertAllowedFields(
     value,
     ["schemaVersion", "input", "transformation", "output", "presentation"],
     "template definition",
   );
-  if (String(value.schemaVersion) !== "1")
-    throw invalid("definition.schemaVersion must be 1");
+  if (String(value.schemaVersion) !== "1") throw invalid("definition.schemaVersion must be 1");
 
   assertAllowedFields(value.input, ["mediaType", "sample"], "definition.input");
   const input = {
-    mediaType: normalizeEnum(
-      value.input?.mediaType,
-      "definition.input.mediaType",
-      ["application/json"],
-    ),
+    mediaType: normalizeEnum(value.input?.mediaType, "definition.input.mediaType", ["application/json"]),
     sample: safeJson(value.input?.sample, "definition.input.sample"),
   };
 
-  assertAllowedFields(
-    value.transformation,
-    ["language", "expression"],
-    "definition.transformation",
-  );
+  assertAllowedFields(value.transformation, ["language", "expression"], "definition.transformation");
   const transformation = {
-    language: normalizeEnum(
-      value.transformation?.language,
-      "definition.transformation.language",
-      ["jsonata"],
-    ),
-    expression: requiredText(
-      value.transformation?.expression,
-      "definition.transformation.expression",
-      20_000,
-    ),
+    language: normalizeEnum(value.transformation?.language, "definition.transformation.language", ["jsonata"]),
+    expression: requiredText(value.transformation?.expression, "definition.transformation.expression", 20_000),
   };
   if (/(?:\bfunction\s*\(|λ|\$eval\s*\()/u.test(transformation.expression)) {
-    throw invalid(
-      "definition.transformation.expression cannot define functions or evaluate expressions dynamically",
-    );
+    throw invalid("definition.transformation.expression cannot define functions or evaluate expressions dynamically");
   }
 
-  assertAllowedFields(
-    value.output,
-    ["status", "message", "metadata"],
-    "definition.output",
-  );
-  assertAllowedFields(
-    value.output?.status,
-    ["type", "required", "enum"],
-    "definition.output.status",
-  );
-  assertAllowedFields(
-    value.output?.message,
-    ["type", "required", "maxLength"],
-    "definition.output.message",
-  );
+  assertAllowedFields(value.output, ["status", "message", "metadata"], "definition.output");
+  assertAllowedFields(value.output?.status, ["type", "required", "enum"], "definition.output.status");
+  assertAllowedFields(value.output?.message, ["type", "required", "maxLength"], "definition.output.message");
   assertAllowedFields(
     value.output?.metadata,
     ["type", "required", "additionalProperties", "fields"],
@@ -225,68 +148,44 @@ export function normalizeUnifiedMonitoringTemplateDefinition(
   if (
     !Array.isArray(statusValues) ||
     !statusValues.length ||
-    statusValues.some(
-      (status) => !RUNTIME_STATUSES.includes(status) || status === "archived",
-    )
+    statusValues.some((status) => !RUNTIME_STATUSES.includes(status) || status === "archived")
   ) {
-    throw invalid(
-      "definition.output.status.enum must contain supported runtime statuses",
-    );
+    throw invalid("definition.output.status.enum must contain supported runtime statuses");
   }
   const rawFields = value.output?.metadata?.fields;
   if (!Array.isArray(rawFields) || rawFields.length > 100) {
-    throw invalid(
-      "definition.output.metadata.fields must be an array with at most 100 fields",
-    );
+    throw invalid("definition.output.metadata.fields must be an array with at most 100 fields");
   }
-  const metadataFields = rawFields.map((field: unknown, index: number) =>
-    normalizeMetadataField(field, index),
-  );
+  const metadataFields = rawFields.map((field: unknown, index: number) => normalizeMetadataField(field, index));
   const contractKeys = new Set(metadataFields.map(({ key }) => key));
   if (contractKeys.size !== metadataFields.length)
     throw invalid("definition.output.metadata.fields contains duplicate keys");
   const output = {
     status: {
-      type: normalizeEnum(
-        value.output?.status?.type,
-        "definition.output.status.type",
-        ["string"],
-      ),
+      type: normalizeEnum(value.output?.status?.type, "definition.output.status.type", ["string"]),
       required: value.output?.status?.required === true,
       enum: [...new Set(statusValues as string[])],
     },
     message: {
-      type: normalizeEnum(
-        value.output?.message?.type,
-        "definition.output.message.type",
-        ["string"],
-      ),
+      type: normalizeEnum(value.output?.message?.type, "definition.output.message.type", ["string"]),
       required: value.output?.message?.required === true,
       maxLength: value.output?.message?.maxLength ?? 2_000,
     },
     metadata: {
-      type: normalizeEnum(
-        value.output?.metadata?.type,
-        "definition.output.metadata.type",
-        ["object"],
-      ),
+      type: normalizeEnum(value.output?.metadata?.type, "definition.output.metadata.type", ["object"]),
       required: value.output?.metadata?.required === true,
-      additionalProperties:
-        value.output?.metadata?.additionalProperties === true,
+      additionalProperties: value.output?.metadata?.additionalProperties === true,
       fields: metadataFields,
     },
   };
-  if (!output.status.required)
-    throw invalid("definition.output.status.required must be true");
+  if (!output.status.required) throw invalid("definition.output.status.required must be true");
   if (
     typeof output.message.maxLength !== "number" ||
     !Number.isInteger(output.message.maxLength) ||
     output.message.maxLength < 1 ||
     output.message.maxLength > 2_000
   ) {
-    throw invalid(
-      "definition.output.message.maxLength must be between 1 and 2000",
-    );
+    throw invalid("definition.output.message.maxLength must be between 1 and 2000");
   }
 
   return {
@@ -297,21 +196,15 @@ export function normalizeUnifiedMonitoringTemplateDefinition(
       ...output,
       message: {
         ...output.message,
-        maxLength: output.message.maxLength as number,
+        maxLength: output.message.maxLength,
       },
     },
-    presentation: normalizeMonitoringTemplatePresentation(
-      value.presentation,
-      contractKeys,
-    ),
+    presentation: normalizeMonitoringTemplatePresentation(value.presentation, contractKeys),
   };
 }
 
-export function unifiedMonitoringTemplateSnapshot(
-  template: { definition?: Record<string, unknown> } | null,
-) {
-  if (!template || !isUnifiedMonitoringTemplateDefinition(template.definition))
-    return null;
+export function unifiedMonitoringTemplateSnapshot(template: { definition?: Record<string, unknown> } | null) {
+  if (!template || !isUnifiedMonitoringTemplateDefinition(template.definition)) return null;
   return {
     schemaVersion: template.definition.schemaVersion,
     input: template.definition.input,

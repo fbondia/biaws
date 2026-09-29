@@ -11,17 +11,11 @@ export async function listPermissionGroups({
     workspaceId: String(workspaceId || defaultWorkspace.id),
     ...(includeInactive ? {} : { active: true }),
   };
-  const documents = await groups
-    .find(filter)
-    .sort({ system: -1, name: 1 })
-    .toArray();
+  const documents = await groups.find(filter).sort({ system: -1, name: 1 }).toArray();
   return documents.map(normalizeGroup);
 }
 
-export async function getPermissionGroup(
-  groupId: string | string[],
-  { workspaceId }: { workspaceId?: string } = {},
-) {
+export async function getPermissionGroup(groupId: string | string[], { workspaceId }: { workspaceId?: string } = {}) {
   const { groups, defaultWorkspace } = await getCollections();
   return normalizeGroup(
     await groups.findOne({

@@ -27,28 +27,23 @@ const TERMINOLOGY_GROUPS = [
   {
     id: "improvement-development",
     name: "Desenvolvimento de melhorias",
-    description:
-      "Leitura de melhorias e colaboração em tarefas e especificações.",
+    description: "Leitura de melhorias e colaboração em tarefas e especificações.",
   },
 ];
 const TERMINOLOGY_OPTION_LISTS = [
   {
     key: "issue.type",
     legacyName: "Tipos de issues",
-    legacyDescription:
-      "Tipos disponíveis para cadastro, importação e filtro de issues.",
+    legacyDescription: "Tipos disponíveis para cadastro, importação e filtro de issues.",
     name: "Tipos de chamados",
-    description:
-      "Tipos disponíveis para cadastro, importação e filtro de chamados.",
+    description: "Tipos disponíveis para cadastro, importação e filtro de chamados.",
   },
   {
     key: "issue.status",
     legacyName: "Status de issues",
-    legacyDescription:
-      "Situações disponíveis para cadastro, edição e filtro de issues.",
+    legacyDescription: "Situações disponíveis para cadastro, edição e filtro de issues.",
     name: "Status de chamados",
-    description:
-      "Situações disponíveis para cadastro, edição e filtro de chamados.",
+    description: "Situações disponíveis para cadastro, edição e filtro de chamados.",
   },
   {
     key: "demand.status",
@@ -67,11 +62,9 @@ const TERMINOLOGY_OPTION_LISTS = [
   {
     key: "demand.checklist",
     legacyName: "Checklist de demandas",
-    legacyDescription:
-      "Etapas criadas automaticamente no checklist de novas demandas.",
+    legacyDescription: "Etapas criadas automaticamente no checklist de novas demandas.",
     name: "Checklist de melhorias",
-    description:
-      "Etapas criadas automaticamente no checklist de novas melhorias.",
+    description: "Etapas criadas automaticamente no checklist de novas melhorias.",
   },
 ];
 
@@ -96,10 +89,7 @@ async function migrateTerminology(db: Db) {
           filter: {
             _id: id,
             system: true,
-            $or: [
-              { name: { $ne: name } },
-              { description: { $ne: description } },
-            ],
+            $or: [{ name: { $ne: name } }, { description: { $ne: description } }],
           },
           update: {
             $set: {
@@ -112,18 +102,14 @@ async function migrateTerminology(db: Db) {
         },
       })),
     );
-  const optionListResult = await db
-    .collection(COLLECTION_NAMES.OPTION_LISTS)
-    .bulkWrite(
-      TERMINOLOGY_OPTION_LISTS.map(
-        ({ key, legacyName, legacyDescription, name, description }) => ({
-          updateOne: {
-            filter: { key, name: legacyName, description: legacyDescription },
-            update: { $set: { name, description, updatedAt: now } },
-          },
-        }),
-      ),
-    );
+  const optionListResult = await db.collection(COLLECTION_NAMES.OPTION_LISTS).bulkWrite(
+    TERMINOLOGY_OPTION_LISTS.map(({ key, legacyName, legacyDescription, name, description }) => ({
+      updateOne: {
+        filter: { key, name: legacyName, description: legacyDescription },
+        update: { $set: { name, description, updatedAt: now } },
+      },
+    })),
+  );
 
   return {
     permissionGroups: groupResult.modifiedCount,

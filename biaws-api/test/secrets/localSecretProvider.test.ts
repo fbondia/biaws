@@ -34,15 +34,9 @@ test("local provider encrypts one file per version and recovers the value", asyn
   const stored = await provider.putValue(context, "extremely-private-value");
 
   assert.equal(stored.locator, "secret-a/version-1.enc");
-  const contents = await readFile(
-    path.join(vaultDirectory, stored.locator),
-    "utf8",
-  );
+  const contents = await readFile(path.join(vaultDirectory, stored.locator), "utf8");
   assert.doesNotMatch(contents, /extremely-private-value/u);
-  assert.equal(
-    await provider.getValue(context, stored.locator),
-    "extremely-private-value",
-  );
+  assert.equal(await provider.getValue(context, stored.locator), "extremely-private-value");
 });
 
 test("local provider permanently removes an encrypted secret version", async (t) => {
@@ -52,10 +46,7 @@ test("local provider permanently removes an encrypted secret version", async (t)
   await provider.deleteValue(stored.locator);
   await provider.deleteValue(stored.locator);
 
-  await assert.rejects(
-    readFile(path.join(vaultDirectory, stored.locator)),
-    (error) => errorCode(error) === "ENOENT",
-  );
+  await assert.rejects(readFile(path.join(vaultDirectory, stored.locator)), (error) => errorCode(error) === "ENOENT");
 });
 
 test("local provider preserves arbitrary encrypted binary content", async (t) => {
@@ -77,23 +68,19 @@ test("local provider enforces the configured binary content limit", async (t) =>
     maxBytes: 4,
   });
 
-  await assert.rejects(
-    provider.putContent(context, Buffer.from([1, 2, 3, 4, 5])),
-    { code: "INVALID_SECRET_VALUE", statusCode: 422 },
-  );
+  await assert.rejects(provider.putContent(context, Buffer.from([1, 2, 3, 4, 5])), {
+    code: "INVALID_SECRET_VALUE",
+    statusCode: 422,
+  });
 });
 
 test("authenticated context prevents moving a secret between workspaces", async (t) => {
   const { provider } = await fixture(t);
   const stored = await provider.putValue(context, "private-value");
 
-  await assert.rejects(
-    provider.getValue(
-      { ...context, workspaceId: "workspace-b" },
-      stored.locator,
-    ),
-    { code: "SECRET_DECRYPTION_FAILED" },
-  );
+  await assert.rejects(provider.getValue({ ...context, workspaceId: "workspace-b" }, stored.locator), {
+    code: "SECRET_DECRYPTION_FAILED",
+  });
 });
 
 test("an existing version is never overwritten", async (t) => {

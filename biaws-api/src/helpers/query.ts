@@ -11,13 +11,7 @@ const DEFAULT_TIMEZONE = "America/Sao_Paulo";
 
 const DATE_INTERVALS = new Set(["day", "week", "month", "year"]);
 
-const DATE_FIELDS = new Set([
-  "receivedEmailAt",
-  "issueCreatedAt",
-  "firstThreadEmailAt",
-  "closedAt",
-  "updatedAt",
-]);
+const DATE_FIELDS = new Set(["receivedEmailAt", "issueCreatedAt", "firstThreadEmailAt", "closedAt", "updatedAt"]);
 
 const SORT_FIELDS = new Set([
   "date",
@@ -54,7 +48,7 @@ function readString(query: RepositoryQuery, ...keys: string[]) {
 }
 
 function escapeRegex(value: unknown) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+  return String(value).replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
 }
 
 function readList(query: RepositoryQuery, ...keys: string[]) {
@@ -71,11 +65,14 @@ function readTagFilters(query: RepositoryQuery = {}) {
   return Object.entries(query).flatMap(([key, value]) => {
     const tagPrefix = "tag_";
     const dottedPrefix = "tags.";
-    const groupId = key.startsWith(tagPrefix)
-      ? key.slice(tagPrefix.length)
-      : key.startsWith(dottedPrefix)
-        ? key.slice(dottedPrefix.length)
-        : "";
+    let groupId;
+    if (key.startsWith(tagPrefix)) {
+      groupId = key.slice(tagPrefix.length);
+    } else if (key.startsWith(dottedPrefix)) {
+      groupId = key.slice(dottedPrefix.length);
+    } else {
+      groupId = "";
+    }
 
     if (!groupId) return [];
 
@@ -84,12 +81,7 @@ function readTagFilters(query: RepositoryQuery = {}) {
   });
 }
 
-function readPositiveInteger(
-  query: RepositoryQuery,
-  key: string,
-  fallback: number,
-  max: number,
-) {
+function readPositiveInteger(query: RepositoryQuery, key: string, fallback: number, max: number) {
   const rawValue = readString(query, key);
   if (!rawValue) return fallback;
 
@@ -105,12 +97,15 @@ function parseDate(value: string, bound: string) {
   const rawValue = String(value || "").trim();
   if (!rawValue) return undefined;
 
-  const normalized =
-    /^\d{4}-\d{2}-\d{2}$/u.test(rawValue) && bound === "end"
-      ? `${rawValue}T23:59:59.999Z`
-      : /^\d{4}-\d{2}-\d{2}$/u.test(rawValue)
-        ? `${rawValue}T00:00:00.000Z`
-        : rawValue;
+  let normalized;
+  if (/^\d{4}-\d{2}-\d{2}$/u.test(rawValue) && bound === "end") {
+    normalized = `${rawValue}T23:59:59.999Z`;
+  } else if (/^\d{4}-\d{2}-\d{2}$/u.test(rawValue)) {
+    normalized = `${rawValue}T00:00:00.000Z`;
+  } else {
+    normalized = rawValue;
+  }
+
   const date = new Date(normalized);
 
   if (Number.isNaN(date.getTime())) {
@@ -123,9 +118,7 @@ function parseDate(value: string, bound: string) {
 export function resolveDateField(query: RepositoryQuery = {}) {
   const dateField = readString(query, "dateField") || DEFAULT_DATE_FIELD;
   if (!DATE_FIELDS.has(dateField)) {
-    throw queryError(
-      `dateField must be one of: ${Array.from(DATE_FIELDS).join(", ")}.`,
-    );
+    throw queryError(`dateField must be one of: ${Array.from(DATE_FIELDS).join(", ")}.`);
   }
   return dateField;
 }
@@ -144,11 +137,7 @@ export function getPagination(query: RepositoryQuery = {}) {
   };
 }
 
-function addRegexFilter(
-  target: Filter<Document>[],
-  field: string,
-  value: string,
-) {
+function addRegexFilter(target: Filter<Document>[], field: string, value: string) {
   if (!value) return;
   target.push({
     [field]: {
@@ -158,21 +147,12 @@ function addRegexFilter(
   });
 }
 
-function addListFilter(
-  filter: Filter<Document>,
-  field: string,
-  values: string[],
-) {
+function addListFilter(filter: Filter<Document>, field: string, values: string[]) {
   if (values.length === 1) filter[field] = values[0];
   if (values.length > 1) filter[field] = { $in: values };
 }
 
-function addDateFilter(
-  filter: Filter<Document>,
-  path: string,
-  fromDate: Date | undefined,
-  toDate: Date | undefined,
-) {
+function addDateFilter(filter: Filter<Document>, path: string, fromDate: Date | undefined, toDate: Date | undefined) {
   if (!fromDate && !toDate) return;
   filter[path] = {};
   if (fromDate) filter[path].$gte = fromDate;
@@ -207,10 +187,7 @@ function addTextFilter(and: Filter<Document>[], text: string) {
   });
 }
 
-export function buildIssueFilter(
-  query: RepositoryQuery = {},
-  options: { taxonomyIds?: string[] } = {},
-) {
+export function buildIssueFilter(query: RepositoryQuery = {}, options: { taxonomyIds?: string[] } = {}) {
   const and: Filter<Document>[] = [];
   const filter = buildKnowledgeContextFilter(query);
   const issueCode = readString(query, "codigo", "code", "id");
@@ -218,8 +195,7 @@ export function buildIssueFilter(
   const text = readString(query, "texto", "text", "q");
   const types = readList(query, "tipo", "type");
   const statuses = readList(query, "status");
-  const taxonomyIds =
-    options.taxonomyIds || readList(query, "taxonomy", "taxonomyIds");
+  const taxonomyIds = options.taxonomyIds || readList(query, "taxonomy", "taxonomyIds");
   const dateField = resolveDateField(query);
   const datePath = getDatePath(dateField);
   const fromDate = parseDate(readString(query, "from", "dateFrom"), "start");
@@ -234,9 +210,7 @@ export function buildIssueFilter(
 
   for (const tagFilter of tagFilters) {
     filter[`classification.tags.${tagFilter.groupId}`] =
-      tagFilter.values.length === 1
-        ? tagFilter.values[0]
-        : { $in: tagFilter.values };
+      tagFilter.values.length === 1 ? tagFilter.values[0] : { $in: tagFilter.values };
   }
   addTaxonomyFilter(and, taxonomyIds);
   addTextFilter(and, text);
@@ -264,13 +238,20 @@ export function buildIssueSort(query: RepositoryQuery = {}) {
   const sortField = isDescendingPrefix ? rawSort.slice(1) : rawSort;
 
   if (!SORT_FIELDS.has(sortField)) {
-    throw queryError(
-      `sort must be one of: ${Array.from(SORT_FIELDS).join(", ")}.`,
-    );
+    throw queryError(`sort must be one of: ${Array.from(SORT_FIELDS).join(", ")}.`);
   }
 
-  const direction: SortDirection =
-    order === "asc" ? 1 : order === "desc" ? -1 : isDescendingPrefix ? -1 : 1;
+  let direction: SortDirection;
+  if (order === "asc") {
+    direction = 1;
+  } else if (order === "desc") {
+    direction = -1;
+  } else if (isDescendingPrefix) {
+    direction = -1;
+  } else {
+    direction = 1;
+  }
+
   const sortPath = sortFieldToPath(sortField, dateField);
 
   return {
@@ -279,16 +260,11 @@ export function buildIssueSort(query: RepositoryQuery = {}) {
   };
 }
 
-function resolveDateInterval(
-  query: RepositoryQuery = {},
-  forcedInterval?: string,
-) {
+function resolveDateInterval(query: RepositoryQuery = {}, forcedInterval?: string) {
   const rawInterval = forcedInterval || readString(query, "interval") || "day";
 
   if (!DATE_INTERVALS.has(rawInterval)) {
-    throw queryError(
-      `interval must be one of: ${Array.from(DATE_INTERVALS).join(", ")}.`,
-    );
+    throw queryError(`interval must be one of: ${Array.from(DATE_INTERVALS).join(", ")}.`);
   }
 
   return rawInterval;
@@ -300,10 +276,7 @@ function getDateFormat(interval: string) {
   return "%Y-%m-%d";
 }
 
-export function getSummaryOptions(
-  query: RepositoryQuery = {},
-  forcedInterval?: string,
-) {
+export function getSummaryOptions(query: RepositoryQuery = {}, forcedInterval?: string) {
   const dateField = resolveDateField(query);
   const interval = resolveDateInterval(query, forcedInterval);
   const timezone = readString(query, "timezone") || DEFAULT_TIMEZONE;
@@ -319,21 +292,8 @@ export function getSummaryOptions(
 
 export function readAggregateGroup(query: RepositoryQuery = {}) {
   const groupBy = readString(query, "groupBy") || "date";
-  if (
-    ![
-      "date",
-      "day",
-      "week",
-      "month",
-      "year",
-      "type",
-      "status",
-      "taxonomy",
-    ].includes(groupBy)
-  ) {
-    throw queryError(
-      "groupBy must be date, day, week, month, year, type, status, or taxonomy.",
-    );
+  if (!["date", "day", "week", "month", "year", "type", "status", "taxonomy"].includes(groupBy)) {
+    throw queryError("groupBy must be date, day, week, month, year, type, status, or taxonomy.");
   }
   return groupBy;
 }

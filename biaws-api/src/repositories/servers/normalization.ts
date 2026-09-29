@@ -21,22 +21,14 @@ function normalizeAddresses(value: unknown, current: string[] = []) {
   });
   for (const [index, address] of addresses.entries()) {
     if (/[\u0000-\u001f\u007f]/u.test(address)) {
-      throw createCatalogError(
-        422,
-        "INVALID_SERVER_ADDRESS",
-        `addresses[${index}] contains control characters`,
-      );
+      throw createCatalogError(422, "INVALID_SERVER_ADDRESS", `addresses[${index}] contains control characters`);
     }
     if (address.includes("://")) {
       let url;
       try {
         url = new URL(address);
       } catch {
-        throw createCatalogError(
-          422,
-          "INVALID_SERVER_ADDRESS",
-          `addresses[${index}] must be a valid address`,
-        );
+        throw createCatalogError(422, "INVALID_SERVER_ADDRESS", `addresses[${index}] must be a valid address`);
       }
       assertCredentialFreeUrl(url, `addresses[${index}]`);
     }
@@ -67,48 +59,19 @@ export function normalizeServerInput(
   );
   return {
     key: normalizeKey(payload.key, current?.key),
-    name: requiredText(
-      payload.name ?? current?.name,
-      "name",
-      CATALOG_LIMITS.name,
-    ),
-    description: optionalText(
-      payload.description ?? current?.description,
-      "description",
-      CATALOG_LIMITS.description,
-    ),
-    hostname: optionalText(
-      payload.hostname ?? current?.hostname,
-      "hostname",
-      CATALOG_LIMITS.hostname,
-    ),
+    name: requiredText(payload.name ?? current?.name, "name", CATALOG_LIMITS.name),
+    description: optionalText(payload.description ?? current?.description, "description", CATALOG_LIMITS.description),
+    hostname: optionalText(payload.hostname ?? current?.hostname, "hostname", CATALOG_LIMITS.hostname),
     addresses: normalizeAddresses(payload.addresses, current?.addresses),
-    provider: optionalText(
-      payload.provider ?? current?.provider,
-      "provider",
-      CATALOG_LIMITS.provider,
-    ),
-    location: optionalText(
-      payload.location ?? current?.location,
-      "location",
-      CATALOG_LIMITS.location,
-    ),
+    provider: optionalText(payload.provider ?? current?.provider, "provider", CATALOG_LIMITS.provider),
+    location: optionalText(payload.location ?? current?.location, "location", CATALOG_LIMITS.location),
     operatingSystem: optionalText(
       payload.operatingSystem ?? current?.operatingSystem,
       "operatingSystem",
       CATALOG_LIMITS.operatingSystem,
     ),
-    purpose: optionalText(
-      payload.purpose ?? current?.purpose,
-      "purpose",
-      CATALOG_LIMITS.purpose,
-    ),
-    status: normalizeEnum(
-      payload.status,
-      "status",
-      MUTABLE_SERVER_STATUSES,
-      current?.status || "active",
-    ),
+    purpose: optionalText(payload.purpose ?? current?.purpose, "purpose", CATALOG_LIMITS.purpose),
+    status: normalizeEnum(payload.status, "status", MUTABLE_SERVER_STATUSES, current?.status || "active"),
     tags: normalizeTags(payload.tags, current?.tags),
   };
 }

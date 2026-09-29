@@ -1,8 +1,6 @@
+import { textValue } from "../../helpers/text.js";
 import type { Actor } from "../../types/http.js";
-import {
-  CATALOG_KEY_PATTERN,
-  CATALOG_LIMITS,
-} from "../../../../shared/index.js";
+import { CATALOG_KEY_PATTERN, CATALOG_LIMITS } from "../../../../shared/index.js";
 
 export function createHttpError(
   statusCode: number | undefined,
@@ -20,32 +18,20 @@ export function actorId(actor: Partial<Actor>) {
 }
 
 export function requiredText(value: unknown, field: string, limit: number) {
-  const normalized = String(value || "").trim();
+  const normalized = textValue(value || "").trim();
   if (!normalized) {
-    throw createHttpError(
-      422,
-      "INVALID_CATALOG_PAYLOAD",
-      `${field} is required`,
-    );
+    throw createHttpError(422, "INVALID_CATALOG_PAYLOAD", `${field} is required`);
   }
   if (normalized.length > limit) {
-    throw createHttpError(
-      422,
-      "INVALID_CATALOG_PAYLOAD",
-      `${field} must contain at most ${limit} characters`,
-    );
+    throw createHttpError(422, "INVALID_CATALOG_PAYLOAD", `${field} must contain at most ${limit} characters`);
   }
   return normalized;
 }
 
 export function optionalText(value: unknown, field: string, limit: number) {
-  const normalized = String(value || "").trim();
+  const normalized = textValue(value || "").trim();
   if (normalized.length > limit) {
-    throw createHttpError(
-      422,
-      "INVALID_CATALOG_PAYLOAD",
-      `${field} must contain at most ${limit} characters`,
-    );
+    throw createHttpError(422, "INVALID_CATALOG_PAYLOAD", `${field} must contain at most ${limit} characters`);
   }
   return normalized;
 }
@@ -53,13 +39,7 @@ export function optionalText(value: unknown, field: string, limit: number) {
 export { normalizeDocument } from "../shared/topology/normalization.js";
 
 export function duplicateApplicationError(error: unknown) {
-  if (!(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    error.code === 11000
-  ))
-    throw error;
+  if (!(error && typeof error === "object" && "code" in error && error.code === 11000)) throw error;
   throw createHttpError(
     409,
     "APPLICATION_KEY_CONFLICT",
@@ -70,11 +50,7 @@ export function duplicateApplicationError(error: unknown) {
 export function normalizeKey(value: unknown) {
   const key = requiredText(value, "key", CATALOG_LIMITS.key).toLowerCase();
   if (!CATALOG_KEY_PATTERN.test(key)) {
-    throw createHttpError(
-      422,
-      "INVALID_CATALOG_KEY",
-      "key must use lowercase letters, numbers and single hyphens",
-    );
+    throw createHttpError(422, "INVALID_CATALOG_KEY", "key must use lowercase letters, numbers and single hyphens");
   }
   return key;
 }

@@ -49,23 +49,17 @@ test("topology diagrams normalize node positions and typed edges", () => {
 
 test("topology diagrams default old edges and reject invalid connection settings", () => {
   const nodeIds = new Set(["server:1", "server:2"]);
-  assert.deepEqual(
-    normalizeDiagramEdges(
-      [{ id: "edge-1", source: "server:1", target: "server:2" }],
-      nodeIds,
-    )[0],
-    {
-      id: "edge-1",
-      source: "server:1",
-      target: "server:2",
-      sourceHandle: "",
-      targetHandle: "",
-      connectionType: "dependency",
-      direction: "forward",
-      lineType: "default",
-      label: "",
-    },
-  );
+  assert.deepEqual(normalizeDiagramEdges([{ id: "edge-1", source: "server:1", target: "server:2" }], nodeIds)[0], {
+    id: "edge-1",
+    source: "server:1",
+    target: "server:2",
+    sourceHandle: "",
+    targetHandle: "",
+    connectionType: "dependency",
+    direction: "forward",
+    lineType: "default",
+    label: "",
+  });
   assert.throws(
     () =>
       normalizeDiagramEdges(
@@ -146,21 +140,12 @@ test("topology diagrams reject dangling and self-referencing edges", () => {
 });
 
 test("topology diagrams normalize unique visibility ids", () => {
-  assert.deepEqual(
-    normalizeDiagramVisibilityIds(
-      ["integration-1", "integration-2"],
-      [],
-      "hiddenIntegrationIds",
-    ),
-    ["integration-1", "integration-2"],
-  );
+  assert.deepEqual(normalizeDiagramVisibilityIds(["integration-1", "integration-2"], [], "hiddenIntegrationIds"), [
+    "integration-1",
+    "integration-2",
+  ]);
   assert.throws(
-    () =>
-      normalizeDiagramVisibilityIds(
-        ["server-1", "server-1"],
-        [],
-        "hiddenServerIds",
-      ),
+    () => normalizeDiagramVisibilityIds(["server-1", "server-1"], [], "hiddenServerIds"),
     /contains a repeated id/u,
   );
 });

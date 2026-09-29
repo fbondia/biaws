@@ -1,28 +1,14 @@
 import type { NoteDocument } from "../../../types/requests.js";
-import {
-  todayInputValue,
-  readString,
-  assertDate,
-  createHttpError,
-  dateInputValue,
-} from "../support.js";
+import { todayInputValue, readString, assertDate, createHttpError, dateInputValue } from "../support.js";
 
-export function normalizeNotePayload(
-  payload: Record<string, unknown> = {},
-  fallbackDate = todayInputValue(),
-) {
+export function normalizeNotePayload(payload: Record<string, unknown> = {}, fallbackDate = todayInputValue()) {
   const date = readString(payload.date, fallbackDate).trim() || fallbackDate;
-  const content = readString(
-    payload.content ?? payload.notes ?? payload.note,
-  ).trim();
+  const content = readString(payload.content ?? payload.notes ?? payload.note).trim();
 
   assertDate(date, "notes.date");
 
   if (!content) {
-    throw createHttpError(
-      422,
-      "Invalid request payload: notes.content is required",
-    );
+    throw createHttpError(422, "Invalid request payload: notes.content is required");
   }
 
   return {
@@ -36,10 +22,7 @@ export function normalizeLegacyNotesPayload(value: unknown) {
 
   if (Array.isArray(value)) {
     return value
-      .filter(
-        (note) =>
-          note && readString(note.content ?? note.notes ?? note.note).trim(),
-      )
+      .filter((note) => note && readString(note.content ?? note.notes ?? note.note).trim())
       .map((note) => normalizeNotePayload(note));
   }
 
@@ -57,8 +40,7 @@ export function normalizeLegacyNotesPayload(value: unknown) {
 export function normalizeNoteDocument(document: NoteDocument) {
   return {
     id: document._id?.toString?.() ?? String(document._id),
-    requestId:
-      document.requestId?.toString?.() ?? String(document.requestId || ""),
+    requestId: document.requestId?.toString?.() ?? String(document.requestId || ""),
     date: dateInputValue(document.date || document.createdAt),
     content: document.content || "",
     createdAt: document.createdAt || null,

@@ -1,3 +1,4 @@
+import { textValue } from "../../../helpers/text.js";
 import type { RepositoryQuery } from "../../../types/http.js";
 import type { Document, WithId } from "mongodb";
 import type {
@@ -8,10 +9,7 @@ import type {
   ServerDocument,
 } from "../../../types/topology.js";
 import { isRecord } from "../../../helpers/records.js";
-import {
-  CATALOG_LIMITS,
-  DEFAULT_MONITORING_RETENTION_DAYS,
-} from "../../../../../shared/index.js";
+import { CATALOG_LIMITS, DEFAULT_MONITORING_RETENTION_DAYS } from "../../../../../shared/index.js";
 import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
 import { createCatalogError } from "../../shared/topology/errors.js";
 import { getTopologyCollections } from "../../shared/topology/storage.js";
@@ -22,19 +20,13 @@ import { listIntegrations } from "../../integrations/queries.js";
 function readContextLimit(query: RepositoryQuery = {}) {
   const value = Number(query.limit ?? 25);
   if (!Number.isInteger(value) || value < 1) {
-    throw createCatalogError(
-      422,
-      "INVALID_CATALOG_PAGINATION",
-      "limit must be a positive integer",
-    );
+    throw createCatalogError(422, "INVALID_CATALOG_PAGINATION", "limit must be a positive integer");
   }
   return Math.min(value, CATALOG_LIMITS.contextItemsPerCollection);
 }
 
 function omitArchivedFilter(query: RepositoryQuery) {
-  return String(query.includeArchived || "").toLowerCase() === "true"
-    ? {}
-    : { status: { $ne: "archived" } };
+  return textValue(query.includeArchived || "").toLowerCase() === "true" ? {} : { status: { $ne: "archived" } };
 }
 
 function componentSummary(document: WithId<ComponentDocument>) {
@@ -86,8 +78,7 @@ function deploymentSummary(document: WithId<DeploymentDocument>) {
     name: document.name,
     componentId: document.componentId,
     environment: document.environment,
-    repositoryId:
-      document.repositoryId || document.source?.repositoryId || null,
+    repositoryId: document.repositoryId || document.source?.repositoryId || null,
     publications: document.publications || [],
     version: document.version,
     source: document.source,
@@ -111,8 +102,7 @@ function runtimeSummary(document: WithId<RuntimeDocument>) {
     namespace: document.namespace,
     runtimeName: document.runtimeName,
     status: document.status,
-    monitoringRetentionDays:
-      document.monitoringRetentionDays ?? DEFAULT_MONITORING_RETENTION_DAYS,
+    monitoringRetentionDays: document.monitoringRetentionDays ?? DEFAULT_MONITORING_RETENTION_DAYS,
     observedAt: document.observedAt,
     documentLinks: document.documentLinks || [],
     operationalNotesMarkdown: document.operationalNotesMarkdown || "",
@@ -177,10 +167,7 @@ function knowledgeRecordSummary(document: Document) {
   };
 }
 
-export async function getApplicationContext(
-  applicationId: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function getApplicationContext(applicationId: string | string[], query: RepositoryQuery = {}) {
   const application = await requireOperationalApplication(applicationId);
   const limit = readContextLimit(query);
   const statusFilter = omitArchivedFilter(query);
@@ -189,8 +176,7 @@ export async function getApplicationContext(
     applicationId: application.id,
     ...statusFilter,
   };
-  const { db, components, repositories, deployments, runtimes, servers } =
-    await getTopologyCollections();
+  const { db, components, repositories, deployments, runtimes, servers } = await getTopologyCollections();
   const knowledgeScope = {
     workspaceId: application.workspaceId,
     applicationId: application.id,
@@ -198,8 +184,7 @@ export async function getApplicationContext(
   const issues = db.collection(COLLECTION_NAMES.ISSUES);
   const demands = db.collection(COLLECTION_NAMES.REQUESTS);
   const documents = db.collection(COLLECTION_NAMES.DOCUMENTS);
-  const includeHistoricalKnowledge =
-    String(query.includeArchived || "").toLowerCase() === "true";
+  const includeHistoricalKnowledge = textValue(query.includeArchived || "").toLowerCase() === "true";
   const documentScope = {
     workspaceId: application.workspaceId,
     applicationId: { $in: [application.id, null] },
@@ -211,12 +196,7 @@ export async function getApplicationContext(
             { documentType: "architecture-decision", status: "accepted" },
             {
               documentType: {
-                $in: [
-                  "guideline",
-                  "feature",
-                  "technical-reference",
-                  "procedure",
-                ],
+                $in: ["guideline", "feature", "technical-reference", "procedure"],
               },
               status: "published",
             },
@@ -243,34 +223,17 @@ export async function getApplicationContext(
   ] = await Promise.all([
     components.find(scope).sort({ name: 1, id: 1 }).limit(limit).toArray(),
     repositories.find(scope).sort({ name: 1, id: 1 }).limit(limit).toArray(),
-    deployments
-      .find(scope)
-      .sort({ deployedAt: -1, id: 1 })
-      .limit(limit)
-      .toArray(),
+    deployments.find(scope).sort({ deployedAt: -1, id: 1 }).limit(limit).toArray(),
     runtimes.find(scope).sort({ name: 1, id: 1 }).limit(limit).toArray(),
     components.countDocuments(scope),
     repositories.countDocuments(scope),
     deployments.countDocuments(scope),
     runtimes.countDocuments(scope),
-    issues
-      .find(knowledgeScope)
-      .sort({ updatedAt: -1, id: 1 })
-      .limit(limit)
-      .toArray(),
-    demands
-      .find(knowledgeScope)
-      .sort({ updatedAt: -1, _id: 1 })
-      .limit(limit)
-      .toArray(),
+    issues.find(knowledgeScope).sort({ updatedAt: -1, id: 1 }).limit(limit).toArray(),
+    demands.find(knowledgeScope).sort({ updatedAt: -1, _id: 1 }).limit(limit).toArray(),
     issues.countDocuments(knowledgeScope),
     demands.countDocuments(knowledgeScope),
-    documents
-      .find(documentScope)
-      .project({ markdown: 0 })
-      .sort({ updatedAt: -1, id: 1 })
-      .limit(limit)
-      .toArray(),
+    documents.find(documentScope).project({ markdown: 0 }).sort({ updatedAt: -1, id: 1 }).limit(limit).toArray(),
     documents.countDocuments(documentScope),
     listIntegrations(application.id, {
       includeArchived: query.includeArchived,
@@ -292,11 +255,7 @@ export async function getApplicationContext(
   };
   const [serverDocuments, serverTotal] = serverIds.length
     ? await Promise.all([
-        servers
-          .find(serverFilter)
-          .sort({ name: 1, id: 1 })
-          .limit(limit)
-          .toArray(),
+        servers.find(serverFilter).sort({ name: 1, id: 1 }).limit(limit).toArray(),
         servers.countDocuments(serverFilter),
       ])
     : [[], 0];
@@ -306,8 +265,7 @@ export async function getApplicationContext(
     meta: {
       workspaceId: application.workspaceId,
       limitPerCollection: limit,
-      includeArchived:
-        String(query.includeArchived || "").toLowerCase() === "true",
+      includeArchived: textValue(query.includeArchived || "").toLowerCase() === "true",
       totals: {
         components: componentTotal,
         repositories: repositoryTotal,
@@ -328,8 +286,7 @@ export async function getApplicationContext(
         issues: issueTotal > issueDocuments.length,
         demands: demandTotal > demandDocuments.length,
         documents: documentTotal > documentDocuments.length,
-        integrations:
-          integrationResult.meta.total > integrationResult.items.length,
+        integrations: integrationResult.meta.total > integrationResult.items.length,
       },
     },
     components: componentDocuments.map(componentSummary),

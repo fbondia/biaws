@@ -9,17 +9,7 @@ export function createCatalogError(
   return error;
 }
 
-export function duplicateKeyError(
-  error: unknown,
-  code: string,
-  message: string,
-): never {
-  if (!(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    error.code === 11000
-  ))
-    throw error;
+export function duplicateKeyError(error: unknown, code: string, message: string): never {
+  if (!(error && typeof error === "object" && "code" in error && error.code === 11000)) throw error;
   throw createCatalogError(409, code, message);
 }

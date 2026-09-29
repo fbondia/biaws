@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  requireAllPermissions,
-  requireWorkspaceScope,
-} from "../../../auth/authorizationMiddleware.js";
+import { requireAllPermissions, requireWorkspaceScope } from "../../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
 import { createApplication } from "../../../repositories/catalog/index.js";
 import { asyncHandler } from "../helpers.js";
@@ -13,11 +10,7 @@ export function registerCreateWorkspacesApplication(router: Router) {
     requireAllPermissions("applications.create"),
     requireWorkspaceScope("applications.create"),
     asyncHandler(async (req: Request, res: Response) => {
-      const application = await createApplication(
-        req.params.workspaceId,
-        req.body,
-        req.actor,
-      );
+      const application = await createApplication(req.params.workspaceId, req.body, req.actor);
       await recordAuditEvent({
         actor: req.actor,
         action: "created",

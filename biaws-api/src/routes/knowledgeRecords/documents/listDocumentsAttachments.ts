@@ -7,12 +7,8 @@ export function registerListDocumentsAttachments(router: Router) {
   router.get(
     "/documents/:id/attachments",
     requireAllPermissions("documents.attachment.read"),
-    createResourceReadHandler(
-      "document",
-      "documents.attachment.read",
-      async (req: Request, query: {} | undefined) => {
-        return readDocumentAttachmentResource(req.params.id, req.params, query);
-      },
-    ),
+    createResourceReadHandler("document", "documents.attachment.read", async (req: Request, query: {} | undefined) => {
+      return readDocumentAttachmentResource(req.params.id, req.params, query);
+    }),
   );
 }

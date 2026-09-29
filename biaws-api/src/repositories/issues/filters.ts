@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { RepositoryQuery } from "../../types/http.js";
 import type { Db } from "mongodb";
 import { buildIssueFilter } from "../../helpers/query.js";
@@ -5,7 +6,7 @@ import { expandTaxonomyIds } from "../../helpers/taxonomy.js";
 import { buildKnowledgeContextFilter } from "../shared/knowledgeContext.js";
 
 function readTaxonomyIds(query: RepositoryQuery = {}) {
-  return String(query.taxonomy || query.taxonomyIds || "")
+  return textValue(query.taxonomy || query.taxonomyIds || "")
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean);

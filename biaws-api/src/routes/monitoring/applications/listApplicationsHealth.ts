@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  actorCanAccessApplication,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { actorCanAccessApplication, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { getApplication } from "../../../repositories/catalog/index.js";
 import { getApplicationMonitoringHealth } from "../../../repositories/monitoring/events/index.js";
 import { getApplicationHealthMetric } from "../../../repositories/home/index.js";
@@ -16,10 +13,7 @@ export function registerListApplicationsHealth(router: Router) {
       const application = await getApplication(req.params.applicationId, {
         workspaceId: req.actor.workspaceId,
       });
-      if (
-        !application ||
-        !actorCanAccessApplication(req.actor, "runtimes.read", application.id)
-      ) {
+      if (!application || !actorCanAccessApplication(req.actor, "runtimes.read", application.id)) {
         res.status(404).json({
           error: {
             code: "APPLICATION_NOT_FOUND",

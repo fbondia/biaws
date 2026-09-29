@@ -1,9 +1,11 @@
-import type { SecretDocument } from "../types/secrets.js";
-import type { RepositoryQuery } from "../types/http.js";
-import type { Actor } from "../types/http.js";
+type SecretUploadFile = Pick<Express.Multer.File, "originalname" | "mimetype" | "buffer">;
 import { randomUUID } from "node:crypto";
+import { textValue } from "../helpers/text.js";
+import type { Actor, RepositoryQuery } from "../types/http.js";
+import type { SecretDocument } from "../types/secrets.js";
 
 import { actorPermissionScope } from "../auth/authorizationMiddleware.js";
+import { assertResourceCollection } from "../repositories/resourceCollections/index.js";
 import {
   addSecretVersion,
   archiveSecretDocument,
@@ -19,37 +21,23 @@ import {
   restoreSecretDocument,
   updateSecretDocument,
 } from "../repositories/secrets/index.js";
-import { assertResourceCollection } from "../repositories/resourceCollections/index.js";
 import { getSecretProvider } from "../secrets/secretProvider.js";
 import { normalizeUploadFilename } from "./attachmentService.js";
 
-function secretError(
-  statusCode: number | undefined,
-  code: string | number | undefined,
-  message: string | undefined,
-) {
+function secretError(statusCode: number | undefined, code: string | number | undefined, message: string | undefined) {
   const error = new Error(message);
   error.statusCode = statusCode;
   error.code = code;
   return error;
 }
 
-function assertAllowedFields(
-  payload: unknown,
-  allowedFields: Set<string>,
-): asserts payload is Record<string, unknown> {
+function assertAllowedFields(payload: unknown, allowedFields: Set<string>): asserts payload is Record<string, unknown> {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     throw secretError(422, "INVALID_SECRET", "request body must be an object");
   }
-  const unknown = Object.keys(payload).filter(
-    (field: string) => !allowedFields.has(field),
-  );
+  const unknown = Object.keys(payload).filter((field: string) => !allowedFields.has(field));
   if (unknown.length) {
-    throw secretError(
-      422,
-      "INVALID_SECRET",
-      `unknown secret fields: ${unknown.join(", ")}`,
-    );
+    throw secretError(422, "INVALID_SECRET", `unknown secret fields: ${unknown.join(", ")}`);
   }
 }
 
@@ -62,14 +50,10 @@ function authorizationScope(actor: Partial<Actor>, permission: string) {
   };
 }
 
-function assertScope(
-  actor: Partial<Actor>,
-  permission: string,
-  applicationId: unknown,
-) {
+function assertScope(actor: Partial<Actor>, permission: string, applicationId: unknown) {
   const scope = authorizationScope(actor, permission);
   const allowed = applicationId
-    ? scope.workspace || scope.applicationIds.includes(String(applicationId))
+    ? scope.workspace || scope.applicationIds.includes(textValue(applicationId))
     : scope.workspace;
   if (!allowed) {
     throw secretError(404, "SECRET_NOT_FOUND", "Secret not found");
@@ -77,11 +61,7 @@ function assertScope(
   return scope;
 }
 
-async function requiredSecret(
-  secretId: string | string[],
-  actor: Partial<Actor>,
-  permission: string,
-) {
+async function requiredSecret(secretId: string | string[], actor: Partial<Actor>, permission: string) {
   const scope = authorizationScope(actor, permission);
   const document = await getSecretDocument(secretId, scope);
   if (!document) {
@@ -108,30 +88,14 @@ function requireSession(actor: Partial<Actor>) {
   }
 }
 
-export function normalizeSecretFile(
-  file:
-    | Pick<Express.Multer.File, "originalname" | "mimetype" | "buffer">
-    | undefined,
-) {
+export function normalizeSecretFile(file: SecretUploadFile | undefined) {
   if (!file?.buffer || !Buffer.isBuffer(file.buffer) || !file.buffer.length) {
-    throw secretError(
-      422,
-      "INVALID_SECRET_FILE",
-      "multipart field 'file' must contain a non-empty file",
-    );
+    throw secretError(422, "INVALID_SECRET_FILE", "multipart field 'file' must contain a non-empty file");
   }
   const decodedName = normalizeUploadFilename(file.originalname || "");
   const fileName = decodedName.replaceAll("\\", "/").split("/").at(-1)?.trim();
-  if (
-    !fileName ||
-    fileName.length > 255 ||
-    /[\u0000-\u001f\u007f]/u.test(fileName)
-  ) {
-    throw secretError(
-      422,
-      "INVALID_SECRET_FILE",
-      "file name must contain between 1 and 255 characters",
-    );
+  if (!fileName || fileName.length > 255 || /[\u0000-\u001f\u007f]/u.test(fileName)) {
+    throw secretError(422, "INVALID_SECRET_FILE", "file name must contain between 1 and 255 characters");
   }
   const mediaType = String(file.mimetype || "application/octet-stream").trim();
   if (!mediaType || mediaType.length > 200 || /[\r\n]/u.test(mediaType)) {
@@ -145,10 +109,9 @@ export function normalizeSecretFile(
   };
 }
 
-export async function listAccessibleSecrets(
-  query: RepositoryQuery = {},
-  actor: Actor,
-) {
+export async function listAccessibleSecrets(query: RepositoryQuery | undefined, actor: Actor) {
+  query ??= {};
+
   if (query.applicationId) {
     assertScope(actor, "secrets.metadata.read", query.applicationId);
   }
@@ -158,30 +121,15 @@ export async function listAccessibleSecrets(
   });
 }
 
-export async function getAccessibleSecret(
-  secretId: string | string[],
-  actor: Actor,
-) {
-  const { document } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.metadata.read",
-  );
+export async function getAccessibleSecret(secretId: string | string[], actor: Actor) {
+  const { document } = await requiredSecret(secretId, actor, "secrets.metadata.read");
   return publicSecret(document);
 }
 
 export async function createSecret(payload: unknown, actor: Actor) {
   assertAllowedFields(
     payload,
-    new Set([
-      "name",
-      "identifier",
-      "description",
-      "type",
-      "environment",
-      "applicationId",
-      "value",
-    ]),
+    new Set(["name", "identifier", "description", "type", "environment", "applicationId", "value"]),
   );
   if (!Object.hasOwn(payload || {}, "value")) {
     throw secretError(422, "INVALID_SECRET_VALUE", "value is required");
@@ -233,39 +181,19 @@ export async function registerSecretMetadata(payload: unknown, actor: Actor) {
   );
   assertScope(actor, "secrets.metadata.create", payload.applicationId || null);
   normalizeSecretPayload(payload);
-  if (!["text", "file"].includes(String(payload.contentKind || "").trim())) {
-    throw secretError(
-      422,
-      "INVALID_SECRET_CONTENT_KIND",
-      "contentKind must be text or file",
-    );
+  if (!["text", "file"].includes(textValue(payload.contentKind || "").trim())) {
+    throw secretError(422, "INVALID_SECRET_CONTENT_KIND", "contentKind must be text or file");
   }
   const collectionId = await assertResourceCollection(
     "secrets",
-    String(payload.collectionId || ""),
+    textValue(payload.collectionId || ""),
     actor.workspaceId || undefined,
   );
   return createPendingSecretDocument({ ...payload, collectionId }, actor);
 }
 
-export async function createFileSecret(
-  payload: unknown,
-  file:
-    | Pick<Express.Multer.File, "originalname" | "mimetype" | "buffer">
-    | undefined,
-  actor: Actor,
-) {
-  assertAllowedFields(
-    payload,
-    new Set([
-      "name",
-      "identifier",
-      "description",
-      "type",
-      "environment",
-      "applicationId",
-    ]),
-  );
+export async function createFileSecret(payload: unknown, file: SecretUploadFile | undefined, actor: Actor) {
+  assertAllowedFields(payload, new Set(["name", "identifier", "description", "type", "environment", "applicationId"]));
   assertScope(actor, "secrets.create", payload.applicationId || null);
   assertScope(actor, "secrets.value.write", payload.applicationId || null);
   normalizeSecretPayload(payload);
@@ -294,20 +222,9 @@ export async function createFileSecret(
   }
 }
 
-export async function updateSecret(
-  secretId: string | string[],
-  payload: unknown,
-  actor: Actor,
-) {
-  assertAllowedFields(
-    payload,
-    new Set(["name", "description", "type", "environment", "applicationId"]),
-  );
-  const { document, scope } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.update",
-  );
+export async function updateSecret(secretId: string | string[], payload: unknown, actor: Actor) {
+  assertAllowedFields(payload, new Set(["name", "description", "type", "environment", "applicationId"]));
+  const { document, scope } = await requiredSecret(secretId, actor, "secrets.update");
   assertScope(actor, "secrets.update", document.applicationId);
   const targetApplicationId = Object.hasOwn(payload, "applicationId")
     ? payload.applicationId || null
@@ -316,55 +233,23 @@ export async function updateSecret(
   return updateSecretDocument(document, payload, actor, scope);
 }
 
-export async function moveSecretToCollection(
-  secretId: string | string[],
-  collectionId: string,
-  actor: Partial<Actor>,
-) {
-  const { document, scope } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.update",
-  );
-  const normalizedCollectionId = await assertResourceCollection(
-    "secrets",
-    collectionId,
-    document.workspaceId,
-  );
-  return moveSecretDocumentToCollection(
-    document,
-    normalizedCollectionId,
-    actor,
-    scope,
-  );
+export async function moveSecretToCollection(secretId: string | string[], collectionId: string, actor: Partial<Actor>) {
+  const { document, scope } = await requiredSecret(secretId, actor, "secrets.update");
+  const normalizedCollectionId = await assertResourceCollection("secrets", collectionId, document.workspaceId);
+  return moveSecretDocumentToCollection(document, normalizedCollectionId, actor, scope);
 }
 
-export async function writeSecretValue(
-  secretId: string | string[],
-  value: string,
-  actor: Actor,
-) {
-  const { document, scope } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.value.write",
-  );
+export async function writeSecretValue(secretId: string | string[], value: string, actor: Actor) {
+  const { document, scope } = await requiredSecret(secretId, actor, "secrets.value.write");
   if (document.status !== "active") {
     throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
   }
   if ((document.contentKind || "text") !== "text") {
-    throw secretError(
-      409,
-      "SECRET_CONTENT_KIND_MISMATCH",
-      "File secrets require a file version",
-    );
+    throw secretError(409, "SECRET_CONTENT_KIND_MISMATCH", "File secrets require a file version");
   }
   const version = (Number(document.currentVersion) || 0) + 1;
   const provider = getSecretProvider();
-  const stored = await provider.putValue(
-    providerContext(document, version),
-    value,
-  );
+  const stored = await provider.putValue(providerContext(document, version), value);
   try {
     return await addSecretVersion(
       document,
@@ -384,41 +269,20 @@ export async function writeSecretValue(
   }
 }
 
-export async function writeSecretFile(
-  secretId: string | string[],
-  file:
-    | Pick<Express.Multer.File, "originalname" | "mimetype" | "buffer">
-    | undefined,
-  actor: Actor,
-) {
-  const { document, scope } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.value.write",
-  );
+export async function writeSecretFile(secretId: string | string[], file: SecretUploadFile | undefined, actor: Actor) {
+  const { document, scope } = await requiredSecret(secretId, actor, "secrets.value.write");
   if (document.status !== "active") {
     throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
   }
   if ((document.contentKind || "text") !== "file") {
-    throw secretError(
-      409,
-      "SECRET_CONTENT_KIND_MISMATCH",
-      "Text secrets require a text value version",
-    );
+    throw secretError(409, "SECRET_CONTENT_KIND_MISMATCH", "Text secrets require a text value version");
   }
   const content = normalizeSecretFile(file);
   const version = (Number(document.currentVersion) || 0) + 1;
   const provider = getSecretProvider();
-  const stored = await provider.putContent(
-    providerContext(document, version),
-    file!.buffer,
-  );
+  const stored = await provider.putContent(providerContext(document, version), file!.buffer);
   try {
-    return await addSecretVersion(
-      document,
-      { locator: stored.locator, actor, content },
-      scope,
-    );
+    return await addSecretVersion(document, { locator: stored.locator, actor, content }, scope);
   } catch (error) {
     await provider.deleteValue(stored.locator).catch(() => {});
     throw error;
@@ -427,86 +291,45 @@ export async function writeSecretFile(
 
 export async function revealSecret(secretId: string | string[], actor: Actor) {
   requireSession(actor);
-  const { document } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.value.reveal",
-  );
+  const { document } = await requiredSecret(secretId, actor, "secrets.value.reveal");
   if (document.status !== "active") {
     throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
   }
   if (document.provisioningStatus === "pending") {
-    throw secretError(
-      409,
-      "SECRET_VALUE_PENDING",
-      "Secret content has not been provisioned yet",
-    );
+    throw secretError(409, "SECRET_VALUE_PENDING", "Secret content has not been provisioned yet");
   }
   if ((document.contentKind || "text") !== "text") {
-    throw secretError(
-      409,
-      "SECRET_CONTENT_KIND_MISMATCH",
-      "File secrets must be downloaded",
-    );
+    throw secretError(409, "SECRET_CONTENT_KIND_MISMATCH", "File secrets must be downloaded");
   }
   const version = currentSecretVersion(document);
   if (!version) {
-    throw secretError(
-      500,
-      "SECRET_VERSION_MISSING",
-      "The current secret version is unavailable",
-    );
+    throw secretError(500, "SECRET_VERSION_MISSING", "The current secret version is unavailable");
   }
   return {
-    value: await getSecretProvider().getValue(
-      providerContext(document, version.version),
-      version.locator,
-    ),
+    value: await getSecretProvider().getValue(providerContext(document, version.version), version.locator),
     version: version.version,
     secret: publicSecret(document),
   };
 }
 
-export async function downloadSecretFile(
-  secretId: string | string[],
-  actor: Actor,
-) {
+export async function downloadSecretFile(secretId: string | string[], actor: Actor) {
   requireSession(actor);
-  const { document } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.value.reveal",
-  );
+  const { document } = await requiredSecret(secretId, actor, "secrets.value.reveal");
   if (document.status !== "active") {
     throw secretError(409, "SECRET_NOT_ACTIVE", "Secret is not active");
   }
   if (document.provisioningStatus === "pending") {
-    throw secretError(
-      409,
-      "SECRET_VALUE_PENDING",
-      "Secret content has not been provisioned yet",
-    );
+    throw secretError(409, "SECRET_VALUE_PENDING", "Secret content has not been provisioned yet");
   }
   if ((document.contentKind || "text") !== "file") {
-    throw secretError(
-      409,
-      "SECRET_CONTENT_KIND_MISMATCH",
-      "Text secrets must be revealed",
-    );
+    throw secretError(409, "SECRET_CONTENT_KIND_MISMATCH", "Text secrets must be revealed");
   }
   const version = currentSecretVersion(document);
   if (!version) {
-    throw secretError(
-      500,
-      "SECRET_VERSION_MISSING",
-      "The current secret version is unavailable",
-    );
+    throw secretError(500, "SECRET_VERSION_MISSING", "The current secret version is unavailable");
   }
   return {
-    content: await getSecretProvider().getContent(
-      providerContext(document, version.version),
-      version.locator,
-    ),
+    content: await getSecretProvider().getContent(providerContext(document, version.version), version.locator),
     fileName: version.fileName || "secret-file",
     mediaType: version.mediaType || "application/octet-stream",
     version: version.version,
@@ -515,40 +338,20 @@ export async function downloadSecretFile(
 }
 
 export async function archiveSecret(secretId: string | string[], actor: Actor) {
-  const { document, scope } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.archive",
-  );
+  const { document, scope } = await requiredSecret(secretId, actor, "secrets.archive");
   return archiveSecretDocument(document, actor, scope);
 }
 
 export async function restoreSecret(secretId: string | string[], actor: Actor) {
-  const { document, scope } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.archive",
-  );
+  const { document, scope } = await requiredSecret(secretId, actor, "secrets.archive");
   return restoreSecretDocument(document, actor, scope);
 }
 
 export async function deleteSecret(secretId: string | string[], actor: Actor) {
-  const { document, scope } = await requiredSecret(
-    secretId,
-    actor,
-    "secrets.archive",
-  );
+  const { document, scope } = await requiredSecret(secretId, actor, "secrets.archive");
   if (document.status !== "archived") {
-    throw secretError(
-      409,
-      "SECRET_NOT_ARCHIVED",
-      "Only archived secrets can be permanently deleted",
-    );
+    throw secretError(409, "SECRET_NOT_ARCHIVED", "Only archived secrets can be permanently deleted");
   }
-  await Promise.all(
-    (document.versions || []).map(({ locator }) =>
-      getSecretProvider().deleteValue(locator),
-    ),
-  );
+  await Promise.all((document.versions || []).map(({ locator }) => getSecretProvider().deleteValue(locator)));
   return deleteSecretDocument(document, scope);
 }

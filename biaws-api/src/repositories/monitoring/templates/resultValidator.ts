@@ -1,10 +1,6 @@
-import type {
-  JsonValue,
-  MetadataField,
-  UnifiedResultContract,
-} from "./resultTypes.js";
 import { isRecord } from "../../../helpers/records.js";
 import { createCatalogError } from "../../shared/topology/errors.js";
+import type { MetadataField, UnifiedResultContract } from "./resultTypes.js";
 
 const SAFE_METADATA_KEY = /^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/u;
 
@@ -18,8 +14,7 @@ function invalid(message: string) {
 function matchesType(value: unknown, type: string) {
   if (type === "boolean") return typeof value === "boolean";
   if (type === "string") return typeof value === "string";
-  if (type === "number")
-    return typeof value === "number" && Number.isFinite(value);
+  if (type === "number") return typeof value === "number" && Number.isFinite(value);
   if (type === "integer") return Number.isInteger(value);
   if (type === "array") return Array.isArray(value);
   return false;
@@ -59,35 +54,21 @@ function validateField(value: unknown, field: MetadataField) {
   if (value.length > (field.maxItems ?? 100)) {
     throw invalid(`${path} must contain at most ${field.maxItems} items`);
   }
-  value.forEach((item, index: number) =>
-    validateScalar(item, { type: field.items || "" }, `${path}[${index}]`),
-  );
+  value.forEach((item, index: number) => validateScalar(item, { type: field.items || "" }, `${path}[${index}]`));
 }
 
 function validateSeries(
   metadata: Record<string, unknown>,
   series: UnifiedResultContract["presentation"]["series"][number],
 ) {
-  const values = [
-    metadata[series.xKey],
-    metadata[series.yKey],
-    metadata[series.yFormatKey],
-  ];
+  const values = [metadata[series.xKey], metadata[series.yKey], metadata[series.yFormatKey]];
   const present = values.filter((value: unknown) => value !== undefined);
   if (!present.length) return;
   if (present.length !== values.length) {
-    throw invalid(
-      `result metadata series ${series.label} must provide all declared keys`,
-    );
+    throw invalid(`result metadata series ${series.label} must provide all declared keys`);
   }
-  if (
-    !Array.isArray(values[0]) ||
-    !Array.isArray(values[1]) ||
-    values[0].length !== values[1].length
-  ) {
-    throw invalid(
-      `result metadata series ${series.label} must contain aligned arrays`,
-    );
+  if (!Array.isArray(values[0]) || !Array.isArray(values[1]) || values[0].length !== values[1].length) {
+    throw invalid(`result metadata series ${series.label} must contain aligned arrays`);
   }
 }
 
@@ -100,48 +81,27 @@ function validateAdditionalMetadata(value: unknown, key: string) {
     values.length > 100 ||
     values.some(
       (item) =>
-        !["string", "number", "boolean"].includes(typeof item) ||
-        (typeof item === "number" && !Number.isFinite(item)),
+        !["string", "number", "boolean"].includes(typeof item) || (typeof item === "number" && !Number.isFinite(item)),
     )
   ) {
     throw invalid(`result.metadata.${key} must contain limited scalar values`);
   }
 }
 
-function validateResultMetadata(
-  definition: UnifiedResultContract,
-  metadata: Record<string, unknown>,
-) {
-  const fields = new Map(
-    definition.output.metadata.fields.map((field: MetadataField) => [
-      field.key,
-      field,
-    ]),
-  );
-  const unknownMetadataKeys = Object.keys(metadata).filter(
-    (key: string) => !fields.has(key),
-  );
-  if (
-    !definition.output.metadata.additionalProperties &&
-    unknownMetadataKeys.length
-  ) {
-    throw invalid(
-      `result.metadata contains undeclared fields: ${unknownMetadataKeys.join(", ")}`,
-    );
+function validateResultMetadata(definition: UnifiedResultContract, metadata: Record<string, unknown>) {
+  const fields = new Map(definition.output.metadata.fields.map((field: MetadataField) => [field.key, field]));
+  const unknownMetadataKeys = Object.keys(metadata).filter((key: string) => !fields.has(key));
+  if (!definition.output.metadata.additionalProperties && unknownMetadataKeys.length) {
+    throw invalid(`result.metadata contains undeclared fields: ${unknownMetadataKeys.join(", ")}`);
   }
   for (const key of unknownMetadataKeys) {
     validateAdditionalMetadata(metadata[key], key);
   }
-  for (const field of fields.values())
-    validateField(metadata[field.key], field);
-  for (const series of definition.presentation.series)
-    validateSeries(metadata, series);
+  for (const field of fields.values()) validateField(metadata[field.key], field);
+  for (const series of definition.presentation.series) validateSeries(metadata, series);
 }
 
-export function validateUnifiedMonitoringTemplateResult(
-  definition: UnifiedResultContract,
-  value: unknown,
-) {
+export function validateUnifiedMonitoringTemplateResult(definition: UnifiedResultContract, value: unknown) {
   if (!isRecord(value)) {
     throw invalid("JSONata must produce a single result object");
   }
@@ -149,15 +109,10 @@ export function validateUnifiedMonitoringTemplateResult(
     (key: string) => !["status", "message", "metadata"].includes(key),
   );
   if (unknownResultKeys.length) {
-    throw invalid(
-      `result contains unsupported fields: ${unknownResultKeys.join(", ")}`,
-    );
+    throw invalid(`result contains unsupported fields: ${unknownResultKeys.join(", ")}`);
   }
   const { output } = definition;
-  if (!(
-    typeof value.status === "string" &&
-    output.status.enum.includes(value.status)
-  )) {
+  if (!(typeof value.status === "string" && output.status.enum.includes(value.status))) {
     throw invalid("result.status is not supported by the template contract");
   }
   if (value.message === undefined && output.message.required) {
@@ -165,15 +120,11 @@ export function validateUnifiedMonitoringTemplateResult(
   }
   if (
     value.message !== undefined &&
-    (typeof value.message !== "string" ||
-      value.message.length > output.message.maxLength)
+    (typeof value.message !== "string" || value.message.length > output.message.maxLength)
   ) {
-    throw invalid(
-      `result.message must be a string with at most ${output.message.maxLength} characters`,
-    );
+    throw invalid(`result.message must be a string with at most ${output.message.maxLength} characters`);
   }
-  const metadata =
-    value.metadata ?? (output.metadata.required ? undefined : {});
+  const metadata = value.metadata ?? (output.metadata.required ? undefined : {});
   if (!isRecord(metadata)) {
     throw invalid("result.metadata must be an object");
   }

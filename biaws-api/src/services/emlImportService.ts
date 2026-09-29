@@ -1,10 +1,23 @@
+import type { Source } from "mailparser";
+import type { Db, Document, Filter } from "mongodb";
+import { DEFAULT_ISSUE_STATUS, DEFAULT_ISSUE_TYPE } from "../../../shared/issueConstants.js";
+import { COLLECTION_NAMES } from "../database/collectionNames.js";
+import { parseEmlBuffer } from "../helpers/emailParser.js";
+import { normalizeClassificationPayload } from "../helpers/issueClassification.js";
+import { buildAttachmentStorageKey, ensureIssueDirectory, writeIssueMirror } from "../helpers/issueStorage.js";
+import { getMongoDatabase } from "../helpers/mongoClient.js";
+import { assertTaxonomyIdsApplicable } from "../helpers/taxonomy.js";
+import { textValue } from "../helpers/text.js";
+import { getEmailSanitizationConfiguration } from "../repositories/issues/emailSanitization.js";
+import { activeValues, getIssueOptionLists } from "../repositories/optionLists/index.js";
+import {
+  buildKnowledgeContextFilter,
+  knowledgeContextMetadata,
+  resolveKnowledgeContext,
+} from "../repositories/shared/knowledgeContext.js";
+import { createAttachmentStorage } from "../storage/attachmentStorage.js";
 import type { AuthorizationScope, RepositoryOptions } from "../types/http.js";
-import type {
-  KnowledgeContext,
-  KnowledgeContextInput,
-} from "../types/requests.js";
-import type { IssueTypeItem } from "../helpers/issueTypeDetection.js";
-import type { Document, Filter } from "mongodb";
+import type { KnowledgeContext, KnowledgeContextInput } from "../types/requests.js";
 type ParsedIssue = Awaited<ReturnType<typeof parseEmlBuffer>>;
 type ParsedAttachment = ParsedIssue["attachments"][number];
 type StoredAttachment = ParsedAttachment & {
@@ -37,42 +50,12 @@ interface IssueDoc extends KnowledgeContext {
   updatedAt: Date;
   classification?: unknown;
 }
-import type { Db } from "mongodb";
-import { parseEmlBuffer } from "../helpers/emailParser.js";
-import {
-  buildAttachmentStorageKey,
-  ensureIssueDirectory,
-  writeIssueMirror,
-} from "../helpers/issueStorage.js";
-import { COLLECTION_NAMES } from "../database/collectionNames.js";
-import { createAttachmentStorage } from "../storage/attachmentStorage.js";
-import { getMongoDatabase } from "../helpers/mongoClient.js";
-import { normalizeClassificationPayload } from "../helpers/issueClassification.js";
-import { assertTaxonomyIdsApplicable } from "../helpers/taxonomy.js";
-import {
-  DEFAULT_ISSUE_STATUS,
-  DEFAULT_ISSUE_TYPE,
-} from "../../../shared/issueConstants.js";
-import {
-  activeValues,
-  getIssueOptionLists,
-} from "../repositories/optionLists/index.js";
-import {
-  buildKnowledgeContextFilter,
-  knowledgeContextMetadata,
-  resolveKnowledgeContext,
-} from "../repositories/shared/knowledgeContext.js";
-import { getEmailSanitizationConfiguration } from "../repositories/issues/emailSanitization.js";
-import type { Source } from "mailparser";
 
 const ISSUES_COLLECTION = COLLECTION_NAMES.ISSUES;
 const COMMENTS_COLLECTION = COLLECTION_NAMES.ISSUE_COMMENTS;
 const SYNTHETIC_ISSUE_ID_PATTERN = /^\d{4}-\d{2}-\d{2}-\d{3}$/u;
 
-function createHttpError(
-  statusCode: number | undefined,
-  message: string | undefined,
-) {
+function createHttpError(statusCode: number | undefined, message: string | undefined) {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
@@ -90,9 +73,9 @@ function formatDateLabel(date = new Date()) {
 }
 
 function normalizeTitle(title: unknown) {
-  return String(title || "")
+  return textValue(title || "")
     .normalize("NFKC")
-    .replace(/\s+/gu, " ")
+    .replaceAll(/\s+/gu, " ")
     .trim()
     .toLowerCase();
 }
@@ -111,8 +94,7 @@ function buildDedupeKey(parsedIssue: ParsedIssue) {
   if (!title || !date) return "";
 
   const hasEmailDate = Boolean(
-    parseDate(parsedIssue.dates?.receivedEmailAt) ||
-    parseDate(parsedIssue.dates?.firstThreadEmailAt),
+    parseDate(parsedIssue.dates?.receivedEmailAt) || parseDate(parsedIssue.dates?.firstThreadEmailAt),
   );
   return `${hasEmailDate ? date.toISOString() : formatDateLabel(date)}|${title}`;
 }
@@ -134,8 +116,7 @@ async function findExistingSyntheticIssueId(db: Db, parsedIssue: ParsedIssue) {
   const matches: Filter<Document>[] = [];
 
   if (dedupeKey) matches.push({ "source.dedupeKey": dedupeKey });
-  if (title && receivedEmailAt)
-    matches.push({ title, "dates.receivedEmailAt": receivedEmailAt });
+  if (title && receivedEmailAt) matches.push({ title, "dates.receivedEmailAt": receivedEmailAt });
   if (title && firstThreadEmailAt) {
     matches.push({ title, "dates.firstThreadEmailAt": firstThreadEmailAt });
   }
@@ -160,27 +141,19 @@ async function generateIssueId(db: Db, date = new Date()) {
   const prefix = `${formatDateLabel(date)}-`;
   const existing = await db
     .collection(ISSUES_COLLECTION)
-    .find({ id: { $regex: `^${prefix}\\d{3}$` } })
+    .find({ id: { $regex: String.raw`^${prefix}\d{3}$` } })
     .project({ id: 1 })
     .sort({ id: -1 })
     .limit(1)
     .toArray();
-  const lastSequence =
-    Number((existing[0]?.id || "").slice(prefix.length)) || 0;
+  const lastSequence = Number((existing[0]?.id || "").slice(prefix.length)) || 0;
   return `${prefix}${String(lastSequence + 1).padStart(3, "0")}`;
 }
 
-async function resolveIssueId(
-  db: Db,
-  parsedIssue: ParsedIssue,
-  explicitId: string,
-) {
+async function resolveIssueId(db: Db, parsedIssue: ParsedIssue, explicitId: string) {
   if (explicitId) return explicitId;
   if (parsedIssue.idFromSubject) return parsedIssue.idFromSubject;
-  return (
-    (await findExistingSyntheticIssueId(db, parsedIssue)) ||
-    generateIssueId(db, parsedIssue.dates.issueCreatedAt)
-  );
+  return (await findExistingSyntheticIssueId(db, parsedIssue)) || generateIssueId(db, parsedIssue.dates.issueCreatedAt);
 }
 
 function buildIssueDocument(
@@ -213,11 +186,7 @@ function buildIssueDocument(
   };
 }
 
-function buildCommentDocument(
-  parsedIssue: ParsedIssue,
-  issueId: string,
-  message: ParsedIssue["messages"][number],
-) {
+function buildCommentDocument(parsedIssue: ParsedIssue, issueId: string, message: ParsedIssue["messages"][number]) {
   return {
     issueId,
     hash: message.hash,
@@ -236,9 +205,7 @@ function buildCommentDocument(
   };
 }
 
-export function attachmentDedupeKey(
-  attachment: Partial<ParsedAttachment> = {},
-) {
+export function attachmentDedupeKey(attachment: Partial<ParsedAttachment> = {}) {
   const checksum = String(attachment.checksum || "")
     .trim()
     .toLowerCase();
@@ -296,20 +263,13 @@ async function planImport(
   });
   const hashes = parsedIssue.messages.map((message) => message.hash);
   const existingComments = hashes.length
-    ? await db
-        .collection(COMMENTS_COLLECTION)
-        .countDocuments({ issueId, hash: { $in: hashes } })
+    ? await db.collection(COMMENTS_COLLECTION).countDocuments({ issueId, hash: { $in: hashes } })
     : 0;
-  const context = await resolveKnowledgeContext(
-    db,
-    contextPayload,
-    existingIssue as KnowledgeContextInput | null,
-    {
-      applicationRequired: true,
-      authorizationScope,
-      create: !existingIssue,
-    },
-  );
+  const context = await resolveKnowledgeContext(db, contextPayload, existingIssue as KnowledgeContextInput | null, {
+    applicationRequired: true,
+    authorizationScope,
+    create: !existingIssue,
+  });
   const issue = buildIssueDocument(parsedIssue, issueId, status, context);
 
   return {
@@ -338,13 +298,9 @@ function validateImportFile(content: unknown, options: ImportOptions) {
   if (!Buffer.isBuffer(content) || !content.length) {
     throw createHttpError(422, "Invalid EML import: file is required");
   }
-  const sourceFile =
-    String(options.filename || "email.eml").trim() || "email.eml";
+  const sourceFile = String(options.filename || "email.eml").trim() || "email.eml";
   if (!sourceFile.toLowerCase().endsWith(".eml")) {
-    throw createHttpError(
-      422,
-      "Invalid EML import: filename must end with .eml",
-    );
+    throw createHttpError(422, "Invalid EML import: filename must end with .eml");
   }
   return sourceFile;
 }
@@ -360,18 +316,11 @@ async function prepareImport(content: Source, options: ImportOptions) {
   });
   const issueTypes = activeValues(optionLists.types);
   const issueStatuses = activeValues(optionLists.statuses);
-  const defaultType =
-    optionLists.types?.defaultValue || issueTypes[0] || DEFAULT_ISSUE_TYPE;
-  const defaultStatus =
-    optionLists.statuses?.defaultValue ||
-    issueStatuses[0] ||
-    DEFAULT_ISSUE_STATUS;
+  const defaultType = optionLists.types?.defaultValue || issueTypes[0] || DEFAULT_ISSUE_TYPE;
+  const defaultStatus = optionLists.statuses?.defaultValue || issueStatuses[0] || DEFAULT_ISSUE_STATUS;
 
   if (type && !issueTypes.includes(type)) {
-    throw createHttpError(
-      422,
-      `Invalid EML import: type must be one of ${issueTypes.join(", ")}`,
-    );
+    throw createHttpError(422, `Invalid EML import: type must be one of ${issueTypes.join(", ")}`);
   }
 
   const storedSanitization = options.sanitizationConfig
@@ -386,8 +335,7 @@ async function prepareImport(content: Source, options: ImportOptions) {
     type,
     defaultType,
     issueTypeItems: optionLists.types?.items,
-    sanitizationConfig:
-      options.sanitizationConfig || storedSanitization?.config,
+    sanitizationConfig: options.sanitizationConfig || storedSanitization?.config,
   });
   if (!type && !issueTypes.includes(parsedIssue.type)) {
     parsedIssue.type = defaultType;
@@ -401,29 +349,18 @@ async function prepareImport(content: Source, options: ImportOptions) {
     explicitId,
     defaultStatus,
     {
-      ...(options.workspaceId !== undefined
-        ? { workspaceId: options.workspaceId }
-        : {}),
-      ...(options.applicationId !== undefined
-        ? { applicationId: options.applicationId }
-        : {}),
-      ...(options.affectedComponentIds !== undefined
-        ? { affectedComponentIds: options.affectedComponentIds }
-        : {}),
+      ...(options.workspaceId === undefined ? {} : { workspaceId: options.workspaceId }),
+      ...(options.applicationId === undefined ? {} : { applicationId: options.applicationId }),
+      ...(options.affectedComponentIds === undefined ? {} : { affectedComponentIds: options.affectedComponentIds }),
     },
     options.authorizationScope,
   );
   const classificationProvided = options.classification !== undefined;
   if (classificationProvided) {
-    const classification = normalizeClassificationPayload(
-      options.classification,
-    );
+    const classification = normalizeClassificationPayload(options.classification);
     await assertTaxonomyIdsApplicable(
       db,
-      [
-        classification.primaryTaxonomyId,
-        ...classification.secondaryTaxonomyIds,
-      ],
+      [classification.primaryTaxonomyId, ...classification.secondaryTaxonomyIds],
       plan.issue.workspaceId,
       plan.issue.applicationId,
     );
@@ -453,19 +390,15 @@ async function storeAttachments(
   const attachmentStorage = createAttachmentStorage(options);
   await attachmentStorage.initialize();
   const contentByIndex = new Map(
-    (parsedIssue.attachmentContents || []).map((attachment) => [
-      attachment.index,
-      attachment,
-    ]),
+    (parsedIssue.attachmentContents || []).map((attachment) => [attachment.index, attachment]),
   );
-  const { merged: attachments, byKey: attachmentIndexes } =
-    mergeExistingAttachments(plan.existingIssue?.attachments || []);
+  const { merged: attachments, byKey: attachmentIndexes } = mergeExistingAttachments(
+    plan.existingIssue?.attachments || [],
+  );
   let nextAttachmentIndex =
     attachments.reduce(
       (maximum: number, attachment) =>
-        Number.isInteger(attachment.index)
-          ? Math.max(maximum, attachment.index)
-          : maximum,
+        Number.isInteger(attachment.index) ? Math.max(maximum, attachment.index) : maximum,
       -1,
     ) + 1;
   const newlyStoredAttachments: StoredAttachment[] = [];
@@ -534,9 +467,7 @@ async function persistImportedIssue(
       $set: {
         type: issue.type,
         ...contextFields,
-        ...(classificationProvided
-          ? { classification: issue.classification }
-          : {}),
+        ...(classificationProvided ? { classification: issue.classification } : {}),
         title: issue.title,
         text: issue.text,
         "dates.receivedEmailAt": issue.dates.receivedEmailAt,
@@ -552,11 +483,7 @@ async function persistImportedIssue(
   );
 }
 
-async function importComments(
-  db: Db,
-  parsedIssue: ParsedIssue,
-  issueId: string,
-) {
+async function importComments(db: Db, parsedIssue: ParsedIssue, issueId: string) {
   let insertedComments = 0;
   let skippedComments = 0;
   for (const message of parsedIssue.messages) {
@@ -573,16 +500,10 @@ async function importComments(
   return { insertedComments, skippedComments };
 }
 
-export async function importEmlBuffer(
-  content: Buffer<ArrayBufferLike>,
-  options: ImportOptions = {},
-) {
-  const { db, parsedIssue, plan, defaultStatus, classificationProvided } =
-    await prepareImport(content, options);
+export async function importEmlBuffer(content: Buffer<ArrayBufferLike>, options: ImportOptions = {}) {
+  const { db, parsedIssue, plan, defaultStatus, classificationProvided } = await prepareImport(content, options);
   const action = plan.existingIssue ? "update" : "create";
-  const reopenedIssue = Boolean(
-    plan.existingIssue && plan.existingIssue.status !== defaultStatus,
-  );
+  const reopenedIssue = Boolean(plan.existingIssue && plan.existingIssue.status !== defaultStatus);
 
   if (options.dryRun) {
     return {
@@ -595,24 +516,9 @@ export async function importEmlBuffer(
     };
   }
 
-  const { issue, newlyStoredAttachments } = await storeAttachments(
-    options,
-    parsedIssue,
-    plan,
-  );
-  await persistImportedIssue(
-    db,
-    plan,
-    issue,
-    defaultStatus,
-    classificationProvided,
-    options,
-  );
-  const { insertedComments, skippedComments } = await importComments(
-    db,
-    parsedIssue,
-    plan.issueId,
-  );
+  const { issue, newlyStoredAttachments } = await storeAttachments(options, parsedIssue, plan);
+  await persistImportedIssue(db, plan, issue, defaultStatus, classificationProvided, options);
+  const { insertedComments, skippedComments } = await importComments(db, parsedIssue, plan.issueId);
 
   const [storedIssue, comments] = await Promise.all([
     db.collection(ISSUES_COLLECTION).findOne({ id: plan.issueId }),
@@ -633,9 +539,7 @@ export async function importEmlBuffer(
     reopenedIssue,
     insertedComments,
     skippedComments,
-    storedAttachments: newlyStoredAttachments.filter(
-      (attachment) => attachment.storage?.saved,
-    ).length,
+    storedAttachments: newlyStoredAttachments.filter((attachment) => attachment.storage?.saved).length,
     issueDir: mirror.issueDir,
     issue: storedIssue,
   };

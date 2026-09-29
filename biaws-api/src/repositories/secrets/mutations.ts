@@ -1,12 +1,12 @@
-import type { SecretContent, SecretDocument } from "../../types/secrets.js";
-import type { AuthorizationScope } from "../../types/http.js";
-import type { Actor } from "../../types/http.js";
-import { getCollections } from "./storage.js";
-import { assertApplication } from "./context.js";
-import { normalizeSecretPayload, publicSecret } from "./normalization.js";
-import { duplicateSecretError, secretError } from "./support.js";
-import { accessFilter } from "./filters.js";
 import { randomUUID } from "node:crypto";
+import { textValue } from "../../helpers/text.js";
+import type { Actor, AuthorizationScope } from "../../types/http.js";
+import type { SecretContent, SecretDocument } from "../../types/secrets.js";
+import { assertApplication } from "./context.js";
+import { accessFilter } from "./filters.js";
+import { normalizeSecretPayload, publicSecret } from "./normalization.js";
+import { getCollections } from "./storage.js";
+import { duplicateSecretError, secretError } from "./support.js";
 
 export async function createSecretDocument(
   payload: Record<string, unknown>,
@@ -26,14 +26,12 @@ export async function createSecretDocument(
 ) {
   const { secrets } = await getCollections();
   const workspaceId = String(actor.workspaceId);
-  const applicationId = payload.applicationId
-    ? String(payload.applicationId)
-    : null;
+  const applicationId = payload.applicationId ? textValue(payload.applicationId) : null;
   await assertApplication(applicationId, workspaceId);
   const metadata = normalizeSecretPayload(payload);
   const now = new Date();
   const document = {
-    id: String(payload.id || randomUUID()),
+    id: textValue(payload.id || randomUUID()),
     workspaceId,
     applicationId,
     ...metadata,
@@ -71,31 +69,22 @@ export async function createSecretDocument(
   return publicSecret(document);
 }
 
-export async function createPendingSecretDocument(
-  payload: Record<string, unknown>,
-  actor: Partial<Actor>,
-) {
+export async function createPendingSecretDocument(payload: Record<string, unknown>, actor: Partial<Actor>) {
   const { secrets } = await getCollections();
   const workspaceId = String(actor.workspaceId);
-  const applicationId = payload.applicationId
-    ? String(payload.applicationId)
-    : null;
+  const applicationId = payload.applicationId ? textValue(payload.applicationId) : null;
   await assertApplication(applicationId, workspaceId);
   const metadata = normalizeSecretPayload(payload);
-  const contentKind = String(payload.contentKind || "").trim();
+  const contentKind = textValue(payload.contentKind || "").trim();
   if (!["text", "file"].includes(contentKind)) {
-    throw secretError(
-      422,
-      "INVALID_SECRET_CONTENT_KIND",
-      "contentKind must be text or file",
-    );
+    throw secretError(422, "INVALID_SECRET_CONTENT_KIND", "contentKind must be text or file");
   }
   const now = new Date();
   const document = {
-    id: String(payload.id || randomUUID()),
+    id: textValue(payload.id || randomUUID()),
     workspaceId,
     applicationId,
-    collectionId: String(payload.collectionId || ""),
+    collectionId: textValue(payload.collectionId || ""),
     ...metadata,
     provider: null,
     contentKind,
@@ -124,11 +113,16 @@ export async function updateSecretDocument(
 ) {
   const { secrets } = await getCollections();
   const metadata = normalizeSecretPayload(payload, current);
-  const applicationId = Object.hasOwn(payload, "applicationId")
-    ? payload.applicationId
-      ? String(payload.applicationId)
-      : null
-    : current.applicationId || null;
+  let applicationId;
+  if (Object.hasOwn(payload, "applicationId")) {
+    if (payload.applicationId) {
+      applicationId = textValue(payload.applicationId);
+    } else {
+      applicationId = null;
+    }
+  } else {
+    applicationId = current.applicationId || null;
+  }
   await assertApplication(applicationId, current.workspaceId);
   try {
     const document = await secrets.findOneAndUpdate(
@@ -212,16 +206,9 @@ export async function restoreSecretDocument(
   return publicSecret(document);
 }
 
-export async function deleteSecretDocument(
-  current: SecretDocument,
-  authorizationScope: AuthorizationScope,
-) {
+export async function deleteSecretDocument(current: SecretDocument, authorizationScope: AuthorizationScope) {
   if (current.status !== "archived") {
-    throw secretError(
-      409,
-      "SECRET_NOT_ARCHIVED",
-      "Only archived secrets can be permanently deleted",
-    );
+    throw secretError(409, "SECRET_NOT_ARCHIVED", "Only archived secrets can be permanently deleted");
   }
   const { secrets } = await getCollections();
   const result = await secrets.deleteOne({

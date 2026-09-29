@@ -26,8 +26,7 @@ async function run() {
     email,
     password,
     name,
-    assignAdministration: (userId) =>
-      setUserGroups(userId, ["administration"], { userId }),
+    assignAdministration: (userId) => setUserGroups(userId, ["administration"], { userId }),
   });
   const workspace = await ensureDefaultWorkspace({
     userId: result.user._id?.toString?.() || result.user.id,
@@ -37,9 +36,11 @@ async function run() {
   console.log(`Default workspace ready: ${workspace.name} (${workspace.id})`);
 }
 
-run()
-  .catch((error: unknown) => {
-    console.error(errorMessage(error));
-    process.exitCode = 1;
-  })
-  .finally(closeMongoClient);
+try {
+  await run();
+} catch (error: unknown) {
+  console.error(errorMessage(error));
+  process.exitCode = 1;
+} finally {
+  await closeMongoClient();
+}

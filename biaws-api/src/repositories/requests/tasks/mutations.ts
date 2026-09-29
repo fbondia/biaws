@@ -1,18 +1,9 @@
 import type { RepositoryQuery } from "../../../types/http.js";
 import { loadRequestOptions } from "../options.js";
 import { ensureIndexes } from "../indexes.js";
-import {
-  requestReferenceId,
-  ensureRequestExists,
-  touchRequest,
-  taskReferenceId,
-} from "../references.js";
+import { requestReferenceId, ensureRequestExists, touchRequest, taskReferenceId } from "../references.js";
 import { normalizeTaskPayload } from "./normalization.js";
-import {
-  TASKS_COLLECTION,
-  REQUESTS_COLLECTION,
-  TASK_NOTES_COLLECTION,
-} from "../constants.js";
+import { TASKS_COLLECTION, REQUESTS_COLLECTION, TASK_NOTES_COLLECTION } from "../constants.js";
 import { readRequestById } from "../queries.js";
 import { createHttpError } from "../support.js";
 import { getMongoDatabase } from "../../../helpers/mongoClient.js";
@@ -58,17 +49,12 @@ export async function updateRequestTask(
   const taskId = await taskReferenceId(db, taskIdValue, requestId);
   await ensureRequestExists(db, requestId, requestIdValue, query);
 
-  const existing = await db
-    .collection(TASKS_COLLECTION)
-    .findOne({ _id: taskId, requestId });
+  const existing = await db.collection(TASKS_COLLECTION).findOne({ _id: taskId, requestId });
   if (!existing) {
     throw createHttpError(404, `Request task not found: ${taskIdValue}`);
   }
 
-  const task = normalizeTaskPayload(
-    { ...existing, ...payload },
-    existing.status,
-  );
+  const task = normalizeTaskPayload({ ...existing, ...payload }, existing.status);
   const now = new Date();
   await db.collection(TASKS_COLLECTION).updateOne(
     { _id: taskId, requestId },
@@ -89,23 +75,17 @@ export async function updateRequestTask(
     const request = await db
       .collection(REQUESTS_COLLECTION)
       .findOne({ _id: requestId }, { projection: { attachments: 1 } });
-    const attachments = (request?.attachments || []).map(
-      (attachment: { tags?: string[]; [key: string]: unknown }) => ({
-        ...attachment,
-        tags: [
-          ...new Set(
-            (attachment.tags || []).map((tag: string) =>
-              String(tag).trim().toLowerCase() === previousCode
-                ? nextCode
-                : tag,
-            ),
+    const attachments = (request?.attachments || []).map((attachment: { tags?: string[]; [key: string]: unknown }) => ({
+      ...attachment,
+      tags: [
+        ...new Set(
+          (attachment.tags || []).map((tag: string) =>
+            String(tag).trim().toLowerCase() === previousCode ? nextCode : tag,
           ),
-        ].filter(Boolean),
-      }),
-    );
-    await db
-      .collection(REQUESTS_COLLECTION)
-      .updateOne({ _id: requestId }, { $set: { attachments } });
+        ),
+      ].filter(Boolean),
+    }));
+    await db.collection(REQUESTS_COLLECTION).updateOne({ _id: requestId }, { $set: { attachments } });
   }
   await touchRequest(db, requestId, now);
 
@@ -126,9 +106,7 @@ export async function deleteRequestTask(
   const taskId = await taskReferenceId(db, taskIdValue, requestId);
   await ensureRequestExists(db, requestId, requestIdValue, query);
 
-  const result = await db
-    .collection(TASKS_COLLECTION)
-    .deleteOne({ _id: taskId, requestId });
+  const result = await db.collection(TASKS_COLLECTION).deleteOne({ _id: taskId, requestId });
   if (!result.deletedCount) {
     throw createHttpError(404, `Request task not found: ${taskIdValue}`);
   }

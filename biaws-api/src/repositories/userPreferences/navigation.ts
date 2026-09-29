@@ -1,8 +1,6 @@
+import { textValue } from "../../helpers/text.js";
 import type { Actor } from "../../types/http.js";
-import {
-  COLLECTION_NAVIGATION_CONTEXTS,
-  MAX_COLLECTION_ID_LENGTH,
-} from "./constants.js";
+import { COLLECTION_NAVIGATION_CONTEXTS, MAX_COLLECTION_ID_LENGTH } from "./constants.js";
 import { preferenceError } from "./support.js";
 import { preferencesCollection } from "./storage.js";
 import { isRecord } from "../../helpers/records.js";
@@ -20,7 +18,7 @@ export function assertCollectionNavigationContext(value: string) {
 }
 
 function normalizeCollectionId(value: unknown) {
-  const collectionId = String(value || "").trim();
+  const collectionId = textValue(value || "").trim();
   if (!collectionId || collectionId.length > MAX_COLLECTION_ID_LENGTH) {
     throw preferenceError(
       422,
@@ -33,9 +31,7 @@ function normalizeCollectionId(value: unknown) {
 
 export function normalizeCollectionNavigationMutation(payload: unknown = {}) {
   const source = isRecord(payload) ? payload : {};
-  const unknown = Object.keys(source).filter(
-    (key: string) => !["collectionId", "collapsed"].includes(key),
-  );
+  const unknown = Object.keys(source).filter((key: string) => !["collectionId", "collapsed"].includes(key));
   if (unknown.length) {
     throw preferenceError(
       422,
@@ -44,11 +40,7 @@ export function normalizeCollectionNavigationMutation(payload: unknown = {}) {
     );
   }
   if (typeof source.collapsed !== "boolean") {
-    throw preferenceError(
-      422,
-      "INVALID_COLLECTION_NAVIGATION_PREFERENCE",
-      "collapsed deve ser booleano",
-    );
+    throw preferenceError(422, "INVALID_COLLECTION_NAVIGATION_PREFERENCE", "collapsed deve ser booleano");
   }
   return {
     collectionId: normalizeCollectionId(source.collectionId),
@@ -58,9 +50,7 @@ export function normalizeCollectionNavigationMutation(payload: unknown = {}) {
 
 function normalizePreference(context: string, document: unknown) {
   const navigation =
-    document &&
-    typeof document === "object" &&
-    "collectionNavigation" in document
+    document && typeof document === "object" && "collectionNavigation" in document
       ? document.collectionNavigation
       : undefined;
   const rawPreference =
@@ -68,9 +58,7 @@ function normalizePreference(context: string, document: unknown) {
       ? (navigation as Record<string, unknown>)[context]
       : undefined;
   const preference =
-    rawPreference &&
-    typeof rawPreference === "object" &&
-    !Array.isArray(rawPreference)
+    rawPreference && typeof rawPreference === "object" && !Array.isArray(rawPreference)
       ? (rawPreference as {
           collapsedCollectionIds?: unknown;
           updatedAt?: unknown;
@@ -80,11 +68,8 @@ function normalizePreference(context: string, document: unknown) {
     context,
     collapsedCollectionIds: [
       ...new Set(
-        (Array.isArray(preference.collapsedCollectionIds)
-          ? preference.collapsedCollectionIds
-          : []
-        )
-          .map((id: unknown) => String(id || "").trim())
+        (Array.isArray(preference.collapsedCollectionIds) ? preference.collapsedCollectionIds : [])
+          .map((id: unknown) => textValue(id || "").trim())
           .filter(Boolean),
       ),
     ],
@@ -92,10 +77,7 @@ function normalizePreference(context: string, document: unknown) {
   };
 }
 
-export async function getCollectionNavigationPreference(
-  contextValue: string | string[],
-  actor: Actor,
-) {
+export async function getCollectionNavigationPreference(contextValue: string | string[], actor: Actor) {
   const context = assertCollectionNavigationContext(String(contextValue));
   const collection = await preferencesCollection();
   const document = await collection.findOne({
@@ -112,8 +94,7 @@ export function buildCollectionNavigationUpdateOperation(
   now = new Date(),
 ) {
   const context = assertCollectionNavigationContext(contextValue);
-  const { collectionId, collapsed } =
-    normalizeCollectionNavigationMutation(payload);
+  const { collectionId, collapsed } = normalizeCollectionNavigationMutation(payload);
   const collapsedPath = `collectionNavigation.${context}.collapsedCollectionIds`;
   const contextUpdatedAtPath = `collectionNavigation.${context}.updatedAt`;
 
@@ -145,12 +126,7 @@ export async function updateCollectionNavigationPreference(
 ) {
   const collection = await preferencesCollection();
   const now = new Date();
-  const operation = buildCollectionNavigationUpdateOperation(
-    String(contextValue),
-    payload,
-    actor,
-    now,
-  );
+  const operation = buildCollectionNavigationUpdateOperation(String(contextValue), payload, actor, now);
 
   await collection.updateOne(operation.filter, operation.update, {
     upsert: true,

@@ -134,9 +134,7 @@ function runtimeHealthItem(
           executionId: latestSignal.executionId,
           trigger: latestSignal.trigger,
           metadata: latestSignal.metadata || {},
-          ...(latestSignal.metadataProfile
-            ? { metadataProfile: latestSignal.metadataProfile }
-            : {}),
+          ...(latestSignal.metadataProfile ? { metadataProfile: latestSignal.metadataProfile } : {}),
           ...(metadataPresentation ? { metadataPresentation } : {}),
         }
       : null,
@@ -153,7 +151,7 @@ function materializeDeploymentHealth(deployment: DeploymentGroup) {
   return {
     ...deployment,
     status: healthFromCounts(deployment.counts),
-    runtimes: deployment.runtimes.sort(compareNamedItems),
+    runtimes: deployment.runtimes.toSorted(compareNamedItems),
   };
 }
 
@@ -161,9 +159,7 @@ function materializeComponentHealth(component: ComponentGroup) {
   return {
     ...component,
     status: healthFromCounts(component.counts),
-    deployments: [...component.deployments.values()]
-      .map(materializeDeploymentHealth)
-      .sort(compareNamedItems),
+    deployments: [...component.deployments.values()].map(materializeDeploymentHealth).sort(compareNamedItems),
   };
 }
 
@@ -171,28 +167,20 @@ function materializeApplicationHealth(application: ApplicationGroup) {
   return {
     ...application,
     status: healthFromCounts(application.counts),
-    components: [...application.components.values()]
-      .map(materializeComponentHealth)
-      .sort(compareNamedItems),
+    components: [...application.components.values()].map(materializeComponentHealth).sort(compareNamedItems),
   };
 }
 
-export function filterRuntimesByDeploymentEnvironment<
-  R extends { deploymentId?: string },
->(
+export function filterRuntimesByDeploymentEnvironment<R extends { deploymentId?: string }>(
   runtimes: R[] = [],
   deployments: { id: string; environment?: string }[] = [],
   environment = "",
 ) {
   if (!environment) return runtimes;
   const deploymentIds = new Set(
-    deployments
-      .filter((deployment) => deployment.environment === environment)
-      .map((deployment) => deployment.id),
+    deployments.filter((deployment) => deployment.environment === environment).map((deployment) => deployment.id),
   );
-  return runtimes.filter((runtime) =>
-    deploymentIds.has(runtime.deploymentId || ""),
-  );
+  return runtimes.filter((runtime) => deploymentIds.has(runtime.deploymentId || ""));
 }
 
 export function buildApplicationHealthItems({
@@ -204,19 +192,11 @@ export function buildApplicationHealthItems({
   runtimes = [],
   servers = [],
 }: HealthInput = {}) {
-  const applicationsById = new Map(
-    applications.map((application) => [application.id, application]),
-  );
-  const componentsById = new Map(
-    components.map((component) => [component.id, component]),
-  );
-  const deploymentsById = new Map(
-    deployments.map((deployment) => [deployment.id, deployment]),
-  );
+  const applicationsById = new Map(applications.map((application) => [application.id, application]));
+  const componentsById = new Map(components.map((component) => [component.id, component]));
+  const deploymentsById = new Map(deployments.map((deployment) => [deployment.id, deployment]));
   const serversById = new Map(servers.map((server) => [server.id, server]));
-  const latestSignalsByRuntimeId = new Map(
-    latestSignals.map((signal) => [signal.runtimeId, signal]),
-  );
+  const latestSignalsByRuntimeId = new Map(latestSignals.map((signal) => [signal.runtimeId, signal]));
   const pendingExecutionsByRuntimeId = new Map<string, PendingExecution[]>();
   for (const execution of pendingExecutions) {
     const current = pendingExecutionsByRuntimeId.get(execution.runtimeId) || [];
@@ -228,17 +208,10 @@ export function buildApplicationHealthItems({
   for (const runtime of runtimes) {
     const application = applicationsById.get(runtime.applicationId);
     if (!application) continue;
-    const component = namedTopologyItem(
-      componentsById.get(runtime.componentId || ""),
-      "Componente não encontrado",
-    );
-    const deployment = namedTopologyItem(
-      deploymentsById.get(runtime.deploymentId || ""),
-      "Deployment não encontrado",
-    );
+    const component = namedTopologyItem(componentsById.get(runtime.componentId || ""), "Componente não encontrado");
+    const deployment = namedTopologyItem(deploymentsById.get(runtime.deploymentId || ""), "Deployment não encontrado");
     const status = runtime.monitoring?.status || runtime.status || "unknown";
-    const observedAt =
-      runtime.monitoring?.observedAt || runtime.monitoringObservedAt || null;
+    const observedAt = runtime.monitoring?.observedAt || runtime.monitoringObservedAt || null;
     const applicationGroup = getOrCreateHealthGroup(
       grouped,
       application,
@@ -274,9 +247,7 @@ export function buildApplicationHealthItems({
     );
   }
 
-  return [...grouped.values()]
-    .map(materializeApplicationHealth)
-    .sort(compareNamedItems);
+  return [...grouped.values()].map(materializeApplicationHealth).sort(compareNamedItems);
 }
 
 export function healthFromCounts(counts: Record<string, number>) {

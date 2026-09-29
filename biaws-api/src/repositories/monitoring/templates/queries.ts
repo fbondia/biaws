@@ -1,12 +1,9 @@
+import { textValue } from "../../../helpers/text.js";
 import type { RepositoryQuery } from "../../../types/http.js";
 import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
 import { getMongoDatabase } from "../../../helpers/mongoClient.js";
 import { pagination } from "../../shared/topology/filters.js";
-import {
-  publicTemplate,
-  requireTemplate,
-  templateCollection,
-} from "./storage.js";
+import { publicTemplate, requireTemplate, templateCollection } from "./storage.js";
 
 export async function listMonitoringTemplates(query: RepositoryQuery = {}) {
   const { page, limit, skip } = pagination(query);
@@ -15,7 +12,7 @@ export async function listMonitoringTemplates(query: RepositoryQuery = {}) {
     workspaceId: String(query.workspaceId),
     status: { $ne: "archived" },
   };
-  if (query.status) match.status = String(query.status);
+  if (query.status) match.status = textValue(query.status);
   const pipeline = [
     { $match: match },
     { $sort: { versionNumber: -1 } },
@@ -32,13 +29,7 @@ export async function listMonitoringTemplates(query: RepositoryQuery = {}) {
   ];
   const [groups, totalResult] = await Promise.all([
     collection.aggregate(pipeline).toArray(),
-    collection
-      .aggregate([
-        { $match: match },
-        { $group: { _id: "$id" } },
-        { $count: "total" },
-      ])
-      .toArray(),
+    collection.aggregate([{ $match: match }, { $group: { _id: "$id" } }, { $count: "total" }]).toArray(),
   ]);
   return {
     meta: { total: totalResult[0]?.total || 0, page, limit },
@@ -49,10 +40,7 @@ export async function listMonitoringTemplates(query: RepositoryQuery = {}) {
   };
 }
 
-export async function getMonitoringTemplate(
-  id: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function getMonitoringTemplate(id: string | string[], query: RepositoryQuery = {}) {
   const template = await requireTemplate(id, query.version, query.workspaceId);
   const versions = await (
     await templateCollection()
@@ -83,15 +71,11 @@ export async function monitoringTemplateUsage(
     workspaceId: template.workspaceId,
   };
   const [monitors, activeMonitors, observations] = await Promise.all([
-    database
-      .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
-      .countDocuments(ref),
+    database.collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS).countDocuments(ref),
     database
       .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
       .countDocuments({ ...ref, archivedAt: { $exists: false } }),
-    database
-      .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)
-      .countDocuments(ref),
+    database.collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS).countDocuments(ref),
   ]);
   return {
     templateRef: { id: template.id, version: template.version },

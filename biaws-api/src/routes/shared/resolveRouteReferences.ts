@@ -1,9 +1,6 @@
 import type { Request } from "express";
 import { authorizationQuery } from "../../auth/authorizationMiddleware.js";
-import {
-  resolveEntityReference,
-  resolveTaskReference,
-} from "../../repositories/shared/references.js";
+import { resolveEntityReference, resolveTaskReference } from "../../repositories/shared/references.js";
 
 const PARAMETER_TYPES = {
   applicationId: "application",
@@ -31,17 +28,11 @@ export async function resolveRouteReferences(req: Request, rootType?: string) {
         type,
         req.params[parameter],
         authorizationQuery(req.actor, permission, req.query),
-        type === "runtime" && req.query.deploymentId
-          ? { deploymentId: req.query.deploymentId }
-          : {},
+        type === "runtime" && req.query.deploymentId ? { deploymentId: req.query.deploymentId } : {},
       );
     }
   }
   if (rootType === "demand" && req.params.taskId) {
-    req.params.taskId = await resolveTaskReference(
-      req.params.taskId,
-      req.params.id,
-      query,
-    );
+    req.params.taskId = await resolveTaskReference(req.params.taskId, req.params.id, query);
   }
 }

@@ -27,9 +27,7 @@ interface MonitorCount {
   monitorNames: string[];
 }
 
-export async function getMonitoredRuntimeTopology(
-  authorizationScope: AuthorizationScope = {},
-) {
+export async function getMonitoredRuntimeTopology(authorizationScope: AuthorizationScope = {}) {
   const workspaceId = String(authorizationScope.workspaceId || "");
   if (!workspaceId) {
     return {
@@ -39,16 +37,12 @@ export async function getMonitoredRuntimeTopology(
       runtimeIds: [],
     };
   }
-  const applicationIds = authorizationScope.workspace
-    ? []
-    : (authorizationScope.applicationIds || []).map(String);
+  const applicationIds = authorizationScope.workspace ? [] : (authorizationScope.applicationIds || []).map(String);
   const collection = await activeMonitorCollection();
   const monitoredRuntimeIds = await collection.distinct("runtimeId", {
     workspaceId,
     archivedAt: { $exists: false },
-    ...(authorizationScope.workspace
-      ? {}
-      : { applicationId: { $in: applicationIds } }),
+    ...(authorizationScope.workspace ? {} : { applicationId: { $in: applicationIds } }),
   });
   if (!monitoredRuntimeIds.length) {
     return {
@@ -66,9 +60,7 @@ export async function getMonitoredRuntimeTopology(
         workspaceId,
         id: { $in: monitoredRuntimeIds },
         status: { $ne: "archived" },
-        ...(authorizationScope.workspace
-          ? {}
-          : { applicationId: { $in: applicationIds } }),
+        ...(authorizationScope.workspace ? {} : { applicationId: { $in: applicationIds } }),
       },
       {
         projection: {
@@ -88,12 +80,10 @@ export async function getMonitoredRuntimeTopology(
       deploymentId: 1,
     })
     .toArray();
-  const unique = (
-    field: "id" | "applicationId" | "componentId" | "deploymentId",
-  ) =>
-    [
-      ...new Set(runtimes.map((runtime) => runtime[field]).filter(Boolean)),
-    ].sort((left, right) => left.localeCompare(right));
+  const unique = (field: "id" | "applicationId" | "componentId" | "deploymentId") =>
+    [...new Set(runtimes.map((runtime) => runtime[field]).filter(Boolean))].sort((left, right) =>
+      left.localeCompare(right),
+    );
   return {
     applicationIds: unique("applicationId"),
     componentIds: unique("componentId"),
@@ -102,91 +92,85 @@ export async function getMonitoredRuntimeTopology(
   };
 }
 
-export async function listMonitoredRuntimeTargets(
-  authorizationScope: AuthorizationScope = {},
-) {
+export async function listMonitoredRuntimeTargets(authorizationScope: AuthorizationScope = {}) {
   const topology = await getMonitoredRuntimeTopology(authorizationScope);
   if (!topology.runtimeIds.length) return [];
 
   const workspaceId = String(authorizationScope.workspaceId || "");
   const database = await getMongoDatabase();
-  const [runtimes, applications, components, deployments, monitorCounts] =
-    await Promise.all([
-      database
-        .collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES)
-        .find({
-          workspaceId,
-          id: { $in: topology.runtimeIds },
-          status: { $ne: "archived" },
-        })
-        .project<RuntimeTarget>({
-          _id: 0,
-          id: 1,
-          key: 1,
-          name: 1,
-          applicationId: 1,
-          componentId: 1,
-          deploymentId: 1,
-        })
-        .toArray(),
-      database
-        .collection(COLLECTION_NAMES.APPLICATIONS)
-        .find({ workspaceId, id: { $in: topology.applicationIds } })
-        .project<NamedTarget>({
-          _id: 0,
-          id: 1,
-          key: 1,
-          name: 1,
-          collectionId: 1,
-        })
-        .toArray(),
-      database
-        .collection(COLLECTION_NAMES.APPLICATION_COMPONENTS)
-        .find({ workspaceId, id: { $in: topology.componentIds } })
-        .project<NamedTarget>({ _id: 0, id: 1, key: 1, name: 1 })
-        .toArray(),
-      database
-        .collection(COLLECTION_NAMES.APPLICATION_DEPLOYMENTS)
-        .find({ workspaceId, id: { $in: topology.deploymentIds } })
-        .project<NamedTarget>({
-          _id: 0,
-          id: 1,
-          key: 1,
-          name: 1,
-          environment: 1,
-        })
-        .toArray(),
-      (await activeMonitorCollection())
-        .aggregate<MonitorCount>([
-          {
-            $match: {
-              workspaceId,
-              runtimeId: { $in: topology.runtimeIds },
-              archivedAt: { $exists: false },
-            },
+  const [runtimes, applications, components, deployments, monitorCounts] = await Promise.all([
+    database
+      .collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES)
+      .find({
+        workspaceId,
+        id: { $in: topology.runtimeIds },
+        status: { $ne: "archived" },
+      })
+      .project<RuntimeTarget>({
+        _id: 0,
+        id: 1,
+        key: 1,
+        name: 1,
+        applicationId: 1,
+        componentId: 1,
+        deploymentId: 1,
+      })
+      .toArray(),
+    database
+      .collection(COLLECTION_NAMES.APPLICATIONS)
+      .find({ workspaceId, id: { $in: topology.applicationIds } })
+      .project<NamedTarget>({
+        _id: 0,
+        id: 1,
+        key: 1,
+        name: 1,
+        collectionId: 1,
+      })
+      .toArray(),
+    database
+      .collection(COLLECTION_NAMES.APPLICATION_COMPONENTS)
+      .find({ workspaceId, id: { $in: topology.componentIds } })
+      .project<NamedTarget>({ _id: 0, id: 1, key: 1, name: 1 })
+      .toArray(),
+    database
+      .collection(COLLECTION_NAMES.APPLICATION_DEPLOYMENTS)
+      .find({ workspaceId, id: { $in: topology.deploymentIds } })
+      .project<NamedTarget>({
+        _id: 0,
+        id: 1,
+        key: 1,
+        name: 1,
+        environment: 1,
+      })
+      .toArray(),
+    (await activeMonitorCollection())
+      .aggregate<MonitorCount>([
+        {
+          $match: {
+            workspaceId,
+            runtimeId: { $in: topology.runtimeIds },
+            archivedAt: { $exists: false },
           },
-          {
-            $group: {
-              _id: "$runtimeId",
-              monitorCount: { $sum: 1 },
-              enabledMonitorCount: {
-                $sum: { $cond: ["$enabled", 1, 0] },
-              },
-              monitorNames: { $push: "$name" },
+        },
+        {
+          $group: {
+            _id: "$runtimeId",
+            monitorCount: { $sum: 1 },
+            enabledMonitorCount: {
+              $sum: { $cond: ["$enabled", 1, 0] },
             },
+            monitorNames: { $push: "$name" },
           },
-        ])
-        .toArray(),
-    ]);
+        },
+      ])
+      .toArray(),
+  ]);
 
-  const byId = <T extends { id: string }>(items: T[]) =>
-    new Map(items.map((item) => [item.id, item]));
+  const byId = <T extends { id: string }>(items: T[]) => new Map(items.map((item) => [item.id, item]));
   const applicationsById = byId(applications);
   const componentsById = byId(components);
   const deploymentsById = byId(deployments);
-  const countsByRuntimeId = new Map(
-    monitorCounts.map((item) => [item._id, item]),
-  );
+  const countsByRuntimeId = new Map(monitorCounts.map((item) => [item._id, item]));
   return runtimes
     .map((runtime) => {
       const application = applicationsById.get(runtime.applicationId);
@@ -200,26 +184,14 @@ export async function listMonitoredRuntimeTargets(
         deployment: deployment || null,
         monitorCount: counts?.monitorCount || 0,
         enabledMonitorCount: counts?.enabledMonitorCount || 0,
-        monitorNames: (counts?.monitorNames || []).sort((left, right) =>
-          left.localeCompare(right, "pt-BR"),
-        ),
+        monitorNames: (counts?.monitorNames || []).sort((left, right) => left.localeCompare(right, "pt-BR")),
       };
     })
     .sort((left, right) =>
-      [
-        left.application?.name,
-        left.component?.name,
-        left.deployment?.name,
-        left.name,
-      ]
+      [left.application?.name, left.component?.name, left.deployment?.name, left.name]
         .join("\u0000")
         .localeCompare(
-          [
-            right.application?.name,
-            right.component?.name,
-            right.deployment?.name,
-            right.name,
-          ].join("\u0000"),
+          [right.application?.name, right.component?.name, right.deployment?.name, right.name].join("\u0000"),
           "pt-BR",
         ),
     );

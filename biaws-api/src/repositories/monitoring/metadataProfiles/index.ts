@@ -2,9 +2,7 @@ import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
 import { getMongoDatabase } from "../../../helpers/mongoClient.js";
 import { monitoringMetadataProfileCatalog } from "./model.js";
 
-export async function listMonitoringMetadataProfiles(
-  workspaceId: string | null | undefined,
-) {
+export async function listMonitoringMetadataProfiles(workspaceId: string | null | undefined) {
   const database = await getMongoDatabase();
   const usage = await database
     .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)

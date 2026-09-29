@@ -1,9 +1,6 @@
 import type { Router, Request, Response } from "express";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
-import {
-  getWorkspace,
-  updateWorkspace,
-} from "../../../repositories/catalog/workspaces/platform.js";
+import { getWorkspace, updateWorkspace } from "../../../repositories/catalog/workspaces/platform.js";
 import { asyncHandler } from "../../shared/asyncHandler.js";
 
 export function registerUpdateWorkspace(router: Router) {
@@ -11,11 +8,7 @@ export function registerUpdateWorkspace(router: Router) {
     "/workspaces/:workspaceId",
     asyncHandler(async (req: Request, res: Response) => {
       const before = await getWorkspace(req.params.workspaceId);
-      const workspace = await updateWorkspace(
-        req.params.workspaceId,
-        req.body,
-        req.actor,
-      );
+      const workspace = await updateWorkspace(req.params.workspaceId, req.body, req.actor);
       if (!workspace) {
         res.status(404).json({
           error: {

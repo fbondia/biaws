@@ -4,10 +4,7 @@ import test from "node:test";
 
 import { PERMISSION_CATALOG } from "../../../shared/index.js";
 import { normalizeComponentInput } from "../../src/repositories/components/index.js";
-import {
-  normalizeDeploymentInput,
-  normalizeRuntimeInput,
-} from "../../src/repositories/deployments/index.js";
+import { normalizeDeploymentInput, normalizeRuntimeInput } from "../../src/repositories/deployments/index.js";
 import { normalizeRepositoryInput } from "../../src/repositories/repositories/index.js";
 import { normalizeServerInput } from "../../src/repositories/servers/index.js";
 import {
@@ -30,10 +27,7 @@ import {
   normalizeRuntimeMonitoringSummaryQuery,
   runtimeMonitoringSummaryResponse,
 } from "../../src/repositories/monitoring/events/summary.js";
-import {
-  buildScopedListFilter,
-  pagination,
-} from "../../src/repositories/shared/topology/index.js";
+import { buildScopedListFilter, pagination } from "../../src/repositories/shared/topology/index.js";
 
 test("repository URL rejects credentials and secret query parameters", () => {
   for (const url of [
@@ -47,9 +41,7 @@ test("repository URL rejects credentials and secret query parameters", () => {
           name: "Repository",
           url,
         }),
-      (error) =>
-        errorStatusCode(error) === 422 &&
-        errorCode(error) === "INVALID_CATALOG_URL",
+      (error) => errorStatusCode(error) === 422 && errorCode(error) === "INVALID_CATALOG_URL",
     );
   }
 });
@@ -62,12 +54,8 @@ test("repository URL and identifier are mutable", () => {
     url: "https://example.test/old.git",
   });
   assert.equal(
-    normalizeRepositoryInput({ url: "https://example.test/new.git" }, current)
-      .url,
+    normalizeRepositoryInput({ url: "https://example.test/new.git" }, current).url,
     "https://example.test/new.git",
   );
-  assert.equal(
-    normalizeRepositoryInput({ key: "new-key" }, current).key,
-    "new-key",
-  );
+  assert.equal(normalizeRepositoryInput({ key: "new-key" }, current).key, "new-key");
 });

@@ -1,11 +1,7 @@
 import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { getRepository } from "../../../repositories/repositories/index.js";
-import {
-  sendNotFound,
-  scopedApplicationEntity,
-  asyncHandler,
-} from "../helpers.js";
+import { sendNotFound, scopedApplicationEntity, asyncHandler } from "../helpers.js";
 
 export function registerGetRepository(router: Router) {
   router.get(

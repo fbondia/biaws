@@ -1,9 +1,6 @@
 import type { Request, Router, Response } from "express";
 import { readAttachment } from "../../../services/attachmentService.js";
-import {
-  authorizationQuery,
-  requireAllPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { authorizationQuery, requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { asyncHandler } from "../../shared/attachmentHelpers.js";
 
 const entityType = "issues";
@@ -26,10 +23,7 @@ export function registerGetAttachment(router: Router) {
         req.params.attachmentId,
         scopedQuery(req, "read"),
       );
-      const fallbackName = String(attachment.filename || "anexo").replace(
-        /[\r\n"]/gu,
-        "_",
-      );
+      const fallbackName = String(attachment.filename || "anexo").replaceAll(/[\r\n"]/gu, "_");
       const encodedName = encodeURIComponent(attachment.filename || "anexo");
       res.set({
         "Content-Type": attachment.contentType || "application/octet-stream",

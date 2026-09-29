@@ -2,11 +2,7 @@ import type { Router, Request, Response } from "express";
 import { requireAllPermissions } from "../../../auth/authorizationMiddleware.js";
 import { recordRuntimeMonitoringSignal } from "../../../repositories/monitoring/events/index.js";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
-import {
-  scopedRuntime,
-  sendRuntimeNotFound,
-  asyncHandler,
-} from "../helpers.js";
+import { scopedRuntime, sendRuntimeNotFound, asyncHandler } from "../helpers.js";
 
 export function registerCreateRuntimesSignal(router: Router) {
   router.post(
@@ -15,14 +11,9 @@ export function registerCreateRuntimesSignal(router: Router) {
     asyncHandler(async (req: Request, res: Response) => {
       const runtime = await scopedRuntime(req, "monitoring.signals.create");
       if (!runtime) return sendRuntimeNotFound(res);
-      const result = await recordRuntimeMonitoringSignal(
-        runtime.id,
-        req.body,
-        req.actor,
-      );
+      const result = await recordRuntimeMonitoringSignal(runtime.id, req.body, req.actor);
       if (result.created) {
-        if (!result.runtime)
-          throw new Error("Updated runtime could not be read");
+        if (!result.runtime) throw new Error("Updated runtime could not be read");
         const signal = result.signal as {
           signalId?: string | null;
           source?: string;

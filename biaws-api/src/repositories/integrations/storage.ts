@@ -5,27 +5,17 @@ import type { IntegrationDocument } from "../../types/topology.js";
 let collectionPromise: ReturnType<typeof initializeCollections> | undefined;
 
 export async function getCollection() {
-  if (!collectionPromise) {
-    collectionPromise = initializeCollections();
-  }
+  collectionPromise ??= initializeCollections();
   return collectionPromise;
 }
 
 async function initializeCollections() {
   const database = await getMongoDatabase();
-  const collection = database.collection<IntegrationDocument>(
-    COLLECTION_NAMES.APPLICATION_INTEGRATIONS,
-  );
+  const collection = database.collection<IntegrationDocument>(COLLECTION_NAMES.APPLICATION_INTEGRATIONS);
   await Promise.all([
     collection.createIndex({ id: 1 }, { unique: true }),
-    collection.createIndex(
-      { workspaceId: 1, applicationId: 1, key: 1 },
-      { unique: true },
-    ),
-    collection.createIndex(
-      { workspaceId: 1, applicationId: 1, targetApplicationId: 1 },
-      { unique: true },
-    ),
+    collection.createIndex({ workspaceId: 1, applicationId: 1, key: 1 }, { unique: true }),
+    collection.createIndex({ workspaceId: 1, applicationId: 1, targetApplicationId: 1 }, { unique: true }),
     collection.createIndex({
       workspaceId: 1,
       targetApplicationId: 1,

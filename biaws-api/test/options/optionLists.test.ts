@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  normalizeOptionListPayload,
-  optionListReplicationPayload,
-} from "../../src/repositories/optionLists/index.js";
+import { normalizeOptionListPayload, optionListReplicationPayload } from "../../src/repositories/optionLists/index.js";
 
 test("normalizes, orders and preserves option metadata", () => {
   const list = normalizeOptionListPayload({

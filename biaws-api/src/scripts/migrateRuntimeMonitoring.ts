@@ -2,10 +2,7 @@
 
 import "../config.js";
 
-import {
-  CATALOG_LIMITS,
-  DEFAULT_MONITORING_RETENTION_DAYS,
-} from "../../../shared/index.js";
+import { CATALOG_LIMITS, DEFAULT_MONITORING_RETENTION_DAYS } from "../../../shared/index.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { closeMongoClient, getMongoDatabase } from "../helpers/mongoClient.js";
 import { monitoringExpirationDate } from "../repositories/monitoring/events/index.js";
@@ -16,33 +13,19 @@ import type { GroupDocument } from "../types/catalog.js";
 
 const apply = process.argv.slice(2).includes("--apply");
 
-function hasValidRetention(
-  runtime: Document,
-): runtime is Document & { monitoringRetentionDays: number } {
+function hasValidRetention(runtime: Document): runtime is Document & { monitoringRetentionDays: number } {
   const days = runtime.monitoringRetentionDays;
   return (
-    typeof days === "number" &&
-    Number.isInteger(days) &&
-    days >= 0 &&
-    days <= CATALOG_LIMITS.monitoringRetentionDays
+    typeof days === "number" && Number.isInteger(days) && days >= 0 && days <= CATALOG_LIMITS.monitoringRetentionDays
   );
 }
 
 function retentionDays(runtime: WithId<Document>) {
-  return hasValidRetention(runtime)
-    ? runtime.monitoringRetentionDays
-    : DEFAULT_MONITORING_RETENTION_DAYS;
+  return hasValidRetention(runtime) ? runtime.monitoringRetentionDays : DEFAULT_MONITORING_RETENTION_DAYS;
 }
 
-function manualEvent(
-  runtime: WithId<Document>,
-  observation: Document,
-  days: number,
-  index: number,
-) {
-  const receivedAt = new Date(
-    observation.receivedAt || runtime.updatedAt || runtime.createdAt,
-  );
+function manualEvent(runtime: WithId<Document>, observation: Document, days: number, index: number) {
+  const receivedAt = new Date(observation.receivedAt || runtime.updatedAt || runtime.createdAt);
   const expiresAt = monitoringExpirationDate(receivedAt, days);
   return {
     id: observation.id || `legacy-manual:${runtime.id}:${index}`,
@@ -67,22 +50,13 @@ function manualEvent(
 async function migrate() {
   const database = await getMongoDatabase();
   const runtimes = database.collection(COLLECTION_NAMES.DEPLOYMENT_RUNTIMES);
-  const events = database.collection(
-    COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS,
-  );
-  const groups = database.collection<GroupDocument>(
-    COLLECTION_NAMES.PERMISSION_GROUPS,
-  );
-  const activeMonitors = database.collection(
-    COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS,
-  );
+  const events = database.collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS);
+  const groups = database.collection<GroupDocument>(COLLECTION_NAMES.PERMISSION_GROUPS);
+  const activeMonitors = database.collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS);
   const passiveEventFilter = {
     $or: [{ origin: "external" }, { origin: { $exists: false } }],
   };
-  const requiredAdministrationPermissions = [
-    "monitoring.active.execute",
-    "monitoring.active.request",
-  ];
+  const requiredAdministrationPermissions = ["monitoring.active.execute", "monitoring.active.request"];
   const administrationFilter = {
     $or: [{ systemKey: "administration" }, { _id: "administration" }],
     permissions: { $not: { $all: requiredAdministrationPermissions } },
@@ -103,20 +77,14 @@ async function migrate() {
     passiveEvents: await events.countDocuments(passiveEventFilter),
     administrationGroups: await groups.countDocuments(administrationFilter),
     administrationGroupsUpdated: 0,
-    legacyShellTemplates: await activeMonitors.countDocuments(
-      legacyShellTemplateFilter,
-    ),
+    legacyShellTemplates: await activeMonitors.countDocuments(legacyShellTemplateFilter),
     legacyShellTemplatesRemoved: 0,
-    integratedProfileTemplates: null as Awaited<
-      ReturnType<typeof migrateIntegratedMonitoringProfiles>
-    > | null,
+    integratedProfileTemplates: null as Awaited<ReturnType<typeof migrateIntegratedMonitoringProfiles>> | null,
   };
 
   for await (const runtime of runtimes.find({})) {
     const days = retentionDays(runtime);
-    const observations = Array.isArray(runtime.observations)
-      ? runtime.observations
-      : [];
+    const observations = Array.isArray(runtime.observations) ? runtime.observations : [];
     if (!hasValidRetention(runtime)) {
       summary.runtimesDefaulted += 1;
     }
@@ -170,14 +138,11 @@ async function migrate() {
   }
 
   if (apply) {
-    const shellMigrationResult = await activeMonitors.updateMany(
-      legacyShellTemplateFilter,
-      {
-        $unset: { templateRef: "" },
-        $set: { updatedAt: new Date(), updatedBy: "monitoring-migration" },
-        $inc: { version: 1 },
-      },
-    );
+    const shellMigrationResult = await activeMonitors.updateMany(legacyShellTemplateFilter, {
+      $unset: { templateRef: "" },
+      $set: { updatedAt: new Date(), updatedBy: "monitoring-migration" },
+      $inc: { version: 1 },
+    });
     summary.legacyShellTemplatesRemoved = shellMigrationResult.modifiedCount;
     await events.updateMany(passiveEventFilter, {
       $set: { origin: "passive" },
@@ -186,14 +151,10 @@ async function migrate() {
       $addToSet: { permissions: { $each: requiredAdministrationPermissions } },
     });
     summary.administrationGroupsUpdated = permissionResult.modifiedCount;
-    await events.createIndex(
-      { expiresAt: 1 },
-      { expireAfterSeconds: 0, name: "monitoring_expiration" },
-    );
+    await events.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: "monitoring_expiration" });
     await ensureRuntimeActiveMonitoringIndexes();
   }
-  summary.integratedProfileTemplates =
-    await migrateIntegratedMonitoringProfiles(database, { apply });
+  summary.integratedProfileTemplates = await migrateIntegratedMonitoringProfiles(database, { apply });
   console.log(JSON.stringify(summary));
 }
 

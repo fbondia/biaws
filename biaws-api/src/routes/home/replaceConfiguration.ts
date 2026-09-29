@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  getHomeDashboard,
-  saveHomeConfiguration,
-} from "../../repositories/home/index.js";
+import { getHomeDashboard, saveHomeConfiguration } from "../../repositories/home/index.js";
 import { asyncHandler } from "../shared/asyncHandler.js";
 
 export function registerReplaceConfiguration(router: Router) {

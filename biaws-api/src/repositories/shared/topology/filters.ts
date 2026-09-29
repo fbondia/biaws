@@ -1,3 +1,4 @@
+import { textValue } from "../../../helpers/text.js";
 import type { Filter, Document } from "mongodb";
 import type { RepositoryQuery } from "../../../types/http.js";
 import { createCatalogError } from "./errors.js";
@@ -8,25 +9,17 @@ export function pagination(query: RepositoryQuery = {}) {
   const page = Number(query.page ?? 1);
   const limit = Number(query.limit ?? 50);
   if (!Number.isInteger(page) || page < 1) {
-    throw createCatalogError(
-      422,
-      "INVALID_CATALOG_PAGINATION",
-      "page must be a positive integer",
-    );
+    throw createCatalogError(422, "INVALID_CATALOG_PAGINATION", "page must be a positive integer");
   }
   if (!Number.isInteger(limit) || limit < 1) {
-    throw createCatalogError(
-      422,
-      "INVALID_CATALOG_PAGINATION",
-      "limit must be a positive integer",
-    );
+    throw createCatalogError(422, "INVALID_CATALOG_PAGINATION", "limit must be a positive integer");
   }
   const safeLimit = Math.min(limit, CATALOG_LIMITS.pageSize);
   return { page, limit: safeLimit, skip: (page - 1) * safeLimit };
 }
 
 export function escapeRegex(value: string) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+  return String(value).replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
 }
 
 export function buildScopedListFilter({
@@ -43,16 +36,13 @@ export function buildScopedListFilter({
   searchFields?: string[];
 }) {
   const filter: Filter<Document> = { workspaceId: String(workspaceId) };
-  if (applicationId) filter.applicationId = String(applicationId);
+  if (applicationId) filter.applicationId = textValue(applicationId);
   if (query.status) {
     filter.status = normalizeEnum(query.status, "status", statuses);
-  } else if (String(query.includeArchived || "").toLowerCase() !== "true") {
-    filter.status =
-      statuses.length === 2 && statuses.includes("active")
-        ? "active"
-        : { $ne: "archived" };
+  } else if (textValue(query.includeArchived || "").toLowerCase() !== "true") {
+    filter.status = statuses.length === 2 && statuses.includes("active") ? "active" : { $ne: "archived" };
   }
-  const search = String(query.q || "").trim();
+  const search = textValue(query.q || "").trim();
   if (search) {
     const pattern = new RegExp(escapeRegex(search), "iu");
     filter.$or = searchFields.map((field: string) => ({ [field]: pattern }));

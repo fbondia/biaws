@@ -1,6 +1,6 @@
 import { createCatalogError } from "../../shared/topology/errors.js";
 
-const PROFILE_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,79}\/v[1-9][0-9]{0,5}$/u;
+const PROFILE_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{0,79}\/v[1-9]\d{0,5}$/u;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
 
@@ -125,10 +125,7 @@ const SGMP_API_HEALTH_PRESENTATION = Object.freeze({
   series: SGMP_HEALTH_PRESENTATION.series,
 });
 
-const PROFILES = new Map<
-  string,
-  typeof SGMP_HEALTH_PRESENTATION | typeof SGMP_API_HEALTH_PRESENTATION
->([
+const PROFILES = new Map<string, typeof SGMP_HEALTH_PRESENTATION | typeof SGMP_API_HEALTH_PRESENTATION>([
   [SGMP_HEALTH_PRESENTATION.id, SGMP_HEALTH_PRESENTATION],
   [SGMP_API_HEALTH_PRESENTATION.id, SGMP_API_HEALTH_PRESENTATION],
 ]);
@@ -157,20 +154,13 @@ const SGMP_API_HEALTH_KEYS = new Set([
 ]);
 
 function profileError(message: string) {
-  return createCatalogError(
-    422,
-    "INVALID_MONITORING_METADATA_PROFILE",
-    message,
-  );
+  return createCatalogError(422, "INVALID_MONITORING_METADATA_PROFILE", message);
 }
 
 function validateBoolean(
   metadata: Record<string, unknown>,
   key: string,
-  {
-    required = false,
-    profileId = SGMP_HEALTH_PRESENTATION.id,
-  }: { required?: boolean; profileId?: string } = {},
+  { required = false, profileId = SGMP_HEALTH_PRESENTATION.id }: { required?: boolean; profileId?: string } = {},
 ) {
   if (metadata[key] === undefined) {
     if (required) throw profileError(`${key} is required by ${profileId}`);
@@ -181,16 +171,9 @@ function validateBoolean(
   }
 }
 
-function validateNonNegativeInteger(
-  metadata: Record<string, unknown>,
-  key: string,
-) {
+function validateNonNegativeInteger(metadata: Record<string, unknown>, key: string) {
   if (metadata[key] === undefined) return;
-  if (
-    typeof metadata[key] !== "number" ||
-    !Number.isInteger(metadata[key]) ||
-    metadata[key] < 0
-  ) {
+  if (typeof metadata[key] !== "number" || !Number.isInteger(metadata[key]) || metadata[key] < 0) {
     throw profileError(`${key} must be a non-negative integer`);
   }
 }
@@ -198,12 +181,7 @@ function validateNonNegativeInteger(
 function validatePercent(metadata: Record<string, unknown>, key: string) {
   if (metadata[key] === undefined) return;
   const value = metadata[key];
-  if (
-    typeof value !== "number" ||
-    !Number.isFinite(value) ||
-    value < 0 ||
-    value > 100
-  ) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 100) {
     throw profileError(`${key} must be between 0 and 100`);
   }
 }
@@ -215,13 +193,9 @@ function validateSgmpHealth(
     allowedKeys = SGMP_HEALTH_KEYS,
   }: { profileId?: string; allowedKeys?: Set<string> } = {},
 ) {
-  const unknown = Object.keys(metadata).filter(
-    (key: string) => !allowedKeys.has(key),
-  );
+  const unknown = Object.keys(metadata).filter((key: string) => !allowedKeys.has(key));
   if (unknown.length) {
-    throw profileError(
-      `metadata fields are not supported by ${profileId}: ${unknown.join(", ")}`,
-    );
+    throw profileError(`metadata fields are not supported by ${profileId}: ${unknown.join(", ")}`);
   }
 
   validateBoolean(metadata, "service_up", { required: true, profileId });
@@ -230,24 +204,15 @@ function validateSgmpHealth(
   validatePercent(metadata, "disk_usage_percent");
   if (
     metadata.service_now_status !== undefined &&
-    (typeof metadata.service_now_status !== "string" ||
-      !metadata.service_now_status.trim())
+    (typeof metadata.service_now_status !== "string" || !metadata.service_now_status.trim())
   ) {
     throw profileError("service_now_status must be a non-empty string");
   }
 
-  const historyKeys = [
-    "error_history_dates",
-    "error_history_values",
-    "error_history_unit",
-  ];
-  const historyFields = historyKeys.filter(
-    (key: string) => metadata[key] !== undefined,
-  );
+  const historyKeys = ["error_history_dates", "error_history_values", "error_history_unit"];
+  const historyFields = historyKeys.filter((key: string) => metadata[key] !== undefined);
   if (historyFields.length && historyFields.length !== historyKeys.length) {
-    throw profileError(
-      "error history requires dates, values and unit together",
-    );
+    throw profileError("error history requires dates, values and unit together");
   }
   if (!historyFields.length) return;
 
@@ -258,24 +223,16 @@ function validateSgmpHealth(
     !dates.every((date) => {
       if (typeof date !== "string" || !DATE_PATTERN.test(date)) return false;
       const parsed = new Date(`${date}T00:00:00.000Z`);
-      return (
-        !Number.isNaN(parsed.getTime()) &&
-        parsed.toISOString().slice(0, 10) === date
-      );
+      return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
     })
   ) {
     throw profileError("error_history_dates must contain ISO dates");
   }
   if (
     !Array.isArray(values) ||
-    !values.every(
-      (value: unknown) =>
-        typeof value === "number" && Number.isFinite(value) && value >= 0,
-    )
+    !values.every((value: unknown) => typeof value === "number" && Number.isFinite(value) && value >= 0)
   ) {
-    throw profileError(
-      "error_history_values must contain non-negative numbers",
-    );
+    throw profileError("error_history_values must contain non-negative numbers");
   }
   if (dates.length !== values.length) {
     throw profileError("error history dates and values must have equal length");
@@ -305,10 +262,7 @@ function validateSgmpApiHealth(metadata: Record<string, unknown>) {
   ].forEach((key: string) => validateNonNegativeInteger(metadata, key));
 }
 
-export function normalizeMonitoringMetadataProfile(
-  value: unknown,
-  metadata: Record<string, unknown>,
-) {
+export function normalizeMonitoringMetadataProfile(value: unknown, metadata: Record<string, unknown>) {
   if (value === undefined || value === null || value === "") return null;
   if (typeof value !== "string") {
     throw profileError("metadataProfile must be a string");
@@ -341,15 +295,13 @@ export function monitoringMetadataProfileCatalog() {
       format,
       visualization,
     })),
-    series: (profile.series || []).map(
-      ({ label, visualization, xKey, xFormat, yKey, yFormatKey }) => ({
-        label,
-        visualization,
-        xKey,
-        xFormat,
-        yKey,
-        yFormatKey,
-      }),
-    ),
+    series: (profile.series || []).map(({ label, visualization, xKey, xFormat, yKey, yFormatKey }) => ({
+      label,
+      visualization,
+      xKey,
+      xFormat,
+      yKey,
+      yFormatKey,
+    })),
   }));
 }

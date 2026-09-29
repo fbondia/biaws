@@ -5,25 +5,12 @@ import { normalizeMonitoringTemplateDefinition } from "./legacyEvaluator.js";
 import { actorId } from "../../shared/topology/lifecycle.js";
 import { createCatalogError } from "../../shared/topology/errors.js";
 import { errorCode } from "../../../helpers/error.js";
-import {
-  normalizeTemplateInput,
-  publicTemplate,
-  requireTemplate,
-  templateCollection,
-} from "./storage.js";
+import { normalizeTemplateInput, publicTemplate, requireTemplate, templateCollection } from "./storage.js";
 import { isUnifiedMonitoringTemplateDefinition } from "./unifiedDefinition.js";
 import { evaluateUnifiedMonitoringTemplate } from "./unifiedEvaluator.js";
 
-export async function createMonitoringTemplate(
-  payload: Record<string, unknown>,
-  actor: Partial<Actor>,
-) {
-  if (!actor.workspaceId)
-    throw createCatalogError(
-      422,
-      "WORKSPACE_REQUIRED",
-      "Workspace is required",
-    );
+export async function createMonitoringTemplate(payload: Record<string, unknown>, actor: Partial<Actor>) {
+  if (!actor.workspaceId) throw createCatalogError(422, "WORKSPACE_REQUIRED", "Workspace is required");
   const normalized = normalizeTemplateInput(payload);
   const now = new Date();
   const document = {
@@ -93,22 +80,12 @@ export async function setMonitoringTemplateStatus(
   actor: Actor,
 ) {
   if (!["active", "inactive"].includes(status)) {
-    throw createCatalogError(
-      422,
-      "INVALID_MONITORING_TEMPLATE",
-      "Template status must be active or inactive",
-    );
+    throw createCatalogError(422, "INVALID_MONITORING_TEMPLATE", "Template status must be active or inactive");
   }
   const template = await requireTemplate(id, version, actor.workspaceId);
   const definition = normalizeMonitoringTemplateDefinition(template.definition);
-  if (
-    status === "active" &&
-    isUnifiedMonitoringTemplateDefinition(definition)
-  ) {
-    await evaluateUnifiedMonitoringTemplate(
-      definition,
-      definition.input.sample,
-    );
+  if (status === "active" && isUnifiedMonitoringTemplateDefinition(definition)) {
+    await evaluateUnifiedMonitoringTemplate(definition, definition.input.sample);
   }
   const now = new Date();
   const collection = await templateCollection();
@@ -135,26 +112,12 @@ export async function setMonitoringTemplateStatus(
     { $set: { status, updatedAt: now, updatedBy: actorId(actor) } },
     { returnDocument: "after" },
   );
-  if (!result)
-    throw createCatalogError(
-      404,
-      "MONITORING_TEMPLATE_NOT_FOUND",
-      "Monitoring template not found",
-    );
+  if (!result) throw createCatalogError(404, "MONITORING_TEMPLATE_NOT_FOUND", "Monitoring template not found");
   return publicTemplate(result);
 }
 
-export async function archiveMonitoringTemplate(
-  id: string | string[],
-  version: string | string[],
-  actor: Actor,
-) {
-  if (!actor.workspaceId)
-    throw createCatalogError(
-      422,
-      "WORKSPACE_REQUIRED",
-      "Workspace is required",
-    );
+export async function archiveMonitoringTemplate(id: string | string[], version: string | string[], actor: Actor) {
+  if (!actor.workspaceId) throw createCatalogError(422, "WORKSPACE_REQUIRED", "Workspace is required");
   const usage = await monitoringTemplateUsage(id, version, actor.workspaceId);
   if (usage.inUse) {
     throw createCatalogError(
@@ -184,11 +147,6 @@ export async function archiveMonitoringTemplate(
     },
     { returnDocument: "after" },
   );
-  if (!result)
-    throw createCatalogError(
-      404,
-      "MONITORING_TEMPLATE_NOT_FOUND",
-      "Monitoring template not found",
-    );
+  if (!result) throw createCatalogError(404, "MONITORING_TEMPLATE_NOT_FOUND", "Monitoring template not found");
   return publicTemplate(result);
 }

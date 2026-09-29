@@ -18,7 +18,7 @@ async function run() {
     port.postMessage({
       ok: false,
       diagnostic: {
-        code: String(code || "JSONATA_EVALUATION_ERROR").slice(0, 80),
+        code: (typeof code === "string" ? code : "JSONATA_EVALUATION_ERROR").slice(0, 80),
         phase: rawPosition === undefined ? "runtime" : "compile",
         position: Number.isInteger(rawPosition) ? rawPosition : null,
       },
@@ -26,4 +26,4 @@ async function run() {
   }
 }
 
-run();
+await run();

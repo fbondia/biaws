@@ -7,18 +7,9 @@ export function registerGetTask(router: Router) {
   router.get(
     "/:id/tasks/:taskId",
     requireAllPermissions("demands.read"),
-    createResourceReadHandler(
-      "demand",
-      "demands.read",
-      async (req: Request, query: {} | undefined) => {
-        const result = await readRequestResource(
-          req.params.id,
-          "task",
-          req.params,
-          query,
-        );
-        return result;
-      },
-    ),
+    createResourceReadHandler("demand", "demands.read", async (req: Request, query: {} | undefined) => {
+      const result = await readRequestResource(req.params.id, "task", req.params, query);
+      return result;
+    }),
   );
 }

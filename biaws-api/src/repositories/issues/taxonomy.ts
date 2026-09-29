@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { RepositoryQuery } from "../../types/http.js";
 import { COLLECTION_NAMES } from "../../database/collectionNames.js";
 import { filterTaxonomyForApplication } from "../../helpers/taxonomy.js";
@@ -19,9 +20,7 @@ const ACTIVE_TAXONOMY_KEY = "biaws";
 
 const ACTIVE_STATUS = "active";
 
-function normalizeDocument(
-  document: WithId<Document> | null,
-): (Document & { _id: string }) | null {
+function normalizeDocument(document: WithId<Document> | null): (Document & { _id: string }) | null {
   if (!document) return null;
 
   return {
@@ -30,47 +29,29 @@ function normalizeDocument(
   };
 }
 
-function createHttpError(
-  statusCode: number | undefined,
-  message: string | undefined,
-) {
+function createHttpError(statusCode: number | undefined, message: string | undefined) {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
 }
 
-function assertString(
-  value: unknown,
-  fieldName: string,
-): asserts value is string {
+function assertString(value: unknown, fieldName: string): asserts value is string {
   if (typeof value !== "string" || !value.trim()) {
-    throw createHttpError(
-      422,
-      `Invalid taxonomy payload: ${fieldName} must be a non-empty string`,
-    );
+    throw createHttpError(422, `Invalid taxonomy payload: ${fieldName} must be a non-empty string`);
   }
 }
 
-function assertOptionalColor(
-  value: string | null | undefined,
-  fieldName: string,
-) {
+function assertOptionalColor(value: string | null | undefined, fieldName: string) {
   if (value === undefined || value === null || value === "") return;
 
   if (typeof value !== "string" || !/^#[0-9a-f]{6}$/iu.test(value)) {
-    throw createHttpError(
-      422,
-      `Invalid taxonomy payload: ${fieldName} must be a hex color`,
-    );
+    throw createHttpError(422, `Invalid taxonomy payload: ${fieldName} must be a hex color`);
   }
 }
 
 function assertTagGroups(tagGroups: unknown) {
   if (!Array.isArray(tagGroups)) {
-    throw createHttpError(
-      422,
-      "Invalid taxonomy payload: tagGroups must be an array",
-    );
+    throw createHttpError(422, "Invalid taxonomy payload: tagGroups must be an array");
   }
 
   for (const [index, group] of tagGroups.entries()) {
@@ -79,10 +60,7 @@ function assertTagGroups(tagGroups: unknown) {
     assertOptionalColor(group?.color, `tagGroups[${index}].color`);
 
     if (!Array.isArray(group.tags)) {
-      throw createHttpError(
-        422,
-        `Invalid taxonomy payload: tagGroups[${index}].tags must be an array`,
-      );
+      throw createHttpError(422, `Invalid taxonomy payload: tagGroups[${index}].tags must be an array`);
     }
 
     for (const [tagIndex, tag] of group.tags.entries()) {
@@ -94,14 +72,9 @@ function assertTagGroups(tagGroups: unknown) {
 function normalizeApplicationIds(value: unknown, fieldName: string) {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) {
-    throw createHttpError(
-      422,
-      `Invalid taxonomy payload: ${fieldName} must be an array`,
-    );
+    throw createHttpError(422, `Invalid taxonomy payload: ${fieldName} must be an array`);
   }
-  return [
-    ...new Set(value.map((id) => String(id || "").trim()).filter(Boolean)),
-  ];
+  return [...new Set(value.map((id) => String(id || "").trim()).filter(Boolean))];
 }
 
 function normalizeTaxonomyNodes(
@@ -110,29 +83,17 @@ function normalizeTaxonomyNodes(
   parentApplicationIds: string[] | null = null,
 ): NormalizedTaxonomyNode[] {
   if (!Array.isArray(nodes)) {
-    throw createHttpError(
-      422,
-      `Invalid taxonomy payload: ${path} must be an array`,
-    );
+    throw createHttpError(422, `Invalid taxonomy payload: ${path} must be an array`);
   }
 
   return nodes.map((node, index: number) => {
     const nodePath = `${path}[${index}]`;
-    if (!isRecord(node))
-      throw createHttpError(
-        422,
-        `Invalid taxonomy payload: ${nodePath} must be an object`,
-      );
+    if (!isRecord(node)) throw createHttpError(422, `Invalid taxonomy payload: ${nodePath} must be an object`);
     assertString(node?.id, `${nodePath}.id`);
     assertString(node?.label, `${nodePath}.label`);
-    const applicationIds = normalizeApplicationIds(
-      node?.applicationIds,
-      `${nodePath}.applicationIds`,
-    );
+    const applicationIds = normalizeApplicationIds(node?.applicationIds, `${nodePath}.applicationIds`);
     if (parentApplicationIds?.length) {
-      const outsideParentScope = applicationIds.filter(
-        (id) => !parentApplicationIds.includes(id),
-      );
+      const outsideParentScope = applicationIds.filter((id) => !parentApplicationIds.includes(id));
       if (outsideParentScope.length) {
         throw createHttpError(
           422,
@@ -141,14 +102,16 @@ function normalizeTaxonomyNodes(
       }
     }
 
-    const children: NormalizedTaxonomyNode[] | undefined =
-      node.children === undefined
-        ? undefined
-        : normalizeTaxonomyNodes(
-            node.children,
-            `${nodePath}.children`,
-            applicationIds.length ? applicationIds : parentApplicationIds,
-          );
+    let children: NormalizedTaxonomyNode[] | undefined;
+    if (node.children === undefined) {
+      children = undefined;
+    } else {
+      children = normalizeTaxonomyNodes(
+        node.children,
+        `${nodePath}.children`,
+        applicationIds.length ? applicationIds : parentApplicationIds,
+      );
+    }
     return {
       ...node,
       id: node.id.trim(),
@@ -163,10 +126,7 @@ function normalizeTaxonomyPayload(payload: Record<string, unknown> = {}) {
   const schemaVersion = Number(payload.schemaVersion || 1);
 
   if (!Number.isInteger(schemaVersion) || schemaVersion <= 0) {
-    throw createHttpError(
-      422,
-      "Invalid taxonomy payload: schemaVersion must be a positive integer",
-    );
+    throw createHttpError(422, "Invalid taxonomy payload: schemaVersion must be a positive integer");
   }
 
   assertTagGroups(payload.tagGroups);
@@ -181,16 +141,11 @@ function normalizeTaxonomyPayload(payload: Record<string, unknown> = {}) {
 }
 
 async function ensureTaxonomyIndexes(collection: Collection<Document>) {
-  await collection.createIndex(
-    { workspaceId: 1, key: 1, status: 1 },
-    { unique: true },
-  );
+  await collection.createIndex({ workspaceId: 1, key: 1, status: 1 }, { unique: true });
 }
 
 function workspaceId(query: RepositoryQuery = {}) {
-  return String(
-    query.authorizationScope?.workspaceId || query.workspaceId || "",
-  );
+  return String(query.authorizationScope?.workspaceId || query.workspaceId || "");
 }
 
 export async function getIssueTaxonomy(query: RepositoryQuery = {}) {
@@ -211,10 +166,7 @@ export async function getIssueTaxonomy(query: RepositoryQuery = {}) {
   const requestedApplicationId = Object.hasOwn(query, "applicationId")
     ? String(query.applicationId || "").trim()
     : undefined;
-  if (
-    requestedApplicationId &&
-    !applications.some(({ id }) => id === requestedApplicationId)
-  ) {
+  if (requestedApplicationId && !applications.some(({ id }) => id === requestedApplicationId)) {
     throw createHttpError(404, "Application not found");
   }
   const normalizedTaxonomy = normalizeDocument(taxonomy);
@@ -229,20 +181,14 @@ export async function getIssueTaxonomy(query: RepositoryQuery = {}) {
     taxonomy: normalizedTaxonomy
       ? {
           ...normalizedTaxonomy,
-          taxonomy: filterTaxonomyForApplication(
-            normalizedTaxonomy.taxonomy || [],
-            requestedApplicationId,
-          ),
+          taxonomy: filterTaxonomyForApplication(normalizedTaxonomy.taxonomy || [], requestedApplicationId),
         }
       : null,
     applications,
   };
 }
 
-export async function saveIssueTaxonomy(
-  payload: Record<string, unknown> = {},
-  query: RepositoryQuery = {},
-) {
+export async function saveIssueTaxonomy(payload: Record<string, unknown> = {}, query: RepositoryQuery = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const collection = db.collection(TAXONOMIES_COLLECTION);
   await ensureTaxonomyIndexes(collection);
@@ -250,13 +196,8 @@ export async function saveIssueTaxonomy(
   const taxonomyPackage = normalizeTaxonomyPayload(payload);
   const scopedApplicationIds = [
     ...new Set(
-      taxonomyPackage.taxonomy.flatMap(function collect(
-        node: NormalizedTaxonomyNode,
-      ): string[] {
-        return [
-          ...(node.applicationIds || []),
-          ...(node.children || []).flatMap(collect),
-        ];
+      taxonomyPackage.taxonomy.flatMap(function collect(node: NormalizedTaxonomyNode): string[] {
+        return [...(node.applicationIds || []), ...(node.children ?? []).flatMap(collect)];
       }),
     ),
   ];
@@ -293,7 +234,7 @@ export async function saveIssueTaxonomy(
         key: ACTIVE_TAXONOMY_KEY,
         status: ACTIVE_STATUS,
         updatedAt: now,
-        updatedBy: String(payload.updatedBy || "biaws-ui"),
+        updatedBy: textValue(payload.updatedBy || "biaws-ui"),
       },
       $setOnInsert: {
         createdAt: now,

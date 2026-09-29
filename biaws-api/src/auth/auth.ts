@@ -22,9 +22,7 @@ function validateConfig(config: ReturnType<typeof getServerConfig>["auth"]) {
   }
 
   if (config.trustedOrigins.length === 0) {
-    throw new Error(
-      "BETTER_AUTH_TRUSTED_ORIGINS must contain at least one UI origin.",
-    );
+    throw new Error("BETTER_AUTH_TRUSTED_ORIGINS must contain at least one UI origin.");
   }
 }
 
@@ -33,18 +31,12 @@ export async function getAuth() {
   const config = serverConfig.auth;
   validateConfig(config);
 
-  if (!authPromise) {
-    authPromise = initializeAuth();
-  }
+  authPromise ??= initializeAuth();
 
   return authPromise;
 }
 
-export async function authHandler(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function authHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const auth = await getAuth();
     return toNodeHandler(auth)(req, res);
@@ -53,9 +45,7 @@ export async function authHandler(
   }
 }
 
-export async function getAuthenticatedActor(
-  req: Request,
-): Promise<Actor | null> {
+export async function getAuthenticatedActor(req: Request): Promise<Actor | null> {
   const auth = await getAuth();
   const result = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),
@@ -64,17 +54,11 @@ export async function getAuthenticatedActor(
 
   const authorization = String(req.headers.authorization || "");
   const usesApiKey = /^Bearer\s+/iu.test(authorization);
-  const requestedWorkspaceId = String(
-    req.headers["x-biaws-workspace-id"] || "",
-  ).trim();
-  const workspaceAuthorization = await resolveUserAuthorization(
-    result.user.id,
-    requestedWorkspaceId,
-  );
+  const requestedWorkspaceId = String(req.headers["x-biaws-workspace-id"] || "").trim();
+  const workspaceAuthorization = await resolveUserAuthorization(result.user.id, requestedWorkspaceId);
 
   const technicalRole = result.user.role || "user";
-  const platformPermissions =
-    platformPermissionsForTechnicalRole(technicalRole);
+  const platformPermissions = platformPermissionsForTechnicalRole(technicalRole);
 
   return {
     userId: result.user.id,

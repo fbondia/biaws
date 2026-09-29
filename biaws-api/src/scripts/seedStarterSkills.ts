@@ -6,36 +6,24 @@ import { WORKSPACE_ROOT } from "../helpers/runtimePaths.js";
 
 import { buildSkillPayload } from "../../../shared/skillPackage.js";
 import { closeMongoClient } from "../helpers/mongoClient.js";
-import {
-  ensureDefaultWorkspace,
-  getWorkspace,
-} from "../repositories/catalog/index.js";
+import { ensureDefaultWorkspace, getWorkspace } from "../repositories/catalog/index.js";
 import { publishSkill } from "../repositories/skills/index.js";
 import { errorMessage, errorStatusCode } from "../helpers/error.js";
 
 const ROOT_DIR = WORKSPACE_ROOT;
 
 async function run() {
-  const skillsDirectory = path.resolve(
-    process.env.BIAWS_STARTER_SKILLS_DIR ||
-      path.join(ROOT_DIR, "starter-skills"),
-  );
+  const skillsDirectory = path.resolve(process.env.BIAWS_STARTER_SKILLS_DIR || path.join(ROOT_DIR, "starter-skills"));
   const version = String(process.env.BIAWS_STARTER_SKILLS_VERSION || "1.0.0");
-  const requestedWorkspaceId = String(
-    process.env.BIAWS_STARTER_SKILLS_WORKSPACE_ID || "",
-  ).trim();
+  const requestedWorkspaceId = String(process.env.BIAWS_STARTER_SKILLS_WORKSPACE_ID || "").trim();
   const workspace = requestedWorkspaceId
     ? await getWorkspace(requestedWorkspaceId)
     : await ensureDefaultWorkspace({ userId: "starter-skills-seed" });
   if (!workspace) {
-    throw new Error(
-      `Workspace não encontrado para starter skills: ${requestedWorkspaceId}`,
-    );
+    throw new Error(`Workspace não encontrado para starter skills: ${requestedWorkspaceId}`);
   }
   if (workspace.status !== "active") {
-    throw new Error(
-      `Workspace inativo para starter skills: ${requestedWorkspaceId}`,
-    );
+    throw new Error(`Workspace inativo para starter skills: ${requestedWorkspaceId}`);
   }
   const entries = await readdir(skillsDirectory, { withFileTypes: true });
   const result: { published: string[]; skipped: string[] } = {
@@ -43,15 +31,12 @@ async function run() {
     skipped: [],
   };
 
-  for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const entry of entries.toSorted((a, b) => a.name.localeCompare(b.name))) {
     if (!entry.isDirectory() || entry.isSymbolicLink()) continue;
-    const payload = await buildSkillPayload(
-      path.join(skillsDirectory, entry.name),
-      {
-        version,
-        changelog: "Catálogo inicial da distribuição open source",
-      },
-    );
+    const payload = await buildSkillPayload(path.join(skillsDirectory, entry.name), {
+      version,
+      changelog: "Catálogo inicial da distribuição open source",
+    });
     try {
       await publishSkill(payload, { workspaceId: workspace.id });
       result.published.push(`${payload.skillId}@${version}`);
@@ -66,9 +51,11 @@ async function run() {
   );
 }
 
-run()
-  .catch((error: unknown) => {
-    console.error(errorMessage(error));
-    process.exitCode = 1;
-  })
-  .finally(closeMongoClient);
+try {
+  await run();
+} catch (error: unknown) {
+  console.error(errorMessage(error));
+  process.exitCode = 1;
+} finally {
+  await closeMongoClient();
+}

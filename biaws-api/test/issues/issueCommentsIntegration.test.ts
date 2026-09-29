@@ -1,8 +1,4 @@
-import {
-  isolatedDatabaseName,
-  restoreEnvironmentAfter,
-  availablePort,
-} from "../support/integration.js";
+import { isolatedDatabaseName, restoreEnvironmentAfter, availablePort } from "../support/integration.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { issueResponseSchema } from "../../src/contracts/domainSchemas.js";
@@ -17,10 +13,8 @@ test(
     process.env.MONGO_URI = process.env.BIAWS_INTEGRATION_MONGO_URI;
     process.env.MONGO_DB = isolatedDatabaseName();
 
-    const { closeMongoClient, getMongoDatabase } =
-      await import("../../src/helpers/mongoClient.js");
-    const { createApplication, ensureDefaultWorkspace } =
-      await import("../../src/repositories/catalog/index.js");
+    const { closeMongoClient, getMongoDatabase } = await import("../../src/helpers/mongoClient.js");
+    const { createApplication, ensureDefaultWorkspace } = await import("../../src/repositories/catalog/index.js");
     const { createIssue, createIssueComment, updateIssueComment } =
       await import("../../src/repositories/issues/index.js");
     const db = await getMongoDatabase();
@@ -29,11 +23,7 @@ test(
       await db.dropDatabase();
       const actor = { userId: "issue-comments-integration" };
       const workspace = await ensureDefaultWorkspace(actor);
-      const application = await createApplication(
-        workspace.id,
-        { key: "comments-app", name: "Comments App" },
-        actor,
-      );
+      const application = await createApplication(workspace.id, { key: "comments-app", name: "Comments App" }, actor);
       const query = { workspaceId: workspace.id };
       const created = await createIssue(
         {
@@ -44,12 +34,7 @@ test(
         },
         query,
       );
-      assert.equal(
-        issueResponseSchema.safeParse(
-          JSON.parse(JSON.stringify({ issue: created.issue })),
-        ).success,
-        true,
-      );
+      assert.equal(issueResponseSchema.safeParse(JSON.parse(JSON.stringify({ issue: created.issue }))).success, true);
       const withComment = await createIssueComment(
         created.issueId,
         {
@@ -78,10 +63,7 @@ test(
       assert.equal(edited.comments[0].text, "**Edited** comment");
       assert.equal(edited.comments[0].from, "author@example.test");
       assert.equal(edited.comments[0].updatedBy, "editor@example.test");
-      assert.equal(
-        edited.comments[0].date.toISOString().slice(0, 10),
-        "2026-07-31",
-      );
+      assert.equal(edited.comments[0].date.toISOString().slice(0, 10), "2026-07-31");
 
       const withNewerComment = await createIssueComment(
         created.issueId,

@@ -19,18 +19,11 @@ export function registerUpdateRuntimesActiveMonitor(router: Router) {
     asyncHandler(async (req: Request, res: Response) => {
       const runtime = await scopedRuntime(req, "runtimes.update");
       if (!runtime) return sendRuntimeNotFound(res);
-      const before = await getRuntimeActiveMonitor(
-        runtime.id,
-        req.params.monitorId,
-        { workspaceId: req.actor.workspaceId },
-      );
+      const before = await getRuntimeActiveMonitor(runtime.id, req.params.monitorId, {
+        workspaceId: req.actor.workspaceId,
+      });
       if (!before) return sendActiveMonitorNotFound(res);
-      const after = await updateRuntimeActiveMonitor(
-        runtime.id,
-        before.id,
-        req.body,
-        req.actor,
-      );
+      const after = await updateRuntimeActiveMonitor(runtime.id, before.id, req.body, req.actor);
       if (!after) throw new Error("Mutation result is unavailable");
       await auditActiveMonitorMutation({
         req,

@@ -7,18 +7,9 @@ export function registerGetSpecificationSection(router: Router) {
   router.get(
     "/:id/specification/sections/:sectionId",
     requireAllPermissions("demands.read"),
-    createResourceReadHandler(
-      "demand",
-      "demands.read",
-      async (req: Request, query: {} | undefined) => {
-        const result = await readRequestResource(
-          req.params.id,
-          "section",
-          req.params,
-          query,
-        );
-        return result;
-      },
-    ),
+    createResourceReadHandler("demand", "demands.read", async (req: Request, query: {} | undefined) => {
+      const result = await readRequestResource(req.params.id, "section", req.params, query);
+      return result;
+    }),
   );
 }

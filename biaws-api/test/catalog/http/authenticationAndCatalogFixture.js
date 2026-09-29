@@ -2,16 +2,12 @@ import assert from "node:assert/strict";
 import { COLLECTION_NAMES } from "../../../src/database/collectionNames.js";
 
 export async function authenticationAndCatalogFixture(scenarioContext) {
-  const { database, auth, admin, reader, server, login, request } =
-    scenarioContext;
+  const { database, auth, admin, reader, server, login, request } = scenarioContext;
   assert.equal((await request("/api/catalog/workspaces")).status, 401);
 
   const readerCookie = await login("reader.phase2@example.test");
 
-  assert.equal(
-    (await request("/api/catalog/workspaces", { cookie: readerCookie })).status,
-    200,
-  );
+  assert.equal((await request("/api/catalog/workspaces", { cookie: readerCookie })).status, 200);
 
   assert.equal(
     (
@@ -36,10 +32,7 @@ export async function authenticationAndCatalogFixture(scenarioContext) {
 
   await database
     .collection(COLLECTION_NAMES.PERMISSION_GROUPS)
-    .updateOne(
-      { _id: "administration" },
-      { $addToSet: { permissions: "runtimes.read" } },
-    );
+    .updateOne({ _id: "administration" }, { $addToSet: { permissions: "runtimes.read" } });
 
   const adminCookie = await login("admin.phase2@example.test");
 
@@ -98,70 +91,53 @@ export async function authenticationAndCatalogFixture(scenarioContext) {
       origin: true,
     });
     if (response.status !== 200) {
-      throw new Error(
-        `Expected 200 from ${route}, received ${response.status}: ${await response.text()}`,
-      );
+      throw new Error(`Expected 200 from ${route}, received ${response.status}: ${await response.text()}`);
     }
     return response.json();
   }
 
-  const { application } = await mutate(
-    `/api/catalog/workspaces/${workspace.id}/applications`,
-    { key: "billing-http", name: "Billing HTTP" },
-  );
+  const { application } = await mutate(`/api/catalog/workspaces/${workspace.id}/applications`, {
+    key: "billing-http",
+    name: "Billing HTTP",
+  });
 
-  const { repository } = await mutate(
-    `/api/catalog/applications/${application.id}/repositories`,
-    {
-      key: "billing-http-repository",
-      name: "Billing HTTP repository",
-      provider: "github",
-      url: "https://example.test/billing-http.git",
-    },
-  );
+  const { repository } = await mutate(`/api/catalog/applications/${application.id}/repositories`, {
+    key: "billing-http-repository",
+    name: "Billing HTTP repository",
+    provider: "github",
+    url: "https://example.test/billing-http.git",
+  });
 
-  const { component } = await mutate(
-    `/api/catalog/applications/${application.id}/components`,
-    {
-      key: "billing-http-api",
-      name: "Billing HTTP API",
-      type: "api",
-      repositoryLinks: [{ repositoryId: repository.id, role: "source" }],
-    },
-  );
+  const { component } = await mutate(`/api/catalog/applications/${application.id}/components`, {
+    key: "billing-http-api",
+    name: "Billing HTTP API",
+    type: "api",
+    repositoryLinks: [{ repositoryId: repository.id, role: "source" }],
+  });
 
-  const { server: topologyServer } = await mutate(
-    `/api/catalog/workspaces/${workspace.id}/servers`,
-    {
-      key: "billing-http-server",
-      name: "Billing HTTP server",
-      hostname: "billing.internal.example.test",
-    },
-  );
+  const { server: topologyServer } = await mutate(`/api/catalog/workspaces/${workspace.id}/servers`, {
+    key: "billing-http-server",
+    name: "Billing HTTP server",
+    hostname: "billing.internal.example.test",
+  });
 
-  const { deployment } = await mutate(
-    `/api/catalog/applications/${application.id}/deployments`,
-    {
-      key: "billing-http-production",
-      name: "Billing HTTP production",
-      componentId: component.id,
-      environment: "production",
-      source: { repositoryId: repository.id, revision: "abc123" },
-      status: "active",
-    },
-  );
+  const { deployment } = await mutate(`/api/catalog/applications/${application.id}/deployments`, {
+    key: "billing-http-production",
+    name: "Billing HTTP production",
+    componentId: component.id,
+    environment: "production",
+    source: { repositoryId: repository.id, revision: "abc123" },
+    status: "active",
+  });
 
-  const { runtime } = await mutate(
-    `/api/catalog/deployments/${deployment.id}/runtimes`,
-    {
-      key: "billing-http-runtime",
-      name: "Billing HTTP runtime",
-      kind: "container",
-      serverId: topologyServer.id,
-      endpoint: "https://billing-http.example.test",
-      status: "healthy",
-    },
-  );
+  const { runtime } = await mutate(`/api/catalog/deployments/${deployment.id}/runtimes`, {
+    key: "billing-http-runtime",
+    name: "Billing HTTP runtime",
+    kind: "container",
+    serverId: topologyServer.id,
+    endpoint: "https://billing-http.example.test",
+    status: "healthy",
+  });
 
   const updatedApplication = (
     await patch(`/api/catalog/applications/${application.id}`, {

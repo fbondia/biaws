@@ -1,18 +1,12 @@
 import type { Router, Request, Response } from "express";
-import {
-  getRequest,
-  updateRequest,
-} from "../../repositories/requests/index.js";
+import { getRequest, updateRequest } from "../../repositories/requests/index.js";
 import { requireBodyFieldPermissions } from "../../auth/authorizationMiddleware.js";
 import { scopedQuery, auditDemand, asyncHandler } from "./helpers.js";
 
 export function registerReplaceRequest(router: Router) {
   router.put(
     "/:id",
-    requireBodyFieldPermissions(
-      { specification: "demands.specification.update" },
-      "demands.update",
-    ),
+    requireBodyFieldPermissions({ specification: "demands.specification.update" }, "demands.update"),
     asyncHandler(async (req: Request, res: Response) => {
       const query = scopedQuery(req, "demands.update");
       const before = (await getRequest(req.params.id, query)).request;

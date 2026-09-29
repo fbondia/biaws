@@ -3,19 +3,11 @@ import prettier from "prettier";
 import { buildOpenApiDocument } from "../src/contracts/openapi.ts";
 
 const output = new URL("../openapi/openapi.json", import.meta.url);
-const prettierConfig = JSON.parse(
-  await readFile(
-    new URL("../../prettier/.prettierrc", import.meta.url),
-    "utf8",
-  ),
-);
-const generated = await prettier.format(
-  JSON.stringify(buildOpenApiDocument()),
-  {
-    ...prettierConfig,
-    parser: "json",
-  },
-);
+const prettierConfig = JSON.parse(await readFile(new URL("../../prettier/.prettierrc", import.meta.url), "utf8"));
+const generated = await prettier.format(JSON.stringify(buildOpenApiDocument()), {
+  ...prettierConfig,
+  parser: "json",
+});
 if (process.argv.includes("--write")) {
   await writeFile(output, generated);
   console.log(`Generated ${output.pathname}`);

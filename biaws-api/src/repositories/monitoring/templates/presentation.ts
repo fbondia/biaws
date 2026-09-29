@@ -1,9 +1,4 @@
-import {
-  assertAllowedFields,
-  normalizeEnum,
-  optionalText,
-  requiredText,
-} from "../../shared/topology/normalization.js";
+import { assertAllowedFields, normalizeEnum, optionalText, requiredText } from "../../shared/topology/normalization.js";
 import { createCatalogError } from "../../shared/topology/errors.js";
 
 const FORMATS = ["status", "percent", "number", "date", "text"];
@@ -25,90 +20,46 @@ function presentationKey(value: unknown, field: string) {
   return key;
 }
 
-function normalizeField(
-  value: unknown,
-  index: number,
-  contractKeys: Set<string>,
-) {
+function normalizeField(value: unknown, index: number, contractKeys: Set<string>) {
   const field = `definition.presentation.fields[${index}]`;
-  assertAllowedFields(
-    value,
-    ["key", "label", "format", "visualization"],
-    field,
-  );
+  assertAllowedFields(value, ["key", "label", "format", "visualization"], field);
   const key = presentationKey(value.key, `${field}.key`);
-  if (!contractKeys.has(key))
-    throw invalid(`${field}.key is not declared in the output contract`);
+  if (!contractKeys.has(key)) throw invalid(`${field}.key is not declared in the output contract`);
   return {
     key,
     label: requiredText(value.label, `${field}.label`, 160),
     format: normalizeEnum(value.format, `${field}.format`, FORMATS),
-    visualization: normalizeEnum(
-      value.visualization,
-      `${field}.visualization`,
-      ["badge", "gauge", "value"],
-    ),
+    visualization: normalizeEnum(value.visualization, `${field}.visualization`, ["badge", "gauge", "value"]),
   };
 }
 
-function normalizeSeries(
-  value: unknown,
-  index: number,
-  contractKeys: Set<string>,
-) {
+function normalizeSeries(value: unknown, index: number, contractKeys: Set<string>) {
   const field = `definition.presentation.series[${index}]`;
-  assertAllowedFields(
-    value,
-    ["label", "visualization", "xKey", "xFormat", "yKey", "yFormatKey"],
-    field,
-  );
+  assertAllowedFields(value, ["label", "visualization", "xKey", "xFormat", "yKey", "yFormatKey"], field);
   const result = {
     label: requiredText(value.label, `${field}.label`, 160),
-    visualization: normalizeEnum(
-      value.visualization,
-      `${field}.visualization`,
-      ["line"],
-    ),
+    visualization: normalizeEnum(value.visualization, `${field}.visualization`, ["line"]),
     xKey: presentationKey(value.xKey, `${field}.xKey`),
     xFormat: normalizeEnum(value.xFormat, `${field}.xFormat`, FORMATS),
     yKey: presentationKey(value.yKey, `${field}.yKey`),
     yFormatKey: presentationKey(value.yFormatKey, `${field}.yFormatKey`),
   };
   for (const key of [result.xKey, result.yKey, result.yFormatKey]) {
-    if (!contractKeys.has(key))
-      throw invalid(`${field} references undeclared metadata key: ${key}`);
+    if (!contractKeys.has(key)) throw invalid(`${field} references undeclared metadata key: ${key}`);
   }
   return result;
 }
 
-export function normalizeMonitoringTemplatePresentation(
-  value: unknown,
-  contractKeys: Set<string>,
-) {
-  assertAllowedFields(
-    value,
-    ["label", "fields", "series"],
-    "definition.presentation",
-  );
+export function normalizeMonitoringTemplatePresentation(value: unknown, contractKeys: Set<string>) {
+  assertAllowedFields(value, ["label", "fields", "series"], "definition.presentation");
   const fields = value.fields ?? [];
   const series = value.series ?? [];
-  if (
-    !Array.isArray(fields) ||
-    fields.length > 100 ||
-    !Array.isArray(series) ||
-    series.length > 20
-  ) {
-    throw invalid(
-      "definition.presentation exceeds the supported field or series limits",
-    );
+  if (!Array.isArray(fields) || fields.length > 100 || !Array.isArray(series) || series.length > 20) {
+    throw invalid("definition.presentation exceeds the supported field or series limits");
   }
   return {
     label: optionalText(value.label, "definition.presentation.label", 160),
-    fields: fields.map((item, index: number) =>
-      normalizeField(item, index, contractKeys),
-    ),
-    series: series.map((item, index: number) =>
-      normalizeSeries(item, index, contractKeys),
-    ),
+    fields: fields.map((item, index: number) => normalizeField(item, index, contractKeys)),
+    series: series.map((item, index: number) => normalizeSeries(item, index, contractKeys)),
   };
 }

@@ -6,9 +6,7 @@ import { normalizeMonitoringTemplateDefinition } from "../templates/legacyEvalua
 import { ensureMonitoringTemplateIndexes } from "../templates/storage.js";
 
 const PROFILE_IDS = ["sgmp-health/v1", "sgmp-api-health/v1"] as const;
-type IntegratedProfile = ReturnType<
-  typeof monitoringMetadataProfileCatalog
->[number];
+type IntegratedProfile = ReturnType<typeof monitoringMetadataProfileCatalog>[number];
 
 const FIELD_CONTRACTS: Readonly<
   Record<
@@ -112,8 +110,7 @@ function definitionFor(profile: IntegratedProfile) {
     },
     transformation: {
       language: "jsonata",
-      expression:
-        '{"status": status, "message": message, "metadata": metadata}',
+      expression: '{"status": status, "message": message, "metadata": metadata}',
     },
     output: {
       status: {
@@ -136,9 +133,7 @@ function definitionFor(profile: IntegratedProfile) {
     },
   });
   if (!("schemaVersion" in definition)) {
-    throw new Error(
-      "Integrated monitoring template must use the unified schema",
-    );
+    throw new Error("Integrated monitoring template must use the unified schema");
   }
   return definition;
 }
@@ -147,8 +142,7 @@ export function integratedMonitoringTemplateSeeds() {
   const catalog = monitoringMetadataProfileCatalog();
   return PROFILE_IDS.map((profileId) => {
     const profile = catalog.find(({ id }) => id === profileId);
-    if (!profile)
-      throw new Error(`Integrated monitoring profile not found: ${profileId}`);
+    if (!profile) throw new Error(`Integrated monitoring profile not found: ${profileId}`);
     const [id, legacyVersion] = profileId.split("/");
     return {
       id,
@@ -169,12 +163,8 @@ export async function migrateIntegratedMonitoringProfiles(
   database: Db,
   { apply = false, now = new Date(), actor = "system:migrate-monitoring" } = {},
 ) {
-  const signals = database.collection(
-    COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS,
-  );
-  const templates = database.collection<MonitoringTemplateDocument>(
-    COLLECTION_NAMES.RUNTIME_MONITORING_TEMPLATES,
-  );
+  const signals = database.collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS);
+  const templates = database.collection<MonitoringTemplateDocument>(COLLECTION_NAMES.RUNTIME_MONITORING_TEMPLATES);
   if (apply) await ensureMonitoringTemplateIndexes(templates);
   const workspaces = await signals
     .aggregate([

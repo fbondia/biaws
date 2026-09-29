@@ -1,37 +1,20 @@
-import type {
-  MonitoringTemplateDocument,
-  MonitorTemplateRef,
-} from "../../../types/monitoring.js";
 import { isRecord } from "../../../helpers/records.js";
+import type { MonitoringTemplateDocument, MonitorTemplateRef } from "../../../types/monitoring.js";
+import { assertAllowedFields } from "../../shared/topology/normalization.js";
 import {
   evaluateMonitoringTemplate,
   normalizeMonitoringTemplateDefinition,
   sanitizeMonitoringTemplateSample,
 } from "./legacyEvaluator.js";
-import { assertAllowedFields } from "../../shared/topology/normalization.js";
 import { requireTemplate } from "./storage.js";
-import {
-  isUnifiedMonitoringTemplateDefinition,
-  unifiedMonitoringTemplateSnapshot,
-} from "./unifiedDefinition.js";
+import { isUnifiedMonitoringTemplateDefinition, unifiedMonitoringTemplateSnapshot } from "./unifiedDefinition.js";
 import { evaluateUnifiedMonitoringTemplate } from "./unifiedEvaluator.js";
-import { Document, ObjectId } from "mongodb";
 
-export async function previewMonitoringTemplate(
-  payload: Record<string, unknown> = {},
-) {
-  assertAllowedFields(
-    payload,
-    ["definition", "sample"],
-    "monitoring template preview",
-  );
+export async function previewMonitoringTemplate(payload: Record<string, unknown> = {}) {
+  assertAllowedFields(payload, ["definition", "sample"], "monitoring template preview");
   const definition = normalizeMonitoringTemplateDefinition(payload.definition);
-  const defaultSample = isUnifiedMonitoringTemplateDefinition(definition)
-    ? definition.input.sample
-    : {};
-  const sample = sanitizeMonitoringTemplateSample(
-    payload.sample ?? defaultSample,
-  );
+  const defaultSample = isUnifiedMonitoringTemplateDefinition(definition) ? definition.input.sample : {};
+  const sample = sanitizeMonitoringTemplateSample(payload.sample ?? defaultSample);
   if (isUnifiedMonitoringTemplateDefinition(definition)) {
     return evaluateUnifiedMonitoringTemplate(definition, sample);
   }
@@ -39,8 +22,7 @@ export async function previewMonitoringTemplate(
 }
 
 function monitoringTemplateContractResponse(
-  template:
-    MonitoringTemplateDocument | Omit<MonitoringTemplateDocument, "_id">,
+  template: MonitoringTemplateDocument | Omit<MonitoringTemplateDocument, "_id">,
 ) {
   const definition = normalizeMonitoringTemplateDefinition(template.definition);
   const unified = isUnifiedMonitoringTemplateDefinition(definition);
@@ -56,9 +38,7 @@ function monitoringTemplateContractResponse(
           mediaType: "application/json",
           sample: {},
         },
-    transformation: unified
-      ? { language: definition.transformation.language }
-      : { language: "declarative-rules" },
+    transformation: unified ? { language: definition.transformation.language } : { language: "declarative-rules" },
     output: unified ? definition.output : null,
     presentation: unified ? definition.presentation : null,
   };
@@ -76,9 +56,11 @@ export async function describeMonitoringTemplate(
 export async function validateMonitoringTemplateSample(
   id: string | string[],
   version: string | string[],
-  payload: Record<string, unknown> = {},
+  payload: Record<string, unknown> | undefined,
   workspaceId: string | null | undefined,
 ) {
+  payload ??= {};
+
   assertAllowedFields(payload, ["sample"], "monitoring template validation");
   const sample = sanitizeMonitoringTemplateSample(payload.sample ?? {});
   const evaluation = await evaluateMonitoringTemplateReference(
@@ -100,11 +82,7 @@ export async function evaluateMonitoringTemplateReference(
   workspaceId: string | null | undefined,
 ) {
   if (!templateRef) return null;
-  const template = await requireTemplate(
-    templateRef.id,
-    templateRef.version,
-    workspaceId,
-  );
+  const template = await requireTemplate(templateRef.id, templateRef.version, workspaceId);
   const templateSnapshot = {
     id: template.id,
     version: template.version,
@@ -115,12 +93,14 @@ export async function evaluateMonitoringTemplateReference(
   };
   let evaluation;
   try {
-    evaluation = isUnifiedMonitoringTemplateDefinition(template.definition)
-      ? await evaluateUnifiedMonitoringTemplate(
-          template.definition,
-          isRecord(sample) ? (sample.evidence ?? sample) : sample,
-        )
-      : evaluateMonitoringTemplate(template.definition, sample);
+    if (isUnifiedMonitoringTemplateDefinition(template.definition)) {
+      evaluation = await evaluateUnifiedMonitoringTemplate(
+        template.definition,
+        isRecord(sample) ? (sample.evidence ?? sample) : sample,
+      );
+    } else {
+      evaluation = evaluateMonitoringTemplate(template.definition, sample);
+    }
   } catch (error) {
     if (!(error instanceof Error)) throw error;
     error.templateRef = { id: template.id, version: template.version };

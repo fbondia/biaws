@@ -1,6 +1,7 @@
+import { textValue } from "../helpers/text.js";
 import type { Logger } from "./logger.js";
 import type { Request, Response, NextFunction } from "express";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import multer from "multer";
 
 import { serializeError } from "./logger.js";
@@ -29,15 +30,8 @@ function actorContext(actor: Actor) {
   };
 }
 
-export function createRequestLoggingMiddleware(
-  logger: Logger,
-  { includeHealthChecks = false } = {},
-) {
-  return function requestLogging(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+export function createRequestLoggingMiddleware(logger: Logger, { includeHealthChecks = false } = {}) {
+  return function requestLogging(req: Request, res: Response, next: NextFunction) {
     const startedAt = process.hrtime.bigint();
     const requestId = requestIdFrom(req);
     const shouldLog = includeHealthChecks || req.path !== "/api/health";
@@ -49,8 +43,7 @@ export function createRequestLoggingMiddleware(
     res.on("finish", () => {
       if (!shouldLog) return;
 
-      const durationMs =
-        Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+      const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
       const fields = {
         requestId,
         method: req.method,
@@ -77,25 +70,13 @@ export function createRequestLoggingMiddleware(
 
 function resolveStatus(error: unknown) {
   if (error instanceof multer.MulterError) return 413;
-  const details =
-    error && typeof error === "object"
-      ? (error as { statusCode?: unknown; status?: unknown })
-      : {};
+  const details = error && typeof error === "object" ? (error as { statusCode?: unknown; status?: unknown }) : {};
   const candidate = Number(details.statusCode ?? details.status);
-  return Number.isInteger(candidate) && candidate >= 400 && candidate < 600
-    ? candidate
-    : 500;
+  return Number.isInteger(candidate) && candidate >= 400 && candidate < 600 ? candidate : 500;
 }
 
-function publicError(
-  rawError: unknown,
-  statusCode: number,
-  requestId?: string,
-) {
-  const error =
-    rawError && typeof rawError === "object"
-      ? (rawError as Partial<Error>)
-      : undefined;
+function publicError(rawError: unknown, statusCode: number, requestId?: string) {
+  const error = rawError && typeof rawError === "object" ? (rawError as Partial<Error>) : undefined;
   if (statusCode >= 500) {
     return {
       code: "INTERNAL_ERROR",
@@ -123,16 +104,12 @@ function publicError(
   }
   if (Array.isArray(error?.fields)) {
     result.fields = error.fields.map(({ path, code, message }) => ({
-      path: String(path || ""),
-      code: String(code || "invalid"),
-      message: String(message || "Invalid value"),
+      path: textValue(path || ""),
+      code: textValue(code || "invalid"),
+      message: textValue(message || "Invalid value"),
     }));
   }
-  if (
-    error?.details &&
-    typeof error.details === "object" &&
-    !Array.isArray(error.details)
-  ) {
+  if (error?.details && typeof error.details === "object" && !Array.isArray(error.details)) {
     result.details = error.details;
   }
   if (typeof error?.retryable === "boolean") {
@@ -143,12 +120,7 @@ function publicError(
 }
 
 export function createErrorHandler(logger: Logger) {
-  return function errorHandler(
-    error: unknown,
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  return function errorHandler(error: unknown, req: Request, res: Response, next: NextFunction) {
     const statusCode = resolveStatus(error);
     const fields = {
       requestId: req.requestId,

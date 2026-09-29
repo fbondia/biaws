@@ -1,11 +1,8 @@
+import { textValue } from "./text.js";
 import type { Collection, Document, Filter, WithId } from "mongodb";
 import { ObjectId } from "mongodb";
 
-export function referenceError(
-  statusCode: number,
-  code: string,
-  message: string | undefined,
-) {
+export function referenceError(statusCode: number, code: string, message: string | undefined) {
   return Object.assign(new Error(message), { statusCode, code });
 }
 
@@ -30,42 +27,34 @@ export async function findByReference<T extends Document>(
     projection?: Document;
   } = {},
 ): Promise<WithId<T> | null> {
-  const value = String(reference || "").trim();
+  const value = textValue(reference || "").trim();
   if (!value || value.length > 240) {
-    throw referenceError(
-      422,
-      "INVALID_REFERENCE",
-      "A non-empty reference of at most 240 characters is required",
-    );
+    throw referenceError(422, "INVALID_REFERENCE", "A non-empty reference of at most 240 characters is required");
   }
-  const id =
-    idField === "_id"
-      ? ObjectId.isValid(value)
-        ? new ObjectId(value)
-        : null
-      : value;
+  let id;
+  if (idField === "_id") {
+    if (ObjectId.isValid(value)) {
+      id = new ObjectId(value);
+    } else {
+      id = null;
+    }
+  } else {
+    id = value;
+  }
   const options = projection ? { projection } : {};
   if (id !== null) {
-    const document = await collection.findOne(
-      { $and: [filter, { [idField]: id }] } as Filter<T>,
-      options,
-    );
+    const document = await collection.findOne({ $and: [filter, { [idField]: id }] } as Filter<T>, options);
     if (document) return document;
   }
   if (!identifierField) return null;
   const documents = await collection
     .find(
       {
-        $and: [
-          filter,
-          { [identifierField]: lowercase ? value.toLowerCase() : value },
-        ],
+        $and: [filter, { [identifierField]: lowercase ? value.toLowerCase() : value }],
       } as Filter<T>,
       {
         ...options,
-        ...(caseInsensitive
-          ? { collation: { locale: "en", strength: 2 } }
-          : {}),
+        ...(caseInsensitive ? { collation: { locale: "en", strength: 2 } } : {}),
       },
     )
     .limit(2)

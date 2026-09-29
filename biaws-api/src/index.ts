@@ -4,12 +4,11 @@ import { apiLogger, serializeError } from "./logging/logger.js";
 
 async function startServer() {
   try {
-    const [{ createApp }, { getServerConfig }, { closeMongoClient }] =
-      await Promise.all([
-        import("./app.js"),
-        import("./config.js"),
-        import("./helpers/mongoClient.js"),
-      ]);
+    const [{ createApp }, { getServerConfig }, { closeMongoClient }] = await Promise.all([
+      import("./app.js"),
+      import("./config.js"),
+      import("./helpers/mongoClient.js"),
+    ]);
     const config = getServerConfig();
     const app = createApp();
     const server = app.listen(config.port, config.host, () => {
@@ -54,4 +53,4 @@ async function startServer() {
   }
 }
 
-void startServer();
+await startServer();

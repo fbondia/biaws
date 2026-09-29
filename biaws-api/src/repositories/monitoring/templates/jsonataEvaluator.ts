@@ -20,10 +20,7 @@ function evaluationError(
 export function evaluateJsonataIsolated(
   expression: string,
   input: unknown,
-  {
-    signal,
-    timeoutMs = 1_000,
-  }: { signal?: AbortSignal; timeoutMs?: number } = {},
+  { signal, timeoutMs = 1_000 }: { signal?: AbortSignal; timeoutMs?: number } = {},
 ) {
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 5_000) {
     throw new TypeError("JSONata timeout must be between 1 and 5000 ms");
@@ -50,10 +47,7 @@ export function evaluateJsonataIsolated(
     const abort = () =>
       finish(
         reject,
-        evaluationError(
-          "MONITORING_TEMPLATE_EVALUATION_CANCELLED",
-          "Monitoring template evaluation was cancelled",
-        ),
+        evaluationError("MONITORING_TEMPLATE_EVALUATION_CANCELLED", "Monitoring template evaluation was cancelled"),
       );
     const timer = setTimeout(
       () =>
@@ -94,10 +88,7 @@ export function evaluateJsonataIsolated(
     worker.once("error", () =>
       finish(
         reject,
-        evaluationError(
-          "MONITORING_TEMPLATE_EVALUATION_FAILED",
-          "Monitoring template worker failed safely",
-        ),
+        evaluationError("MONITORING_TEMPLATE_EVALUATION_FAILED", "Monitoring template worker failed safely"),
       ),
     );
     worker.once("exit", (code) => {
@@ -106,9 +97,7 @@ export function evaluateJsonataIsolated(
           reject,
           evaluationError(
             "MONITORING_TEMPLATE_EVALUATION_FAILED",
-            code === 0
-              ? "Monitoring template worker returned no result"
-              : "Monitoring template worker stopped safely",
+            code === 0 ? "Monitoring template worker returned no result" : "Monitoring template worker stopped safely",
           ),
         );
       }

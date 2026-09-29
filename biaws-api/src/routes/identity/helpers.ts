@@ -1,11 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { getUserAccess } from "../../repositories/access/index.js";
 
-export async function requireWorkspaceUser(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function requireWorkspaceUser(req: Request, res: Response, next: NextFunction) {
   try {
     const access = await getUserAccess(req.params.userId, {
       workspaceId: req.actor.workspaceId ?? undefined,

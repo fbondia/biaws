@@ -1,20 +1,10 @@
 import type { Request, Response } from "express";
 import { recordAuditEvent } from "../../repositories/audit/index.js";
-import {
-  getWorkspace,
-  setWorkspaceStatus,
-} from "../../repositories/catalog/workspaces/platform.js";
+import { getWorkspace, setWorkspaceStatus } from "../../repositories/catalog/workspaces/platform.js";
 
-export async function changeWorkspaceStatus(
-  req: Request,
-  res: Response,
-  status: string,
-) {
+export async function changeWorkspaceStatus(req: Request, res: Response, status: string) {
   const before = await getWorkspace(req.params.workspaceId);
-  if (
-    status === "archived" &&
-    String(req.body.confirmation || "") !== before?.name
-  ) {
+  if (status === "archived" && String(req.body.confirmation || "") !== before?.name) {
     res.status(422).json({
       error: {
         code: "WORKSPACE_CONFIRMATION_REQUIRED",
@@ -23,11 +13,7 @@ export async function changeWorkspaceStatus(
     });
     return;
   }
-  const workspace = await setWorkspaceStatus(
-    req.params.workspaceId,
-    status,
-    req.actor,
-  );
+  const workspace = await setWorkspaceStatus(req.params.workspaceId, status, req.actor);
   if (!workspace) throw new Error("Updated workspace could not be read");
   await recordAuditEvent({
     actor: req.actor,
@@ -37,9 +23,7 @@ export async function changeWorkspaceStatus(
     after: workspace,
     metadata: { workspaceId: workspace.id, platform: true },
     summary:
-      status === "archived"
-        ? `Workspace arquivado: ${workspace.name}`
-        : `Workspace reativado: ${workspace.name}`,
+      status === "archived" ? `Workspace arquivado: ${workspace.name}` : `Workspace reativado: ${workspace.name}`,
   });
   res.json({ workspace });
 }

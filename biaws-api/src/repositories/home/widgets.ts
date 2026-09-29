@@ -25,13 +25,7 @@ export const DEFAULT_PENDING_TASKS_LIMIT = 6;
 
 export const WIDGET_SIZES = new Set(["small", "medium-1", "medium-2", "large"]);
 
-export const COMPLETED_TASK_STATUSES = [
-  "Concluído",
-  "Concluido",
-  "Completed",
-  "Done",
-  "closed",
-];
+export const COMPLETED_TASK_STATUSES = ["Concluído", "Concluido", "Completed", "Done", "closed"];
 
 export const HOME_WIDGET_CATALOG: readonly HomeWidget[] = Object.freeze([
   {
@@ -87,8 +81,7 @@ export const HOME_WIDGET_CATALOG: readonly HomeWidget[] = Object.freeze([
     id: "application-health",
     category: "Monitoramento",
     label: "Saúde das aplicações",
-    description:
-      "Runtimes monitorados agrupados por aplicação, componente e deployment.",
+    description: "Runtimes monitorados agrupados por aplicação, componente e deployment.",
     permission: "runtimes.read",
     defaultSize: "medium-2",
     configuration: {
@@ -150,9 +143,7 @@ export const HOME_WIDGET_CATALOG: readonly HomeWidget[] = Object.freeze([
   },
 ]);
 
-export const widgetById = new Map(
-  HOME_WIDGET_CATALOG.map((widget) => [widget.id, widget]),
-);
+export const widgetById = new Map(HOME_WIDGET_CATALOG.map((widget) => [widget.id, widget]));
 
 export function defaultConfiguration(widgetId: string): WidgetConfiguration {
   if (widgetId === "issues-period") return { period: "week" };
@@ -180,9 +171,7 @@ export function defaultHomeWidgets(actor: Partial<Actor> = {}) {
     ],
   ];
   return defaults
-    .filter(([widgetId]) =>
-      hasPermission(actor, widgetById.get(widgetId)!.permission),
-    )
+    .filter(([widgetId]) => hasPermission(actor, widgetById.get(widgetId)!.permission))
     .map(([widgetId, config, size], index: number) => ({
       id: `default-${widgetId}-${index + 1}`,
       widgetId,

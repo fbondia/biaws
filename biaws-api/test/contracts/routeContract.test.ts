@@ -39,12 +39,7 @@ const routers = {
 };
 
 test("API routers preserve endpoint methods, paths, middleware and precedence", async () => {
-  const expected = JSON.parse(
-    await readFile(
-      new URL("../fixtures/api-route-contract.json", import.meta.url),
-      "utf8",
-    ),
-  );
+  const expected = JSON.parse(await readFile(new URL("../fixtures/api-route-contract.json", import.meta.url), "utf8"));
   const actual = Object.fromEntries(
     Object.entries(routers).map(([name, router]) => [
       name,

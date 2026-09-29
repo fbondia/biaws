@@ -25,9 +25,7 @@ const MANAGED_KEYS = [
 ];
 
 function preserveEnvironment() {
-  const previous = Object.fromEntries(
-    MANAGED_KEYS.map((key) => [key, process.env[key]]),
-  );
+  const previous = Object.fromEntries(MANAGED_KEYS.map((key) => [key, process.env[key]]));
   return () => {
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) {
@@ -45,9 +43,7 @@ test("production defaults to secure cookies and quiet health checks", () => {
     process.env.NODE_ENV = "production";
     delete process.env.BETTER_AUTH_SECURE_COOKIES;
     delete process.env.BIAWS_API_LOG_HEALTH_REQUESTS;
-    for (const key of MANAGED_KEYS.filter((key) =>
-      key.includes("RATE_LIMIT"),
-    )) {
+    for (const key of MANAGED_KEYS.filter((key) => key.includes("RATE_LIMIT"))) {
       delete process.env[key];
     }
 
@@ -93,10 +89,7 @@ test("invalid boolean settings fail fast", () => {
   const restore = preserveEnvironment();
   try {
     process.env.BETTER_AUTH_SECURE_COOKIES = "sometimes";
-    assert.throws(
-      () => getServerConfig(),
-      /Invalid boolean environment value/u,
-    );
+    assert.throws(() => getServerConfig(), /Invalid boolean environment value/u);
   } finally {
     restore();
   }

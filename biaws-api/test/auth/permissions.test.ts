@@ -25,8 +25,7 @@ test("permission catalog has unique stable ids and complete UI metadata", () => 
 });
 
 test("permission sections distinguish resources inside a domain", () => {
-  const sectionOf = (id: string) =>
-    PERMISSION_CATALOG.find((permission) => permission.id === id)?.section;
+  const sectionOf = (id: string) => PERMISSION_CATALOG.find((permission) => permission.id === id)?.section;
 
   assert.equal(sectionOf("issues.read"), "Geral");
   assert.equal(sectionOf("issues.comment.create"), "Comentários");
@@ -37,19 +36,11 @@ test("permission sections distinguish resources inside a domain", () => {
 
 test("permission constants and validation use the canonical catalog", () => {
   assert.equal(PERMISSIONS.ISSUES_IMPORT_EML, "issues.import.eml");
-  assert.equal(
-    PERMISSIONS.DOCUMENTS_ATTACHMENT_READ,
-    "documents.attachment.read",
-  );
+  assert.equal(PERMISSIONS.DOCUMENTS_ATTACHMENT_READ, "documents.attachment.read");
   assert.equal(isKnownPermission(PERMISSIONS.SKILLS_PUBLISH), true);
-  assert.equal(
-    PERMISSIONS.MONITORING_ACTIVE_REQUEST,
-    "monitoring.active.request",
-  );
+  assert.equal(PERMISSIONS.MONITORING_ACTIVE_REQUEST, "monitoring.active.request");
   assert.equal(isKnownPermission("issues.superuser"), false);
-  assert.doesNotThrow(() =>
-    assertKnownPermissions([PERMISSIONS.ISSUES_READ, PERMISSIONS.DEMANDS_READ]),
-  );
+  assert.doesNotThrow(() => assertKnownPermissions([PERMISSIONS.ISSUES_READ, PERMISSIONS.DEMANDS_READ]));
   assert.throws(
     () => assertKnownPermissions(["issues.read", "issues.superuser"]),
     /Unknown permissions: issues\.superuser/u,

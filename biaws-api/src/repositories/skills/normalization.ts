@@ -1,12 +1,7 @@
+import { textValue } from "../../helpers/text.js";
 import { WithId, Document } from "mongodb";
 import type { SkillDocument, PublicSkillDocument } from "../../types/skills.js";
-import {
-  SEMVER_PATTERN,
-  MAX_FILES,
-  MAX_FILE_BYTES,
-  MAX_PACKAGE_BYTES,
-  SKILL_ID_PATTERN,
-} from "./constants.js";
+import { SEMVER_PATTERN, MAX_FILES, MAX_FILE_BYTES, MAX_PACKAGE_BYTES, SKILL_ID_PATTERN } from "./constants.js";
 import { createHttpError } from "./support.js";
 import crypto from "node:crypto";
 
@@ -17,7 +12,7 @@ function normalizeDocumentValue(document: WithId<Document> | null) {
 
 function parseSemver(value: string) {
   const match = SEMVER_PATTERN.exec(String(value || "").trim());
-  if (!match) return null;
+  if (!match || match.slice(1, 4).some((part) => part.length > 1 && part.startsWith("0"))) return null;
   return {
     major: Number(match[1]),
     minor: Number(match[2]),
@@ -39,7 +34,7 @@ export function compareSemver(left: string, right: string) {
 }
 
 function normalizePath(value: unknown) {
-  const filePath = String(value || "")
+  const filePath = textValue(value || "")
     .replaceAll("\\", "/")
     .trim();
   if (
@@ -54,16 +49,10 @@ function normalizePath(value: unknown) {
 
 function normalizeFiles(files: unknown) {
   if (!Array.isArray(files) || !files.length) {
-    throw createHttpError(
-      422,
-      "Invalid skill payload: files must be a non-empty array",
-    );
+    throw createHttpError(422, "Invalid skill payload: files must be a non-empty array");
   }
   if (files.length > MAX_FILES) {
-    throw createHttpError(
-      422,
-      `Invalid skill payload: maximum of ${MAX_FILES} files`,
-    );
+    throw createHttpError(422, `Invalid skill payload: maximum of ${MAX_FILES} files`);
   }
 
   const paths = new Set();
@@ -71,14 +60,10 @@ function normalizeFiles(files: unknown) {
   const normalized = files
     .map((file) => {
       if (!file || typeof file !== "object" || Array.isArray(file)) {
-        throw createHttpError(
-          422,
-          "Invalid skill payload: each file must be an object",
-        );
+        throw createHttpError(422, "Invalid skill payload: each file must be an object");
       }
       const path = normalizePath(file.path);
-      if (paths.has(path))
-        throw createHttpError(422, `Duplicate skill file path: ${path}`);
+      if (paths.has(path)) throw createHttpError(422, `Duplicate skill file path: ${path}`);
       paths.add(path);
 
       let content;
@@ -90,17 +75,11 @@ function normalizeFiles(files: unknown) {
         throw createHttpError(422, `Invalid skill file content: ${path}`);
       }
       if (content.length > MAX_FILE_BYTES) {
-        throw createHttpError(
-          422,
-          `Skill file exceeds ${MAX_FILE_BYTES} bytes: ${path}`,
-        );
+        throw createHttpError(422, `Skill file exceeds ${MAX_FILE_BYTES} bytes: ${path}`);
       }
       packageBytes += content.length;
       if (packageBytes > MAX_PACKAGE_BYTES) {
-        throw createHttpError(
-          422,
-          `Skill package exceeds ${MAX_PACKAGE_BYTES} bytes`,
-        );
+        throw createHttpError(422, `Skill package exceeds ${MAX_PACKAGE_BYTES} bytes`);
       }
       return {
         path,
@@ -136,29 +115,18 @@ function packageChecksum(
 }
 
 export function normalizeSkillPayload(payload: Record<string, unknown> = {}) {
-  const skillId = String(payload.skillId || payload.id || "").trim();
-  const version = String(payload.version || "").trim();
-  const name = String(payload.name || skillId).trim();
-  const description = String(payload.description || "").trim();
+  const skillId = textValue(payload.skillId || payload.id || "").trim();
+  const version = textValue(payload.version || "").trim();
+  const name = textValue(payload.name || skillId).trim();
+  const description = textValue(payload.description || "").trim();
   if (!SKILL_ID_PATTERN.test(skillId)) {
-    throw createHttpError(
-      422,
-      "Invalid skill payload: skillId must use lowercase kebab-case",
-    );
+    throw createHttpError(422, "Invalid skill payload: skillId must use lowercase kebab-case");
   }
   if (!parseSemver(version)) {
-    throw createHttpError(
-      422,
-      "Invalid skill payload: version must use semantic versioning",
-    );
+    throw createHttpError(422, "Invalid skill payload: version must use semantic versioning");
   }
-  if (!name)
-    throw createHttpError(422, "Invalid skill payload: name is required");
-  if (!description)
-    throw createHttpError(
-      422,
-      "Invalid skill payload: description is required",
-    );
+  if (!name) throw createHttpError(422, "Invalid skill payload: name is required");
+  if (!description) throw createHttpError(422, "Invalid skill payload: description is required");
 
   const files = normalizeFiles(payload.files);
   return {
@@ -166,24 +134,16 @@ export function normalizeSkillPayload(payload: Record<string, unknown> = {}) {
     version,
     name,
     description,
-    changelog: String(payload.changelog || "").trim(),
-    compatibility:
-      payload.compatibility && typeof payload.compatibility === "object"
-        ? payload.compatibility
-        : {},
-    dependencies:
-      payload.dependencies && typeof payload.dependencies === "object"
-        ? payload.dependencies
-        : {},
+    changelog: textValue(payload.changelog || "").trim(),
+    compatibility: payload.compatibility && typeof payload.compatibility === "object" ? payload.compatibility : {},
+    dependencies: payload.dependencies && typeof payload.dependencies === "object" ? payload.dependencies : {},
     files,
     packageSha256: packageChecksum(files),
     packageBytes: files.reduce((total, file) => total + file.size, 0),
   };
 }
 
-export function skillReplicationPayload<
-  T extends Partial<ReturnType<typeof normalizeSkillPayload>>,
->(skill: T) {
+export function skillReplicationPayload<T extends Partial<ReturnType<typeof normalizeSkillPayload>>>(skill: T) {
   return {
     skillId: skill.skillId,
     version: skill.version,
@@ -208,20 +168,14 @@ export function withoutFileContents(document: WithId<SkillDocument> | null) {
   };
 }
 
-export function normalizeDocument(
-  document: WithId<SkillDocument>,
-): PublicSkillDocument;
-export function normalizeDocument(
-  document: WithId<SkillDocument> | null,
-): PublicSkillDocument | null;
+export function normalizeDocument(document: WithId<SkillDocument>): PublicSkillDocument;
+export function normalizeDocument(document: WithId<SkillDocument> | null): PublicSkillDocument | null;
 export function normalizeDocument(
   document: NonNullable<Parameters<typeof normalizeDocumentValue>[0]>,
 ): NonNullable<ReturnType<typeof normalizeDocumentValue>>;
 export function normalizeDocument(
   document: Parameters<typeof normalizeDocumentValue>[0],
 ): ReturnType<typeof normalizeDocumentValue>;
-export function normalizeDocument(
-  document: Parameters<typeof normalizeDocumentValue>[0],
-) {
+export function normalizeDocument(document: Parameters<typeof normalizeDocumentValue>[0]) {
   return normalizeDocumentValue(document);
 }

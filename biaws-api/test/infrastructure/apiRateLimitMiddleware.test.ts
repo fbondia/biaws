@@ -93,12 +93,8 @@ test("disabled rate limiter does not consume a bucket", async () => {
     { consume: () => assert.fail("must not consume") },
   );
 
-  await middleware(
-    {} as Request,
-    responseRecorder() as unknown as Response,
-    () => {
-      nextCalled = true;
-    },
-  );
+  await middleware({} as Request, responseRecorder() as unknown as Response, () => {
+    nextCalled = true;
+  });
   assert.equal(nextCalled, true);
 });

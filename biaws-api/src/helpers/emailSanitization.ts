@@ -1,12 +1,8 @@
+import { textValue } from "./text.js";
 import { isRecord } from "./records.js";
 const DEFAULT_BODY_RULES = [
   ["mailto", "Links mailto", String.raw`<mailto:.*?@.*?>`, "giu"],
-  [
-    "public-classification",
-    "Classificação pública",
-    "Classificado como Público",
-    "giu",
-  ],
+  ["public-classification", "Classificação pública", "Classificado como Público", "giu"],
   [
     "removed-images",
     "Avisos de imagem removida",
@@ -31,18 +27,8 @@ const DEFAULT_BODY_RULES = [
     String.raw`Esta comunicação contém .*?delete o seu conteúdo\.`,
     "siu",
   ],
-  [
-    "portuguese-message",
-    "Aviso de mensagem em português",
-    String.raw`Esta mensagem.*?delete o seu conteúdo\.`,
-    "siu",
-  ],
-  [
-    "english-message",
-    "Aviso de mensagem em inglês",
-    String.raw`This message.*?deleting its contents`,
-    "siu",
-  ],
+  ["portuguese-message", "Aviso de mensagem em português", String.raw`Esta mensagem.*?delete o seu conteúdo\.`, "siu"],
+  ["english-message", "Aviso de mensagem em inglês", String.raw`This message.*?deleting its contents`, "siu"],
 ];
 
 export const DEFAULT_EMAIL_SANITIZATION_CONFIG = Object.freeze({
@@ -72,43 +58,30 @@ function invalid(message: string) {
   return error;
 }
 
-function normalizedStringList(
-  value: unknown,
-  fallback: string[],
-  field: string,
-) {
+function normalizedStringList(value: unknown, fallback: string[], field: string) {
   const source = value === undefined ? fallback : value;
   if (!Array.isArray(source)) throw invalid(`${field} must be an array`);
-  if (source.length > 100)
-    throw invalid(`${field} must contain at most 100 items`);
-  return [
-    ...new Set(source.map((item) => String(item || "").trim()).filter(Boolean)),
-  ];
+  if (source.length > 100) throw invalid(`${field} must contain at most 100 items`);
+  return [...new Set(source.map((item) => String(item || "").trim()).filter(Boolean))];
 }
 
 function normalizedFlags(value: unknown) {
-  const flags = String(value || "").trim();
+  const flags = textValue(value || "").trim();
   if (!/^[gimsu]*$/u.test(flags) || new Set(flags).size !== flags.length) {
-    throw invalid(
-      "rule flags may contain each of g, i, m, s and u at most once",
-    );
+    throw invalid("rule flags may contain each of g, i, m, s and u at most once");
   }
   return flags;
 }
 
 function normalizedBodyRules(value: unknown) {
-  const source =
-    value === undefined ? DEFAULT_EMAIL_SANITIZATION_CONFIG.bodyRules : value;
+  const source = value === undefined ? DEFAULT_EMAIL_SANITIZATION_CONFIG.bodyRules : value;
   if (!Array.isArray(source)) throw invalid("bodyRules must be an array");
-  if (source.length > 100)
-    throw invalid("bodyRules must contain at most 100 rules");
+  if (source.length > 100) throw invalid("bodyRules must contain at most 100 rules");
 
   return source.map((rule, index: number) => {
     const pattern = String(rule?.pattern || "");
     if (!pattern || pattern.length > 4000) {
-      throw invalid(
-        `bodyRules[${index}].pattern must contain between 1 and 4000 characters`,
-      );
+      throw invalid(`bodyRules[${index}].pattern must contain between 1 and 4000 characters`);
     }
     const flags = normalizedFlags(rule?.flags);
     try {
@@ -137,16 +110,10 @@ export function normalizeEmailSanitizationConfig(value: unknown = {}) {
     throw invalid("configuration must be an object");
   }
   const defaults = DEFAULT_EMAIL_SANITIZATION_CONFIG;
-  const threadSeparators = normalizedStringList(
-    value.threadSeparators,
-    defaults.threadSeparators,
-    "threadSeparators",
-  );
+  const threadSeparators = normalizedStringList(value.threadSeparators, defaults.threadSeparators, "threadSeparators");
   for (const [index, pattern] of threadSeparators.entries()) {
     if (pattern.length > 4000) {
-      throw invalid(
-        `threadSeparators[${index}] must contain at most 4000 characters`,
-      );
+      throw invalid(`threadSeparators[${index}] must contain at most 4000 characters`);
     }
     try {
       new RegExp(pattern, "iu");
@@ -160,11 +127,7 @@ export function normalizeEmailSanitizationConfig(value: unknown = {}) {
   const options = isRecord(value.options) ? value.options : {};
   return {
     schemaVersion: 1,
-    subjectPrefixes: normalizedStringList(
-      value.subjectPrefixes,
-      defaults.subjectPrefixes,
-      "subjectPrefixes",
-    ),
+    subjectPrefixes: normalizedStringList(value.subjectPrefixes, defaults.subjectPrefixes, "subjectPrefixes"),
     bodyRules: normalizedBodyRules(value.bodyRules),
     threadSeparators,
     options: {
@@ -184,10 +147,7 @@ export function compileEmailSanitizationConfig(value: unknown) {
       regex: new RegExp(rule.pattern, rule.flags),
     })),
     threadSeparatorRegex: config.threadSeparators.length
-      ? new RegExp(
-          config.threadSeparators.map((pattern) => `(?:${pattern})`).join("|"),
-          "giu",
-        )
+      ? new RegExp(config.threadSeparators.map((pattern) => `(?:${pattern})`).join("|"), "giu")
       : null,
   };
 }

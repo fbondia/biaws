@@ -1,5 +1,6 @@
-import { access, mkdir, readFile, unlink, writeFile } from "fs/promises";
-import path from "path";
+import { textValue } from "../helpers/text.js";
+import { access, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { WORKSPACE_ROOT } from "../helpers/runtimePaths.js";
 
 import { getIssueBaseDir } from "../helpers/issueStorage.js";
@@ -8,23 +9,16 @@ import { errorCode } from "../helpers/error.js";
 const ISSUES_ROOT = WORKSPACE_ROOT;
 
 function readOption(options: Record<string, unknown>, key: string) {
-  return (
-    options?.[key] ??
-    options?.[key.replace(/-([a-z])/gu, (_, letter) => letter.toUpperCase())]
-  );
+  return options?.[key] ?? options?.[key.replaceAll(/-([a-z])/gu, (_, letter) => letter.toUpperCase())];
 }
 
 function resolveRootDir(options: Record<string, unknown>) {
-  const configuredDir = String(
-    readOption(options, "attachment-storage-local-dir") ||
-      process.env.ATTACHMENT_STORAGE_LOCAL_DIR ||
-      "",
+  const configuredDir = textValue(
+    readOption(options, "attachment-storage-local-dir") || process.env.ATTACHMENT_STORAGE_LOCAL_DIR || "",
   ).trim();
 
   if (!configuredDir) return getIssueBaseDir(options);
-  return path.isAbsolute(configuredDir)
-    ? configuredDir
-    : path.resolve(ISSUES_ROOT, configuredDir);
+  return path.isAbsolute(configuredDir) ? configuredDir : path.resolve(ISSUES_ROOT, configuredDir);
 }
 
 function resolveKey(rootDir: string, key: string) {
@@ -34,20 +28,14 @@ function resolveKey(rootDir: string, key: string) {
   const resolvedPath = path.resolve(rootDir, normalizedKey);
   const relativePath = path.relative(rootDir, resolvedPath);
 
-  if (
-    !normalizedKey ||
-    relativePath.startsWith("..") ||
-    path.isAbsolute(relativePath)
-  ) {
+  if (!normalizedKey || relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
     throw new Error(`Invalid attachment storage key: ${key}`);
   }
 
   return resolvedPath;
 }
 
-export function createLocalAttachmentStorage(
-  options: Record<string, unknown> = {},
-) {
+export function createLocalAttachmentStorage(options: Record<string, unknown> = {}) {
   const rootDir = resolveRootDir(options);
 
   return {

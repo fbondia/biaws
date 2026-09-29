@@ -35,18 +35,13 @@ function fakeDatabase({
       return {
         async findOne(filter: Record<string, unknown>) {
           return (
-            documents.find((document) =>
-              Object.entries(filter).every(
-                ([key, value]) => document[key] === value,
-              ),
-            ) || null
+            documents.find((document) => Object.entries(filter).every(([key, value]) => document[key] === value)) ||
+            null
           );
         },
         find(filter: { id?: { $in: string[] } }) {
           const ids = filter.id?.$in || [];
-          const matches = documents.filter((document) =>
-            ids.includes(document.id),
-          );
+          const matches = documents.filter((document) => ids.includes(document.id));
           return {
             project() {
               return {
@@ -63,15 +58,10 @@ function fakeDatabase({
 }
 
 test("normalizes affected components and builds scoped filters", () => {
-  assert.deepEqual(
-    normalizeAffectedComponentIds([
-      "component-1",
-      " component-1 ",
-      "",
-      "component-2",
-    ]),
-    ["component-1", "component-2"],
-  );
+  assert.deepEqual(normalizeAffectedComponentIds(["component-1", " component-1 ", "", "component-2"]), [
+    "component-1",
+    "component-2",
+  ]);
   assert.deepEqual(
     buildKnowledgeContextFilter({
       workspaceId: " workspace-1 ",
@@ -181,9 +171,7 @@ test("rejects cross-application, archived or missing affected components", async
       null,
       { applicationRequired: true, create: true },
     ),
-    (error) =>
-      errorStatusCode(error) === 422 &&
-      errorCode(error) === "INVALID_AFFECTED_COMPONENTS",
+    (error) => errorStatusCode(error) === 422 && errorCode(error) === "INVALID_AFFECTED_COMPONENTS",
   );
 });
 
@@ -195,14 +183,10 @@ test("requires applications for new issues and demands", async () => {
     status: "active",
   };
   await assert.rejects(
-    resolveKnowledgeContext(
-      fakeDatabase({ workspace, application: null }),
-      {},
-      null,
-      { applicationRequired: true, create: true },
-    ),
-    (error) =>
-      errorStatusCode(error) === 422 &&
-      errorCode(error) === "APPLICATION_REQUIRED",
+    resolveKnowledgeContext(fakeDatabase({ workspace, application: null }), {}, null, {
+      applicationRequired: true,
+      create: true,
+    }),
+    (error) => errorStatusCode(error) === 422 && errorCode(error) === "APPLICATION_REQUIRED",
   );
 });

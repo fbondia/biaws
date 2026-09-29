@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  requireAllPermissions,
-  requireApplicationPermissions,
-} from "../../../auth/authorizationMiddleware.js";
+import { requireAllPermissions, requireApplicationPermissions } from "../../../auth/authorizationMiddleware.js";
 import { getApplicationContext } from "../../../repositories/catalog/applications/context.js";
 import { asyncHandler } from "../helpers.js";
 
@@ -33,9 +30,7 @@ export function registerListApplicationsContext(router: Router) {
       "documents.read",
     ),
     asyncHandler(async (req: Request, res: Response) => {
-      res.json(
-        await getApplicationContext(req.params.applicationId, req.query),
-      );
+      res.json(await getApplicationContext(req.params.applicationId, req.query));
     }),
   );
 }

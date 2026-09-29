@@ -13,11 +13,7 @@ export function createApiRateLimitMiddleware(
   config: { enabled: boolean; windowSeconds: number; maxRequests: number },
   { consume = consumeApiRateLimit } = {},
 ) {
-  return async function apiRateLimitMiddleware(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  return async function apiRateLimitMiddleware(req: Request, res: Response, next: NextFunction) {
     if (!config.enabled) {
       next();
       return;
@@ -29,10 +25,7 @@ export function createApiRateLimitMiddleware(
         windowSeconds: config.windowSeconds,
       });
       const remaining = Math.max(config.maxRequests - result.count, 0);
-      const retryAfter = Math.max(
-        Math.ceil((result.expiresAt.getTime() - Date.now()) / 1_000),
-        1,
-      );
+      const retryAfter = Math.max(Math.ceil((result.expiresAt.getTime() - Date.now()) / 1_000), 1);
 
       res.set("RateLimit-Limit", String(config.maxRequests));
       res.set("RateLimit-Remaining", String(remaining));

@@ -28,8 +28,6 @@ test("rejects malformed tag selections used by EML imports", () => {
       normalizeClassificationPayload({
         tags: { priority: "high" },
       }),
-    (error) =>
-      errorStatusCode(error) === 422 &&
-      /tags\.priority must be an array/u.test(errorMessage(error)),
+    (error) => errorStatusCode(error) === 422 && /tags\.priority must be an array/u.test(errorMessage(error)),
   );
 });

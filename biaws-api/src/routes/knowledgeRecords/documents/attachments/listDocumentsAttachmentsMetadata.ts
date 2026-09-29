@@ -7,12 +7,8 @@ export function registerListDocumentsAttachmentsMetadata(router: Router) {
   router.get(
     "/documents/:id/attachments/:attachmentId/metadata",
     requireAllPermissions("documents.attachment.read"),
-    createResourceReadHandler(
-      "document",
-      "documents.attachment.read",
-      async (req: Request, query: {} | undefined) => {
-        return readDocumentAttachmentResource(req.params.id, req.params, query);
-      },
-    ),
+    createResourceReadHandler("document", "documents.attachment.read", async (req: Request, query: {} | undefined) => {
+      return readDocumentAttachmentResource(req.params.id, req.params, query);
+    }),
   );
 }

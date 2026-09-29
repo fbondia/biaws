@@ -1,5 +1,4 @@
-export type JsonValue =
-  null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
+export type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 export interface MetadataField {
   key: string;
   type: string;

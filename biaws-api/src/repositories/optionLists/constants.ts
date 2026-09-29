@@ -32,17 +32,14 @@ export const DEFAULT_OPTION_LISTS = Object.freeze([
   {
     key: OPTION_LIST_KEYS.ISSUE_TYPE,
     name: "Tipos de chamados",
-    description:
-      "Tipos disponíveis para cadastro, importação e filtro de chamados.",
+    description: "Tipos disponíveis para cadastro, importação e filtro de chamados.",
     defaultValue: DEFAULT_ISSUE_TYPE,
     items: ISSUE_TYPE_OPTIONS.map((item, index: number) => ({
       ...item,
       active: true,
       order: (index + 1) * 10,
       metadata: {
-        emlImport: DEFAULT_ISSUE_TYPE_DETECTION[
-          item.value as keyof typeof DEFAULT_ISSUE_TYPE_DETECTION
-        ] || {
+        emlImport: DEFAULT_ISSUE_TYPE_DETECTION[item.value as keyof typeof DEFAULT_ISSUE_TYPE_DETECTION] || {
           enabled: false,
           subjectPatterns: [],
         },
@@ -52,8 +49,7 @@ export const DEFAULT_OPTION_LISTS = Object.freeze([
   {
     key: OPTION_LIST_KEYS.ISSUE_STATUS,
     name: "Status de chamados",
-    description:
-      "Situações disponíveis para cadastro, edição e filtro de chamados.",
+    description: "Situações disponíveis para cadastro, edição e filtro de chamados.",
     defaultValue: DEFAULT_ISSUE_STATUS,
     items: ISSUE_STATUS_OPTIONS.map((item, index: number) => ({
       ...item,
@@ -67,36 +63,31 @@ export const DEFAULT_OPTION_LISTS = Object.freeze([
     name: "Status de melhorias",
     description: "Situações disponíveis para uma melhoria.",
     defaultValue: DEFAULT_REQUEST_STATUS,
-    items: Object.entries(REQUEST_STATUS_COLORS).map(
-      ([value, metadata], index: number) => ({
-        value,
-        label: value,
-        active: true,
-        order: (index + 1) * 10,
-        metadata,
-      }),
-    ),
+    items: Object.entries(REQUEST_STATUS_COLORS).map(([value, metadata], index: number) => ({
+      value,
+      label: value,
+      active: true,
+      order: (index + 1) * 10,
+      metadata,
+    })),
   },
   {
     key: OPTION_LIST_KEYS.TASK_STATUS,
     name: "Status de tarefas",
     description: "Situações disponíveis para tarefas de melhorias.",
     defaultValue: DEFAULT_REQUEST_TASK_STATUS,
-    items: Object.entries(REQUEST_TASK_STATUS_COLORS).map(
-      ([value, metadata], index: number) => ({
-        value,
-        label: value,
-        active: true,
-        order: (index + 1) * 10,
-        metadata,
-      }),
-    ),
+    items: Object.entries(REQUEST_TASK_STATUS_COLORS).map(([value, metadata], index: number) => ({
+      value,
+      label: value,
+      active: true,
+      order: (index + 1) * 10,
+      metadata,
+    })),
   },
   {
     key: OPTION_LIST_KEYS.CHECKLIST,
     name: "Checklist de melhorias",
-    description:
-      "Etapas criadas automaticamente no checklist de novas melhorias.",
+    description: "Etapas criadas automaticamente no checklist de novas melhorias.",
     defaultValue: "",
     items: REQUEST_CHECKLIST_ITEMS.map((value: unknown, index: number) => ({
       value,
@@ -111,15 +102,13 @@ export const DEFAULT_OPTION_LISTS = Object.freeze([
     name: "Seções da especificação",
     description: "Seções criadas automaticamente na especificação técnica.",
     defaultValue: "",
-    items: REQUEST_SPECIFICATION_SECTION_TITLES.map(
-      (value: unknown, index: number) => ({
-        value,
-        label: value,
-        active: true,
-        order: (index + 1) * 10,
-        metadata: {},
-      }),
-    ),
+    items: REQUEST_SPECIFICATION_SECTION_TITLES.map((value: unknown, index: number) => ({
+      value,
+      label: value,
+      active: true,
+      order: (index + 1) * 10,
+      metadata: {},
+    })),
   },
 ]);
 

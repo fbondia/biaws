@@ -13,18 +13,12 @@ async function monitoringWidgetData(
   const entries = await Promise.all(
     widgets
       .filter(({ widgetId }) => widgetId === "application-health")
-      .map(async (instance) => [
-        instance.id,
-        await applicationHealthMetric(database, actor, instance.config),
-      ]),
+      .map(async (instance) => [instance.id, await applicationHealthMetric(database, actor, instance.config)]),
   );
   return Object.fromEntries(entries);
 }
 
-export async function getHomeMonitoringData(
-  actor: Actor,
-  { now = new Date() } = {},
-) {
+export async function getHomeMonitoringData(actor: Actor, { now = new Date() } = {}) {
   const database = await getMongoDatabase();
   const configuration = await getHomeConfiguration(actor);
   return {

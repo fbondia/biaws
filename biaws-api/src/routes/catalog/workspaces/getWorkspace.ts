@@ -9,9 +9,7 @@ export function registerGetWorkspace(router: Router) {
     requireAllPermissions("workspaces.read"),
     asyncHandler(async (req: Request, res: Response) => {
       const workspace =
-        req.params.workspaceId === req.actor.workspaceId
-          ? await getWorkspace(req.params.workspaceId)
-          : null;
+        req.params.workspaceId === req.actor.workspaceId ? await getWorkspace(req.params.workspaceId) : null;
       if (!workspace) {
         sendNotFound(res, "WORKSPACE_NOT_FOUND", "Workspace not found");
         return;

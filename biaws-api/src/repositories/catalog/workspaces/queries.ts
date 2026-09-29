@@ -1,3 +1,4 @@
+import { textValue } from "../../../helpers/text.js";
 import type { RepositoryQuery } from "../../../types/http.js";
 import type { Filter } from "mongodb";
 import type { WorkspaceDocument } from "../../../types/catalog.js";
@@ -7,14 +8,10 @@ import { WORKSPACES_COLLECTION } from "../constants.js";
 import { normalizeDocument, createHttpError } from "../support.js";
 import { buildOperationalWorkspaceFilter } from "./filters.js";
 
-export async function listWorkspaces({
-  workspaceIds = null,
-}: { workspaceIds?: string[] | null } = {}) {
+export async function listWorkspaces({ workspaceIds = null }: { workspaceIds?: string[] | null } = {}) {
   const { workspaces } = await getCollections();
   await ensureDefaultWorkspace();
-  const normalizedIds = Array.isArray(workspaceIds)
-    ? [...new Set(workspaceIds.map(String).filter(Boolean))]
-    : null;
+  const normalizedIds = Array.isArray(workspaceIds) ? [...new Set(workspaceIds.map(String).filter(Boolean))] : null;
   const items = await workspaces
     .find(normalizedIds ? { id: { $in: normalizedIds } } : { default: true })
     .sort({ name: 1 })
@@ -34,27 +31,19 @@ export async function listAllWorkspaces(query: RepositoryQuery = {}) {
   await ensureDefaultWorkspace();
   const page = Math.max(1, Number(query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number(query.limit) || 25));
-  const status = String(query.status || "").trim();
-  const q = String(query.q || "").trim();
+  const status = textValue(query.status || "").trim();
+  const q = textValue(query.q || "").trim();
   const filter: Filter<WorkspaceDocument> & Record<string, unknown> = {};
   if (status) {
     if (!["active", "archived"].includes(status)) {
-      throw createHttpError(
-        422,
-        "INVALID_WORKSPACE_STATUS",
-        "Invalid workspace status",
-      );
+      throw createHttpError(422, "INVALID_WORKSPACE_STATUS", "Invalid workspace status");
     }
     filter.status = status;
   }
   if (q) {
-    const escaped = q.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+    const escaped = q.replaceAll(/[.*+?^${}()|[\]\\]/gu, String.raw`\$&`);
     const expression = new RegExp(escaped, "iu");
-    filter.$or = [
-      { key: expression },
-      { name: expression },
-      { description: expression },
-    ];
+    filter.$or = [{ key: expression }, { name: expression }, { description: expression }];
   }
   const [items, total] = await Promise.all([
     workspaces
@@ -79,15 +68,10 @@ export async function listAllWorkspaces(query: RepositoryQuery = {}) {
 export async function getWorkspace(workspaceId: string | string[]) {
   const { workspaces } = await getCollections();
   await ensureDefaultWorkspace();
-  return normalizeDocument(
-    await workspaces.findOne(buildOperationalWorkspaceFilter(workspaceId)),
-  );
+  return normalizeDocument(await workspaces.findOne(buildOperationalWorkspaceFilter(workspaceId)));
 }
 
-export async function requireWorkspace(
-  workspaceId: string | string[],
-  { active = false } = {},
-) {
+export async function requireWorkspace(workspaceId: string | string[], { active = false } = {}) {
   const workspace = await getWorkspace(workspaceId);
   if (!workspace) {
     throw createHttpError(404, "WORKSPACE_NOT_FOUND", "Workspace not found");

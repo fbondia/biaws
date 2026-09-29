@@ -1,24 +1,19 @@
-import type { StoredKnowledgeDocument } from "../../types/documents.js";
-import type { Db, WithId } from "mongodb";
-import type { Actor } from "../../types/http.js";
-import type { RepositoryQuery } from "../../types/http.js";
-import { requireDocument } from "./queries.js";
-import { normalizeStoredDocument } from "./normalization.js";
+import type { Db } from "mongodb";
 import { randomUUID } from "node:crypto";
 import { COLLECTION_NAMES } from "../../database/collectionNames.js";
 import { getMongoDatabase } from "../../helpers/mongoClient.js";
+import { textValue } from "../../helpers/text.js";
+import type { StoredKnowledgeDocument } from "../../types/documents.js";
+import type { RepositoryQuery } from "../../types/http.js";
+import { normalizeStoredDocument } from "./normalization.js";
+import { requireDocument } from "./queries.js";
 
 function revisionSnapshot(document: StoredKnowledgeDocument) {
   const { _id, ...snapshot } = document;
   return snapshot;
 }
 
-export async function appendRevision(
-  db: Db,
-  document: StoredKnowledgeDocument,
-  actor: unknown,
-  summary: string,
-) {
+export async function appendRevision(db: Db, document: StoredKnowledgeDocument, actor: unknown, summary: string) {
   const revisions = db.collection(COLLECTION_NAMES.KNOWLEDGE_REVISIONS);
   const previous = await revisions.findOne(
     { entityType: "document", entityId: document.id },
@@ -35,15 +30,12 @@ export async function appendRevision(
     snapshot: revisionSnapshot(document),
     summary: String(summary || "").trim(),
     createdAt: new Date(),
-    createdBy: String(actor || "biaws-api"),
+    createdBy: textValue(actor || "biaws-api"),
   });
   return revision;
 }
 
-export async function listDocumentRevisions(
-  id: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function listDocumentRevisions(id: string | string[], query: RepositoryQuery = {}) {
   id = (await requireDocument(id, query)).id;
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const items = await db

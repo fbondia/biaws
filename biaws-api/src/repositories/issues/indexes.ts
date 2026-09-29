@@ -10,9 +10,7 @@ export async function ensureIndexes(db: Db) {
     },
   );
   await Promise.all([
-    db
-      .collection(ISSUES_COLLECTION)
-      .createIndex({ id: 1 }, { unique: true, name: "issue_id_unique" }),
+    db.collection(ISSUES_COLLECTION).createIndex({ id: 1 }, { unique: true, name: "issue_id_unique" }),
     db.collection(ISSUES_COLLECTION).createIndex({
       workspaceId: 1,
       applicationId: 1,

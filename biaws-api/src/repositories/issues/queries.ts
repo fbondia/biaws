@@ -1,8 +1,5 @@
 import type { RepositoryQuery } from "../../types/http.js";
-import type {
-  IssueDocument,
-  IssueCommentDocument,
-} from "../../types/issues.js";
+import type { IssueDocument, IssueCommentDocument } from "../../types/issues.js";
 import type { Filter } from "mongodb";
 import { ensureIndexes } from "./indexes.js";
 import { ISSUES_COLLECTION, COMMENTS_COLLECTION } from "./constants.js";
@@ -10,11 +7,7 @@ import { buildExpandedIssueFilter } from "./filters.js";
 import { normalizeDocument } from "./normalization.js";
 import { createHttpError } from "./support.js";
 import { findByReference } from "../../helpers/referenceLookup.js";
-import {
-  buildIssueFilter,
-  buildIssueSort,
-  getPagination,
-} from "../../helpers/query.js";
+import { buildIssueFilter, buildIssueSort, getPagination } from "../../helpers/query.js";
 import { getMongoDatabase } from "../../helpers/mongoClient.js";
 import { expandTaxonomyIds } from "../../helpers/taxonomy.js";
 import { buildKnowledgeContextFilter } from "../shared/knowledgeContext.js";
@@ -27,12 +20,7 @@ export async function listIssues(query: RepositoryQuery = {}) {
   const sort = buildIssueSort(query);
   const pagination = getPagination(query);
   const [items, total] = await Promise.all([
-    collection
-      .find(filter)
-      .sort(sort)
-      .skip(pagination.skip)
-      .limit(pagination.limit)
-      .toArray(),
+    collection.find(filter).sort(sort).skip(pagination.skip).limit(pagination.limit).toArray(),
     collection.countDocuments(filter),
   ]);
 
@@ -53,23 +41,14 @@ export async function listIssues(query: RepositoryQuery = {}) {
   };
 }
 
-export async function getIssue(
-  issueId: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function getIssue(issueId: string | string[], query: RepositoryQuery = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
-  const issue = await findByReference<IssueDocument>(
-    db.collection<IssueDocument>(ISSUES_COLLECTION),
-    issueId,
-    {
-      filter: buildKnowledgeContextFilter(query),
-      identifierField: "identifier",
-    },
-  );
+  const issue = await findByReference<IssueDocument>(db.collection<IssueDocument>(ISSUES_COLLECTION), issueId, {
+    filter: buildKnowledgeContextFilter(query),
+    identifierField: "identifier",
+  });
   const comments =
-    issue &&
-    query.includeComments !== false &&
-    query.includeComments !== "false"
+    issue && query.includeComments !== false && query.includeComments !== "false"
       ? await db
           .collection<IssueCommentDocument>(COMMENTS_COLLECTION)
           .find({ issueId: issue.id })
@@ -84,10 +63,7 @@ export async function getIssue(
   };
 }
 
-export async function listIssuesByTaxonomy(
-  taxonomyId: string | string[],
-  query: RepositoryQuery = {},
-) {
+export async function listIssuesByTaxonomy(taxonomyId: string | string[], query: RepositoryQuery = {}) {
   const normalizedTaxonomyId = String(taxonomyId || "").trim();
   if (!normalizedTaxonomyId) {
     throw createHttpError(422, "taxonomyId is required");

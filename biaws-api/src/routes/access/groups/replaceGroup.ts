@@ -9,11 +9,7 @@ export function registerReplaceGroup(router: Router) {
     requireAllPermissions("roles.manage"),
     asyncHandler(async (req: Request, res: Response) => {
       res.json({
-        group: await updatePermissionGroup(
-          req.params.groupId,
-          req.body,
-          req.actor,
-        ),
+        group: await updatePermissionGroup(req.params.groupId, req.body, req.actor),
       });
     }),
   );

@@ -1,3 +1,4 @@
+import { textValue } from "../../helpers/text.js";
 import type { Request } from "express";
 import { authorizationQuery } from "../../auth/authorizationMiddleware.js";
 import { recordAuditEvent } from "../../repositories/audit/index.js";
@@ -5,7 +6,7 @@ import { knowledgeContextMetadata } from "../../repositories/shared/knowledgeCon
 import { createReferenceHandler } from "../shared/asyncHandler.js";
 
 export function documentId(document?: { id?: string; _id?: unknown } | null) {
-  return String(document?.id || document?._id || "");
+  return textValue(document?.id || document?._id || "");
 }
 
 export function requireDemandDocument<T>(document: T | null): T {
@@ -15,10 +16,7 @@ export function requireDemandDocument<T>(document: T | null): T {
   return document;
 }
 
-export function nestedById<T extends { id?: string; _id?: unknown }>(
-  items: T[],
-  id: string | string[],
-): T | undefined {
+export function nestedById<T extends { id?: string; _id?: unknown }>(items: T[], id: string | string[]): T | undefined {
   return (items || []).find((item) => documentId(item) === String(id));
 }
 
@@ -47,22 +45,15 @@ export async function auditDemand({
 }) {
   const target = after || before;
   const targetObject =
-    target && typeof target === "object" && !Array.isArray(target)
-      ? (target as Record<string, unknown>)
-      : null;
-  const demandId =
-    req.params.id || String(targetObject?.id || targetObject?._id || "");
+    target && typeof target === "object" && !Array.isArray(target) ? (target as Record<string, unknown>) : null;
+  const demandId = req.params.id || textValue(targetObject?.id || targetObject?._id || "");
   await recordAuditEvent({
     actor: req.actor,
     action,
     target: {
       type: targetType,
       id: targetId || demandId,
-      label:
-        targetLabel ||
-        (typeof targetObject?.title === "string"
-          ? targetObject.title
-          : undefined),
+      label: targetLabel || (typeof targetObject?.title === "string" ? targetObject.title : undefined),
     },
     root: { type: "demand", id: demandId },
     before,

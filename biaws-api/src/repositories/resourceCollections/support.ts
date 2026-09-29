@@ -12,18 +12,12 @@ export function httpError(
 }
 
 export function workspaceId(query: RepositoryQuery = {}) {
-  return String(
-    query.authorizationScope?.workspaceId || query.workspaceId || "",
-  );
+  return String(query.authorizationScope?.workspaceId || query.workspaceId || "");
 }
 
 export function duplicateError(error: unknown) {
   if (errorCode(error) === 11000) {
-    throw httpError(
-      409,
-      "COLLECTION_NAME_CONFLICT",
-      "Já existe uma coleção com este nome no local selecionado",
-    );
+    throw httpError(409, "COLLECTION_NAME_CONFLICT", "Já existe uma coleção com este nome no local selecionado");
   }
   throw error;
 }

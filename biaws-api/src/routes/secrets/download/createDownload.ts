@@ -9,10 +9,7 @@ export function registerCreateDownload(router: Router) {
     "/:secretId/download",
     requireAllPermissions("secrets.value.reveal"),
     asyncHandler(async (req: Request, res: Response) => {
-      const downloaded = await downloadSecretFile(
-        req.params.secretId,
-        req.actor,
-      );
+      const downloaded = await downloadSecretFile(req.params.secretId, req.actor);
       await recordAuditEvent({
         actor: req.actor,
         action: "revealed",
@@ -20,7 +17,7 @@ export function registerCreateDownload(router: Router) {
         metadata: auditMetadata(downloaded.secret),
         summary: `Arquivo secreto baixado: ${downloaded.secret.name}`,
       });
-      const fallbackName = downloaded.fileName.replace(/[\r\n"]/gu, "_");
+      const fallbackName = downloaded.fileName.replaceAll(/[\r\n"]/gu, "_");
       const encodedName = encodeURIComponent(downloaded.fileName);
       res.set({
         "Cache-Control": "no-store, private",

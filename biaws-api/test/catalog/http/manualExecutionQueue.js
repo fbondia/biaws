@@ -2,15 +2,7 @@ import assert from "node:assert/strict";
 import { COLLECTION_NAMES } from "../../../src/database/collectionNames.js";
 
 export async function manualExecutionQueue(scenarioContext) {
-  const {
-    database,
-    request,
-    readerCookie,
-    adminCookie,
-    application,
-    runtime,
-    activeMonitor,
-  } = scenarioContext;
+  const { database, request, readerCookie, adminCookie, application, runtime, activeMonitor } = scenarioContext;
   const monitorBeforeManualRequest = await database
     .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
     .findOne({ id: activeMonitor.id });
@@ -50,15 +42,11 @@ export async function manualExecutionQueue(scenarioContext) {
 
   assert.equal(duplicateManualExecutionResponse.status, 200);
 
-  const duplicateManualExecution =
-    await duplicateManualExecutionResponse.json();
+  const duplicateManualExecution = await duplicateManualExecutionResponse.json();
 
   assert.equal(duplicateManualExecution.created, false);
 
-  assert.equal(
-    duplicateManualExecution.execution.id,
-    manualExecution.execution.id,
-  );
+  assert.equal(duplicateManualExecution.execution.id, manualExecution.execution.id);
 
   const monitorsWithQueuedExecution = await (
     await request(`/api/monitoring/runtimes/${runtime.id}/active-monitors`, {
@@ -66,18 +54,13 @@ export async function manualExecutionQueue(scenarioContext) {
     })
   ).json();
 
-  assert.equal(
-    monitorsWithQueuedExecution.items[0].pendingExecution.status,
-    "queued",
-  );
+  assert.equal(monitorsWithQueuedExecution.items[0].pendingExecution.status, "queued");
 
-  const homeWithQueuedExecution = await (
-    await request("/api/home/monitoring", { cookie: adminCookie })
-  ).json();
+  const homeWithQueuedExecution = await (await request("/api/home/monitoring", { cookie: adminCookie })).json();
 
   assert.deepEqual(
-    homeWithQueuedExecution.data["default-application-health-6"].items[0]
-      .components[0].deployments[0].runtimes[0].pendingExecutions,
+    homeWithQueuedExecution.data["default-application-health-6"].items[0].components[0].deployments[0].runtimes[0]
+      .pendingExecutions,
     [
       {
         id: manualExecution.execution.id,
@@ -117,10 +100,7 @@ export async function manualExecutionQueue(scenarioContext) {
 
   assert.equal(duplicateWhileRunning.created, false);
 
-  assert.equal(
-    duplicateWhileRunning.execution.id,
-    manualExecution.execution.id,
-  );
+  assert.equal(duplicateWhileRunning.execution.id, manualExecution.execution.id);
 
   assert.equal(duplicateWhileRunning.execution.status, "running");
 
@@ -130,35 +110,26 @@ export async function manualExecutionQueue(scenarioContext) {
     })
   ).json();
 
-  assert.equal(
-    monitorsWithRunningExecution.items[0].pendingExecution.status,
-    "running",
-  );
+  assert.equal(monitorsWithRunningExecution.items[0].pendingExecution.status, "running");
 
   const monitorAfterManualLease = await database
     .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
     .findOne({ id: activeMonitor.id });
 
-  assert.deepEqual(
-    monitorAfterManualLease.nextRunAt,
-    monitorBeforeManualRequest.nextRunAt,
-  );
+  assert.deepEqual(monitorAfterManualLease.nextRunAt, monitorBeforeManualRequest.nextRunAt);
 
-  const manualResultResponse = await request(
-    `/api/monitoring/executor/leases/${manualLease.leaseToken}/results`,
-    {
-      cookie: adminCookie,
-      method: "POST",
-      body: {
-        executorId: "integration-runner",
-        status: "healthy",
-        observedAt: "2026-07-30T12:05:00.000Z",
-        source: "active-rest",
-        payload: { response: { status: 200 } },
-      },
-      origin: true,
+  const manualResultResponse = await request(`/api/monitoring/executor/leases/${manualLease.leaseToken}/results`, {
+    cookie: adminCookie,
+    method: "POST",
+    body: {
+      executorId: "integration-runner",
+      status: "healthy",
+      observedAt: "2026-07-30T12:05:00.000Z",
+      source: "active-rest",
+      payload: { response: { status: 200 } },
     },
-  );
+    origin: true,
+  });
 
   assert.equal(manualResultResponse.status, 201);
 
@@ -176,18 +147,12 @@ export async function manualExecutionQueue(scenarioContext) {
 
   assert.equal(monitorsAfterManualResult.items[0].pendingExecution, undefined);
 
-  const homeAfterManualResult = await (
-    await request("/api/home/monitoring", { cookie: adminCookie })
-  ).json();
+  const homeAfterManualResult = await (await request("/api/home/monitoring", { cookie: adminCookie })).json();
 
   const homeRuntimeAfterManualResult =
-    homeAfterManualResult.data["default-application-health-6"].items[0]
-      .components[0].deployments[0].runtimes[0];
+    homeAfterManualResult.data["default-application-health-6"].items[0].components[0].deployments[0].runtimes[0];
 
-  assert.equal(
-    homeRuntimeAfterManualResult.latestSignal.metadata.disk_usage_percent,
-    85,
-  );
+  assert.equal(homeRuntimeAfterManualResult.latestSignal.metadata.disk_usage_percent, 85);
 
   assert.deepEqual(homeRuntimeAfterManualResult.pendingExecutions, []);
   return {

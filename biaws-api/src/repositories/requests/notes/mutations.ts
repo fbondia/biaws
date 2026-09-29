@@ -1,12 +1,7 @@
 import type { RepositoryQuery } from "../../../types/http.js";
 import { ensureIndexes } from "../indexes.js";
 import { ensureRequestListRanks } from "../ordering.js";
-import {
-  requestReferenceId,
-  ensureRequestExists,
-  touchRequest,
-  requestNoteObjectId,
-} from "../references.js";
+import { requestReferenceId, ensureRequestExists, touchRequest, requestNoteObjectId } from "../references.js";
 import { normalizeNotePayload } from "./normalization.js";
 import { NOTES_COLLECTION, REQUESTS_COLLECTION } from "../constants.js";
 import { readRequestById } from "../queries.js";
@@ -96,9 +91,7 @@ export async function deleteRequestNote(
   const note = await db
     .collection(NOTES_COLLECTION)
     .findOne({ _id: noteId, requestId }, { projection: { legacySource: 1 } });
-  const result = await db
-    .collection(NOTES_COLLECTION)
-    .deleteOne({ _id: noteId, requestId });
+  const result = await db.collection(NOTES_COLLECTION).deleteOne({ _id: noteId, requestId });
 
   if (!result.deletedCount) {
     throw createHttpError(404, `Request note not found: ${noteIdValue}`);

@@ -1,8 +1,5 @@
 import type { Router, Request, Response } from "express";
-import {
-  requireAllPermissions,
-  requireWorkspaceScope,
-} from "../../../../auth/authorizationMiddleware.js";
+import { requireAllPermissions, requireWorkspaceScope } from "../../../../auth/authorizationMiddleware.js";
 import {
   getMonitoringTemplate,
   setMonitoringTemplateStatus,
@@ -21,12 +18,7 @@ export function registerCreateTemplatesVersionsActivate(router: Router) {
         version: req.params.version,
         workspaceId: req.actor.workspaceId ?? undefined,
       });
-      const template = await setMonitoringTemplateStatus(
-        req.params.templateId,
-        req.params.version,
-        status,
-        req.actor,
-      );
+      const template = await setMonitoringTemplateStatus(req.params.templateId, req.params.version, status, req.actor);
       await auditTemplateMutation({
         req,
         action: status === "active" ? "activated" : "deactivated",

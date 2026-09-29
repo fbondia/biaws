@@ -5,12 +5,10 @@ import { getMongoDatabase } from "../../../helpers/mongoClient.js";
 let collectionPromise: ReturnType<typeof initializeCollections> | undefined;
 
 export async function activeMonitorCollection() {
-  if (!collectionPromise) {
-    collectionPromise = initializeCollections().catch((error: unknown) => {
-      collectionPromise = undefined;
-      throw error;
-    });
-  }
+  collectionPromise ??= initializeCollections().catch((error: unknown) => {
+    collectionPromise = undefined;
+    throw error;
+  });
   return collectionPromise;
 }
 
@@ -20,9 +18,7 @@ export async function ensureRuntimeActiveMonitoringIndexes() {
 
 async function initializeCollections() {
   const database = await getMongoDatabase();
-  const collection = database.collection<ActiveMonitorDocument>(
-    COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS,
-  );
+  const collection = database.collection<ActiveMonitorDocument>(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS);
   await Promise.all([
     collection.createIndex({ id: 1 }, { unique: true }),
     collection.createIndex(

@@ -2,14 +2,7 @@ import type { Router, Request, Response } from "express";
 import { recordAuditEvent } from "../../../repositories/audit/index.js";
 import { archiveDocument } from "../../../repositories/documents/index.js";
 import { knowledgeContextMetadata } from "../../../repositories/shared/knowledgeContext.js";
-import {
-  authorize,
-  query,
-  actorId,
-  currentDocument,
-  sendNotFound,
-  asyncHandler,
-} from "../helpers.js";
+import { authorize, query, actorId, currentDocument, sendNotFound, asyncHandler } from "../helpers.js";
 
 export function registerDeleteDocument(router: Router) {
   router.delete(

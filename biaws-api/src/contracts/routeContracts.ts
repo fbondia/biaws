@@ -1,10 +1,4 @@
-import type {
-  NextFunction,
-  Request,
-  RequestHandler,
-  Response,
-  Router,
-} from "express";
+import type { NextFunction, Request, RequestHandler, Response, Router } from "express";
 import { z, ZodError } from "zod";
 import {
   operationBodySchema,
@@ -50,10 +44,10 @@ function routeLayers(router: Router): RouterLayer[] {
 
 function paramsSchema(routePath: string) {
   const shape: Record<string, z.ZodString> = {};
-  for (const match of routePath.matchAll(/:([A-Za-z][A-Za-z0-9_]*)/gu)) {
+  for (const match of routePath.matchAll(/:([A-Za-z]\w*)/gu)) {
     shape[match[1]] = z.string().min(1);
   }
-  return z.object(shape).passthrough();
+  return z.looseObject(shape);
 }
 
 function absolutePath(prefix: string, routePath: string) {
@@ -80,10 +74,7 @@ export function collectRouteContracts(routers: readonly ContractRouter[]) {
   );
 }
 
-export function zodRequestError(
-  error: ZodError,
-  section: "params" | "query" | "body",
-) {
+export function zodRequestError(error: ZodError, section: "params" | "query" | "body") {
   const first = error.issues[0];
   return Object.assign(new Error(first?.message || "Invalid request"), {
     statusCode: section === "query" ? 400 : 422,
@@ -114,9 +105,7 @@ export function installRouteContracts(routers: readonly ContractRouter[]) {
       if (!route) continue;
       const last = route.stack.at(-1);
       if (!last) continue;
-      const method = Object.keys(route.methods).find(
-        (key) => route.methods[key],
-      );
+      const method = Object.keys(route.methods).find((key) => route.methods[key]);
       if (!method) continue;
       const contract: RouteContract = {
         domain,

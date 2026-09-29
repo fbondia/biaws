@@ -2,17 +2,8 @@ import assert from "node:assert/strict";
 import { COLLECTION_NAMES } from "../../../src/database/collectionNames.js";
 
 export async function executionRecovery(scenarioContext) {
-  const {
-    database,
-    request,
-    adminCookie,
-    runtime,
-    timeline,
-    template,
-    activeMonitor,
-    lease,
-    secondManualExecution,
-  } = scenarioContext;
+  const { database, request, adminCookie, runtime, timeline, template, activeMonitor, lease, secondManualExecution } =
+    scenarioContext;
   await database.collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS).updateOne(
     { id: activeMonitor.id },
     {
@@ -30,25 +21,18 @@ export async function executionRecovery(scenarioContext) {
     },
   );
 
-  const leaseAfterExpiredExecution = await request(
-    "/api/monitoring/executor/leases",
-    {
-      cookie: adminCookie,
-      method: "POST",
-      body: { executorId: "integration-runner", leaseSeconds: 60 },
-      origin: true,
-    },
-  );
+  const leaseAfterExpiredExecution = await request("/api/monitoring/executor/leases", {
+    cookie: adminCookie,
+    method: "POST",
+    body: { executorId: "integration-runner", leaseSeconds: 60 },
+    origin: true,
+  });
 
   assert.equal(leaseAfterExpiredExecution.status, 200);
 
-  const recoveredManualLease = (await leaseAfterExpiredExecution.json())
-    .items[0];
+  const recoveredManualLease = (await leaseAfterExpiredExecution.json()).items[0];
 
-  assert.equal(
-    recoveredManualLease.executionId,
-    secondManualExecution.execution.id,
-  );
+  assert.equal(recoveredManualLease.executionId, secondManualExecution.execution.id);
 
   assert.equal(recoveredManualLease.trigger, "manual");
 
@@ -58,17 +42,12 @@ export async function executionRecovery(scenarioContext) {
     })
   ).json();
 
-  assert.equal(
-    timelineAfterActive.items.filter(({ origin }) => origin === "active")
-      .length,
-    2,
-  );
+  assert.equal(timelineAfterActive.items.filter(({ origin }) => origin === "active").length, 2);
 
   const templateUsage = await (
-    await request(
-      `/api/monitoring/templates/${template.id}/versions/${template.version}/usage`,
-      { cookie: adminCookie },
-    )
+    await request(`/api/monitoring/templates/${template.id}/versions/${template.version}/usage`, {
+      cookie: adminCookie,
+    })
   ).json();
 
   assert.equal(templateUsage.usage.activeMonitors, 1);
@@ -82,21 +61,15 @@ export async function executionRecovery(scenarioContext) {
 
   assert.equal(templateDeleteResponse.status, 409);
 
-  const activeMonitorIndexNames = (
-    await database
-      .collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS)
-      .indexes()
-  ).map(({ name }) => name);
-
-  assert.ok(
-    activeMonitorIndexNames.includes("runtime_active_monitor_catalog_filter"),
+  const activeMonitorIndexNames = (await database.collection(COLLECTION_NAMES.RUNTIME_ACTIVE_MONITORS).indexes()).map(
+    ({ name }) => name,
   );
 
-  const expirationIndex = (
-    await database
-      .collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS)
-      .indexes()
-  ).find(({ name }) => name === "monitoring_expiration");
+  assert.ok(activeMonitorIndexNames.includes("runtime_active_monitor_catalog_filter"));
+
+  const expirationIndex = (await database.collection(COLLECTION_NAMES.RUNTIME_MONITORING_SIGNALS).indexes()).find(
+    ({ name }) => name === "monitoring_expiration",
+  );
 
   assert.equal(expirationIndex.expireAfterSeconds, 0);
   return {

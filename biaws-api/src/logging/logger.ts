@@ -26,26 +26,22 @@ const SERVICE_NAME = "biaws-api";
 
 export function redactLogText(value: unknown) {
   return String(value)
-    .replace(
-      /\b([a-z][a-z0-9+.-]*:\/\/)[^/\s:@]+:[^@\s/]+@/giu,
-      "$1[REDACTED]@",
-    )
-    .replace(/\b(Bearer\s+)[A-Za-z0-9._~+/=-]+/giu, "$1[REDACTED]")
-    .replace(/\b(biaws_)[A-Za-z0-9_-]+/gu, "$1[REDACTED]")
-    .replace(
-      /(["']?(?:password|passwd|pwd|secret(?:value)?|client[_-]?secret|token|credential|authorization|api[_-]?key|private[_-]?key|connection[_-]?string)["']?\s*[:=]\s*["'])[^"']*(["'])/giu,
+    .replaceAll(/\b([a-z][a-z0-9+.-]*:\/\/)[^/\s:@]+:[^@\s/]+@/giu, "$1[REDACTED]@")
+    .replaceAll(/\b(Bearer\s+)[a-z0-9._~+/=-]+/giu, "$1[REDACTED]")
+    .replaceAll(/\b(biaws_)[A-Za-z0-9_-]+/gu, "$1[REDACTED]")
+    .replaceAll(
+      /(["']?(?:password|passwd|pwd|secret(?:value)?|token|credential|authorization)["']?\s*[:=]\s*["'])[^"']*(["'])/giu,
       "$1[REDACTED]$2",
     )
-    .replace(
+    .replaceAll(/(["']?(?:client[_-]?secret|api[_-]?key)["']?\s*[:=]\s*["'])[^"']*(["'])/giu, "$1[REDACTED]$2")
+    .replaceAll(/(["']?(?:private[_-]?key|connection[_-]?string)["']?\s*[:=]\s*["'])[^"']*(["'])/giu, "$1[REDACTED]$2")
+    .replaceAll(
       /\b(PASSWORD|SECRET|CLIENT_SECRET|TOKEN|CREDENTIAL|AUTHORIZATION|API_KEY|PRIVATE_KEY|CONNECTION_STRING)=([^\s,;]+)/gu,
       "$1=[REDACTED]",
     );
 }
 
-function serializeCause(
-  cause: unknown,
-  depth: number,
-): SerializedError | undefined {
+function serializeCause(cause: unknown, depth: number): SerializedError | undefined {
   if (!cause || depth > 2) return undefined;
   if (cause instanceof Error) return serializeError(cause, depth);
   return { message: redactLogText(cause) };

@@ -1,34 +1,28 @@
-import type { ObjectId } from "mongodb";
-import type {
-  Specification,
-  SpecificationSection,
-} from "../../types/requests.js";
+import type { Db, ObjectId } from "mongodb";
 import { isRecord } from "../../helpers/records.js";
-import type { Db } from "mongodb";
-import { requestOptions } from "./options.js";
-import { readString, readNumber } from "./support.js";
+import type { Specification } from "../../types/requests.js";
 import { SPECIFICATION_COLLECTION } from "./constants.js";
+import { requestOptions } from "./options.js";
+import { readNumber, readString } from "./support.js";
 
 function defaultSpecificationSections() {
-  return requestOptions.defaultSpecificationSectionTitles.map(
-    (title, index: number) => ({
-      id: `default-${index + 1}`,
-      title,
-      content: "",
-      order: index,
-    }),
-  );
+  return requestOptions.defaultSpecificationSectionTitles.map((title, index: number) => ({
+    id: `default-${index + 1}`,
+    title,
+    content: "",
+    order: index,
+  }));
 }
 
-export function normalizeSpecification(
-  payloadSpecification: unknown,
-): Specification {
-  const payloadSections = Array.isArray(payloadSpecification)
-    ? payloadSpecification
-    : isRecord(payloadSpecification) &&
-        Array.isArray(payloadSpecification.sections)
-      ? payloadSpecification.sections
-      : null;
+export function normalizeSpecification(payloadSpecification: unknown): Specification {
+  let payloadSections;
+  if (Array.isArray(payloadSpecification)) {
+    payloadSections = payloadSpecification;
+  } else if (isRecord(payloadSpecification) && Array.isArray(payloadSpecification.sections)) {
+    payloadSections = payloadSpecification.sections;
+  } else {
+    payloadSections = null;
+  }
 
   if (!payloadSections) {
     return {
@@ -39,20 +33,12 @@ export function normalizeSpecification(
   return {
     sections: payloadSections
       .map((section, index: number) => ({
-        id:
-          readString(section?.id, `section-${index + 1}`).trim() ||
-          `section-${index + 1}`,
+        id: readString(section?.id, `section-${index + 1}`).trim() || `section-${index + 1}`,
         title: readString(section?.title, "Nova seção").trim() || "Nova seção",
         content: readString(section?.content),
-        order: readNumber(
-          section?.order ?? index,
-          `specification.sections[${index}].order`,
-        ),
+        order: readNumber(section?.order ?? index, `specification.sections[${index}].order`),
       }))
-      .sort(
-        (first: { order: number }, second: { order: number }) =>
-          first.order - second.order,
-      ),
+      .sort((first: { order: number }, second: { order: number }) => first.order - second.order),
   };
 }
 
@@ -75,12 +61,7 @@ export async function readSpecifications(db: Db, requestIds: ObjectId[]) {
   return byRequestId;
 }
 
-export async function syncSpecification(
-  db: Db,
-  requestId: ObjectId,
-  specification: Specification,
-  now: Date,
-) {
+export async function syncSpecification(db: Db, requestId: ObjectId, specification: Specification, now: Date) {
   await db.collection(SPECIFICATION_COLLECTION).updateOne(
     { requestId },
     {

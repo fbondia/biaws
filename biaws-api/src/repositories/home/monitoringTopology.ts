@@ -51,20 +51,13 @@ function monitoringComponentItem(
   applicationId: string,
 ) {
   const relatedDeployments = deployments.filter(
-    (deployment) =>
-      deployment.applicationId === applicationId &&
-      deployment.componentId === component.id,
+    (deployment) => deployment.applicationId === applicationId && deployment.componentId === component.id,
   );
   return {
     id: component.id,
     name: component.name,
     deployments: relatedDeployments.map((deployment) =>
-      monitoringDeploymentItem(
-        deployment,
-        runtimes,
-        applicationId,
-        component.id,
-      ),
+      monitoringDeploymentItem(deployment, runtimes, applicationId, component.id),
     ),
   };
 }
@@ -75,9 +68,7 @@ function monitoringApplicationItem(
   deployments: DeploymentItem[],
   runtimes: RuntimeItem[],
 ) {
-  const relatedComponents = components.filter(
-    ({ applicationId }) => applicationId === application.id,
-  );
+  const relatedComponents = components.filter(({ applicationId }) => applicationId === application.id);
   return {
     ...application,
     components: relatedComponents.map((component) =>
@@ -86,10 +77,7 @@ function monitoringApplicationItem(
   };
 }
 
-export async function homeMonitoringApplications(
-  database: Db,
-  actor: Partial<Actor>,
-) {
+export async function homeMonitoringApplications(database: Db, actor: Partial<Actor>) {
   if (!hasPermission(actor, "runtimes.read")) return [];
   const monitoringScope = applicationScope(actor, "runtimes.read");
   const applications = await database
@@ -122,12 +110,8 @@ export async function homeMonitoringApplications(
     })
     .sort({ name: 1 })
     .toArray();
-  const componentIds = [
-    ...new Set(runtimes.map(({ componentId }) => componentId)),
-  ];
-  const deploymentIds = [
-    ...new Set(runtimes.map(({ deploymentId }) => deploymentId)),
-  ];
+  const componentIds = [...new Set(runtimes.map(({ componentId }) => componentId))];
+  const deploymentIds = [...new Set(runtimes.map(({ deploymentId }) => deploymentId))];
   const [components, deployments] = await Promise.all([
     componentIds.length
       ? database
@@ -160,7 +144,5 @@ export async function homeMonitoringApplications(
           .toArray()
       : [],
   ]);
-  return applications.map((application) =>
-    monitoringApplicationItem(application, components, deployments, runtimes),
-  );
+  return applications.map((application) => monitoringApplicationItem(application, components, deployments, runtimes));
 }

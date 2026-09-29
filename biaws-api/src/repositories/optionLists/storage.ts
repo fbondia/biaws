@@ -6,9 +6,7 @@ import { getMongoDatabase } from "../../helpers/mongoClient.js";
 export async function getCollection(query: RepositoryQuery = {}) {
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const collection = db.collection<OptionList>(OPTION_LISTS_COLLECTION);
-  const workspaceId = String(
-    query.authorizationScope?.workspaceId || query.workspaceId || "",
-  );
+  const workspaceId = String(query.authorizationScope?.workspaceId || query.workspaceId || "");
   await collection.createIndex({ workspaceId: 1, key: 1 }, { unique: true });
   const now = new Date();
   await Promise.all(

@@ -4,15 +4,10 @@ import { readString, dateInputValue } from "./support.js";
 
 type LegacyNotes = Array<{ date: string; content: string }> | null;
 
-export async function syncLegacyNotes(
-  db: Db,
-  requestId: ObjectId,
-  notes: LegacyNotes,
-  now: Date,
-) {
+export async function syncLegacyNotes(db: Db, requestId: ObjectId, notes: LegacyNotes, now: Date) {
   const notesCollection = db.collection(NOTES_COLLECTION);
 
-  if (!notes || !notes.length) {
+  if (!notes?.length) {
     await notesCollection.deleteMany({
       requestId,
       legacySource: "Request.notes",
@@ -39,13 +34,8 @@ export async function syncLegacyNotes(
   );
 }
 
-export async function insertInitialNotes(
-  db: Db,
-  requestId: ObjectId,
-  notes: LegacyNotes,
-  now: Date,
-) {
-  if (!notes || !notes.length) return;
+export async function insertInitialNotes(db: Db, requestId: ObjectId, notes: LegacyNotes, now: Date) {
+  if (!notes?.length) return;
 
   await db.collection(NOTES_COLLECTION).insertMany(
     notes.map((note) => ({
@@ -58,13 +48,8 @@ export async function insertInitialNotes(
   );
 }
 
-export async function migrateLegacyNotes(
-  db: Db,
-  requests: Array<WithId<Document>>,
-) {
-  const requestsWithNotes = requests.filter((request) =>
-    readString(request.notes).trim(),
-  );
+export async function migrateLegacyNotes(db: Db, requests: Array<WithId<Document>>) {
+  const requestsWithNotes = requests.filter((request) => readString(request.notes).trim());
   if (!requestsWithNotes.length) return;
 
   const now = new Date();
@@ -74,10 +59,7 @@ export async function migrateLegacyNotes(
     .find({ requestId: { $in: requestIds }, legacySource: "Request.notes" })
     .toArray();
   const existingByRequestId = new Map(
-    existingNotes.map((note) => [
-      note.requestId?.toString?.() ?? String(note.requestId),
-      note,
-    ]),
+    existingNotes.map((note) => [note.requestId?.toString?.() ?? String(note.requestId), note]),
   );
   const operations = [];
 
@@ -104,10 +86,7 @@ export async function migrateLegacyNotes(
       continue;
     }
 
-    if (
-      existingNote.date !== nextNote.date ||
-      existingNote.content !== nextNote.content
-    ) {
+    if (existingNote.date !== nextNote.date || existingNote.content !== nextNote.content) {
       operations.push({
         updateOne: {
           filter: { _id: existingNote._id },

@@ -10,9 +10,7 @@ export async function readTasks(db: Db, requestIds: ObjectId[]) {
     .collection(TASKS_COLLECTION)
     .find({ requestId: { $in: requestIds } })
     .toArray();
-  rows.sort((first, second) =>
-    compareRequestTasks(first, second, requestOptions.allTaskStatusOptions),
-  );
+  rows.sort((first, second) => compareRequestTasks(first, second, requestOptions.allTaskStatusOptions));
   const taskIds = rows.map((row) => row._id);
   const noteRows = taskIds.length
     ? await db

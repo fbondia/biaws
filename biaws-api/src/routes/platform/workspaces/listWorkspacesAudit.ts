@@ -10,8 +10,7 @@ export function registerListWorkspacesAudit(router: Router) {
     asyncHandler(async (req: Request, res: Response) => {
       res.json({
         events: await listAuditEvents("workspace", req.params.workspaceId, {
-          limit:
-            req.query.limit === undefined ? undefined : Number(req.query.limit),
+          limit: req.query.limit === undefined ? undefined : Number(req.query.limit),
         }),
       });
     }),

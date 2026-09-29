@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- API atualizada de `0.4.0` para `0.5.0` e MCP de `0.10.0` para `0.11.0`,
+  incluindo resources hierárquicos, resolução de ID ou identificador e
+  organização das rotas e repositories por domínio; handshake, exemplos e
+  referência do MCP no CLI sincronizados;
+
 - repositories da API organizados por domínio e responsabilidade, com separação
   de consultas, mutações, normalização, contexto, histórico e recursos filhos;
   leituras granulares de resources passam aos respectivos domínios;

@@ -1,7 +1,7 @@
 {
   "name": "biaws-mcp",
   "version": "0.11.0",
-  "description": "Servidor MCP de domínio para o Bondia Workspaces",
+  "description": "Servidor MCP de dom\u00ednio para o Bondia Workspaces",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
     "bin",
     "docs",
     "LICENSE",
-    "src",
+    "dist/src",
     "README.md"
   ],
   "publishConfig": {
@@ -36,21 +36,26 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node dist/src/index.js",
     "format": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --write .",
     "format:check": "prettier --config ../prettier/.prettierrc --ignore-path ../.prettierignore --check .",
-    "check": "find bin src test scripts -type f \\( -name '*.js' -o -name '*.mjs' \\) -exec node --check {} \\;",
-    "test": "node --test",
+    "check": "tsc --noEmit -p tsconfig.json",
+    "test": "npm run build && node scripts/run-tests.mjs",
     "package:verify": "node scripts/verify-package.mjs",
     "release:check": "npm run format:check && npm run check && npm test && npm run package:verify",
     "publish:npm": "../scripts/publish-biaws-mcp.sh",
-    "prepack": "npm run package:verify"
+    "prepack": "npm run build && npm run package:verify",
+    "build": "node scripts/build.mjs"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.2.0",
-    "prettier": "^3.7.4"
+    "@types/node": "20.19.43",
+    "json-schema-to-ts": "3.1.1",
+    "prettier": "^3.7.4",
+    "typescript": "5.9.3"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "2.2.0"
+    "@modelcontextprotocol/server": "2.2.0",
+    "zod": "4.6.5"
   }
 }

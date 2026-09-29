@@ -71,3 +71,12 @@ Após instalar o tarball, use o cliente oficial para validar o executável:
 ```bash
 node scripts/smoke-client.mjs /tmp/biaws-mcp-global/bin/biaws-mcp
 ```
+
+## Build TypeScript
+
+`npm run release:check` verifica a formatação, a tipagem estrita de fontes e
+testes, compila e executa a suíte. `npm pack` recompila antes de verificar o
+pacote. O tarball inclui somente `dist/src` e o bootstrap `bin/biaws-mcp.js`;
+fontes `.ts`, testes e compilador ficam no checkout. A versão anunciada continua
+sincronizada com `package.json`. Para validar uma instalação limpa, execute o
+smoke acima nas duas eras do protocolo.

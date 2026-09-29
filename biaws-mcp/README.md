@@ -93,9 +93,17 @@ O processo continua usando transporte MCP `stdio`; somente as chamadas para a
 Suba a `biaws-api` em outro terminal e execute:
 
 ```bash
+npm ci
 npm run check
+npm run build
 npm start
 ```
+
+O código e os testes usam TypeScript em modo `strict`. `npm run check` verifica
+ambos; `npm test` compila e executa somente os testes gerados em `dist/test`.
+O pacote publicado contém `dist/src` e o pequeno bootstrap JavaScript em `bin`;
+a instalação não depende do compilador TypeScript. Os scripts de build e de
+empacotamento continuam em JavaScript e não integram a lógica do servidor.
 
 Em um cliente MCP, configure o comando:
 

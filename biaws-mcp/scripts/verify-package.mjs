@@ -15,7 +15,7 @@ const lock = JSON.parse(
   await readFile(path.join(packageDirectory, "package-lock.json"), "utf8"),
 );
 const versionSource = await readFile(
-  path.join(packageDirectory, "src/version.js"),
+  path.join(packageDirectory, "src/version.ts"),
   "utf8",
 );
 
@@ -72,8 +72,8 @@ for (const required of [
   "LICENSE",
   "README.md",
   "docs/releasing.md",
-  "src/index.js",
-  "src/loadEnv.js",
+  "dist/src/index.js",
+  "dist/src/loadEnv.js",
 ]) {
   await access(path.join(packageDirectory, required));
 }
@@ -100,7 +100,7 @@ async function sourceFiles(directory) {
   return files;
 }
 
-for (const directory of ["bin", "src"]) {
+for (const directory of ["bin", "dist/src"]) {
   for (const file of await sourceFiles(
     path.join(packageDirectory, directory),
   )) {
@@ -109,6 +109,7 @@ for (const directory of ["bin", "src"]) {
       /(?:from\s+|import\s*)["'](\.\.?\/[^"']+)["']/gu,
     )) {
       const target = path.resolve(path.dirname(file), match[1]);
+      await access(target);
       assert.ok(
         target === packageDirectory ||
           target.startsWith(`${packageDirectory}${path.sep}`),
@@ -118,7 +119,14 @@ for (const directory of ["bin", "src"]) {
   }
 }
 
-for (const forbidden of ["test", "scripts", ".scannerwork", "node_modules"]) {
+for (const forbidden of [
+  "src",
+  "dist/test",
+  "test",
+  "scripts",
+  ".scannerwork",
+  "node_modules",
+]) {
   assert.equal(
     metadata.files.includes(forbidden),
     false,

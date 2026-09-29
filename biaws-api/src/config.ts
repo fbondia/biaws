@@ -87,6 +87,12 @@ export function getServerConfig() {
         false,
       ),
     },
+    docs: {
+      enabled: readBooleanEnv(
+        ["BIAWS_API_DOCS_ENABLED"],
+        process.env.NODE_ENV !== "production",
+      ),
+    },
     rateLimit: {
       api: readRateLimitConfig("BIAWS_API_RATE_LIMIT", {
         enabled: true,

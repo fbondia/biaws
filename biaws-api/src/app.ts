@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import express from "express";
+import swaggerUi from "swagger-ui-express";
 import { accessSync, constants, mkdirSync } from "fs";
 
 import { authHandler, getAuthenticatedActor } from "./auth/auth.js";
@@ -42,8 +43,6 @@ import {
   requireAllPermissions,
 } from "./auth/authorizationMiddleware.js";
 
-const config = getServerConfig();
-
 function ensureIssueStorage() {
   const issueDir = getIssueBaseDir({});
   mkdirSync(issueDir, { recursive: true });
@@ -52,6 +51,7 @@ function ensureIssueStorage() {
 }
 
 export function createApp({ logger = apiLogger } = {}) {
+  const config = getServerConfig();
   ensureIssueStorage();
   createAttachmentStorage();
   installRouteContracts(contractRouters);
@@ -120,9 +120,28 @@ export function createApp({ logger = apiLogger } = {}) {
     });
   });
 
-  app.get("/api/openapi.json", (_req: Request, res: Response) => {
-    res.json(buildOpenApiDocument());
-  });
+  if (config.docs.enabled) {
+    app.get("/api/openapi.json", (_req: Request, res: Response) => {
+      res.json(buildOpenApiDocument());
+    });
+    app.use(
+      "/api/docs",
+      swaggerUi.serve,
+      swaggerUi.setup(undefined, {
+        explorer: true,
+        swaggerUrl: "../openapi.json",
+        customSiteTitle: "Bondia Workspaces API",
+        swaggerOptions: {
+          validatorUrl: null,
+          persistAuthorization: false,
+          withCredentials: true,
+          filter: true,
+          deepLinking: true,
+          docExpansion: "list",
+        },
+      }),
+    );
+  }
 
   const protectedRoute = [
     requireAuthentication,

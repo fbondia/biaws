@@ -2,7 +2,8 @@
 
 `npm run openapi:generate` gera `openapi/openapi.json` de modo determinístico a
 partir do inventário dos routers e dos contratos Zod em `src/contracts`. O mesmo
-gerador alimenta `GET /api/openapi.json`, que é público e somente leitura. Execute
+gerador alimenta `GET /api/openapi.json`, que é público e somente leitura quando
+a documentação está ativa. Execute
 `npm run openapi:check` para conferir o artefato versionado; o CI também executa
 essa checagem. O teste `test/contracts/openapi.test.ts` compara as operações com o
 inventário independente de T01, exige `operationId` único e resolve referências.
@@ -27,3 +28,21 @@ para status condicionais como importação EML e criação de versões.
 O documento não contém credenciais nem exemplos com dados reais. Consultar a
 documentação não autentica a operação; chamadas interativas seguem os mesmos
 controles das chamadas HTTP comuns.
+
+## Swagger UI
+
+Abra `/api/docs/` para navegar por domínio, pesquisar operações, inspecionar
+schemas e usar **Try it out**. A página e os assets são servidos pela própria API,
+sem CDN. O link relativo `../openapi.json` acompanha o prefixo público configurado
+no proxy; a página carrega o mesmo documento do endpoint JSON. O validador externo
+fica desativado. A interface não persiste credenciais entre recargas.
+
+`BIAWS_API_DOCS_ENABLED=true|false` controla a página e o JSON juntos. O padrão é
+ativo fora de `NODE_ENV=production` e inativo em produção; habilite explicitamente
+quando desejar publicar a documentação. As rotas de documentação são públicas e
+somente leitura. Para operações protegidas, autentique-se pelo login Better Auth
+na mesma origem (cookie de sessão) ou informe uma chave de API no botão
+**Authorize**. Informe `X-Biaws-Workspace-Id` quando sua identidade acessa mais de
+um workspace. **Try it out executa chamadas reais, inclusive mutações**; os
+mesmos controles de autenticação, permissão, escopo, limites e auditoria da API
+continuam valendo.

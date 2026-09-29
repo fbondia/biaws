@@ -1,1 +1,1 @@
-npx @modelcontextprotocol/inspector node src/index.js
+npx @modelcontextprotocol/inspector node dist/src/index.js

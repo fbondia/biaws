@@ -35,6 +35,7 @@ import { knowledgeRecordsRouter } from "./routes/knowledgeRecords/index.js";
 import { userPreferencesRouter } from "./routes/userPreferences/index.js";
 import { installRouteContracts } from "./contracts/routeContracts.js";
 import { contractRouters } from "./contracts/routers.js";
+import { buildOpenApiDocument } from "./contracts/openapi.js";
 import {
   rejectDatabaseOverride,
   requireIdentityAdminOperation,
@@ -117,6 +118,10 @@ export function createApp({ logger = apiLogger } = {}) {
       version: process.env.BIAWS_VERSION || "unknown",
       issueStorage: "ready",
     });
+  });
+
+  app.get("/api/openapi.json", (_req: Request, res: Response) => {
+    res.json(buildOpenApiDocument());
   });
 
   const protectedRoute = [

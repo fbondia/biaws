@@ -32,6 +32,8 @@ a issues, melhorias e documentos; mecanismos comuns ficam em `repositories/share
 Consulte [src/repositories/README.md](src/repositories/README.md).
 Os contratos Zod de entrada e resposta estão em
 [docs/http-contracts.md](docs/http-contracts.md).
+O documento gerado e o endpoint de consulta são descritos em
+[docs/openapi.md](docs/openapi.md).
 
 ## TypeScript e execução
 

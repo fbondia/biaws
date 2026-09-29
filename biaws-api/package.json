@@ -33,6 +33,8 @@
     "test:http": "node scripts/test.mjs --layer=http",
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
+    "openapi:generate": "node --import tsx scripts/openapi.mjs --write",
+    "openapi:check": "node --import tsx scripts/openapi.mjs --check",
     "test:compiled": "npm run build:test && node scripts/test.mjs --compiled",
     "build:test": "node scripts/build.mjs --tests"
   },

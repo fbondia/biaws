@@ -32,10 +32,7 @@ test("attachment tag updates and deletion use the domain routes", async () => {
       tags: ["log"],
     });
     assert.equal(calls[1].options.method, "DELETE");
-    assert.equal(
-      new URL(calls[1].url).pathname,
-      "/api/knowledge/documents/DOC-1/attachments/attachment-2",
-    );
+    assert.equal(new URL(calls[1].url).pathname, "/api/knowledge/documents/DOC-1/attachments/attachment-2");
   } finally {
     globalThis.fetch = originalFetch;
   }

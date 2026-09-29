@@ -24,18 +24,8 @@ test("item reads return canonical IDs and navigable children without embedding a
       assert.equal(result.contents[0].uri, W + "/issues/canonical-issue");
       assert.equal(payload.comments, undefined);
       assert.equal(payload.issue.attachments, undefined);
-      assert.ok(
-        payload.links.some(
-          (link: { uri: string }) =>
-            link.uri === W + "/issues/canonical-issue/comments",
-        ),
-      );
-      assert.ok(
-        payload.links.some(
-          (link: { uri: string }) =>
-            link.uri === W + "/issues/canonical-issue/files",
-        ),
-      );
+      assert.ok(payload.links.some((link: { uri: string }) => link.uri === W + "/issues/canonical-issue/comments"));
+      assert.ok(payload.links.some((link: { uri: string }) => link.uri === W + "/issues/canonical-issue/files"));
     },
   );
 });

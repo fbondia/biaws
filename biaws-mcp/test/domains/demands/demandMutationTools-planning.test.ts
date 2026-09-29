@@ -7,29 +7,21 @@ for (const [name, args, expected] of [
   [
     "demands_update_specification",
     {
-      specificationSections: [
-        { id: "s1", title: "Scope", content: " **Markdown** ", order: 0 },
-      ],
+      specificationSections: [{ id: "s1", title: "Scope", content: " **Markdown** ", order: 0 }],
     },
     {
       specification: {
-        sections: [
-          { id: "s1", title: "Scope", content: " **Markdown** ", order: 0 },
-        ],
+        sections: [{ id: "s1", title: "Scope", content: " **Markdown** ", order: 0 }],
       },
     },
   ],
   [
     "demands_update_checklist",
     {
-      checklist: [
-        { label: " Check ", done: false, date: "", comment: "Pending" },
-      ],
+      checklist: [{ label: " Check ", done: false, date: "", comment: "Pending" }],
     },
     {
-      checklist: [
-        { label: "Check", done: false, date: "", comment: "Pending" },
-      ],
+      checklist: [{ label: "Check", done: false, date: "", comment: "Pending" }],
     },
   ],
   [
@@ -41,11 +33,7 @@ for (const [name, args, expected] of [
       journeys: [{ month: "2026-09", plannedJourneys: 2, executedJourneys: 1 }],
     },
   ],
-  [
-    "demands_update_specification",
-    { specificationSections: [] },
-    { specification: { sections: [] } },
-  ],
+  ["demands_update_specification", { specificationSections: [] }, { specification: { sections: [] } }],
   ["demands_update_checklist", { checklist: [] }, { checklist: [] }],
   ["demands_update_journeys", { journeys: [] }, { journeys: [] }],
 ] as const) {

@@ -29,10 +29,7 @@ import {
 const handlers: Record<string, ToolHandler> = {
   applications_list: bindTool("applications_list", listApplications),
 
-  applications_get_context: bindTool(
-    "applications_get_context",
-    getApplicationContext,
-  ),
+  applications_get_context: bindTool("applications_get_context", getApplicationContext),
   components_list: bindTool("components_list", listComponents),
 
   integrations_list: bindTool("integrations_list", listIntegrations),
@@ -57,12 +54,11 @@ const handlers: Record<string, ToolHandler> = {
   servers_update: bindTool("servers_update", updateServer),
   deployments_create: bindTool("deployments_create", createDeployment),
   deployments_update: bindTool("deployments_update", updateDeployment),
-  deployments_record_publication: bindTool(
-    "deployments_record_publication",
-    recordDeploymentPublication,
-  ),
+  deployments_record_publication: bindTool("deployments_record_publication", recordDeploymentPublication),
   runtimes_create: bindTool("runtimes_create", createRuntime),
   runtimes_update: bindTool("runtimes_update", updateRuntime),
 };
-export const catalogTools: (ToolDefinition & { handler: ToolHandler })[] =
-  definitions.map((tool) => ({ ...tool, handler: handlers[tool.name] }));
+export const catalogTools: (ToolDefinition & { handler: ToolHandler })[] = definitions.map((tool) => ({
+  ...tool,
+  handler: handlers[tool.name],
+}));

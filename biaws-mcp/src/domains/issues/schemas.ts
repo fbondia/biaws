@@ -63,13 +63,7 @@ export const issueTools = [
         },
         dateField: {
           type: "string",
-          enum: [
-            "receivedEmailAt",
-            "issueCreatedAt",
-            "firstThreadEmailAt",
-            "closedAt",
-            "updatedAt",
-          ],
+          enum: ["receivedEmailAt", "issueCreatedAt", "firstThreadEmailAt", "closedAt", "updatedAt"],
         },
         sort: {
           type: "string",
@@ -176,16 +170,14 @@ export const issueTools = [
         },
         date: {
           type: "string",
-          description:
-            "Data do comentário em formato aceito pela API; usa o momento atual quando omitida.",
+          description: "Data do comentário em formato aceito pela API; usa o momento atual quando omitida.",
         },
       },
     },
   },
   {
     name: "issues_update_comment",
-    description:
-      "Atualiza o conteúdo e, opcionalmente, a data de um comentário de issue.",
+    description: "Atualiza o conteúdo e, opcionalmente, a data de um comentário de issue.",
     inputSchema: {
       type: "object",
       required: ["issueId", "commentId", "text"],
@@ -208,38 +200,33 @@ export const issueTools = [
         },
         date: {
           type: "string",
-          description:
-            "Nova data do comentário; usa o momento atual quando omitida.",
+          description: "Nova data do comentário; usa o momento atual quando omitida.",
         },
       },
     },
   },
   {
     name: "issues_get_classification_catalog",
-    description:
-      "Obtém a árvore de taxonomia e os grupos de tags válidos para analisar e classificar issues.",
+    description: "Obtém a árvore de taxonomia e os grupos de tags válidos para analisar e classificar issues.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
       properties: {
         applicationId: {
           type: "string",
-          description:
-            "Retorna somente assuntos compartilhados e aplicáveis à aplicação",
+          description: "Retorna somente assuntos compartilhados e aplicáveis à aplicação",
         },
         flatten: {
           type: "boolean",
           default: false,
-          description:
-            "Inclui taxonomyOptions e tagOptions achatados, preservando também a árvore original",
+          description: "Inclui taxonomyOptions e tagOptions achatados, preservando também a árvore original",
         },
       },
     },
   },
   {
     name: "issues_create_taxonomy_item",
-    description:
-      "Inclui um item na taxonomia compartilhada de issues e documentos, na raiz ou sob um item pai.",
+    description: "Inclui um item na taxonomia compartilhada de issues e documentos, na raiz ou sob um item pai.",
     inputSchema: {
       type: "object",
       required: ["id", "label"],
@@ -298,8 +285,7 @@ export const issueTools = [
           items: {
             type: "string",
           },
-          description:
-            "Novo escopo por aplicações; vazio significa todo o escopo permitido pelo pai",
+          description: "Novo escopo por aplicações; vazio significa todo o escopo permitido pelo pai",
         },
         workspaceId: {
           type: "string",
@@ -310,8 +296,7 @@ export const issueTools = [
   },
   {
     name: "issues_summary",
-    description:
-      "Retorna sumários de issues por data, semana, mês, ano, tipo, status e taxonomia.",
+    description: "Retorna sumários de issues por data, semana, mês, ano, tipo, status e taxonomia.",
     inputSchema: {
       type: "object",
       additionalProperties: true,
@@ -371,13 +356,7 @@ export const issueTools = [
         },
         dateField: {
           type: "string",
-          enum: [
-            "receivedEmailAt",
-            "issueCreatedAt",
-            "firstThreadEmailAt",
-            "closedAt",
-            "updatedAt",
-          ],
+          enum: ["receivedEmailAt", "issueCreatedAt", "firstThreadEmailAt", "closedAt", "updatedAt"],
         },
         sort: {
           type: "string",
@@ -400,8 +379,7 @@ export const issueTools = [
   },
   {
     name: "issues_aggregate",
-    description:
-      "Retorna uma agregação específica de issues por date/day/week/month/year/type/status/taxonomy.",
+    description: "Retorna uma agregação específica de issues por date/day/week/month/year/type/status/taxonomy.",
     inputSchema: {
       type: "object",
       required: ["groupBy"],
@@ -462,13 +440,7 @@ export const issueTools = [
         },
         dateField: {
           type: "string",
-          enum: [
-            "receivedEmailAt",
-            "issueCreatedAt",
-            "firstThreadEmailAt",
-            "closedAt",
-            "updatedAt",
-          ],
+          enum: ["receivedEmailAt", "issueCreatedAt", "firstThreadEmailAt", "closedAt", "updatedAt"],
         },
         sort: {
           type: "string",
@@ -488,16 +460,7 @@ export const issueTools = [
         },
         groupBy: {
           type: "string",
-          enum: [
-            "date",
-            "day",
-            "week",
-            "month",
-            "year",
-            "type",
-            "status",
-            "taxonomy",
-          ],
+          enum: ["date", "day", "week", "month", "year", "type", "status", "taxonomy"],
         },
         interval: {
           type: "string",
@@ -517,8 +480,7 @@ export const issueTools = [
         identifier: {
           type: "string",
           maxLength: 100,
-          description:
-            "Identificador de negócio opcional, por exemplo INC12345",
+          description: "Identificador de negócio opcional, por exemplo INC12345",
         },
         id: {
           type: "string",
@@ -573,8 +535,7 @@ export const issueTools = [
   },
   {
     name: "issues_import_eml",
-    description:
-      "Analisa ou importa um arquivo EML na base de issues. Por segurança, dryRun é true por padrão.",
+    description: "Analisa ou importa um arquivo EML na base de issues. Por segurança, dryRun é true por padrão.",
     inputSchema: {
       type: "object",
       required: ["filename", "contentBase64", "applicationId"],
@@ -652,8 +613,7 @@ export const issueTools = [
       properties: {
         applicationId: {
           type: "string",
-          description:
-            "Aplicação usada para restringir as sugestões de taxonomia",
+          description: "Aplicação usada para restringir as sugestões de taxonomia",
         },
         issueId: {
           type: "string",

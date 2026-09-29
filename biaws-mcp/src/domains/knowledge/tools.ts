@@ -10,19 +10,15 @@ import {
   updateDocument,
 } from "./service.js";
 const handlers: Record<string, ToolHandler> = {
-  knowledge_context_load: bindTool(
-    "knowledge_context_load",
-    loadKnowledgeContext,
-  ),
+  knowledge_context_load: bindTool("knowledge_context_load", loadKnowledgeContext),
   document_types_list: bindTool("document_types_list", listDocumentTypes),
   documents_search: bindTool("documents_search", searchDocuments),
 
   documents_create: bindTool("documents_create", createDocument),
   documents_update: bindTool("documents_update", updateDocument),
-  documents_add_observation: bindTool(
-    "documents_add_observation",
-    addDocumentObservation,
-  ),
+  documents_add_observation: bindTool("documents_add_observation", addDocumentObservation),
 };
-export const knowledgeTools: (ToolDefinition & { handler: ToolHandler })[] =
-  definitions.map((tool) => ({ ...tool, handler: handlers[tool.name] }));
+export const knowledgeTools: (ToolDefinition & { handler: ToolHandler })[] = definitions.map((tool) => ({
+  ...tool,
+  handler: handlers[tool.name],
+}));

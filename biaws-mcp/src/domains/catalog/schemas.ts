@@ -2,8 +2,7 @@ import type { ToolDefinition } from "../../mcp/tools/contracts.js";
 export const catalogTools = [
   {
     name: "applications_list",
-    description:
-      "Lista aplicações de um workspace com busca, status e paginação.",
+    description: "Lista aplicações de um workspace com busca, status e paginação.",
     inputSchema: {
       type: "object",
       required: ["workspaceId"],
@@ -101,15 +100,7 @@ export const catalogTools = [
         },
         type: {
           type: "string",
-          enum: [
-            "api",
-            "ui",
-            "worker",
-            "service",
-            "library",
-            "integration",
-            "other",
-          ],
+          enum: ["api", "ui", "worker", "service", "library", "integration", "other"],
         },
         repositoryId: {
           type: "string",
@@ -125,8 +116,7 @@ export const catalogTools = [
 
   {
     name: "integrations_list",
-    description:
-      "Lista integrações direcionais de uma aplicação com outras aplicações do workspace.",
+    description: "Lista integrações direcionais de uma aplicação com outras aplicações do workspace.",
     inputSchema: {
       type: "object",
       required: ["applicationId"],
@@ -198,14 +188,7 @@ export const catalogTools = [
         },
         provider: {
           type: "string",
-          enum: [
-            "github",
-            "gitlab",
-            "bitbucket",
-            "azure-devops",
-            "local",
-            "other",
-          ],
+          enum: ["github", "gitlab", "bitbucket", "azure-devops", "local", "other"],
         },
       },
     },
@@ -251,8 +234,7 @@ export const catalogTools = [
 
   {
     name: "deployments_list",
-    description:
-      "Lista deployments de uma aplicação e aceita filtros de topologia.",
+    description: "Lista deployments de uma aplicação e aceita filtros de topologia.",
     inputSchema: {
       type: "object",
       required: ["applicationId"],
@@ -344,15 +326,7 @@ export const catalogTools = [
         },
         kind: {
           type: "string",
-          enum: [
-            "process",
-            "container",
-            "kubernetes",
-            "serverless",
-            "managed",
-            "external",
-            "other",
-          ],
+          enum: ["process", "container", "kubernetes", "serverless", "managed", "external", "other"],
         },
       },
     },
@@ -360,8 +334,7 @@ export const catalogTools = [
 
   {
     name: "applications_create",
-    description:
-      "Cria uma aplicação no workspace informado. A API valida permissão e registra auditoria.",
+    description: "Cria uma aplicação no workspace informado. A API valida permissão e registra auditoria.",
     inputSchema: {
       type: "object",
       required: ["workspaceId", "key", "name"],
@@ -423,8 +396,7 @@ export const catalogTools = [
   },
   {
     name: "applications_update",
-    description:
-      "Atualiza campos mutáveis de uma aplicação, incluindo seu identificador.",
+    description: "Atualiza campos mutáveis de uma aplicação, incluindo seu identificador.",
     inputSchema: {
       type: "object",
       required: ["applicationId"],
@@ -508,15 +480,7 @@ export const catalogTools = [
         },
         type: {
           type: "string",
-          enum: [
-            "api",
-            "ui",
-            "worker",
-            "service",
-            "library",
-            "integration",
-            "other",
-          ],
+          enum: ["api", "ui", "worker", "service", "library", "integration", "other"],
         },
         repositoryLinks: {
           type: "array",
@@ -532,13 +496,7 @@ export const catalogTools = [
               },
               role: {
                 type: "string",
-                enum: [
-                  "source",
-                  "configuration",
-                  "infrastructure",
-                  "documentation",
-                  "other",
-                ],
+                enum: ["source", "configuration", "infrastructure", "documentation", "other"],
               },
             },
           },
@@ -598,15 +556,7 @@ export const catalogTools = [
         },
         type: {
           type: "string",
-          enum: [
-            "api",
-            "ui",
-            "worker",
-            "service",
-            "library",
-            "integration",
-            "other",
-          ],
+          enum: ["api", "ui", "worker", "service", "library", "integration", "other"],
         },
         repositoryLinks: {
           type: "array",
@@ -622,13 +572,7 @@ export const catalogTools = [
               },
               role: {
                 type: "string",
-                enum: [
-                  "source",
-                  "configuration",
-                  "infrastructure",
-                  "documentation",
-                  "other",
-                ],
+                enum: ["source", "configuration", "infrastructure", "documentation", "other"],
               },
             },
           },
@@ -666,8 +610,7 @@ export const catalogTools = [
   },
   {
     name: "integrations_create",
-    description:
-      "Cria uma integração direcionada para outra aplicação ativa do mesmo workspace.",
+    description: "Cria uma integração direcionada para outra aplicação ativa do mesmo workspace.",
     inputSchema: {
       type: "object",
       required: ["applicationId", "key", "name", "targetApplicationId"],
@@ -743,14 +686,7 @@ export const catalogTools = [
         },
         provider: {
           type: "string",
-          enum: [
-            "github",
-            "gitlab",
-            "bitbucket",
-            "azure-devops",
-            "local",
-            "other",
-          ],
+          enum: ["github", "gitlab", "bitbucket", "azure-devops", "local", "other"],
         },
         organization: {
           type: "string",
@@ -784,8 +720,7 @@ export const catalogTools = [
   },
   {
     name: "repositories_update",
-    description:
-      "Atualiza um repositório; URLs com credenciais são recusadas pela API.",
+    description: "Atualiza um repositório; URLs com credenciais são recusadas pela API.",
     inputSchema: {
       type: "object",
       required: ["repositoryId"],
@@ -807,14 +742,7 @@ export const catalogTools = [
         },
         provider: {
           type: "string",
-          enum: [
-            "github",
-            "gitlab",
-            "bitbucket",
-            "azure-devops",
-            "local",
-            "other",
-          ],
+          enum: ["github", "gitlab", "bitbucket", "azure-devops", "local", "other"],
         },
         organization: {
           type: "string",
@@ -1187,8 +1115,7 @@ export const catalogTools = [
   },
   {
     name: "runtimes_create",
-    description:
-      "Cria um runtime de deployment com metadata limitada e sem segredos.",
+    description: "Cria um runtime de deployment com metadata limitada e sem segredos.",
     inputSchema: {
       type: "object",
       required: ["deploymentId", "key", "name"],
@@ -1207,15 +1134,7 @@ export const catalogTools = [
         },
         kind: {
           type: "string",
-          enum: [
-            "process",
-            "container",
-            "kubernetes",
-            "serverless",
-            "managed",
-            "external",
-            "other",
-          ],
+          enum: ["process", "container", "kubernetes", "serverless", "managed", "external", "other"],
         },
         serverId: {
           type: ["string", "null"],
@@ -1275,14 +1194,7 @@ export const catalogTools = [
               },
               purpose: {
                 type: "string",
-                enum: [
-                  "operation",
-                  "deployment",
-                  "rollback",
-                  "troubleshooting",
-                  "monitoring",
-                  "reference",
-                ],
+                enum: ["operation", "deployment", "rollback", "troubleshooting", "monitoring", "reference"],
               },
             },
           },
@@ -1298,8 +1210,7 @@ export const catalogTools = [
   },
   {
     name: "runtimes_update",
-    description:
-      "Atualiza um runtime; servidor e metadata são revalidados pela API.",
+    description: "Atualiza um runtime; servidor e metadata são revalidados pela API.",
     inputSchema: {
       type: "object",
       required: ["runtimeId"],
@@ -1318,15 +1229,7 @@ export const catalogTools = [
         },
         kind: {
           type: "string",
-          enum: [
-            "process",
-            "container",
-            "kubernetes",
-            "serverless",
-            "managed",
-            "external",
-            "other",
-          ],
+          enum: ["process", "container", "kubernetes", "serverless", "managed", "external", "other"],
         },
         serverId: {
           type: ["string", "null"],
@@ -1386,14 +1289,7 @@ export const catalogTools = [
               },
               purpose: {
                 type: "string",
-                enum: [
-                  "operation",
-                  "deployment",
-                  "rollback",
-                  "troubleshooting",
-                  "monitoring",
-                  "reference",
-                ],
+                enum: ["operation", "deployment", "rollback", "troubleshooting", "monitoring", "reference"],
               },
             },
           },

@@ -107,19 +107,14 @@ import type {
   updateRuntimeActiveMonitor,
   validateMonitoringTemplateSample,
 } from "../../domains/monitoring/service.js";
-import type {
-  listSecretMetadata,
-  registerSecretMetadata,
-} from "../../domains/secrets/service.js";
+import type { listSecretMetadata, registerSecretMetadata } from "../../domains/secrets/service.js";
 export interface ToolResultMap {
   issues_search: Awaited<ReturnType<typeof searchIssues>>;
   issues_get: Awaited<ReturnType<typeof getIssueDetails>>;
   issues_update: Awaited<ReturnType<typeof updateIssue>>;
   issues_add_comment: Awaited<ReturnType<typeof addIssueComment>>;
   issues_update_comment: Awaited<ReturnType<typeof updateIssueComment>>;
-  issues_get_classification_catalog: Awaited<
-    ReturnType<typeof getIssueClassificationCatalog>
-  >;
+  issues_get_classification_catalog: Awaited<ReturnType<typeof getIssueClassificationCatalog>>;
   issues_create_taxonomy_item: Awaited<ReturnType<typeof createTaxonomyItem>>;
   issues_update_taxonomy_item: Awaited<ReturnType<typeof updateTaxonomyItem>>;
   issues_summary: Awaited<ReturnType<typeof summarizeIssuesForSupport>>;
@@ -135,19 +130,13 @@ export interface ToolResultMap {
   demands_create: Awaited<ReturnType<typeof createDemand>>;
   demands_journey_calendar: Awaited<ReturnType<typeof getJourneyCalendar>>;
   demands_deadlines: Awaited<ReturnType<typeof getDemandDeadlines>>;
-  demands_implementation_context: Awaited<
-    ReturnType<typeof getDemandImplementationContext>
-  >;
+  demands_implementation_context: Awaited<ReturnType<typeof getDemandImplementationContext>>;
   demands_add_note: Awaited<ReturnType<typeof addDemandNote>>;
-  demands_update_description: Awaited<
-    ReturnType<typeof updateDemandDescription>
-  >;
+  demands_update_description: Awaited<ReturnType<typeof updateDemandDescription>>;
   demands_list_tasks: Awaited<ReturnType<typeof listDemandTasks>>;
   demands_create_task: Awaited<ReturnType<typeof createDemandTask>>;
   demands_update_task: Awaited<ReturnType<typeof updateDemandTask>>;
-  demands_update_task_status: Awaited<
-    ReturnType<typeof updateDemandTaskStatus>
-  >;
+  demands_update_task_status: Awaited<ReturnType<typeof updateDemandTaskStatus>>;
   demands_delete_task: Awaited<ReturnType<typeof deleteDemandTask>>;
   demands_add_task_note: Awaited<ReturnType<typeof addDemandTaskNote>>;
   demands_update_task_note: Awaited<ReturnType<typeof updateDemandTaskNote>>;
@@ -185,41 +174,21 @@ export interface ToolResultMap {
   servers_update: Awaited<ReturnType<typeof updateServer>>;
   deployments_create: Awaited<ReturnType<typeof createDeployment>>;
   deployments_update: Awaited<ReturnType<typeof updateDeployment>>;
-  deployments_record_publication: Awaited<
-    ReturnType<typeof recordDeploymentPublication>
-  >;
+  deployments_record_publication: Awaited<ReturnType<typeof recordDeploymentPublication>>;
   runtimes_create: Awaited<ReturnType<typeof createRuntime>>;
   runtimes_update: Awaited<ReturnType<typeof updateRuntime>>;
 
-  resource_collections_create: Awaited<
-    ReturnType<typeof createResourceCollection>
-  >;
-  resource_collections_update: Awaited<
-    ReturnType<typeof updateResourceCollection>
-  >;
-  resource_collections_delete: Awaited<
-    ReturnType<typeof deleteResourceCollection>
-  >;
-  applications_move_to_collection: Awaited<
-    ReturnType<typeof moveApplicationToCollection>
-  >;
-  servers_move_to_collection: Awaited<
-    ReturnType<typeof moveServerToCollection>
-  >;
-  secrets_move_to_collection: Awaited<
-    ReturnType<typeof moveSecretToCollection>
-  >;
+  resource_collections_create: Awaited<ReturnType<typeof createResourceCollection>>;
+  resource_collections_update: Awaited<ReturnType<typeof updateResourceCollection>>;
+  resource_collections_delete: Awaited<ReturnType<typeof deleteResourceCollection>>;
+  applications_move_to_collection: Awaited<ReturnType<typeof moveApplicationToCollection>>;
+  servers_move_to_collection: Awaited<ReturnType<typeof moveServerToCollection>>;
+  secrets_move_to_collection: Awaited<ReturnType<typeof moveSecretToCollection>>;
   skills_move_to_collection: Awaited<ReturnType<typeof moveSkillToCollection>>;
-  demands_move_to_collection: Awaited<
-    ReturnType<typeof moveDemandToCollection>
-  >;
-  documents_move_to_collection: Awaited<
-    ReturnType<typeof moveDocumentToCollection>
-  >;
+  demands_move_to_collection: Awaited<ReturnType<typeof moveDemandToCollection>>;
+  documents_move_to_collection: Awaited<ReturnType<typeof moveDocumentToCollection>>;
   demands_update: Awaited<ReturnType<typeof updateDemand>>;
-  demands_update_specification: Awaited<
-    ReturnType<typeof updateDemandSpecification>
-  >;
+  demands_update_specification: Awaited<ReturnType<typeof updateDemandSpecification>>;
   demands_update_checklist: Awaited<ReturnType<typeof updateDemandChecklist>>;
   demands_update_journeys: Awaited<ReturnType<typeof updateDemandJourneys>>;
   demands_update_note: Awaited<ReturnType<typeof updateDemandNote>>;
@@ -232,54 +201,24 @@ export interface ToolResultMap {
   documents_update: Awaited<ReturnType<typeof updateDocument>>;
   documents_add_observation: Awaited<ReturnType<typeof addDocumentObservation>>;
 
-  applications_monitoring_health_get: Awaited<
-    ReturnType<typeof getApplicationMonitoringHealth>
-  >;
-  runtime_monitoring_signals_list: Awaited<
-    ReturnType<typeof listRuntimeMonitoringSignals>
-  >;
-  monitoring_templates_list: Awaited<
-    ReturnType<typeof listMonitoringTemplates>
-  >;
+  applications_monitoring_health_get: Awaited<ReturnType<typeof getApplicationMonitoringHealth>>;
+  runtime_monitoring_signals_list: Awaited<ReturnType<typeof listRuntimeMonitoringSignals>>;
+  monitoring_templates_list: Awaited<ReturnType<typeof listMonitoringTemplates>>;
 
-  monitoring_templates_preview: Awaited<
-    ReturnType<typeof previewMonitoringTemplate>
-  >;
-  monitoring_templates_create: Awaited<
-    ReturnType<typeof createMonitoringTemplate>
-  >;
-  monitoring_templates_create_version: Awaited<
-    ReturnType<typeof createMonitoringTemplateVersion>
-  >;
+  monitoring_templates_preview: Awaited<ReturnType<typeof previewMonitoringTemplate>>;
+  monitoring_templates_create: Awaited<ReturnType<typeof createMonitoringTemplate>>;
+  monitoring_templates_create_version: Awaited<ReturnType<typeof createMonitoringTemplateVersion>>;
 
-  monitoring_templates_validate: Awaited<
-    ReturnType<typeof validateMonitoringTemplateSample>
-  >;
-  monitoring_templates_activate: Awaited<
-    ReturnType<typeof activateMonitoringTemplate>
-  >;
-  monitoring_templates_deactivate: Awaited<
-    ReturnType<typeof deactivateMonitoringTemplate>
-  >;
-  monitoring_templates_archive: Awaited<
-    ReturnType<typeof archiveMonitoringTemplate>
-  >;
-  runtime_monitoring_results_list: Awaited<
-    ReturnType<typeof listRuntimeMonitoringResults>
-  >;
-  runtime_monitoring_health_summary: Awaited<
-    ReturnType<typeof getRuntimeMonitoringHealthSummary>
-  >;
+  monitoring_templates_validate: Awaited<ReturnType<typeof validateMonitoringTemplateSample>>;
+  monitoring_templates_activate: Awaited<ReturnType<typeof activateMonitoringTemplate>>;
+  monitoring_templates_deactivate: Awaited<ReturnType<typeof deactivateMonitoringTemplate>>;
+  monitoring_templates_archive: Awaited<ReturnType<typeof archiveMonitoringTemplate>>;
+  runtime_monitoring_results_list: Awaited<ReturnType<typeof listRuntimeMonitoringResults>>;
+  runtime_monitoring_health_summary: Awaited<ReturnType<typeof getRuntimeMonitoringHealthSummary>>;
 
-  runtime_active_monitors_create: Awaited<
-    ReturnType<typeof createRuntimeActiveMonitor>
-  >;
-  runtime_active_monitors_update: Awaited<
-    ReturnType<typeof updateRuntimeActiveMonitor>
-  >;
-  runtime_active_monitors_archive: Awaited<
-    ReturnType<typeof archiveRuntimeActiveMonitor>
-  >;
+  runtime_active_monitors_create: Awaited<ReturnType<typeof createRuntimeActiveMonitor>>;
+  runtime_active_monitors_update: Awaited<ReturnType<typeof updateRuntimeActiveMonitor>>;
+  runtime_active_monitors_archive: Awaited<ReturnType<typeof archiveRuntimeActiveMonitor>>;
   secrets_list: Awaited<ReturnType<typeof listSecretMetadata>>;
 
   secrets_register: Awaited<ReturnType<typeof registerSecretMetadata>>;

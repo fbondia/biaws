@@ -31,27 +31,10 @@ test("monitoring tools are registered once with closed top-level schemas", () =>
   const registered = listTools();
   for (const tool of monitoringTools) {
     assert.equal(tool.inputSchema.additionalProperties, false, tool.name);
-    assert.equal(
-      registered.filter(({ name }) => name === tool.name).length,
-      1,
-      tool.name,
-    );
+    assert.equal(registered.filter(({ name }) => name === tool.name).length, 1, tool.name);
   }
-  const createMonitor = required(
-    monitoringTools.find(
-      ({ name }) => name === "runtime_active_monitors_create",
-    ),
-  );
-  assert.deepEqual(createMonitor.inputSchema.properties.provider.enum, [
-    "rest",
-    "shell",
-  ]);
-  assert.equal(
-    createMonitor.inputSchema.properties.intervalSeconds.minimum,
-    10,
-  );
-  assert.equal(
-    createMonitor.inputSchema.properties.timeoutSeconds.maximum,
-    300,
-  );
+  const createMonitor = required(monitoringTools.find(({ name }) => name === "runtime_active_monitors_create"));
+  assert.deepEqual(createMonitor.inputSchema.properties.provider.enum, ["rest", "shell"]);
+  assert.equal(createMonitor.inputSchema.properties.intervalSeconds.minimum, 10);
+  assert.equal(createMonitor.inputSchema.properties.timeoutSeconds.maximum, 300);
 });

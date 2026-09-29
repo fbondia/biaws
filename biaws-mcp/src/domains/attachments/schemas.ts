@@ -2,8 +2,7 @@ import type { ToolDefinition } from "../../mcp/tools/contracts.js";
 export const attachmentTools = [
   {
     name: "attachments_upload",
-    description:
-      "Envia de um a dez arquivos em Base64 para um chamado, melhoria, tarefa ou documento.",
+    description: "Envia de um a dez arquivos em Base64 para um chamado, melhoria, tarefa ou documento.",
     inputSchema: {
       type: "object",
       required: ["entityType", "entityId", "files"],
@@ -17,14 +16,12 @@ export const attachmentTools = [
         entityId: {
           type: "string",
           minLength: 1,
-          description:
-            "ID do chamado, melhoria ou documento. Para task, informe o ID da melhoria pai.",
+          description: "ID do chamado, melhoria ou documento. Para task, informe o ID da melhoria pai.",
         },
         taskId: {
           type: "string",
           minLength: 1,
-          description:
-            "ID ou código da tarefa; obrigatório somente quando entityType é task.",
+          description: "ID ou código da tarefa; obrigatório somente quando entityType é task.",
         },
         workspaceId: {
           type: "string",
@@ -53,14 +50,12 @@ export const attachmentTools = [
               },
               contentType: {
                 type: "string",
-                description:
-                  "MIME type; usa application/octet-stream quando omitido.",
+                description: "MIME type; usa application/octet-stream quando omitido.",
               },
               contentBase64: {
                 type: "string",
                 minLength: 1,
-                description:
-                  "Conteúdo integral do arquivo codificado em Base64.",
+                description: "Conteúdo integral do arquivo codificado em Base64.",
               },
             },
           },
@@ -74,16 +69,14 @@ export const attachmentTools = [
             minLength: 1,
             maxLength: 40,
           },
-          description:
-            "Tags do arquivo. Em tarefas, o código da tarefa é preservado automaticamente.",
+          description: "Tags do arquivo. Em tarefas, o código da tarefa é preservado automaticamente.",
         },
       },
     },
   },
   {
     name: "attachments_download",
-    description:
-      "Baixa um anexo e devolve seus metadados e conteúdo integral em Base64.",
+    description: "Baixa um anexo e devolve seus metadados e conteúdo integral em Base64.",
     inputSchema: {
       type: "object",
       required: ["entityType", "entityId", "attachmentId"],
@@ -97,14 +90,12 @@ export const attachmentTools = [
         entityId: {
           type: "string",
           minLength: 1,
-          description:
-            "ID do chamado, melhoria ou documento. Para task, informe o ID da melhoria pai.",
+          description: "ID do chamado, melhoria ou documento. Para task, informe o ID da melhoria pai.",
         },
         taskId: {
           type: "string",
           minLength: 1,
-          description:
-            "ID ou código da tarefa; obrigatório somente quando entityType é task.",
+          description: "ID ou código da tarefa; obrigatório somente quando entityType é task.",
         },
         workspaceId: {
           type: "string",
@@ -127,8 +118,7 @@ export const attachmentTools = [
   },
   {
     name: "attachments_update_tags",
-    description:
-      "Substitui as tags de um anexo. Em tarefas, mantém a tag de associação com a tarefa.",
+    description: "Substitui as tags de um anexo. Em tarefas, mantém a tag de associação com a tarefa.",
     inputSchema: {
       type: "object",
       required: ["entityType", "entityId", "attachmentId", "tags"],
@@ -142,14 +132,12 @@ export const attachmentTools = [
         entityId: {
           type: "string",
           minLength: 1,
-          description:
-            "ID do chamado, melhoria ou documento. Para task, informe o ID da melhoria pai.",
+          description: "ID do chamado, melhoria ou documento. Para task, informe o ID da melhoria pai.",
         },
         taskId: {
           type: "string",
           minLength: 1,
-          description:
-            "ID ou código da tarefa; obrigatório somente quando entityType é task.",
+          description: "ID ou código da tarefa; obrigatório somente quando entityType é task.",
         },
         workspaceId: {
           type: "string",
@@ -176,8 +164,7 @@ export const attachmentTools = [
             minLength: 1,
             maxLength: 40,
           },
-          description:
-            "Tags do arquivo. Em tarefas, o código da tarefa é preservado automaticamente.",
+          description: "Tags do arquivo. Em tarefas, o código da tarefa é preservado automaticamente.",
         },
       },
     },
@@ -198,14 +185,12 @@ export const attachmentTools = [
         entityId: {
           type: "string",
           minLength: 1,
-          description:
-            "ID do chamado, melhoria ou documento. Para task, informe o ID da melhoria pai.",
+          description: "ID do chamado, melhoria ou documento. Para task, informe o ID da melhoria pai.",
         },
         taskId: {
           type: "string",
           minLength: 1,
-          description:
-            "ID ou código da tarefa; obrigatório somente quando entityType é task.",
+          description: "ID ou código da tarefa; obrigatório somente quando entityType é task.",
         },
         workspaceId: {
           type: "string",

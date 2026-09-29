@@ -3,10 +3,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { parseApiPayload, type ApiPayload } from "./apiContracts.js";
 import { BiawsError, errorInfo } from "../runtime/errors.js";
 import type { Logger } from "../runtime/logger.js";
-import {
-  currentRequestContext,
-  currentRequestSignal,
-} from "../runtime/requestContext.js";
+import { currentRequestContext, currentRequestSignal } from "../runtime/requestContext.js";
 interface HttpContext {
   url: URL;
   signal: AbortSignal;
@@ -33,10 +30,7 @@ const MAX_RETRIES = 3;
 const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
 
 function readBaseUrl() {
-  const explicit =
-    process.env.BIAWS_API_URL ||
-    process.env.BIAWS_API_BASE_URL ||
-    process.env.VITE_BIAWS_API_URL;
+  const explicit = process.env.BIAWS_API_URL || process.env.BIAWS_API_BASE_URL || process.env.VITE_BIAWS_API_URL;
   if (explicit) return explicit.replace(/\/$/u, "");
 
   const host = process.env.BIAWS_API_HOST || process.env.HOST || "127.0.0.1";
@@ -46,16 +40,12 @@ function readBaseUrl() {
 
 function readTimeoutMs() {
   const configured = Number(process.env.BIAWS_MCP_HTTP_TIMEOUT_MS);
-  return Number.isFinite(configured) && configured > 0
-    ? Math.min(configured, MAX_TIMEOUT_MS)
-    : DEFAULT_TIMEOUT_MS;
+  return Number.isFinite(configured) && configured > 0 ? Math.min(configured, MAX_TIMEOUT_MS) : DEFAULT_TIMEOUT_MS;
 }
 
 function readMaxRetries() {
   const configured = Number(process.env.BIAWS_MCP_HTTP_RETRIES);
-  return Number.isInteger(configured) && configured >= 0
-    ? Math.min(configured, MAX_RETRIES)
-    : DEFAULT_RETRIES;
+  return Number.isInteger(configured) && configured >= 0 ? Math.min(configured, MAX_RETRIES) : DEFAULT_RETRIES;
 }
 
 function buildUrl(path: string, params: Record<string, unknown> = {}) {
@@ -81,28 +71,17 @@ function authenticationHeaders() {
   };
 }
 
-function copyPublicErrorDetails(
-  error: BiawsError,
-  apiError: Record<string, unknown> = {},
-) {
-  for (const field of [
-    "requiredPermissions",
-    "fields",
-    "details",
-    "retryable",
-  ] as const) {
+function copyPublicErrorDetails(error: BiawsError, apiError: Record<string, unknown> = {}) {
+  for (const field of ["requiredPermissions", "fields", "details", "retryable"] as const) {
     if (field === "retryable") {
-      if (typeof apiError[field] === "boolean")
-        error.retryable = apiError[field];
+      if (typeof apiError[field] === "boolean") error.retryable = apiError[field];
     } else if (apiError[field] !== undefined) error[field] = apiError[field];
   }
 }
 
 function responseError(response: Response, payload: ApiPayload) {
   const apiError = payload?.error || {};
-  const error = new BiawsError(
-    apiError.message || payload?.message || `HTTP ${response.status}`,
-  );
+  const error = new BiawsError(apiError.message || payload?.message || `HTTP ${response.status}`);
   error.statusCode = response.status;
   error.code =
     apiError.code ||
@@ -117,21 +96,14 @@ function responseError(response: Response, payload: ApiPayload) {
       } as Record<number, string>
     )[response.status] ||
     "ISSUE_API_ERROR";
-  error.requestId =
-    apiError.requestId || response.headers.get("x-request-id") || undefined;
+  error.requestId = apiError.requestId || response.headers.get("x-request-id") || undefined;
   error.retryable =
-    typeof apiError.retryable === "boolean"
-      ? apiError.retryable
-      : RETRYABLE_STATUSES.has(response.status);
+    typeof apiError.retryable === "boolean" ? apiError.retryable : RETRYABLE_STATUSES.has(response.status);
   copyPublicErrorDetails(error, apiError);
   return error;
 }
 
-function transportError(
-  value: unknown,
-  url: URL,
-  externalSignal?: AbortSignal,
-) {
+function transportError(value: unknown, url: URL, externalSignal?: AbortSignal) {
   const error = errorInfo(value);
   if (externalSignal?.aborted) {
     const cancelled = new BiawsError("The MCP request was cancelled");
@@ -141,18 +113,13 @@ function transportError(
     return cancelled;
   }
   if (error?.name === "TimeoutError" || error?.name === "AbortError") {
-    const timeout = new BiawsError(
-      `biaws-api did not respond within ${readTimeoutMs()}ms`,
-    );
+    const timeout = new BiawsError(`biaws-api did not respond within ${readTimeoutMs()}ms`);
     timeout.code = "UPSTREAM_TIMEOUT";
     timeout.statusCode = 504;
     timeout.retryable = true;
     return timeout;
   }
-  const unavailable = new BiawsError(
-    `Failed to reach biaws-api at ${url.origin}: ${error.message}`,
-    { cause: error },
-  );
+  const unavailable = new BiawsError(`Failed to reach biaws-api at ${url.origin}: ${error.message}`, { cause: error });
   unavailable.code = "UPSTREAM_UNAVAILABLE";
   unavailable.statusCode = 503;
   unavailable.retryable = true;
@@ -168,20 +135,13 @@ async function readPayload(response: Response): Promise<ApiPayload> {
   } catch {
     return {};
   }
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    "error" in value &&
-    typeof value.error === "string"
-  )
+  if (typeof value === "object" && value !== null && "error" in value && typeof value.error === "string")
     value = { ...value, error: { message: value.error } };
   return parseApiPayload(value);
 }
 
 function attachmentSizeError(maxBytes: number, actualBytes?: number) {
-  const error = new BiawsError(
-    `Attachment exceeds the MCP limit of ${maxBytes} bytes`,
-  );
+  const error = new BiawsError(`Attachment exceeds the MCP limit of ${maxBytes} bytes`);
   error.code = "ATTACHMENT_TOO_LARGE";
   error.statusCode = 413;
   error.retryable = false;
@@ -205,9 +165,7 @@ function createRequestContext(
   return {
     url,
     externalSignal,
-    signal: externalSignal
-      ? AbortSignal.any([externalSignal, timeoutSignal])
-      : timeoutSignal,
+    signal: externalSignal ? AbortSignal.any([externalSignal, timeoutSignal]) : timeoutSignal,
     maxRetries,
     method: method || "GET",
     logger: mcpContext?.logger,
@@ -218,21 +176,11 @@ function createRequestContext(
 
 function normalizeRequestError(value: unknown, context: HttpContext) {
   const cause = errorInfo(value);
-  return cause?.statusCode
-    ? cause
-    : transportError(cause, context.url, context.externalSignal);
+  return cause?.statusCode ? cause : transportError(cause, context.url, context.externalSignal);
 }
 
-function shouldRetryRequest(
-  error: BiawsError,
-  attempt: number,
-  context: HttpContext,
-) {
-  return (
-    attempt < context.maxRetries &&
-    error.retryable === true &&
-    !context.signal.aborted
-  );
+function shouldRetryRequest(error: BiawsError, attempt: number, context: HttpContext) {
+  return attempt < context.maxRetries && error.retryable === true && !context.signal.aborted;
 }
 
 async function waitBeforeRetry(attempt: number, context: HttpContext) {
@@ -298,21 +246,13 @@ async function requestWithRetries<T>(
   }
 }
 
-function validAttachmentLimit(
-  maxBytes: number | undefined,
-): maxBytes is number {
-  return (
-    typeof maxBytes === "number" && Number.isFinite(maxBytes) && maxBytes > 0
-  );
+function validAttachmentLimit(maxBytes: number | undefined): maxBytes is number {
+  return typeof maxBytes === "number" && Number.isFinite(maxBytes) && maxBytes > 0;
 }
 
-async function validateDeclaredAttachmentSize(
-  response: Response,
-  maxBytes?: number,
-) {
+async function validateDeclaredAttachmentSize(response: Response, maxBytes?: number) {
   const declaredBytes = Number(response.headers.get("content-length"));
-  if (!validAttachmentLimit(maxBytes) || !Number.isFinite(declaredBytes))
-    return;
+  if (!validAttachmentLimit(maxBytes) || !Number.isFinite(declaredBytes)) return;
   if (declaredBytes <= maxBytes) return;
   await response.body?.cancel();
   throw attachmentSizeError(maxBytes, declaredBytes);
@@ -324,10 +264,7 @@ function validateAttachmentSize(content: Buffer, maxBytes?: number) {
   }
 }
 
-async function requestJson(
-  path: string,
-  { method, body, params = {}, headers = {} }: HttpOptions = {},
-) {
+async function requestJson(path: string, { method, body, params = {}, headers = {} }: HttpOptions = {}) {
   const maxRetries = !method || method === "GET" ? readMaxRetries() : 0;
   const context = createRequestContext(path, params, maxRetries, method);
   return requestWithRetries(context, async (requestContext) => {
@@ -345,10 +282,7 @@ async function requestJson(
   });
 }
 
-async function requestBinary(
-  path: string,
-  { params = {}, headers = {}, maxBytes }: HttpOptions = {},
-) {
+async function requestBinary(path: string, { params = {}, headers = {}, maxBytes }: HttpOptions = {}) {
   const context = createRequestContext(path, params, readMaxRetries(), "GET");
   return requestWithRetries(context, async (requestContext) => {
     const { url, signal } = requestContext;
@@ -370,9 +304,7 @@ async function requestBinary(
 
 export function cleanParams(value: Record<string, unknown> = {}) {
   return Object.fromEntries(
-    Object.entries(value).filter(
-      ([, entry]) => entry !== undefined && entry !== null && entry !== "",
-    ),
+    Object.entries(value).filter(([, entry]) => entry !== undefined && entry !== null && entry !== ""),
   );
 }
 
@@ -380,20 +312,11 @@ export function fetchJson(path: string, params: Record<string, unknown> = {}) {
   return requestJson(path, { params });
 }
 
-export function fetchBinary(
-  path: string,
-  params: Record<string, unknown> = {},
-  options: { maxBytes?: number } = {},
-) {
+export function fetchBinary(path: string, params: Record<string, unknown> = {}, options: { maxBytes?: number } = {}) {
   return requestBinary(path, { params, maxBytes: options.maxBytes });
 }
 
-export function sendJson(
-  path: string,
-  body: unknown = {},
-  params: Record<string, unknown> = {},
-  method = "PUT",
-) {
+export function sendJson(path: string, body: unknown = {}, params: Record<string, unknown> = {}, method = "PUT") {
   return requestJson(path, {
     method,
     params,
@@ -406,10 +329,6 @@ export function deleteJson(path: string, params: Record<string, unknown> = {}) {
   return requestJson(path, { method: "DELETE", params });
 }
 
-export function sendMultipart(
-  path: string,
-  form: FormData,
-  params: Record<string, unknown> = {},
-) {
+export function sendMultipart(path: string, form: FormData, params: Record<string, unknown> = {}) {
   return requestJson(path, { method: "POST", params, body: form });
 }

@@ -1,17 +1,10 @@
 import { Client, type ClientOptions } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
-import {
-  createBiawsMcpServer,
-  type McpOptions,
-} from "../../src/mcp/mcpServer.js";
+import { createBiawsMcpServer, type McpOptions } from "../../src/mcp/mcpServer.js";
 
-export async function connectTestServer(
-  options: McpOptions = {},
-  clientOptions: ClientOptions = {},
-) {
-  const [clientTransport, serverTransport] =
-    InMemoryTransport.createLinkedPair();
+export async function connectTestServer(options: McpOptions = {}, clientOptions: ClientOptions = {}) {
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   let instance: ReturnType<typeof createBiawsMcpServer> | undefined;
   const handle = serveStdio(
     ({ era }) => {
@@ -20,10 +13,7 @@ export async function connectTestServer(
     },
     { transport: serverTransport },
   );
-  const client = new Client(
-    { name: "biaws-test", version: "1.0.0" },
-    clientOptions,
-  );
+  const client = new Client({ name: "biaws-test", version: "1.0.0" }, clientOptions);
   await client.connect(clientTransport);
   return {
     client,

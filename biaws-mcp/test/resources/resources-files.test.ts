@@ -16,10 +16,7 @@ test("file contents use blobs and canonical metadata without leaking storage loc
         uri: W + "/issues/INC123/files/file-a/content",
       });
       assert.equal(blobContent(result.contents[0]), "AP8B");
-      assert.equal(
-        result.contents[0].uri,
-        W + "/issues/issue-a/files/file-a/content",
-      );
+      assert.equal(result.contents[0].uri, W + "/issues/issue-a/files/file-a/content");
     },
   );
 });

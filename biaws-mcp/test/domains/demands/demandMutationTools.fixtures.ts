@@ -12,10 +12,7 @@ const request = {
   notes: [{ id: "note/1", date: "2026-09-10", content: "Old" }],
 };
 
-async function withApi(
-  operation: (calls: ApiCall[]) => Promise<void>,
-  status = 200,
-) {
+async function withApi(operation: (calls: ApiCall[]) => Promise<void>, status = 200) {
   const originalFetch = globalThis.fetch;
   const calls: ApiCall[] = [];
   globalThis.fetch = async (url, options = {}) => {
@@ -28,13 +25,7 @@ async function withApi(
     calls.push(call);
     const reading = call.method === "GET";
     return new Response(
-      JSON.stringify(
-        reading
-          ? { request, items: [request] }
-          : status === 200
-            ? { request }
-            : { error: "Denied" },
-      ),
+      JSON.stringify(reading ? { request, items: [request] } : status === 200 ? { request } : { error: "Denied" }),
       {
         status: reading ? 200 : status,
         headers: { "Content-Type": "application/json" },

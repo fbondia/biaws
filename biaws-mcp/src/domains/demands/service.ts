@@ -1,17 +1,8 @@
 import { scalarText } from "../../runtime/text.js";
-import {
-  requireEntity,
-  type ApiEntity,
-  type ApiMeta,
-} from "../../api/apiContracts.js";
+import { requireEntity, type ApiEntity, type ApiMeta } from "../../api/apiContracts.js";
 import type { ServiceArguments } from "../../mcp/tools/contracts.js";
 import { BiawsError } from "../../runtime/errors.js";
-import {
-  cleanParams,
-  deleteJson,
-  fetchJson,
-  sendJson,
-} from "../../api/httpClient.js";
+import { cleanParams, deleteJson, fetchJson, sendJson } from "../../api/httpClient.js";
 
 // A API fornece as opções em runtime; estes valores preservam compatibilidade
 // somente quando uma instalação antiga ainda não publicou as listas.
@@ -20,15 +11,11 @@ const DEFAULT_REQUEST_TASK_STATUS = "Pendente";
 
 async function requestOptions() {
   const payload = await fetchJson("/api/option-lists/runtime");
-  const byKey: Record<string, ApiEntity> = Object.fromEntries(
-    (payload.items || []).map((list) => [list.key, list]),
-  );
+  const byKey: Record<string, ApiEntity> = Object.fromEntries((payload.items || []).map((list) => [list.key, list]));
   const read = (key: string, fallback: string) => {
     const list = byKey[key];
     return {
-      values: (list?.items || [])
-        .filter((item) => item.active !== false)
-        .map((item) => item.value || ""),
+      values: (list?.items || []).filter((item) => item.active !== false).map((item) => item.value || ""),
       defaultValue: list?.defaultValue || fallback,
     };
   };
@@ -76,10 +63,7 @@ function filterDemands(items: ApiEntity[], args: Record<string, unknown> = {}) {
           request.clientCode,
           request.title,
           request.description,
-          (typeof request.specification === "object"
-            ? request.specification?.sections
-            : undefined
-          )
+          (typeof request.specification === "object" ? request.specification?.sections : undefined)
             ?.map((section) => `${section.title} ${section.content}`)
             .join(" "),
         ].join(" "),
@@ -111,11 +95,7 @@ function compactDemand(request: ApiEntity) {
   };
 }
 
-async function readDemandPage(
-  args: Record<string, unknown> = {},
-  page = 1,
-  limit = 25,
-) {
+async function readDemandPage(args: Record<string, unknown> = {}, page = 1, limit = 25) {
   return fetchJson(
     "/api/requests",
     cleanParams({
@@ -138,9 +118,7 @@ async function readAllDemands(args: Record<string, unknown> = {}) {
     const payload = await readDemandPage(args, page, 100);
     items.push(...(payload.items || []));
     meta = payload.meta || {};
-    const totalPages = Number(
-      meta.totalPages ?? Math.ceil(Number(meta.total) / 100),
-    );
+    const totalPages = Number(meta.totalPages ?? Math.ceil(Number(meta.total) / 100));
     if (!Number.isFinite(totalPages) || page >= totalPages) {
       return { meta, items };
     }
@@ -154,9 +132,7 @@ async function readAllDemands(args: Record<string, unknown> = {}) {
 }
 
 async function readDemand(requestId: string) {
-  const payload = await fetchJson(
-    `/api/requests/${encodeURIComponent(requestId)}`,
-  );
+  const payload = await fetchJson(`/api/requests/${encodeURIComponent(requestId)}`);
   const request = requireEntity(payload.request);
   if (!request) throw new BiawsError(`Demand not found: ${requestId}`);
   return {
@@ -188,16 +164,10 @@ export async function listDemands(args: ServiceArguments<"demands_list"> = {}) {
   const limit = args.limit ?? 25;
   // Text and partial-code matching remain MCP filters; filter before paging.
   const locallyFiltered = Boolean(args.text || args.code);
-  const payload = locallyFiltered
-    ? await readAllDemands(args)
-    : await readDemandPage(args, page, limit);
+  const payload = locallyFiltered ? await readAllDemands(args) : await readDemandPage(args, page, limit);
   const filtered = filterDemands(payload.items || [], args);
-  const items = locallyFiltered
-    ? filtered.slice((page - 1) * limit, page * limit)
-    : filtered;
-  const total = locallyFiltered
-    ? filtered.length
-    : (payload.meta?.total ?? filtered.length);
+  const items = locallyFiltered ? filtered.slice((page - 1) * limit, page * limit) : filtered;
+  const total = locallyFiltered ? filtered.length : (payload.meta?.total ?? filtered.length);
   return {
     meta: {
       ...payload.meta,
@@ -217,9 +187,7 @@ export async function getDemand(args: ServiceArguments<"demands_get"> = {}) {
   return readDemand(args.requestId);
 }
 
-export async function createDemand(
-  args: ServiceArguments<"demands_create"> = {},
-) {
+export async function createDemand(args: ServiceArguments<"demands_create"> = {}) {
   const title = String(args.title || "").trim();
   if (!title) throw new BiawsError("title is required");
   const applicationId = String(args.applicationId || "").trim();
@@ -238,27 +206,21 @@ export async function createDemand(
       estimatedJourneys: Number(args.estimatedJourneys) || 0,
       description: String(args.description || "").trim(),
       specification: {
-        sections: Array.isArray(args.specificationSections)
-          ? args.specificationSections
-          : [],
+        sections: Array.isArray(args.specificationSections) ? args.specificationSections : [],
       },
       checklist: Array.isArray(args.checklist) ? args.checklist : [],
       journeys: Array.isArray(args.journeys) ? args.journeys : [],
       collectionId: String(args.collectionId || "").trim(),
       workspaceId: args.workspaceId,
       applicationId,
-      affectedComponentIds: Array.isArray(args.affectedComponentIds)
-        ? args.affectedComponentIds
-        : [],
+      affectedComponentIds: Array.isArray(args.affectedComponentIds) ? args.affectedComponentIds : [],
     },
     {},
     "POST",
   );
 }
 
-export async function getJourneyCalendar(
-  args: ServiceArguments<"demands_journey_calendar"> = {},
-) {
+export async function getJourneyCalendar(args: ServiceArguments<"demands_journey_calendar"> = {}) {
   const payload = await readAllDemands(args);
   const filtered = filterDemands(payload.items || [], args);
   const fromMonth = String(args.fromMonth || "");
@@ -300,10 +262,7 @@ export async function getJourneyCalendar(
 
       current.plannedJourneys += plannedJourneys;
       current.executedJourneys += executedJourneys;
-      current.pendingJourneys += Math.max(
-        0,
-        plannedJourneys - executedJourneys,
-      );
+      current.pendingJourneys += Math.max(0, plannedJourneys - executedJourneys);
       current.requests.push({
         id: request.id,
         clientCode: request.clientCode,
@@ -324,15 +283,11 @@ export async function getJourneyCalendar(
       toMonth: toMonth || null,
       status: args.status || null,
     },
-    months: [...months.values()].sort((first, second) =>
-      first.month.localeCompare(second.month),
-    ),
+    months: [...months.values()].sort((first, second) => first.month.localeCompare(second.month)),
   };
 }
 
-export async function getDemandDeadlines(
-  args: ServiceArguments<"demands_deadlines"> = {},
-) {
+export async function getDemandDeadlines(args: ServiceArguments<"demands_deadlines"> = {}) {
   const referenceDate = String(args.referenceDate || todayLabel()).slice(0, 10);
   const payload = await readAllDemands(args);
   const filtered = filterDemands(payload.items || [], args);
@@ -343,10 +298,7 @@ export async function getDemandDeadlines(
       returned: filtered.length,
     },
     items: filtered.map((request) => {
-      const daysToEstimatedDelivery = daysBetween(
-        referenceDate,
-        request.estimatedDeliveryDate,
-      );
+      const daysToEstimatedDelivery = daysBetween(referenceDate, request.estimatedDeliveryDate);
       const daysToEnd = daysBetween(referenceDate, request.endDate);
       const isDone = request.status === "Concluído";
 
@@ -360,26 +312,18 @@ export async function getDemandDeadlines(
         endDate: request.endDate,
         daysToEstimatedDelivery,
         daysToEnd,
-        overdue:
-          !isDone &&
-          daysToEstimatedDelivery !== null &&
-          daysToEstimatedDelivery < 0,
+        overdue: !isDone && daysToEstimatedDelivery !== null && daysToEstimatedDelivery < 0,
         journeys: journeySummaryForRequest(request),
       };
     }),
   };
 }
 
-export async function getDemandImplementationContext(
-  args: ServiceArguments<"demands_implementation_context"> = {},
-) {
+export async function getDemandImplementationContext(args: ServiceArguments<"demands_implementation_context"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
 
   const { request } = await readDemand(args.requestId);
-  const sections =
-    (typeof request.specification === "object"
-      ? request.specification?.sections
-      : undefined) || [];
+  const sections = (typeof request.specification === "object" ? request.specification?.sections : undefined) || [];
 
   return {
     request: compactDemand(request),
@@ -387,9 +331,7 @@ export async function getDemandImplementationContext(
     checklist: request.checklist,
     specification: {
       sections,
-      byTitle: Object.fromEntries(
-        sections.map((section) => [section.title, section.content]),
-      ),
+      byTitle: Object.fromEntries(sections.map((section) => [section.title, section.content])),
     },
     notes: args.includeNotes === false ? [] : request.notes,
     tasks: request.tasks || [],
@@ -402,20 +344,14 @@ async function validateTaskStatus(
   allowedHistoricalStatus = "",
 ) {
   const taskStatus = options?.taskStatus || (await requestOptions()).taskStatus;
-  if (
-    !taskStatus.values.includes(status || "") &&
-    status !== allowedHistoricalStatus
-  ) {
-    throw new BiawsError(
-      `status must be one of ${taskStatus.values.join(", ")}`,
-    );
+  if (!taskStatus.values.includes(status || "") && status !== allowedHistoricalStatus) {
+    throw new BiawsError(`status must be one of ${taskStatus.values.join(", ")}`);
   }
 }
 
 async function taskPayload(args: Partial<ApiEntity>, current: ApiEntity = {}) {
   const options = await requestOptions();
-  const status =
-    args.status ?? current.status ?? options.taskStatus.defaultValue;
+  const status = args.status ?? current.status ?? options.taskStatus.defaultValue;
   await validateTaskStatus(status, options, current.status);
 
   const title = String(args.title ?? current.title ?? "").trim();
@@ -429,9 +365,7 @@ async function taskPayload(args: Partial<ApiEntity>, current: ApiEntity = {}) {
     endDate: String(args.endDate ?? current.endDate ?? ""),
     situation: scalarText(args.situation ?? current.situation ?? ""),
     description: String(args.description ?? current.description ?? ""),
-    specification: scalarText(
-      args.specification ?? current.specification ?? "",
-    ),
+    specification: scalarText(args.specification ?? current.specification ?? ""),
   };
 }
 
@@ -442,24 +376,19 @@ async function readDemandTask(requestId: string, taskId: string) {
     const matches = (request.tasks || []).filter(
       (item) => String(item.code || "").toLowerCase() === taskId.toLowerCase(),
     );
-    if (matches.length > 1)
-      throw new BiawsError("Ambiguous task identifier; use its ID");
+    if (matches.length > 1) throw new BiawsError("Ambiguous task identifier; use its ID");
     task = matches[0];
   }
   if (!task) throw new BiawsError(`Demand task not found: ${taskId}`);
   return { request, task: requireEntity(task) };
 }
 
-export async function listDemandTasks(
-  args: ServiceArguments<"demands_list_tasks"> = {},
-) {
+export async function listDemandTasks(args: ServiceArguments<"demands_list_tasks"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
   if (args.status) await validateTaskStatus(args.status);
 
   const { request } = await readDemand(args.requestId);
-  const tasks = (request.tasks || []).filter(
-    (task) => !args.status || task.status === args.status,
-  );
+  const tasks = (request.tasks || []).filter((task) => !args.status || task.status === args.status);
   return {
     request: compactDemand(request),
     meta: {
@@ -470,23 +399,14 @@ export async function listDemandTasks(
   };
 }
 
-export async function createDemandTask(
-  args: ServiceArguments<"demands_create_task"> = {},
-) {
+export async function createDemandTask(args: ServiceArguments<"demands_create_task"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
 
   const { request } = await readDemand(args.requestId);
-  return sendJson(
-    `/api/requests/${encodeURIComponent(request.id)}/tasks`,
-    await taskPayload(args),
-    {},
-    "POST",
-  );
+  return sendJson(`/api/requests/${encodeURIComponent(request.id)}/tasks`, await taskPayload(args), {}, "POST");
 }
 
-export async function updateDemandTask(
-  args: ServiceArguments<"demands_update_task"> = {},
-) {
+export async function updateDemandTask(args: ServiceArguments<"demands_update_task"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
   if (!args.taskId) throw new BiawsError("taskId is required");
 
@@ -497,9 +417,7 @@ export async function updateDemandTask(
   );
 }
 
-export async function updateDemandTaskStatus(
-  args: ServiceArguments<"demands_update_task_status"> = {},
-) {
+export async function updateDemandTaskStatus(args: ServiceArguments<"demands_update_task_status"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
   if (!args.taskId) throw new BiawsError("taskId is required");
   await validateTaskStatus(args.status);
@@ -511,25 +429,18 @@ export async function updateDemandTaskStatus(
   );
 }
 
-export async function deleteDemandTask(
-  args: ServiceArguments<"demands_delete_task"> = {},
-) {
+export async function deleteDemandTask(args: ServiceArguments<"demands_delete_task"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
   if (!args.taskId) throw new BiawsError("taskId is required");
 
   const { request, task } = await readDemandTask(args.requestId, args.taskId);
-  return deleteJson(
-    `/api/requests/${encodeURIComponent(request.id)}/tasks/${encodeURIComponent(task.id)}`,
-  );
+  return deleteJson(`/api/requests/${encodeURIComponent(request.id)}/tasks/${encodeURIComponent(task.id)}`);
 }
 
-export async function addDemandTaskNote(
-  args: ServiceArguments<"demands_add_task_note"> = {},
-) {
+export async function addDemandTaskNote(args: ServiceArguments<"demands_add_task_note"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
   if (!args.taskId) throw new BiawsError("taskId is required");
-  if (!String(args.content || "").trim())
-    throw new BiawsError("content is required");
+  if (!String(args.content || "").trim()) throw new BiawsError("content is required");
 
   const { request, task } = await readDemandTask(args.requestId, args.taskId);
   return sendJson(
@@ -540,14 +451,11 @@ export async function addDemandTaskNote(
   );
 }
 
-export async function updateDemandTaskNote(
-  args: ServiceArguments<"demands_update_task_note"> = {},
-) {
+export async function updateDemandTaskNote(args: ServiceArguments<"demands_update_task_note"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
   if (!args.taskId) throw new BiawsError("taskId is required");
   if (!args.noteId) throw new BiawsError("noteId is required");
-  if (!String(args.content || "").trim())
-    throw new BiawsError("content is required");
+  if (!String(args.content || "").trim()) throw new BiawsError("content is required");
 
   const { request, task } = await readDemandTask(args.requestId, args.taskId);
   return sendJson(
@@ -556,9 +464,7 @@ export async function updateDemandTaskNote(
   );
 }
 
-export async function deleteDemandTaskNote(
-  args: ServiceArguments<"demands_delete_task_note"> = {},
-) {
+export async function deleteDemandTaskNote(args: ServiceArguments<"demands_delete_task_note"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
   if (!args.taskId) throw new BiawsError("taskId is required");
   if (!args.noteId) throw new BiawsError("noteId is required");
@@ -569,12 +475,9 @@ export async function deleteDemandTaskNote(
   );
 }
 
-export async function addDemandNote(
-  args: ServiceArguments<"demands_add_note"> = {},
-) {
+export async function addDemandNote(args: ServiceArguments<"demands_add_note"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
-  if (!String(args.content || "").trim())
-    throw new BiawsError("content is required");
+  if (!String(args.content || "").trim()) throw new BiawsError("content is required");
 
   return sendJson(
     `/api/requests/${encodeURIComponent(args.requestId)}/notes`,
@@ -587,12 +490,9 @@ export async function addDemandNote(
   );
 }
 
-export async function updateDemandDescription(
-  args: ServiceArguments<"demands_update_description"> = {},
-) {
+export async function updateDemandDescription(args: ServiceArguments<"demands_update_description"> = {}) {
   if (!args.requestId) throw new BiawsError("requestId is required");
-  if (!String(args.description || "").trim())
-    throw new BiawsError("description is required");
+  if (!String(args.description || "").trim()) throw new BiawsError("description is required");
 
   return updateDemandFields(args, {
     description: String(args.description).trim(),
@@ -614,23 +514,15 @@ async function updateDemandFields(
   if (payload.journeys) {
     const from = String(request.startDate || "").slice(0, 7);
     const to = String(request.endDate || "").slice(0, 7);
-    if (
-      payload.journeys.some(
-        (item) => !from || !to || item.month < from || item.month > to,
-      )
-    ) {
-      throw new BiawsError(
-        "journeys.month must fall within the demand startDate/endDate; update its dates first",
-      );
+    if (payload.journeys.some((item) => !from || !to || item.month < from || item.month > to)) {
+      throw new BiawsError("journeys.month must fall within the demand startDate/endDate; update its dates first");
     }
   }
   // The API merges omitted fields and enforces field-specific permissions.
   return sendJson(`/api/requests/${encodeURIComponent(request.id)}`, payload);
 }
 
-export async function updateDemand(
-  args: ServiceArguments<"demands_update"> = {},
-) {
+export async function updateDemand(args: ServiceArguments<"demands_update"> = {}) {
   const fields = [
     "clientCode",
     "title",
@@ -646,22 +538,16 @@ export async function updateDemand(
   const payload: Record<string, unknown> = {};
   for (const field of fields) {
     if (args[field] === undefined) continue;
-    payload[field] =
-      typeof args[field] === "string" ? args[field].trim() : args[field];
+    payload[field] = typeof args[field] === "string" ? args[field].trim() : args[field];
     if (["title", "status", "applicationId"].includes(field)) {
       payload[field] = requiredText(args[field], field);
     }
   }
-  if (!Object.keys(payload).length)
-    throw new BiawsError("At least one update field is required");
+  if (!Object.keys(payload).length) throw new BiawsError("At least one update field is required");
   if (Array.isArray(payload.affectedComponentIds)) {
-    payload.affectedComponentIds = payload.affectedComponentIds.map((id) =>
-      requiredText(id, "affectedComponentIds"),
-    );
+    payload.affectedComponentIds = payload.affectedComponentIds.map((id) => requiredText(id, "affectedComponentIds"));
     assertUnique(
-      Array.isArray(payload.affectedComponentIds)
-        ? payload.affectedComponentIds
-        : [],
+      Array.isArray(payload.affectedComponentIds) ? payload.affectedComponentIds : [],
       "affectedComponentIds",
     );
   }
@@ -669,13 +555,10 @@ export async function updateDemand(
 }
 
 function assertUnique(values: unknown[], field: string) {
-  if (new Set(values).size !== values.length)
-    throw new BiawsError(`${field} must be unique`);
+  if (new Set(values).size !== values.length) throw new BiawsError(`${field} must be unique`);
 }
 
-export async function updateDemandSpecification(
-  args: ServiceArguments<"demands_update_specification"> = {},
-) {
+export async function updateDemandSpecification(args: ServiceArguments<"demands_update_specification"> = {}) {
   const sections = (args.specificationSections || []).map((section) => ({
     ...section,
     id: requiredText(section.id, "section.id"),
@@ -688,9 +571,7 @@ export async function updateDemandSpecification(
   return updateDemandFields(args, { specification: { sections } });
 }
 
-export async function updateDemandChecklist(
-  args: ServiceArguments<"demands_update_checklist"> = {},
-) {
+export async function updateDemandChecklist(args: ServiceArguments<"demands_update_checklist"> = {}) {
   const checklist = (args.checklist || []).map((item) => ({
     ...item,
     label: requiredText(item.label, "checklist.label"),
@@ -702,9 +583,7 @@ export async function updateDemandChecklist(
   return updateDemandFields(args, { checklist });
 }
 
-export async function updateDemandJourneys(
-  args: ServiceArguments<"demands_update_journeys"> = {},
-) {
+export async function updateDemandJourneys(args: ServiceArguments<"demands_update_journeys"> = {}) {
   assertUnique(
     (args.journeys || []).map((item) => item.month),
     "journeys.month",
@@ -721,22 +600,16 @@ async function readDemandNote(args: { requestId?: string; noteId?: string }) {
   return { request, note: requireEntity(note) };
 }
 
-export async function updateDemandNote(
-  args: ServiceArguments<"demands_update_note"> = {},
-) {
+export async function updateDemandNote(args: ServiceArguments<"demands_update_note"> = {}) {
   const content = requiredText(args.content, "content");
   const { request, note } = await readDemandNote(args);
-  return sendJson(
-    `/api/requests/${encodeURIComponent(request.id)}/notes/${encodeURIComponent(note.id)}`,
-    { content, date: args.date ?? note.date },
-  );
+  return sendJson(`/api/requests/${encodeURIComponent(request.id)}/notes/${encodeURIComponent(note.id)}`, {
+    content,
+    date: args.date ?? note.date,
+  });
 }
 
-export async function deleteDemandNote(
-  args: ServiceArguments<"demands_delete_note"> = {},
-) {
+export async function deleteDemandNote(args: ServiceArguments<"demands_delete_note"> = {}) {
   const { request, note } = await readDemandNote(args);
-  return deleteJson(
-    `/api/requests/${encodeURIComponent(request.id)}/notes/${encodeURIComponent(note.id)}`,
-  );
+  return deleteJson(`/api/requests/${encodeURIComponent(request.id)}/notes/${encodeURIComponent(note.id)}`);
 }

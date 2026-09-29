@@ -28,10 +28,7 @@ test("secrets_register sends metadata to the registration endpoint", async () =>
     assert.equal(calls.length, 1);
     assert.equal(new URL(calls[0].url).pathname, "/api/secrets/registrations");
     assert.equal(calls[0].options.method, "POST");
-    assert.equal(
-      new Headers(calls[0].options.headers).get("Authorization"),
-      "Bearer biaws_test_key",
-    );
+    assert.equal(new Headers(calls[0].options.headers).get("Authorization"), "Bearer biaws_test_key");
     assert.deepEqual(JSON.parse(String(calls[0].options.body)), {
       identifier: "github-token-production",
       name: "GitHub token",

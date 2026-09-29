@@ -16,10 +16,7 @@ import {
   listResourceTemplates as defaultListResourceTemplates,
   readResource as defaultReadResource,
 } from "./resources/resources.js";
-import {
-  dispatchTool as defaultDispatchTool,
-  listTools as defaultListTools,
-} from "./tools/tools.js";
+import { dispatchTool as defaultDispatchTool, listTools as defaultListTools } from "./tools/tools.js";
 import { SERVER_NAME, SERVER_VERSION } from "../version.js";
 export interface McpOptions {
   dispatchTool?: (name: string, args: unknown) => Promise<unknown>;
@@ -41,22 +38,13 @@ function publicToolError(value: unknown) {
     message: String(error?.message || "Tool execution failed"),
   };
   if (Number.isInteger(error?.statusCode)) result.status = error.statusCode;
-  for (const field of [
-    "requiredPermissions",
-    "fields",
-    "details",
-    "requestId",
-    "retryable",
-  ] as const) {
+  for (const field of ["requiredPermissions", "fields", "details", "requestId", "retryable"] as const) {
     if (error?.[field] !== undefined) result[field] = error[field];
   }
   return result;
 }
 
-export function toolResult(
-  value: unknown,
-  links: ResourceLink[] = [],
-): CallToolResult {
+export function toolResult(value: unknown, links: ResourceLink[] = []): CallToolResult {
   if (!isRecord(value)) throw new Error("Tool result must be an object");
   const result = value;
   return {
@@ -101,27 +89,17 @@ export function createBiawsMcpServer({
   );
   const inFlight = new Set<Promise<unknown>>();
 
-  async function execute<T>(
-    tool: string,
-    ctx: ServerContext,
-    operation: () => Promise<T>,
-  ): Promise<T> {
+  async function execute<T>(tool: string, ctx: ServerContext, operation: () => Promise<T>): Promise<T> {
     const requestId = createRequestId();
     const startedAt = now();
-    const signal = shutdownSignal
-      ? AbortSignal.any([ctx.mcpReq.signal, shutdownSignal])
-      : ctx.mcpReq.signal;
+    const signal = shutdownSignal ? AbortSignal.any([ctx.mcpReq.signal, shutdownSignal]) : ctx.mcpReq.signal;
     const logContext = { requestId, rpcRequestId: ctx.mcpReq.id, tool };
-    const event =
-      tool === "resources/read" ? "mcp_resource_read" : "mcp_tool_call";
+    const event = tool === "resources/read" ? "mcp_resource_read" : "mcp_tool_call";
     logger?.info(`${event}_started`, {
       ...logContext,
       inFlight: inFlight.size + 1,
     });
-    const pending = runWithRequestContext(
-      { signal, logger, requestId, tool },
-      operation,
-    );
+    const pending = runWithRequestContext({ signal, logger, requestId, tool }, operation);
     inFlight.add(pending);
     try {
       const result = await pending;
@@ -134,26 +112,19 @@ export function createBiawsMcpServer({
       const error = errorInfo(error_);
       const cancelled = signal.aborted || error?.code === "REQUEST_CANCELLED";
       const expected =
-        cancelled ||
-        (Number.isInteger(error?.statusCode) &&
-          error.statusCode !== undefined &&
-          error.statusCode < 500);
-      logger?.[expected ? "warn" : "error"](
-        `${event}_${cancelled ? "cancelled" : "failed"}`,
-        {
-          ...logContext,
-          durationMs: Math.max(0, now() - startedAt),
-          error,
-        },
-      );
+        cancelled || (Number.isInteger(error?.statusCode) && error.statusCode !== undefined && error.statusCode < 500);
+      logger?.[expected ? "warn" : "error"](`${event}_${cancelled ? "cancelled" : "failed"}`, {
+        ...logContext,
+        durationMs: Math.max(0, now() - startedAt),
+        error,
+      });
       throw error;
     } finally {
       inFlight.delete(pending);
     }
   }
 
-  server.server.onerror = (error) =>
-    logger?.error("mcp_protocol_error", { error });
+  server.server.onerror = (error) => logger?.error("mcp_protocol_error", { error });
   server.server.setRequestHandler("tools/list", async () => ({
     tools: listTools().map((tool) => {
       const parsed = specTypeSchemas.Tool["~standard"].validate(tool);
@@ -185,14 +156,10 @@ export function createBiawsMcpServer({
       throw new ProtocolError(-32602, error.message, publicToolError(error));
     }
   });
-  server.server.setRequestHandler("resources/templates/list", async () =>
-    listResourceTemplates(),
-  );
+  server.server.setRequestHandler("resources/templates/list", async () => listResourceTemplates());
   server.server.setRequestHandler("resources/read", async (request, ctx) => {
     try {
-      return await execute("resources/read", ctx, () =>
-        readResource(request.params),
-      );
+      return await execute("resources/read", ctx, () => readResource(request.params));
     } catch (error_) {
       const error = errorInfo(error_);
       throw new ProtocolError(

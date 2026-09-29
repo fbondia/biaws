@@ -1,23 +1,16 @@
 import { scalarText } from "./text.js";
 import { errorInfo } from "./errors.js";
 const LEVELS = Object.freeze({ debug: 10, info: 20, warn: 30, error: 40 });
-const SENSITIVE_KEY =
-  /authorization|cookie|password|passwd|token|secret|api.?key|connection.?string/iu;
+const SENSITIVE_KEY = /authorization|cookie|password|passwd|token|secret|api.?key|connection.?string/iu;
 
 function sanitizeText(value: unknown) {
   return String(value)
     .replaceAll(/Bearer\s+[^\s,;]+/giu, "Bearer [REDACTED]")
     .replaceAll(/(https?:\/\/)[^/@\s]+@/giu, "$1[REDACTED]@")
-    .replaceAll(
-      /([?&](?:token|key|secret|password)\s*=)[^&#\s]+/giu,
-      "$1[REDACTED]",
-    );
+    .replaceAll(/([?&](?:token|key|secret|password)\s*=)[^&#\s]+/giu, "$1[REDACTED]");
 }
 
-export function serializeError(
-  value: unknown,
-  depth = 0,
-): Record<string, unknown> {
+export function serializeError(value: unknown, depth = 0): Record<string, unknown> {
   const error = errorInfo(value);
   if (!(value instanceof Error)) {
     return { name: "Error", message: sanitizeText(error) };
@@ -26,12 +19,8 @@ export function serializeError(
     name: error.name,
     message: sanitizeText(error.message),
     ...(error.code === undefined ? {} : { code: String(error.code) }),
-    ...(Number.isInteger(error.statusCode)
-      ? { statusCode: error.statusCode }
-      : {}),
-    ...(typeof error.retryable === "boolean"
-      ? { retryable: error.retryable }
-      : {}),
+    ...(Number.isInteger(error.statusCode) ? { statusCode: error.statusCode } : {}),
+    ...(typeof error.retryable === "boolean" ? { retryable: error.retryable } : {}),
     ...(error.stack ? { stack: sanitizeText(error.stack) } : {}),
   };
   if (depth < 2 && error.cause !== undefined) {
@@ -40,11 +29,7 @@ export function serializeError(
   return result;
 }
 
-function sanitize(
-  value: unknown,
-  key = "",
-  seen = new WeakSet<object>(),
-): unknown {
+function sanitize(value: unknown, key = "", seen = new WeakSet<object>()): unknown {
   if (SENSITIVE_KEY.test(key)) return "[REDACTED]";
   if (value instanceof Error) return serializeError(value);
   if (typeof value === "string") return sanitizeText(value);
@@ -55,10 +40,7 @@ function sanitize(
     return value.map((entry) => sanitize(entry, "", seen));
   }
   return Object.fromEntries(
-    Object.entries(value).map(([entryKey, entry]) => [
-      entryKey,
-      sanitize(entry, entryKey, seen),
-    ]),
+    Object.entries(value).map(([entryKey, entry]) => [entryKey, sanitize(entry, entryKey, seen)]),
   );
 }
 
@@ -84,11 +66,7 @@ export function createLogger({
 } = {}) {
   const minimumLevel = LEVELS[configuredLevel(level)];
 
-  function log(
-    entryLevel: keyof typeof LEVELS,
-    event: string,
-    fields: Record<string, unknown> = {},
-  ) {
+  function log(entryLevel: keyof typeof LEVELS, event: string, fields: Record<string, unknown> = {}) {
     if (LEVELS[entryLevel] < minimumLevel) return false;
     const record = sanitize({
       timestamp: now(),
@@ -110,14 +88,10 @@ export function createLogger({
   }
 
   return {
-    debug: (event: string, fields?: Record<string, unknown>) =>
-      log("debug", event, fields),
-    info: (event: string, fields?: Record<string, unknown>) =>
-      log("info", event, fields),
-    warn: (event: string, fields?: Record<string, unknown>) =>
-      log("warn", event, fields),
-    error: (event: string, fields?: Record<string, unknown>) =>
-      log("error", event, fields),
+    debug: (event: string, fields?: Record<string, unknown>) => log("debug", event, fields),
+    info: (event: string, fields?: Record<string, unknown>) => log("info", event, fields),
+    warn: (event: string, fields?: Record<string, unknown>) => log("warn", event, fields),
+    error: (event: string, fields?: Record<string, unknown>) => log("error", event, fields),
   };
 }
 

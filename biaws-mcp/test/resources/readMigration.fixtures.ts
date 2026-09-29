@@ -31,8 +31,7 @@ export const replacements = [
     name: "applications_get",
     template: "biaws://workspaces/{workspaceId}/applications/{applicationId}",
     uri: "biaws://workspaces/workspace-a/applications/alias",
-    canonical:
-      "biaws://workspaces/workspace-a/applications/canonical-application",
+    canonical: "biaws://workspaces/workspace-a/applications/canonical-application",
     path: "/api/catalog/applications/alias",
     payload: {
       application: {
@@ -60,8 +59,7 @@ export const replacements = [
     name: "integrations_get",
     template: "biaws://workspaces/{workspaceId}/integrations/{integrationId}",
     uri: "biaws://workspaces/workspace-a/integrations/alias",
-    canonical:
-      "biaws://workspaces/workspace-a/integrations/canonical-integration",
+    canonical: "biaws://workspaces/workspace-a/integrations/canonical-integration",
     path: "/api/catalog/integrations/alias",
     payload: {
       integration: {
@@ -75,8 +73,7 @@ export const replacements = [
     name: "repositories_get",
     template: "biaws://workspaces/{workspaceId}/repositories/{repositoryId}",
     uri: "biaws://workspaces/workspace-a/repositories/alias",
-    canonical:
-      "biaws://workspaces/workspace-a/repositories/canonical-repository",
+    canonical: "biaws://workspaces/workspace-a/repositories/canonical-repository",
     path: "/api/catalog/repositories/alias",
     payload: {
       repository: {
@@ -104,8 +101,7 @@ export const replacements = [
     name: "deployments_get",
     template: "biaws://workspaces/{workspaceId}/deployments/{deploymentId}",
     uri: "biaws://workspaces/workspace-a/deployments/alias",
-    canonical:
-      "biaws://workspaces/workspace-a/deployments/canonical-deployment",
+    canonical: "biaws://workspaces/workspace-a/deployments/canonical-deployment",
     path: "/api/catalog/deployments/alias",
     payload: {
       deployment: {
@@ -165,8 +161,7 @@ export const replacements = [
   },
   {
     name: "documents_list_revisions",
-    template:
-      "biaws://workspaces/{workspaceId}/documents/{documentId}/revisions",
+    template: "biaws://workspaces/{workspaceId}/documents/{documentId}/revisions",
     uri: "biaws://workspaces/workspace-a/documents/alias/revisions",
     canonical: "biaws://workspaces/workspace-a/documents/alias/revisions",
     path: "/api/knowledge/documents/alias/revisions",
@@ -182,8 +177,7 @@ export const replacements = [
   },
   {
     name: "documents_list_observations",
-    template:
-      "biaws://workspaces/{workspaceId}/documents/{documentId}/observations",
+    template: "biaws://workspaces/{workspaceId}/documents/{documentId}/observations",
     uri: "biaws://workspaces/workspace-a/documents/alias/observations",
     canonical: "biaws://workspaces/workspace-a/documents/alias/observations",
     path: "/api/knowledge/documents/alias/observations",
@@ -262,11 +256,9 @@ export const replacements = [
   },
   {
     name: "monitoring_templates_get",
-    template:
-      "biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}",
+    template: "biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}",
     uri: "biaws://workspaces/workspace-a/monitoring/templates/health%2Fapi",
-    canonical:
-      "biaws://workspaces/workspace-a/monitoring/templates/health%2Fapi",
+    canonical: "biaws://workspaces/workspace-a/monitoring/templates/health%2Fapi",
     path: "/api/monitoring/templates/health%2Fapi",
     payload: {
       template: {
@@ -285,11 +277,9 @@ export const replacements = [
   },
   {
     name: "monitoring_templates_get_usage",
-    template:
-      "biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}/versions/{version}/usage",
+    template: "biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}/versions/{version}/usage",
     uri: "biaws://workspaces/workspace-a/monitoring/templates/health%2Fapi/versions/2/usage",
-    canonical:
-      "biaws://workspaces/workspace-a/monitoring/templates/health%2Fapi/versions/2/usage",
+    canonical: "biaws://workspaces/workspace-a/monitoring/templates/health%2Fapi/versions/2/usage",
     path: "/api/monitoring/templates/health%2Fapi/versions/2/usage",
     payload: {
       templateRef: {
@@ -301,11 +291,9 @@ export const replacements = [
   },
   {
     name: "monitoring_templates_get_contract",
-    template:
-      "biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}/versions/{version}/contract",
+    template: "biaws://workspaces/{workspaceId}/monitoring/templates/{templateId}/versions/{version}/contract",
     uri: "biaws://workspaces/workspace-a/monitoring/templates/health%2Fapi/versions/2/contract",
-    canonical:
-      "biaws://workspaces/workspace-a/monitoring/templates/health%2Fapi/versions/2/contract",
+    canonical: "biaws://workspaces/workspace-a/monitoring/templates/health%2Fapi/versions/2/contract",
     path: "/api/monitoring/templates/health%2Fapi/versions/2/contract",
     payload: {
       templateRef: {
@@ -317,11 +305,9 @@ export const replacements = [
   },
   {
     name: "runtime_active_monitors_list",
-    template:
-      "biaws://workspaces/{workspaceId}/runtimes/{runtimeId}/monitoring/active-monitors",
+    template: "biaws://workspaces/{workspaceId}/runtimes/{runtimeId}/monitoring/active-monitors",
     uri: "biaws://workspaces/workspace-a/runtimes/app.comp.dep.run/monitoring/active-monitors?page=2&limit=10",
-    canonical:
-      "biaws://workspaces/workspace-a/runtimes/canonical-runtime/monitoring/active-monitors?page=2&limit=10",
+    canonical: "biaws://workspaces/workspace-a/runtimes/canonical-runtime/monitoring/active-monitors?page=2&limit=10",
     path: "/api/monitoring/runtimes/app.comp.dep.run/active-monitors?page=2&limit=10",
     payload: {
       items: [

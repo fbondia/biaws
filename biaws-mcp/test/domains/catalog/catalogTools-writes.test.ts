@@ -147,19 +147,10 @@ test("catalog write tools use POST/PATCH and keep scope ids out of payloads", as
       const [, , method, expectedPath, scopeField] = cases[index];
       assert.equal(call.options.method, method);
       assert.equal(new URL(call.url).pathname, expectedPath);
-      assert.equal(
-        new Headers(call.options.headers).get("Authorization"),
-        "Bearer biaws_test_key",
-      );
-      assert.equal(
-        Object.hasOwn(JSON.parse(String(call.options.body)), scopeField),
-        false,
-      );
+      assert.equal(new Headers(call.options.headers).get("Authorization"), "Bearer biaws_test_key");
+      assert.equal(Object.hasOwn(JSON.parse(String(call.options.body)), scopeField), false);
     });
-    assert.equal(
-      JSON.parse(String(required(calls.at(-1)).options.body)).serverId,
-      null,
-    );
+    assert.equal(JSON.parse(String(required(calls.at(-1)).options.body)).serverId, null);
   } finally {
     globalThis.fetch = originalFetch;
     if (originalBaseUrl === undefined) delete process.env.BIAWS_API_URL;

@@ -21,14 +21,8 @@ test("API authorization failures are returned as MCP tool errors", async (t) => 
       ] as const) {
         const result = await session.client.callTool({ name, arguments: args });
         assert.equal(result.isError, true);
-        assert.equal(
-          required(toolPayload(result.structuredContent).error).status,
-          403,
-        );
-        assert.equal(
-          required(toolPayload(result.structuredContent).error).code,
-          "FORBIDDEN",
-        );
+        assert.equal(required(toolPayload(result.structuredContent).error).status, 403);
+        assert.equal(required(toolPayload(result.structuredContent).error).code, "FORBIDDEN");
       }
     },
   );

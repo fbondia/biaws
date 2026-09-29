@@ -16,10 +16,7 @@ test("search results include canonical resource links on supporting protocols", 
       const result = await session.client.callTool({ name: "issues_search" });
       assert.equal(result.content[1].type, "resource_link");
       assert.equal(result.content[1].uri, W + "/issues/issue-a");
-      assert.equal(
-        required(toolPayload(result.structuredContent).items)[0].id,
-        "issue-a",
-      );
+      assert.equal(required(toolPayload(result.structuredContent).items)[0].id, "issue-a");
     },
   );
 });

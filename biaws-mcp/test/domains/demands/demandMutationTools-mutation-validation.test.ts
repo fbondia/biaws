@@ -29,10 +29,7 @@ test("invalid input is rejected before any HTTP call", async () => {
           ],
         },
       ],
-      [
-        "demands_update_journeys",
-        { journeys: [{ month: "2026-13", plannedJourneys: 1 }] },
-      ],
+      ["demands_update_journeys", { journeys: [{ month: "2026-13", plannedJourneys: 1 }] }],
       [
         "demands_update_journeys",
         {
@@ -43,10 +40,7 @@ test("invalid input is rejected before any HTTP call", async () => {
         },
       ],
     ] as const;
-    for (const [name, args] of cases)
-      await assert.rejects(
-        dispatchTool(name, { requestId: demandId, ...args }),
-      );
+    for (const [name, args] of cases) await assert.rejects(dispatchTool(name, { requestId: demandId, ...args }));
     assert.equal(calls.length, 0);
   });
 });

@@ -14,9 +14,7 @@ test("structured logger writes correlated JSON and redacts secrets", () => {
     now: () => "2026-08-28T12:00:00.000Z",
   });
 
-  const cause = new BiawsError(
-    "request to https://user:pass@example.test/path?token=visible failed",
-  );
+  const cause = new BiawsError("request to https://user:pass@example.test/path?token=visible failed");
   cause.code = "ECONNRESET";
   logger.error("mcp_test_failed", {
     requestId: "request-1",

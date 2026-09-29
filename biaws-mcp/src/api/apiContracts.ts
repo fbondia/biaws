@@ -92,12 +92,7 @@ export const apiEntitySchema: z.ZodType<ApiEntity> = z.lazy(() =>
     notes: z.array(apiEntitySchema).optional(),
     journeys: z.array(apiEntitySchema).optional(),
     attachments: z.array(apiEntitySchema).optional(),
-    specification: z
-      .union([
-        z.string(),
-        z.looseObject({ sections: z.array(apiEntitySchema).optional() }),
-      ])
-      .optional(),
+    specification: z.union([z.string(), z.looseObject({ sections: z.array(apiEntitySchema).optional() })]).optional(),
   }),
 );
 export const apiPayloadSchema = z.looseObject({
@@ -167,10 +162,7 @@ export function parseApiPayload(value: unknown): ApiPayload {
   }));
   throw error;
 }
-export function requireEntity(
-  value: ApiEntity | undefined,
-): ApiEntity & { id: string } {
-  if (!value || typeof value.id !== "string" || !value.id)
-    throw new BiawsError("API entity requires an id");
+export function requireEntity(value: ApiEntity | undefined): ApiEntity & { id: string } {
+  if (!value || typeof value.id !== "string" || !value.id) throw new BiawsError("API entity requires an id");
   return { ...value, id: value.id };
 }

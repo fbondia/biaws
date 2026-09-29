@@ -11,8 +11,7 @@ test("document creation validates its discriminated contract before HTTP", async
       markdown: "# Rule",
     }),
     (error) =>
-      errorInfo(error).code === "VALIDATION_ERROR" &&
-      fieldErrors(error).some(({ path }) => path === "applicationId"),
+      errorInfo(error).code === "VALIDATION_ERROR" && fieldErrors(error).some(({ path }) => path === "applicationId"),
   );
   await assert.rejects(
     dispatchTool("documents_create", {

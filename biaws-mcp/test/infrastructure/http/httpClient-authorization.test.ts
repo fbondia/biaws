@@ -5,16 +5,14 @@ import { errorInfo, fieldErrors } from "../../helpers/types.js";
 test("MCP HTTP client distinguishes forbidden responses", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
-    new Response(
-      JSON.stringify({ error: { code: "FORBIDDEN", message: "Denied" } }),
-      { status: 403, headers: { "Content-Type": "application/json" } },
-    );
+    new Response(JSON.stringify({ error: { code: "FORBIDDEN", message: "Denied" } }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
   try {
     await assert.rejects(
       () => fetchJson("/api/issues"),
-      (error) =>
-        errorInfo(error).code === "FORBIDDEN" &&
-        errorInfo(error).statusCode === 403,
+      (error) => errorInfo(error).code === "FORBIDDEN" && errorInfo(error).statusCode === 403,
     );
   } finally {
     globalThis.fetch = originalFetch;
@@ -33,10 +31,10 @@ test("MCP HTTP client preserves structured API errors", async () => {
   try {
     for (const [status, code] of cases) {
       globalThis.fetch = async () =>
-        new Response(
-          JSON.stringify({ error: { code, message: `Error ${status}` } }),
-          { status, headers: { "Content-Type": "application/json" } },
-        );
+        new Response(JSON.stringify({ error: { code, message: `Error ${status}` } }), {
+          status,
+          headers: { "Content-Type": "application/json" },
+        });
       await assert.rejects(
         () => fetchJson("/api/catalog/applications/example"),
         (error) =>
@@ -77,8 +75,7 @@ test("MCP HTTP client preserves validation and authorization details", async () 
       () => fetchJson("/api/issues"),
       (error) =>
         errorInfo(error).requestId === "request-123" &&
-        JSON.stringify(errorInfo(error).requiredPermissions) ===
-          JSON.stringify(["issues.write"]) &&
+        JSON.stringify(errorInfo(error).requiredPermissions) === JSON.stringify(["issues.write"]) &&
         "issues.write" === "issues.write" &&
         fieldErrors(error)[0].path === "applicationId" &&
         errorInfo(error).retryable === false,

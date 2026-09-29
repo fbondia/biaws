@@ -1,19 +1,10 @@
 import { scalarText } from "../../runtime/text.js";
 type AttachmentArguments = ServiceArguments<
-  | "attachments_upload"
-  | "attachments_download"
-  | "attachments_update_tags"
-  | "attachments_delete"
+  "attachments_upload" | "attachments_download" | "attachments_update_tags" | "attachments_delete"
 >;
 import type { ServiceArguments } from "../../mcp/tools/contracts.js";
 import { BiawsError } from "../../runtime/errors.js";
-import {
-  cleanParams,
-  deleteJson,
-  fetchBinary,
-  sendJson,
-  sendMultipart,
-} from "../../api/httpClient.js";
+import { cleanParams, deleteJson, fetchBinary, sendJson, sendMultipart } from "../../api/httpClient.js";
 
 const DEFAULT_MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 const HARD_MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
@@ -24,11 +15,7 @@ const ENTITY_PATHS: Record<string, string> = {
   document: "knowledge/documents",
 };
 
-function domainError(
-  message: string,
-  code = "INVALID_ATTACHMENT_INPUT",
-  status = 422,
-) {
+function domainError(message: string, code = "INVALID_ATTACHMENT_INPUT", status = 422) {
   const error = new BiawsError(message);
   error.code = code;
   error.statusCode = status;
@@ -49,12 +36,7 @@ function decodeBase64(value: unknown, filename: string) {
   if (!encoded) {
     throw domainError(`contentBase64 is required for ${filename}`);
   }
-  if (
-    encoded.length % 4 !== 0 ||
-    !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(
-      encoded,
-    )
-  ) {
+  if (encoded.length % 4 !== 0 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(encoded)) {
     throw domainError(`contentBase64 is invalid for ${filename}`);
   }
 
@@ -64,11 +46,7 @@ function decodeBase64(value: unknown, filename: string) {
   else if (encoded.endsWith("=")) paddingBytes = 1;
   const decodedBytes = (encoded.length / 4) * 3 - paddingBytes;
   if (decodedBytes > limit) {
-    throw domainError(
-      `Attachment ${filename} exceeds the MCP limit of ${limit} bytes`,
-      "ATTACHMENT_TOO_LARGE",
-      413,
-    );
+    throw domainError(`Attachment ${filename} exceeds the MCP limit of ${limit} bytes`, "ATTACHMENT_TOO_LARGE", 413);
   }
   const content = Buffer.from(encoded, "base64");
   if (!content.length) {
@@ -124,11 +102,7 @@ function requestParams(args: AttachmentArguments) {
   });
 }
 
-function attachmentPath(
-  target: Awaited<ReturnType<typeof resolveTarget>>,
-  attachmentId: unknown,
-  suffix = "",
-) {
+function attachmentPath(target: Awaited<ReturnType<typeof resolveTarget>>, attachmentId: unknown, suffix = "") {
   return `/api/${target.entityPath}/${encodeURIComponent(target.entityId)}/attachments/${encodeURIComponent(String(attachmentId))}${suffix}`;
 }
 
@@ -145,9 +119,7 @@ function filenameFromDisposition(value: string | null) {
   return /filename="([^"]*)"/iu.exec(disposition)?.[1] || "attachment";
 }
 
-export async function uploadAttachments(
-  args: ServiceArguments<"attachments_upload"> = {},
-) {
+export async function uploadAttachments(args: ServiceArguments<"attachments_upload"> = {}) {
   const target = await resolveTarget(args);
   const form = new FormData();
   for (const file of args.files || []) {
@@ -171,15 +143,11 @@ export async function uploadAttachments(
   );
 }
 
-export async function downloadAttachment(
-  args: ServiceArguments<"attachments_download"> = {},
-) {
+export async function downloadAttachment(args: ServiceArguments<"attachments_download"> = {}) {
   const target = await resolveTarget(args);
-  const { content, headers } = await fetchBinary(
-    attachmentPath(target, args.attachmentId),
-    requestParams(args),
-    { maxBytes: maxAttachmentBytes() },
-  );
+  const { content, headers } = await fetchBinary(attachmentPath(target, args.attachmentId), requestParams(args), {
+    maxBytes: maxAttachmentBytes(),
+  });
   return {
     entityType: args.entityType,
     entityId: args.entityId,
@@ -192,9 +160,7 @@ export async function downloadAttachment(
   };
 }
 
-export async function updateAttachmentTags(
-  args: ServiceArguments<"attachments_update_tags"> = {},
-) {
+export async function updateAttachmentTags(args: ServiceArguments<"attachments_update_tags"> = {}) {
   const target = await resolveTarget(args);
   return sendJson(
     attachmentPath(target, args.attachmentId, "/tags"),
@@ -204,12 +170,7 @@ export async function updateAttachmentTags(
   );
 }
 
-export async function deleteAttachment(
-  args: ServiceArguments<"attachments_delete"> = {},
-) {
+export async function deleteAttachment(args: ServiceArguments<"attachments_delete"> = {}) {
   const target = await resolveTarget(args);
-  return deleteJson(
-    attachmentPath(target, args.attachmentId),
-    requestParams(args),
-  );
+  return deleteJson(attachmentPath(target, args.attachmentId), requestParams(args));
 }

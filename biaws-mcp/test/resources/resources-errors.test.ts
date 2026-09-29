@@ -11,7 +11,6 @@ test("resources/read returns a numeric SDK protocol error when a read fails", as
   t.after(() => session.close());
   await assert.rejects(
     session.client.readResource({ uri: W }),
-    (error) =>
-      error instanceof Error && "code" in error && error.code === -32602,
+    (error) => error instanceof Error && "code" in error && error.code === -32602,
   );
 });

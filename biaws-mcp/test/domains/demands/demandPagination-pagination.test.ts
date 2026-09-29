@@ -60,13 +60,7 @@ test("text and partial-code matching run before pagination across API pages", as
       calls.map((query) => query.get("page")),
       ["1", "2"],
     );
-    assert.ok(
-      calls.every(
-        (query) =>
-          query.get("limit") === "100" &&
-          query.get("collectionId") === "collection-1",
-      ),
-    );
+    assert.ok(calls.every((query) => query.get("limit") === "100" && query.get("collectionId") === "collection-1"));
     const codes = await dispatchTool("demands_list", {
       code: "BIAWS-10",
       limit: 100,
@@ -90,10 +84,7 @@ test("empty and legacy nonpaginated responses remain readable", async () => {
   await withApi(
     async (calls) => {
       const result = await dispatchTool("demands_journey_calendar", {});
-      assert.equal(
-        "totalRequests" in result.meta ? result.meta.totalRequests : undefined,
-        102,
-      );
+      assert.equal("totalRequests" in result.meta ? result.meta.totalRequests : undefined, 102);
       assert.equal(calls.length, 1);
     },
     () => ({ items: demands }),

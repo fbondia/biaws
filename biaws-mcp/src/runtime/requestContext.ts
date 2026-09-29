@@ -7,10 +7,7 @@ export interface RequestContext {
   tool?: string;
 }
 const requestContext = new AsyncLocalStorage<RequestContext>();
-export function runWithRequestContext<T>(
-  context: RequestContext,
-  callback: () => T,
-): T {
+export function runWithRequestContext<T>(context: RequestContext, callback: () => T): T {
   return requestContext.run(context, callback);
 }
 export function currentRequestSignal() {

@@ -7,8 +7,7 @@ test("attachments_download returns binary content as Base64 with response metada
     new Response(Buffer.from("arquivo"), {
       headers: {
         "Content-Type": "text/plain",
-        "Content-Disposition":
-          "attachment; filename=\"arquivo.txt\"; filename*=UTF-8''evid%C3%AAncia.txt",
+        "Content-Disposition": "attachment; filename=\"arquivo.txt\"; filename*=UTF-8''evid%C3%AAncia.txt",
       },
     });
 

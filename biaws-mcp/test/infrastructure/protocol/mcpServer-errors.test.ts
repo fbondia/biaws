@@ -30,8 +30,5 @@ test("functional errors retain structured fields and leave the transport open", 
     },
   });
   assert.doesNotMatch(textContent(result.content[0]), /mcpServer.test/u);
-  assert.deepEqual(
-    (await session.client.callTool({ name: "fast" })).structuredContent,
-    { ok: true },
-  );
+  assert.deepEqual((await session.client.callTool({ name: "fast" })).structuredContent, { ok: true });
 });

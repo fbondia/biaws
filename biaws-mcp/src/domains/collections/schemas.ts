@@ -2,8 +2,7 @@ import type { ToolDefinition } from "../../mcp/tools/contracts.js";
 export const collectionTools = [
   {
     name: "resource_collections_create",
-    description:
-      "Cria uma coleção na raiz ou sob uma coleção pai do mesmo tipo e workspace.",
+    description: "Cria uma coleção na raiz ou sob uma coleção pai do mesmo tipo e workspace.",
     inputSchema: {
       type: "object",
       required: ["resourceType", "name"],
@@ -11,14 +10,7 @@ export const collectionTools = [
       properties: {
         resourceType: {
           type: "string",
-          enum: [
-            "applications",
-            "demands",
-            "documents",
-            "secrets",
-            "skills",
-            "servers",
-          ],
+          enum: ["applications", "demands", "documents", "secrets", "skills", "servers"],
         },
         name: {
           type: "string",
@@ -26,16 +18,14 @@ export const collectionTools = [
         },
         parentId: {
           type: "string",
-          description:
-            "ID da coleção de destino; vazio move o item para a raiz.",
+          description: "ID da coleção de destino; vazio move o item para a raiz.",
         },
       },
     },
   },
   {
     name: "resource_collections_update",
-    description:
-      "Renomeia ou reparenta uma coleção, impedindo ciclos na árvore.",
+    description: "Renomeia ou reparenta uma coleção, impedindo ciclos na árvore.",
     inputSchema: {
       type: "object",
       required: ["resourceType", "collectionId"],
@@ -43,14 +33,7 @@ export const collectionTools = [
       properties: {
         resourceType: {
           type: "string",
-          enum: [
-            "applications",
-            "demands",
-            "documents",
-            "secrets",
-            "skills",
-            "servers",
-          ],
+          enum: ["applications", "demands", "documents", "secrets", "skills", "servers"],
         },
         collectionId: {
           type: "string",
@@ -62,16 +45,14 @@ export const collectionTools = [
         },
         parentId: {
           type: "string",
-          description:
-            "ID da coleção de destino; vazio move o item para a raiz.",
+          description: "ID da coleção de destino; vazio move o item para a raiz.",
         },
       },
     },
   },
   {
     name: "resource_collections_delete",
-    description:
-      "Exclui somente uma coleção vazia, sem subcoleções nem recursos vinculados.",
+    description: "Exclui somente uma coleção vazia, sem subcoleções nem recursos vinculados.",
     inputSchema: {
       type: "object",
       required: ["resourceType", "collectionId"],
@@ -79,14 +60,7 @@ export const collectionTools = [
       properties: {
         resourceType: {
           type: "string",
-          enum: [
-            "applications",
-            "demands",
-            "documents",
-            "secrets",
-            "skills",
-            "servers",
-          ],
+          enum: ["applications", "demands", "documents", "secrets", "skills", "servers"],
         },
         collectionId: {
           type: "string",
@@ -97,8 +71,7 @@ export const collectionTools = [
   },
   {
     name: "applications_move_to_collection",
-    description:
-      "Move applications para uma coleção validada do workspace; collectionId vazio move para a raiz.",
+    description: "Move applications para uma coleção validada do workspace; collectionId vazio move para a raiz.",
     inputSchema: {
       type: "object",
       required: ["applicationId", "collectionId"],
@@ -110,16 +83,14 @@ export const collectionTools = [
         },
         collectionId: {
           type: "string",
-          description:
-            "ID da coleção de destino; vazio move o item para a raiz.",
+          description: "ID da coleção de destino; vazio move o item para a raiz.",
         },
       },
     },
   },
   {
     name: "servers_move_to_collection",
-    description:
-      "Move servers para uma coleção validada do workspace; collectionId vazio move para a raiz.",
+    description: "Move servers para uma coleção validada do workspace; collectionId vazio move para a raiz.",
     inputSchema: {
       type: "object",
       required: ["serverId", "collectionId"],
@@ -131,16 +102,14 @@ export const collectionTools = [
         },
         collectionId: {
           type: "string",
-          description:
-            "ID da coleção de destino; vazio move o item para a raiz.",
+          description: "ID da coleção de destino; vazio move o item para a raiz.",
         },
       },
     },
   },
   {
     name: "secrets_move_to_collection",
-    description:
-      "Move secrets para uma coleção validada do workspace; collectionId vazio move para a raiz.",
+    description: "Move secrets para uma coleção validada do workspace; collectionId vazio move para a raiz.",
     inputSchema: {
       type: "object",
       required: ["secretId", "collectionId"],
@@ -152,16 +121,14 @@ export const collectionTools = [
         },
         collectionId: {
           type: "string",
-          description:
-            "ID da coleção de destino; vazio move o item para a raiz.",
+          description: "ID da coleção de destino; vazio move o item para a raiz.",
         },
       },
     },
   },
   {
     name: "skills_move_to_collection",
-    description:
-      "Move skills para uma coleção validada do workspace; collectionId vazio move para a raiz.",
+    description: "Move skills para uma coleção validada do workspace; collectionId vazio move para a raiz.",
     inputSchema: {
       type: "object",
       required: ["skillId", "collectionId"],
@@ -173,16 +140,14 @@ export const collectionTools = [
         },
         collectionId: {
           type: "string",
-          description:
-            "ID da coleção de destino; vazio move o item para a raiz.",
+          description: "ID da coleção de destino; vazio move o item para a raiz.",
         },
       },
     },
   },
   {
     name: "demands_move_to_collection",
-    description:
-      "Move demands para uma coleção validada do workspace; collectionId vazio move para a raiz.",
+    description: "Move demands para uma coleção validada do workspace; collectionId vazio move para a raiz.",
     inputSchema: {
       type: "object",
       required: ["requestId", "collectionId"],
@@ -194,16 +159,14 @@ export const collectionTools = [
         },
         collectionId: {
           type: "string",
-          description:
-            "ID da coleção de destino; vazio move o item para a raiz.",
+          description: "ID da coleção de destino; vazio move o item para a raiz.",
         },
       },
     },
   },
   {
     name: "documents_move_to_collection",
-    description:
-      "Move documents para uma coleção validada do workspace; collectionId vazio move para a raiz.",
+    description: "Move documents para uma coleção validada do workspace; collectionId vazio move para a raiz.",
     inputSchema: {
       type: "object",
       required: ["documentId", "collectionId"],
@@ -215,8 +178,7 @@ export const collectionTools = [
         },
         collectionId: {
           type: "string",
-          description:
-            "ID da coleção de destino; vazio move o item para a raiz.",
+          description: "ID da coleção de destino; vazio move o item para a raiz.",
         },
       },
     },

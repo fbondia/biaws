@@ -20,10 +20,7 @@ test("collection reads preserve pagination and link to individual comments", asy
       });
       const payload = JSON.parse(textContent(result.contents[0]));
       assert.equal(payload.meta.page, 2);
-      assert.equal(
-        payload.links[0].uri,
-        W + "/issues/canonical-issue/comments/comment-a",
-      );
+      assert.equal(payload.links[0].uri, W + "/issues/canonical-issue/comments/comment-a");
     },
   );
 });

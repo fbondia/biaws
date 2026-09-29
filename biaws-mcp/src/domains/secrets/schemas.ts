@@ -71,8 +71,7 @@ export const secretTools = [
         },
         applicationId: {
           type: ["string", "null"],
-          description:
-            "Aplicação à qual o segredo pertence; null exige escopo de workspace.",
+          description: "Aplicação à qual o segredo pertence; null exige escopo de workspace.",
         },
         collectionId: {
           type: "string",

@@ -25,17 +25,12 @@ test("monitoring schemas reject invalid enums, bounds and extra fields", async (
       },
       "intervalSeconds",
     ],
-    [
-      "monitoring_templates_activate",
-      { templateId: "health", version: "1", workspaceId: "other" },
-      "workspaceId",
-    ],
+    ["monitoring_templates_activate", { templateId: "health", version: "1", workspaceId: "other" }, "workspaceId"],
   ] as const) {
     await assert.rejects(
       () => dispatchTool(name, args),
       (error) =>
-        errorInfo(error).code === "VALIDATION_ERROR" &&
-        fieldErrors(error).some((field) => field.path === path),
+        errorInfo(error).code === "VALIDATION_ERROR" && fieldErrors(error).some((field) => field.path === path),
     );
   }
 });

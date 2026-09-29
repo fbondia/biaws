@@ -11,14 +11,9 @@ export interface ToolDefinition {
 }
 export type ToolName = (typeof toolDefinitions)[number]["name"];
 export type ToolArguments<Name extends ToolName> = FromSchema<
-  Extract<
-    (typeof toolDefinitions)[number],
-    { readonly name: Name }
-  >["inputSchema"]
+  Extract<(typeof toolDefinitions)[number], { readonly name: Name }>["inputSchema"]
 >;
-export type ServiceArguments<Name extends ToolName> = Partial<
-  ToolArguments<Name>
->;
+export type ServiceArguments<Name extends ToolName> = Partial<ToolArguments<Name>>;
 export type ToolHandler = (args: unknown) => unknown;
 export interface Schema {
   readonly type?: string | readonly string[];

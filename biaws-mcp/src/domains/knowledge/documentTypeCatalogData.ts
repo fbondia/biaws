@@ -17,13 +17,7 @@ export const DOCUMENT_TYPE_CATALOG = Object.freeze({
     label: "Decisão arquitetural",
     description: "Escolhas técnicas, contexto, alternativas e consequências.",
     defaultStatus: "proposed",
-    statuses: Object.freeze([
-      "proposed",
-      "accepted",
-      "rejected",
-      "superseded",
-      "archived",
-    ]),
+    statuses: Object.freeze(["proposed", "accepted", "rejected", "superseded", "archived"]),
     currentStatuses: Object.freeze(["accepted"]),
     applicationRequired: true,
     details: Object.freeze({
@@ -78,13 +72,7 @@ export const DOCUMENT_TYPE_CATALOG = Object.freeze({
     details: Object.freeze({
       referenceKind: Object.freeze({
         type: "string",
-        enum: Object.freeze([
-          "architecture",
-          "contract",
-          "schema",
-          "protocol",
-          "mechanism",
-        ]),
+        enum: Object.freeze(["architecture", "contract", "schema", "protocol", "mechanism"]),
         default: "architecture",
       }),
     }),

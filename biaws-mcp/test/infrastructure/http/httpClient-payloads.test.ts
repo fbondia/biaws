@@ -2,11 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { fetchJson } from "../../../src/api/httpClient.js";
 import { errorInfo } from "../../helpers/types.js";
-for (const payload of [
-  { items: [{ id: 42 }] },
-  { items: "invalid" },
-  { meta: { total: "10" } },
-]) {
+for (const payload of [{ items: [{ id: 42 }] }, { items: "invalid" }, { meta: { total: "10" } }]) {
   test(`malformed upstream data fails without retries: ${JSON.stringify(payload)}`, async (t) => {
     const previous = globalThis.fetch;
     let calls = 0;
@@ -65,9 +61,6 @@ test("query parameters preserve scalars and reject objects before HTTP", async (
     search: "example",
   });
   assert.equal(calls[0].search, "?page=2&includeArchived=false&search=example");
-  await assert.rejects(
-    fetchJson("/api/issues", { search: { id: "unexpected" } }),
-    /Expected a scalar text value/u,
-  );
+  await assert.rejects(fetchJson("/api/issues", { search: { id: "unexpected" } }), /Expected a scalar text value/u);
   assert.equal(calls.length, 1);
 });

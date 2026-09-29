@@ -14,13 +14,10 @@ export function errorInfo(value: unknown): BiawsError {
   result.name = error.name;
   result.stack = error.stack;
   for (const key of ["code", "requestId"] as const) {
-    if (key in source && typeof source[key] === "string")
-      result[key] = source[key];
+    if (key in source && typeof source[key] === "string") result[key] = source[key];
   }
-  if ("statusCode" in source && typeof source.statusCode === "number")
-    result.statusCode = source.statusCode;
-  if ("retryable" in source && typeof source.retryable === "boolean")
-    result.retryable = source.retryable;
+  if ("statusCode" in source && typeof source.statusCode === "number") result.statusCode = source.statusCode;
+  if ("retryable" in source && typeof source.retryable === "boolean") result.retryable = source.retryable;
   for (const key of ["requiredPermissions", "fields", "details"] as const) {
     if (key in source) result[key] = source[key];
   }

@@ -10,9 +10,6 @@ test("schema failures retain BIAWS isError validation without closing the transp
     arguments: { requestId: "r", taskId: "t", status: "Em andamento" },
   });
   assert.equal(result.isError, true);
-  assert.equal(
-    required(toolPayload(result.structuredContent).error).code,
-    "VALIDATION_ERROR",
-  );
+  assert.equal(required(toolPayload(result.structuredContent).error).code, "VALIDATION_ERROR");
   assert.ok((await session.client.listTools()).tools.length > 0);
 });

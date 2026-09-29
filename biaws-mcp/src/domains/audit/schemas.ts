@@ -31,8 +31,7 @@ export const auditTools = [
         entityId: {
           type: "string",
           minLength: 1,
-          description:
-            "ID da entidade usado pela API; códigos de melhorias não são resolvidos nesta ferramenta.",
+          description: "ID da entidade usado pela API; códigos de melhorias não são resolvidos nesta ferramenta.",
         },
         limit: {
           type: "integer",

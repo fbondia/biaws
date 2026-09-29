@@ -6,20 +6,11 @@ test("invalid inputs never reach HTTP", async () => {
   await withApi(null, async (calls) => {
     for (const [name, args] of [
       ["audit_events_list", { entityType: "unknown", entityId: "id" }],
-      [
-        "audit_events_list",
-        { entityType: "issue", entityId: "id", limit: 201 },
-      ],
+      ["audit_events_list", { entityType: "issue", entityId: "id", limit: 201 }],
       ["audit_events_list", { entityType: "issue", entityId: " " }],
 
-      [
-        "runtime_monitoring_signals_list",
-        { runtimeReference: "r", limit: 101 },
-      ],
-      [
-        "runtime_monitoring_signals_list",
-        { runtimeReference: "r", status: "invalid" },
-      ],
+      ["runtime_monitoring_signals_list", { runtimeReference: "r", limit: 101 }],
+      ["runtime_monitoring_signals_list", { runtimeReference: "r", status: "invalid" }],
       ["applications_monitoring_health_get", { applicationId: " " }],
       ["issues_update", { issueId: "i" }],
       ["issues_update", { issueId: "i", title: " " }],

@@ -13,42 +13,17 @@ import {
   updateResourceCollection,
 } from "./service.js";
 const handlers: Record<string, ToolHandler> = {
-  resource_collections_create: bindTool(
-    "resource_collections_create",
-    createResourceCollection,
-  ),
-  resource_collections_update: bindTool(
-    "resource_collections_update",
-    updateResourceCollection,
-  ),
-  resource_collections_delete: bindTool(
-    "resource_collections_delete",
-    deleteResourceCollection,
-  ),
-  applications_move_to_collection: bindTool(
-    "applications_move_to_collection",
-    moveApplicationToCollection,
-  ),
-  servers_move_to_collection: bindTool(
-    "servers_move_to_collection",
-    moveServerToCollection,
-  ),
-  secrets_move_to_collection: bindTool(
-    "secrets_move_to_collection",
-    moveSecretToCollection,
-  ),
-  skills_move_to_collection: bindTool(
-    "skills_move_to_collection",
-    moveSkillToCollection,
-  ),
-  demands_move_to_collection: bindTool(
-    "demands_move_to_collection",
-    moveDemandToCollection,
-  ),
-  documents_move_to_collection: bindTool(
-    "documents_move_to_collection",
-    moveDocumentToCollection,
-  ),
+  resource_collections_create: bindTool("resource_collections_create", createResourceCollection),
+  resource_collections_update: bindTool("resource_collections_update", updateResourceCollection),
+  resource_collections_delete: bindTool("resource_collections_delete", deleteResourceCollection),
+  applications_move_to_collection: bindTool("applications_move_to_collection", moveApplicationToCollection),
+  servers_move_to_collection: bindTool("servers_move_to_collection", moveServerToCollection),
+  secrets_move_to_collection: bindTool("secrets_move_to_collection", moveSecretToCollection),
+  skills_move_to_collection: bindTool("skills_move_to_collection", moveSkillToCollection),
+  demands_move_to_collection: bindTool("demands_move_to_collection", moveDemandToCollection),
+  documents_move_to_collection: bindTool("documents_move_to_collection", moveDocumentToCollection),
 };
-export const collectionTools: (ToolDefinition & { handler: ToolHandler })[] =
-  definitions.map((tool) => ({ ...tool, handler: handlers[tool.name] }));
+export const collectionTools: (ToolDefinition & { handler: ToolHandler })[] = definitions.map((tool) => ({
+  ...tool,
+  handler: handlers[tool.name],
+}));

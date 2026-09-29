@@ -8,10 +8,7 @@ import { json, W, withApi } from "./resources.fixtures.js";
 
 for (const mode of ["legacy", { pin: "2026-07-28" }] as const) {
   test(`redundant read tools are absent and rejected (${JSON.stringify(mode)})`, async (t) => {
-    const session = await connectTestServer(
-      {},
-      { versionNegotiation: { mode } },
-    );
+    const session = await connectTestServer({}, { versionNegotiation: { mode } });
     t.after(() => session.close());
     const catalog = await session.client.listTools();
     assert.equal(catalog.tools.length, 98);
@@ -23,10 +20,7 @@ for (const mode of ["legacy", { pin: "2026-07-28" }] as const) {
       );
       const result = await session.client.callTool({ name });
       assert.equal(result.isError, true);
-      assert.equal(
-        required(toolPayload(result.structuredContent).error).code,
-        "TOOL_NOT_FOUND",
-      );
+      assert.equal(required(toolPayload(result.structuredContent).error).code, "TOOL_NOT_FOUND");
     }
   });
 }
@@ -44,14 +38,8 @@ for (const replacement of replacements) {
         calls += 1;
         assert.equal(url.pathname + url.search, replacement.path);
         assert.equal(options.method, undefined);
-        assert.equal(
-          new Headers(options.headers).get("authorization"),
-          "Bearer test-read-migration",
-        );
-        assert.equal(
-          new Headers(options.headers).get("x-biaws-workspace-id"),
-          "workspace-a",
-        );
+        assert.equal(new Headers(options.headers).get("authorization"), "Bearer test-read-migration");
+        assert.equal(new Headers(options.headers).get("x-biaws-workspace-id"), "workspace-a");
         return json(replacement.payload);
       },
       async () => {
@@ -99,16 +87,13 @@ for (const [status, code] of [
       async () => {
         const session = await connectTestServer();
         t.after(() => session.close());
-        await assert.rejects(
-          session.client.readResource({ uri: W + "/components/key" }),
-          (error) => {
-            assert.ok(isRecord(error));
-            assert.ok(isRecord(error.data));
-            assert.equal(error.data.code, code);
-            assert.equal(error.data.status, status);
-            return true;
-          },
-        );
+        await assert.rejects(session.client.readResource({ uri: W + "/components/key" }), (error) => {
+          assert.ok(isRecord(error));
+          assert.ok(isRecord(error.data));
+          assert.equal(error.data.code, code);
+          assert.equal(error.data.status, status);
+          return true;
+        });
       },
     );
   });
@@ -116,10 +101,7 @@ for (const [status, code] of [
 test("version selection and opaque template IDs survive migration", async (t) => {
   await withApi(
     (url) => {
-      assert.equal(
-        url.pathname + url.search,
-        "/api/monitoring/templates/health%2Fapi?version=2",
-      );
+      assert.equal(url.pathname + url.search, "/api/monitoring/templates/health%2Fapi?version=2");
       return json({ template: { id: "health/api", version: "2" } });
     },
     async () => {
@@ -184,10 +166,7 @@ test("cancellation of a direct replacement reaches HTTP while catalog stays usab
       const session = await connectTestServer();
       t.after(() => session.close());
       const controller = new AbortController();
-      const pending = session.client.readResource(
-        { uri: W + "/components/id" },
-        { signal: controller.signal },
-      );
+      const pending = session.client.readResource({ uri: W + "/components/id" }, { signal: controller.signal });
       const rejected = assert.rejects(pending);
       await started;
       assert.equal((await session.client.listTools()).tools.length, 98);
@@ -219,17 +198,12 @@ test("remaining search tools emit direct links readable with the entity permissi
         name: "components_list",
         arguments: { applicationId: "app" },
       });
-      const link = required(
-        found.content.find((item) => item.type === "resource_link"),
-      );
+      const link = required(found.content.find((item) => item.type === "resource_link"));
       assert.equal(link.type, "resource_link");
       if (link.type !== "resource_link") assert.fail("expected resource link");
       assert.equal(link.uri, W + "/components/component-id");
       await session.client.readResource({ uri: link.uri });
-      assert.deepEqual(paths, [
-        "/api/catalog/applications/app/components",
-        "/api/catalog/components/component-id",
-      ]);
+      assert.deepEqual(paths, ["/api/catalog/applications/app/components", "/api/catalog/components/component-id"]);
     },
   );
 });

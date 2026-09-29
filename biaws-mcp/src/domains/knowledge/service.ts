@@ -6,10 +6,7 @@ import { DOCUMENT_TYPE_CATALOG } from "./documentTypeCatalog.js";
 
 const BASE_PATH = "/api/knowledge/documents";
 
-function documentPayload(
-  args: Record<string, unknown> = {},
-  current: ApiEntity = {},
-) {
+function documentPayload(args: Record<string, unknown> = {}, current: ApiEntity = {}) {
   return {
     identifier: args.identifier ?? current.identifier,
     documentType: args.documentType ?? current.documentType,
@@ -17,8 +14,7 @@ function documentPayload(
     summary: args.summary ?? current.summary,
     markdown: args.markdown ?? current.markdown,
     applicationId: args.applicationId ?? current.applicationId,
-    affectedComponentIds:
-      args.affectedComponentIds ?? current.affectedComponentIds ?? [],
+    affectedComponentIds: args.affectedComponentIds ?? current.affectedComponentIds ?? [],
     collectionId: args.collectionId ?? current.collectionId ?? "",
     status: args.status ?? current.status,
     details: args.details ?? current.details ?? {},
@@ -37,12 +33,8 @@ function documentPayload(
   };
 }
 
-function documentContext(config: {
-  applicationRequired?: boolean;
-  type: string;
-}) {
-  if (config.applicationRequired)
-    return { applicationId: "required", affectedComponentIds: "optional" };
+function documentContext(config: { applicationRequired?: boolean; type: string }) {
+  if (config.applicationRequired) return { applicationId: "required", affectedComponentIds: "optional" };
   if (config.type === "guideline")
     return {
       applicationId: "depends-on-details.scope",
@@ -66,9 +58,7 @@ export function listDocumentTypes() {
   };
 }
 
-export async function searchDocuments(
-  args: ServiceArguments<"documents_search"> = {},
-) {
+export async function searchDocuments(args: ServiceArguments<"documents_search"> = {}) {
   return fetchJson(
     BASE_PATH,
     cleanParams({
@@ -93,24 +83,14 @@ export async function getDocument(args: { documentId?: string } = {}) {
   return fetchJson(`${BASE_PATH}/${encodeURIComponent(documentId)}`);
 }
 
-export async function createDocument(
-  args: ServiceArguments<"documents_create"> = {},
-) {
-  for (const field of [
-    "documentType",
-    "title",
-    "summary",
-    "markdown",
-  ] as const) {
-    if (!String(args[field] || "").trim())
-      throw new BiawsError(`${field} is required`);
+export async function createDocument(args: ServiceArguments<"documents_create"> = {}) {
+  for (const field of ["documentType", "title", "summary", "markdown"] as const) {
+    if (!String(args[field] || "").trim()) throw new BiawsError(`${field} is required`);
   }
   return sendJson(BASE_PATH, documentPayload(args), {}, "POST");
 }
 
-export async function updateDocument(
-  args: ServiceArguments<"documents_update"> = {},
-) {
+export async function updateDocument(args: ServiceArguments<"documents_update"> = {}) {
   const documentId = String(args.documentId || "").trim();
   if (!documentId) throw new BiawsError("documentId is required");
   const currentPayload = await getDocument({ documentId });
@@ -122,24 +102,15 @@ export async function updateDocument(
   );
 }
 
-export async function addDocumentObservation(
-  args: ServiceArguments<"documents_add_observation"> = {},
-) {
+export async function addDocumentObservation(args: ServiceArguments<"documents_add_observation"> = {}) {
   const documentId = String(args.documentId || "").trim();
   const markdown = String(args.markdown || "").trim();
   if (!documentId) throw new BiawsError("documentId is required");
   if (!markdown) throw new BiawsError("markdown is required");
-  return sendJson(
-    `${BASE_PATH}/${encodeURIComponent(documentId)}/observations`,
-    { markdown },
-    {},
-    "POST",
-  );
+  return sendJson(`${BASE_PATH}/${encodeURIComponent(documentId)}/observations`, { markdown }, {}, "POST");
 }
 
-export async function loadKnowledgeContext(
-  args: ServiceArguments<"knowledge_context_load"> = {},
-) {
+export async function loadKnowledgeContext(args: ServiceArguments<"knowledge_context_load"> = {}) {
   const applicationId = String(args.applicationId || "").trim();
   if (!applicationId) throw new BiawsError("applicationId is required");
   const list = await searchDocuments({
@@ -153,11 +124,7 @@ export async function loadKnowledgeContext(
   const documents =
     args.includeMarkdown === false
       ? items
-      : await Promise.all(
-          items.map(
-            async ({ id }) => (await getDocument({ documentId: id })).document,
-          ),
-        );
+      : await Promise.all(items.map(async ({ id }) => (await getDocument({ documentId: id })).document));
   return {
     applicationId,
     componentId: args.componentId || null,

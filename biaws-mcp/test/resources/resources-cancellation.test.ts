@@ -35,16 +35,10 @@ test("SDK cancels a resource read without blocking tools on the connection", asy
   });
   t.after(() => session.close());
   const controller = new AbortController();
-  const pending = session.client.readResource(
-    { uri: W },
-    { signal: controller.signal },
-  );
+  const pending = session.client.readResource({ uri: W }, { signal: controller.signal });
   const rejection = assert.rejects(pending);
   await ready;
-  assert.deepEqual(
-    (await session.client.callTool({ name: "fast" })).structuredContent,
-    { ok: true },
-  );
+  assert.deepEqual((await session.client.callTool({ name: "fast" })).structuredContent, { ok: true });
   controller.abort();
   await rejection;
   await cancelled;

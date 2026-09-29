@@ -9,29 +9,15 @@ test("read defaults are applied and bounded to API contracts", async () => {
       entityType: "issue",
       entityId: "issue-1",
     });
-    assert.equal(
-      required(required(calls.at(-1)).url).searchParams.get("limit"),
-      "100",
-    );
+    assert.equal(required(required(calls.at(-1)).url).searchParams.get("limit"), "100");
     await dispatchTool("runtime_monitoring_signals_list", {
       runtimeReference: "runtime-1",
     });
-    assert.equal(
-      required(required(calls.at(-1)).url).searchParams.get("page"),
-      "1",
-    );
-    assert.equal(
-      required(required(calls.at(-1)).url).searchParams.get("limit"),
-      "50",
-    );
+    assert.equal(required(required(calls.at(-1)).url).searchParams.get("page"), "1");
+    assert.equal(required(required(calls.at(-1)).url).searchParams.get("limit"), "50");
     await dispatchTool("applications_monitoring_health_get", {
       applicationId: "app-1",
     });
-    assert.equal(
-      required(required(calls.at(-1)).url).searchParams.get(
-        "includeConfigured",
-      ),
-      "false",
-    );
+    assert.equal(required(required(calls.at(-1)).url).searchParams.get("includeConfigured"), "false");
   });
 });

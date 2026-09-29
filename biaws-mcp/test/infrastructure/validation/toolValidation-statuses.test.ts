@@ -4,14 +4,9 @@ import { dispatchTool, listTools } from "../../../src/mcp/tools/tools.js";
 import { errorInfo, fieldErrors, required } from "../../helpers/types.js";
 import { VALID_TASK_STATUSES } from "./toolValidation.fixtures.js";
 test("task status update declares and validates every accepted status", async () => {
-  const tool = required(
-    listTools().find(({ name }) => name === "demands_update_task_status"),
-  );
+  const tool = required(listTools().find(({ name }) => name === "demands_update_task_status"));
 
-  assert.deepEqual(
-    tool.inputSchema.properties.status.enum,
-    VALID_TASK_STATUSES,
-  );
+  assert.deepEqual(tool.inputSchema.properties.status.enum, VALID_TASK_STATUSES);
   assert.match(tool.description, /Requer um status válido/u);
 
   await assert.rejects(

@@ -12,9 +12,6 @@ test("API permission errors remain visible to MCP callers", async (t) => {
       arguments: { requestId: demandId, checklist: [] },
     });
     assert.equal(result.isError, true);
-    assert.equal(
-      required(toolPayload(result.structuredContent).error).status,
-      403,
-    );
+    assert.equal(required(toolPayload(result.structuredContent).error).status, 403);
   }, 403);
 });

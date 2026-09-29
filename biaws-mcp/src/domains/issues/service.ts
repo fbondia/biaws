@@ -2,12 +2,7 @@ import { scalarText } from "../../runtime/text.js";
 import type { ApiEntity, ApiPayload } from "../../api/apiContracts.js";
 import type { ServiceArguments } from "../../mcp/tools/contracts.js";
 import { BiawsError } from "../../runtime/errors.js";
-import {
-  cleanParams,
-  fetchJson,
-  sendJson,
-  sendMultipart,
-} from "../../api/httpClient.js";
+import { cleanParams, fetchJson, sendJson, sendMultipart } from "../../api/httpClient.js";
 interface FlatTaxonomy {
   id?: string;
   label?: string;
@@ -15,10 +10,7 @@ interface FlatTaxonomy {
   searchText: string;
 }
 
-function flattenTaxonomy(
-  nodes: ApiEntity[] = [],
-  parentPath: string[] = [],
-): FlatTaxonomy[] {
+function flattenTaxonomy(nodes: ApiEntity[] = [], parentPath: string[] = []): FlatTaxonomy[] {
   return nodes.flatMap((node) => {
     const path = [...parentPath, node.label || node.id || ""];
     return [
@@ -33,10 +25,7 @@ function flattenTaxonomy(
   });
 }
 
-function findTaxonomyNode(
-  nodes: ApiEntity[],
-  taxonomyId: string,
-): ApiEntity | null {
+function findTaxonomyNode(nodes: ApiEntity[], taxonomyId: string): ApiEntity | null {
   for (const node of nodes) {
     if (node.id === taxonomyId) return node;
     const child = findTaxonomyNode(node.children || [], taxonomyId);
@@ -45,11 +34,7 @@ function findTaxonomyNode(
   return null;
 }
 
-function appendTaxonomyNode(
-  nodes: ApiEntity[],
-  parentId: string,
-  item: ApiEntity,
-): ApiEntity[] {
+function appendTaxonomyNode(nodes: ApiEntity[], parentId: string, item: ApiEntity): ApiEntity[] {
   if (!parentId) return [...nodes, item];
 
   return nodes.map((node) =>
@@ -66,11 +51,7 @@ function appendTaxonomyNode(
   );
 }
 
-function updateTaxonomyNode(
-  nodes: ApiEntity[],
-  taxonomyId: string,
-  patch: Partial<ApiEntity>,
-): ApiEntity[] {
+function updateTaxonomyNode(nodes: ApiEntity[], taxonomyId: string, patch: Partial<ApiEntity>): ApiEntity[] {
   return nodes.map((node) =>
     node.id === taxonomyId
       ? { ...node, ...patch }
@@ -86,18 +67,10 @@ function updateTaxonomyNode(
 }
 
 function normalizeApplicationIds(value: string[] | undefined) {
-  return [
-    ...new Set(
-      (value || [])
-        .map((applicationId) => String(applicationId || "").trim())
-        .filter(Boolean),
-    ),
-  ];
+  return [...new Set((value || []).map((applicationId) => String(applicationId || "").trim()).filter(Boolean))];
 }
 
-function writableTaxonomyPackage(
-  taxonomy: NonNullable<ApiPayload["taxonomy"]>,
-) {
+function writableTaxonomyPackage(taxonomy: NonNullable<ApiPayload["taxonomy"]>) {
   return {
     schemaVersion: taxonomy.schemaVersion || 1,
     source: taxonomy.source || null,
@@ -108,23 +81,13 @@ function writableTaxonomyPackage(
 }
 
 async function loadWritableTaxonomy(workspaceId: string | undefined) {
-  const payload = await fetchJson(
-    "/api/issues/taxonomy",
-    cleanParams({ workspaceId }),
-  );
+  const payload = await fetchJson("/api/issues/taxonomy", cleanParams({ workspaceId }));
   if (!payload.taxonomy) throw new BiawsError("Issue taxonomy not found");
   return writableTaxonomyPackage(payload.taxonomy);
 }
 
-async function saveWritableTaxonomy(
-  taxonomy: unknown,
-  workspaceId: string | undefined,
-) {
-  return sendJson(
-    "/api/issues/taxonomy",
-    taxonomy,
-    cleanParams({ workspaceId }),
-  );
+async function saveWritableTaxonomy(taxonomy: unknown, workspaceId: string | undefined) {
+  return sendJson("/api/issues/taxonomy", taxonomy, cleanParams({ workspaceId }));
 }
 
 function tokenize(value: unknown) {
@@ -136,14 +99,8 @@ function tokenize(value: unknown) {
     .filter((token) => token.length >= 3);
 }
 
-function scoreTaxonomyNode(
-  node: FlatTaxonomy,
-  tokens: string[],
-  rawText: string,
-) {
-  const normalizedNodeText = node.searchText
-    .normalize("NFKD")
-    .replaceAll(/\p{Diacritic}/gu, "");
+function scoreTaxonomyNode(node: FlatTaxonomy, tokens: string[], rawText: string) {
+  const normalizedNodeText = node.searchText.normalize("NFKD").replaceAll(/\p{Diacritic}/gu, "");
   let score = 0;
 
   for (const token of tokens) {
@@ -154,22 +111,16 @@ function scoreTaxonomyNode(
   return score;
 }
 
-export async function searchIssues(
-  args: ServiceArguments<"issues_search"> = {},
-) {
+export async function searchIssues(args: ServiceArguments<"issues_search"> = {}) {
   return fetchJson("/api/issues", cleanParams(args));
 }
 
-export async function getIssueDetails(
-  args: ServiceArguments<"issues_get"> = {},
-) {
+export async function getIssueDetails(args: ServiceArguments<"issues_get"> = {}) {
   if (!args.issueId) throw new BiawsError("issueId is required");
   return fetchJson(`/api/issues/${encodeURIComponent(args.issueId)}`);
 }
 
-export async function addIssueComment(
-  args: ServiceArguments<"issues_add_comment"> = {},
-) {
+export async function addIssueComment(args: ServiceArguments<"issues_add_comment"> = {}) {
   const issueId = String(args.issueId || "").trim();
   const text = String(args.text || "").trim();
   if (!issueId) throw new BiawsError("issueId is required");
@@ -183,9 +134,7 @@ export async function addIssueComment(
   );
 }
 
-export async function updateIssueComment(
-  args: ServiceArguments<"issues_update_comment"> = {},
-) {
+export async function updateIssueComment(args: ServiceArguments<"issues_update_comment"> = {}) {
   const issueId = String(args.issueId || "").trim();
   const commentId = String(args.commentId || "").trim();
   const text = String(args.text || "").trim();
@@ -199,13 +148,8 @@ export async function updateIssueComment(
   );
 }
 
-export async function getIssueClassificationCatalog(
-  args: ServiceArguments<"issues_get_classification_catalog"> = {},
-) {
-  const payload = await fetchJson(
-    "/api/issues/taxonomy",
-    cleanParams({ applicationId: args.applicationId }),
-  );
+export async function getIssueClassificationCatalog(args: ServiceArguments<"issues_get_classification_catalog"> = {}) {
+  const payload = await fetchJson("/api/issues/taxonomy", cleanParams({ applicationId: args.applicationId }));
   const catalog = payload.taxonomy || {};
   const result: {
     meta?: ApiPayload["meta"];
@@ -224,12 +168,10 @@ export async function getIssueClassificationCatalog(
   };
 
   if (args.flatten === true) {
-    result.taxonomyOptions = flattenTaxonomy(result.taxonomy).map(
-      ({ searchText, ...node }) => ({
-        ...node,
-        pathLabel: node.path.join(" / "),
-      }),
-    );
+    result.taxonomyOptions = flattenTaxonomy(result.taxonomy).map(({ searchText, ...node }) => ({
+      ...node,
+      pathLabel: node.path.join(" / "),
+    }));
     result.tagOptions = result.tagGroups.flatMap((group) =>
       (group.tags || []).map((tagId) => ({
         groupId: group.id,
@@ -242,9 +184,7 @@ export async function getIssueClassificationCatalog(
   return result;
 }
 
-export async function createTaxonomyItem(
-  args: ServiceArguments<"issues_create_taxonomy_item"> = {},
-) {
+export async function createTaxonomyItem(args: ServiceArguments<"issues_create_taxonomy_item"> = {}) {
   const id = String(args.id || "").trim();
   const label = String(args.label || "").trim();
   const parentId = String(args.parentId || "").trim();
@@ -255,9 +195,7 @@ export async function createTaxonomyItem(
   if (findTaxonomyNode(taxonomy.taxonomy, id)) {
     throw new BiawsError(`Taxonomy item already exists: ${id}`);
   }
-  const parent = parentId
-    ? findTaxonomyNode(taxonomy.taxonomy, parentId)
-    : null;
+  const parent = parentId ? findTaxonomyNode(taxonomy.taxonomy, parentId) : null;
   if (parentId && !parent) {
     throw new BiawsError(`Parent taxonomy item not found: ${parentId}`);
   }
@@ -279,9 +217,7 @@ export async function createTaxonomyItem(
   };
 }
 
-export async function updateTaxonomyItem(
-  args: ServiceArguments<"issues_update_taxonomy_item"> = {},
-) {
+export async function updateTaxonomyItem(args: ServiceArguments<"issues_update_taxonomy_item"> = {}) {
   const taxonomyId = String(args.taxonomyId || "").trim();
   if (!taxonomyId) throw new BiawsError("taxonomyId is required");
   if (args.label === undefined && args.applicationIds === undefined) {
@@ -310,9 +246,7 @@ export async function updateTaxonomyItem(
   };
 }
 
-export async function summarizeIssuesForSupport(
-  args: ServiceArguments<"issues_summary" | "issues_aggregate"> = {},
-) {
+export async function summarizeIssuesForSupport(args: ServiceArguments<"issues_summary" | "issues_aggregate"> = {}) {
   if (args.groupBy) {
     return fetchJson("/api/issues/aggregate", cleanParams(args));
   }
@@ -320,9 +254,7 @@ export async function summarizeIssuesForSupport(
   return fetchJson("/api/issues/summary", cleanParams(args));
 }
 
-export async function createIssue(
-  args: ServiceArguments<"issues_create"> = {},
-) {
+export async function createIssue(args: ServiceArguments<"issues_create"> = {}) {
   if (!String(args.applicationId || "").trim()) {
     throw new BiawsError("applicationId is required");
   }
@@ -341,29 +273,18 @@ export async function createIssue(
   );
 }
 
-export async function importEml(
-  args: ServiceArguments<"issues_import_eml"> = {},
-) {
+export async function importEml(args: ServiceArguments<"issues_import_eml"> = {}) {
   const filename = String(args.filename || "").trim();
-  const contentBase64 = String(args.contentBase64 || "").replaceAll(
-    /\s+/gu,
-    "",
-  );
+  const contentBase64 = String(args.contentBase64 || "").replaceAll(/\s+/gu, "");
   if (!filename) throw new BiawsError("filename is required");
-  if (!filename.toLowerCase().endsWith(".eml"))
-    throw new BiawsError("filename must end with .eml");
+  if (!filename.toLowerCase().endsWith(".eml")) throw new BiawsError("filename must end with .eml");
   if (!contentBase64) throw new BiawsError("contentBase64 is required");
 
   const content = Buffer.from(contentBase64, "base64");
-  if (!content.length)
-    throw new BiawsError("contentBase64 is invalid or empty");
+  if (!content.length) throw new BiawsError("contentBase64 is invalid or empty");
 
   const form = new FormData();
-  form.append(
-    "file",
-    new Blob([content], { type: "message/rfc822" }),
-    filename,
-  );
+  form.append("file", new Blob([content], { type: "message/rfc822" }), filename);
   if (args.type) form.append("type", args.type);
   if (args.id) form.append("id", args.id);
   if (!String(args.applicationId || "").trim()) {
@@ -372,10 +293,7 @@ export async function importEml(
   form.append("applicationId", String(args.applicationId));
   if (args.workspaceId) form.append("workspaceId", args.workspaceId);
   if (args.affectedComponentIds !== undefined) {
-    form.append(
-      "affectedComponentIds",
-      JSON.stringify(args.affectedComponentIds),
-    );
+    form.append("affectedComponentIds", JSON.stringify(args.affectedComponentIds));
   }
 
   return sendMultipart("/api/issues/imports/eml", form, {
@@ -383,9 +301,7 @@ export async function importEml(
   });
 }
 
-export async function updateIssueState(
-  args: ServiceArguments<"issues_update_state"> = {},
-) {
+export async function updateIssueState(args: ServiceArguments<"issues_update_state"> = {}) {
   if (!args.issueId) throw new BiawsError("issueId is required");
 
   return sendJson(
@@ -399,27 +315,19 @@ export async function updateIssueState(
   );
 }
 
-export async function suggestTaxonomy(
-  args: ServiceArguments<"issues_suggest_taxonomy"> = {},
-) {
+export async function suggestTaxonomy(args: ServiceArguments<"issues_suggest_taxonomy"> = {}) {
   const limit = Math.min(Number(args.limit || 5), 20);
   let text = `${args.title || ""}\n${args.text || ""}`;
   let applicationId = args.applicationId || "";
 
   if (args.issueId) {
-    const payload = await fetchJson(
-      `/api/issues/${encodeURIComponent(args.issueId)}`,
-    );
-    if (!payload.issue)
-      throw new BiawsError(`Issue not found: ${args.issueId}`);
+    const payload = await fetchJson(`/api/issues/${encodeURIComponent(args.issueId)}`);
+    if (!payload.issue) throw new BiawsError(`Issue not found: ${args.issueId}`);
     applicationId = payload.issue.applicationId || applicationId;
     text = `${payload.issue.title || ""}\n${payload.issue.text || ""}\n${payload.comments?.map((comment) => comment.text).join("\n") || ""}`;
   }
 
-  const taxonomyPayload = await fetchJson(
-    "/api/issues/taxonomy",
-    cleanParams({ applicationId }),
-  );
+  const taxonomyPayload = await fetchJson("/api/issues/taxonomy", cleanParams({ applicationId }));
   const nodes = flattenTaxonomy(taxonomyPayload.taxonomy?.taxonomy || []);
   const rawText = tokenize(text).join(" ");
   const tokens = [...new Set(tokenize(text))];
@@ -434,35 +342,24 @@ export async function suggestTaxonomy(
         score: scoreTaxonomyNode(node, tokens, rawText),
       }))
       .filter((node) => node.score > 0)
-      .sort(
-        (first, second) =>
-          second.score - first.score ||
-          first.path.join("/").localeCompare(second.path.join("/")),
-      )
+      .sort((first, second) => second.score - first.score || first.path.join("/").localeCompare(second.path.join("/")))
       .slice(0, limit),
   };
 }
 
-export async function classifyIssue(
-  args: ServiceArguments<"issues_classify"> = {},
-) {
+export async function classifyIssue(args: ServiceArguments<"issues_classify"> = {}) {
   if (!args.issueId) throw new BiawsError("issueId is required");
 
-  return sendJson(
-    `/api/issues/${encodeURIComponent(args.issueId)}/classification`,
-    {
-      primaryTaxonomyId: args.primaryTaxonomyId || "",
-      secondaryTaxonomyIds: args.secondaryTaxonomyIds || [],
-      summary: args.summary || "",
-      tags: args.tags || {},
-      updatedBy: args.updatedBy || "biaws-mcp",
-    },
-  );
+  return sendJson(`/api/issues/${encodeURIComponent(args.issueId)}/classification`, {
+    primaryTaxonomyId: args.primaryTaxonomyId || "",
+    secondaryTaxonomyIds: args.secondaryTaxonomyIds || [],
+    summary: args.summary || "",
+    tags: args.tags || {},
+    updatedBy: args.updatedBy || "biaws-mcp",
+  });
 }
 
-export async function findIssuesByTaxonomy(
-  args: ServiceArguments<"issues_by_taxonomy"> = {},
-) {
+export async function findIssuesByTaxonomy(args: ServiceArguments<"issues_by_taxonomy"> = {}) {
   const taxonomyId = String(args.taxonomyId || "").trim();
   if (!taxonomyId) throw new BiawsError("taxonomyId is required");
 
@@ -480,9 +377,7 @@ export async function findIssuesByTaxonomy(
   );
 }
 
-export async function updateIssue(
-  args: ServiceArguments<"issues_update"> = {},
-) {
+export async function updateIssue(args: ServiceArguments<"issues_update"> = {}) {
   const issueId = String(args.issueId || "").trim();
   if (!issueId) throw new BiawsError("issueId is required");
   const payload: Record<string, unknown> = {};
@@ -496,19 +391,15 @@ export async function updateIssue(
     "affectedComponentIds",
   ] as const) {
     if (args[field] === undefined) continue;
-    const value =
-      typeof args[field] === "string" ? args[field].trim() : args[field];
-    if (typeof value === "string" && !value && field !== "identifier")
-      throw new BiawsError(`${field} is required`);
+    const value = typeof args[field] === "string" ? args[field].trim() : args[field];
+    if (typeof value === "string" && !value && field !== "identifier") throw new BiawsError(`${field} is required`);
     payload[field] = value;
   }
-  if (!Object.keys(payload).length)
-    throw new BiawsError("At least one update field is required");
+  if (!Object.keys(payload).length) throw new BiawsError("At least one update field is required");
   if (Array.isArray(payload.affectedComponentIds)) {
     const componentIds = payload.affectedComponentIds.map((id) => {
       const value = String(id).trim();
-      if (!value)
-        throw new BiawsError("affectedComponentIds must contain nonblank IDs");
+      if (!value) throw new BiawsError("affectedComponentIds must contain nonblank IDs");
       return value;
     });
     if (new Set(componentIds).size !== componentIds.length) {
@@ -516,10 +407,5 @@ export async function updateIssue(
     }
     payload.affectedComponentIds = componentIds;
   }
-  return sendJson(
-    `/api/issues/${encodeURIComponent(issueId)}`,
-    payload,
-    {},
-    "PATCH",
-  );
+  return sendJson(`/api/issues/${encodeURIComponent(issueId)}`, payload, {}, "PATCH");
 }

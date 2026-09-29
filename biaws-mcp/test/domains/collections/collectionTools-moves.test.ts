@@ -24,12 +24,7 @@ test("move tools use audited API routes and support moving to root", async () =>
       "/api/catalog/servers/server-1/collection",
       "infra",
     ],
-    [
-      "secrets_move_to_collection",
-      { secretId: "secret-1", collectionId: "" },
-      "/api/secrets/secret-1/collection",
-      "",
-    ],
+    ["secrets_move_to_collection", { secretId: "secret-1", collectionId: "" }, "/api/secrets/secret-1/collection", ""],
     [
       "skills_move_to_collection",
       { skillId: "skill-1", collectionId: "agents" },

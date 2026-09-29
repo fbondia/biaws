@@ -35,13 +35,11 @@ export const monitoringTools = [
         },
         observedFrom: {
           type: "string",
-          description:
-            "Data YYYY-MM-DD ou instante ISO 8601 inicial, inclusivo.",
+          description: "Data YYYY-MM-DD ou instante ISO 8601 inicial, inclusivo.",
         },
         observedTo: {
           type: "string",
-          description:
-            "Data YYYY-MM-DD incluindo o dia inteiro ou instante ISO 8601 final, inclusivo.",
+          description: "Data YYYY-MM-DD incluindo o dia inteiro ou instante ISO 8601 final, inclusivo.",
         },
         status: {
           type: "string",
@@ -107,8 +105,7 @@ export const monitoringTools = [
   },
   {
     name: "monitoring_templates_create",
-    description:
-      "Cria a primeira versão em rascunho de um template no workspace configurado.",
+    description: "Cria a primeira versão em rascunho de um template no workspace configurado.",
     inputSchema: {
       type: "object",
       required: ["name", "definition"],
@@ -129,8 +126,7 @@ export const monitoringTools = [
   },
   {
     name: "monitoring_templates_create_version",
-    description:
-      "Cria uma nova versão em rascunho derivada do template informado, preservando as versões anteriores.",
+    description: "Cria uma nova versão em rascunho derivada do template informado, preservando as versões anteriores.",
     inputSchema: {
       type: "object",
       required: ["templateId"],
@@ -156,8 +152,7 @@ export const monitoringTools = [
 
   {
     name: "monitoring_templates_validate",
-    description:
-      "Valida uma amostra JSON usando uma versão persistida, sem registrar observação.",
+    description: "Valida uma amostra JSON usando uma versão persistida, sem registrar observação.",
     inputSchema: {
       type: "object",
       required: ["templateId", "version", "sample"],
@@ -177,8 +172,7 @@ export const monitoringTools = [
   },
   {
     name: "monitoring_templates_activate",
-    description:
-      "Ativa uma versão validada e inativa automaticamente outra versão ativa do mesmo template.",
+    description: "Ativa uma versão validada e inativa automaticamente outra versão ativa do mesmo template.",
     inputSchema: {
       type: "object",
       required: ["templateId", "version"],
@@ -197,8 +191,7 @@ export const monitoringTools = [
   },
   {
     name: "monitoring_templates_deactivate",
-    description:
-      "Desativa explicitamente uma versão de template sem removê-la nem alterar o histórico.",
+    description: "Desativa explicitamente uma versão de template sem removê-la nem alterar o histórico.",
     inputSchema: {
       type: "object",
       required: ["templateId", "version"],
@@ -217,8 +210,7 @@ export const monitoringTools = [
   },
   {
     name: "monitoring_templates_archive",
-    description:
-      "Arquiva uma versão de template identificada explicitamente; a API recusa versões ainda em uso.",
+    description: "Arquiva uma versão de template identificada explicitamente; a API recusa versões ainda em uso.",
     inputSchema: {
       type: "object",
       required: ["templateId", "version"],
@@ -250,13 +242,11 @@ export const monitoringTools = [
         },
         observedFrom: {
           type: "string",
-          description:
-            "Data (YYYY-MM-DD) ou instante ISO 8601 inicial, inclusivo",
+          description: "Data (YYYY-MM-DD) ou instante ISO 8601 inicial, inclusivo",
         },
         observedTo: {
           type: "string",
-          description:
-            "Data (YYYY-MM-DD, incluindo o dia inteiro) ou instante ISO 8601 final, inclusivo",
+          description: "Data (YYYY-MM-DD, incluindo o dia inteiro) ou instante ISO 8601 final, inclusivo",
         },
         status: {
           type: "string",
@@ -291,8 +281,7 @@ export const monitoringTools = [
         },
         observedFrom: {
           type: "string",
-          description:
-            "Data (YYYY-MM-DD) ou instante ISO 8601 inicial; o padrão cobre 30 dias antes do limite final",
+          description: "Data (YYYY-MM-DD) ou instante ISO 8601 inicial; o padrão cobre 30 dias antes do limite final",
         },
         observedTo: {
           type: "string",

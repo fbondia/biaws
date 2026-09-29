@@ -1,10 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  getDemand,
-  listDemandTasks,
-  updateDemandTask,
-} from "../../../src/domains/demands/service.js";
+import { getDemand, listDemandTasks, updateDemandTask } from "../../../src/domains/demands/service.js";
 import { demandId, response, withMockApi } from "./demandLookup.fixtures.js";
 test("task reads fetch a demand by ID without listing demands", async () => {
   const urls: string[] = [];

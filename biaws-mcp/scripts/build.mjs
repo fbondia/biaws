@@ -6,11 +6,7 @@ await rm(new URL("../dist/", import.meta.url), {
 });
 const result = spawnSync(
   process.execPath,
-  [
-    new URL("../node_modules/typescript/bin/tsc", import.meta.url).pathname,
-    "-p",
-    "tsconfig.json",
-  ],
+  [new URL("../node_modules/typescript/bin/tsc", import.meta.url).pathname, "-p", "tsconfig.json"],
   { stdio: "inherit" },
 );
 process.exit(result.status ?? 1);

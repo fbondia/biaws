@@ -24,15 +24,8 @@ test("document tools expose one bounded discriminated knowledge API", () => {
     assert.equal(registered.has(tool.name), true, tool.name);
   }
 
-  const create = required(
-    knowledgeTools.find(({ name }) => name === "documents_create"),
-  );
-  assert.deepEqual(create.inputSchema.required, [
-    "documentType",
-    "title",
-    "summary",
-    "markdown",
-  ]);
+  const create = required(knowledgeTools.find(({ name }) => name === "documents_create"));
+  assert.deepEqual(create.inputSchema.required, ["documentType", "title", "summary", "markdown"]);
   assert.deepEqual(create.inputSchema.properties.documentType.enum, [
     "business-rule",
     "architecture-decision",

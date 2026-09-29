@@ -10,10 +10,7 @@ function link(uri: string, item: ApiEntity): ResourceLink {
     mimeType: "application/json",
   };
 }
-function itemLinks(
-  items: unknown,
-  path: (item: ApiEntity) => string,
-): ResourceLink[] {
+function itemLinks(items: unknown, path: (item: ApiEntity) => string): ResourceLink[] {
   if (!Array.isArray(items)) return [];
   return items.flatMap((value) => {
     const item = apiEntitySchema.parse(value);
@@ -21,10 +18,7 @@ function itemLinks(
   });
 }
 
-export function resourceLinksForTool(
-  tool: string,
-  value: unknown,
-): ResourceLink[] {
+export function resourceLinksForTool(tool: string, value: unknown): ResourceLink[] {
   const workspaceId = String(process.env.BIAWS_WORKSPACE_ID || "").trim();
   if (!workspaceId) return [];
   if (!isRecord(value)) return [];
@@ -47,8 +41,7 @@ export function resourceLinksForTool(
   };
   const links: ResourceLink[] = [];
   for (const [key, path] of Object.entries(paths)) {
-    if (result[key] !== undefined)
-      links.push(...itemLinks([result[key]], path));
+    if (result[key] !== undefined) links.push(...itemLinks([result[key]], path));
   }
   if (tool === "monitoring_templates_list") {
     links.push(...itemLinks(result.items, paths.template));

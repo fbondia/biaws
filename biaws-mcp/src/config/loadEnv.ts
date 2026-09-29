@@ -15,10 +15,7 @@ function parseEnvFile(contents: string) {
     if (!key) continue;
 
     let value = line.slice(separatorIndex + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
     }
 
@@ -34,27 +31,18 @@ function applyEnvFile(envPath: string, override: boolean) {
     return;
   }
 
-  for (const [key, value] of Object.entries(
-    parseEnvFile(readFileSync(envPath, "utf8")),
-  )) {
+  for (const [key, value] of Object.entries(parseEnvFile(readFileSync(envPath, "utf8")))) {
     if (!override && process.env[key] !== undefined) continue;
     process.env[key] = value;
   }
 }
 
-export function loadEnv(
-  toolDir: string,
-  options: { envName?: string; preserve?: string[]; envPath?: string } = {},
-) {
+export function loadEnv(toolDir: string, options: { envName?: string; preserve?: string[]; envPath?: string } = {}) {
   const envName = options.envName || ".env";
   const preserved = new Map(
-    (options.preserve || [])
-      .filter((key) => process.env[key] !== undefined)
-      .map((key) => [key, process.env[key]]),
+    (options.preserve || []).filter((key) => process.env[key] !== undefined).map((key) => [key, process.env[key]]),
   );
-  const explicitEnvPath = String(
-    options.envPath || process.env.BIAWS_ENV_FILE || "",
-  ).trim();
+  const explicitEnvPath = String(options.envPath || process.env.BIAWS_ENV_FILE || "").trim();
   const candidates = [
     ...(existsSync(path.resolve(toolDir, "..", "compose.yaml"))
       ? [{ envPath: path.resolve(toolDir, "..", envName), override: false }]
@@ -63,9 +51,7 @@ export function loadEnv(
       envPath: path.resolve(toolDir, envName),
       override: true,
     },
-    ...(explicitEnvPath
-      ? [{ envPath: path.resolve(explicitEnvPath), override: true }]
-      : []),
+    ...(explicitEnvPath ? [{ envPath: path.resolve(explicitEnvPath), override: true }] : []),
   ];
   const loaded: string[] = [];
 

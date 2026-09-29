@@ -42,14 +42,10 @@ test("MCP HTTP retries emit sanitized correlated diagnostics", async () => {
     );
     assert.equal(events[1].fields.requestId, "request-1");
     assert.equal(events[1].fields.origin, "https://api.example.test");
-    assert.doesNotMatch(
-      JSON.stringify(events),
-      /secret-value|\/api\/requests/u,
-    );
+    assert.doesNotMatch(JSON.stringify(events), /secret-value|\/api\/requests/u);
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalRetries === undefined)
-      delete process.env.BIAWS_MCP_HTTP_RETRIES;
+    if (originalRetries === undefined) delete process.env.BIAWS_MCP_HTTP_RETRIES;
     else process.env.BIAWS_MCP_HTTP_RETRIES = originalRetries;
     if (originalUrl === undefined) delete process.env.BIAWS_API_URL;
     else process.env.BIAWS_API_URL = originalUrl;

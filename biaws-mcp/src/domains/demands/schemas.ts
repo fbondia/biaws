@@ -27,8 +27,7 @@ export const demandTools = [
         status: {
           type: "string",
           minLength: 1,
-          description:
-            "Status vigente em Configurações/Listas de Opções; validado pela API.",
+          description: "Status vigente em Configurações/Listas de Opções; validado pela API.",
         },
         estimatedDeliveryDate: {
           type: "string",
@@ -58,8 +57,7 @@ export const demandTools = [
             type: "string",
             minLength: 1,
           },
-          description:
-            "Substitui os componentes afetados; [] remove as associações.",
+          description: "Substitui os componentes afetados; [] remove as associações.",
         },
       },
     },
@@ -225,8 +223,7 @@ export const demandTools = [
   },
   {
     name: "demands_delete_note",
-    description:
-      "Exclui permanentemente uma nota da melhoria identificada por noteId.",
+    description: "Exclui permanentemente uma nota da melhoria identificada por noteId.",
     inputSchema: {
       type: "object",
       required: ["requestId", "noteId"],
@@ -297,8 +294,7 @@ export const demandTools = [
   },
   {
     name: "demands_get",
-    description:
-      "Obtém uma melhoria estruturada com especificação, checklist, jornadas e notas.",
+    description: "Obtém uma melhoria estruturada com especificação, checklist, jornadas e notas.",
     inputSchema: {
       type: "object",
       required: ["requestId"],
@@ -316,13 +312,7 @@ export const demandTools = [
       "Cria uma melhoria no Bondia Workspaces com dados cadastrais, especificação técnica, checklist e planejamento de jornadas.",
     inputSchema: {
       type: "object",
-      required: [
-        "title",
-        "description",
-        "estimatedJourneys",
-        "specificationSections",
-        "applicationId",
-      ],
+      required: ["title", "description", "estimatedJourneys", "specificationSections", "applicationId"],
       additionalProperties: false,
       properties: {
         clientCode: {
@@ -338,8 +328,7 @@ export const demandTools = [
         },
         status: {
           type: "string",
-          description:
-            "Status configurado em Configurações/Listas de Opções; a API valida o valor vigente.",
+          description: "Status configurado em Configurações/Listas de Opções; a API valida o valor vigente.",
         },
         estimatedDeliveryDate: {
           type: "string",
@@ -493,8 +482,7 @@ export const demandTools = [
   },
   {
     name: "demands_deadlines",
-    description:
-      "Retorna prazos, status e indicadores de atraso das melhorias.",
+    description: "Retorna prazos, status e indicadores de atraso das melhorias.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
@@ -527,8 +515,7 @@ export const demandTools = [
   },
   {
     name: "demands_implementation_context",
-    description:
-      "Extrai contexto estruturado da melhoria para um agente executar implementação/desenvolvimento.",
+    description: "Extrai contexto estruturado da melhoria para um agente executar implementação/desenvolvimento.",
     inputSchema: {
       type: "object",
       required: ["requestId"],
@@ -584,8 +571,7 @@ export const demandTools = [
   },
   {
     name: "demands_list_tasks",
-    description:
-      "Lista as tarefas de uma melhoria, opcionalmente filtradas por status.",
+    description: "Lista as tarefas de uma melhoria, opcionalmente filtradas por status.",
     inputSchema: {
       type: "object",
       required: ["requestId"],
@@ -597,8 +583,7 @@ export const demandTools = [
         },
         status: {
           type: "string",
-          description:
-            "Status configurado em Configurações/Listas de Opções; a API valida o valor vigente.",
+          description: "Status configurado em Configurações/Listas de Opções; a API valida o valor vigente.",
         },
       },
     },
@@ -624,8 +609,7 @@ export const demandTools = [
         },
         status: {
           type: "string",
-          description:
-            "Status configurado em Configurações/Listas de Opções; a API valida o valor vigente.",
+          description: "Status configurado em Configurações/Listas de Opções; a API valida o valor vigente.",
         },
         startDate: {
           type: "string",
@@ -637,8 +621,7 @@ export const demandTools = [
         },
         situation: {
           type: "string",
-          description:
-            "Resumo em texto livre do que precisa ser feito na tarefa",
+          description: "Resumo em texto livre do que precisa ser feito na tarefa",
         },
         description: {
           type: "string",
@@ -675,8 +658,7 @@ export const demandTools = [
         },
         status: {
           type: "string",
-          description:
-            "Status configurado em Configurações/Listas de Opções; a API valida o valor vigente.",
+          description: "Status configurado em Configurações/Listas de Opções; a API valida o valor vigente.",
         },
         startDate: {
           type: "string",
@@ -688,8 +670,7 @@ export const demandTools = [
         },
         situation: {
           type: "string",
-          description:
-            "Resumo em texto livre do que precisa ser feito na tarefa",
+          description: "Resumo em texto livre do que precisa ser feito na tarefa",
         },
         description: {
           type: "string",
@@ -704,8 +685,7 @@ export const demandTools = [
   },
   {
     name: "demands_update_task_status",
-    description:
-      "Altera somente o status de uma tarefa da melhoria. Requer um status válido declarado no schema.",
+    description: "Altera somente o status de uma tarefa da melhoria. Requer um status válido declarado no schema.",
     inputSchema: {
       type: "object",
       required: ["requestId", "taskId", "status"],
@@ -721,8 +701,7 @@ export const demandTools = [
         status: {
           type: "string",
           enum: ["Pendente", "Andamento", "Aguardando Decisão", "Concluído"],
-          description:
-            "Status válido da tarefa. Use exatamente um dos valores declarados no enum.",
+          description: "Status válido da tarefa. Use exatamente um dos valores declarados no enum.",
         },
       },
     },

@@ -24,18 +24,9 @@ const handlers: Record<string, ToolHandler> = {
   issues_update: bindTool("issues_update", updateIssue),
   issues_add_comment: bindTool("issues_add_comment", addIssueComment),
   issues_update_comment: bindTool("issues_update_comment", updateIssueComment),
-  issues_get_classification_catalog: bindTool(
-    "issues_get_classification_catalog",
-    getIssueClassificationCatalog,
-  ),
-  issues_create_taxonomy_item: bindTool(
-    "issues_create_taxonomy_item",
-    createTaxonomyItem,
-  ),
-  issues_update_taxonomy_item: bindTool(
-    "issues_update_taxonomy_item",
-    updateTaxonomyItem,
-  ),
+  issues_get_classification_catalog: bindTool("issues_get_classification_catalog", getIssueClassificationCatalog),
+  issues_create_taxonomy_item: bindTool("issues_create_taxonomy_item", createTaxonomyItem),
+  issues_update_taxonomy_item: bindTool("issues_update_taxonomy_item", updateTaxonomyItem),
   issues_summary: bindTool("issues_summary", summarizeIssuesForSupport),
   issues_aggregate: bindTool("issues_aggregate", summarizeIssuesForSupport),
   issues_create: bindTool("issues_create", createIssue),
@@ -45,5 +36,7 @@ const handlers: Record<string, ToolHandler> = {
   issues_classify: bindTool("issues_classify", classifyIssue),
   issues_by_taxonomy: bindTool("issues_by_taxonomy", findIssuesByTaxonomy),
 };
-export const issueTools: (ToolDefinition & { handler: ToolHandler })[] =
-  definitions.map((tool) => ({ ...tool, handler: handlers[tool.name] }));
+export const issueTools: (ToolDefinition & { handler: ToolHandler })[] = definitions.map((tool) => ({
+  ...tool,
+  handler: handlers[tool.name],
+}));

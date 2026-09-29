@@ -10,10 +10,7 @@ test("note update preserves omitted dates, supports changing dates, and delete r
       noteId: " note/1 ",
       content: " Updated ",
     });
-    assert.equal(
-      required(calls.at(-1)).path,
-      `/api/requests/${demandId}/notes/note%2F1`,
-    );
+    assert.equal(required(calls.at(-1)).path, `/api/requests/${demandId}/notes/note%2F1`);
     assert.deepEqual(required(calls.at(-1)).body, {
       content: "Updated",
       date: "2026-09-10",
@@ -30,9 +27,6 @@ test("note update preserves omitted dates, supports changing dates, and delete r
       noteId: "note/1",
     });
     assert.equal(required(calls.at(-1)).method, "DELETE");
-    assert.equal(
-      required(calls.at(-1)).path,
-      `/api/requests/${demandId}/notes/note%2F1`,
-    );
+    assert.equal(required(calls.at(-1)).path, `/api/requests/${demandId}/notes/note%2F1`);
   });
 });

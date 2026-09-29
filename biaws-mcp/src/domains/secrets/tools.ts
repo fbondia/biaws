@@ -7,5 +7,7 @@ const handlers: Record<string, ToolHandler> = {
 
   secrets_register: bindTool("secrets_register", registerSecretMetadata),
 };
-export const secretTools: (ToolDefinition & { handler: ToolHandler })[] =
-  definitions.map((tool) => ({ ...tool, handler: handlers[tool.name] }));
+export const secretTools: (ToolDefinition & { handler: ToolHandler })[] = definitions.map((tool) => ({
+  ...tool,
+  handler: handlers[tool.name],
+}));

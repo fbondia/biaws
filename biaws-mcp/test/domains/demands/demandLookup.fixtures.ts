@@ -6,10 +6,7 @@ function response(payload: unknown) {
   });
 }
 
-async function withMockApi(
-  fetch: typeof globalThis.fetch,
-  operation: () => Promise<void>,
-) {
+async function withMockApi(fetch: typeof globalThis.fetch, operation: () => Promise<void>) {
   const originalFetch = globalThis.fetch;
   const originalBaseUrl = process.env.BIAWS_API_URL;
   process.env.BIAWS_API_URL = "http://api.test";

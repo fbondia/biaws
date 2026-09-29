@@ -29,18 +29,13 @@ const tools = toolDefinitions.map((tool) => ({
   handler: handlers[tool.name],
 }));
 
-const toolByName = new Map<string, (typeof tools)[number]>(
-  tools.map((tool) => [tool.name, tool]),
-);
+const toolByName = new Map<string, (typeof tools)[number]>(tools.map((tool) => [tool.name, tool]));
 
 export function listTools(): ToolDefinition[] {
   return tools.map(({ handler, ...tool }) => tool);
 }
 
-export function dispatchTool<N extends keyof ToolResultMap>(
-  name: N,
-  args: unknown,
-): Promise<ToolResultMap[N]>;
+export function dispatchTool<N extends keyof ToolResultMap>(name: N, args: unknown): Promise<ToolResultMap[N]>;
 export function dispatchTool(name: string, args: unknown): Promise<unknown>;
 export async function dispatchTool(name: string, args: unknown) {
   const tool = toolByName.get(name);

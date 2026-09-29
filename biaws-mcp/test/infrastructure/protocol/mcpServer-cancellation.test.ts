@@ -35,16 +35,10 @@ test("SDK cancellation reaches the request context while another call completes"
   });
   t.after(() => session.close());
   const controller = new AbortController();
-  const pending = session.client.callTool(
-    { name: "slow" },
-    { signal: controller.signal },
-  );
+  const pending = session.client.callTool({ name: "slow" }, { signal: controller.signal });
   const rejected = assert.rejects(pending);
   await ready;
-  assert.deepEqual(
-    (await session.client.callTool({ name: "fast" })).structuredContent,
-    { ok: true },
-  );
+  assert.deepEqual((await session.client.callTool({ name: "fast" })).structuredContent, { ok: true });
   controller.abort();
   await rejected;
   await cancelled;
@@ -78,10 +72,7 @@ test("SDK cancellation aborts HTTP and connection close aborts pending requests"
   const session = await connectTestServer();
   t.after(() => session.close());
   const controller = new AbortController();
-  const pending = session.client.callTool(
-    { name: "issues_search" },
-    { signal: controller.signal },
-  );
+  const pending = session.client.callTool({ name: "issues_search" }, { signal: controller.signal });
   const rejection = assert.rejects(pending);
   await ready;
   assert.ok((await session.client.listTools()).tools.length > 0);

@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { connectTestServer } from "../../helpers/sdk.js";
-for (const version of [
-  "2024-11-05",
-  "2025-03-26",
-  "2025-06-18",
-  "2025-11-25",
-] as const) {
+for (const version of ["2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25"] as const) {
   test(`official client negotiates ${version} and gates resource links`, async (t) => {
     const previous = process.env.BIAWS_WORKSPACE_ID;
     process.env.BIAWS_WORKSPACE_ID = "workspace-a";

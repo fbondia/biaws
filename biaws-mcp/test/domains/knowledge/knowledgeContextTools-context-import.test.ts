@@ -18,10 +18,7 @@ test("EML import sends application context through multipart fields", async () =
     });
     assert.ok(sentForm instanceof FormData);
     assert.equal(sentForm.get("applicationId"), "application-1");
-    assert.equal(
-      sentForm.get("affectedComponentIds"),
-      JSON.stringify(["component-1"]),
-    );
+    assert.equal(sentForm.get("affectedComponentIds"), JSON.stringify(["component-1"]));
   } finally {
     globalThis.fetch = originalFetch;
   }

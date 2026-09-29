@@ -5,11 +5,7 @@ function jsonResponse(payload: unknown = { ok: true }, status = 200) {
   });
 }
 
-function withHttpClient(
-  testFunction: (
-    calls: { url: string; options: RequestInit }[],
-  ) => Promise<void>,
-) {
+function withHttpClient(testFunction: (calls: { url: string; options: RequestInit }[]) => Promise<void>) {
   return async () => {
     const originalFetch = globalThis.fetch;
     const originalBaseUrl = process.env.BIAWS_API_URL;

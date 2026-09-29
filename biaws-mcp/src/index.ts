@@ -8,11 +8,7 @@ import { createLogger } from "./runtime/logger.js";
 import { createBiawsMcpServer } from "./mcp/mcpServer.js";
 import { SERVER_NAME, SERVER_VERSION } from "./version.js";
 
-const TOOL_DIR = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-);
+const TOOL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 // O workspace pertence à configuração do projeto/cliente MCP. O arquivo da
 // instância fornece URL e credencial, mas não pode mudar esse escopo.
@@ -52,9 +48,7 @@ logger.info("mcp_server_started", {
   pid: process.pid,
   transport: "stdio",
   environmentFilesLoaded: environment.loaded.length,
-  workspaceConfigured: Boolean(
-    String(process.env.BIAWS_WORKSPACE_ID || "").trim(),
-  ),
+  workspaceConfigured: Boolean(String(process.env.BIAWS_WORKSPACE_ID || "").trim()),
 });
 
 process.stdin.on("end", () => {

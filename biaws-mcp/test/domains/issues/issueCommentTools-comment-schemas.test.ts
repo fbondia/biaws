@@ -8,11 +8,7 @@ test("issue comment tools expose bounded schemas", () => {
   const update = tools.get("issues_update_comment");
 
   assert.deepEqual(required(add).inputSchema.required, ["issueId", "text"]);
-  assert.deepEqual(required(update).inputSchema.required, [
-    "issueId",
-    "commentId",
-    "text",
-  ]);
+  assert.deepEqual(required(update).inputSchema.required, ["issueId", "commentId", "text"]);
   assert.equal(required(add).inputSchema.additionalProperties, false);
   assert.equal(required(update).inputSchema.additionalProperties, false);
 });

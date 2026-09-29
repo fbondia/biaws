@@ -23,11 +23,14 @@ test("collection tools expose bounded resource types and explicit destination id
     assert.equal(tool.inputSchema.additionalProperties, false, tool.name);
     assert.equal(registered.has(tool.name), true, tool.name);
   }
-  assert.deepEqual(
-    required(registered.get("resource_collections_create")).inputSchema
-      .properties.resourceType.enum,
-    ["applications", "demands", "documents", "secrets", "skills", "servers"],
-  );
+  assert.deepEqual(required(registered.get("resource_collections_create")).inputSchema.properties.resourceType.enum, [
+    "applications",
+    "demands",
+    "documents",
+    "secrets",
+    "skills",
+    "servers",
+  ]);
   for (const name of [
     "applications_move_to_collection",
     "servers_move_to_collection",
@@ -36,12 +39,6 @@ test("collection tools expose bounded resource types and explicit destination id
     "demands_move_to_collection",
     "documents_move_to_collection",
   ] as const) {
-    assert.equal(
-      required(required(registered.get(name)).inputSchema.required).includes(
-        "collectionId",
-      ),
-      true,
-      name,
-    );
+    assert.equal(required(required(registered.get(name)).inputSchema.required).includes("collectionId"), true, name);
   }
 });

@@ -34,14 +34,9 @@ test("creates a taxonomy child and preserves the rest of the package", async () 
     const body = JSON.parse(String(write.options.body));
 
     assert.equal(write.options.method, "PUT");
-    assert.equal(
-      new URL(write.url).searchParams.get("workspaceId"),
-      "workspace-1",
-    );
+    assert.equal(new URL(write.url).searchParams.get("workspaceId"), "workspace-1");
     assert.deepEqual(body.source, { path: "taxonomy.json" });
-    assert.deepEqual(body.tagGroups, [
-      { id: "environment", label: "Environment", tags: [] },
-    ]);
+    assert.deepEqual(body.tagGroups, [{ id: "environment", label: "Environment", tags: [] }]);
     assert.deepEqual(body.taxonomy[0].children, [
       {
         id: "deployments",

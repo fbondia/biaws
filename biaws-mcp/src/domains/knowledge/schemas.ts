@@ -2,8 +2,7 @@ import type { ToolDefinition } from "../../mcp/tools/contracts.js";
 export const knowledgeTools = [
   {
     name: "knowledge_context_load",
-    description:
-      "Carrega documentos vigentes aplicáveis a uma aplicação ou componente, com Markdown opcional.",
+    description: "Carrega documentos vigentes aplicáveis a uma aplicação ou componente, com Markdown opcional.",
     inputSchema: {
       type: "object",
       required: ["applicationId"],
@@ -32,8 +31,7 @@ export const knowledgeTools = [
   },
   {
     name: "document_types_list",
-    description:
-      "Lista o contrato oficial de cada tipo de documento: contexto exigido, estados e campos details.",
+    description: "Lista o contrato oficial de cada tipo de documento: contexto exigido, estados e campos details.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
@@ -42,8 +40,7 @@ export const knowledgeTools = [
   },
   {
     name: "documents_search",
-    description:
-      "Busca documentos por tipo, aplicação, componente, coleção, estado ou texto.",
+    description: "Busca documentos por tipo, aplicação, componente, coleção, estado ou texto.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
@@ -53,16 +50,8 @@ export const knowledgeTools = [
         },
         documentType: {
           type: "string",
-          enum: [
-            "business-rule",
-            "architecture-decision",
-            "guideline",
-            "feature",
-            "technical-reference",
-            "procedure",
-          ],
-          description:
-            "Tipo imutável do documento. Consulte document_types_list para o contrato completo.",
+          enum: ["business-rule", "architecture-decision", "guideline", "feature", "technical-reference", "procedure"],
+          description: "Tipo imutável do documento. Consulte document_types_list para o contrato completo.",
         },
         applicationId: {
           type: "string",
@@ -126,21 +115,12 @@ export const knowledgeTools = [
           type: "string",
           pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$",
           maxLength: 80,
-          description:
-            "Identificador opcional e único no workspace, usando minúsculas, números e hífens simples.",
+          description: "Identificador opcional e único no workspace, usando minúsculas, números e hífens simples.",
         },
         documentType: {
           type: "string",
-          enum: [
-            "business-rule",
-            "architecture-decision",
-            "guideline",
-            "feature",
-            "technical-reference",
-            "procedure",
-          ],
-          description:
-            "Tipo imutável do documento. Consulte document_types_list para o contrato completo.",
+          enum: ["business-rule", "architecture-decision", "guideline", "feature", "technical-reference", "procedure"],
+          description: "Tipo imutável do documento. Consulte document_types_list para o contrato completo.",
         },
         title: {
           type: "string",
@@ -169,8 +149,7 @@ export const knowledgeTools = [
             type: "string",
             minLength: 1,
           },
-          description:
-            "Componentes ativos da applicationId. Não pode ser informado sem aplicação.",
+          description: "Componentes ativos da applicationId. Não pode ser informado sem aplicação.",
         },
         collectionId: {
           type: "string",
@@ -189,13 +168,11 @@ export const knowledgeTools = [
             "published",
             "deprecated",
           ],
-          description:
-            "Estado válido para o documentType; quando omitido, usa o estado inicial do tipo.",
+          description: "Estado válido para o documentType; quando omitido, usa o estado inicial do tipo.",
         },
         details: {
           type: "object",
-          description:
-            "Metadados específicos do documentType, validados pelo ramo correspondente do schema.",
+          description: "Metadados específicos do documentType, validados pelo ramo correspondente do schema.",
         },
         classification: {
           type: "object",
@@ -226,8 +203,7 @@ export const knowledgeTools = [
         },
         source: {
           type: "object",
-          description:
-            "Origem canônica. Em mode=repository, repositoryId e path são obrigatórios.",
+          description: "Origem canônica. Em mode=repository, repositoryId e path são obrigatórios.",
           additionalProperties: false,
           properties: {
             mode: {
@@ -302,8 +278,7 @@ export const knowledgeTools = [
       },
       oneOf: [
         {
-          description:
-            "Regra de negócio: Condições e comportamentos esperados do domínio.",
+          description: "Regra de negócio: Condições e comportamentos esperados do domínio.",
           properties: {
             documentType: {
               const: "business-rule",
@@ -331,21 +306,14 @@ export const knowledgeTools = [
           required: ["documentType", "applicationId"],
         },
         {
-          description:
-            "Decisão arquitetural: Escolhas técnicas, contexto, alternativas e consequências.",
+          description: "Decisão arquitetural: Escolhas técnicas, contexto, alternativas e consequências.",
           properties: {
             documentType: {
               const: "architecture-decision",
             },
             status: {
               type: "string",
-              enum: [
-                "proposed",
-                "accepted",
-                "rejected",
-                "superseded",
-                "archived",
-              ],
+              enum: ["proposed", "accepted", "rejected", "superseded", "archived"],
             },
             details: {
               type: "object",
@@ -362,8 +330,7 @@ export const knowledgeTools = [
           required: ["documentType", "applicationId"],
         },
         {
-          description:
-            "Feature: Descrição funcional e técnica aprofundada de uma capacidade.",
+          description: "Feature: Descrição funcional e técnica aprofundada de uma capacidade.",
           properties: {
             documentType: {
               const: "feature",
@@ -387,8 +354,7 @@ export const knowledgeTools = [
           required: ["documentType", "applicationId"],
         },
         {
-          description:
-            "Referência técnica geral do workspace; applicationId e componentes devem ser omitidos.",
+          description: "Referência técnica geral do workspace; applicationId e componentes devem ser omitidos.",
           properties: {
             documentType: {
               const: "technical-reference",
@@ -403,13 +369,7 @@ export const knowledgeTools = [
               properties: {
                 referenceKind: {
                   type: "string",
-                  enum: [
-                    "architecture",
-                    "contract",
-                    "schema",
-                    "protocol",
-                    "mechanism",
-                  ],
+                  enum: ["architecture", "contract", "schema", "protocol", "mechanism"],
                   default: "architecture",
                 },
               },
@@ -425,8 +385,7 @@ export const knowledgeTools = [
           required: ["documentType"],
         },
         {
-          description:
-            "Referência técnica vinculada a uma aplicação e, opcionalmente, a seus componentes.",
+          description: "Referência técnica vinculada a uma aplicação e, opcionalmente, a seus componentes.",
           properties: {
             documentType: {
               const: "technical-reference",
@@ -441,13 +400,7 @@ export const knowledgeTools = [
               properties: {
                 referenceKind: {
                   type: "string",
-                  enum: [
-                    "architecture",
-                    "contract",
-                    "schema",
-                    "protocol",
-                    "mechanism",
-                  ],
+                  enum: ["architecture", "contract", "schema", "protocol", "mechanism"],
                   default: "architecture",
                 },
               },
@@ -456,8 +409,7 @@ export const knowledgeTools = [
           required: ["documentType", "applicationId"],
         },
         {
-          description:
-            "Procedimento geral do workspace; applicationId e componentes devem ser omitidos.",
+          description: "Procedimento geral do workspace; applicationId e componentes devem ser omitidos.",
           properties: {
             documentType: {
               const: "procedure",
@@ -482,8 +434,7 @@ export const knowledgeTools = [
           required: ["documentType"],
         },
         {
-          description:
-            "Procedimento vinculada a uma aplicação e, opcionalmente, a seus componentes.",
+          description: "Procedimento vinculada a uma aplicação e, opcionalmente, a seus componentes.",
           properties: {
             documentType: {
               const: "procedure",
@@ -501,8 +452,7 @@ export const knowledgeTools = [
           required: ["documentType", "applicationId"],
         },
         {
-          description:
-            "Guideline geral do workspace; applicationId deve ser omitido.",
+          description: "Guideline geral do workspace; applicationId deve ser omitido.",
           properties: {
             documentType: {
               const: "guideline",
@@ -565,8 +515,7 @@ export const knowledgeTools = [
           required: ["documentType", "details", "applicationId"],
         },
         {
-          description:
-            "Guideline vinculada a ao menos um componente da aplicação.",
+          description: "Guideline vinculada a ao menos um componente da aplicação.",
           properties: {
             documentType: {
               const: "guideline",
@@ -600,12 +549,7 @@ export const knowledgeTools = [
               },
             },
           },
-          required: [
-            "documentType",
-            "details",
-            "applicationId",
-            "affectedComponentIds",
-          ],
+          required: ["documentType", "details", "applicationId", "affectedComponentIds"],
         },
       ],
     },
@@ -627,21 +571,12 @@ export const knowledgeTools = [
           type: "string",
           pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$",
           maxLength: 80,
-          description:
-            "Identificador opcional e único no workspace, usando minúsculas, números e hífens simples.",
+          description: "Identificador opcional e único no workspace, usando minúsculas, números e hífens simples.",
         },
         documentType: {
           type: "string",
-          enum: [
-            "business-rule",
-            "architecture-decision",
-            "guideline",
-            "feature",
-            "technical-reference",
-            "procedure",
-          ],
-          description:
-            "Tipo imutável do documento. Consulte document_types_list para o contrato completo.",
+          enum: ["business-rule", "architecture-decision", "guideline", "feature", "technical-reference", "procedure"],
+          description: "Tipo imutável do documento. Consulte document_types_list para o contrato completo.",
         },
         title: {
           type: "string",
@@ -670,8 +605,7 @@ export const knowledgeTools = [
             type: "string",
             minLength: 1,
           },
-          description:
-            "Componentes ativos da applicationId. Não pode ser informado sem aplicação.",
+          description: "Componentes ativos da applicationId. Não pode ser informado sem aplicação.",
         },
         collectionId: {
           type: "string",
@@ -690,13 +624,11 @@ export const knowledgeTools = [
             "published",
             "deprecated",
           ],
-          description:
-            "Estado válido para o documentType; quando omitido, usa o estado inicial do tipo.",
+          description: "Estado válido para o documentType; quando omitido, usa o estado inicial do tipo.",
         },
         details: {
           type: "object",
-          description:
-            "Metadados específicos do documentType, validados pelo ramo correspondente do schema.",
+          description: "Metadados específicos do documentType, validados pelo ramo correspondente do schema.",
         },
         classification: {
           type: "object",
@@ -727,8 +659,7 @@ export const knowledgeTools = [
         },
         source: {
           type: "object",
-          description:
-            "Origem canônica. Em mode=repository, repositoryId e path são obrigatórios.",
+          description: "Origem canônica. Em mode=repository, repositoryId e path são obrigatórios.",
           additionalProperties: false,
           properties: {
             mode: {

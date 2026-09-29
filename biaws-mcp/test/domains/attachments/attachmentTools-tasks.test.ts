@@ -17,10 +17,7 @@ test("task uploads delegate parent resolution and file association to the API", 
         },
       });
     }
-    return jsonResponse(
-      { request: {}, uploaded: [{ id: "attachment-1" }] },
-      201,
-    );
+    return jsonResponse({ request: {}, uploaded: [{ id: "attachment-1" }] }, 201);
   };
 
   try {
@@ -38,10 +35,7 @@ test("task uploads delegate parent resolution and file association to the API", 
     });
 
     assert.equal(calls.length, 1);
-    assert.equal(
-      new URL(calls[0].url).pathname,
-      "/api/requests/507f1f77bcf86cd799439011/tasks/task-1/attachments",
-    );
+    assert.equal(new URL(calls[0].url).pathname, "/api/requests/507f1f77bcf86cd799439011/tasks/task-1/attachments");
     assert.ok(calls[0].options.body instanceof FormData);
     assert.equal(required(calls[0].options.body).get("tags"), '["evidência"]');
   } finally {
@@ -74,9 +68,7 @@ test("task operations reject files that are not associated with that task", asyn
           taskId: "task-1",
           attachmentId: "attachment-1",
         }),
-      (error) =>
-        errorInfo(error).code === "NOT_FOUND" &&
-        errorInfo(error).statusCode === 404,
+      (error) => errorInfo(error).code === "NOT_FOUND" && errorInfo(error).statusCode === 404,
     );
     assert.equal(calls, 1);
   } finally {

@@ -7,11 +7,7 @@ test("rejects duplicate, missing parent and empty taxonomy updates before writin
   let writes = 0;
   globalThis.fetch = async (_url, options = {}) => {
     if (options.method) writes += 1;
-    return response(
-      taxonomyPayload([
-        { id: "operations", label: "Operations", applicationIds: [] },
-      ]),
-    );
+    return response(taxonomyPayload([{ id: "operations", label: "Operations", applicationIds: [] }]));
   };
 
   try {

@@ -18,10 +18,7 @@ test("issues_add_comment posts text and an optional date to the issue route", as
       date: "2026-08-25T10:00:00-03:00",
     });
 
-    assert.equal(
-      new URL(required(call).url).pathname,
-      "/api/issues/ISSUE%2F001/comments",
-    );
+    assert.equal(new URL(required(call).url).pathname, "/api/issues/ISSUE%2F001/comments");
     assert.equal(required(call).options.method, "POST");
     assert.deepEqual(JSON.parse(String(required(call).options.body)), {
       text: "**Investigated**",
@@ -48,10 +45,7 @@ test("issues_update_comment puts the replacement text on the comment route", asy
       text: " Updated ",
     });
 
-    assert.equal(
-      new URL(required(call).url).pathname,
-      "/api/issues/ISSUE-001/comments/comment%2F1",
-    );
+    assert.equal(new URL(required(call).url).pathname, "/api/issues/ISSUE-001/comments/comment%2F1");
     assert.equal(required(call).options.method, "PUT");
     assert.deepEqual(JSON.parse(String(required(call).options.body)), {
       text: "Updated",

@@ -23,11 +23,7 @@ test("catalog read tools dispatch only to their scoped HTTP endpoints", async ()
       { applicationId: "app-1", limit: 5, includeArchived: true },
       "/api/catalog/applications/app-1/context?limit=5&includeArchived=true",
     ],
-    [
-      "components_list",
-      { applicationId: "app-1", type: "api" },
-      "/api/catalog/applications/app-1/components?type=api",
-    ],
+    ["components_list", { applicationId: "app-1", type: "api" }, "/api/catalog/applications/app-1/components?type=api"],
 
     [
       "integrations_list",
@@ -41,11 +37,7 @@ test("catalog read tools dispatch only to their scoped HTTP endpoints", async ()
       "/api/catalog/applications/app-1/repositories?provider=github",
     ],
 
-    [
-      "servers_list",
-      { workspaceId: "ws-1" },
-      "/api/catalog/workspaces/ws-1/servers",
-    ],
+    ["servers_list", { workspaceId: "ws-1" }, "/api/catalog/workspaces/ws-1/servers"],
 
     [
       "deployments_list",

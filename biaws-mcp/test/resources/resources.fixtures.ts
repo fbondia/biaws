@@ -9,8 +9,7 @@ async function withApi(
   const originalBase = process.env.BIAWS_API_URL;
   process.env.BIAWS_WORKSPACE_ID = "workspace-a";
   process.env.BIAWS_API_URL = "http://api.test";
-  globalThis.fetch = async (url, options) =>
-    handler(new URL(url instanceof Request ? url.url : url), options || {});
+  globalThis.fetch = async (url, options) => handler(new URL(url instanceof Request ? url.url : url), options || {});
   try {
     await operation();
   } finally {

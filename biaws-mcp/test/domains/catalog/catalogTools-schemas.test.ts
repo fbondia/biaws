@@ -41,10 +41,7 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
     expected,
   );
   const registered = listTools();
-  assert.equal(
-    new Set(registered.map(({ name }) => name)).size,
-    registered.length,
-  );
+  assert.equal(new Set(registered.map(({ name }) => name)).size, registered.length);
   for (const tool of catalogTools) {
     assert.equal(tool.inputSchema.additionalProperties, false, tool.name);
     assert.equal(
@@ -54,9 +51,7 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
     );
   }
   assert.equal(
-    required(
-      catalogTools.find(({ name }) => name === "applications_get_context"),
-    ).inputSchema.properties.limit.maximum,
+    required(catalogTools.find(({ name }) => name === "applications_get_context")).inputSchema.properties.limit.maximum,
     100,
   );
   for (const name of [
@@ -69,58 +64,44 @@ test("catalog tools are registered once with explicit bounded schemas", () => {
     "runtimes_update",
   ] as const) {
     assert.equal(
-      Object.hasOwn(
-        required(catalogTools.find((tool) => tool.name === name)).inputSchema
-          .properties,
-        "key",
-      ),
+      Object.hasOwn(required(catalogTools.find((tool) => tool.name === name)).inputSchema.properties, "key"),
       true,
       name,
     );
   }
   assert.equal(
     Object.hasOwn(
-      required(catalogTools.find((tool) => tool.name === "deployments_update"))
-        .inputSchema.properties,
+      required(catalogTools.find((tool) => tool.name === "deployments_update")).inputSchema.properties,
       "componentId",
     ),
     false,
   );
   assert.equal(
     Object.hasOwn(
-      required(catalogTools.find((tool) => tool.name === "integrations_update"))
-        .inputSchema.properties,
+      required(catalogTools.find((tool) => tool.name === "integrations_update")).inputSchema.properties,
       "targetApplicationId",
     ),
     false,
   );
   const publicationStatus = required(
     required(
-      required(catalogTools.find(({ name }) => name === "deployments_update"))
-        .inputSchema.properties.publications.items,
+      required(catalogTools.find(({ name }) => name === "deployments_update")).inputSchema.properties.publications
+        .items,
     ).properties,
   ).status;
   assert.deepEqual(publicationStatus.enum, ["planned", "canceled", "deployed"]);
   const recordPublicationProperties = required(
     catalogTools.find(({ name }) => name === "deployments_record_publication"),
   ).inputSchema.properties;
-  assert.equal(
-    Object.hasOwn(recordPublicationProperties, "publications"),
-    false,
-  );
+  assert.equal(Object.hasOwn(recordPublicationProperties, "publications"), false);
   assert.equal(Object.hasOwn(recordPublicationProperties, "recordedAt"), false);
   assert.equal(Object.hasOwn(recordPublicationProperties, "recordedBy"), false);
-  const runtimeProperties = required(
-    catalogTools.find(({ name }) => name === "runtimes_update"),
-  ).inputSchema.properties;
+  const runtimeProperties = required(catalogTools.find(({ name }) => name === "runtimes_update")).inputSchema
+    .properties;
   assert.equal(runtimeProperties.monitoringRetentionDays.default, undefined);
   assert.equal(runtimeProperties.monitoringRetentionDays.maximum, 3650);
   assert.equal(runtimeProperties.documentLinks.maxItems, 100);
-  assert.equal(
-    required(required(runtimeProperties.documentLinks.items).properties)
-      .documentId.type,
-    "string",
-  );
+  assert.equal(required(required(runtimeProperties.documentLinks.items).properties).documentId.type, "string");
   assert.equal(Object.hasOwn(runtimeProperties, "observations"), false);
 });
 
@@ -138,9 +119,7 @@ test("catalog schemas expose no credential or remote execution argument", () => 
     "ssh",
     "mongoQuery",
   ]);
-  function visit(
-    schema: import("../../../src/mcp/tools/contracts.js").Schema,
-  ): void {
+  function visit(schema: import("../../../src/mcp/tools/contracts.js").Schema): void {
     for (const [key, value] of Object.entries(schema?.properties || {})) {
       assert.equal(prohibited.has(key), false, key);
       visit(value);

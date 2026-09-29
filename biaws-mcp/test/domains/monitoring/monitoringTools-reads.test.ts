@@ -46,11 +46,7 @@ test(
       true,
     );
     assert.equal(
-      calls.every(
-        ({ options }) =>
-          new Headers(options.headers).get("X-Biaws-Workspace-Id") ===
-          "workspace-1",
-      ),
+      calls.every(({ options }) => new Headers(options.headers).get("X-Biaws-Workspace-Id") === "workspace-1"),
       true,
     );
   }),

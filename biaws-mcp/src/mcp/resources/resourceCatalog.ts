@@ -4,6 +4,5 @@ export interface ResourceDefinition {
   description: string;
   mimeType: string;
 }
-// Share the static catalog with API contract tests without requiring a TS runtime.
-import catalog from "../../resourceCatalog.json" with { type: "json" };
+import catalog from "./resourceCatalog.json" with { type: "json" };
 export const RESOURCE_CATALOG: ResourceDefinition[] = catalog;

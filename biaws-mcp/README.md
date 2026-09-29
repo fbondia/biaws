@@ -137,9 +137,10 @@ O processo de publicação e rollback está em
   domínio. Novas tools devem ser definidas e vinculadas ao service nessa pasta;
   os catálogos centrais apenas agregam os domínios.
 
-O arquivo `src/resourceCatalog.json` permanece na raiz porque também é
-consumido diretamente pelo teste de contrato de rotas da API. O módulo em
-`src/mcp/resources/resourceCatalog.ts` importa essa fonte única.
+O catálogo está em `src/mcp/resources/resourceCatalog.json` e é carregado por
+`resourceCatalog.ts`. A suíte do MCP verifica as URIs anunciadas; a
+compatibilidade com as rotas da API é verificada separadamente pela
+[suíte de integração entre módulos](../test/integration/README.md).
 
 ## Diagnóstico do transporte
 

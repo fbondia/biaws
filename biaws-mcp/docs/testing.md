@@ -28,6 +28,12 @@ node scripts/run-tests.mjs --list
 npm run release:check
 ```
 
+O contrato entre o catálogo MCP e as rotas GET da API é testado separadamente
+na [suíte de integração entre módulos](../../test/integration/README.md).
+Na raiz do repositório, execute `node scripts/test-integration.mjs` com as
+dependências dos dois módulos instaladas. A suíte interna do MCP permanece
+independente da API.
+
 Filtros são trechos do caminho relativo em `dist/test`; nenhum resultado gera
 erro, evitando execução silenciosa de uma seleção vazia. O inventário de T02 e
 a suíte reorganizada de T03 têm os mesmos 118 casos, sem perdas ou duplicações.

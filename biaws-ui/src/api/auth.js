@@ -5,12 +5,7 @@ export function fetchCurrentActor() {
 }
 
 export function signIn(email, password) {
-  return sendJson(
-    "/api/auth/sign-in/email",
-    { email, password },
-    undefined,
-    "POST",
-  );
+  return sendJson("/api/auth/sign-in/email", { email, password }, undefined, "POST");
 }
 
 export function signOut() {
@@ -55,36 +50,19 @@ export function listUsers() {
 }
 
 export function createUser({ name, email, password }) {
-  return sendJson(
-    "/api/identity/users",
-    { name, email, password },
-    undefined,
-    "POST",
-  );
+  return sendJson("/api/identity/users", { name, email, password }, undefined, "POST");
 }
 
 export function setUserDisabled(userId, disabled) {
-  return sendJson(
-    `/api/identity/users/${encodeURIComponent(userId)}/disabled`,
-    { disabled },
-    undefined,
-    "PATCH",
-  );
+  return sendJson(`/api/identity/users/${encodeURIComponent(userId)}/disabled`, { disabled }, undefined, "PATCH");
 }
 
 export function resetUserPassword(userId, newPassword) {
-  return sendJson(
-    `/api/identity/users/${encodeURIComponent(userId)}/password`,
-    { newPassword },
-    undefined,
-    "PUT",
-  );
+  return sendJson(`/api/identity/users/${encodeURIComponent(userId)}/password`, { newPassword }, undefined, "PUT");
 }
 
 export function revokeUserSessions(userId) {
-  return deleteJson(
-    `/api/identity/users/${encodeURIComponent(userId)}/sessions`,
-  );
+  return deleteJson(`/api/identity/users/${encodeURIComponent(userId)}/sessions`);
 }
 
 export function listPermissionCatalog() {
@@ -115,12 +93,7 @@ export function updatePermissionGroup(groupId, group) {
 }
 
 export function setPermissionGroupActive(groupId, active) {
-  return sendJson(
-    `/api/access/groups/${encodeURIComponent(groupId)}/status`,
-    { active },
-    undefined,
-    "PATCH",
-  );
+  return sendJson(`/api/access/groups/${encodeURIComponent(groupId)}/status`, { active }, undefined, "PATCH");
 }
 
 export function getUserAccess(userId) {

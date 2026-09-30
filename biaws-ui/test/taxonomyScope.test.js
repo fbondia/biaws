@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  filterTaxonomyForApplication,
-  findTaxonomyNode,
-} from "../src/components/taxonomy/scope.js";
+import { filterTaxonomyForApplication, findTaxonomyNode } from "../src/components/taxonomy/scope.js";
 
 const taxonomy = [
   {

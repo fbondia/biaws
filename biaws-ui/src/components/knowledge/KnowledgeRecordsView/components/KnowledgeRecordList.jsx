@@ -1,10 +1,4 @@
-import {
-  ArchiveRestore,
-  BookMarked,
-  FileText,
-  GripVertical,
-  Trash2,
-} from "lucide-react";
+import { ArchiveRestore, BookMarked, FileText, GripVertical, Trash2 } from "lucide-react";
 
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
@@ -18,24 +12,12 @@ function formatDefinedAt(value) {
   return `${day}/${month}/${year}`;
 }
 
-function KnowledgeRecordCard({
-  canArchive,
-  onDelete,
-  onOpen,
-  onRestore,
-  onToggleSelection,
-  record,
-  selected,
-}) {
+function KnowledgeRecordCard({ canArchive, onDelete, onOpen, onRestore, onToggleSelection, record, selected }) {
   const config = DOCUMENT_TYPES[record.documentType];
   const TypeIcon = config?.icon || FileText;
   return (
     <article
-      className={
-        selected
-          ? "procedureCard knowledgeRecordCard bulkSelectedCard"
-          : "procedureCard knowledgeRecordCard"
-      }
+      className={selected ? "procedureCard knowledgeRecordCard bulkSelectedCard" : "procedureCard knowledgeRecordCard"}
     >
       <button
         aria-label={`Abrir ${record.title}`}
@@ -56,11 +38,7 @@ function KnowledgeRecordCard({
             disabled={!record.identifier}
             onChange={() => onToggleSelection(record.id)}
             onClick={(event) => event.stopPropagation()}
-            title={
-              record.identifier
-                ? undefined
-                : "Defina um identificador antes de replicar este documento"
-            }
+            title={record.identifier ? undefined : "Defina um identificador antes de replicar este documento"}
             type="checkbox"
           />
           <GripVertical aria-hidden="true" size={15} />
@@ -68,18 +46,14 @@ function KnowledgeRecordCard({
           <div className="knowledgeRecordCardHeading">
             <h2>{record.title}</h2>
             <EntityIdentifier
-              className={
-                record.identifier ? "" : "knowledgeRecordMissingIdentifier"
-              }
+              className={record.identifier ? "" : "knowledgeRecordMissingIdentifier"}
               label="Identificador do documento"
               value={record.identifier}
             />
           </div>
         </div>
         <div className="knowledgeRecordCardHeaderMeta">
-          <span
-            className={`documentTypeBadge documentType-${record.documentType}`}
-          >
+          <span className={`documentTypeBadge documentType-${record.documentType}`}>
             {config?.label || record.documentType}
           </span>
           {canArchive && record.status === "archived" ? (
@@ -112,15 +86,10 @@ function KnowledgeRecordCard({
       </header>
       <p className="knowledgeRecordCardSummary">{record.summary}</p>
       <footer className="knowledgeRecordCardFooter">
-        <span
-          className={`knowledgeRecordStatusChip knowledgeRecordStatus-${record.status}`}
-        >
+        <span className={`knowledgeRecordStatusChip knowledgeRecordStatus-${record.status}`}>
           {statusLabel(record)}
         </span>
-        <time
-          className="knowledgeRecordDefinedAt"
-          dateTime={record.definedAt || undefined}
-        >
+        <time className="knowledgeRecordDefinedAt" dateTime={record.definedAt || undefined}>
           Definido em {formatDefinedAt(record.definedAt)}
         </time>
       </footer>
@@ -140,9 +109,7 @@ export function KnowledgeRecordList({
 }) {
   return (
     <section className="resourceCollectionContent">
-      {loading ? (
-        <div className="loadingLine">Carregando documentos...</div>
-      ) : null}
+      {loading ? <div className="loadingLine">Carregando documentos...</div> : null}
       {!loading && !records.length ? (
         <IllustratedEmptyState
           description="Crie o primeiro documento para registrar conhecimento governado do workspace."

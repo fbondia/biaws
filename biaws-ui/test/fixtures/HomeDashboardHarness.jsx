@@ -51,11 +51,7 @@ export function mountEditingHomeDashboard(container) {
   return root;
 }
 
-export function mountMonitoringHomeDashboard(
-  container,
-  onRequestExecution,
-  isExecutionPending = false,
-) {
+export function mountMonitoringHomeDashboard(container, onRequestExecution, isExecutionPending = false) {
   const definition = {
     id: "application-health",
     category: "Monitoramento",

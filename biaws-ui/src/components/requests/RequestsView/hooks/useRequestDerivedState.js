@@ -1,10 +1,6 @@
 import { useMemo } from "react";
 
-import {
-  normalizeRequestStatus,
-  requestsInCollectionBranch,
-  scheduleSortValue,
-} from "../../requestUtils.js";
+import { normalizeRequestStatus, requestsInCollectionBranch, scheduleSortValue } from "../../requestUtils.js";
 
 export function useRequestDerivedState({
   collectionId,
@@ -16,9 +12,7 @@ export function useRequestDerivedState({
 }) {
   const filteredRequests = useMemo(() => {
     if (!statusFilters.length) return requests;
-    return requests.filter((request) =>
-      statusFilters.includes(normalizeRequestStatus(request.status)),
-    );
+    return requests.filter((request) => statusFilters.includes(normalizeRequestStatus(request.status)));
   }, [requests, statusFilters]);
 
   const plannedTotal = (selectedRequest?.journeys || []).reduce(
@@ -30,29 +24,18 @@ export function useRequestDerivedState({
     0,
   );
   const scheduleRequests = useMemo(() => {
-    const branchRequests = requestsInCollectionBranch(
-      collections,
-      requestCollectionItems,
-      collectionId,
-    );
+    const branchRequests = requestsInCollectionBranch(collections, requestCollectionItems, collectionId);
     return [...branchRequests].sort(
       (first, second) =>
-        scheduleSortValue(
-          first.estimatedDeliveryDate || first.endDate || first.startDate,
-        ) -
-        scheduleSortValue(
-          second.estimatedDeliveryDate || second.endDate || second.startDate,
-        ),
+        scheduleSortValue(first.estimatedDeliveryDate || first.endDate || first.startDate) -
+        scheduleSortValue(second.estimatedDeliveryDate || second.endDate || second.startDate),
     );
   }, [collectionId, collections, requestCollectionItems]);
   const scheduleJourneyMonths = useMemo(() => {
     const months = new Set();
     for (const request of scheduleRequests) {
       for (const item of request.journeys) {
-        if (
-          (Number(item.plannedJourneys) || 0) > 0 ||
-          (Number(item.executedJourneys) || 0) > 0
-        ) {
+        if ((Number(item.plannedJourneys) || 0) > 0 || (Number(item.executedJourneys) || 0) > 0) {
           months.add(item.month);
         }
       }
@@ -63,9 +46,7 @@ export function useRequestDerivedState({
     if (!scheduleJourneyMonths.length) return [];
     return scheduleRequests.filter((request) =>
       request.journeys.some(
-        (item) =>
-          (Number(item.plannedJourneys) || 0) > 0 ||
-          (Number(item.executedJourneys) || 0) > 0,
+        (item) => (Number(item.plannedJourneys) || 0) > 0 || (Number(item.executedJourneys) || 0) > 0,
       ),
     );
   }, [scheduleJourneyMonths.length, scheduleRequests]);

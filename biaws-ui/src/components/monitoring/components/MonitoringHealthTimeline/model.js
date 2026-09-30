@@ -6,13 +6,7 @@ const HEALTH_LEVELS = {
   healthy: 4,
 };
 
-const HEALTH_LABELS = [
-  "Parado",
-  "Indisponível",
-  "Degradado",
-  "Desconhecido",
-  "Saudável",
-];
+const HEALTH_LABELS = ["Parado", "Indisponível", "Degradado", "Desconhecido", "Saudável"];
 
 const SERIES_COLORS = [
   "var(--palette-blue-37)",
@@ -29,18 +23,14 @@ export function monitoringHealthStatusLabel(level) {
 
 export function monitoringHealthTimeline(summary = {}, monitors = []) {
   const compactSummary = summary || {};
-  const monitorNames = new Map(
-    monitors.map((monitor) => [String(monitor.id), monitor.name]),
-  );
+  const monitorNames = new Map(monitors.map((monitor) => [String(monitor.id), monitor.name]));
   const preparedSeries = (compactSummary.series || [])
     .map((item) => ({
       ...item,
       points: (item.points || []).flatMap((point) => {
         const timestamp = new Date(point.observedAt).getTime();
         const level = HEALTH_LEVELS[String(point.status || "").toLowerCase()];
-        return Number.isFinite(timestamp) && level !== undefined
-          ? [{ ...point, level, timestamp }]
-          : [];
+        return Number.isFinite(timestamp) && level !== undefined ? [{ ...point, level, timestamp }] : [];
       }),
     }))
     .filter((item) => item.points.length);
@@ -48,9 +38,7 @@ export function monitoringHealthTimeline(summary = {}, monitors = []) {
     color: SERIES_COLORS[index % SERIES_COLORS.length],
     id: item.id,
     key: `series${index}`,
-    label:
-      (item.monitorId && monitorNames.get(String(item.monitorId))) ||
-      item.label,
+    label: (item.monitorId && monitorNames.get(String(item.monitorId))) || item.label,
   }));
   const pointsByTimestamp = new Map();
   preparedSeries.forEach((item, index) => {
@@ -65,9 +53,7 @@ export function monitoringHealthTimeline(summary = {}, monitors = []) {
     }
   });
 
-  const points = [...pointsByTimestamp.values()].sort(
-    (left, right) => left.timestamp - right.timestamp,
-  );
+  const points = [...pointsByTimestamp.values()].sort((left, right) => left.timestamp - right.timestamp);
   return {
     meta: compactSummary.meta || null,
     points,

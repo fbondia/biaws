@@ -1,12 +1,4 @@
-import {
-  AlertTriangle,
-  CopyPlus,
-  GripVertical,
-  Plus,
-  Save,
-  Trash2,
-  X,
-} from "lucide-react";
+import { AlertTriangle, CopyPlus, GripVertical, Plus, Save, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
 import { replicateOptionList, updateOptionList } from "../../../../../api.js";
@@ -19,18 +11,9 @@ import {
   newItem,
   removeItem,
 } from "../../model.js";
-import {
-  EmlDetectionTest,
-  OptionItemRow,
-} from "./components/ListEditorParts.jsx";
+import { EmlDetectionTest, OptionItemRow } from "./components/ListEditorParts.jsx";
 
-export function ListEditor({
-  list,
-  canManage,
-  currentWorkspaceId,
-  onSaved,
-  workspaces,
-}) {
+export function ListEditor({ list, canManage, currentWorkspaceId, onSaved, workspaces }) {
   const [draft, setDraft] = useState(() => clone(list));
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dropTargetIndex, setDropTargetIndex] = useState(null);
@@ -40,9 +23,7 @@ export function ListEditor({
   const [replicationOpen, setReplicationOpen] = useState(false);
   const hasColors = COLOR_LIST_KEYS.has(list.key);
   const hasEmlDetection = list.key === EML_DETECTION_LIST_KEY;
-  const detectionTest = testSubject
-    ? detectEmlIssueType(testSubject, draft.items)
-    : null;
+  const detectionTest = testSubject ? detectEmlIssueType(testSubject, draft.items) : null;
 
   function updateItem(index, field, value) {
     setDraft((current) => ({
@@ -52,9 +33,7 @@ export function ListEditor({
           ? {
               ...item,
               [field]: value,
-              ...(item._new && field === "value" && !item.label
-                ? { label: value }
-                : {}),
+              ...(item._new && field === "value" && !item.label ? { label: value } : {}),
             }
           : item,
       ),
@@ -65,9 +44,7 @@ export function ListEditor({
     setDraft((current) => ({
       ...current,
       items: current.items.map((item, itemIndex) =>
-        itemIndex === index
-          ? { ...item, metadata: { ...item.metadata, [field]: value } }
-          : item,
+        itemIndex === index ? { ...item, metadata: { ...item.metadata, [field]: value } } : item,
       ),
     }));
   }
@@ -83,8 +60,7 @@ export function ListEditor({
                 ...item.metadata,
                 emlImport: {
                   enabled: item.metadata?.emlImport?.enabled !== false,
-                  subjectPatterns:
-                    item.metadata?.emlImport?.subjectPatterns || [],
+                  subjectPatterns: item.metadata?.emlImport?.subjectPatterns || [],
                   [field]: value,
                 },
               },
@@ -140,8 +116,7 @@ export function ListEditor({
 
   function dropItem(event, targetIndex) {
     event.preventDefault();
-    const sourceIndex =
-      draggedIndex ?? Number(event.dataTransfer.getData("text/plain"));
+    const sourceIndex = draggedIndex ?? Number(event.dataTransfer.getData("text/plain"));
     moveItem(sourceIndex, targetIndex);
     stopDragging();
   }
@@ -160,9 +135,7 @@ export function ListEditor({
                   ...item.metadata,
                   emlImport: {
                     enabled: item.metadata?.emlImport?.enabled !== false,
-                    subjectPatterns: (
-                      item.metadata?.emlImport?.subjectPatterns || []
-                    )
+                    subjectPatterns: (item.metadata?.emlImport?.subjectPatterns || [])
                       .map((pattern) => pattern.trim())
                       .filter(Boolean),
                   },
@@ -186,22 +159,13 @@ export function ListEditor({
       <section className="taxonomyPanel taxonomyTabPanel optionListCard">
         <header className="optionListHeader">
           {canManage ? (
-            <button
-              className="primaryButton"
-              disabled={saving}
-              onClick={save}
-              type="button"
-            >
+            <button className="primaryButton" disabled={saving} onClick={save} type="button">
               <Save size={16} />
               {saving ? "Salvando..." : "Salvar"}
             </button>
           ) : null}
           {workspaces.some(({ id }) => id !== currentWorkspaceId) ? (
-            <button
-              className="secondaryButton"
-              onClick={() => setReplicationOpen(true)}
-              type="button"
-            >
+            <button className="secondaryButton" onClick={() => setReplicationOpen(true)} type="button">
               <CopyPlus size={16} /> Replicar
             </button>
           ) : null}
@@ -265,9 +229,7 @@ export function ListEditor({
                   onDragStart={startDragging}
                   onDrop={dropItem}
                   onMove={moveItem}
-                  onRemove={(itemIndex) =>
-                    setDraft((current) => removeItem(current, itemIndex))
-                  }
+                  onRemove={(itemIndex) => setDraft((current) => removeItem(current, itemIndex))}
                   onUpdateColor={updateColor}
                   onUpdateEml={updateEmlDetection}
                   onUpdateItem={updateItem}
@@ -278,10 +240,7 @@ export function ListEditor({
         </div>
         {hasEmlDetection ? (
           <EmlDetectionTest
-            defaultLabel={
-              draft.items.find((item) => item.value === draft.defaultValue)
-                ?.label || draft.defaultValue
-            }
+            defaultLabel={draft.items.find((item) => item.value === draft.defaultValue)?.label || draft.defaultValue}
             detectionTest={detectionTest}
             onChange={(event) => setTestSubject(event.target.value)}
             testSubject={testSubject}
@@ -307,16 +266,13 @@ export function ListEditor({
         currentWorkspaceId={currentWorkspaceId}
         description={
           <p>
-            A configuração completa substituirá a lista de mesma chave nos
-            destinos, incluindo opções, ordem, valor padrão, cores e regras de
-            detecção. Registros existentes não serão alterados.
+            A configuração completa substituirá a lista de mesma chave nos destinos, incluindo opções, ordem, valor
+            padrão, cores e regras de detecção. Registros existentes não serão alterados.
           </p>
         }
         eyebrow={list.key}
         onClose={() => setReplicationOpen(false)}
-        onReplicate={(destinationWorkspaceIds) =>
-          replicateOptionList(list.key, destinationWorkspaceIds)
-        }
+        onReplicate={(destinationWorkspaceIds) => replicateOptionList(list.key, destinationWorkspaceIds)}
         open={replicationOpen}
         resourceKey={list.key}
         title="Replicar lista de opções"

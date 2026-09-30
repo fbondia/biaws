@@ -33,9 +33,7 @@ export function createHealthRequestHandler({ status, telemetry }) {
 }
 
 export function createHealthServer({ host, port, status, telemetry }) {
-  const server = http.createServer(
-    createHealthRequestHandler({ status, telemetry }),
-  );
+  const server = http.createServer(createHealthRequestHandler({ status, telemetry }));
   return {
     async start() {
       await new Promise((resolve, reject) => {
@@ -46,9 +44,7 @@ export function createHealthServer({ host, port, status, telemetry }) {
     },
     async stop() {
       if (!server.listening) return;
-      await new Promise((resolve, reject) =>
-        server.close((error) => (error ? reject(error) : resolve())),
-      );
+      await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
     },
   };
 }

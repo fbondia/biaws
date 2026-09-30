@@ -1,10 +1,7 @@
 import { Clock3, Server } from "lucide-react";
 import { useState } from "react";
 
-import {
-  MonitoringExecutionButton,
-  MonitoringHistoryButton,
-} from "../../monitoring/components/MonitoringActions.jsx";
+import { MonitoringExecutionButton, MonitoringHistoryButton } from "../../monitoring/components/MonitoringActions.jsx";
 import { MonitoringObservation } from "../../monitoring/components/MonitoringObservation.jsx";
 import { MonitoringStatusBadge } from "../../monitoring/components/MonitoringStatusBadge.jsx";
 import { formatMonitoringDate } from "../../monitoring/formatters.js";
@@ -32,9 +29,7 @@ function HealthMetadataExplorer({
   selectedApplicationId,
   selectedRuntimeId,
 }) {
-  const [applicationId, setApplicationId] = useState(
-    () => applications[0]?.id || "",
-  );
+  const [applicationId, setApplicationId] = useState(() => applications[0]?.id || "");
   const [runtimeId, setRuntimeId] = useState("");
   const activeApplication =
     applications.find(({ id }) => id === selectedApplicationId) ||
@@ -42,9 +37,7 @@ function HealthMetadataExplorer({
     applications[0];
   const runtimes = applicationRuntimes(activeApplication);
   const activeRuntime =
-    runtimes.find(({ id }) => id === selectedRuntimeId) ||
-    runtimes.find(({ id }) => id === runtimeId) ||
-    runtimes[0];
+    runtimes.find(({ id }) => id === selectedRuntimeId) || runtimes.find(({ id }) => id === runtimeId) || runtimes[0];
 
   function selectApplication(application) {
     setApplicationId(application.id);
@@ -56,19 +49,11 @@ function HealthMetadataExplorer({
     <section className="homeHealthMetadataExplorer">
       {!hideTabs ? (
         <>
-          <div
-            aria-label="Aplicações monitoradas"
-            className="homeHealthApplicationTabs"
-            role="tablist"
-          >
+          <div aria-label="Aplicações monitoradas" className="homeHealthApplicationTabs" role="tablist">
             {applications.map((application) => (
               <button
                 aria-selected={application.id === activeApplication.id}
-                className={
-                  application.id === activeApplication.id
-                    ? "isActive"
-                    : undefined
-                }
+                className={application.id === activeApplication.id ? "isActive" : undefined}
                 key={application.id}
                 onClick={() => selectApplication(application)}
                 role="tab"
@@ -78,17 +63,11 @@ function HealthMetadataExplorer({
               </button>
             ))}
           </div>
-          <div
-            aria-label={`Runtimes de ${activeApplication.name}`}
-            className="homeHealthRuntimeTabs"
-            role="tablist"
-          >
+          <div aria-label={`Runtimes de ${activeApplication.name}`} className="homeHealthRuntimeTabs" role="tablist">
             {runtimes.map((runtime) => (
               <button
                 aria-selected={runtime.id === activeRuntime.id}
-                className={
-                  runtime.id === activeRuntime.id ? "isActive" : undefined
-                }
+                className={runtime.id === activeRuntime.id ? "isActive" : undefined}
                 key={runtime.id}
                 onClick={() => setRuntimeId(runtime.id)}
                 role="tab"
@@ -96,9 +75,7 @@ function HealthMetadataExplorer({
               >
                 <span className="homeHealthRuntimeTabHeading">
                   <span>{runtime.name}</span>
-                  {runtime.status !== "healthy" ? (
-                    <span className="homeHealthRuntimeAlertBadge">Não OK</span>
-                  ) : null}
+                  {runtime.status !== "healthy" ? <span className="homeHealthRuntimeAlertBadge">Não OK</span> : null}
                 </span>
                 <small>{runtime.deploymentName}</small>
               </button>
@@ -123,17 +100,12 @@ function HealthMetadataExplorer({
                 runtime={activeRuntime}
               />
             ) : null}
-            <MonitoringHistoryButton
-              onOpenHistory={onSelectRuntime}
-              runtime={activeRuntime}
-            />
+            <MonitoringHistoryButton onOpenHistory={onSelectRuntime} runtime={activeRuntime} />
           </div>
         </header>
         <div className="homeHealthMetadataPanelContext">
           <MonitoringStatusBadge status={activeRuntime.status} />
-          <span>
-            Última entrada: {formatMonitoringDate(activeRuntime.observedAt)}
-          </span>
+          <span>Última entrada: {formatMonitoringDate(activeRuntime.observedAt)}</span>
         </div>
         <MonitoringObservation
           emptyClassName="homeHealthRuntimeMetadataEmpty"
@@ -145,20 +117,10 @@ function HealthMetadataExplorer({
   );
 }
 
-function HealthRuntimeCard({
-  canRequestExecution,
-  isExecutionPending,
-  onRequestExecution,
-  onSelectRuntime,
-  runtime,
-}) {
+function HealthRuntimeCard({ canRequestExecution, isExecutionPending, onRequestExecution, onSelectRuntime, runtime }) {
   return (
     <div className="homeHealthRuntimeCard">
-      <button
-        className="homeHealthRuntime"
-        onClick={() => onSelectRuntime(runtime)}
-        type="button"
-      >
+      <button className="homeHealthRuntime" onClick={() => onSelectRuntime(runtime)} type="button">
         <div className="homeHealthRuntimeIdentity">
           <strong>{runtime.name}</strong>
           <span className="homeHealthServer">
@@ -288,15 +250,12 @@ export function ApplicationHealthWidget({
   onRequestExecution,
   onSelectRuntime,
 }) {
-  const presentation =
-    config?.runtimeId || config?.presentation === "tabs" ? "tabs" : "list";
+  const presentation = config?.runtimeId || config?.presentation === "tabs" ? "tabs" : "list";
 
   return (
     <div className="homeHealthWidget">
       {!data.items?.length ? (
-        <div className="homeWidgetEmpty">
-          Nenhum runtime com sinais de monitoramento.
-        </div>
+        <div className="homeWidgetEmpty">Nenhum runtime com sinais de monitoramento.</div>
       ) : presentation === "tabs" ? (
         <HealthMetadataExplorer
           applications={data.items}

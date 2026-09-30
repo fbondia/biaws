@@ -14,17 +14,11 @@ import { hasPermission } from "../../../permissions.js";
 
 import { groupPermissionsBySection } from "./model.js";
 import { ReplicationDialog } from "../../shared/ReplicationDialog.jsx";
-import {
-  CreateGroupButton,
-  PermissionCategories,
-} from "./components/GroupsViewPanels.jsx";
+import { CreateGroupButton, PermissionCategories } from "./components/GroupsViewPanels.jsx";
 
 function permissionsForScope(permissions, catalog, type) {
   if (type !== "applications") return permissions;
-  return permissions.filter(
-    (id) =>
-      catalog.find((permission) => permission.id === id)?.scope !== "workspace",
-  );
+  return permissions.filter((id) => catalog.find((permission) => permission.id === id)?.scope !== "workspace");
 }
 import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
 
@@ -45,9 +39,7 @@ function GroupsList({ groups, onSelect, selectedId }) {
       </div>
       {groups.map((group) => (
         <button
-          className={
-            selectedId === group.id ? "groupListItem selected" : "groupListItem"
-          }
+          className={selectedId === group.id ? "groupListItem selected" : "groupListItem"}
           key={group.id}
           onClick={() => onSelect(group)}
           type="button"
@@ -56,8 +48,7 @@ function GroupsList({ groups, onSelect, selectedId }) {
             <ShieldCheck size={16} /> {group.name}
           </span>
           <small>
-            {group.system ? "Sistema" : "Personalizado"} ·{" "}
-            {group.permissions.length} permissões
+            {group.system ? "Sistema" : "Personalizado"} · {group.permissions.length} permissões
             {!group.active ? " · Inativo" : ""}
           </small>
         </button>
@@ -66,18 +57,8 @@ function GroupsList({ groups, onSelect, selectedId }) {
   );
 }
 
-function GroupActions({
-  actor,
-  canManage,
-  draft,
-  onReplicate,
-  onToggleActive,
-  saving,
-  selectedId,
-}) {
-  const hasReplicationTarget = actor.workspaces?.some(
-    ({ id }) => id !== actor.workspaceId,
-  );
+function GroupActions({ actor, canManage, draft, onReplicate, onToggleActive, saving, selectedId }) {
+  const hasReplicationTarget = actor.workspaces?.some(({ id }) => id !== actor.workspaceId);
   return (
     <div className="securityActions">
       {canManage ? (
@@ -86,11 +67,7 @@ function GroupActions({
         </button>
       ) : null}
       {canManage && selectedId ? (
-        <button
-          className="secondaryButton"
-          onClick={onToggleActive}
-          type="button"
-        >
+        <button className="secondaryButton" onClick={onToggleActive} type="button">
           {draft.active ? "Desativar" : "Reativar"}
         </button>
       ) : null}
@@ -131,21 +108,18 @@ export function GroupsView({ actor }) {
   async function load(preferredId) {
     return runWithLoading(async () => {
       try {
-        const [groupPayload, catalogPayload, applicationPayload] =
-          await Promise.all([
-            listPermissionGroups(),
-            listPermissionCatalog(),
-            fetchApplications(actor.workspaceId, {
-              includeArchived: true,
-              limit: 100,
-            }),
-          ]);
+        const [groupPayload, catalogPayload, applicationPayload] = await Promise.all([
+          listPermissionGroups(),
+          listPermissionCatalog(),
+          fetchApplications(actor.workspaceId, {
+            includeArchived: true,
+            limit: 100,
+          }),
+        ]);
         setGroups(groupPayload.groups || []);
         setCatalog(catalogPayload.permissions || []);
         setApplications(applicationPayload.items || []);
-        const selected = (groupPayload.groups || []).find(
-          ({ id }) => id === (preferredId || selectedId),
-        );
+        const selected = (groupPayload.groups || []).find(({ id }) => id === (preferredId || selectedId));
         if (selected) setDraft(selected);
       } catch (loadError) {
         setError(loadError.message);
@@ -195,8 +169,7 @@ export function GroupsView({ actor }) {
       permissions: permissionsForScope(current.permissions, catalog, type),
       scope: {
         type,
-        applicationIds:
-          type === "applications" ? current.scope?.applicationIds || [] : [],
+        applicationIds: type === "applications" ? current.scope?.applicationIds || [] : [],
       },
     }));
   }
@@ -244,10 +217,7 @@ export function GroupsView({ actor }) {
     try {
       await runWithLoading(
         async () => {
-          const payload = await setPermissionGroupActive(
-            selectedId,
-            !draft.active,
-          );
+          const payload = await setPermissionGroupActive(selectedId, !draft.active);
           setDraft(payload.group);
           await load(selectedId);
         },
@@ -269,11 +239,7 @@ export function GroupsView({ actor }) {
       </header>
       {error ? <div className="authError">{error}</div> : null}
       <div className="groupAdminLayout">
-        <GroupsList
-          groups={groups}
-          onSelect={selectGroup}
-          selectedId={selectedId}
-        />
+        <GroupsList groups={groups} onSelect={selectGroup} selectedId={selectedId} />
         {editorOpen ? (
           <form className="securityPanel groupEditor" onSubmit={save}>
             {!draft.system ? (
@@ -282,9 +248,7 @@ export function GroupsView({ actor }) {
                 <input
                   disabled={!canManage}
                   maxLength={80}
-                  onChange={(event) =>
-                    setDraft({ ...draft, identifier: event.target.value })
-                  }
+                  onChange={(event) => setDraft({ ...draft, identifier: event.target.value })}
                   pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
                   placeholder="exemplo-estavel"
                   value={draft.identifier || ""}
@@ -297,9 +261,7 @@ export function GroupsView({ actor }) {
               <input
                 maxLength={100}
                 disabled={!canManage}
-                onChange={(event) =>
-                  setDraft({ ...draft, name: event.target.value })
-                }
+                onChange={(event) => setDraft({ ...draft, name: event.target.value })}
                 required
                 value={draft.name}
               />
@@ -309,9 +271,7 @@ export function GroupsView({ actor }) {
               <textarea
                 maxLength={500}
                 disabled={!canManage}
-                onChange={(event) =>
-                  setDraft({ ...draft, description: event.target.value })
-                }
+                onChange={(event) => setDraft({ ...draft, description: event.target.value })}
                 rows={3}
                 value={draft.description}
               />
@@ -349,9 +309,7 @@ export function GroupsView({ actor }) {
                   {applications.map((application) => (
                     <label className="permissionOption" key={application.id}>
                       <input
-                        checked={draft.scope.applicationIds.includes(
-                          application.id,
-                        )}
+                        checked={draft.scope.applicationIds.includes(application.id)}
                         disabled={!canManage}
                         onChange={() => toggleApplication(application.id)}
                         type="checkbox"
@@ -394,18 +352,14 @@ export function GroupsView({ actor }) {
         currentWorkspaceId={actor.workspaceId}
         description={
           <p>
-            O nome, a descrição, as permissões e o escopo serão replicados, sem
-            copiar membros. Escopos de aplicação são associados por meio do
-            identificador das aplicações no destino. Grupos de sistema
-            substituem o grupo correspondente; grupos personalizados são criados
-            ou substituídos pelo identificador.
+            O nome, a descrição, as permissões e o escopo serão replicados, sem copiar membros. Escopos de aplicação são
+            associados por meio do identificador das aplicações no destino. Grupos de sistema substituem o grupo
+            correspondente; grupos personalizados são criados ou substituídos pelo identificador.
           </p>
         }
         eyebrow={draft.name}
         onClose={() => setReplicationOpen(false)}
-        onReplicate={(destinationWorkspaceIds) =>
-          replicatePermissionGroup(selectedId, destinationWorkspaceIds)
-        }
+        onReplicate={(destinationWorkspaceIds) => replicatePermissionGroup(selectedId, destinationWorkspaceIds)}
         open={replicationOpen}
         resourceKey={selectedId}
         title="Replicar grupo de permissões"

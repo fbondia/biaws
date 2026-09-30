@@ -4,9 +4,7 @@ export function selectedMonitoringTargets(targets = [], runtimeIds = []) {
 }
 
 export function selectedMonitoringWidgets(targets = [], widgets = []) {
-  const byRuntimeId = new Map(
-    targets.map((target) => [String(target.id), target]),
-  );
+  const byRuntimeId = new Map(targets.map((target) => [String(target.id), target]));
   return widgets.flatMap((widget) => {
     const target = byRuntimeId.get(String(widget.runtimeId));
     return target ? [{ target, widget }] : [];
@@ -14,12 +12,8 @@ export function selectedMonitoringWidgets(targets = [], widgets = []) {
 }
 
 export function moveMonitoringWidget(widgets, sourceId, targetId) {
-  const sourceIndex = widgets.findIndex(
-    ({ runtimeId }) => runtimeId === sourceId,
-  );
-  const targetIndex = widgets.findIndex(
-    ({ runtimeId }) => runtimeId === targetId,
-  );
+  const sourceIndex = widgets.findIndex(({ runtimeId }) => runtimeId === sourceId);
+  const targetIndex = widgets.findIndex(({ runtimeId }) => runtimeId === targetId);
   if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
     return widgets;
   }
@@ -51,9 +45,7 @@ export function runtimeHealthData(healthDetails, runtimeId) {
     for (const component of application.components || []) {
       const deployments = [];
       for (const deployment of component.deployments || []) {
-        const runtimes = (deployment.runtimes || []).filter(
-          (runtime) => String(runtime.id) === String(runtimeId),
-        );
+        const runtimes = (deployment.runtimes || []).filter((runtime) => String(runtime.id) === String(runtimeId));
         if (runtimes.length) deployments.push({ ...deployment, runtimes });
       }
       if (deployments.length) components.push({ ...component, deployments });

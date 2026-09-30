@@ -37,13 +37,6 @@ const handles = [
 
 export function TopologyNodeHandles() {
   return handles.map(({ id, position, style }) => (
-    <Handle
-      className="topologyNodeHandle"
-      id={id}
-      key={id}
-      position={position}
-      style={style}
-      type="source"
-    />
+    <Handle className="topologyNodeHandle" id={id} key={id} position={position} style={style} type="source" />
   ));
 }

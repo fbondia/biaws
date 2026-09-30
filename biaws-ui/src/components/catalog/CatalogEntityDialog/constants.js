@@ -1,37 +1,10 @@
-export const COMPONENT_TYPES = [
-  "api",
-  "ui",
-  "worker",
-  "service",
-  "library",
-  "integration",
-  "other",
-];
+export const COMPONENT_TYPES = ["api", "ui", "worker", "service", "library", "integration", "other"];
 
-export const REPOSITORY_PROVIDERS = [
-  "github",
-  "gitlab",
-  "bitbucket",
-  "azure-devops",
-  "local",
-  "other",
-];
+export const REPOSITORY_PROVIDERS = ["github", "gitlab", "bitbucket", "azure-devops", "local", "other"];
 
-export const ENVIRONMENTS = [
-  "development",
-  "test",
-  "staging",
-  "production",
-  "other",
-];
+export const ENVIRONMENTS = ["development", "test", "staging", "production", "other"];
 
-export const DEPLOYMENT_STATUSES = [
-  "planned",
-  "deploying",
-  "active",
-  "inactive",
-  "failed",
-];
+export const DEPLOYMENT_STATUSES = ["planned", "deploying", "active", "inactive", "failed"];
 
 export const PUBLICATION_STATUSES = [
   { value: "planned", label: "Planejada" },
@@ -39,23 +12,9 @@ export const PUBLICATION_STATUSES = [
   { value: "deployed", label: "Implantada" },
 ];
 
-export const RUNTIME_KINDS = [
-  "process",
-  "container",
-  "kubernetes",
-  "serverless",
-  "managed",
-  "external",
-  "other",
-];
+export const RUNTIME_KINDS = ["process", "container", "kubernetes", "serverless", "managed", "external", "other"];
 
-export const RUNTIME_STATUSES = [
-  "unknown",
-  "healthy",
-  "degraded",
-  "unavailable",
-  "stopped",
-];
+export const RUNTIME_STATUSES = ["unknown", "healthy", "degraded", "unavailable", "stopped"];
 
 export const SERVER_STATUSES = ["active", "maintenance", "retired"];
 

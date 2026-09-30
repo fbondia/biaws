@@ -2,12 +2,7 @@ export function todayIso(clock = () => new Date()) {
   return clock().toISOString().slice(0, 10);
 }
 
-export function createEmptyDocumentDraft(
-  documentTypes,
-  documentType,
-  collectionId = "",
-  clock,
-) {
+export function createEmptyDocumentDraft(documentTypes, documentType, collectionId = "", clock) {
   const config = documentTypes[documentType];
   return {
     id: "",
@@ -66,9 +61,7 @@ export function normalizeDocumentDraft(documentTypes, record = {}) {
 
 export function documentStatusLabel(documentTypes, document) {
   return (
-    documentTypes[document.documentType]?.statuses.find(
-      ([value]) => value === document.status,
-    )?.[1] || document.status
+    documentTypes[document.documentType]?.statuses.find(([value]) => value === document.status)?.[1] || document.status
   );
 }
 

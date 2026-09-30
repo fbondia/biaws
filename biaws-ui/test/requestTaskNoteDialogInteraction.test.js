@@ -15,10 +15,7 @@ test("task execution note opens in markdown editing mode", async () => {
     url: "https://biaws.example.test",
   });
   const previous = Object.fromEntries(
-    ["document", "navigator", "window"].map((name) => [
-      name,
-      Object.getOwnPropertyDescriptor(globalThis, name),
-    ]),
+    ["document", "navigator", "window"].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   Object.defineProperties(globalThis, {
     document: { configurable: true, value: dom.window.document },
@@ -35,10 +32,7 @@ test("task execution note opens in markdown editing mode", async () => {
       build: {
         emptyOutDir: false,
         lib: {
-          entry: join(
-            process.cwd(),
-            "test/fixtures/RequestTaskNoteDialogHarness.jsx",
-          ),
+          entry: join(process.cwd(), "test/fixtures/RequestTaskNoteDialogHarness.jsx"),
           fileName: "request-task-note-dialog-harness",
           formats: ["es"],
         },
@@ -46,23 +40,14 @@ test("task execution note opens in markdown editing mode", async () => {
       },
     });
     const { mountRequestTaskNoteDialog } = await import(
-      pathToFileURL(
-        join(outputDirectory, "request-task-note-dialog-harness.js"),
-      )
+      pathToFileURL(join(outputDirectory, "request-task-note-dialog-harness.js"))
     );
     const harness = mountRequestTaskNoteDialog(document.getElementById("app"));
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const editor = document.querySelector(
-      ".requestTaskNoteContentField textarea",
-    );
+    const editor = document.querySelector(".requestTaskNoteContentField textarea");
     assert.ok(editor);
-    assert.equal(
-      document
-        .querySelector('[aria-label="Editar texto"]')
-        .getAttribute("aria-pressed"),
-      "true",
-    );
+    assert.equal(document.querySelector('[aria-label="Editar texto"]').getAttribute("aria-pressed"), "true");
 
     editor.value = "**Nota em Markdown**";
     editor.dispatchEvent(new window.Event("input", { bubbles: true }));

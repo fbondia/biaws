@@ -29,11 +29,7 @@ function nodeCenter(node, nodesById, resolving = new Set()) {
   let x = node.position?.x || 0;
   let y = node.position?.y || 0;
   if (node.parentId) {
-    const parentCenter = nodeCenter(
-      nodesById.get(node.parentId),
-      nodesById,
-      resolving,
-    );
+    const parentCenter = nodeCenter(nodesById.get(node.parentId), nodesById, resolving);
     const parent = nodesById.get(node.parentId);
     const parentWidth =
       numericDimension(parent?.measured?.width) ||
@@ -71,16 +67,10 @@ export function automaticTopologyHandles(nodes, sourceId, targetId) {
   const targetCenter = nodeCenter(nodesById.get(targetId), nodesById);
   if (!sourceCenter || !targetCenter) return {};
 
-  const angle = Math.atan2(
-    targetCenter.y - sourceCenter.y,
-    targetCenter.x - sourceCenter.x,
-  );
-  const sector =
-    Math.round(angle / DIRECTION_SECTOR_SIZE) % TOPOLOGY_HANDLE_PAIRS.length;
+  const angle = Math.atan2(targetCenter.y - sourceCenter.y, targetCenter.x - sourceCenter.x);
+  const sector = Math.round(angle / DIRECTION_SECTOR_SIZE) % TOPOLOGY_HANDLE_PAIRS.length;
   const [sourceHandle, targetHandle] =
-    TOPOLOGY_HANDLE_PAIRS[
-      (sector + TOPOLOGY_HANDLE_PAIRS.length) % TOPOLOGY_HANDLE_PAIRS.length
-    ];
+    TOPOLOGY_HANDLE_PAIRS[(sector + TOPOLOGY_HANDLE_PAIRS.length) % TOPOLOGY_HANDLE_PAIRS.length];
   return { sourceHandle, targetHandle };
 }
 
@@ -99,14 +89,8 @@ export function resizeTopologyGroups(nodes = []) {
       ...node,
       style: {
         ...node.style,
-        width: Math.max(
-          GROUP_MIN_WIDTH,
-          ...children.map(({ position }) => position.x + GROUP_CHILD_WIDTH),
-        ),
-        height: Math.max(
-          GROUP_MIN_HEIGHT,
-          ...children.map(({ position }) => position.y + GROUP_CHILD_HEIGHT),
-        ),
+        width: Math.max(GROUP_MIN_WIDTH, ...children.map(({ position }) => position.x + GROUP_CHILD_WIDTH)),
+        height: Math.max(GROUP_MIN_HEIGHT, ...children.map(({ position }) => position.y + GROUP_CHILD_HEIGHT)),
       },
     };
   });

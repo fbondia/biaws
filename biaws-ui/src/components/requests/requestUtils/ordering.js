@@ -9,9 +9,7 @@ export function dateTimeValue(dateValue) {
 
 export function requestListRankValue(request) {
   const rank = Number(request?.listRank);
-  return Number.isFinite(rank)
-    ? rank
-    : dateTimeValue(request?.updatedAt || request?.createdAt);
+  return Number.isFinite(rank) ? rank : dateTimeValue(request?.updatedAt || request?.createdAt);
 }
 
 export function sortRequestsForList(requests) {
@@ -25,10 +23,6 @@ export function sortRequestsForList(requests) {
 }
 
 export function nextTopRequestListRank(requests) {
-  const topRank = requests.reduce(
-    (highestRank, request) =>
-      Math.max(highestRank, requestListRankValue(request)),
-    0,
-  );
+  const topRank = requests.reduce((highestRank, request) => Math.max(highestRank, requestListRankValue(request)), 0);
   return Math.max(Date.now(), topRank + 1000);
 }

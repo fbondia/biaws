@@ -1,7 +1,5 @@
 function sortCollections(items) {
-  return [...items].sort((first, second) =>
-    first.name.localeCompare(second.name, "pt-BR", { sensitivity: "base" }),
-  );
+  return [...items].sort((first, second) => first.name.localeCompare(second.name, "pt-BR", { sensitivity: "base" }));
 }
 
 export function buildCollectionTree(collections = []) {
@@ -9,9 +7,7 @@ export function buildCollectionTree(collections = []) {
   const childrenByParent = new Map();
 
   for (const collection of collections) {
-    const parentId = knownIds.has(collection.parentId)
-      ? collection.parentId
-      : "";
+    const parentId = knownIds.has(collection.parentId) ? collection.parentId : "";
     const children = childrenByParent.get(parentId) || [];
     children.push(collection);
     childrenByParent.set(parentId, children);
@@ -26,9 +22,7 @@ export function buildCollectionTree(collections = []) {
 
 export function collectionPathLabel(collections = [], collectionId = "") {
   if (!collectionId) return "Raiz";
-  const byId = new Map(
-    collections.map((collection) => [collection.id, collection]),
-  );
+  const byId = new Map(collections.map((collection) => [collection.id, collection]));
   const path = [];
   const visited = new Set();
   let currentId = collectionId;
@@ -46,10 +40,7 @@ export function collectionPathLabel(collections = [], collectionId = "") {
 
 export function parentCollectionId(collections = [], collectionId = "") {
   if (!collectionId) return "";
-  return (
-    collections.find((collection) => collection.id === collectionId)
-      ?.parentId || ""
-  );
+  return collections.find((collection) => collection.id === collectionId)?.parentId || "";
 }
 
 export function descendantCollectionIds(childrenByParent, collectionId) {
@@ -68,9 +59,7 @@ export function descendantCollectionIds(childrenByParent, collectionId) {
 
 function collectionIdPath(collections, collectionId) {
   if (!collectionId) return [];
-  const byId = new Map(
-    collections.map((collection) => [collection.id, collection]),
-  );
+  const byId = new Map(collections.map((collection) => [collection.id, collection]));
   const path = [];
   const visited = new Set();
   let currentId = collectionId;
@@ -86,15 +75,9 @@ function collectionIdPath(collections, collectionId) {
   return path;
 }
 
-export function buildCollectionColumns(
-  collections,
-  childrenByParent,
-  collectionId,
-) {
+export function buildCollectionColumns(collections, childrenByParent, collectionId) {
   const activePath = collectionIdPath(collections, collectionId);
-  const columns = [
-    { parentId: "", collections: childrenByParent.get("") || [] },
-  ];
+  const columns = [{ parentId: "", collections: childrenByParent.get("") || [] }];
 
   for (const activeCollectionId of activePath) {
     columns.push({
@@ -115,15 +98,11 @@ export function countItemsByCollection(items) {
 }
 
 export function groupItemsByCollection(collections, items) {
-  const knownCollectionIds = new Set(
-    collections.map((collection) => collection.id),
-  );
+  const knownCollectionIds = new Set(collections.map((collection) => collection.id));
 
   return items.reduce((groups, item) => {
     const requestedCollectionId = item.collectionId || "";
-    const collectionId = knownCollectionIds.has(requestedCollectionId)
-      ? requestedCollectionId
-      : "";
+    const collectionId = knownCollectionIds.has(requestedCollectionId) ? requestedCollectionId : "";
     const groupedItems = groups.get(collectionId) || [];
     groupedItems.push(item);
     groups.set(collectionId, groupedItems);
@@ -132,9 +111,7 @@ export function groupItemsByCollection(collections, items) {
 }
 
 export function collectionIdsContainingItems(collections = [], items = []) {
-  const byId = new Map(
-    collections.map((collection) => [collection.id, collection]),
-  );
+  const byId = new Map(collections.map((collection) => [collection.id, collection]));
   const visibleIds = new Set();
 
   for (const item of items) {
@@ -163,10 +140,7 @@ export function isItemReorderDrop(draggedItem, targetItem, getItemId) {
   const targetId = getItemId(targetItem);
   if (!draggedItem.id || draggedItem.id === targetId) return false;
 
-  return (
-    String(draggedItem.collectionId || "") ===
-    String(targetItem.collectionId || "")
-  );
+  return String(draggedItem.collectionId || "") === String(targetItem.collectionId || "");
 }
 
 export function collectionItemLifecycleActions(item, handlers = {}) {

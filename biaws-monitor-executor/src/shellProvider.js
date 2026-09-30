@@ -56,35 +56,20 @@ function normalizeScriptPolicies(scripts) {
   assertObject(scripts, "shell scripts policy");
   return Object.fromEntries(
     Object.entries(scripts).map(([id, raw]) => {
-      if (!SCRIPT_ID.test(id))
-        throw new Error("Shell policy contains an invalid script identifier");
+      if (!SCRIPT_ID.test(id)) throw new Error("Shell policy contains an invalid script identifier");
       assertObject(raw, `shell script policy ${id}`);
       assertAllowedKeys(
         raw,
-        [
-          "path",
-          "workingDirectory",
-          "argumentPatterns",
-          "environmentPatterns",
-          "fixedEnvironment",
-        ],
+        ["path", "workingDirectory", "argumentPatterns", "environmentPatterns", "fixedEnvironment"],
         `shell script policy ${id}`,
       );
       const argumentPatterns = raw.argumentPatterns || [];
       if (!Array.isArray(argumentPatterns) || argumentPatterns.length > 32)
-        throw new Error(
-          `shell script policy ${id}.argumentPatterns must be an array with at most 32 entries`,
-        );
+        throw new Error(`shell script policy ${id}.argumentPatterns must be an array with at most 32 entries`);
       const environmentPatterns = raw.environmentPatterns || {};
       const fixedEnvironment = raw.fixedEnvironment || {};
-      assertObject(
-        environmentPatterns,
-        `shell script policy ${id}.environmentPatterns`,
-      );
-      assertObject(
-        fixedEnvironment,
-        `shell script policy ${id}.fixedEnvironment`,
-      );
+      assertObject(environmentPatterns, `shell script policy ${id}.environmentPatterns`);
+      assertObject(fixedEnvironment, `shell script policy ${id}.fixedEnvironment`);
       return [
         id,
         {
@@ -92,11 +77,10 @@ function normalizeScriptPolicies(scripts) {
             required: true,
             max: 2_000,
           }),
-          workingDirectory: boundedString(
-            raw.workingDirectory || ".",
-            `shell script policy ${id}.workingDirectory`,
-            { required: true, max: 2_000 },
-          ),
+          workingDirectory: boundedString(raw.workingDirectory || ".", `shell script policy ${id}.workingDirectory`, {
+            required: true,
+            max: 2_000,
+          }),
           argumentPatterns: argumentPatterns.map((pattern, index) =>
             compilePattern(
               boundedString(pattern, `argumentPatterns[${index}]`, {
@@ -109,9 +93,7 @@ function normalizeScriptPolicies(scripts) {
           environmentPatterns: Object.fromEntries(
             Object.entries(environmentPatterns).map(([name, pattern]) => {
               if (!ENVIRONMENT_NAME.test(name))
-                throw new Error(
-                  `shell script policy ${id} contains an invalid environment name`,
-                );
+                throw new Error(`shell script policy ${id} contains an invalid environment name`);
               return [
                 name,
                 compilePattern(
@@ -127,9 +109,7 @@ function normalizeScriptPolicies(scripts) {
           fixedEnvironment: Object.fromEntries(
             Object.entries(fixedEnvironment).map(([name, value]) => {
               if (!ENVIRONMENT_NAME.test(name))
-                throw new Error(
-                  `shell script policy ${id} contains an invalid fixed environment name`,
-                );
+                throw new Error(`shell script policy ${id} contains an invalid fixed environment name`);
               return [
                 name,
                 boundedString(value, `fixedEnvironment.${name}`, {
@@ -146,35 +126,19 @@ function normalizeScriptPolicies(scripts) {
 
 function validateConfiguration(configuration) {
   assertObject(configuration, "configuration");
-  assertAllowedKeys(configuration, [
-    "scriptId",
-    "arguments",
-    "environment",
-    "failureStatus",
-    "captureOutput",
-  ]);
+  assertAllowedKeys(configuration, ["scriptId", "arguments", "environment", "failureStatus", "captureOutput"]);
   const scriptId = boundedString(configuration.scriptId, "scriptId", {
     required: true,
     max: 100,
   });
-  if (!SCRIPT_ID.test(scriptId))
-    throw new ProviderConfigurationError(
-      "INVALID_SCRIPT_ID",
-      "scriptId is invalid",
-    );
+  if (!SCRIPT_ID.test(scriptId)) throw new ProviderConfigurationError("INVALID_SCRIPT_ID", "scriptId is invalid");
   const args = configuration.arguments || [];
   if (!Array.isArray(args) || args.length > 32)
-    throw new ProviderConfigurationError(
-      "INVALID_SCRIPT_ARGUMENTS",
-      "arguments must contain at most 32 strings",
-    );
+    throw new ProviderConfigurationError("INVALID_SCRIPT_ARGUMENTS", "arguments must contain at most 32 strings");
   const environment = configuration.environment || {};
   assertObject(environment, "environment");
   if (Object.keys(environment).length > 32)
-    throw new ProviderConfigurationError(
-      "INVALID_SCRIPT_ENVIRONMENT",
-      "environment has too many entries",
-    );
+    throw new ProviderConfigurationError("INVALID_SCRIPT_ENVIRONMENT", "environment has too many entries");
   const failureStatus = configuration.failureStatus || "unavailable";
   if (!["unknown", "degraded", "unavailable"].includes(failureStatus)) {
     throw new ProviderConfigurationError(
@@ -191,20 +155,12 @@ function validateConfiguration(configuration) {
   }
   return {
     scriptId,
-    arguments: args.map((entry, index) =>
-      boundedString(entry, `arguments[${index}]`, { max: 2_000 }),
-    ),
+    arguments: args.map((entry, index) => boundedString(entry, `arguments[${index}]`, { max: 2_000 })),
     environment: Object.fromEntries(
       Object.entries(environment).map(([name, value]) => {
         if (!ENVIRONMENT_NAME.test(name))
-          throw new ProviderConfigurationError(
-            "INVALID_ENVIRONMENT_NAME",
-            "environment contains an invalid name",
-          );
-        return [
-          name,
-          boundedString(value, `environment.${name}`, { max: 4_000 }),
-        ];
+          throw new ProviderConfigurationError("INVALID_ENVIRONMENT_NAME", "environment contains an invalid name");
+        return [name, boundedString(value, `environment.${name}`, { max: 4_000 })];
       }),
     ),
     failureStatus,
@@ -215,14 +171,9 @@ function validateConfiguration(configuration) {
 function validateInvocation(configuration, policy) {
   if (
     configuration.arguments.length !== policy.argumentPatterns.length ||
-    configuration.arguments.some(
-      (value, index) => !policy.argumentPatterns[index].test(value),
-    )
+    configuration.arguments.some((value, index) => !policy.argumentPatterns[index].test(value))
   ) {
-    throw new ProviderConfigurationError(
-      "SCRIPT_ARGUMENT_REFUSED",
-      "script arguments do not match the local policy",
-    );
+    throw new ProviderConfigurationError("SCRIPT_ARGUMENT_REFUSED", "script arguments do not match the local policy");
   }
   for (const [name, value] of Object.entries(configuration.environment)) {
     if (!policy.environmentPatterns[name]?.test(value))
@@ -250,30 +201,16 @@ export function createShellProvider({
       const configuration = monitor.configuration;
       const policy = policies[configuration.scriptId];
       if (!policy)
-        throw new ProviderConfigurationError(
-          "SCRIPT_NOT_ALLOWED",
-          "scriptId is not present in the local allowlist",
-        );
+        throw new ProviderConfigurationError("SCRIPT_NOT_ALLOWED", "scriptId is not present in the local allowlist");
       validateInvocation(configuration, policy);
       const canonicalRoot = await realpath(root);
-      const command = await realpath(
-        resolveInside(canonicalRoot, policy.path, "script path"),
-      );
-      const cwd = await realpath(
-        resolveInside(
-          canonicalRoot,
-          policy.workingDirectory,
-          "working directory",
-        ),
-      );
+      const command = await realpath(resolveInside(canonicalRoot, policy.path, "script path"));
+      const cwd = await realpath(resolveInside(canonicalRoot, policy.workingDirectory, "working directory"));
       resolveInside(canonicalRoot, command, "script path");
       resolveInside(canonicalRoot, cwd, "working directory");
       const commandStat = await stat(command);
       if (!commandStat.isFile())
-        throw new ProviderConfigurationError(
-          "SCRIPT_NOT_REGULAR_FILE",
-          "allowlisted script is not a regular file",
-        );
+        throw new ProviderConfigurationError("SCRIPT_NOT_REGULAR_FILE", "allowlisted script is not a regular file");
       await access(command, fsConstants.X_OK);
       const startedAt = now();
       const redactions = sensitiveValues(policy.fixedEnvironment);
@@ -289,39 +226,26 @@ export function createShellProvider({
           },
         },
         signal,
-        maxEvidenceBytes +
-          Math.max(0, ...redactions.map((value) => value.length)),
+        maxEvidenceBytes + Math.max(0, ...redactions.map((value) => value.length)),
       );
       const healthy = result.code === 0;
-      const captureStdout = ["stdout", "both"].includes(
-        configuration.captureOutput,
-      );
-      const captureStderr = ["stderr", "both"].includes(
-        configuration.captureOutput,
-      );
+      const captureStdout = ["stdout", "both"].includes(configuration.captureOutput);
+      const captureStderr = ["stderr", "both"].includes(configuration.captureOutput);
       const capturedMetadata = {
         ...(captureStdout
           ? {
-              shell_stdout: truncateText(
-                sanitizeEvidenceText(result.stdout, redactions),
-                maxEvidenceBytes,
-              ),
+              shell_stdout: truncateText(sanitizeEvidenceText(result.stdout, redactions), maxEvidenceBytes),
             }
           : {}),
         ...(captureStderr
           ? {
-              shell_stderr: truncateText(
-                sanitizeEvidenceText(result.stderr, redactions),
-                maxEvidenceBytes,
-              ),
+              shell_stderr: truncateText(sanitizeEvidenceText(result.stderr, redactions), maxEvidenceBytes),
             }
           : {}),
       };
       return {
         status: healthy ? "healthy" : configuration.failureStatus,
-        message: healthy
-          ? "Shell target completed successfully"
-          : "Shell target returned a non-zero exit status",
+        message: healthy ? "Shell target completed successfully" : "Shell target returned a non-zero exit status",
         metadata: {
           outcome_kind: healthy ? "target_healthy" : "target_unhealthy",
           exit_code: result.code,

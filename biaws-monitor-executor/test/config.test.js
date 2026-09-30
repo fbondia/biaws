@@ -7,10 +7,7 @@ import test from "node:test";
 import { getExecutorConfig } from "../src/config.js";
 
 test("enabled executor requires an isolated API credential and workspace", () => {
-  assert.throws(
-    () => getExecutorConfig({ BIAWS_MONITOR_EXECUTOR_ENABLED: "true" }),
-    /API_KEY.*WORKSPACE_ID/u,
-  );
+  assert.throws(() => getExecutorConfig({ BIAWS_MONITOR_EXECUTOR_ENABLED: "true" }), /API_KEY.*WORKSPACE_ID/u);
   const config = getExecutorConfig({
     BIAWS_MONITOR_EXECUTOR_ENABLED: "true",
     BIAWS_MONITOR_EXECUTOR_API_KEY: "test-key",

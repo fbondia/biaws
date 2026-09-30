@@ -15,14 +15,16 @@ test("archived collection items expose restore and permanent deletion", () => {
     onDeleteItem: () => {},
     onRestoreItem: () => {},
   };
-  assert.deepEqual(
-    collectionItemLifecycleActions({ status: "active" }, handlers),
-    { archive: true, delete: false, restore: false },
-  );
-  assert.deepEqual(
-    collectionItemLifecycleActions({ status: "archived" }, handlers),
-    { archive: false, delete: true, restore: true },
-  );
+  assert.deepEqual(collectionItemLifecycleActions({ status: "active" }, handlers), {
+    archive: true,
+    delete: false,
+    restore: false,
+  });
+  assert.deepEqual(collectionItemLifecycleActions({ status: "archived" }, handlers), {
+    archive: false,
+    delete: true,
+    restore: true,
+  });
 });
 
 test("collection items can be reordered inside the same collection", () => {
@@ -64,9 +66,7 @@ test("populated collection filter keeps ancestors and removes empty branches", (
   ];
 
   assert.deepEqual(
-    populatedCollections(collections, [
-      { id: "document-1", collectionId: "scripts" },
-    ]).map(({ id }) => id),
+    populatedCollections(collections, [{ id: "document-1", collectionId: "scripts" }]).map(({ id }) => id),
     ["procedures", "deploy", "scripts"],
   );
 });

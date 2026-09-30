@@ -1,15 +1,8 @@
 import { useEffect, useRef } from "react";
 
 import { fetchRequest, saveRequest } from "../../../../api.js";
-import {
-  createPendingRequestSave,
-  flushPendingRequestSaves,
-} from "../requestSaveQueue.js";
-import {
-  normalizeRequest,
-  REQUEST_SAVE_DEBOUNCE_MS,
-  sortRequestsForList,
-} from "../../requestUtils.js";
+import { createPendingRequestSave, flushPendingRequestSaves } from "../requestSaveQueue.js";
+import { normalizeRequest, REQUEST_SAVE_DEBOUNCE_MS, sortRequestsForList } from "../../requestUtils.js";
 
 export function useRequestPersistence({
   actor,
@@ -32,49 +25,34 @@ export function useRequestPersistence({
       setSelectedRequestOverride(normalizedRequest);
     }
     setRequests((current) => {
-      const exists = current.some(
-        (request) => request.id === normalizedRequest.id,
-      );
+      const exists = current.some((request) => request.id === normalizedRequest.id);
       return sortRequestsForList(
         exists
-          ? current.map((request) =>
-              request.id === normalizedRequest.id ? normalizedRequest : request,
-            )
+          ? current.map((request) => (request.id === normalizedRequest.id ? normalizedRequest : request))
           : [normalizedRequest, ...current],
       );
     });
     setRequestCollectionItems((current) => {
-      const exists = current.some(
-        (request) => request.id === normalizedRequest.id,
-      );
+      const exists = current.some((request) => request.id === normalizedRequest.id);
       return sortRequestsForList(
         exists
-          ? current.map((request) =>
-              request.id === normalizedRequest.id ? normalizedRequest : request,
-            )
+          ? current.map((request) => (request.id === normalizedRequest.id ? normalizedRequest : request))
           : [normalizedRequest, ...current],
       );
     });
   }
 
   function updateRequest(requestId, updater) {
-    setSelectedRequestOverride((current) =>
-      current?.id === requestId ? normalizeRequest(updater(current)) : current,
-    );
+    setSelectedRequestOverride((current) => (current?.id === requestId ? normalizeRequest(updater(current)) : current));
     setRequests((current) =>
       sortRequestsForList(
-        current.map((request) =>
-          request.id === requestId
-            ? normalizeRequest(updater(request))
-            : request,
-        ),
+        current.map((request) => (request.id === requestId ? normalizeRequest(updater(request)) : request)),
       ),
     );
   }
 
   async function recoverFailedRequestSave(request, saveVersion) {
-    const isLatestSave =
-      requestSaveVersionsRef.current.get(request.id) === saveVersion;
+    const isLatestSave = requestSaveVersionsRef.current.get(request.id) === saveVersion;
     if (!isLatestSave || pendingRequestsRef.current.has(request.id)) return;
 
     try {
@@ -95,12 +73,7 @@ export function useRequestPersistence({
     }
 
     try {
-      const payload = await saveRequest(
-        request.id,
-        request,
-        undefined,
-        workspaceId,
-      );
+      const payload = await saveRequest(request.id, request, undefined, workspaceId);
       if (mountedRef.current && payload.request) {
         upsertRequestInList(payload.request);
       }
@@ -110,9 +83,7 @@ export function useRequestPersistence({
       await recoverFailedRequestSave(request, saveVersion);
     } finally {
       if (mountedRef.current) {
-        setSavingRequestId((current) =>
-          current === request.id ? "" : current,
-        );
+        setSavingRequestId((current) => (current === request.id ? "" : current));
       }
     }
   }
@@ -122,12 +93,8 @@ export function useRequestPersistence({
     const existingTimer = saveTimersRef.current.get(request.id);
     if (existingTimer) clearTimeout(existingTimer);
 
-    pendingRequestsRef.current.set(
-      request.id,
-      createPendingRequestSave(request, actor.workspaceId),
-    );
-    const saveVersion =
-      (requestSaveVersionsRef.current.get(request.id) || 0) + 1;
+    pendingRequestsRef.current.set(request.id, createPendingRequestSave(request, actor.workspaceId));
+    const saveVersion = (requestSaveVersionsRef.current.get(request.id) || 0) + 1;
     requestSaveVersionsRef.current.set(request.id, saveVersion);
     setSavingRequestId(request.id);
     setRequestError("");
@@ -136,11 +103,7 @@ export function useRequestPersistence({
       saveTimersRef.current.delete(request.id);
       const pendingSave = pendingRequestsRef.current.get(request.id);
       pendingRequestsRef.current.delete(request.id);
-      void persistRequest(
-        pendingSave?.request,
-        saveVersion,
-        pendingSave?.workspaceId,
-      );
+      void persistRequest(pendingSave?.request, saveVersion, pendingSave?.workspaceId);
     }, REQUEST_SAVE_DEBOUNCE_MS);
     saveTimersRef.current.set(request.id, timeoutId);
   }
@@ -169,8 +132,7 @@ export function useRequestPersistence({
       void flushPendingRequestSaves({
         timers: saveTimersRef.current,
         pendingRequests: pendingRequestsRef.current,
-        persist: ({ request, workspaceId }) =>
-          saveRequest(request.id, request, undefined, workspaceId),
+        persist: ({ request, workspaceId }) => saveRequest(request.id, request, undefined, workspaceId),
       });
     };
   }, []);

@@ -1,13 +1,4 @@
-import {
-  Boxes,
-  ChevronRight,
-  CircleDot,
-  CloudCog,
-  Folder,
-  FolderOpen,
-  Layers3,
-  Server,
-} from "lucide-react";
+import { Boxes, ChevronRight, CircleDot, CloudCog, Folder, FolderOpen, Layers3, Server } from "lucide-react";
 
 import { collectionColumns } from "../../model.js";
 import { RuntimeMonitoringWorkspace } from "./RuntimeMonitoringWorkspace.jsx";
@@ -34,11 +25,7 @@ function NavigationColumn({ empty, items, kind, onSelect, selectedId, title }) {
           items.map((item) => (
             <button
               aria-current={selectedId === item.id ? "true" : undefined}
-              className={
-                selectedId === item.id
-                  ? "monitoringNavigatorItem selected"
-                  : "monitoringNavigatorItem"
-              }
+              className={selectedId === item.id ? "monitoringNavigatorItem selected" : "monitoringNavigatorItem"}
               key={item.id}
               onClick={() => onSelect(item)}
               type="button"
@@ -57,12 +44,7 @@ function NavigationColumn({ empty, items, kind, onSelect, selectedId, title }) {
   );
 }
 
-function CollectionNavigation({
-  collections,
-  onSelect,
-  selectedId,
-  showRoot = true,
-}) {
+function CollectionNavigation({ collections, onSelect, selectedId, showRoot = true }) {
   const columns = collectionColumns(collections, selectedId);
   return columns.map((column, index) => (
     <section
@@ -77,11 +59,7 @@ function CollectionNavigation({
         {index === 0 && showRoot ? (
           <button
             aria-current={!selectedId ? "true" : undefined}
-            className={
-              !selectedId
-                ? "monitoringNavigatorItem selected"
-                : "monitoringNavigatorItem"
-            }
+            className={!selectedId ? "monitoringNavigatorItem selected" : "monitoringNavigatorItem"}
             onClick={() => onSelect("")}
             type="button"
           >
@@ -95,23 +73,15 @@ function CollectionNavigation({
         ) : null}
         {column.items.map((collection) => (
           <button
-            aria-current={
-              column.selectedId === collection.id ? "true" : undefined
-            }
+            aria-current={column.selectedId === collection.id ? "true" : undefined}
             className={
-              column.selectedId === collection.id
-                ? "monitoringNavigatorItem selected"
-                : "monitoringNavigatorItem"
+              column.selectedId === collection.id ? "monitoringNavigatorItem selected" : "monitoringNavigatorItem"
             }
             key={collection.id}
             onClick={() => onSelect(collection.id)}
             type="button"
           >
-            {column.selectedId === collection.id ? (
-              <FolderOpen size={16} />
-            ) : (
-              <Folder size={16} />
-            )}
+            {column.selectedId === collection.id ? <FolderOpen size={16} /> : <Folder size={16} />}
             <span>
               <strong>{collection.name}</strong>
               <small>Coleção</small>

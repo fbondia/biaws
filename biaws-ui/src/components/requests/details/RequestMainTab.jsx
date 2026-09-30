@@ -41,9 +41,7 @@ export function RequestMainTab({
               <label className="field requestCodeField">
                 <span>Código da melhoria</span>
                 <input
-                  onChange={(event) =>
-                    onFieldChange("clientCode", event.target.value)
-                  }
+                  onChange={(event) => onFieldChange("clientCode", event.target.value)}
                   placeholder="Código do cliente"
                   type="text"
                   value={request.clientCode}
@@ -52,9 +50,7 @@ export function RequestMainTab({
               <label className="field requestTitleField">
                 <span>Título</span>
                 <input
-                  onChange={(event) =>
-                    onFieldChange("title", event.target.value)
-                  }
+                  onChange={(event) => onFieldChange("title", event.target.value)}
                   type="text"
                   value={request.title}
                 />
@@ -72,37 +68,22 @@ export function RequestMainTab({
                 <span>Jornadas estimadas</span>
                 <input
                   min="0"
-                  onBlur={(event) =>
-                    onCommitEstimatedJourneys(event.target.value)
-                  }
-                  onChange={(event) =>
-                    onUpdateNumberDraft("estimatedJourneys", event.target.value)
-                  }
-                  onFocus={() =>
-                    onBeginNumberDraft(
-                      "estimatedJourneys",
-                      request.estimatedJourneys,
-                    )
-                  }
+                  onBlur={(event) => onCommitEstimatedJourneys(event.target.value)}
+                  onChange={(event) => onUpdateNumberDraft("estimatedJourneys", event.target.value)}
+                  onFocus={() => onBeginNumberDraft("estimatedJourneys", request.estimatedJourneys)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") event.currentTarget.blur();
-                    if (event.key === "Escape")
-                      onClearNumberDraft("estimatedJourneys");
+                    if (event.key === "Escape") onClearNumberDraft("estimatedJourneys");
                   }}
                   step="0.5"
                   type="number"
-                  value={onReadDraftedNumber(
-                    "estimatedJourneys",
-                    request.estimatedJourneys,
-                  )}
+                  value={onReadDraftedNumber("estimatedJourneys", request.estimatedJourneys)}
                 />
               </label>
               <label className="field requestMetaField">
                 <span>Prazo estimado</span>
                 <input
-                  onChange={(event) =>
-                    onFieldChange("estimatedDeliveryDate", event.target.value)
-                  }
+                  onChange={(event) => onFieldChange("estimatedDeliveryDate", event.target.value)}
                   type="date"
                   value={request.estimatedDeliveryDate}
                 />
@@ -110,9 +91,7 @@ export function RequestMainTab({
               <label className="field requestMetaField">
                 <span>Início</span>
                 <input
-                  onChange={(event) =>
-                    onFieldChange("startDate", event.target.value)
-                  }
+                  onChange={(event) => onFieldChange("startDate", event.target.value)}
                   type="date"
                   value={request.startDate}
                 />
@@ -120,9 +99,7 @@ export function RequestMainTab({
               <label className="field requestMetaField">
                 <span>Fim</span>
                 <input
-                  onChange={(event) =>
-                    onFieldChange("endDate", event.target.value)
-                  }
+                  onChange={(event) => onFieldChange("endDate", event.target.value)}
                   type="date"
                   value={request.endDate}
                 />
@@ -134,20 +111,12 @@ export function RequestMainTab({
             <div className="requestDetailCard requestMetaField">
               <span>Aplicação</span>
               <strong>
-                {applications.find(({ id }) => id === request.applicationId)
-                  ?.name ||
-                  request.applicationId ||
-                  "-"}
+                {applications.find(({ id }) => id === request.applicationId)?.name || request.applicationId || "-"}
               </strong>
             </div>
             <div className="requestDetailCard requestCodeField">
               <span>Código da melhoria</span>
-              <EntityIdentifier
-                fallback="-"
-                label="Código da melhoria"
-                value={request.clientCode}
-                variant="chip"
-              />
+              <EntityIdentifier fallback="-" label="Código da melhoria" value={request.clientCode} variant="chip" />
             </div>
             <div className="requestDetailCard requestDetailTitle">
               <span>Título</span>
@@ -159,15 +128,11 @@ export function RequestMainTab({
                 <select
                   aria-label="Status da melhoria"
                   className="requestStatusChip requestStatusSelect"
-                  onChange={(event) =>
-                    onChangeStatus(request, event.target.value)
-                  }
+                  onChange={(event) => onChangeStatus(request, event.target.value)}
                   style={requestStatusStyle(request.status)}
                   value={request.status}
                 >
-                  {[
-                    ...new Set([...REQUEST_STATUS_OPTIONS, request.status]),
-                  ].map((status) => (
+                  {[...new Set([...REQUEST_STATUS_OPTIONS, request.status])].map((status) => (
                     <option key={status} value={status}>
                       {requestStatusLabel(status)}
                     </option>
@@ -175,10 +140,7 @@ export function RequestMainTab({
                 </select>
               ) : (
                 <strong>
-                  <span
-                    className="requestStatusChip"
-                    style={requestStatusStyle(request.status)}
-                  >
+                  <span className="requestStatusChip" style={requestStatusStyle(request.status)}>
                     {requestStatusLabel(normalizeRequestStatus(request.status))}
                   </span>
                 </strong>
@@ -216,27 +178,18 @@ export function RequestMainTab({
           <label className="field requestDescriptionField">
             <span>Descrição</span>
             <textarea
-              onChange={(event) =>
-                onFieldChange("description", event.target.value)
-              }
+              onChange={(event) => onFieldChange("description", event.target.value)}
               value={request.description}
             />
           </label>
         ) : (
-          <div className="requestLongText">
-            {request.description || "Descrição não informada."}
-          </div>
+          <div className="requestLongText">{request.description || "Descrição não informada."}</div>
         )}
       </section>
 
       {isEditing ? (
         <div className="requestDeleteActions">
-          <button
-            className="dangerButton"
-            disabled={savingRequestId === request.id}
-            onClick={onDelete}
-            type="button"
-          >
+          <button className="dangerButton" disabled={savingRequestId === request.id} onClick={onDelete} type="button">
             <Trash2 size={16} />
             Excluir melhoria
           </button>

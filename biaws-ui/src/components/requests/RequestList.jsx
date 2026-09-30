@@ -1,17 +1,7 @@
-import {
-  ChevronLeft,
-  ChevronRight,
-  GripVertical,
-  LoaderCircle,
-  RefreshCw,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, GripVertical, LoaderCircle, RefreshCw } from "lucide-react";
 import { useState } from "react";
 
-import {
-  normalizeRequestStatus,
-  requestStatusLabel,
-  requestStatusStyle,
-} from "./requestUtils.js";
+import { normalizeRequestStatus, requestStatusLabel, requestStatusStyle } from "./requestUtils.js";
 import { EntityIdentifier } from "../shared/EntityIdentifier/index.jsx";
 
 export function RequestList({
@@ -44,12 +34,7 @@ export function RequestList({
   }
 
   function handleDragOver(event, requestId) {
-    if (
-      !allowManualOrder ||
-      !draggedRequestId ||
-      draggedRequestId === requestId
-    )
-      return;
+    if (!allowManualOrder || !draggedRequestId || draggedRequestId === requestId) return;
 
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
@@ -61,20 +46,14 @@ export function RequestList({
 
     if (!allowManualOrder) return;
 
-    const requestId =
-      event.dataTransfer.getData("text/plain") || draggedRequestId;
+    const requestId = event.dataTransfer.getData("text/plain") || draggedRequestId;
     setDraggedRequestId("");
     setDropTargetRequestId("");
     onMoveRequest(requestId, targetRequestId);
   }
 
   function handleKeyboardMove(event, index, requestId) {
-    if (
-      !allowManualOrder ||
-      !event.altKey ||
-      !["ArrowUp", "ArrowDown"].includes(event.key)
-    )
-      return;
+    if (!allowManualOrder || !event.altKey || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
 
     const targetIndex = event.key === "ArrowUp" ? index - 1 : index + 1;
     const targetRequest = filteredRequests[targetIndex];
@@ -97,8 +76,7 @@ export function RequestList({
     <aside className="requestListPanel">
       {allowManualOrder ? (
         <span className="srOnly" id="request-reorder-instructions">
-          Para reordenar pelo teclado, use Alt mais seta para cima ou Alt mais
-          seta para baixo.
+          Para reordenar pelo teclado, use Alt mais seta para cima ou Alt mais seta para baixo.
         </span>
       ) : null}
       <div className="panelHeader">
@@ -122,9 +100,7 @@ export function RequestList({
           </button>
           <button
             className="iconButton"
-            disabled={
-              loadingRequests || requestMeta.page >= requestMeta.totalPages
-            }
+            disabled={loadingRequests || requestMeta.page >= requestMeta.totalPages}
             onClick={onNextPage}
             title="Próxima página"
             type="button"
@@ -138,10 +114,7 @@ export function RequestList({
             title="Atualizar melhorias"
             type="button"
           >
-            <RefreshCw
-              className={loadingRequests ? "spinIcon" : ""}
-              size={16}
-            />
+            <RefreshCw className={loadingRequests ? "spinIcon" : ""} size={16} />
           </button>
         </div>
       </div>
@@ -171,12 +144,8 @@ export function RequestList({
             <article
               aria-label={`${requestCode}: ${requestTitle}`}
               aria-pressed={isSelected}
-              aria-describedby={
-                allowManualOrder ? "request-reorder-instructions" : undefined
-              }
-              aria-keyshortcuts={
-                allowManualOrder ? "Alt+ArrowUp Alt+ArrowDown" : undefined
-              }
+              aria-describedby={allowManualOrder ? "request-reorder-instructions" : undefined}
+              aria-keyshortcuts={allowManualOrder ? "Alt+ArrowUp Alt+ArrowDown" : undefined}
               className={itemClassName}
               draggable={allowManualOrder}
               key={request.id}
@@ -192,35 +161,20 @@ export function RequestList({
             >
               <span className="requestListItemHeader">
                 <span className="requestListItemTitle">
-                  <GripVertical
-                    aria-hidden="true"
-                    className="requestListDragHandle"
-                    size={16}
-                  />
-                  <EntityIdentifier
-                    fallback="Sem código"
-                    label="Código da melhoria"
-                    value={request.clientCode}
-                  />
+                  <GripVertical aria-hidden="true" className="requestListDragHandle" size={16} />
+                  <EntityIdentifier fallback="Sem código" label="Código da melhoria" value={request.clientCode} />
                 </span>
-                <span
-                  className="requestStatusChip"
-                  style={requestStatusStyle(request.status)}
-                >
+                <span className="requestStatusChip" style={requestStatusStyle(request.status)}>
                   {requestStatusLabel(normalizeRequestStatus(request.status))}
                 </span>
-                <span className="requestListItemDescription">
-                  {request.title}
-                </span>
+                <span className="requestListItemDescription">{request.title}</span>
               </span>
             </article>
           );
         })}
         {!loadingRequests && !filteredRequests.length ? (
           <div className="emptyState compactEmpty">
-            {hasActiveFilters
-              ? "Nenhuma melhoria para os filtros selecionados."
-              : "Nenhuma melhoria cadastrada."}
+            {hasActiveFilters ? "Nenhuma melhoria para os filtros selecionados." : "Nenhuma melhoria cadastrada."}
           </div>
         ) : null}
       </div>

@@ -25,23 +25,11 @@ export const DATE_FIELDS = [
   { value: "updatedAt", label: "Atualização" },
 ];
 
-export const TYPE_OPTIONS = [
-  { value: "", label: "Todos" },
-  ...FALLBACK_TYPE_OPTIONS,
-];
-export const ALL_TYPE_OPTIONS = [
-  { value: "", label: "Todos" },
-  ...FALLBACK_TYPE_OPTIONS,
-];
+export const TYPE_OPTIONS = [{ value: "", label: "Todos" }, ...FALLBACK_TYPE_OPTIONS];
+export const ALL_TYPE_OPTIONS = [{ value: "", label: "Todos" }, ...FALLBACK_TYPE_OPTIONS];
 
-export const STATUS_OPTIONS = [
-  { value: "", label: "Todos" },
-  ...FALLBACK_STATUS_OPTIONS,
-];
-export const ALL_STATUS_OPTIONS = [
-  { value: "", label: "Todos" },
-  ...FALLBACK_STATUS_OPTIONS,
-];
+export const STATUS_OPTIONS = [{ value: "", label: "Todos" }, ...FALLBACK_STATUS_OPTIONS];
+export const ALL_STATUS_OPTIONS = [{ value: "", label: "Todos" }, ...FALLBACK_STATUS_OPTIONS];
 
 function replaceOptions(target, items, activeOnly = true) {
   target.splice(
@@ -71,11 +59,7 @@ export function configureIssueConstants(optionLists = []) {
   }
   if (byKey["issue.status"]) {
     replaceOptions(STATUS_OPTIONS, byKey["issue.status"].items || []);
-    replaceOptions(
-      ALL_STATUS_OPTIONS,
-      byKey["issue.status"].items || [],
-      false,
-    );
+    replaceOptions(ALL_STATUS_OPTIONS, byKey["issue.status"].items || [], false);
   }
 }
 

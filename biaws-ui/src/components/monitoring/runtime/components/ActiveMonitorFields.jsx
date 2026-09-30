@@ -1,22 +1,14 @@
 import { useState } from "react";
 
 import { validateMonitoringTemplateVersion } from "../../../../api.js";
-import {
-  SelectField,
-  TextField,
-} from "../../../catalog/CatalogEntityDialog/components/Fields.jsx";
+import { SelectField, TextField } from "../../../catalog/CatalogEntityDialog/components/Fields.jsx";
 import { selectableMonitoringTemplates } from "../model.js";
 
 function JsonField({ label, name, onChange, rows = 4, value }) {
   return (
     <label className="field catalogWideField">
       <span>{label}</span>
-      <textarea
-        name={name}
-        onChange={(event) => onChange(name, event.target.value)}
-        rows={rows}
-        value={value}
-      />
+      <textarea name={name} onChange={(event) => onChange(name, event.target.value)} rows={rows} value={value} />
     </label>
   );
 }
@@ -62,9 +54,7 @@ export function RestMonitorFields({ draft, update }) {
       <label className="field catalogMonitoringCheck">
         <input
           checked={draft.restFollowRedirects}
-          onChange={(event) =>
-            update("restFollowRedirects", event.target.checked)
-          }
+          onChange={(event) => update("restFollowRedirects", event.target.checked)}
           type="checkbox"
         />
         <span>Seguir redirecionamentos permitidos</span>
@@ -81,12 +71,7 @@ export function RestMonitorFields({ draft, update }) {
         onChange={update}
         value={draft.restHeaderRefsText}
       />
-      <JsonField
-        label="Corpo opcional"
-        name="restBody"
-        onChange={update}
-        value={draft.restBody}
-      />
+      <JsonField label="Corpo opcional" name="restBody" onChange={update} value={draft.restBody} />
     </>
   );
 }
@@ -139,9 +124,7 @@ export function TemplateFields({ draft, onChange, templates }) {
     id: draft.templateId,
     version: draft.templateVersion,
   });
-  const selectedTemplate = availableTemplates.find(
-    ({ id }) => id === draft.templateId,
-  );
+  const selectedTemplate = availableTemplates.find(({ id }) => id === draft.templateId);
   const hasTemplates = availableTemplates.length > 0;
   const selectedVersion = selectedTemplate?.versions?.find(
     ({ version }) => String(version) === String(draft.templateVersion),
@@ -162,9 +145,7 @@ export function TemplateFields({ draft, onChange, templates }) {
           }
           value={draft.templateId}
         >
-          <option value="">
-            {hasTemplates ? "Sem template" : "Nenhum template disponível"}
-          </option>
+          <option value="">{hasTemplates ? "Sem template" : "Nenhum template disponível"}</option>
           {availableTemplates.map((template) => (
             <option key={template.id} value={template.id}>
               {template.name}
@@ -185,9 +166,7 @@ export function TemplateFields({ draft, onChange, templates }) {
           }
           value={draft.templateVersion}
         >
-          <option value="">
-            {selectedTemplate ? "Selecione a versão" : "Selecione um template"}
-          </option>
+          <option value="">{selectedTemplate ? "Selecione a versão" : "Selecione um template"}</option>
           {(selectedTemplate?.versions || []).map((version) => (
             <option key={version.version} value={version.version}>
               v{version.version}
@@ -214,9 +193,7 @@ export function TemplateFields({ draft, onChange, templates }) {
 
 function TemplateContractPanel({ template, version }) {
   const definition = version.definition || template.definition || {};
-  const [sampleText, setSampleText] = useState(
-    JSON.stringify(definition.input?.sample || {}, null, 2),
-  );
+  const [sampleText, setSampleText] = useState(JSON.stringify(definition.input?.sample || {}, null, 2));
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [testing, setTesting] = useState(false);
@@ -227,11 +204,7 @@ function TemplateContractPanel({ template, version }) {
     setResult(null);
     try {
       const sample = JSON.parse(sampleText);
-      const payload = await validateMonitoringTemplateVersion(
-        template.id,
-        version.version,
-        sample,
-      );
+      const payload = await validateMonitoringTemplateVersion(template.id, version.version, sample);
       setResult(payload.validation.result);
     } catch (testError) {
       setError(testError.message || "A resposta JSON não é válida.");
@@ -248,15 +221,8 @@ function TemplateContractPanel({ template, version }) {
           {template.id}/{version.version}
         </code>
       </header>
-      <p>
-        {definition.presentation?.label ||
-          template.description ||
-          "Template JSONata"}
-      </p>
-      <small>
-        Saída: status, message e{" "}
-        {definition.output?.metadata?.fields?.length || 0} campo(s) de metadata.
-      </small>
+      <p>{definition.presentation?.label || template.description || "Template JSONata"}</p>
+      <small>Saída: status, message e {definition.output?.metadata?.fields?.length || 0} campo(s) de metadata.</small>
       <label className="field">
         <span>Testar resposta JSON sanitizada</span>
         <textarea
@@ -267,12 +233,7 @@ function TemplateContractPanel({ template, version }) {
           value={sampleText}
         />
       </label>
-      <button
-        className="secondaryButton"
-        disabled={testing}
-        onClick={testSample}
-        type="button"
-      >
+      <button className="secondaryButton" disabled={testing} onClick={testSample} type="button">
         {testing ? "Testando…" : "Testar sem salvar"}
       </button>
       {result ? (

@@ -34,16 +34,13 @@ function OptionEmlFields({ canManage, index, item, onUpdate }) {
       <textarea
         aria-label={`Expressões de detecção de ${item.label || item.value}`}
         disabled={!canManage}
-        onChange={(event) =>
-          onUpdate(index, "subjectPatterns", event.target.value.split("\n"))
-        }
+        onChange={(event) => onUpdate(index, "subjectPatterns", event.target.value.split("\n"))}
         placeholder={String.raw`\b(?<code>INC\d{5,})\b`}
         rows={3}
         value={(item.metadata?.emlImport?.subjectPatterns || []).join("\n")}
       />
       <small>
-        Uma expressão por linha. Use <code>{"(?<code>...)"}</code> para coletar
-        o código.
+        Uma expressão por linha. Use <code>{"(?<code>...)"}</code> para coletar o código.
       </small>
     </td>
   );
@@ -59,9 +56,7 @@ function OptionActiveCell({ canManage, index, item, onUpdate }) {
   return (
     <td>
       <button
-        className={
-          item.active ? "optionActiveButton active" : "optionActiveButton"
-        }
+        className={item.active ? "optionActiveButton active" : "optionActiveButton"}
         disabled={!canManage}
         onClick={() => onUpdate(index, "active", !item.active)}
         title={item.active ? "Desativar opção" : "Ativar opção"}
@@ -105,10 +100,7 @@ export function OptionItemRow({
   }
   return (
     <tr
-      className={[
-        dragged ? "draggingOptionItem" : "",
-        dropTarget ? "dropTargetOptionItem" : "",
-      ]
+      className={[dragged ? "draggingOptionItem" : "", dropTarget ? "dropTargetOptionItem" : ""]
         .filter(Boolean)
         .join(" ")}
       onDragOver={(event) => onDragOver(event, index)}
@@ -118,9 +110,7 @@ export function OptionItemRow({
         <span
           aria-label={`Arrastar ${item.label || item.value || "nova opção"} para reordenar`}
           aria-keyshortcuts={canManage ? "ArrowUp ArrowDown" : undefined}
-          className={
-            canManage ? "optionDragHandle" : "optionDragHandle disabled"
-          }
+          className={canManage ? "optionDragHandle" : "optionDragHandle disabled"}
           draggable={canManage}
           onDragEnd={onDragEnd}
           onDragStart={(event) => onDragStart(event, index)}
@@ -147,27 +137,12 @@ export function OptionItemRow({
         />
       </td>
       {hasColors ? (
-        <OptionColorFields
-          canManage={canManage}
-          index={index}
-          item={item}
-          onUpdate={onUpdateColor}
-        />
+        <OptionColorFields canManage={canManage} index={index} item={item} onUpdate={onUpdateColor} />
       ) : null}
       {hasEmlDetection ? (
-        <OptionEmlFields
-          canManage={canManage}
-          index={index}
-          item={item}
-          onUpdate={onUpdateEml}
-        />
+        <OptionEmlFields canManage={canManage} index={index} item={item} onUpdate={onUpdateEml} />
       ) : null}
-      <OptionActiveCell
-        canManage={canManage}
-        index={index}
-        item={item}
-        onUpdate={onUpdateItem}
-      />
+      <OptionActiveCell canManage={canManage} index={index} item={item} onUpdate={onUpdateItem} />
       <td>
         {canManage ? (
           <button
@@ -175,11 +150,7 @@ export function OptionItemRow({
             className="iconButton dangerIconButton"
             disabled={isOnlyItem}
             onClick={() => onRemove(index)}
-            title={
-              isOnlyItem
-                ? "A lista precisa ter ao menos uma opção"
-                : "Excluir opção"
-            }
+            title={isOnlyItem ? "A lista precisa ter ao menos uma opção" : "Excluir opção"}
             type="button"
           >
             <Trash2 size={15} />
@@ -190,12 +161,7 @@ export function OptionItemRow({
   );
 }
 
-export function EmlDetectionTest({
-  defaultLabel,
-  detectionTest,
-  onChange,
-  testSubject,
-}) {
+export function EmlDetectionTest({ defaultLabel, detectionTest, onChange, testSubject }) {
   let message = `Nenhuma regra encontrada · será usado o tipo padrão “${defaultLabel}” e um código sintético.`;
   if (detectionTest?.error) message = detectionTest.error;
   else if (detectionTest)
@@ -204,23 +170,10 @@ export function EmlDetectionTest({
     <section className="optionEmlDetectionTest">
       <label className="field">
         <span>Testar assunto de e-mail</span>
-        <input
-          onChange={onChange}
-          placeholder="Ex.: RE: INC12345 - falha no acesso"
-          type="text"
-          value={testSubject}
-        />
+        <input onChange={onChange} placeholder="Ex.: RE: INC12345 - falha no acesso" type="text" value={testSubject} />
       </label>
       {testSubject ? (
-        <div
-          className={
-            detectionTest?.error
-              ? "optionDetectionResult error"
-              : "optionDetectionResult"
-          }
-        >
-          {message}
-        </div>
+        <div className={detectionTest?.error ? "optionDetectionResult error" : "optionDetectionResult"}>{message}</div>
       ) : null}
     </section>
   );

@@ -14,16 +14,10 @@ export function CatalogColumnSelector({
   optional = false,
 }) {
   const availableComponents = useMemo(
-    () =>
-      components.filter(
-        (component) => component.applicationId === applicationId,
-      ),
+    () => components.filter((component) => component.applicationId === applicationId),
     [applicationId, components],
   );
-  const selectedComponentSet = useMemo(
-    () => new Set(affectedComponentIds),
-    [affectedComponentIds],
-  );
+  const selectedComponentSet = useMemo(() => new Set(affectedComponentIds), [affectedComponentIds]);
 
   function changeApplication(nextApplicationId) {
     if (disabled) return;
@@ -35,9 +29,7 @@ export function CatalogColumnSelector({
     if (!multipleComponents) {
       onChange({
         applicationId,
-        affectedComponentIds: selectedComponentSet.has(componentId)
-          ? []
-          : [componentId],
+        affectedComponentIds: selectedComponentSet.has(componentId) ? [] : [componentId],
       });
       return;
     }
@@ -51,11 +43,7 @@ export function CatalogColumnSelector({
   }
 
   return (
-    <div
-      className="catalogColumns"
-      aria-label="Aplicação e componentes"
-      role="tree"
-    >
+    <div className="catalogColumns" aria-label="Aplicação e componentes" role="tree">
       <section className="catalogColumn" role="group">
         <header>
           <Layers3 size={15} />
@@ -65,11 +53,7 @@ export function CatalogColumnSelector({
           {optional ? (
             <button
               aria-selected={!applicationId}
-              className={
-                !applicationId
-                  ? "catalogColumnRow activeCatalogColumnRow"
-                  : "catalogColumnRow"
-              }
+              className={!applicationId ? "catalogColumnRow activeCatalogColumnRow" : "catalogColumnRow"}
               disabled={disabled}
               onClick={() => changeApplication("")}
               role="treeitem"
@@ -83,11 +67,7 @@ export function CatalogColumnSelector({
             return (
               <button
                 aria-selected={active}
-                className={
-                  active
-                    ? "catalogColumnRow activeCatalogColumnRow"
-                    : "catalogColumnRow"
-                }
+                className={active ? "catalogColumnRow activeCatalogColumnRow" : "catalogColumnRow"}
                 disabled={disabled}
                 key={application.id}
                 onClick={() => changeApplication(application.id)}
@@ -109,27 +89,17 @@ export function CatalogColumnSelector({
         </header>
         <div className="catalogColumnList">
           {!applicationId ? (
-            <p className="catalogColumnEmpty">
-              Selecione uma aplicação para visualizar seus componentes.
-            </p>
+            <p className="catalogColumnEmpty">Selecione uma aplicação para visualizar seus componentes.</p>
           ) : null}
           {applicationId && !availableComponents.length ? (
-            <p className="catalogColumnEmpty">
-              Nenhum componente cadastrado para esta aplicação.
-            </p>
+            <p className="catalogColumnEmpty">Nenhum componente cadastrado para esta aplicação.</p>
           ) : null}
           {applicationId && allowEmptyComponent ? (
             <button
               aria-selected={!affectedComponentIds.length}
-              className={
-                !affectedComponentIds.length
-                  ? "catalogColumnRow activeCatalogColumnRow"
-                  : "catalogColumnRow"
-              }
+              className={!affectedComponentIds.length ? "catalogColumnRow activeCatalogColumnRow" : "catalogColumnRow"}
               disabled={disabled}
-              onClick={() =>
-                onChange({ applicationId, affectedComponentIds: [] })
-              }
+              onClick={() => onChange({ applicationId, affectedComponentIds: [] })}
               role="treeitem"
               type="button"
             >
@@ -141,11 +111,7 @@ export function CatalogColumnSelector({
             return (
               <label
                 aria-selected={checked}
-                className={
-                  checked
-                    ? "catalogColumnRow checkedCatalogColumnRow"
-                    : "catalogColumnRow"
-                }
+                className={checked ? "catalogColumnRow checkedCatalogColumnRow" : "catalogColumnRow"}
                 key={component.id}
                 role="treeitem"
               >

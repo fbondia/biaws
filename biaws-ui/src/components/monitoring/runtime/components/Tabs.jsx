@@ -21,32 +21,21 @@ export function RuntimeMonitoringTabs({ configuration, history }) {
         : event.key === "End"
           ? lastIndex
           : event.key === "ArrowLeft"
-            ? (currentIndex - 1 + MONITORING_TABS.length) %
-              MONITORING_TABS.length
+            ? (currentIndex - 1 + MONITORING_TABS.length) % MONITORING_TABS.length
             : (currentIndex + 1) % MONITORING_TABS.length;
     const nextTab = MONITORING_TABS[nextIndex][0];
     setActiveTab(nextTab);
-    event.currentTarget.parentElement
-      ?.querySelector(`#runtime-monitoring-tab-${nextTab}`)
-      ?.focus();
+    event.currentTarget.parentElement?.querySelector(`#runtime-monitoring-tab-${nextTab}`)?.focus();
   }
 
   return (
     <div className="catalogMonitoringWorkspace catalogWideField">
-      <div
-        aria-label="Seções de monitoramento"
-        className="catalogMonitoringTabs"
-        role="tablist"
-      >
+      <div aria-label="Seções de monitoramento" className="catalogMonitoringTabs" role="tablist">
         {MONITORING_TABS.map(([key, label], index) => (
           <button
             aria-controls="runtime-monitoring-panel"
             aria-selected={activeTab === key}
-            className={
-              activeTab === key
-                ? "catalogMonitoringTab activeCatalogMonitoringTab"
-                : "catalogMonitoringTab"
-            }
+            className={activeTab === key ? "catalogMonitoringTab activeCatalogMonitoringTab" : "catalogMonitoringTab"}
             id={`runtime-monitoring-tab-${key}`}
             key={key}
             onClick={() => setActiveTab(key)}

@@ -8,9 +8,7 @@ function emptyTotals(months) {
   return {
     planned: 0,
     executed: 0,
-    months: Object.fromEntries(
-      months.map((month) => [month, { planned: 0, executed: 0 }]),
-    ),
+    months: Object.fromEntries(months.map((month) => [month, { planned: 0, executed: 0 }])),
   };
 }
 
@@ -57,10 +55,7 @@ export function visibleJourneyRows(rows = [], collapsedCollectionIds = []) {
     hiddenBelowDepth = null;
     visibleRows.push(row);
 
-    if (
-      row.kind === "collection" &&
-      collapsedIds.has(journeyCollectionRowKey(row))
-    ) {
+    if (row.kind === "collection" && collapsedIds.has(journeyCollectionRowKey(row))) {
       hiddenBelowDepth = row.depth;
     }
   }
@@ -68,21 +63,13 @@ export function visibleJourneyRows(rows = [], collapsedCollectionIds = []) {
   return visibleRows;
 }
 
-export function buildJourneyCollectionRows(
-  collections = [],
-  requests = [],
-  months = [],
-) {
-  const knownCollectionIds = new Set(
-    collections.map((collection) => collection.id),
-  );
+export function buildJourneyCollectionRows(collections = [], requests = [], months = []) {
+  const knownCollectionIds = new Set(collections.map((collection) => collection.id));
   const childrenByParent = new Map();
   const requestsByCollection = new Map();
 
   for (const collection of collections) {
-    const parentId = knownCollectionIds.has(collection.parentId)
-      ? collection.parentId
-      : "";
+    const parentId = knownCollectionIds.has(collection.parentId) ? collection.parentId : "";
     const children = childrenByParent.get(parentId) || [];
     children.push(collection);
     childrenByParent.set(parentId, children);
@@ -94,9 +81,7 @@ export function buildJourneyCollectionRows(
 
   for (const request of requests) {
     const requestedCollectionId = request.collectionId || "";
-    const collectionId = knownCollectionIds.has(requestedCollectionId)
-      ? requestedCollectionId
-      : "";
+    const collectionId = knownCollectionIds.has(requestedCollectionId) ? requestedCollectionId : "";
     const groupedRequests = requestsByCollection.get(collectionId) || [];
     groupedRequests.push(request);
     requestsByCollection.set(collectionId, groupedRequests);
@@ -119,14 +104,12 @@ export function buildJourneyCollectionRows(
       itemCount += childResult.itemCount;
     }
 
-    const itemRows = (requestsByCollection.get(collection.id) || []).map(
-      (request) => {
-        const itemTotals = requestTotals(request, months);
-        addTotals(totals, itemTotals, months);
-        itemCount += 1;
-        return { kind: "item", request, depth: depth + 1, totals: itemTotals };
-      },
-    );
+    const itemRows = (requestsByCollection.get(collection.id) || []).map((request) => {
+      const itemTotals = requestTotals(request, months);
+      addTotals(totals, itemTotals, months);
+      itemCount += 1;
+      return { kind: "item", request, depth: depth + 1, totals: itemTotals };
+    });
 
     if (!itemCount) return { rows: [], totals, itemCount: 0 };
 

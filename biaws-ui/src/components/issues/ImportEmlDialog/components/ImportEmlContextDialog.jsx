@@ -32,12 +32,7 @@ export function ImportEmlContextDialog({
             <strong>Aplicação e componentes</strong>
             <span>{contextEntry.file.name}</span>
           </div>
-          <button
-            className="iconButton"
-            onClick={() => setContextEntryKey("")}
-            title="Fechar"
-            type="button"
-          >
+          <button className="iconButton" onClick={() => setContextEntryKey("")} title="Fechar" type="button">
             <X size={18} />
           </button>
         </header>

@@ -1,10 +1,7 @@
 import { CheckCircle2, CopyPlus, RotateCcw, X, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import {
-  failedReplicationWorkspaceIds,
-  replicationTargets,
-} from "./replicationModel.js";
+import { failedReplicationWorkspaceIds, replicationTargets } from "./replicationModel.js";
 
 function ReplicationResults({ results }) {
   return (
@@ -14,17 +11,11 @@ function ReplicationResults({ results }) {
         return (
           <div
             className={
-              failed
-                ? "replicationResult replicationResultFailed"
-                : "replicationResult replicationResultSucceeded"
+              failed ? "replicationResult replicationResultFailed" : "replicationResult replicationResultSucceeded"
             }
             key={result.workspace.id}
           >
-            {failed ? (
-              <XCircle aria-hidden="true" size={18} />
-            ) : (
-              <CheckCircle2 aria-hidden="true" size={18} />
-            )}
+            {failed ? <XCircle aria-hidden="true" size={18} /> : <CheckCircle2 aria-hidden="true" size={18} />}
             <span>
               <strong>{result.workspace.name}</strong>
               <small>
@@ -83,9 +74,7 @@ export function ReplicationDialog({
 
   function toggleWorkspace(workspaceId) {
     setSelectedWorkspaceIds((current) =>
-      current.includes(workspaceId)
-        ? current.filter((id) => id !== workspaceId)
-        : [...current, workspaceId],
+      current.includes(workspaceId) ? current.filter((id) => id !== workspaceId) : [...current, workspaceId],
     );
   }
 
@@ -114,12 +103,7 @@ export function ReplicationDialog({
         if (event.target === event.currentTarget && !replicating) onClose();
       }}
     >
-      <section
-        aria-label={title}
-        aria-modal="true"
-        className="replicationDialog"
-        role="dialog"
-      >
+      <section aria-label={title} aria-modal="true" className="replicationDialog" role="dialog">
         <header className="replicationDialogHeader">
           <div>
             {eyebrow ? <span>{eyebrow}</span> : null}
@@ -162,9 +146,7 @@ export function ReplicationDialog({
                   ))}
                 </fieldset>
               ) : (
-                <div className="emptyState compactEmpty">
-                  Nenhum outro workspace acessível.
-                </div>
+                <div className="emptyState compactEmpty">Nenhum outro workspace acessível.</div>
               )}
               {error ? (
                 <div className="errorBox" role="alert">
@@ -191,22 +173,13 @@ export function ReplicationDialog({
                   <RotateCcw size={15} /> Repetir falhas
                 </button>
               ) : null}
-              <button
-                className="primaryButton"
-                onClick={onComplete || onClose}
-                type="button"
-              >
+              <button className="primaryButton" onClick={onComplete || onClose} type="button">
                 Concluir
               </button>
             </>
           ) : (
             <>
-              <button
-                className="secondaryButton"
-                disabled={replicating}
-                onClick={onClose}
-                type="button"
-              >
+              <button className="secondaryButton" disabled={replicating} onClick={onClose} type="button">
                 Cancelar
               </button>
               <button
@@ -216,9 +189,7 @@ export function ReplicationDialog({
                 type="button"
               >
                 <CopyPlus size={15} />
-                {replicating
-                  ? "Replicando..."
-                  : `Replicar para ${selectedWorkspaceIds.length || 0}`}
+                {replicating ? "Replicando..." : `Replicar para ${selectedWorkspaceIds.length || 0}`}
               </button>
             </>
           )}

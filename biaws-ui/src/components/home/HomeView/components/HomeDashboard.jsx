@@ -46,9 +46,7 @@ export function HomeDashboard({
         <div>
           <span>Visão operacional</span>
           <h1>Olá, acompanhe o que importa agora.</h1>
-          <p>
-            Sua página inicial combina chamados, tarefas e saúde das aplicações.
-          </p>
+          <p>Sua página inicial combina chamados, tarefas e saúde das aplicações.</p>
         </div>
         <div className="homeHeroActions">
           <HomeHeroActions
@@ -87,41 +85,17 @@ export function HomeDashboard({
   );
 }
 
-function HomeHeroActions({
-  editing,
-  loading,
-  onAddWidget,
-  onBeginEditing,
-  onCancel,
-  onRefresh,
-  onSave,
-  saving,
-}) {
+function HomeHeroActions({ editing, loading, onAddWidget, onBeginEditing, onCancel, onRefresh, onSave, saving }) {
   if (editing) {
     return (
       <>
-        <button
-          className="secondaryButton"
-          disabled={saving}
-          onClick={onAddWidget}
-          type="button"
-        >
+        <button className="secondaryButton" disabled={saving} onClick={onAddWidget} type="button">
           <Plus size={16} /> Adicionar widget
         </button>
-        <button
-          className="secondaryButton"
-          disabled={saving}
-          onClick={onCancel}
-          type="button"
-        >
+        <button className="secondaryButton" disabled={saving} onClick={onCancel} type="button">
           Cancelar
         </button>
-        <button
-          className="primaryButton"
-          disabled={saving}
-          onClick={onSave}
-          type="button"
-        >
+        <button className="primaryButton" disabled={saving} onClick={onSave} type="button">
           <Save size={16} /> {saving ? "Salvando…" : "Salvar página"}
         </button>
       </>
@@ -129,14 +103,8 @@ function HomeHeroActions({
   }
   return (
     <>
-      <button
-        className="secondaryButton"
-        disabled={loading}
-        onClick={onRefresh}
-        type="button"
-      >
-        <RefreshCw className={loading ? "spinIcon" : undefined} size={16} />{" "}
-        Atualizar
+      <button className="secondaryButton" disabled={loading} onClick={onRefresh} type="button">
+        <RefreshCw className={loading ? "spinIcon" : undefined} size={16} /> Atualizar
       </button>
       <button className="primaryButton" onClick={onBeginEditing} type="button">
         <Settings2 size={16} /> Personalizar
@@ -146,21 +114,14 @@ function HomeHeroActions({
 }
 
 function HomeWidgetArea({ editing, onBeginEditing, widgets, ...gridProps }) {
-  if (widgets.length)
-    return (
-      <HomeWidgetGrid {...gridProps} editing={editing} widgets={widgets} />
-    );
+  if (widgets.length) return <HomeWidgetGrid {...gridProps} editing={editing} widgets={widgets} />;
   return (
     <div className="homeEmptyState">
       <LayoutDashboard size={34} />
       <h2>Sua home está vazia</h2>
       <p>Abra o catálogo e escolha os primeiros widgets.</p>
       {!editing ? (
-        <button
-          className="primaryButton"
-          onClick={onBeginEditing}
-          type="button"
-        >
+        <button className="primaryButton" onClick={onBeginEditing} type="button">
           Personalizar
         </button>
       ) : null}
@@ -174,12 +135,7 @@ function HomeWidgetGrid({ catalogById, widgets, ...cardProps }) {
       {widgets.map((instance) => {
         const definition = catalogById.get(instance.widgetId);
         return definition ? (
-          <HomeWidgetCard
-            {...cardProps}
-            definition={definition}
-            instance={instance}
-            key={instance.id}
-          />
+          <HomeWidgetCard {...cardProps} definition={definition} instance={instance} key={instance.id} />
         ) : null;
       })}
     </div>
@@ -216,9 +172,7 @@ function HomeWidgetCard({
     >
       <header>
         <div className="homeWidgetHeading">
-          {editing ? (
-            <GripVertical className="homeWidgetGrip" size={17} />
-          ) : null}
+          {editing ? <GripVertical className="homeWidgetGrip" size={17} /> : null}
           <span>
             <Icon size={17} />
           </span>
@@ -231,10 +185,7 @@ function HomeWidgetCard({
           <div className="homeWidgetActions">
             <label className="homeWidgetSizeChip">
               <span className="srOnly">Tamanho de {definition.label}</span>
-              <select
-                onChange={(event) => onResize(instance.id, event.target.value)}
-                value={instance.size}
-              >
+              <select onChange={(event) => onResize(instance.id, event.target.value)} value={instance.size}>
                 {HOME_WIDGET_SIZES.map((size) => (
                   <option key={size.value} value={size.value}>
                     {size.shortLabel}

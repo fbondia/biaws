@@ -1,13 +1,4 @@
-import {
-  Download,
-  FolderTree,
-  Plus,
-  RefreshCw,
-  Save,
-  Tag,
-  Trash2,
-  Upload,
-} from "lucide-react";
+import { Download, FolderTree, Plus, RefreshCw, Save, Tag, Trash2, Upload } from "lucide-react";
 
 import "../../../styles/features/taxonomy.css";
 
@@ -62,18 +53,10 @@ export function IssueTaxonomyManager() {
         <div>
           <span>Administração</span>
           <h2>Taxonomia de Chamados e Documentação</h2>
-          <p>
-            Estruture categorias, grupos e marcadores para organizar chamados e
-            documentos.
-          </p>
+          <p>Estruture categorias, grupos e marcadores para organizar chamados e documentos.</p>
         </div>
         <div className="adminHeroActions">
-          <button
-            className="secondaryButton"
-            disabled={loading || saving}
-            type="button"
-            onClick={loadTaxonomy}
-          >
+          <button className="secondaryButton" disabled={loading || saving} type="button" onClick={loadTaxonomy}>
             <RefreshCw size={16} />
             Recarregar
           </button>
@@ -94,12 +77,7 @@ export function IssueTaxonomyManager() {
             ref={uploadInputRef}
             type="file"
           />
-          <button
-            className="secondaryButton"
-            disabled={loading || saving}
-            type="button"
-            onClick={downloadTaxonomyFile}
-          >
+          <button className="secondaryButton" disabled={loading || saving} type="button" onClick={downloadTaxonomyFile}>
             <Download size={16} />
             Baixar JSON
           </button>
@@ -118,9 +96,7 @@ export function IssueTaxonomyManager() {
       {message ? <div className="infoBox">{message}</div> : null}
       {error ? <div className="errorBox taxonomyError">{error}</div> : null}
       {hasPendingChanges ? (
-        <div className="warningBox">
-          Há alterações no rascunho que ainda não foram gravadas.
-        </div>
+        <div className="warningBox">Há alterações no rascunho que ainda não foram gravadas.</div>
       ) : null}
 
       {/*
@@ -149,18 +125,10 @@ export function IssueTaxonomyManager() {
       </div>
       */}
 
-      <div
-        className="detailTabs taxonomyDefinitionTabs"
-        role="tablist"
-        aria-label="Definições da taxonomia"
-      >
+      <div className="detailTabs taxonomyDefinitionTabs" role="tablist" aria-label="Definições da taxonomia">
         <button
           aria-selected={activeDefinitionTab === "classification"}
-          className={
-            activeDefinitionTab === "classification"
-              ? "detailTab activeDetailTab"
-              : "detailTab"
-          }
+          className={activeDefinitionTab === "classification" ? "detailTab activeDetailTab" : "detailTab"}
           onClick={() => setActiveDefinitionTab("classification")}
           role="tab"
           type="button"
@@ -170,11 +138,7 @@ export function IssueTaxonomyManager() {
         </button>
         <button
           aria-selected={activeDefinitionTab === "tags"}
-          className={
-            activeDefinitionTab === "tags"
-              ? "detailTab activeDetailTab"
-              : "detailTab"
-          }
+          className={activeDefinitionTab === "tags" ? "detailTab activeDetailTab" : "detailTab"}
           onClick={() => setActiveDefinitionTab("tags")}
           role="tab"
           type="button"
@@ -189,9 +153,7 @@ export function IssueTaxonomyManager() {
           <header className="panelHeader">
             <div>
               <h3>Árvore de classificação</h3>
-              <span>
-                Hierarquia principal usada para organizar assuntos de issues.
-              </span>
+              <span>Hierarquia principal usada para organizar assuntos de issues.</span>
             </div>
           </header>
 
@@ -213,9 +175,7 @@ export function IssueTaxonomyManager() {
           <header className="panelHeader">
             <div>
               <h3>Grupos de tags</h3>
-              <span>
-                Selecione um grupo para editar seus dados e as tags associadas.
-              </span>
+              <span>Selecione um grupo para editar seus dados e as tags associadas.</span>
             </div>
           </header>
 
@@ -223,14 +183,8 @@ export function IssueTaxonomyManager() {
             <nav className="tagGroupNavigation" aria-label="Grupos de tags">
               {catalog.tagGroups.map((group) => (
                 <button
-                  aria-current={
-                    group.id === selectedGroupId ? "true" : undefined
-                  }
-                  className={
-                    group.id === selectedGroupId
-                      ? "activeTagGroupNavigationItem"
-                      : ""
-                  }
+                  aria-current={group.id === selectedGroupId ? "true" : undefined}
+                  className={group.id === selectedGroupId ? "activeTagGroupNavigationItem" : ""}
                   key={group.id}
                   onClick={() => setSelectedGroupId(group.id)}
                   type="button"
@@ -256,18 +210,14 @@ export function IssueTaxonomyManager() {
                     <span>Título</span>
                     <input
                       value={selectedGroup.label}
-                      onChange={(event) =>
-                        updateSelectedGroup("label", event.target.value)
-                      }
+                      onChange={(event) => updateSelectedGroup("label", event.target.value)}
                     />
                   </label>
                   <label className="field tagGroupDescriptionField">
                     <span>Descrição</span>
                     <input
                       value={selectedGroup.description}
-                      onChange={(event) =>
-                        updateSelectedGroup("description", event.target.value)
-                      }
+                      onChange={(event) => updateSelectedGroup("description", event.target.value)}
                     />
                   </label>
                   <label className="field colorField">
@@ -275,9 +225,7 @@ export function IssueTaxonomyManager() {
                     <input
                       type="color"
                       value={selectedGroup.color || DEFAULT_TAG_GROUP_COLOR}
-                      onChange={(event) =>
-                        updateSelectedGroup("color", event.target.value)
-                      }
+                      onChange={(event) => updateSelectedGroup("color", event.target.value)}
                     />
                   </label>
                 </div>
@@ -295,25 +243,16 @@ export function IssueTaxonomyManager() {
                       className="editableTag"
                       key={tagId}
                       style={{
-                        borderColor:
-                          selectedGroup.color || DEFAULT_TAG_GROUP_COLOR,
+                        borderColor: selectedGroup.color || DEFAULT_TAG_GROUP_COLOR,
                       }}
                     >
                       {tagId}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(tagId)}
-                        title="Remover tag"
-                      >
+                      <button type="button" onClick={() => removeTag(tagId)} title="Remover tag">
                         <Trash2 size={13} />
                       </button>
                     </span>
                   ))}
-                  <button
-                    className="addTagChip"
-                    onClick={openAddTagDialog}
-                    type="button"
-                  >
+                  <button className="addTagChip" onClick={openAddTagDialog} type="button">
                     <Plus size={14} />
                     Nova tag
                   </button>
@@ -333,12 +272,7 @@ export function IssueTaxonomyManager() {
             if (event.target === event.currentTarget) closeAddTagDialog();
           }}
         >
-          <section
-            aria-label="Adicionar tag"
-            aria-modal="true"
-            className="taxonomyEditDialog"
-            role="dialog"
-          >
+          <section aria-label="Adicionar tag" aria-modal="true" className="taxonomyEditDialog" role="dialog">
             <header>
               <div>
                 <strong>Nova tag</strong>
@@ -356,20 +290,12 @@ export function IssueTaxonomyManager() {
                 />
               </label>
               <div className="dialogActions">
-                <button
-                  className="secondaryButton"
-                  data-dialog-close
-                  onClick={closeAddTagDialog}
-                  type="button"
-                >
+                <button className="secondaryButton" data-dialog-close onClick={closeAddTagDialog} type="button">
                   Cancelar
                 </button>
                 <button
                   className="primaryButton"
-                  disabled={
-                    !slugify(newTag) ||
-                    selectedGroup.tags.includes(slugify(newTag))
-                  }
+                  disabled={!slugify(newTag) || selectedGroup.tags.includes(slugify(newTag))}
                   type="submit"
                 >
                   Adicionar

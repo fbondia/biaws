@@ -25,9 +25,7 @@ import {
 export function MonitoringTemplatesView({ actor }) {
   const [templates, setTemplates] = useState([]);
   const [draft, setDraft] = useState(null);
-  const [previewSample, setPreviewSample] = useState(
-    JSON.stringify(DEFAULT_PREVIEW_SAMPLE, null, 2),
-  );
+  const [previewSample, setPreviewSample] = useState(JSON.stringify(DEFAULT_PREVIEW_SAMPLE, null, 2));
   const [preview, setPreview] = useState(null);
   const [usageById, setUsageById] = useState({});
   const [validatedById, setValidatedById] = useState({});
@@ -36,8 +34,7 @@ export function MonitoringTemplatesView({ actor }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const canManage =
-    hasPermission(actor, "runtimes.update") &&
-    actor.permissionScopes?.["runtimes.update"]?.workspace === true;
+    hasPermission(actor, "runtimes.update") && actor.permissionScopes?.["runtimes.update"]?.workspace === true;
 
   async function load() {
     setLoading(true);
@@ -60,16 +57,10 @@ export function MonitoringTemplatesView({ actor }) {
     setError("");
     try {
       const payload = monitoringTemplatePayload(draft);
-      await (draft.id
-        ? createMonitoringTemplateVersion(draft.id, payload)
-        : createMonitoringTemplate(payload));
+      await (draft.id ? createMonitoringTemplateVersion(draft.id, payload) : createMonitoringTemplate(payload));
       setDraft(null);
       setPreview(null);
-      setNotice(
-        draft.id
-          ? "Nova versão criada como rascunho."
-          : "Template criado como rascunho.",
-      );
+      setNotice(draft.id ? "Nova versão criada como rascunho." : "Template criado como rascunho.");
       await load();
     } catch (saveError) {
       setError(saveError.message);
@@ -81,9 +72,7 @@ export function MonitoringTemplatesView({ actor }) {
     setError("");
     setPreview(null);
     try {
-      const payload = await previewMonitoringTemplate(
-        monitoringTemplatePreviewPayload(draft, previewSample),
-      );
+      const payload = await previewMonitoringTemplate(monitoringTemplatePreviewPayload(draft, previewSample));
       setPreview(payload.preview);
     } catch (previewError) {
       setError(previewError.message);
@@ -103,11 +92,7 @@ export function MonitoringTemplatesView({ actor }) {
     setError("");
     try {
       const sample = version.definition?.input?.sample || {};
-      const payload = await validateMonitoringTemplateVersion(
-        template.id,
-        version.version,
-        sample,
-      );
+      const payload = await validateMonitoringTemplateVersion(template.id, version.version, sample);
       setValidatedById((current) => ({
         ...current,
         [`${template.id}:${version.version}`]: true,
@@ -122,10 +107,7 @@ export function MonitoringTemplatesView({ actor }) {
   async function showUsage(template, version) {
     setError("");
     try {
-      const payload = await fetchMonitoringTemplateUsage(
-        template.id,
-        version.version,
-      );
+      const payload = await fetchMonitoringTemplateUsage(template.id, version.version);
       setUsageById((current) => ({
         ...current,
         [`${template.id}:${version.version}`]: payload.usage,
@@ -135,8 +117,7 @@ export function MonitoringTemplatesView({ actor }) {
     }
   }
   async function archive(template, version) {
-    if (!window.confirm(`Arquivar “${template.name}” v${version.version}?`))
-      return;
+    if (!window.confirm(`Arquivar “${template.name}” v${version.version}?`)) return;
     setError("");
     try {
       await deleteMonitoringTemplateVersion(template.id, version.version);
@@ -158,8 +139,8 @@ export function MonitoringTemplatesView({ actor }) {
           <span>Monitoramento</span>
           <h2>Templates</h2>
           <p>
-            Interprete respostas REST e sinais externos com JSONata, contrato
-            versionado e apresentação consistente. Shell usa código de término.
+            Interprete respostas REST e sinais externos com JSONata, contrato versionado e apresentação consistente.
+            Shell usa código de término.
           </p>
         </div>
         <div>
@@ -203,10 +184,7 @@ export function MonitoringTemplatesView({ actor }) {
         <div className="emptyState">
           <Activity size={28} />
           <strong>Nenhum template cadastrado</strong>
-          <span>
-            Crie regras declarativas e teste-as com uma amostra sanitizada antes
-            de ativar.
-          </span>
+          <span>Crie regras declarativas e teste-as com uma amostra sanitizada antes de ativar.</span>
         </div>
       ) : null}
       <div className="monitoringTemplatesGrid">
@@ -240,17 +218,13 @@ export function MonitoringTemplatesView({ actor }) {
                   canManage={canManage}
                   key={version.version}
                   onArchive={(item) => archive(template, item)}
-                  onStatus={(item, active) =>
-                    changeStatus(template, item, active)
-                  }
+                  onStatus={(item, active) => changeStatus(template, item, active)}
                   onUsage={(item) => showUsage(template, item)}
                   onValidate={(item) => validateVersion(template, item)}
                   template={template}
                   usage={usageById[`${template.id}:${version.version}`]}
                   version={version}
-                  validated={
-                    validatedById[`${template.id}:${version.version}`] === true
-                  }
+                  validated={validatedById[`${template.id}:${version.version}`] === true}
                 />
               ))}
             </ul>
@@ -259,8 +233,7 @@ export function MonitoringTemplatesView({ actor }) {
       </div>
       {!canManage ? (
         <div className="catalogPermissionNotice">
-          Consulta disponível. A administração exige permissão de atualização no
-          workspace.
+          Consulta disponível. A administração exige permissão de atualização no workspace.
         </div>
       ) : null}
       {draft ? (

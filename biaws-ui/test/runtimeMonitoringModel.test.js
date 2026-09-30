@@ -11,10 +11,7 @@ import {
   newObservationDraft,
   selectableMonitoringTemplates,
 } from "../src/components/monitoring/runtime/model.js";
-import {
-  monitoringDefaultFilters,
-  monitoringFilterParams,
-} from "../src/components/home/HomeView/constants.js";
+import { monitoringDefaultFilters, monitoringFilterParams } from "../src/components/home/HomeView/constants.js";
 
 test("active manual executions are collected from health metrics", () => {
   const ids = activeManualExecutionIds([
@@ -54,8 +51,7 @@ test("REST monitor draft produces the provider contract without inline credentia
     timeoutSeconds: "5",
     restUrl: "https://status.example.test/health",
     restHeadersText: '{"Accept":"application/json"}',
-    restHeaderRefsText:
-      '[{"name":"Authorization","reference":"secret:monitor-token"}]',
+    restHeaderRefsText: '[{"name":"Authorization","reference":"secret:monitor-token"}]',
     restExpectedStatusesText: "200, 204, 200",
     templateId: "health-v1",
     templateVersion: "3",

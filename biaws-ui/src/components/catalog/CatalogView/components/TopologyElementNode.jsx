@@ -4,9 +4,7 @@ import { memo } from "react";
 import { TopologyNodeHandles } from "./TopologyNodeHandles.jsx";
 
 function contrastingTextColor(backgroundColor) {
-  const color = /^#[0-9a-f]{6}$/iu.test(backgroundColor)
-    ? backgroundColor.slice(1)
-    : "edf9f5";
+  const color = /^#[0-9a-f]{6}$/iu.test(backgroundColor) ? backgroundColor.slice(1) : "edf9f5";
   const red = Number.parseInt(color.slice(0, 2), 16);
   const green = Number.parseInt(color.slice(2, 4), 16);
   const blue = Number.parseInt(color.slice(4, 6), 16);
@@ -29,9 +27,7 @@ export const TopologyElementNode = memo(function TopologyElementNode({ data }) {
       </header>
       <div>
         <strong>{data.element.title}</strong>
-        {data.element.description ? (
-          <small>{data.element.description}</small>
-        ) : null}
+        {data.element.description ? <small>{data.element.description}</small> : null}
       </div>
     </article>
   );

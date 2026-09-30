@@ -1,19 +1,13 @@
 import { FolderCheck, FolderSearch } from "lucide-react";
 
 export function CollectionFilterAction({ navigator }) {
-  const filterLabel = navigator.showOnlyPopulated
-    ? "Mostrar todas as coleções"
-    : "Ocultar coleções sem itens";
+  const filterLabel = navigator.showOnlyPopulated ? "Mostrar todas as coleções" : "Ocultar coleções sem itens";
 
   return (
     <button
       aria-label={filterLabel}
       aria-pressed={navigator.showOnlyPopulated}
-      className={
-        navigator.showOnlyPopulated
-          ? "iconButton activeCollectionNavigationToggle"
-          : "iconButton"
-      }
+      className={navigator.showOnlyPopulated ? "iconButton activeCollectionNavigationToggle" : "iconButton"}
       onClick={() => navigator.setShowOnlyPopulated((current) => !current)}
       title={filterLabel}
       type="button"

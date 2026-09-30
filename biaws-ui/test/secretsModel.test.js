@@ -9,10 +9,7 @@ import {
 } from "../src/components/secrets/SecretsView/model.js";
 
 test("secret identifiers are suggested from human-readable names", () => {
-  assert.equal(
-    suggestSecretIdentifier(" Chave de Produção / GitHub "),
-    "chave-de-producao-github",
-  );
+  assert.equal(suggestSecretIdentifier(" Chave de Produção / GitHub "), "chave-de-producao-github");
 });
 
 test("secret presentation helpers format sizes and permission scopes", () => {
@@ -27,16 +24,7 @@ test("secret presentation helpers format sizes and permission scopes", () => {
   };
 
   assert.equal(formatSecretBytes(1536), "1.5 KiB");
-  assert.deepEqual(
-    permissionApplicationIds(actor, "secrets.update", "secrets.value.write"),
-    ["app-a", "app-b"],
-  );
-  assert.equal(
-    canActOnSecret(actor, "secrets.update", { applicationId: "app-a" }),
-    true,
-  );
-  assert.equal(
-    canActOnSecret(actor, "secrets.update", { applicationId: "app-b" }),
-    false,
-  );
+  assert.deepEqual(permissionApplicationIds(actor, "secrets.update", "secrets.value.write"), ["app-a", "app-b"]);
+  assert.equal(canActOnSecret(actor, "secrets.update", { applicationId: "app-a" }), true);
+  assert.equal(canActOnSecret(actor, "secrets.update", { applicationId: "app-b" }), false);
 });

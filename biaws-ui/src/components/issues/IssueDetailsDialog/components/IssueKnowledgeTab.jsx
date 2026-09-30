@@ -3,11 +3,7 @@ import { Save, Tags } from "lucide-react";
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../../constants/issues.js";
 import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector/index.jsx";
 import { filterTaxonomyForApplication } from "../../../taxonomy/scope.js";
-import {
-  TagGroupDialog,
-  TagSelectionChips,
-  TaxonomySelectionChips,
-} from "./ClassificationControls.jsx";
+import { TagGroupDialog, TagSelectionChips, TaxonomySelectionChips } from "./ClassificationControls.jsx";
 
 export function IssueKnowledgeTab({
   activeTagGroup,
@@ -37,20 +33,12 @@ export function IssueKnowledgeTab({
 }) {
   return (
     <section className="detailSection">
-      {taxonomyError ? (
-        <div className="errorBox dialogError">{taxonomyError}</div>
-      ) : null}
-      {classificationMessage ? (
-        <div className="infoBox">{classificationMessage}</div>
-      ) : null}
+      {taxonomyError ? <div className="errorBox dialogError">{taxonomyError}</div> : null}
+      {classificationMessage ? <div className="infoBox">{classificationMessage}</div> : null}
       {hasClassificationChanges ? (
-        <div className="warningBox">
-          Há alterações de classificação ainda não gravadas.
-        </div>
+        <div className="warningBox">Há alterações de classificação ainda não gravadas.</div>
       ) : null}
-      {taxonomyLoading ? (
-        <div className="loadingLine">Carregando assuntos...</div>
-      ) : null}
+      {taxonomyLoading ? <div className="loadingLine">Carregando assuntos...</div> : null}
 
       <div className="classificationGrid">
         <section className="classificationPanel kbSummaryPanel">
@@ -90,10 +78,7 @@ export function IssueKnowledgeTab({
               ))}
             </div>
           ) : null}
-          <TagSelectionChips
-            onRemove={removeGroupTag}
-            tags={draftSelectedTagEntries}
-          />
+          <TagSelectionChips onRemove={removeGroupTag} tags={draftSelectedTagEntries} />
         </section>
 
         <section className="classificationPanel taxonomyChooserPanel">
@@ -114,10 +99,7 @@ export function IssueKnowledgeTab({
           <TaxonomySelector
             applications={applications}
             multiple
-            nodes={filterTaxonomyForApplication(
-              taxonomyPackage?.taxonomy || [],
-              issue.applicationId,
-            )}
+            nodes={filterTaxonomyForApplication(taxonomyPackage?.taxonomy || [], issue.applicationId)}
             onAddNode={savingTaxonomyCatalog ? null : addTaxonomyCatalogNode}
             onChange={updateTaxonomies}
             onEditNode={savingTaxonomyCatalog ? null : editTaxonomyCatalogNode}
@@ -129,11 +111,7 @@ export function IssueKnowledgeTab({
             group={activeTagGroup}
             onClose={() => setActiveTagGroupId("")}
             onToggleTag={toggleGroupTag}
-            selectedTags={
-              activeTagGroup
-                ? classificationDraft.tags[activeTagGroup.id] || []
-                : []
-            }
+            selectedTags={activeTagGroup ? classificationDraft.tags[activeTagGroup.id] || [] : []}
           />
         </section>
       </div>
@@ -141,9 +119,7 @@ export function IssueKnowledgeTab({
       <div className="dialogActions">
         <button
           className="primaryButton"
-          disabled={
-            savingClassification || !hasClassificationChanges || !issue.id
-          }
+          disabled={savingClassification || !hasClassificationChanges || !issue.id}
           onClick={saveClassification}
           type="button"
         >

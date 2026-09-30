@@ -4,22 +4,13 @@ import { ActiveMonitorDialog } from "./ActiveMonitorDialog/index.jsx";
 import { MonitorCreationDialog } from "./MonitorCreationDialog.jsx";
 import { Feedback, formatDate } from "./support.jsx";
 
-function MonitorCard({
-  canUpdate,
-  deleting,
-  monitor,
-  onDelete,
-  onEdit,
-  onToggle,
-}) {
+function MonitorCard({ canUpdate, deleting, monitor, onDelete, onEdit, onToggle }) {
   return (
     <article className="catalogActiveMonitorCard">
       <header>
         <div>
           <strong>{monitor.name}</strong>
-          <span
-            className={`catalogStatus catalogStatus-${monitor.enabled ? "active" : "archived"}`}
-          >
+          <span className={`catalogStatus catalogStatus-${monitor.enabled ? "active" : "archived"}`}>
             {monitor.enabled ? "Ativo" : "Inativo"}
           </span>
         </div>
@@ -33,11 +24,7 @@ function MonitorCard({
             >
               <Pencil size={16} />
             </button>
-            <button
-              className="secondaryButton"
-              onClick={() => onToggle(monitor)}
-              type="button"
-            >
+            <button className="secondaryButton" onClick={() => onToggle(monitor)} type="button">
               {monitor.enabled ? "Desativar" : "Ativar"}
             </button>
             <button
@@ -89,14 +76,7 @@ function MonitorCard({
   );
 }
 
-export function RuntimeMonitoringConfiguration({
-  controller,
-  draft,
-  editing,
-  options,
-  showRetention = true,
-  update,
-}) {
+export function RuntimeMonitoringConfiguration({ controller, draft, editing, options, showRetention = true, update }) {
   const {
     activeMonitors,
     loadMonitoring,
@@ -131,9 +111,7 @@ export function RuntimeMonitoringConfiguration({
               disabled={!canUpdate}
               max="3650"
               min="0"
-              onChange={(event) =>
-                update("monitoringRetentionDays", event.target.value)
-              }
+              onChange={(event) => update("monitoringRetentionDays", event.target.value)}
               type="number"
               value={draft.monitoringRetentionDays}
             />
@@ -144,9 +122,7 @@ export function RuntimeMonitoringConfiguration({
       <div className="catalogMonitoringSectionHeader">
         <div>
           <h3>Monitoramentos</h3>
-          <span>
-            Configure execuções ativas ou consulte como enviar sinais externos.
-          </span>
+          <span>Configure execuções ativas ou consulte como enviar sinais externos.</span>
         </div>
         <div>
           <button
@@ -159,28 +135,20 @@ export function RuntimeMonitoringConfiguration({
             <RefreshCw size={16} />
           </button>
           {canUpdate && editing ? (
-            <button
-              className="primaryButton"
-              onClick={startMonitorCreation}
-              type="button"
-            >
+            <button className="primaryButton" onClick={startMonitorCreation} type="button">
               <Plus size={16} /> Novo monitoramento
             </button>
           ) : null}
         </div>
       </div>
       {!editing ? (
-        <div className="catalogHistoryEmpty">
-          Salve o runtime antes de configurar monitoramentos.
-        </div>
+        <div className="catalogHistoryEmpty">Salve o runtime antes de configurar monitoramentos.</div>
       ) : monitoringLoading && !activeMonitors.length ? (
         <div className="catalogHistoryEmpty" role="status">
           Carregando monitoramentos…
         </div>
       ) : !activeMonitors.length ? (
-        <div className="catalogHistoryEmpty">
-          Nenhum monitoramento ativo configurado.
-        </div>
+        <div className="catalogHistoryEmpty">Nenhum monitoramento ativo configurado.</div>
       ) : (
         <div className="catalogActiveMonitorList">
           {activeMonitors.map((monitor) => (
@@ -198,8 +166,7 @@ export function RuntimeMonitoringConfiguration({
       )}
       {!canUpdate && editing ? (
         <div className="catalogPermissionNotice">
-          Você pode consultar a configuração, mas não possui permissão para
-          alterá-la.
+          Você pode consultar a configuração, mas não possui permissão para alterá-la.
         </div>
       ) : null}
       {monitorDraft ? (

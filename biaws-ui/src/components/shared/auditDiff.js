@@ -21,15 +21,10 @@ export function buildAuditLineDiff(beforeValue, afterValue) {
   // Audit values are bounded by the API. Avoid a quadratic matrix for an
   // unusually line-heavy value while still presenting a useful replacement.
   if (before.length * after.length > 40_000) {
-    return [
-      ...numberedLines("removed", before, 1, 1),
-      ...numberedLines("added", after, 1, 1),
-    ];
+    return [...numberedLines("removed", before, 1, 1), ...numberedLines("added", after, 1, 1)];
   }
 
-  const lengths = Array.from({ length: before.length + 1 }, () =>
-    Array(after.length + 1).fill(0),
-  );
+  const lengths = Array.from({ length: before.length + 1 }, () => Array(after.length + 1).fill(0));
   for (let left = before.length - 1; left >= 0; left -= 1) {
     for (let right = after.length - 1; right >= 0; right -= 1) {
       lengths[left][right] =
@@ -43,11 +38,7 @@ export function buildAuditLineDiff(beforeValue, afterValue) {
   let left = 0;
   let right = 0;
   while (left < before.length || right < after.length) {
-    if (
-      left < before.length &&
-      right < after.length &&
-      before[left] === after[right]
-    ) {
+    if (left < before.length && right < after.length && before[left] === after[right]) {
       result.push({
         type: "equal",
         value: before[left],
@@ -58,8 +49,7 @@ export function buildAuditLineDiff(beforeValue, afterValue) {
       right += 1;
     } else if (
       right < after.length &&
-      (left === before.length ||
-        lengths[left][right + 1] > lengths[left + 1][right])
+      (left === before.length || lengths[left][right + 1] > lengths[left + 1][right])
     ) {
       result.push({
         type: "added",

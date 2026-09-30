@@ -2,20 +2,14 @@ import { CheckCircle2, Circle, Trash2 } from "lucide-react";
 
 import { formatDate, requestChecklistLabel } from "../requestUtils.js";
 
-export function RequestChecklistTab({
-  request,
-  isEditing,
-  onRemoveChecklistItem,
-  onToggleChecklistItem,
-}) {
+export function RequestChecklistTab({ request, isEditing, onRemoveChecklistItem, onToggleChecklistItem }) {
   return (
     <section className="requestPanel">
       <div className="panelHeader">
         <div>
           <h3>Checklist</h3>
           <span>
-            {request.checklist.filter((item) => item.done).length} de{" "}
-            {request.checklist.length} itens concluídos
+            {request.checklist.filter((item) => item.done).length} de {request.checklist.length} itens concluídos
           </span>
         </div>
       </div>
@@ -25,11 +19,7 @@ export function RequestChecklistTab({
           <div className="requestChecklistItem" key={item.label}>
             <button
               aria-pressed={item.done}
-              className={
-                item.done
-                  ? "requestChecklistToggle completedChecklistStatus"
-                  : "requestChecklistToggle"
-              }
+              className={item.done ? "requestChecklistToggle completedChecklistStatus" : "requestChecklistToggle"}
               onClick={() => onToggleChecklistItem(item)}
               type="button"
             >
@@ -57,9 +47,7 @@ export function RequestChecklistTab({
             ) : null}
           </div>
         ))}
-        {!request.checklist.length ? (
-          <p className="emptyState">Nenhum item neste checklist.</p>
-        ) : null}
+        {!request.checklist.length ? <p className="emptyState">Nenhum item neste checklist.</p> : null}
       </div>
     </section>
   );

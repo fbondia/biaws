@@ -174,10 +174,7 @@ test("runtime payload supports clearing server and validates metadata", () => {
   assert.equal(payload.operationalNotesMarkdown, "");
 
   draft.metadataText = "[1]";
-  assert.throws(
-    () => catalogEntityPayload("runtime", draft, true),
-    /objeto JSON/u,
-  );
+  assert.throws(() => catalogEntityPayload("runtime", draft, true), /objeto JSON/u);
 });
 
 test("application and component lists are normalized", () => {

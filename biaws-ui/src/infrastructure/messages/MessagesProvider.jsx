@@ -1,12 +1,5 @@
 import { LoaderCircle, X } from "lucide-react";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { MESSAGE_DIALOG } from "./contract.js";
 import { defaultMessagesService } from "./runtime.js";
@@ -84,12 +77,7 @@ function MessageDialog({ dialog, service }) {
           >
             {options.cancelLabel}
           </button>
-          <button
-            className={
-              options.tone === "danger" ? "dangerButton" : "primaryButton"
-            }
-            type="submit"
-          >
+          <button className={options.tone === "danger" ? "dangerButton" : "primaryButton"} type="submit">
             {options.confirmLabel}
           </button>
         </footer>
@@ -105,11 +93,7 @@ function NoticeRegion({ notices, service }) {
       {notices.map((notice) => (
         <div className={`messagesNotice is-${notice.level}`} key={notice.id}>
           <span>{notice.message}</span>
-          <button
-            aria-label="Dispensar mensagem"
-            onClick={() => service.dismiss(notice.id)}
-            type="button"
-          >
+          <button aria-label="Dispensar mensagem" onClick={() => service.dismiss(notice.id)} type="button">
             <X aria-hidden="true" size={16} />
           </button>
         </div>
@@ -118,23 +102,14 @@ function NoticeRegion({ notices, service }) {
   );
 }
 
-export function MessagesProvider({
-  children,
-  service = defaultMessagesService,
-}) {
-  const snapshot = useSyncExternalStore(
-    service.subscribe,
-    service.getSnapshot,
-    service.getSnapshot,
-  );
+export function MessagesProvider({ children, service = defaultMessagesService }) {
+  const snapshot = useSyncExternalStore(service.subscribe, service.getSnapshot, service.getSnapshot);
   const value = useMemo(
     () => ({
-      confirm: (options) =>
-        service.confirm(options, { focusTarget: document.activeElement }),
+      confirm: (options) => service.confirm(options, { focusTarget: document.activeElement }),
       error: service.error,
       info: service.info,
-      prompt: (options) =>
-        service.prompt(options, { focusTarget: document.activeElement }),
+      prompt: (options) => service.prompt(options, { focusTarget: document.activeElement }),
       run: service.run,
       startLoading: service.startLoading,
       success: service.success,
@@ -149,36 +124,21 @@ export function MessagesProvider({
     <MessagesContext.Provider value={value}>
       {children}
       {blockingLoading ? (
-        <div
-          aria-busy="true"
-          aria-label={blockingLoading.label}
-          aria-live="polite"
-          className="globalLoading"
-        >
+        <div aria-busy="true" aria-label={blockingLoading.label} aria-live="polite" className="globalLoading">
           <div className="globalLoadingIndicator" role="status">
-            <LoaderCircle
-              aria-hidden="true"
-              className="globalLoadingSpinner"
-              size={22}
-            />
+            <LoaderCircle aria-hidden="true" className="globalLoadingSpinner" size={22} />
             <span>{blockingLoading.label}</span>
           </div>
         </div>
       ) : null}
       {nonBlockingLoading ? (
-        <div
-          aria-live="polite"
-          className="messagesBackgroundStatus"
-          role="status"
-        >
+        <div aria-live="polite" className="messagesBackgroundStatus" role="status">
           <LoaderCircle aria-hidden="true" size={16} />
           <span>{nonBlockingLoading.label}</span>
         </div>
       ) : null}
       <NoticeRegion notices={snapshot.notices} service={service} />
-      {snapshot.dialog ? (
-        <MessageDialog dialog={snapshot.dialog} service={service} />
-      ) : null}
+      {snapshot.dialog ? <MessageDialog dialog={snapshot.dialog} service={service} /> : null}
     </MessagesContext.Provider>
   );
 }

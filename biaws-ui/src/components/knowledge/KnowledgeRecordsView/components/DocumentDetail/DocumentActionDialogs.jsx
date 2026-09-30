@@ -3,12 +3,7 @@ import { FileDown, FileText, X } from "lucide-react";
 import { replicateDocument } from "../../../../../api.js";
 import { ReplicationDialog } from "../../../../shared/ReplicationDialog.jsx";
 
-export function DocumentExportDialog({
-  onClose,
-  onExportMarkdown,
-  onExportPdf,
-  open,
-}) {
+export function DocumentExportDialog({ onClose, onExportMarkdown, onExportPdf, open }) {
   if (!open) return null;
   return (
     <div
@@ -73,28 +68,19 @@ export function DocumentExportDialog({
   );
 }
 
-export function DocumentReplicationDialog({
-  currentWorkspaceId,
-  documentId,
-  onClose,
-  open,
-  workspaces,
-}) {
+export function DocumentReplicationDialog({ currentWorkspaceId, documentId, onClose, open, workspaces }) {
   return (
     <ReplicationDialog
       currentWorkspaceId={currentWorkspaceId}
       description={
         <p>
-          O identificador localiza o documento correspondente em cada destino.
-          Se ele existir, somente título, resumo e conteúdo serão substituídos;
-          tipo, contexto e histórico locais serão preservados. Se não existir,
-          uma nova cópia será criada sem contexto local.
+          O identificador localiza o documento correspondente em cada destino. Se ele existir, somente título, resumo e
+          conteúdo serão substituídos; tipo, contexto e histórico locais serão preservados. Se não existir, uma nova
+          cópia será criada sem contexto local.
         </p>
       }
       onClose={onClose}
-      onReplicate={(destinationWorkspaceIds) =>
-        replicateDocument(documentId, destinationWorkspaceIds)
-      }
+      onReplicate={(destinationWorkspaceIds) => replicateDocument(documentId, destinationWorkspaceIds)}
       open={open}
       resourceKey={documentId}
       title="Replicar documento"

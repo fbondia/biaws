@@ -5,9 +5,7 @@ import { hasPermission } from "../../../../permissions.js";
 
 export function useCatalogRuntimes(actor) {
   const [runtimeByDeployment, setRuntimeByDeployment] = useState({});
-  const [runtimeLoadingByDeployment, setRuntimeLoadingByDeployment] = useState(
-    {},
-  );
+  const [runtimeLoadingByDeployment, setRuntimeLoadingByDeployment] = useState({});
   const [runtimeErrorByDeployment, setRuntimeErrorByDeployment] = useState({});
 
   function resetRuntimes() {

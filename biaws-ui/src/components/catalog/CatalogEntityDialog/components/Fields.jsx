@@ -1,14 +1,6 @@
 import { Archive, Save } from "lucide-react";
 
-export function SelectField({
-  className = "",
-  label,
-  name,
-  onChange,
-  options,
-  required,
-  value,
-}) {
+export function SelectField({ className = "", label, name, onChange, options, required, value }) {
   return (
     <label className={`field ${className}`.trim()}>
       <span>{label}</span>
@@ -20,10 +12,7 @@ export function SelectField({
       >
         {!required ? <option value="">Não informado</option> : null}
         {options.map((option) => {
-          const item =
-            typeof option === "string"
-              ? { value: option, label: option }
-              : option;
+          const item = typeof option === "string" ? { value: option, label: option } : option;
           return (
             <option key={item.value} value={item.value}>
               {item.label}
@@ -64,13 +53,7 @@ export function TextField({
   );
 }
 
-export function MultiSelectField({
-  label,
-  name,
-  onChange,
-  options,
-  value = [],
-}) {
+export function MultiSelectField({ label, name, onChange, options, value = [] }) {
   return (
     <label className="field catalogWideField">
       <span>{label}</span>
@@ -91,9 +74,7 @@ export function MultiSelectField({
           </option>
         ))}
       </select>
-      <small id={`${name}-help`}>
-        Use Ctrl ou Command para selecionar vários itens.
-      </small>
+      <small id={`${name}-help`}>Use Ctrl ou Command para selecionar vários itens.</small>
     </label>
   );
 }
@@ -116,37 +97,20 @@ export function EntityFieldGroup({ active, children }) {
   return children;
 }
 
-export function CatalogEntityFooter({
-  archiving,
-  editing,
-  error,
-  onArchive,
-  onClose,
-  saving,
-}) {
+export function CatalogEntityFooter({ archiving, editing, error, onArchive, onClose, saving }) {
   const busy = archiving || saving;
   return (
     <>
       {error ? <div className="errorBox">{error}</div> : null}
       <footer>
         {editing && onArchive ? (
-          <button
-            className="dangerButton"
-            disabled={busy}
-            onClick={onArchive}
-            type="button"
-          >
+          <button className="dangerButton" disabled={busy} onClick={onArchive} type="button">
             <Archive size={16} />
             {archiving ? "Arquivando..." : "Arquivar"}
           </button>
         ) : null}
         <div className="catalogEntityFooterActions">
-          <button
-            className="secondaryButton"
-            disabled={busy}
-            onClick={onClose}
-            type="button"
-          >
+          <button className="secondaryButton" disabled={busy} onClick={onClose} type="button">
             Cancelar
           </button>
           <button className="primaryButton" disabled={busy} type="submit">

@@ -35,10 +35,7 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
       build: {
         emptyOutDir: false,
         lib: {
-          entry: join(
-            process.cwd(),
-            "test/fixtures/RuntimeMonitoringHarness.jsx",
-          ),
+          entry: join(process.cwd(), "test/fixtures/RuntimeMonitoringHarness.jsx"),
           fileName: "runtime-monitoring-harness",
           formats: ["es"],
         },
@@ -50,8 +47,8 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     );
     const root = mountRuntimeMonitoring(document.getElementById("app"));
 
-    const createButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent.includes("Novo monitoramento"),
+    const createButton = [...document.querySelectorAll("button")].find((button) =>
+      button.textContent.includes("Novo monitoramento"),
     );
     assert.ok(createButton);
     createButton.click();
@@ -64,9 +61,7 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     assert.match(dialog.textContent, /Shell Script/u);
     assert.match(dialog.textContent, /Manual/u);
 
-    const manualChoice = [...dialog.querySelectorAll("button")].find((button) =>
-      button.textContent.includes("Manual"),
-    );
+    const manualChoice = [...dialog.querySelectorAll("button")].find((button) => button.textContent.includes("Manual"));
     manualChoice.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     dialog = document.querySelector('[role="dialog"]');
@@ -74,42 +69,30 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     assert.match(dialog.textContent, /Exemplo com curl/u);
     assert.match(dialog.textContent, /Comando BIAWS CLI/u);
 
-    const backButton = [...dialog.querySelectorAll("button")].find((button) =>
-      button.textContent.includes("Voltar"),
-    );
+    const backButton = [...dialog.querySelectorAll("button")].find((button) => button.textContent.includes("Voltar"));
     backButton.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     dialog = document.querySelector('[role="dialog"]');
-    const restChoice = [...dialog.querySelectorAll("button")].find((button) =>
-      button.textContent.includes("API REST"),
-    );
+    const restChoice = [...dialog.querySelectorAll("button")].find((button) => button.textContent.includes("API REST"));
     restChoice.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     dialog = document.querySelector('[role="dialog"]');
     assert.equal(dialog.querySelector('select[name="provider"]'), null);
     assert.ok(dialog.querySelector("#active-monitor-dialog-title svg"));
     assert.deepEqual(
-      [...dialog.querySelectorAll('[role="tab"]')].map(
-        (tab) => tab.textContent,
-      ),
+      [...dialog.querySelectorAll('[role="tab"]')].map((tab) => tab.textContent),
       ["Geral", "API REST", "Interpretação"],
     );
     assert.deepEqual(
-      [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map(
-        (heading) => heading.textContent,
-      ),
+      [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map((heading) => heading.textContent),
       ["Identificação", "Agendamento"],
     );
-    const restTab = [...dialog.querySelectorAll('[role="tab"]')].find(
-      (tab) => tab.textContent === "API REST",
-    );
+    const restTab = [...dialog.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent === "API REST");
     restTab.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.match(dialog.textContent, /URL HTTP\(S\), sem credenciais/u);
     assert.deepEqual(
-      [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map(
-        (heading) => heading.textContent,
-      ),
+      [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map((heading) => heading.textContent),
       ["Requisição REST"],
     );
     const interpretationTab = [...dialog.querySelectorAll('[role="tab"]')].find(
@@ -118,21 +101,15 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     interpretationTab.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.deepEqual(
-      [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map(
-        (heading) => heading.textContent,
-      ),
+      [...dialog.querySelectorAll(".catalogMonitorFormSection h3")].map((heading) => heading.textContent),
       ["Interpretação"],
     );
     const templateSelect = dialog.querySelector('select[name="templateId"]');
-    const versionSelect = dialog.querySelector(
-      'select[name="templateVersion"]',
-    );
+    const versionSelect = dialog.querySelector('select[name="templateVersion"]');
     assert.ok(templateSelect);
     assert.equal(versionSelect.disabled, true);
     templateSelect.value = "health-template";
-    templateSelect.dispatchEvent(
-      new dom.window.Event("change", { bubbles: true }),
-    );
+    templateSelect.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(versionSelect.disabled, false);
     assert.deepEqual(
@@ -163,9 +140,7 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     assert.match(dialog.textContent, /ID do script permitido/u);
     assert.doesNotMatch(dialog.textContent, /URL HTTP\(S\), sem credenciais/u);
     assert.match(dialog.textContent, /Execução do script/u);
-    const shellResultTab = [...dialog.querySelectorAll('[role="tab"]')].find(
-      (tab) => tab.textContent === "Resultado",
-    );
+    const shellResultTab = [...dialog.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent === "Resultado");
     shellResultTab.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.match(dialog.textContent, /Resultado Shell/u);
@@ -183,15 +158,13 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     tabs[1].click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.match(document.body.textContent, /Histórico unificado/u);
-    const chartButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent.includes("Gráfico"),
+    const chartButton = [...document.querySelectorAll("button")].find((button) =>
+      button.textContent.includes("Gráfico"),
     );
     assert.ok(chartButton);
     assert.equal(chartButton.getAttribute("aria-pressed"), "true");
 
-    const listButton = [...document.querySelectorAll("button")].find((button) =>
-      button.textContent.includes("Lista"),
-    );
+    const listButton = [...document.querySelectorAll("button")].find((button) => button.textContent.includes("Lista"));
     listButton.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
     const loadMore = [...document.querySelectorAll("button")].find((button) =>
@@ -239,15 +212,8 @@ test("runtime monitoring supports provider forms, nested tabs and paged history"
     chartButton.click();
     await new Promise((resolve) => setTimeout(resolve, 10));
     assert.equal(chartButton.getAttribute("aria-pressed"), "true");
-    assert.ok(
-      document.querySelector(
-        '[aria-label="Evolução temporal da saúde por monitoramento"]',
-      ),
-    );
-    assert.match(
-      document.body.textContent,
-      /24 eventos resumidos em 2 pontos/u,
-    );
+    assert.ok(document.querySelector('[aria-label="Evolução temporal da saúde por monitoramento"]'));
+    assert.match(document.body.textContent, /24 eventos resumidos em 2 pontos/u);
 
     listButton.click();
     await new Promise((resolve) => setTimeout(resolve, 0));

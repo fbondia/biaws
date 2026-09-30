@@ -9,11 +9,7 @@
   border: 1px dashed var(--color-border-strong);
   border-radius: 14px;
   background:
-    radial-gradient(
-      circle at 50% 0%,
-      var(--palette-alpha-blue-10),
-      transparent 48%
-    ),
+    radial-gradient(circle at 50% 0%, var(--palette-alpha-blue-10), transparent 48%),
     linear-gradient(180deg, var(--color-surface), var(--color-surface-subtle));
   color: var(--color-text-subtle);
   padding: 36px 24px;

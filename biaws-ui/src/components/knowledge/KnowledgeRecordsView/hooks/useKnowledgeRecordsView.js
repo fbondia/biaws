@@ -22,8 +22,7 @@ export function useKnowledgeRecordsView(actor) {
   const { confirm } = useMessages();
   const permissions = documentPermissions(actor);
   const catalog = useCatalogOptions(
-    hasPermission(actor, "applications.read") &&
-      hasPermission(actor, "components.read"),
+    hasPermission(actor, "applications.read") && hasPermission(actor, "components.read"),
     actor.workspaceId,
   );
   const [items, setItems] = useState([]);
@@ -70,9 +69,7 @@ export function useKnowledgeRecordsView(actor) {
       if (!mountedRef.current || loadVersion !== loadVersionRef.current) return;
       const loaded = payload.items || [];
       setItems(loaded);
-      const filtered = Boolean(
-        searchValue || applicationValue || componentValue,
-      );
+      const filtered = Boolean(searchValue || applicationValue || componentValue);
       if (!filtered) setOrganizationItems(loaded);
       setSearchActive(filtered);
     } catch (loadError) {
@@ -94,13 +91,7 @@ export function useKnowledgeRecordsView(actor) {
   }, []);
 
   useEffect(() => {
-    void load(
-      search,
-      applicationFilter,
-      componentFilter,
-      typeFilter,
-      includeArchived,
-    );
+    void load(search, applicationFilter, componentFilter, typeFilter, includeArchived);
   }, [applicationFilter, componentFilter, includeArchived, typeFilter]);
 
   useEffect(() => {
@@ -126,9 +117,7 @@ export function useKnowledgeRecordsView(actor) {
     setSaving(true);
     setError("");
     try {
-      const payload = nextDraft.id
-        ? await saveDocument(nextDraft.id, nextDraft)
-        : await createDocument(nextDraft);
+      const payload = nextDraft.id ? await saveDocument(nextDraft.id, nextDraft) : await createDocument(nextDraft);
       setDraft(normalizedDraft(payload.document));
       await load();
     } catch (saveError) {
@@ -182,11 +171,7 @@ export function useKnowledgeRecordsView(actor) {
 
   async function moveItem(id, collectionId) {
     await moveDocumentToCollection(id, collectionId);
-    setOrganizationItems((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, collectionId } : item,
-      ),
-    );
+    setOrganizationItems((current) => current.map((item) => (item.id === id ? { ...item, collectionId } : item)));
   }
 
   function closeDetail() {
@@ -211,21 +196,13 @@ export function useKnowledgeRecordsView(actor) {
   }
 
   function continueCreation(documentType) {
-    setDraft(
-      emptyDraft(
-        documentType,
-        searchActive ? "" : collectionsState.selectedCollectionId,
-      ),
-    );
+    setDraft(emptyDraft(documentType, searchActive ? "" : collectionsState.selectedCollectionId));
     setCreating(false);
   }
 
   const visibleItems = searchActive
     ? items
-    : items.filter(
-        (item) =>
-          (item.collectionId || "") === collectionsState.selectedCollectionId,
-      );
+    : items.filter((item) => (item.collectionId || "") === collectionsState.selectedCollectionId);
 
   return {
     applicationFilter,

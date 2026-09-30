@@ -44,10 +44,7 @@ test("monitoring presentation resolves only fields present in metadata", () => {
     fields.map(({ key }) => key),
     ["service_up", "disk_usage_percent"],
   );
-  assert.equal(
-    formatMonitoringValue(fields[1].value, fields[1].format),
-    "73,42%",
-  );
+  assert.equal(formatMonitoringValue(fields[1].value, fields[1].format), "73,42%");
   assert.equal(monitoringStatusTone(fields[0].value), "healthy");
 });
 
@@ -58,8 +55,5 @@ test("monitoring presentation combines aligned arrays into a typed series", () =
     { x: "2026-08-01", y: 1024 },
     { x: "2026-08-02", y: 2048 },
   ]);
-  assert.equal(
-    formatMonitoringValue(series.data[1].y, series.yFormat),
-    "2 KiB",
-  );
+  assert.equal(formatMonitoringValue(series.data[1].y, series.yFormat), "2 KiB");
 });

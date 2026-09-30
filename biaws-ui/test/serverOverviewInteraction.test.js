@@ -15,10 +15,7 @@ test("server overview presents technical data, tags, purpose and markdown descri
     url: "https://biaws.example.test",
   });
   const previous = Object.fromEntries(
-    ["document", "navigator", "window"].map((name) => [
-      name,
-      Object.getOwnPropertyDescriptor(globalThis, name),
-    ]),
+    ["document", "navigator", "window"].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   Object.defineProperties(globalThis, {
     document: { configurable: true, value: dom.window.document },
@@ -42,54 +39,30 @@ test("server overview presents technical data, tags, purpose and markdown descri
         outDir: outputDirectory,
       },
     });
-    const { mountServerOverview } = await import(
-      pathToFileURL(join(outputDirectory, "server-overview-harness.js"))
-    );
+    const { mountServerOverview } = await import(pathToFileURL(join(outputDirectory, "server-overview-harness.js")));
     const root = mountServerOverview(document.getElementById("app"));
     const overview = document.querySelector(".serverOverviewCard");
 
     assert.ok(overview);
     assert.doesNotMatch(overview.textContent, /Inventário/u);
     assert.deepEqual(
-      [...overview.querySelectorAll("dt")].map(
-        ({ textContent }) => textContent,
-      ),
-      [
-        "Hostname",
-        "Sistema operacional",
-        "Status",
-        "Localização",
-        "Provedor",
-        "Endereços",
-      ],
+      [...overview.querySelectorAll("dt")].map(({ textContent }) => textContent),
+      ["Hostname", "Sistema operacional", "Status", "Localização", "Provedor", "Endereços"],
     );
     assert.deepEqual(
-      [...overview.querySelectorAll(".catalogAddressList li")].map(
-        ({ textContent }) => textContent,
-      ),
+      [...overview.querySelectorAll(".catalogAddressList li")].map(({ textContent }) => textContent),
       ["192.0.2.10", "2001:db8::10"],
     );
     const sections = new Map(
-      [...overview.querySelectorAll("section")].map((section) => [
-        section.querySelector("h3").textContent,
-        section,
-      ]),
+      [...overview.querySelectorAll("section")].map((section) => [section.querySelector("h3").textContent, section]),
     );
     assert.deepEqual([...sections.keys()], ["Finalidade", "Tags", "Descrição"]);
     assert.deepEqual(
-      [...sections.get("Tags").querySelectorAll(".serverTagChip")].map(
-        ({ textContent }) => textContent,
-      ),
+      [...sections.get("Tags").querySelectorAll(".serverTagChip")].map(({ textContent }) => textContent),
       ["produção", "crítico"],
     );
-    assert.equal(
-      sections.get("Finalidade").querySelector("div").textContent,
-      "Hospeda os serviços principais.",
-    );
-    assert.equal(
-      sections.get("Descrição").querySelector("strong").textContent,
-      "monitorado",
-    );
+    assert.equal(sections.get("Finalidade").querySelector("div").textContent, "Hospeda os serviços principais.");
+    assert.equal(sections.get("Descrição").querySelector("strong").textContent, "monitorado");
     root.unmount();
   } finally {
     for (const [name, descriptor] of Object.entries(previous)) {

@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  markdownToHtml,
-  parseMarkdownBlocks,
-} from "../src/components/shared/MarkdownEditor/model.js";
+import { markdownToHtml, parseMarkdownBlocks } from "../src/components/shared/MarkdownEditor/model.js";
 
 test("blockquote preserves explicit line breaks", () => {
   const markdown = "> primeira linha\n> segunda linha\n> **terceira linha**";
@@ -21,23 +18,17 @@ test("blockquote preserves explicit line breaks", () => {
 });
 
 test("blockquote preserves an empty quoted line", () => {
-  assert.equal(
-    markdownToHtml("> antes\n>\n> depois"),
-    "<blockquote>antes<br><br>depois</blockquote>",
-  );
+  assert.equal(markdownToHtml("> antes\n>\n> depois"), "<blockquote>antes<br><br>depois</blockquote>");
 });
 
 test("code block preserves its normalized language", () => {
-  assert.deepEqual(
-    parseMarkdownBlocks("```Mermaid\nflowchart LR\n  A --> B\n```"),
-    [
-      {
-        type: "code",
-        language: "mermaid",
-        text: "flowchart LR\n  A --> B",
-      },
-    ],
-  );
+  assert.deepEqual(parseMarkdownBlocks("```Mermaid\nflowchart LR\n  A --> B\n```"), [
+    {
+      type: "code",
+      language: "mermaid",
+      text: "flowchart LR\n  A --> B",
+    },
+  ]);
 });
 
 test("code block without a language remains ordinary code", () => {

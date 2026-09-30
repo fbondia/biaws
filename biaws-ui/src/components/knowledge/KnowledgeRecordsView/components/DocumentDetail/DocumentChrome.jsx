@@ -1,13 +1,4 @@
-import {
-  Archive,
-  ArchiveRestore,
-  CopyPlus,
-  Download,
-  Save,
-  Settings2,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Archive, ArchiveRestore, CopyPlus, Download, Save, Settings2, Trash2, X } from "lucide-react";
 
 import { MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
 import { EntityIdentifier } from "../../../../shared/EntityIdentifier/index.jsx";
@@ -16,13 +7,7 @@ import { DOCUMENT_TABS } from "../../model.js";
 function DocumentActionButtons({ onExport, onReplicate }) {
   return (
     <>
-      <button
-        aria-label="Exportar documento"
-        className="iconButton"
-        onClick={onExport}
-        title="Exportar"
-        type="button"
-      >
+      <button aria-label="Exportar documento" className="iconButton" onClick={onExport} title="Exportar" type="button">
         <Download aria-hidden="true" size={16} />
       </button>
       {onReplicate ? (
@@ -56,35 +41,17 @@ export function KnowledgeRecordHeader({
     <header className="knowledgeRecordHeader">
       <div className="knowledgeRecordTitle">
         <span aria-label={config.label} role="img" title={config.label}>
-          <TypeIcon
-            aria-hidden="true"
-            className="knowledgeDocumentTypeIcon"
-            size={44}
-          />
+          <TypeIcon aria-hidden="true" className="knowledgeDocumentTypeIcon" size={44} />
         </span>
         <div>
-          <EntityIdentifier
-            label="Identificador do documento"
-            value={draft.identifier}
-            variant="eyebrow"
-          />
+          <EntityIdentifier label="Identificador do documento" value={draft.identifier} variant="eyebrow" />
           <h2 id={titleId}>{draft.title || config.label}</h2>
         </div>
       </div>
       <div className="knowledgeRecordActions">
-        {draft.id ? (
-          <DocumentActionButtons
-            onExport={onExport}
-            onReplicate={onReplicate}
-          />
-        ) : null}
+        {draft.id ? <DocumentActionButtons onExport={onExport} onReplicate={onReplicate} /> : null}
         {canUpdate ? (
-          <button
-            className="primaryButton"
-            disabled={saving}
-            onClick={() => onSave()}
-            type="button"
-          >
+          <button className="primaryButton" disabled={saving} onClick={() => onSave()} type="button">
             <Save size={16} /> {saving ? "Salvando..." : "Salvar"}
           </button>
         ) : null}
@@ -104,15 +71,7 @@ export function KnowledgeRecordHeader({
   );
 }
 
-export function KnowledgeRecordFooter({
-  canArchive,
-  canDelete,
-  canRestore,
-  draft,
-  onArchive,
-  onDelete,
-  onRestore,
-}) {
+export function KnowledgeRecordFooter({ canArchive, canDelete, canRestore, draft, onArchive, onDelete, onRestore }) {
   if (!draft.id || (!canArchive && !canDelete)) return null;
 
   const archived = draft.status === "archived";
@@ -137,32 +96,17 @@ export function KnowledgeRecordFooter({
   );
 }
 
-export function KnowledgeDocumentReading({
-  config,
-  contentRef,
-  draft,
-  onExport,
-  onReplicate,
-  onShowDetails,
-}) {
+export function KnowledgeDocumentReading({ config, contentRef, draft, onExport, onReplicate, onShowDetails }) {
   const TypeIcon = config.icon;
   return (
     <section className="resourceCollectionContent knowledgeRecordDetail knowledgeDocumentReading">
       <header className="knowledgeRecordHeader knowledgeDocumentReadingHeader">
         <div className="knowledgeRecordTitle">
           <span aria-label={config.label} role="img" title={config.label}>
-            <TypeIcon
-              aria-hidden="true"
-              className="knowledgeDocumentTypeIcon"
-              size={44}
-            />
+            <TypeIcon aria-hidden="true" className="knowledgeDocumentTypeIcon" size={44} />
           </span>
           <div>
-            <EntityIdentifier
-              label="Identificador do documento"
-              value={draft.identifier}
-              variant="chip"
-            />
+            <EntityIdentifier label="Identificador do documento" value={draft.identifier} variant="chip" />
             <h2>{draft.title}</h2>
           </div>
         </div>
@@ -173,11 +117,7 @@ export function KnowledgeDocumentReading({
               onReplicate={onReplicate}
             />
           */}
-          <button
-            className="primaryButton"
-            onClick={onShowDetails}
-            type="button"
-          >
+          <button className="primaryButton" onClick={onShowDetails} type="button">
             <Settings2 size={15} />
             Detalhes
           </button>
@@ -190,23 +130,12 @@ export function KnowledgeDocumentReading({
   );
 }
 
-export function KnowledgeRecordTabs({
-  canReadAttachments,
-  documentId,
-  onSelect,
-  tab,
-}) {
+export function KnowledgeRecordTabs({ canReadAttachments, documentId, onSelect, tab }) {
   const visibleTabs = documentId
     ? DOCUMENT_TABS.filter(([key]) => key !== "files" || canReadAttachments)
-    : DOCUMENT_TABS.filter(
-        ([key]) =>
-          !["files", "observations", "revisions", "history"].includes(key),
-      );
+    : DOCUMENT_TABS.filter(([key]) => !["files", "observations", "revisions", "history"].includes(key));
   return (
-    <nav
-      aria-label="Detalhes do documento"
-      className="detailTabs knowledgeRecordTabs"
-    >
+    <nav aria-label="Detalhes do documento" className="detailTabs knowledgeRecordTabs">
       {visibleTabs.map(([key, label]) => (
         <button
           className={tab === key ? "detailTab activeDetailTab" : "detailTab"}

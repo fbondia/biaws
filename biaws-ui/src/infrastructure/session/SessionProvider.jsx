@@ -1,20 +1,11 @@
-import {
-  createContext,
-  useContext,
-  useMemo,
-  useSyncExternalStore,
-} from "react";
+import { createContext, useContext, useMemo, useSyncExternalStore } from "react";
 
 import { defaultSessionService } from "./runtime.js";
 
 const SessionContext = createContext(null);
 
 export function SessionProvider({ children, service = defaultSessionService }) {
-  const state = useSyncExternalStore(
-    service.subscribe,
-    service.getState,
-    service.getState,
-  );
+  const state = useSyncExternalStore(service.subscribe, service.getState, service.getState);
 
   const value = useMemo(
     () => ({
@@ -27,9 +18,7 @@ export function SessionProvider({ children, service = defaultSessionService }) {
     [service, state],
   );
 
-  return (
-    <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
-  );
+  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
 export function useSession() {

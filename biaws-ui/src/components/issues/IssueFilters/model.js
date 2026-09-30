@@ -30,16 +30,8 @@ export function datePeriodRange({ days, months }, today = new Date()) {
   }
 
   const targetMonth = today.getMonth() - months;
-  const lastTargetDay = new Date(
-    today.getFullYear(),
-    targetMonth + 1,
-    0,
-  ).getDate();
-  const from = new Date(
-    today.getFullYear(),
-    targetMonth,
-    Math.min(today.getDate(), lastTargetDay),
-  );
+  const lastTargetDay = new Date(today.getFullYear(), targetMonth + 1, 0).getDate();
+  const from = new Date(today.getFullYear(), targetMonth, Math.min(today.getDate(), lastTargetDay));
 
   return { from: formatDateInput(from), to: formatDateInput(to) };
 }
@@ -66,10 +58,7 @@ export function toggleSelectedTag(draftFilters, groupId, tagId, onChange) {
 }
 
 export function countSelectedTags(draftFilters, tagGroups) {
-  return tagGroups.reduce(
-    (total, group) => total + readSelectedTags(draftFilters, group.id).length,
-    0,
-  );
+  return tagGroups.reduce((total, group) => total + readSelectedTags(draftFilters, group.id).length, 0);
 }
 
 export function readSelectedTaxonomies(draftFilters) {

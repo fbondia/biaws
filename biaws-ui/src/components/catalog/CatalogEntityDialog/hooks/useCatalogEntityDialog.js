@@ -10,43 +10,27 @@ import {
   runtimeMonitoringPath,
 } from "../model.js";
 import { EMPTY_PUBLICATION_DRAFT } from "../constants.js";
-import {
-  monitoringCliExample,
-  useRuntimeMonitoring,
-} from "../../../monitoring/runtime/index.js";
+import { monitoringCliExample, useRuntimeMonitoring } from "../../../monitoring/runtime/index.js";
 
 function runtimeSignalUrl(runtimePath) {
   if (!runtimePath) return "";
-  return buildUrl(
-    `/api/monitoring/runtimes/${encodeURIComponent(runtimePath)}/signals`,
-  ).toString();
+  return buildUrl(`/api/monitoring/runtimes/${encodeURIComponent(runtimePath)}/signals`).toString();
 }
 
-export function useCatalogEntityDialog({
-  entity,
-  kind,
-  onArchive,
-  onClose,
-  onSave,
-  options,
-}) {
+export function useCatalogEntityDialog({ entity, kind, onArchive, onClose, onSave, options }) {
   const editing = Boolean(entity?.id);
   const [draft, setDraft] = useState(() => catalogEntityDraft(kind, entity));
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [error, setError] = useState("");
   const [activeSection, setActiveSection] = useState("basic");
-  const [publicationDraft, setPublicationDraft] = useState(
-    EMPTY_PUBLICATION_DRAFT,
-  );
+  const [publicationDraft, setPublicationDraft] = useState(EMPTY_PUBLICATION_DRAFT);
   const [documentSelectorOpen, setDocumentSelectorOpen] = useState(false);
   const [relatedDocuments, setRelatedDocuments] = useState([]);
   const [relatedDocumentsLoading, setRelatedDocumentsLoading] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
 
-  const runtimeDeployment = (options.deployments || []).find(
-    ({ id }) => id === entity?.deploymentId,
-  );
+  const runtimeDeployment = (options.deployments || []).find(({ id }) => id === entity?.deploymentId);
   const runtimeComponent = (options.components || []).find(
     ({ id }) => id === (entity?.componentId || runtimeDeployment?.componentId),
   );
@@ -67,9 +51,7 @@ export function useCatalogEntityDialog({
   });
   const runtimeMonitoring = useRuntimeMonitoring({ editing, entity, kind });
 
-  const relatedDocumentIds = (draft.documentLinks || [])
-    .map(({ documentId }) => documentId)
-    .join(",");
+  const relatedDocumentIds = (draft.documentLinks || []).map(({ documentId }) => documentId).join(",");
 
   useEffect(() => {
     if (kind !== "runtime" || !options.canReadDocuments) return undefined;
@@ -111,9 +93,7 @@ export function useCatalogEntityDialog({
   function updateDocumentPurpose(documentId, purpose) {
     update(
       "documentLinks",
-      (draft.documentLinks || []).map((link) =>
-        link.documentId === documentId ? { ...link, purpose } : link,
-      ),
+      (draft.documentLinks || []).map((link) => (link.documentId === documentId ? { ...link, purpose } : link)),
     );
   }
 
@@ -128,10 +108,7 @@ export function useCatalogEntityDialog({
     setSaving(true);
     setError("");
     try {
-      const draftToSave =
-        kind === "deployment"
-          ? appendPublicationDraft(draft, publicationDraft)
-          : draft;
+      const draftToSave = kind === "deployment" ? appendPublicationDraft(draft, publicationDraft) : draft;
       await onSave(catalogEntityPayload(kind, draftToSave, editing));
       onClose();
     } catch (saveError) {
@@ -156,9 +133,7 @@ export function useCatalogEntityDialog({
   }
 
   function confirmDocuments(documentIds) {
-    const currentLinks = new Map(
-      (draft.documentLinks || []).map((link) => [link.documentId, link]),
-    );
+    const currentLinks = new Map((draft.documentLinks || []).map((link) => [link.documentId, link]));
     update(
       "documentLinks",
       documentIds.map(

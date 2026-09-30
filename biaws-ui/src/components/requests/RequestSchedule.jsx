@@ -24,10 +24,7 @@ export function RequestSchedule({ collections, requests, onSelectRequest }) {
   const timeline = buildGanttTimeline(ganttItems);
 
   function clampDemandWidth(width) {
-    return Math.min(
-      GANTT_DEMAND_MAX_WIDTH,
-      Math.max(GANTT_DEMAND_MIN_WIDTH, width),
-    );
+    return Math.min(GANTT_DEMAND_MAX_WIDTH, Math.max(GANTT_DEMAND_MIN_WIDTH, width));
   }
 
   return (
@@ -55,17 +52,13 @@ export function RequestSchedule({ collections, requests, onSelectRequest }) {
                   aria-valuemax={GANTT_DEMAND_MAX_WIDTH}
                   aria-valuemin={GANTT_DEMAND_MIN_WIDTH}
                   aria-valuenow={demandWidth}
-                  className={[
-                    "requestGanttDemandResizer",
-                    resizingDemand ? "requestGanttDemandResizing" : "",
-                  ]
+                  className={["requestGanttDemandResizer", resizingDemand ? "requestGanttDemandResizing" : ""]
                     .filter(Boolean)
                     .join(" ")}
                   onKeyDown={(event) => {
                     let nextWidth;
                     if (event.key === "ArrowLeft") nextWidth = demandWidth - 20;
-                    if (event.key === "ArrowRight")
-                      nextWidth = demandWidth + 20;
+                    if (event.key === "ArrowRight") nextWidth = demandWidth + 20;
                     if (event.key === "Home") {
                       nextWidth = GANTT_DEMAND_MIN_WIDTH;
                     }
@@ -89,17 +82,9 @@ export function RequestSchedule({ collections, requests, onSelectRequest }) {
                     setResizingDemand(true);
                   }}
                   onPointerMove={(event) => {
-                    if (
-                      !event.currentTarget.hasPointerCapture(event.pointerId) ||
-                      !resizeStartRef.current
-                    )
-                      return;
+                    if (!event.currentTarget.hasPointerCapture(event.pointerId) || !resizeStartRef.current) return;
                     setDemandWidth(
-                      clampDemandWidth(
-                        resizeStartRef.current.width +
-                          event.clientX -
-                          resizeStartRef.current.clientX,
-                      ),
+                      clampDemandWidth(resizeStartRef.current.width + event.clientX - resizeStartRef.current.clientX),
                     );
                   }}
                   onPointerUp={(event) => {
@@ -141,46 +126,22 @@ export function RequestSchedule({ collections, requests, onSelectRequest }) {
                         {row.itemCount === 1 ? "" : "s"}
                       </span>
                     </div>
-                    <div
-                      aria-hidden="true"
-                      className="requestGanttCollectionTimeline"
-                    />
+                    <div aria-hidden="true" className="requestGanttCollectionTimeline" />
                   </div>
                 );
               }
 
               const { item } = row;
               const left = timelinePercent(timeline, item.barStart);
-              const width = Math.min(
-                100 - left,
-                Math.max(
-                  1.5,
-                  timelineWidth(timeline, item.barStart, item.barEnd),
-                ),
-              );
-              const deadlineLeft = item.deadline
-                ? timelinePercent(timeline, item.deadline)
-                : null;
+              const width = Math.min(100 - left, Math.max(1.5, timelineWidth(timeline, item.barStart, item.barEnd)));
+              const deadlineLeft = item.deadline ? timelinePercent(timeline, item.deadline) : null;
 
               return (
-                <div
-                  className="requestGanttRow"
-                  key={item.request.id}
-                  style={{ "--gantt-row-depth": row.depth }}
-                >
-                  <button
-                    className="requestGanttDemand"
-                    onClick={() => onSelectRequest(item.request.id)}
-                    type="button"
-                  >
+                <div className="requestGanttRow" key={item.request.id} style={{ "--gantt-row-depth": row.depth }}>
+                  <button className="requestGanttDemand" onClick={() => onSelectRequest(item.request.id)} type="button">
                     <strong>{item.request.title || "Sem título"}</strong>
-                    <span
-                      className="requestStatusChip"
-                      style={requestStatusStyle(item.request.status)}
-                    >
-                      {requestStatusLabel(
-                        normalizeRequestStatus(item.request.status),
-                      )}
+                    <span className="requestStatusChip" style={requestStatusStyle(item.request.status)}>
+                      {requestStatusLabel(normalizeRequestStatus(item.request.status))}
                     </span>
                   </button>
 
@@ -214,9 +175,7 @@ export function RequestSchedule({ collections, requests, onSelectRequest }) {
           </div>
         </div>
       ) : (
-        <div className="emptyState compactEmpty">
-          Nenhuma melhoria com datas para exibir no cronograma.
-        </div>
+        <div className="emptyState compactEmpty">Nenhuma melhoria com datas para exibir no cronograma.</div>
       )}
     </div>
   );
@@ -277,19 +236,14 @@ function toGanttItem(request) {
 }
 
 function buildGanttTimeline(items) {
-  const dates = items
-    .flatMap((item) => [item.barStart, item.barEnd, item.deadline])
-    .filter(Boolean);
+  const dates = items.flatMap((item) => [item.barStart, item.barEnd, item.deadline]).filter(Boolean);
   if (!dates.length) return null;
 
   const minDate = new Date(Math.min(...dates.map((date) => date.getTime())));
   const maxDate = new Date(Math.max(...dates.map((date) => date.getTime())));
   const start = startOfMonth(minDate);
   const end = endOfMonth(maxDate);
-  const totalDays = Math.max(
-    1,
-    Math.round((end.getTime() - start.getTime()) / DAY_MS) + 1,
-  );
+  const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / DAY_MS) + 1);
   const months = [];
   let cursor = startOfMonth(start);
 
@@ -298,21 +252,15 @@ function buildGanttTimeline(items) {
     const monthEnd = endOfMonth(cursor);
     const visibleStart = monthStart < start ? start : monthStart;
     const visibleEnd = monthEnd > end ? end : monthEnd;
-    const left =
-      ((visibleStart.getTime() - start.getTime()) / DAY_MS / totalDays) * 100;
-    const width =
-      (((visibleEnd.getTime() - visibleStart.getTime()) / DAY_MS + 1) /
-        totalDays) *
-      100;
+    const left = ((visibleStart.getTime() - start.getTime()) / DAY_MS / totalDays) * 100;
+    const width = (((visibleEnd.getTime() - visibleStart.getTime()) / DAY_MS + 1) / totalDays) * 100;
 
     months.push({
       key: toMonthKey(cursor),
       left,
       width,
     });
-    cursor = new Date(
-      Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1),
-    );
+    cursor = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1));
   }
 
   return { start, end, totalDays, months };
@@ -332,9 +280,7 @@ function ganttItemTitle(item) {
   const parts = [
     item.request.title || "Sem título",
     `Período: ${item.barLabel}`,
-    item.request.estimatedDeliveryDate
-      ? `Prazo: ${formatDate(item.request.estimatedDeliveryDate)}`
-      : "",
+    item.request.estimatedDeliveryDate ? `Prazo: ${formatDate(item.request.estimatedDeliveryDate)}` : "",
     `Status: ${normalizeRequestStatus(item.request.status)}`,
   ].filter(Boolean);
 

@@ -41,9 +41,7 @@ export function InfrastructureProvider({
   onDisposeError = reportInfrastructureDisposeError,
   onStateChange,
 }) {
-  const [bootstrapState, setBootstrapState] = useState(() =>
-    createInitialBootstrapState(capabilities),
-  );
+  const [bootstrapState, setBootstrapState] = useState(() => createInitialBootstrapState(capabilities));
 
   useEffect(() => {
     let active = true;
@@ -69,11 +67,7 @@ export function InfrastructureProvider({
     };
   }, [capabilities, onDisposeError, onStateChange]);
 
-  if (
-    ![BOOTSTRAP_STATUS.READY, BOOTSTRAP_STATUS.DEGRADED].includes(
-      bootstrapState.status,
-    )
-  ) {
+  if (![BOOTSTRAP_STATUS.READY, BOOTSTRAP_STATUS.DEGRADED].includes(bootstrapState.status)) {
     return <BootstrapStatus status={bootstrapState.status} />;
   }
 

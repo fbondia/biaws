@@ -3,18 +3,9 @@ import { useState } from "react";
 
 import { updateSecretMetadata } from "../../../../api.js";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
-import {
-  SecretScopeField,
-  SecretTypeEnvironmentFields,
-} from "./SecretFormFields.jsx";
+import { SecretScopeField, SecretTypeEnvironmentFields } from "./SecretFormFields.jsx";
 
-export function EditSecretDialog({
-  actor,
-  applications,
-  secret,
-  onClose,
-  onSaved,
-}) {
+export function EditSecretDialog({ actor, applications, secret, onClose, onSaved }) {
   const [form, setForm] = useState({
     name: secret.name,
     description: secret.description || "",
@@ -59,13 +50,7 @@ export function EditSecretDialog({
             <span>Metadados</span>
             <h2 id="edit-secret-title">Editar segredo</h2>
           </div>
-          <button
-            aria-label="Fechar"
-            className="iconButton"
-            disabled={saving}
-            onClick={onClose}
-            type="button"
-          >
+          <button aria-label="Fechar" className="iconButton" disabled={saving} onClick={onClose} type="button">
             <X size={18} />
           </button>
         </header>
@@ -76,9 +61,7 @@ export function EditSecretDialog({
             <input
               autoFocus
               maxLength="100"
-              onChange={(event) =>
-                setForm({ ...form, name: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
               required
               value={form.name}
             />
@@ -86,28 +69,18 @@ export function EditSecretDialog({
           <div className="secretFormGrid">
             <div className="field">
               <span>Identificação</span>
-              <EntityIdentifier
-                label="Identificação técnica"
-                value={secret.identifier}
-                variant="chip"
-              />
+              <EntityIdentifier label="Identificação técnica" value={secret.identifier} variant="chip" />
             </div>
             <label>
               Formato
-              <input
-                disabled
-                readOnly
-                value={secret.contentKind === "file" ? "Arquivo" : "Texto"}
-              />
+              <input disabled readOnly value={secret.contentKind === "file" ? "Arquivo" : "Texto"} />
             </label>
           </div>
           <label>
             Descrição
             <textarea
               maxLength="500"
-              onChange={(event) =>
-                setForm({ ...form, description: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, description: event.target.value })}
               rows="3"
               value={form.description}
             />
@@ -121,12 +94,7 @@ export function EditSecretDialog({
             workspaceAllowed={updateScope.workspace}
           />
           <footer className="userCreateDialogFooter secretDialogFooter">
-            <button
-              className="secondaryButton"
-              disabled={saving}
-              onClick={onClose}
-              type="button"
-            >
+            <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
               Cancelar
             </button>
             <button className="primaryButton" disabled={saving} type="submit">

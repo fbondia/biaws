@@ -3,15 +3,11 @@ import path from "node:path";
 
 import { ProviderConfigurationError } from "./providers.js";
 
-const SENSITIVE_NAME =
-  /password|passwd|pwd|secret|token|credential|authorization|api[_-]?key/iu;
+const SENSITIVE_NAME = /password|passwd|pwd|secret|token|credential|authorization|api[_-]?key/iu;
 
 export function assertObject(value, field) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new ProviderConfigurationError(
-      "INVALID_PROVIDER_CONFIGURATION",
-      `${field} must be an object`,
-    );
+    throw new ProviderConfigurationError("INVALID_PROVIDER_CONFIGURATION", `${field} must be an object`);
   }
   return value;
 }
@@ -26,17 +22,10 @@ export function assertAllowedKeys(value, allowed, field = "configuration") {
   }
 }
 
-export function boundedString(
-  value,
-  field,
-  { required = false, max = 4_000 } = {},
-) {
+export function boundedString(value, field, { required = false, max = 4_000 } = {}) {
   if (value === undefined || value === null || value === "") {
     if (required) {
-      throw new ProviderConfigurationError(
-        "MISSING_PROVIDER_CONFIGURATION_FIELD",
-        `${field} is required`,
-      );
+      throw new ProviderConfigurationError("MISSING_PROVIDER_CONFIGURATION_FIELD", `${field} is required`);
     }
     return "";
   }
@@ -124,8 +113,7 @@ export function sensitiveValues(record = {}) {
 export function sanitizeEvidenceText(value, values = []) {
   let sanitized = String(value || "");
   for (const sensitive of values) {
-    if (sensitive.length >= 4)
-      sanitized = sanitized.replaceAll(sensitive, "[REDACTED]");
+    if (sensitive.length >= 4) sanitized = sanitized.replaceAll(sensitive, "[REDACTED]");
   }
   return sanitized
     .replace(/\b(Bearer\s+)[A-Za-z0-9._~+/=-]+/giu, "$1[REDACTED]")

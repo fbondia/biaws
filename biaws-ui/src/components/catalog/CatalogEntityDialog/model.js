@@ -96,12 +96,8 @@ export function catalogEntityDraft(kind, entity = {}) {
     draft.tagsText = (source.tags || []).join(", ");
   }
   if (kind === "component") {
-    draft.repositoryIds = (source.repositoryLinks || []).map(
-      ({ repositoryId }) => repositoryId,
-    );
-    draft.dependencyIds = (source.dependencies || []).map(
-      ({ componentId }) => componentId,
-    );
+    draft.repositoryIds = (source.repositoryLinks || []).map(({ repositoryId }) => repositoryId);
+    draft.dependencyIds = (source.dependencies || []).map(({ componentId }) => componentId);
     draft.tagsText = (source.tags || []).join(", ");
   }
   if (kind === "server") {
@@ -109,8 +105,7 @@ export function catalogEntityDraft(kind, entity = {}) {
     draft.tagsText = (source.tags || []).join(", ");
   }
   if (kind === "deployment") {
-    draft.repositoryId =
-      source.repositoryId || source.source?.repositoryId || "";
+    draft.repositoryId = source.repositoryId || source.source?.repositoryId || "";
     draft.publications = Array.isArray(source.publications)
       ? source.publications.map((publication) => ({
           ...publication,
@@ -139,9 +134,7 @@ export function catalogEntityDraft(kind, entity = {}) {
 }
 
 function compact(payload) {
-  return Object.fromEntries(
-    Object.entries(payload).filter(([, value]) => value !== undefined),
-  );
+  return Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined));
 }
 
 const text = (value) => String(value || "").trim();
@@ -149,10 +142,7 @@ const text = (value) => String(value || "").trim();
 export function appendPublicationDraft(
   deploymentDraft,
   publicationDraft,
-  {
-    id = `draft-${crypto.randomUUID()}`,
-    publishedAt = new Date().toISOString(),
-  } = {},
+  { id = `draft-${crypto.randomUUID()}`, publishedAt = new Date().toISOString() } = {},
 ) {
   const version = text(publicationDraft?.version);
   if (!version) return deploymentDraft;
@@ -167,9 +157,7 @@ export function appendPublicationDraft(
         revision: text(publicationDraft.revision),
         repositoryId: deploymentDraft.repositoryId || "",
         status: publicationDraft.status,
-        publishedAt: publicationDraft.publishedAt
-          ? new Date(publicationDraft.publishedAt).toISOString()
-          : publishedAt,
+        publishedAt: publicationDraft.publishedAt ? new Date(publicationDraft.publishedAt).toISOString() : publishedAt,
         description: text(publicationDraft.description),
       },
     ],
@@ -275,26 +263,12 @@ export function catalogEntityPayload(kind, draft, editing = false) {
   );
 }
 
-export function runtimeMonitoringPath({
-  application,
-  component,
-  deployment,
-  runtime,
-} = {}) {
-  const identifiers = [
-    application?.key,
-    component?.key,
-    deployment?.key,
-    runtime?.key,
-  ].map(text);
+export function runtimeMonitoringPath({ application, component, deployment, runtime } = {}) {
+  const identifiers = [application?.key, component?.key, deployment?.key, runtime?.key].map(text);
   return identifiers.every(Boolean) ? identifiers.join(".") : "";
 }
 
-export function monitoringSignalCurl({
-  apiUrl,
-  runtimeReference,
-  workspaceId,
-} = {}) {
+export function monitoringSignalCurl({ apiUrl, runtimeReference, workspaceId } = {}) {
   if (!apiUrl || !runtimeReference || !workspaceId) return "";
   return [
     `curl --request POST '${apiUrl}' \\`,

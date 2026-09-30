@@ -1,19 +1,9 @@
-import {
-  AlertTriangle,
-  Archive,
-  CheckCircle2,
-  Package,
-  Plus,
-} from "lucide-react";
+import { AlertTriangle, Archive, CheckCircle2, Package, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import "../../../styles/features/skills.css";
 
-import {
-  fetchSkills,
-  moveSkillToCollection,
-  replicateSkill,
-} from "../../../api.js";
+import { fetchSkills, moveSkillToCollection, replicateSkill } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
 import { BulkReplicationToolbar } from "../../shared/BulkReplicationToolbar.jsx";
 import { IllustratedEmptyState } from "../../shared/IllustratedEmptyState.jsx";
@@ -31,20 +21,9 @@ import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { PublishSkillDialog } from "./components/PublishSkillDialog.jsx";
 import { SkillDetailsDialog } from "./components/SkillDetailsDialog.jsx";
 import { formatDate } from "./utils.js";
-import {
-  SkillCards,
-  SkillDialogs,
-  SkillError,
-} from "./components/SkillPanels.jsx";
+import { SkillCards, SkillDialogs, SkillError } from "./components/SkillPanels.jsx";
 
-function SkillsNavigator({
-  actor,
-  canManageCollections,
-  collectionState,
-  items,
-  onOpen,
-  selectedSkillId,
-}) {
+function SkillsNavigator({ actor, canManageCollections, collectionState, items, onOpen, selectedSkillId }) {
   return (
     <ResourceCollectionNavigator
       canDragItem={() => canManageCollections}
@@ -55,9 +34,7 @@ function SkillsNavigator({
       items={items}
       preferenceKey="skills"
       workspaceId={actor.workspaceId}
-      onCreate={
-        canManageCollections ? collectionState.createCollection : undefined
-      }
+      onCreate={canManageCollections ? collectionState.createCollection : undefined}
       onDelete={collectionState.removeCollection}
       onDragCollection={
         canManageCollections
@@ -69,12 +46,8 @@ function SkillsNavigator({
           : undefined
       }
       onDragEnd={() => collectionState.setDraggedItem(null)}
-      onDragItem={(skill) =>
-        collectionState.setDraggedItem({ type: "item", id: skill.skillId })
-      }
-      onDrop={(collectionId) =>
-        collectionState.dropItem(collectionId, moveSkillToCollection)
-      }
+      onDragItem={(skill) => collectionState.setDraggedItem({ type: "item", id: skill.skillId })}
+      onDrop={(collectionId) => collectionState.dropItem(collectionId, moveSkillToCollection)}
       onRename={(collection) => collectionState.setCollectionDialog(collection)}
       onSelect={(collectionId) => {
         onOpen(null);
@@ -116,12 +89,7 @@ export function SkillsView({ actor }) {
     setLoading(true);
     setError("");
     try {
-      setResult(
-        await runWithLoading(
-          () => fetchSkills({ includeDeprecated: true }),
-          "Carregando catálogo de skills…",
-        ),
-      );
+      setResult(await runWithLoading(() => fetchSkills({ includeDeprecated: true }), "Carregando catálogo de skills…"));
     } catch (loadError) {
       setError(loadError.message);
     } finally {
@@ -136,8 +104,7 @@ export function SkillsView({ actor }) {
   const items = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
     const collectionItems = (result?.items || []).filter(
-      ({ collectionId }) =>
-        String(collectionId || "") === collectionState.selectedCollectionId,
+      ({ collectionId }) => String(collectionId || "") === collectionState.selectedCollectionId,
     );
     if (!term) return collectionItems;
     return collectionItems.filter(
@@ -166,9 +133,7 @@ export function SkillsView({ actor }) {
 
   function toggleSkillSelection(skillId) {
     setSelectedSkillIds((current) =>
-      current.includes(skillId)
-        ? current.filter((id) => id !== skillId)
-        : [...current, skillId],
+      current.includes(skillId) ? current.filter((id) => id !== skillId) : [...current, skillId],
     );
   }
 
@@ -182,25 +147,16 @@ export function SkillsView({ actor }) {
       <header className="skillsToolbar">
         <div>
           <h2>Catálogo de skills</h2>
-          <p>
-            Versões publicadas para configuração dos ambientes Bondia
-            Workspaces.
-          </p>
+          <p>Versões publicadas para configuração dos ambientes Bondia Workspaces.</p>
         </div>
         <div className="skillsToolbarActions">
-          <button
-            className="primaryButton"
-            onClick={() => setPublishing(true)}
-            type="button"
-          >
+          <button className="primaryButton" onClick={() => setPublishing(true)} type="button">
             <Plus size={16} /> Publicar versão
           </button>
         </div>
       </header>
       <SkillError error={error} />
-      {loading && !result ? (
-        <div className="emptyState">Carregando catálogo...</div>
-      ) : null}
+      {loading && !result ? <div className="emptyState">Carregando catálogo...</div> : null}
       {!loading || result ? (
         <ResourceCollectionsShell
           collections={collectionState.collections}
@@ -271,9 +227,7 @@ export function SkillsView({ actor }) {
                 onOpen={(skill) => {
                   setSelectedSkillIds([]);
                   setSelectedSkill(skill);
-                  collectionState.setSelectedCollectionId(
-                    skill.collectionId || "",
-                  );
+                  collectionState.setSelectedCollectionId(skill.collectionId || "");
                 }}
                 onToggleSelection={toggleSkillSelection}
                 selectedSkillIds={selectedSkillIds}
@@ -292,15 +246,12 @@ export function SkillsView({ actor }) {
         currentWorkspaceId={actor.workspaceId}
         description={
           <p>
-            A versão atual de cada skill selecionada e todos os seus arquivos
-            serão publicados nos destinos. Versões já existentes não serão
-            sobrescritas.
+            A versão atual de cada skill selecionada e todos os seus arquivos serão publicados nos destinos. Versões já
+            existentes não serão sobrescritas.
           </p>
         }
         eyebrow={`${selectedSkills.length} ${
-          selectedSkills.length === 1
-            ? "skill selecionada"
-            : "skills selecionadas"
+          selectedSkills.length === 1 ? "skill selecionada" : "skills selecionadas"
         }`}
         onClose={() => setBulkReplicationOpen(false)}
         onComplete={completeBulkReplication}
@@ -310,8 +261,7 @@ export function SkillsView({ actor }) {
             getItemId: (skill) => skill.skillId,
             getItemLabel: (skill) => skill.name,
             items: selectedSkills,
-            replicateItem: (skill, workspaceIds) =>
-              replicateSkill(skill.skillId, skill.latestVersion, workspaceIds),
+            replicateItem: (skill, workspaceIds) => replicateSkill(skill.skillId, skill.latestVersion, workspaceIds),
             workspaces: actor.workspaces || [],
           })
         }

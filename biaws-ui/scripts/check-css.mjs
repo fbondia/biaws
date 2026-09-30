@@ -2,23 +2,14 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const stylesDirectory = fileURLToPath(
-  new URL("../src/styles/", import.meta.url),
-);
-const tokenFile = new URL(
-  "../src/styles/foundations/tokens.css",
-  import.meta.url,
-);
+const stylesDirectory = fileURLToPath(new URL("../src/styles/", import.meta.url));
+const tokenFile = new URL("../src/styles/foundations/tokens.css", import.meta.url);
 const globalStylesFile = new URL("../src/styles.css", import.meta.url);
 
 function cssFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const entryPath = join(directory, entry.name);
-    return entry.isDirectory()
-      ? cssFiles(entryPath)
-      : entry.name.endsWith(".css")
-        ? [entryPath]
-        : [];
+    return entry.isDirectory() ? cssFiles(entryPath) : entry.name.endsWith(".css") ? [entryPath] : [];
   });
 }
 
@@ -76,23 +67,17 @@ const runtimeVariables = new Set([
 ]);
 
 const globalStylesSource = readFileSync(globalStylesFile, "utf8");
-for (const match of globalStylesSource.matchAll(
-  /@import\s+["']([^"']+)["']/gu,
-)) {
+for (const match of globalStylesSource.matchAll(/@import\s+["']([^"']+)["']/gu)) {
   if (match[1].includes("/features/")) {
     errors.push(`CSS de domínio importado pelo entrypoint global: ${match[1]}`);
   }
 }
 
-for (const file of styleFiles.filter((candidate) =>
-  candidate.includes(`${join("styles", "features")}/`),
-)) {
+for (const file of styleFiles.filter((candidate) => candidate.includes(`${join("styles", "features")}/`))) {
   const source = readFileSync(file, "utf8");
   for (const match of source.matchAll(/@import\s+["']([^"']+)["']/gu)) {
     if (match[1].startsWith("../") || match[1].includes("/features/")) {
-      errors.push(
-        `Import CSS cruza fronteira de domínio em ${file}: ${match[1]}`,
-      );
+      errors.push(`Import CSS cruza fronteira de domínio em ${file}: ${match[1]}`);
     }
   }
 }
@@ -105,24 +90,18 @@ for (const file of styleFiles) {
 }
 
 for (const token of requiredColorTokens) {
-  const definition = tokenSource
-    .match(new RegExp(`--${token}:\\s*([^;]+);`))?.[1]
-    ?.trim();
+  const definition = tokenSource.match(new RegExp(`--${token}:\\s*([^;]+);`))?.[1]?.trim();
   if (!definition) {
     errors.push(`Token obrigatório ausente: --${token}`);
   } else if (definition.includes(`var(--${token})`)) {
     errors.push(`Token autorreferente: --${token}`);
   } else if (!/^#[0-9a-f]{6}$/i.test(definition)) {
-    errors.push(
-      `Token de cor deve ter um valor hexadecimal concreto: --${token}`,
-    );
+    errors.push(`Token de cor deve ter um valor hexadecimal concreto: --${token}`);
   }
 }
 
 for (const token of requiredSemanticColorTokens) {
-  const definition = tokenSource
-    .match(new RegExp(`--${token}:\\s*([^;]+);`))?.[1]
-    ?.trim();
+  const definition = tokenSource.match(new RegExp(`--${token}:\\s*([^;]+);`))?.[1]?.trim();
   if (!definition) {
     errors.push(`Token semântico obrigatório ausente: --${token}`);
   } else if (definition.includes(`var(--${token})`)) {
@@ -143,10 +122,7 @@ for (const file of styleFiles) {
   if (/--color-palette-(?:hex|rgb)-/i.test(source)) {
     errors.push(`Token de cor nomeado pelo valor em ${file}`);
   }
-  if (
-    file !== fileURLToPath(tokenFile) &&
-    /#[0-9a-f]{3,8}\b|rgba?\([^)]*\)|rgb\([^)]*\/[^)]*\)/i.test(source)
-  ) {
+  if (file !== fileURLToPath(tokenFile) && /#[0-9a-f]{3,8}\b|rgba?\([^)]*\)|rgb\([^)]*\/[^)]*\)/i.test(source)) {
     errors.push(`Cor literal fora de foundations/tokens.css em ${file}`);
   }
 }

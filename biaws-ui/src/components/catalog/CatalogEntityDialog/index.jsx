@@ -26,14 +26,7 @@ function catalogEntitySections(kind) {
   return [];
 }
 
-export function CatalogEntityDialog({
-  entity,
-  kind,
-  onArchive,
-  onClose,
-  onSave,
-  options = {},
-}) {
+export function CatalogEntityDialog({ entity, kind, onArchive, onClose, onSave, options = {} }) {
   const controller = useCatalogEntityDialog({
     entity,
     kind,
@@ -81,17 +74,14 @@ export function CatalogEntityDialog({
             : (currentIndex + 1) % sections.length;
     const nextKey = sections[nextIndex][0];
     setActiveSection(nextKey);
-    event.currentTarget.parentElement
-      ?.querySelector(`#catalog-entity-tab-${nextKey}`)
-      ?.focus();
+    event.currentTarget.parentElement?.querySelector(`#catalog-entity-tab-${nextKey}`)?.focus();
   }
 
   return (
     <div
       className="dialogBackdrop"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !saving && !archiving)
-          onClose();
+        if (event.target === event.currentTarget && !saving && !archiving) onClose();
       }}
     >
       <section
@@ -103,9 +93,7 @@ export function CatalogEntityDialog({
         <header>
           <div>
             <span>{editing ? `Editar ${label}` : `Novo ${label}`}</span>
-            <h2 id="catalog-entity-dialog-title">
-              {draft.name || `Novo ${label}`}
-            </h2>
+            <h2 id="catalog-entity-dialog-title">{draft.name || `Novo ${label}`}</h2>
           </div>
           <button
             aria-label="Fechar"
@@ -123,11 +111,7 @@ export function CatalogEntityDialog({
               {sections.map(([key, title], index) => (
                 <button
                   aria-selected={activeSection === key}
-                  className={
-                    activeSection === key
-                      ? "catalogEntityTab activeCatalogEntityTab"
-                      : "catalogEntityTab"
-                  }
+                  className={activeSection === key ? "catalogEntityTab activeCatalogEntityTab" : "catalogEntityTab"}
                   disabled={!editing && key !== "basic"}
                   key={key}
                   onClick={() => setActiveSection(key)}
@@ -188,9 +172,7 @@ export function CatalogEntityDialog({
         options={options}
         runtimeComponent={runtimeComponent}
         selectedDocument={selectedDocument}
-        selectedIds={(draft.documentLinks || []).map(
-          ({ documentId }) => documentId,
-        )}
+        selectedIds={(draft.documentLinks || []).map(({ documentId }) => documentId)}
         setDocumentSelectorOpen={setDocumentSelectorOpen}
         setSelectedDocument={setSelectedDocument}
       />

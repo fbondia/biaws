@@ -54,9 +54,7 @@ let stopping;
 async function stop(signal) {
   if (stopping) return stopping;
   logger.info("executor_shutdown_requested", { signal });
-  stopping = Promise.allSettled([engine.stop(), healthServer.stop()]).then(
-    () => undefined,
-  );
+  stopping = Promise.allSettled([engine.stop(), healthServer.stop()]).then(() => undefined);
   return stopping;
 }
 

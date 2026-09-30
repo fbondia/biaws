@@ -25,9 +25,7 @@ export function IssueSummary({
             {AGGREGATE_TABS.map((tab) => (
               <button
                 aria-selected={activeAggregate === tab.key}
-                className={
-                  activeAggregate === tab.key ? "tab activeTab" : "tab"
-                }
+                className={activeAggregate === tab.key ? "tab activeTab" : "tab"}
                 key={tab.key}
                 onClick={() => onAggregateChange(tab.key)}
                 role="tab"

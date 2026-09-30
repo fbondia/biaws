@@ -2,16 +2,8 @@
   min-height: calc(100dvh - 72px);
   padding: var(--space-6);
   background:
-    radial-gradient(
-      circle at 12% 0%,
-      var(--palette-alpha-blue-18),
-      transparent 28%
-    ),
-    linear-gradient(
-      180deg,
-      var(--palette-neutral-05) 0%,
-      var(--color-background) 360px
-    );
+    radial-gradient(circle at 12% 0%, var(--palette-alpha-blue-18), transparent 28%),
+    linear-gradient(180deg, var(--palette-neutral-05) 0%, var(--color-background) 360px);
 }
 
 .homeHero {
@@ -274,11 +266,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(
-    90deg,
-    var(--palette-blue-39),
-    var(--palette-blue-32)
-  );
+  background: linear-gradient(90deg, var(--palette-blue-39), var(--palette-blue-32));
 }
 
 .homeTasksWidget,

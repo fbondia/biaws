@@ -47,10 +47,7 @@ export const DEFAULT_TEMPLATE_DEFINITION = Object.freeze({
 export const DEFAULT_PREVIEW_SAMPLE = DEFAULT_TEMPLATE_DEFINITION.input.sample;
 
 export function monitoringTemplateDraft(template) {
-  const definition =
-    template?.definition?.schemaVersion === "1"
-      ? template.definition
-      : DEFAULT_TEMPLATE_DEFINITION;
+  const definition = template?.definition?.schemaVersion === "1" ? template.definition : DEFAULT_TEMPLATE_DEFINITION;
   return {
     id: template?.id || "",
     name: template?.name || "",
@@ -59,9 +56,7 @@ export function monitoringTemplateDraft(template) {
     expression: definition.transformation.expression,
     outputText: JSON.stringify(definition.output, null, 2),
     presentationText: JSON.stringify(definition.presentation, null, 2),
-    migratedFromLegacy: Boolean(
-      template?.definition && template.definition.schemaVersion !== "1",
-    ),
+    migratedFromLegacy: Boolean(template?.definition && template.definition.schemaVersion !== "1"),
   };
 }
 
@@ -120,8 +115,5 @@ export function monitoringTemplatePreviewPayload(draft, sampleText) {
 }
 
 export function templateStatusLabel(status) {
-  return (
-    { active: "Ativo", draft: "Rascunho", inactive: "Inativo" }[status] ||
-    status
-  );
+  return { active: "Ativo", draft: "Rascunho", inactive: "Inativo" }[status] || status;
 }

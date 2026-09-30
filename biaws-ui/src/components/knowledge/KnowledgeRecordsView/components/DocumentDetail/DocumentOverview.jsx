@@ -2,15 +2,7 @@ import { CatalogContextDialogField } from "../../../../catalog/CatalogContextFie
 import { DocumentClassificationSelectors } from "./DocumentClassificationSelectors.jsx";
 import { DocumentDetailsFields } from "./DocumentDetailsFields.jsx";
 
-export function DocumentOverview({
-  canUpdate,
-  catalog,
-  config,
-  draft,
-  onChange,
-  onContextChange,
-  taxonomyPackage,
-}) {
+export function DocumentOverview({ canUpdate, catalog, config, draft, onChange, onContextChange, taxonomyPackage }) {
   return (
     <div className="dialogForm knowledgeRecordPanel knowledgeOverviewPanel">
       <section className="knowledgeOverviewCard knowledgeOverviewIdentity">
@@ -19,9 +11,7 @@ export function DocumentOverview({
           <input
             disabled={!canUpdate}
             maxLength={80}
-            onChange={(event) =>
-              onChange({ ...draft, identifier: event.target.value })
-            }
+            onChange={(event) => onChange({ ...draft, identifier: event.target.value })}
             pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
             placeholder="exemplo-estavel"
             value={draft.identifier || ""}
@@ -33,9 +23,7 @@ export function DocumentOverview({
           <input
             disabled={!canUpdate}
             maxLength={240}
-            onChange={(event) =>
-              onChange({ ...draft, title: event.target.value })
-            }
+            onChange={(event) => onChange({ ...draft, title: event.target.value })}
             value={draft.title}
           />
         </label>
@@ -43,9 +31,7 @@ export function DocumentOverview({
           <span>Estado</span>
           <select
             disabled={!canUpdate || draft.status === "archived"}
-            onChange={(event) =>
-              onChange({ ...draft, status: event.target.value })
-            }
+            onChange={(event) => onChange({ ...draft, status: event.target.value })}
             value={draft.status}
           >
             {config.statuses.map(([value, label]) => (
@@ -53,9 +39,7 @@ export function DocumentOverview({
                 {label}
               </option>
             ))}
-            {draft.status === "archived" ? (
-              <option value="archived">Arquivado</option>
-            ) : null}
+            {draft.status === "archived" ? <option value="archived">Arquivado</option> : null}
           </select>
         </label>
         <label className="field knowledgeOverviewSummaryField">
@@ -63,9 +47,7 @@ export function DocumentOverview({
           <textarea
             disabled={!canUpdate}
             maxLength={500}
-            onChange={(event) =>
-              onChange({ ...draft, summary: event.target.value })
-            }
+            onChange={(event) => onChange({ ...draft, summary: event.target.value })}
             rows={3}
             value={draft.summary}
           />
@@ -81,11 +63,7 @@ export function DocumentOverview({
             components={catalog.components}
             disabled={!canUpdate}
             onChange={onContextChange}
-            optional={[
-              "guideline",
-              "procedure",
-              "technical-reference",
-            ].includes(draft.documentType)}
+            optional={["guideline", "procedure", "technical-reference"].includes(draft.documentType)}
           />
           <DocumentClassificationSelectors
             applications={catalog.applications}
@@ -98,11 +76,7 @@ export function DocumentOverview({
       </section>
       <section className="knowledgeOverviewCard knowledgeOverviewSection">
         <h3>Detalhes Adicionais</h3>
-        <DocumentDetailsFields
-          disabled={!canUpdate}
-          draft={draft}
-          onChange={onChange}
-        />
+        <DocumentDetailsFields disabled={!canUpdate} draft={draft} onChange={onChange} />
       </section>
       <section className="knowledgeOverviewCard knowledgeOverviewSection">
         <h3>Governança e origem</h3>
@@ -111,9 +85,7 @@ export function DocumentOverview({
             <span>Data de definição</span>
             <input
               disabled={!canUpdate}
-              onChange={(event) =>
-                onChange({ ...draft, definedAt: event.target.value })
-              }
+              onChange={(event) => onChange({ ...draft, definedAt: event.target.value })}
               type="date"
               value={draft.definedAt}
             />
@@ -122,9 +94,7 @@ export function DocumentOverview({
             <span>Última revisão</span>
             <input
               disabled={!canUpdate}
-              onChange={(event) =>
-                onChange({ ...draft, lastReviewedAt: event.target.value })
-              }
+              onChange={(event) => onChange({ ...draft, lastReviewedAt: event.target.value })}
               type="date"
               value={draft.lastReviewedAt}
             />
@@ -133,9 +103,7 @@ export function DocumentOverview({
             <span>Próxima revisão</span>
             <input
               disabled={!canUpdate}
-              onChange={(event) =>
-                onChange({ ...draft, nextReviewAt: event.target.value })
-              }
+              onChange={(event) => onChange({ ...draft, nextReviewAt: event.target.value })}
               type="date"
               value={draft.nextReviewAt}
             />

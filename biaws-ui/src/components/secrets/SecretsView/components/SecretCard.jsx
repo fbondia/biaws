@@ -19,14 +19,7 @@ import {
 import { formatSecretBytes } from "../model.js";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
-function SecretContentActions({
-  canReveal,
-  copied,
-  isFile,
-  onCopyValue,
-  onDownload,
-  onReveal,
-}) {
+function SecretContentActions({ canReveal, copied, isFile, onCopyValue, onDownload, onReveal }) {
   if (!canReveal) return null;
   if (isFile) {
     return (
@@ -63,11 +56,7 @@ function SecretManagementActions({
   onVersion,
 }) {
   return (
-    <div
-      aria-label="Ações de gestão"
-      className="securityActions secretManagementActions"
-      role="group"
-    >
+    <div aria-label="Ações de gestão" className="securityActions secretManagementActions" role="group">
       {canUpdate ? (
         <button className="secondaryButton" onClick={onEdit} type="button">
           <Pencil size={15} /> Editar
@@ -76,11 +65,7 @@ function SecretManagementActions({
       {canWrite ? (
         <button className="secondaryButton" onClick={onVersion} type="button">
           <RotateCw size={15} />
-          {isPending
-            ? isFile
-              ? "Enviar arquivo"
-              : "Cadastrar valor"
-            : "Nova versão"}
+          {isPending ? (isFile ? "Enviar arquivo" : "Cadastrar valor") : "Nova versão"}
         </button>
       ) : null}
       {canArchive ? (
@@ -130,11 +115,7 @@ function SecretDetail({
     <>
       <div className="secretIdentifier">
         <span>Identificação técnica</span>
-        <EntityIdentifier
-          label="Identificação técnica"
-          value={secret.identifier}
-          variant="chip"
-        />
+        <EntityIdentifier label="Identificação técnica" value={secret.identifier} variant="chip" />
       </div>
       <dl className="secretMetadataGrid">
         <div>
@@ -156,8 +137,7 @@ function SecretDetail({
           <div>
             <strong>{secret.file?.name || "Arquivo secreto"}</strong>
             <small>
-              {formatSecretBytes(secret.file?.size)} ·{" "}
-              {secret.file?.mediaType || "application/octet-stream"}
+              {formatSecretBytes(secret.file?.size)} · {secret.file?.mediaType || "application/octet-stream"}
             </small>
           </div>
         </div>
@@ -171,11 +151,7 @@ function SecretDetail({
             {showValue ? revealed.value : "••••••••••••"}
           </code>
           <div className="securityActions">
-            <button
-              className="secondaryButton"
-              onClick={onToggleValue}
-              type="button"
-            >
+            <button className="secondaryButton" onClick={onToggleValue} type="button">
               {showValue ? <EyeOff size={15} /> : <Eye size={15} />}
               {showValue ? "Ocultar" : "Mostrar"}
             </button>
@@ -183,11 +159,7 @@ function SecretDetail({
         </div>
       ) : null}
       <footer className="secretCardActions">
-        <div
-          aria-label="Ações do conteúdo"
-          className="securityActions secretContentActions"
-          role="group"
-        >
+        <div aria-label="Ações do conteúdo" className="securityActions secretContentActions" role="group">
           <SecretContentActions
             canReveal={canReveal}
             copied={copied}
@@ -270,22 +242,13 @@ export function SecretCard({
           <strong>{secret.name}</strong>
           <div className="secretCardBadges">
             <span className="secretFormatBadge">{secret.type}</span>
-            {isPending ? (
-              <span className="secretPendingBadge">Aguardando valor</span>
-            ) : null}
-            <span className="secretFormatBadge">
-              {isFile ? "Arquivo" : "Texto"}
-            </span>
+            {isPending ? <span className="secretPendingBadge">Aguardando valor</span> : null}
+            <span className="secretFormatBadge">{isFile ? "Arquivo" : "Texto"}</span>
           </div>
         </div>
         <div className="secretCardActions">
           {detail ? (
-            <button
-              aria-label="Fechar detalhes do secret"
-              className="secondaryButton"
-              onClick={onBack}
-              type="button"
-            >
+            <button aria-label="Fechar detalhes do secret" className="secondaryButton" onClick={onBack} type="button">
               <X size={16} />
             </button>
           ) : (
@@ -295,9 +258,7 @@ export function SecretCard({
           )}
         </div>
       </header>
-      {secret.description ? (
-        <p className="secretDescription">{secret.description}</p>
-      ) : null}
+      {secret.description ? <p className="secretDescription">{secret.description}</p> : null}
 
       {detail ? (
         <SecretDetail

@@ -1,10 +1,7 @@
 import { useState } from "react";
 
 import { collectionPathLabel } from "../../model.js";
-import {
-  ResourceCollectionBar,
-  ResourceCollectionBarActionsProvider,
-} from "../ResourceCollectionBar/index.jsx";
+import { ResourceCollectionBar, ResourceCollectionBarActionsProvider } from "../ResourceCollectionBar/index.jsx";
 import { ResourceCollectionPath } from "./components/ResourceCollectionPath.jsx";
 import { ResourceCollectionsResizer } from "./components/ResourceCollectionsResizer.jsx";
 import { useNavigationResize } from "./hooks/useNavigationResize.js";
@@ -32,15 +29,10 @@ export function ResourceCollectionsShell({
   const [viewModeTarget, setViewModeTarget] = useState(null);
   const canNavigateBack = Boolean(detailVisible || selectedCollectionId);
   const displayedPathLabel =
-    pathLabel ??
-    (selectedCollectionId
-      ? collectionPathLabel(collections, selectedCollectionId)
-      : "");
+    pathLabel ?? (selectedCollectionId ? collectionPathLabel(collections, selectedCollectionId) : "");
 
   return (
-    <ResourceCollectionsShellProvider
-      value={{ canDropRoot, draggedItem, onDropRoot }}
-    >
+    <ResourceCollectionsShellProvider value={{ canDropRoot, draggedItem, onDropRoot }}>
       <ResourceCollectionBarActionsProvider
         value={{
           archivedItemsTarget,
@@ -49,11 +41,7 @@ export function ResourceCollectionsShell({
         }}
       >
         <div
-          className={[
-            "resourceCollectionsLayout",
-            className,
-            detailVisible ? "resourceCollectionsDetailVisible" : "",
-          ]
+          className={["resourceCollectionsLayout", className, detailVisible ? "resourceCollectionsDetailVisible" : ""]
             .filter(Boolean)
             .join(" ")}
         >

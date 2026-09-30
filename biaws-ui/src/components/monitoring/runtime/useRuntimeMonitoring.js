@@ -9,12 +9,7 @@ import {
   fetchMonitoringTemplates,
   updateRuntimeActiveMonitor,
 } from "../../../api.js";
-import {
-  activeMonitorDraft,
-  activeMonitorPayload,
-  mergeMonitoringEvents,
-  newObservationDraft,
-} from "./model.js";
+import { activeMonitorDraft, activeMonitorPayload, mergeMonitoringEvents, newObservationDraft } from "./model.js";
 
 const MONITORING_HISTORY_PAGE_SIZE = 20;
 
@@ -34,12 +29,9 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     page: 1,
     total: 0,
   });
-  const [monitoringHistoryLoadingMore, setMonitoringHistoryLoadingMore] =
-    useState(false);
+  const [monitoringHistoryLoadingMore, setMonitoringHistoryLoadingMore] = useState(false);
   const [monitoringTemplates, setMonitoringTemplates] = useState([]);
-  const [monitoringLoading, setMonitoringLoading] = useState(
-    Boolean(runtimeId),
-  );
+  const [monitoringLoading, setMonitoringLoading] = useState(Boolean(runtimeId));
   const [monitoringError, setMonitoringError] = useState("");
   const [monitoringNotice, setMonitoringNotice] = useState("");
   const [monitorDraft, setMonitorDraft] = useState(null);
@@ -71,9 +63,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     if (results[2].status === "fulfilled") {
       setMonitoringTemplates(results[2].value.items || []);
     }
-    const failure = results
-      .slice(0, 2)
-      .find(({ status }) => status === "rejected");
+    const failure = results.slice(0, 2).find(({ status }) => status === "rejected");
     if (failure) setMonitoringError(errorMessage(failure.reason));
     setMonitoringLoading(false);
   }, [runtimeId]);
@@ -102,9 +92,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
       if (results[2].status === "fulfilled") {
         setMonitoringTemplates(results[2].value.items || []);
       }
-      const failure = results
-        .slice(0, 2)
-        .find(({ status }) => status === "rejected");
+      const failure = results.slice(0, 2).find(({ status }) => status === "rejected");
       if (failure) setMonitoringError(errorMessage(failure.reason));
       setMonitoringLoading(false);
     });
@@ -144,15 +132,12 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
         ? await updateRuntimeActiveMonitor(runtimeId, monitorDraft.id, payload)
         : await createRuntimeActiveMonitor(runtimeId, payload);
       setActiveMonitors((current) =>
-        [
-          ...current.filter(({ id }) => id !== result.monitor.id),
-          result.monitor,
-        ].sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
+        [...current.filter(({ id }) => id !== result.monitor.id), result.monitor].sort((left, right) =>
+          left.name.localeCompare(right.name, "pt-BR"),
+        ),
       );
       setMonitorDraft(null);
-      setMonitoringNotice(
-        monitorDraft.id ? "Monitoramento atualizado." : "Monitoramento criado.",
-      );
+      setMonitoringNotice(monitorDraft.id ? "Monitoramento atualizado." : "Monitoramento criado.");
       return result.monitor;
     } catch (error) {
       setMonitoringError(errorMessage(error));
@@ -169,14 +154,8 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
       const result = await updateRuntimeActiveMonitor(runtimeId, monitor.id, {
         enabled: !monitor.enabled,
       });
-      setActiveMonitors((current) =>
-        current.map((item) => (item.id === monitor.id ? result.monitor : item)),
-      );
-      setMonitoringNotice(
-        result.monitor.enabled
-          ? "Monitoramento ativado."
-          : "Monitoramento desativado.",
-      );
+      setActiveMonitors((current) => current.map((item) => (item.id === monitor.id ? result.monitor : item)));
+      setMonitoringNotice(result.monitor.enabled ? "Monitoramento ativado." : "Monitoramento desativado.");
     } catch (error) {
       setMonitoringError(errorMessage(error));
       if (error?.statusCode === 409) await loadMonitoring();
@@ -189,9 +168,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     setMonitoringError("");
     try {
       await deleteRuntimeActiveMonitor(runtimeId, monitor.id);
-      setActiveMonitors((current) =>
-        current.filter(({ id }) => id !== monitor.id),
-      );
+      setActiveMonitors((current) => current.filter(({ id }) => id !== monitor.id));
       setMonitoringNotice("Monitoramento arquivado.");
     } catch (error) {
       setMonitoringError(errorMessage(error));
@@ -208,11 +185,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
   }
 
   async function loadMoreMonitoringEvents() {
-    if (
-      !runtimeId ||
-      monitoringHistoryLoadingMore ||
-      monitoringEvents.length >= monitoringHistoryMeta.total
-    ) {
+    if (!runtimeId || monitoringHistoryLoadingMore || monitoringEvents.length >= monitoringHistoryMeta.total) {
       return;
     }
     setMonitoringHistoryLoadingMore(true);
@@ -222,9 +195,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
         limit: monitoringHistoryMeta.limit || MONITORING_HISTORY_PAGE_SIZE,
         page: monitoringHistoryMeta.page + 1,
       });
-      setMonitoringEvents((current) =>
-        mergeMonitoringEvents(current, result.items || []),
-      );
+      setMonitoringEvents((current) => mergeMonitoringEvents(current, result.items || []));
       setMonitoringHistoryMeta(result.meta);
     } catch (error) {
       setMonitoringError(errorMessage(error));
@@ -245,9 +216,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
         message: observationDraft.message.trim(),
         metadata: {},
       });
-      setMonitoringEvents((current) =>
-        mergeMonitoringEvents([result.signal], current),
-      );
+      setMonitoringEvents((current) => mergeMonitoringEvents([result.signal], current));
       setMonitoringHistoryMeta((current) => ({
         ...current,
         total: current.total + 1,
@@ -276,8 +245,7 @@ export function useRuntimeMonitoring({ editing, entity, kind }) {
     monitorSaving,
     monitoringError,
     monitoringEvents,
-    monitoringHistoryHasMore:
-      monitoringEvents.length < monitoringHistoryMeta.total,
+    monitoringHistoryHasMore: monitoringEvents.length < monitoringHistoryMeta.total,
     monitoringHistoryLoadingMore,
     monitoringLoading,
     monitoringNotice,

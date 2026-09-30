@@ -5,24 +5,12 @@ import { useSession } from "../../infrastructure/session/SessionProvider.jsx";
 import { SESSION_STATUS } from "../../infrastructure/session/service.js";
 import "../../styles/features/auth/index.css";
 
-function CredentialsFields({
-  email,
-  error,
-  onEmailChange,
-  onPasswordChange,
-  password,
-}) {
+function CredentialsFields({ email, error, onEmailChange, onPasswordChange, password }) {
   return (
     <>
       <label>
         <span>E-mail</span>
-        <input
-          autoComplete="username"
-          onChange={onEmailChange}
-          required
-          type="email"
-          value={email}
-        />
+        <input autoComplete="username" onChange={onEmailChange} required type="email" value={email} />
       </label>
       <label>
         <span>Senha</span>
@@ -88,12 +76,7 @@ function WorkspaceChoice({ actor, onSelect }) {
         </div>
         <div className="workspaceChoiceList">
           {actor.workspaces.map((workspace) => (
-            <button
-              className="secondaryButton"
-              key={workspace.id}
-              onClick={() => onSelect(workspace.id)}
-              type="button"
-            >
+            <button className="secondaryButton" key={workspace.id} onClick={() => onSelect(workspace.id)} type="button">
               <strong>{workspace.name}</strong>
               <span>{workspace.key}</span>
             </button>
@@ -119,9 +102,7 @@ function ReauthenticationDialog({ credentials, onSubmit, reason, submitting }) {
         </div>
         <div>
           <h1 id="sessionExpiredDialogTitle">Sua sessão expirou</h1>
-          <p>
-            Entre novamente para continuar sem perder as alterações desta tela.
-          </p>
+          <p>Entre novamente para continuar sem perder as alterações desta tela.</p>
         </div>
         <div className="authError" role="alert">
           {reason || "Sua sessão expirou. Entre novamente."}
@@ -166,8 +147,7 @@ export function AuthGate({ children }) {
 
   const reauthenticationVisible =
     Boolean(authenticatedActor.current) &&
-    (session.status === SESSION_STATUS.EXPIRED ||
-      (submitting && reauthenticationAttempt.current));
+    (session.status === SESSION_STATUS.EXPIRED || (submitting && reauthenticationAttempt.current));
   const credentials = {
     email,
     error,
@@ -176,27 +156,16 @@ export function AuthGate({ children }) {
     password,
   };
 
-  if (
-    session.status === SESSION_STATUS.INITIALIZING &&
-    !reauthenticationVisible
-  ) {
+  if (session.status === SESSION_STATUS.INITIALIZING && !reauthenticationVisible) {
     return <div className="authLoading">Validando sessão…</div>;
   }
 
   if (session.status === SESSION_STATUS.ERROR) {
-    return (
-      <SessionError error={session.error} onRetry={() => session.refresh()} />
-    );
+    return <SessionError error={session.error} onRetry={() => session.refresh()} />;
   }
 
   if (session.status === SESSION_STATUS.ANONYMOUS) {
-    return (
-      <LoginPage
-        credentials={credentials}
-        onSubmit={submit}
-        submitting={submitting}
-      />
-    );
+    return <LoginPage credentials={credentials} onSubmit={submit} submitting={submitting} />;
   }
 
   const actor = session.actor || authenticatedActor.current;

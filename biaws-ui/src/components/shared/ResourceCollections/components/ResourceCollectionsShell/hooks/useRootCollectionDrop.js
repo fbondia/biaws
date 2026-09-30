@@ -6,9 +6,7 @@ export function useRootCollectionDrop() {
   const shell = useResourceCollectionsShell();
   const [active, setActive] = useState(false);
   const draggedItem = shell?.draggedItem;
-  const enabled = Boolean(
-    draggedItem && shell?.onDropRoot && shell.canDropRoot?.(draggedItem),
-  );
+  const enabled = Boolean(draggedItem && shell?.onDropRoot && shell.canDropRoot?.(draggedItem));
 
   useEffect(() => {
     if (!enabled) setActive(false);

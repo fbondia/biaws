@@ -1,9 +1,6 @@
 import { CatalogColumnSelector } from "./CatalogColumnSelector.jsx";
 
-export {
-  CatalogContextDialogField,
-  CatalogFilterFields,
-} from "./CatalogContextDialogs.jsx";
+export { CatalogContextDialogField, CatalogFilterFields } from "./CatalogContextDialogs.jsx";
 export { useCatalogOptions } from "./useCatalogOptions.js";
 
 export function CatalogContextFields({
@@ -23,9 +20,7 @@ export function CatalogContextFields({
         applications={applications}
         components={components}
         disabled={disabled}
-        emptyApplicationLabel={
-          optional ? "Conhecimento geral do workspace" : ""
-        }
+        emptyApplicationLabel={optional ? "Conhecimento geral do workspace" : ""}
         multipleComponents
         onChange={onChange}
         optional={optional}

@@ -23,26 +23,15 @@ export function RequestsOverview({
         <div className="panelHeader">
           <div>
             <h3>Acompanhamento</h3>
-            <span>
-              Visão consolidada de tarefas, prazos e jornadas das melhorias
-              listadas
-            </span>
+            <span>Visão consolidada de tarefas, prazos e jornadas das melhorias listadas</span>
           </div>
         </div>
 
-        <div
-          className="detailTabs requestOverviewTabs"
-          role="tablist"
-          aria-label="Visões gerais das melhorias"
-        >
+        <div className="detailTabs requestOverviewTabs" role="tablist" aria-label="Visões gerais das melhorias">
           {REQUEST_OVERVIEW_TABS.map((tab) => (
             <button
               aria-selected={activeTab === tab.key}
-              className={
-                activeTab === tab.key
-                  ? "detailTab activeDetailTab"
-                  : "detailTab"
-              }
+              className={activeTab === tab.key ? "detailTab activeDetailTab" : "detailTab"}
               disabled={loading}
               key={tab.key}
               onClick={() => onTabChange(tab.key)}
@@ -55,10 +44,7 @@ export function RequestsOverview({
         </div>
 
         {loading ? (
-          <div
-            className="requestLoadingState requestOverviewLoadingState"
-            role="status"
-          >
+          <div className="requestLoadingState requestOverviewLoadingState" role="status">
             <LoaderCircle aria-hidden="true" className="spinIcon" size={28} />
             <span>Carregando acompanhamento...</span>
           </div>
@@ -74,11 +60,7 @@ export function RequestsOverview({
         ) : null}
 
         {!loading && activeTab === "schedule" ? (
-          <RequestSchedule
-            collections={collections}
-            onSelectRequest={onSelectRequest}
-            requests={scheduleRequests}
-          />
+          <RequestSchedule collections={collections} onSelectRequest={onSelectRequest} requests={scheduleRequests} />
         ) : null}
 
         {!loading && activeTab === "tasks" ? (

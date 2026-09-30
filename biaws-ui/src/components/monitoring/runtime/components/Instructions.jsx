@@ -55,10 +55,7 @@ function templateExamples({ cliExample, curlExample, selected }) {
     templateRef: reference,
     payload: sample,
   };
-  const curl = curlExample.replace(
-    /--data '[^']*'$/u,
-    `--data '${JSON.stringify(signal)}'`,
-  );
+  const curl = curlExample.replace(/--data '[^']*'$/u, `--data '${JSON.stringify(signal)}'`);
   const cliLines = cliExample.split("\n").slice(0, 2);
   const cli = [
     ...cliLines,
@@ -78,35 +75,23 @@ export function RuntimeMonitoringInstructions({
 }) {
   const versions = templateOptions(templates);
   const [templateKey, setTemplateKey] = React.useState("");
-  const selected = versions.find(
-    ({ id, version }) => `${id}:${version}` === templateKey,
-  );
+  const selected = versions.find(({ id, version }) => `${id}:${version}` === templateKey);
   const examples = templateExamples({ cliExample, curlExample, selected });
   return (
     <div className="catalogMonitoringInstructions catalogWideField">
       <h3>Referência do runtime</h3>
-      <p>
-        Use o UUID estável ou o caminho contextual abaixo. Os exemplos contêm
-        apenas placeholders de autenticação.
-      </p>
+      <p>Use o UUID estável ou o caminho contextual abaixo. Os exemplos contêm apenas placeholders de autenticação.</p>
       <dl>
         <div>
           <dt>Workspace</dt>
           <dd>
-            <EntityIdentifier
-              label="Identificador do workspace"
-              value={options.workspace?.id}
-            />
+            <EntityIdentifier label="Identificador do workspace" value={options.workspace?.id} />
           </dd>
         </div>
         <div>
           <dt>UUID</dt>
           <dd>
-            <EntityIdentifier
-              fallback="UUID indisponível"
-              label="UUID do runtime"
-              value={entity?.id}
-            />
+            <EntityIdentifier fallback="UUID indisponível" label="UUID do runtime" value={entity?.id} />
           </dd>
         </div>
         <div>
@@ -119,16 +104,10 @@ export function RuntimeMonitoringInstructions({
       {versions.length ? (
         <label className="field">
           <span>Template e versão (opcional)</span>
-          <select
-            onChange={(event) => setTemplateKey(event.target.value)}
-            value={templateKey}
-          >
+          <select onChange={(event) => setTemplateKey(event.target.value)} value={templateKey}>
             <option value="">Sinal sem template</option>
             {versions.map((template) => (
-              <option
-                key={`${template.id}:${template.version}`}
-                value={`${template.id}:${template.version}`}
-              >
+              <option key={`${template.id}:${template.version}`} value={`${template.id}:${template.version}`}>
                 {template.name} · v{template.version}
               </option>
             ))}
@@ -145,12 +124,8 @@ export function RuntimeMonitoringInstructions({
           . Os exemplos usam a amostra JSON declarada pela versão.
         </div>
       ) : null}
-      {examples.curl ? (
-        <CopyBlock label="Exemplo com curl" value={examples.curl} />
-      ) : null}
-      {examples.cli ? (
-        <CopyBlock label="Comando BIAWS CLI" value={examples.cli} />
-      ) : null}
+      {examples.curl ? <CopyBlock label="Exemplo com curl" value={examples.curl} /> : null}
+      {examples.cli ? <CopyBlock label="Comando BIAWS CLI" value={examples.cli} /> : null}
     </div>
   );
 }

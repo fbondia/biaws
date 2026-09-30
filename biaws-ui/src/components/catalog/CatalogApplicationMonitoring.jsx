@@ -38,9 +38,7 @@ function MonitoringRuntimeButton({ activeRuntimeId, onSelect, runtime }) {
           {runtime.server?.name || "Sem servidor associado"}
         </small>
       </div>
-      <span className={`catalogStatus catalogStatus-${runtime.status}`}>
-        {runtime.status}
-      </span>
+      <span className={`catalogStatus catalogStatus-${runtime.status}`}>{runtime.status}</span>
     </button>
   );
 }
@@ -83,13 +81,9 @@ function MonitoringComponent({ activeRuntimeId, component, onSelect }) {
 
 export function CatalogApplicationMonitoring({ monitoringHealth }) {
   const application = monitoringHealth?.details?.items?.[0];
-  const runtimes = useMemo(
-    () => applicationRuntimes(application),
-    [application],
-  );
+  const runtimes = useMemo(() => applicationRuntimes(application), [application]);
   const [runtimeId, setRuntimeId] = useState("");
-  const activeRuntime =
-    runtimes.find(({ id }) => id === runtimeId) || runtimes[0];
+  const activeRuntime = runtimes.find(({ id }) => id === runtimeId) || runtimes[0];
 
   useEffect(() => {
     if (!runtimes.some(({ id }) => id === runtimeId)) {
@@ -106,9 +100,7 @@ export function CatalogApplicationMonitoring({ monitoringHealth }) {
         </div>
       </header>
       {!application || !runtimes.length ? (
-        <div className="catalogColumnEmpty">
-          Nenhum runtime com sinais de monitoramento.
-        </div>
+        <div className="catalogColumnEmpty">Nenhum runtime com sinais de monitoramento.</div>
       ) : (
         <div className="catalogApplicationMonitoringLayout">
           <div className="catalogMonitoringTopology">
@@ -127,15 +119,10 @@ export function CatalogApplicationMonitoring({ monitoringHealth }) {
                 <div>
                   <strong>{activeRuntime.name}</strong>
                   <small>
-                    {activeRuntime.componentName} ·{" "}
-                    {activeRuntime.deploymentName}
+                    {activeRuntime.componentName} · {activeRuntime.deploymentName}
                   </small>
                 </div>
-                <span
-                  className={`catalogStatus catalogStatus-${activeRuntime.status}`}
-                >
-                  {activeRuntime.status}
-                </span>
+                <span className={`catalogStatus catalogStatus-${activeRuntime.status}`}>{activeRuntime.status}</span>
               </header>
               <div className="catalogMonitoringLastSignal">
                 <Clock3 size={14} />
@@ -145,16 +132,10 @@ export function CatalogApplicationMonitoring({ monitoringHealth }) {
                   {activeRuntime.message ? ` · ${activeRuntime.message}` : ""}
                 </span>
               </div>
-              {activeRuntime.latestSignal?.metadata &&
-              Object.keys(activeRuntime.latestSignal.metadata).length ? (
-                <MonitoringMetadataPresentation
-                  event={activeRuntime.latestSignal}
-                  showRawFallback
-                />
+              {activeRuntime.latestSignal?.metadata && Object.keys(activeRuntime.latestSignal.metadata).length ? (
+                <MonitoringMetadataPresentation event={activeRuntime.latestSignal} showRawFallback />
               ) : (
-                <div className="catalogColumnEmpty">
-                  O último sinal não possui metadados.
-                </div>
+                <div className="catalogColumnEmpty">O último sinal não possui metadados.</div>
               )}
             </section>
           ) : null}

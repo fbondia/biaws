@@ -8,10 +8,7 @@ export function slugifyTaxonomyNode(value) {
 }
 
 export function hasTaxonomyNode(nodes = [], nodeId) {
-  return nodes.some(
-    (node) =>
-      node.id === nodeId || hasTaxonomyNode(node.children || [], nodeId),
-  );
+  return nodes.some((node) => node.id === nodeId || hasTaxonomyNode(node.children || [], nodeId));
 }
 
 export function buildUniqueTaxonomyId(nodes, parentId, label) {

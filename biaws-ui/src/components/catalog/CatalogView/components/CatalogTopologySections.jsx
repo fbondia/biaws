@@ -1,13 +1,4 @@
-import {
-  Boxes,
-  ChevronRight,
-  Package,
-  PackageCheck,
-  Layers3,
-  Network,
-  Plus,
-  ServerCog,
-} from "lucide-react";
+import { Boxes, ChevronRight, Package, PackageCheck, Layers3, Network, Plus, ServerCog } from "lucide-react";
 import { lazy, Suspense } from "react";
 
 import { hasPermission } from "../../../../permissions.js";
@@ -24,54 +15,26 @@ function ColumnHeader({ action, count, icon: Icon, title }) {
       <span className="catalogTopologyColumnTitle">
         <Icon size={15} />
         {title}
-        {count !== undefined ? (
-          <small className="catalogTopologyCount">{count}</small>
-        ) : null}
+        {count !== undefined ? <small className="catalogTopologyCount">{count}</small> : null}
       </span>
       {action}
     </header>
   );
 }
 
-function TopologyRow({
-  actions,
-  active = false,
-  hasChildren = false,
-  meta,
-  name,
-  onSelect,
-  status,
-}) {
+function TopologyRow({ actions, active = false, hasChildren = false, meta, name, onSelect, status }) {
   return (
-    <div
-      className={
-        active
-          ? "catalogTopologyRow activeCatalogTopologyRow"
-          : "catalogTopologyRow"
-      }
-    >
-      <button
-        aria-pressed={active}
-        className="catalogTopologyRowMain"
-        onClick={onSelect}
-        type="button"
-      >
+    <div className={active ? "catalogTopologyRow activeCatalogTopologyRow" : "catalogTopologyRow"}>
+      <button aria-pressed={active} className="catalogTopologyRowMain" onClick={onSelect} type="button">
         <span className="catalogTopologyRowText">
           <strong>{name}</strong>
           {meta ? <small>{meta}</small> : null}
-          {status ? (
-            <span className={`catalogStatus catalogStatus-${status}`}>
-              {status}
-            </span>
-          ) : null}
+          {status ? <span className={`catalogStatus catalogStatus-${status}`}>{status}</span> : null}
         </span>
       </button>
       <div className="catalogTopologyRowControls">
         {actions ? (
-          <div
-            className="catalogTopologyRowActions"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="catalogTopologyRowActions" onClick={(event) => event.stopPropagation()}>
             {actions}
           </div>
         ) : null}
@@ -89,19 +52,10 @@ function EmptyColumn({ children }) {
   return <p className="catalogColumnEmpty">{children}</p>;
 }
 
-export function TopologyHeader({
-  canFilter,
-  canViewDiagram,
-  deployableOnly,
-  onOpenDiagram,
-  onToggleDeployable,
-}) {
+export function TopologyHeader({ canFilter, canViewDiagram, deployableOnly, onOpenDiagram, onToggleDeployable }) {
   return (
     <div className="catalogSectionHeader">
-      <span>
-        Navegue da estrutura lógica da aplicação até suas instâncias em
-        execução.
-      </span>
+      <span>Navegue da estrutura lógica da aplicação até suas instâncias em execução.</span>
       <div className="catalogHeaderActions">
         {canFilter ? (
           <button
@@ -115,19 +69,11 @@ export function TopologyHeader({
             title="Exibir somente componentes com deployment configurado"
             type="button"
           >
-            {deployableOnly ? (
-              <PackageCheck size={16} />
-            ) : (
-              <Package size={16} />
-            )}
+            {deployableOnly ? <PackageCheck size={16} /> : <Package size={16} />}
           </button>
         ) : null}
         {canViewDiagram ? (
-          <button
-            className="secondaryButton"
-            onClick={onOpenDiagram}
-            type="button"
-          >
+          <button className="secondaryButton" onClick={onOpenDiagram} type="button">
             <Network size={16} />
           </button>
         ) : null}
@@ -147,10 +93,8 @@ export function ComponentsColumn({
   selectedId,
   visibleComponents,
 }) {
-  let emptyMessage =
-    "Nenhum componente acessível pelos deployments disponíveis.";
-  if (deployableOnly)
-    emptyMessage = "Nenhum componente com deployment configurado.";
+  let emptyMessage = "Nenhum componente acessível pelos deployments disponíveis.";
+  if (deployableOnly) emptyMessage = "Nenhum componente com deployment configurado.";
   else if (canReadComponents) emptyMessage = "Nenhum componente cadastrado.";
   return (
     <section className="catalogColumn" role="group">
@@ -177,11 +121,7 @@ export function ComponentsColumn({
           <TopologyRow
             actions={
               canReadComponents
-                ? entityActions(
-                    "component",
-                    "components.update",
-                    "components.archive",
-                  )(component)
+                ? entityActions("component", "components.update", "components.archive")(component)
                 : null
             }
             active={component.id === selectedId}
@@ -192,9 +132,7 @@ export function ComponentsColumn({
             onSelect={() => onSelect(component.id)}
           />
         ))}
-        {!visibleComponents.length ? (
-          <EmptyColumn>{emptyMessage}</EmptyColumn>
-        ) : null}
+        {!visibleComponents.length ? <EmptyColumn>{emptyMessage}</EmptyColumn> : null}
       </div>
     </section>
   );
@@ -221,11 +159,7 @@ export function DeploymentsColumn({
               className="iconButton catalogTopologyAddButton"
               disabled={!selectedComponentId}
               onClick={onCreate}
-              title={
-                selectedComponentId
-                  ? `Novo deployment de ${selectedComponent?.name}`
-                  : "Selecione um componente"
-              }
+              title={selectedComponentId ? `Novo deployment de ${selectedComponent?.name}` : "Selecione um componente"}
               type="button"
             >
               <Plus size={15} />
@@ -238,22 +172,14 @@ export function DeploymentsColumn({
       />
       <div className="catalogColumnList">
         {!selectedComponentId ? (
-          <EmptyColumn>
-            Selecione um componente para visualizar seus deployments.
-          </EmptyColumn>
+          <EmptyColumn>Selecione um componente para visualizar seus deployments.</EmptyColumn>
         ) : null}
         {selectedComponentId && !deployments.length ? (
-          <EmptyColumn>
-            Nenhum deployment cadastrado para este componente.
-          </EmptyColumn>
+          <EmptyColumn>Nenhum deployment cadastrado para este componente.</EmptyColumn>
         ) : null}
         {deployments.map((deployment) => (
           <TopologyRow
-            actions={entityActions(
-              "deployment",
-              "deployments.update",
-              "deployments.archive",
-            )(deployment)}
+            actions={entityActions("deployment", "deployments.update", "deployments.archive")(deployment)}
             active={deployment.id === selectedDeploymentId}
             hasChildren={canReadRuntimes}
             key={deployment.id}
@@ -289,11 +215,7 @@ export function RuntimesColumn({
               className="iconButton catalogTopologyAddButton"
               disabled={!selectedDeploymentId}
               onClick={onCreate}
-              title={
-                selectedDeploymentId
-                  ? `Novo runtime de ${selectedDeployment?.name}`
-                  : "Selecione um deployment"
-              }
+              title={selectedDeploymentId ? `Novo runtime de ${selectedDeployment?.name}` : "Selecione um deployment"}
               type="button"
             >
               <Plus size={15} />
@@ -306,21 +228,15 @@ export function RuntimesColumn({
       />
       <div className="catalogColumnList">
         {!selectedDeploymentId ? (
-          <EmptyColumn>
-            Selecione um deployment para visualizar seus runtimes.
-          </EmptyColumn>
+          <EmptyColumn>Selecione um deployment para visualizar seus runtimes.</EmptyColumn>
         ) : null}
-        {selectedDeploymentId && loading ? (
-          <EmptyColumn>Carregando runtimes…</EmptyColumn>
-        ) : null}
+        {selectedDeploymentId && loading ? <EmptyColumn>Carregando runtimes…</EmptyColumn> : null}
         {selectedDeploymentId && error ? (
           <div className="catalogTopologyLoadError">
             <p>{error}</p>
             <button
               className="secondaryButton"
-              onClick={() =>
-                loadRuntimes(selectedDeploymentId, { force: true })
-              }
+              onClick={() => loadRuntimes(selectedDeploymentId, { force: true })}
               type="button"
             >
               Tentar novamente
@@ -332,19 +248,11 @@ export function RuntimesColumn({
         ) : null}
         {(runtimes || []).map((runtime) => (
           <TopologyRow
-            actions={entityActions(
-              "runtime",
-              "runtimes.update",
-              "runtimes.archive",
-            )(runtime)}
+            actions={entityActions("runtime", "runtimes.update", "runtimes.archive")(runtime)}
             key={runtime.id}
             meta={runtime.key}
             name={runtime.name}
-            onSelect={
-              hasPermission(actor, "runtimes.update")
-                ? () => onEdit(runtime)
-                : undefined
-            }
+            onSelect={hasPermission(actor, "runtimes.update") ? () => onEdit(runtime) : undefined}
             status={runtime.status}
           />
         ))}
@@ -359,17 +267,11 @@ export function TopologyDiagramOverlay({ actor, context, onClose, open }) {
     <Suspense
       fallback={
         <div className="dialogBackdrop topologyDiagramBackdrop">
-          <div className="topologyDiagramBootstrap">
-            Carregando editor de topologia…
-          </div>
+          <div className="topologyDiagramBootstrap">Carregando editor de topologia…</div>
         </div>
       }
     >
-      <TopologyDiagramDialog
-        actor={actor}
-        context={context}
-        onClose={onClose}
-      />
+      <TopologyDiagramDialog actor={actor} context={context} onClose={onClose} />
     </Suspense>
   );
 }

@@ -3,9 +3,7 @@ import { Boxes, ExternalLink, GitBranch, Layers3 } from "lucide-react";
 import { CatalogApplicationMonitoring } from "../../CatalogApplicationMonitoring.jsx";
 
 export function CatalogOverviewTab({ context }) {
-  const links = Array.isArray(context.application.links)
-    ? context.application.links
-    : [];
+  const links = Array.isArray(context.application.links) ? context.application.links : [];
 
   return (
     <div className="catalogOverviewGrid">
@@ -54,9 +52,7 @@ export function CatalogOverviewTab({ context }) {
           <p>Nenhum link cadastrado.</p>
         )}
       </article>
-      <CatalogApplicationMonitoring
-        monitoringHealth={context.monitoringHealth}
-      />
+      <CatalogApplicationMonitoring monitoringHealth={context.monitoringHealth} />
     </div>
   );
 }

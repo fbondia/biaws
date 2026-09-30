@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  filesFromDataTransfer,
-  fileSourcePath,
-  relativeFilePath,
-} from "../src/components/skills/SkillsView/utils.js";
+import { filesFromDataTransfer, fileSourcePath, relativeFilePath } from "../src/components/skills/SkillsView/utils.js";
 
 function fileEntry(name) {
   return {
@@ -49,14 +45,8 @@ test("dropped skill directories preserve nested relative paths", async () => {
     items: [{ kind: "file", webkitGetAsEntry: () => root }],
   });
 
-  assert.deepEqual(files.map(fileSourcePath), [
-    "example-skill/SKILL.md",
-    "example-skill/references/guide.md",
-  ]);
-  assert.deepEqual(files.map(relativeFilePath), [
-    "SKILL.md",
-    "references/guide.md",
-  ]);
+  assert.deepEqual(files.map(fileSourcePath), ["example-skill/SKILL.md", "example-skill/references/guide.md"]);
+  assert.deepEqual(files.map(relativeFilePath), ["SKILL.md", "references/guide.md"]);
 });
 
 test("file drops fall back to the browser FileList", async () => {

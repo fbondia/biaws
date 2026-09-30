@@ -28,15 +28,7 @@ export class ExecutorEngine {
   #running = false;
   #stopping = false;
 
-  constructor({
-    api,
-    providers,
-    config,
-    telemetry,
-    logger,
-    now = () => new Date(),
-    sleep = abortableSleep,
-  }) {
+  constructor({ api, providers, config, telemetry, logger, now = () => new Date(), sleep = abortableSleep }) {
     this.api = api;
     this.providers = providers;
     this.config = config;
@@ -47,9 +39,7 @@ export class ExecutorEngine {
   }
 
   status() {
-    const age = this.#lastSuccessfulPollAt
-      ? this.now().getTime() - this.#lastSuccessfulPollAt.getTime()
-      : Infinity;
+    const age = this.#lastSuccessfulPollAt ? this.now().getTime() - this.#lastSuccessfulPollAt.getTime() : Infinity;
     return {
       enabled: this.config.enabled,
       running: this.#running,
@@ -57,10 +47,7 @@ export class ExecutorEngine {
       activeExecutions: this.#activeJobs.size,
       lastSuccessfulPollAt: this.#lastSuccessfulPollAt?.toISOString() || null,
       live: this.#running && !this.#stopping,
-      ready:
-        this.#running &&
-        !this.#stopping &&
-        (!this.config.enabled || age <= this.config.readinessMaxAgeMs),
+      ready: this.#running && !this.#stopping && (!this.config.enabled || age <= this.config.readinessMaxAgeMs),
     };
   }
 
@@ -82,10 +69,7 @@ export class ExecutorEngine {
         }
       }
       try {
-        await this.sleep(
-          this.config.pollIntervalMs,
-          this.#loopController.signal,
-        );
+        await this.sleep(this.config.pollIntervalMs, this.#loopController.signal);
       } catch {
         break;
       }
@@ -132,10 +116,7 @@ export class ExecutorEngine {
       this.#loopController.signal,
     );
     this.#lastSuccessfulPollAt = this.now();
-    this.telemetry.gauge(
-      "last_successful_poll_timestamp_seconds",
-      this.#lastSuccessfulPollAt.getTime() / 1_000,
-    );
+    this.telemetry.gauge("last_successful_poll_timestamp_seconds", this.#lastSuccessfulPollAt.getTime() / 1_000);
     const items = Array.isArray(response?.items) ? response.items : [];
     this.telemetry.increment("leases_acquired", items.length);
     const jobs = items.map((monitor) => this.#trackJob(monitor));
@@ -203,13 +184,8 @@ export class ExecutorEngine {
       );
     }
     const leaseController = new AbortController();
-    const providerTimeout = timeoutSignal(
-      Number(monitor.timeoutSeconds) * 1_000,
-    );
-    const providerSignal = AbortSignal.any([
-      leaseController.signal,
-      providerTimeout.controller.signal,
-    ]);
+    const providerTimeout = timeoutSignal(Number(monitor.timeoutSeconds) * 1_000);
+    const providerSignal = AbortSignal.any([leaseController.signal, providerTimeout.controller.signal]);
     this.#jobControllers.add(leaseController);
     const finished = { value: false };
     const heartbeat = this.#renewLease(monitor, leaseController, finished);
@@ -282,10 +258,7 @@ export class ExecutorEngine {
       graceTimer = setTimeout(resolve, this.config.shutdownGraceMs);
       graceTimer.unref?.();
     });
-    const result = await Promise.race([
-      active.then(() => "complete"),
-      grace.then(() => "timeout"),
-    ]);
+    const result = await Promise.race([active.then(() => "complete"), grace.then(() => "timeout")]);
     clearTimeout(graceTimer);
     if (result === "timeout") {
       for (const controller of this.#jobControllers) {

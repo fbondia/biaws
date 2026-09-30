@@ -40,9 +40,7 @@ function MemberEditor({ groups, member, onRemove, onSave }) {
             <label key={group.id}>
               <input
                 checked={groupIds.includes(group.id)}
-                onChange={() =>
-                  setGroupIds((current) => toggleId(current, group.id))
-                }
+                onChange={() => setGroupIds((current) => toggleId(current, group.id))}
                 type="checkbox"
               />
               {group.name}
@@ -50,18 +48,10 @@ function MemberEditor({ groups, member, onRemove, onSave }) {
           ))}
       </div>
       <div className="platformMemberActions">
-        <button
-          className="secondaryButton"
-          onClick={() => onSave(member.userId, groupIds)}
-          type="button"
-        >
+        <button className="secondaryButton" onClick={() => onSave(member.userId, groupIds)} type="button">
           <Save size={15} /> Salvar
         </button>
-        <button
-          className="dangerButton"
-          onClick={() => onRemove(member)}
-          type="button"
-        >
+        <button className="dangerButton" onClick={() => onRemove(member)} type="button">
           Remover
         </button>
       </div>
@@ -69,21 +59,13 @@ function MemberEditor({ groups, member, onRemove, onSave }) {
   );
 }
 
-function GeneralWorkspaceTab({
-  draft,
-  onDraftChange,
-  onSave,
-  onStatusChange,
-  selected,
-}) {
+function GeneralWorkspaceTab({ draft, onDraftChange, onSave, onStatusChange, selected }) {
   return (
     <form className="platformGeneralForm" onSubmit={onSave}>
       <label>
         <span>Nome</span>
         <input
-          onChange={(event) =>
-            onDraftChange({ ...draft, name: event.target.value })
-          }
+          onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
           required
           value={draft.name}
         />
@@ -91,19 +73,13 @@ function GeneralWorkspaceTab({
       <label>
         <span>UUID</span>
         <div className="platformUuidField">
-          <EntityIdentifier
-            label="UUID do workspace"
-            value={selected.id}
-            variant="chip"
-          />
+          <EntityIdentifier label="UUID do workspace" value={selected.id} variant="chip" />
         </div>
       </label>
       <label>
         <span>Descrição</span>
         <textarea
-          onChange={(event) =>
-            onDraftChange({ ...draft, description: event.target.value })
-          }
+          onChange={(event) => onDraftChange({ ...draft, description: event.target.value })}
           rows={4}
           value={draft.description}
         />
@@ -113,26 +89,16 @@ function GeneralWorkspaceTab({
           <Save size={16} /> Salvar
         </button>
         <button
-          className={
-            selected.status === "active" ? "dangerButton" : "secondaryButton"
-          }
+          className={selected.status === "active" ? "dangerButton" : "secondaryButton"}
           disabled={selected.default}
           onClick={onStatusChange}
           type="button"
         >
-          {selected.status === "active" ? (
-            <Archive size={16} />
-          ) : (
-            <RotateCcw size={16} />
-          )}
+          {selected.status === "active" ? <Archive size={16} /> : <RotateCcw size={16} />}
           {selected.status === "active" ? "Arquivar" : "Reativar"}
         </button>
       </div>
-      {selected.default ? (
-        <p className="platformHint">
-          O workspace padrão não pode ser arquivado.
-        </p>
-      ) : null}
+      {selected.default ? <p className="platformHint">O workspace padrão não pode ser arquivado.</p> : null}
     </form>
   );
 }
@@ -159,9 +125,7 @@ function MembersWorkspaceTab({
     <div className="platformMembers">
       <form className="platformAddMember" onSubmit={onAdd}>
         <select
-          onChange={(event) =>
-            onNewMemberChange({ ...newMember, userId: event.target.value })
-          }
+          onChange={(event) => onNewMemberChange({ ...newMember, userId: event.target.value })}
           required
           value={newMember.userId}
         >
@@ -210,14 +174,11 @@ function GroupsWorkspaceTab({ groups }) {
         <article key={group.id}>
           <strong>{group.name}</strong>
           <span>
-            {group.system ? "Sistema" : "Personalizado"} ·{" "}
-            {group.permissions.length} permissões ·{" "}
+            {group.system ? "Sistema" : "Personalizado"} · {group.permissions.length} permissões ·{" "}
             {group.active ? "Ativo" : "Inativo"}
           </span>
           <small>
-            {group.scope.type === "workspace"
-              ? "Workspace inteiro"
-              : `${group.scope.applicationIds.length} aplicações`}
+            {group.scope.type === "workspace" ? "Workspace inteiro" : `${group.scope.applicationIds.length} aplicações`}
           </small>
         </article>
       ))}
@@ -256,8 +217,7 @@ function AuditWorkspaceTab({ events }) {
         <article key={event.id}>
           <strong>{event.summary || event.action}</strong>
           <span>
-            {event.actor?.displayName || event.actor?.email || "Sistema"} ·{" "}
-            {formatDate(event.occurredAt)}
+            {event.actor?.displayName || event.actor?.email || "Sistema"} · {formatDate(event.occurredAt)}
           </span>
         </article>
       ))}
@@ -285,11 +245,7 @@ export function WorkspaceDetail({ onTabChange, selected, tab, ...tabProps }) {
       <header className="platformDetailHeader">
         <div>
           <h3>{selected.name}</h3>
-          <EntityIdentifier
-            label="Identificador do workspace"
-            value={selected.key}
-            variant="eyebrow"
-          />
+          <EntityIdentifier label="Identificador do workspace" value={selected.key} variant="eyebrow" />
         </div>
         <span className={`platformStatus ${selected.status}`}>
           {selected.status === "active" ? "Ativo" : "Arquivado"}

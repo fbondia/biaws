@@ -63,8 +63,7 @@ export function useRequestsView(actor, options = {}) {
   });
   const [newContext, setNewContext] = useState(null);
   const catalog = useCatalogOptions(
-    hasPermission(actor, "applications.read") &&
-      hasPermission(actor, "components.read"),
+    hasPermission(actor, "applications.read") && hasPermission(actor, "components.read"),
     actor.workspaceId,
   );
 
@@ -72,13 +71,8 @@ export function useRequestsView(actor, options = {}) {
     (selectedRequestOverride?.id === selectedRequestId
       ? selectedRequestOverride
       : requests.find((request) => request.id === selectedRequestId)) || null;
-  const isEditing = Boolean(
-    selectedRequest?.id && editingRequestId === selectedRequest.id,
-  );
-  const selectedChecklistItem =
-    selectedRequest?.checklist.find(
-      (item) => item.label === checklistDialogLabel,
-    ) || null;
+  const isEditing = Boolean(selectedRequest?.id && editingRequestId === selectedRequest.id);
+  const selectedChecklistItem = selectedRequest?.checklist.find((item) => item.label === checklistDialogLabel) || null;
 
   async function loadRequests(isActive = () => true) {
     setLoadingRequests(true);
@@ -95,9 +89,7 @@ export function useRequestsView(actor, options = {}) {
       });
       if (!isActive()) return;
 
-      const loadedRequests = sortRequestsForList(
-        (payload.items || []).map(normalizeRequest),
-      );
+      const loadedRequests = sortRequestsForList((payload.items || []).map(normalizeRequest));
       setRequests(loadedRequests);
       setRequestMeta({
         page: payload.meta?.page || requestPage,
@@ -119,9 +111,7 @@ export function useRequestsView(actor, options = {}) {
         status: statusFilters.join(","),
       });
       if (!isActive()) return;
-      setRequestCollectionItems(
-        sortRequestsForList((payload.items || []).map(normalizeRequest)),
-      );
+      setRequestCollectionItems(sortRequestsForList((payload.items || []).map(normalizeRequest)));
     } catch (error) {
       if (isActive()) setRequestError(error.message);
     }
@@ -145,13 +135,7 @@ export function useRequestsView(actor, options = {}) {
     return () => {
       active = false;
     };
-  }, [
-    applicationFilter,
-    collectionId,
-    componentFilter,
-    requestPage,
-    statusFilters,
-  ]);
+  }, [applicationFilter, collectionId, componentFilter, requestPage, statusFilters]);
 
   useEffect(() => {
     let active = true;
@@ -179,22 +163,17 @@ export function useRequestsView(actor, options = {}) {
     statusFilters,
   });
 
-  const {
-    clearScheduledPersist,
-    schedulePersistRequest,
-    updateRequest,
-    updateSelectedField,
-    upsertRequestInList,
-  } = useRequestPersistence({
-    actor,
-    selectedRequest,
-    selectedRequestId,
-    setRequestCollectionItems,
-    setRequestError,
-    setRequests,
-    setSavingRequestId,
-    setSelectedRequestOverride,
-  });
+  const { clearScheduledPersist, schedulePersistRequest, updateRequest, updateSelectedField, upsertRequestInList } =
+    useRequestPersistence({
+      actor,
+      selectedRequest,
+      selectedRequestId,
+      setRequestCollectionItems,
+      setRequestError,
+      setRequests,
+      setSavingRequestId,
+      setSelectedRequestOverride,
+    });
 
   const {
     addMissingSpecificationSections,
@@ -303,15 +282,11 @@ export function useRequestsView(actor, options = {}) {
     try {
       await deleteRequest(requestId);
       setRequests((current) => {
-        const nextRequests = current.filter(
-          (request) => request.id !== requestId,
-        );
+        const nextRequests = current.filter((request) => request.id !== requestId);
         setSelectedRequestId("");
         return nextRequests;
       });
-      setRequestCollectionItems((current) =>
-        current.filter((request) => request.id !== requestId),
-      );
+      setRequestCollectionItems((current) => current.filter((request) => request.id !== requestId));
       setEditingRequestId("");
       setSelectedRequestOverride(null);
       setChecklistDialogLabel("");
@@ -331,12 +306,7 @@ export function useRequestsView(actor, options = {}) {
 
     try {
       const current = await fetchRequest(requestId);
-      const payload = await saveRequest(
-        requestId,
-        { ...current.request, status },
-        undefined,
-        actor.workspaceId,
-      );
+      const payload = await saveRequest(requestId, { ...current.request, status }, undefined, actor.workspaceId);
       if (payload.request) upsertRequestInList(payload.request);
       if (content.trim()) {
         const note = await createRequestNote(requestId, {
@@ -354,12 +324,7 @@ export function useRequestsView(actor, options = {}) {
     }
   }
 
-  async function changeRequestTaskStatus(
-    requestId,
-    taskId,
-    status,
-    content = "",
-  ) {
+  async function changeRequestTaskStatus(requestId, taskId, status, content = "") {
     if (!requestId || !taskId) return false;
     setSavingRequestId(requestId);
     setRequestError("");
@@ -389,19 +354,18 @@ export function useRequestsView(actor, options = {}) {
     }
   }
 
-  const { closeSelectedRequest, selectRequest, toggleSelectedEditMode } =
-    useRequestSelection({
-      requests,
-      selectedRequest,
-      setActiveDetailTab,
-      setChecklistDialogLabel,
-      setEditingRequestId,
-      setNumberDrafts,
-      setRequestError,
-      setSelectedRequestId,
-      setSelectedRequestOverride,
-      upsertRequestInList,
-    });
+  const { closeSelectedRequest, selectRequest, toggleSelectedEditMode } = useRequestSelection({
+    requests,
+    selectedRequest,
+    setActiveDetailTab,
+    setChecklistDialogLabel,
+    setEditingRequestId,
+    setNumberDrafts,
+    setRequestError,
+    setSelectedRequestId,
+    setSelectedRequestOverride,
+    upsertRequestInList,
+  });
 
   return {
     catalog,

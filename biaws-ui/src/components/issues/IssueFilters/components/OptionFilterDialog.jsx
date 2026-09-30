@@ -1,14 +1,6 @@
 import { readSelectedOptions, toggleSelectedOption } from "../model.js";
 
-export function OptionFilterDialog({
-  description,
-  draftFilters,
-  field,
-  onChange,
-  onClose,
-  options,
-  title,
-}) {
+export function OptionFilterDialog({ description, draftFilters, field, onChange, onClose, options, title }) {
   const selected = readSelectedOptions(draftFilters, field);
   return (
     <div
@@ -17,20 +9,13 @@ export function OptionFilterDialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section
-        aria-label={title}
-        aria-modal="true"
-        className="tagFilterDialog issueOptionFilterDialog"
-        role="dialog"
-      >
+      <section aria-label={title} aria-modal="true" className="tagFilterDialog issueOptionFilterDialog" role="dialog">
         <header>
           <div>
             <strong>{title}</strong>
             <span>{description}</span>
           </div>
-          {selected.length ? (
-            <small>{selected.length} selecionado(s)</small>
-          ) : null}
+          {selected.length ? <small>{selected.length} selecionado(s)</small> : null}
         </header>
         <div className="tagFilterGroups issueOptionFilterDialogContent">
           <div className="tagFilterOptions">
@@ -39,22 +24,13 @@ export function OptionFilterDialog({
               .map((option) => (
                 <label
                   className={
-                    selected.includes(option.value)
-                      ? "tagFilterOption selectedTagFilterOption"
-                      : "tagFilterOption"
+                    selected.includes(option.value) ? "tagFilterOption selectedTagFilterOption" : "tagFilterOption"
                   }
                   key={option.value}
                 >
                   <input
                     checked={selected.includes(option.value)}
-                    onChange={() =>
-                      toggleSelectedOption(
-                        draftFilters,
-                        field,
-                        option.value,
-                        onChange,
-                      )
-                    }
+                    onChange={() => toggleSelectedOption(draftFilters, field, option.value, onChange)}
                     type="checkbox"
                   />
                   <span>{option.label}</span>
@@ -72,12 +48,7 @@ export function OptionFilterDialog({
               Limpar seleção
             </button>
           ) : null}
-          <button
-            className="primaryButton"
-            data-dialog-close
-            onClick={onClose}
-            type="button"
-          >
+          <button className="primaryButton" data-dialog-close onClick={onClose} type="button">
             Concluir
           </button>
         </footer>

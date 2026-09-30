@@ -31,15 +31,7 @@ const SENSITIVE_KEYS = new Set([
   "accesstoken",
 ]);
 
-const PAYLOAD_KEYS = new Set([
-  "body",
-  "headers",
-  "payload",
-  "querystring",
-  "raw",
-  "requestbody",
-  "responsebody",
-]);
+const PAYLOAD_KEYS = new Set(["body", "headers", "payload", "querystring", "raw", "requestbody", "responsebody"]);
 
 function normalizedKey(key) {
   return String(key)
@@ -64,35 +56,26 @@ function truncate(value, maxLength) {
 }
 
 function redactJsonFragments(value, limits) {
-  return value.replace(
-    /\{[^{}\r\n]{1,4000}\}|\[[^\[\]\r\n]{1,4000}\]/g,
-    (fragment) => {
-      try {
-        return JSON.stringify(sanitizeLogValue(JSON.parse(fragment), limits));
-      } catch {
-        return fragment;
-      }
-    },
-  );
+  return value.replace(/\{[^{}\r\n]{1,4000}\}|\[[^\[\]\r\n]{1,4000}\]/g, (fragment) => {
+    try {
+      return JSON.stringify(sanitizeLogValue(JSON.parse(fragment), limits));
+    } catch {
+      return fragment;
+    }
+  });
 }
 
 function redactText(value, maxLength, options = {}) {
   const limits = { ...DEFAULT_LIMITS, ...options, maxStringLength: maxLength };
   const redacted = redactJsonFragments(String(value), limits)
-    .replace(
-      /-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?(?:-----END [^-]*PRIVATE KEY-----|$)/gi,
-      "[REDACTED_PRIVATE_KEY]",
-    )
+    .replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?(?:-----END [^-]*PRIVATE KEY-----|$)/gi, "[REDACTED_PRIVATE_KEY]")
     .replace(/\b([a-z][a-z0-9+.-]*:\/\/)[^:@/\s]+:[^@/\s]+@/gi, "$1[REDACTED]@")
     .replace(/\b(Bearer|Basic)\s+[^\s,;&]+/gi, "$1 [REDACTED]")
     .replace(
       /([?&](?:password|token|access[_-]?token|refresh[_-]?token|secret|api[_-]?key)=)[^&#\s]+/gi,
       "$1[REDACTED]",
     )
-    .replace(
-      /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,
-      "[REDACTED_JWT]",
-    )
+    .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, "[REDACTED_JWT]")
     .replace(
       /["']?\b(password|passwd|pwd|token|access[_-]?token|refresh[_-]?token|secret|api[_-]?key|authorization|cookie)\b["']?\s*[:=]\s*(?:"[^"]*"|'[^']*'|.*?)(?=\s+["']?[a-z][a-z0-9_-]*["']?\s*[:=]|[,};&\r\n]|$)/gi,
       "$1=[REDACTED]",
@@ -133,9 +116,7 @@ function sanitizeValue(value, limits, depth, seen) {
   seen.add(value);
   try {
     if (Array.isArray(value)) {
-      return value
-        .slice(0, limits.maxArrayItems)
-        .map((item) => sanitizeValue(item, limits, depth + 1, seen));
+      return value.slice(0, limits.maxArrayItems).map((item) => sanitizeValue(item, limits, depth + 1, seen));
     }
 
     return sanitizeObject(value, limits, depth, seen);
@@ -153,16 +134,13 @@ export function sanitizeLogValue(value, options = {}) {
 
 export function normalizeLogError(error, options = {}, depth = 0) {
   const limits = { ...DEFAULT_LIMITS, ...options };
-  if (depth >= limits.maxDepth)
-    return { message: "[MAX_DEPTH]", name: "Error" };
+  if (depth >= limits.maxDepth) return { message: "[MAX_DEPTH]", name: "Error" };
 
   const errorLike =
     error instanceof Error ||
     (error !== null &&
       typeof error === "object" &&
-      ["code", "message", "name", "stack", "statusCode"].some(
-        (key) => error[key] !== undefined,
-      ));
+      ["code", "message", "name", "stack", "statusCode"].some((key) => error[key] !== undefined));
 
   if (!errorLike) {
     return {
@@ -172,11 +150,7 @@ export function normalizeLogError(error, options = {}, depth = 0) {
   }
 
   const normalized = {
-    message: redactText(
-      error.message || error.name || "Error",
-      limits.maxStringLength,
-      limits,
-    ),
+    message: redactText(error.message || error.name || "Error", limits.maxStringLength, limits),
     name: redactText(error.name || "Error", limits.maxStringLength, limits),
   };
   if (error.code !== undefined) {
@@ -197,9 +171,7 @@ export function normalizeLogError(error, options = {}, depth = 0) {
 function validateEvent(event) {
   const normalized = String(event || "").trim();
   if (!EVENT_PATTERN.test(normalized)) {
-    throw new TypeError(
-      "Log events must follow the dominio.acao.resultado convention",
-    );
+    throw new TypeError("Log events must follow the dominio.acao.resultado convention");
   }
   return normalized;
 }
@@ -229,11 +201,7 @@ export function createLogger({
 
   function withinVolumeLimit(time) {
     const currentTime = time.getTime();
-    if (
-      !windowStartedAt ||
-      currentTime < windowStartedAt ||
-      currentTime - windowStartedAt >= limits.windowMs
-    ) {
+    if (!windowStartedAt || currentTime < windowStartedAt || currentTime - windowStartedAt >= limits.windowMs) {
       windowStartedAt = currentTime;
       entriesInWindow = 0;
     }
@@ -264,24 +232,16 @@ export function createLogger({
   }
 
   function log(level, event, { context: eventContext, error, message } = {}) {
-    if (!LEVELS.has(level))
-      throw new TypeError(`Unsupported log level: ${level}`);
+    if (!LEVELS.has(level)) throw new TypeError(`Unsupported log level: ${level}`);
     const stableEvent = validateEvent(event);
     const time = timestampFrom(now);
     if (!withinVolumeLimit(time)) return null;
 
     const record = {
-      context: sanitizeLogValue(
-        { ...sharedContext, ...(eventContext || {}) },
-        limits,
-      ),
+      context: sanitizeLogValue({ ...sharedContext, ...(eventContext || {}) }, limits),
       event: stableEvent,
       level,
-      message: redactText(
-        message || stableEvent,
-        limits.maxStringLength,
-        limits,
-      ),
+      message: redactText(message || stableEvent, limits.maxStringLength, limits),
       service,
       timestamp: time.toISOString(),
     };
@@ -316,10 +276,7 @@ export function createLogger({
     info: (event, details) => log("info", event, details),
     log,
     setContext(nextContext) {
-      sharedContext = sanitizeLogValue(
-        { ...sharedContext, ...(nextContext || {}) },
-        limits,
-      );
+      sharedContext = sanitizeLogValue({ ...sharedContext, ...(nextContext || {}) }, limits);
     },
     warn: (event, details) => log("warn", event, details),
   });

@@ -15,16 +15,12 @@ import { latestEventForMonitor } from "../../model.js";
 
 function runtimePath({ application, component, deployment, runtime }) {
   if (!application || !component || !deployment || !runtime) return "";
-  return [application.key, component.key, deployment.key, runtime.key].join(
-    ".",
-  );
+  return [application.key, component.key, deployment.key, runtime.key].join(".");
 }
 
 function signalCurl(reference, workspaceId) {
   if (!reference || !workspaceId) return "";
-  const url = buildUrl(
-    `/api/monitoring/runtimes/${encodeURIComponent(reference)}/signals`,
-  ).toString();
+  const url = buildUrl(`/api/monitoring/runtimes/${encodeURIComponent(reference)}/signals`).toString();
   return [
     `curl -X POST '${url}' \\`,
     "  -H 'Authorization: Bearer <api-key>' \\",
@@ -44,9 +40,7 @@ function MonitorSummary({ event, monitor }) {
         </div>
         <div>
           <dt>Execução</dt>
-          <dd>
-            {monitor.enabled ? `A cada ${monitor.intervalSeconds}s` : "Pausada"}
-          </dd>
+          <dd>{monitor.enabled ? `A cada ${monitor.intervalSeconds}s` : "Pausada"}</dd>
         </div>
         <div>
           <dt>Timeout</dt>
@@ -55,9 +49,7 @@ function MonitorSummary({ event, monitor }) {
         <div>
           <dt>Template</dt>
           <dd>
-            {monitor.templateRef
-              ? `${monitor.templateRef.id} · v${monitor.templateRef.version}`
-              : "Sem template"}
+            {monitor.templateRef ? `${monitor.templateRef.id} · v${monitor.templateRef.version}` : "Sem template"}
           </dd>
         </div>
         <div>
@@ -95,12 +87,8 @@ export function RuntimeMonitoringWorkspace({ actor, context, workspace }) {
   const reference = runtimePath(context);
   const canUpdateRuntime = hasPermission(actor, "runtimes.update");
   const selectedMonitor =
-    controller.activeMonitors.find(({ id }) => id === selectedMonitorId) ||
-    controller.activeMonitors[0] ||
-    null;
-  const latestEvent = selectedMonitor
-    ? latestEventForMonitor(controller.monitoringEvents, selectedMonitor.id)
-    : null;
+    controller.activeMonitors.find(({ id }) => id === selectedMonitorId) || controller.activeMonitors[0] || null;
+  const latestEvent = selectedMonitor ? latestEventForMonitor(controller.monitoringEvents, selectedMonitor.id) : null;
 
   useEffect(() => {
     setSelectedMonitorId("");
@@ -153,26 +141,17 @@ export function RuntimeMonitoringWorkspace({ actor, context, workspace }) {
           </span>
           <h2>{runtime.name}</h2>
           <p>
-            {deployment.environment || "Ambiente não informado"} ·{" "}
-            {server?.name || "Sem servidor associado"}
+            {deployment.environment || "Ambiente não informado"} · {server?.name || "Sem servidor associado"}
           </p>
         </div>
         <div className="monitoringRuntimeHeaderActions">
           <MonitoringStatusBadge status={runtime.status} />
           {mode === "overview" && canUpdateRuntime ? (
-            <button
-              className="primaryButton"
-              onClick={() => setMode("configuration")}
-              type="button"
-            >
+            <button className="primaryButton" onClick={() => setMode("configuration")} type="button">
               <Settings2 size={16} /> Configurar
             </button>
           ) : controller.activeMonitors.length ? (
-            <button
-              className="secondaryButton"
-              onClick={() => setMode("overview")}
-              type="button"
-            >
+            <button className="secondaryButton" onClick={() => setMode("overview")} type="button">
               <Activity size={16} /> Visualizar
             </button>
           ) : null}
@@ -192,67 +171,38 @@ export function RuntimeMonitoringWorkspace({ actor, context, workspace }) {
         />
       ) : (
         <>
-          <div
-            className="monitoringRuntimeTabs"
-            role="tablist"
-            aria-label="Detalhes do monitoramento"
-          >
-            <button
-              aria-selected={tab === "overview"}
-              onClick={() => setTab("overview")}
-              role="tab"
-              type="button"
-            >
+          <div className="monitoringRuntimeTabs" role="tablist" aria-label="Detalhes do monitoramento">
+            <button aria-selected={tab === "overview"} onClick={() => setTab("overview")} role="tab" type="button">
               Visão geral
             </button>
-            <button
-              aria-selected={tab === "history"}
-              onClick={() => setTab("history")}
-              role="tab"
-              type="button"
-            >
+            <button aria-selected={tab === "history"} onClick={() => setTab("history")} role="tab" type="button">
               Histórico
             </button>
           </div>
           {tab === "history" ? (
-            <RuntimeMonitoringHistory
-              controller={augmentedController}
-              editing
-              entity={runtime}
-              options={options}
-            />
+            <RuntimeMonitoringHistory controller={augmentedController} editing entity={runtime} options={options} />
           ) : (
             <div className="monitoringOverviewLayout">
-              <aside
-                aria-label="Monitores do runtime"
-                className="monitoringMonitorSelector"
-              >
+              <aside aria-label="Monitores do runtime" className="monitoringMonitorSelector">
                 {controller.activeMonitors.map((monitor) => (
                   <button
-                    aria-current={
-                      selectedMonitor?.id === monitor.id ? "true" : undefined
-                    }
+                    aria-current={selectedMonitor?.id === monitor.id ? "true" : undefined}
                     key={monitor.id}
                     onClick={() => setSelectedMonitorId(monitor.id)}
                     type="button"
                   >
-                    <span
-                      className={`monitoringMonitorState ${monitor.enabled ? "enabled" : "disabled"}`}
-                    />
+                    <span className={`monitoringMonitorState ${monitor.enabled ? "enabled" : "disabled"}`} />
                     <span>
                       <strong>{monitor.name}</strong>
                       <small>
-                        {monitor.provider.toUpperCase()} ·{" "}
-                        {monitor.enabled ? "Ativo" : "Inativo"}
+                        {monitor.provider.toUpperCase()} · {monitor.enabled ? "Ativo" : "Inativo"}
                       </small>
                     </span>
                     <ChevronRight size={15} />
                   </button>
                 ))}
               </aside>
-              {selectedMonitor ? (
-                <MonitorSummary event={latestEvent} monitor={selectedMonitor} />
-              ) : null}
+              {selectedMonitor ? <MonitorSummary event={latestEvent} monitor={selectedMonitor} /> : null}
             </div>
           )}
         </>

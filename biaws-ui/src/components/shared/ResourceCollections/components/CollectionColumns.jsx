@@ -1,12 +1,4 @@
-import {
-  ChevronRight,
-  Folder,
-  FolderOpen,
-  FolderPlus,
-  GripVertical,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { ChevronRight, Folder, FolderOpen, FolderPlus, GripVertical, Pencil, Trash2 } from "lucide-react";
 
 import { IllustratedEmptyState } from "../../IllustratedEmptyState.jsx";
 import { descendantCollectionIds } from "../model.js";
@@ -32,14 +24,8 @@ function CollectionColumnRow({
   const children = childrenByParent.get(collection.id) || [];
   const invalidCollectionDrop =
     draggedItem?.type === "collection" &&
-    (draggedItem.id === collection.id ||
-      descendantCollectionIds(childrenByParent, draggedItem.id).has(
-        collection.id,
-      ));
-  const canDrop =
-    Boolean(draggedItem) &&
-    !invalidCollectionDrop &&
-    canDropOnCollection(draggedItem, collection);
+    (draggedItem.id === collection.id || descendantCollectionIds(childrenByParent, draggedItem.id).has(collection.id));
+  const canDrop = Boolean(draggedItem) && !invalidCollectionDrop && canDropOnCollection(draggedItem, collection);
 
   return (
     <div
@@ -76,22 +62,14 @@ function CollectionColumnRow({
       }}
       role="treeitem"
     >
-      <GripVertical
-        aria-hidden="true"
-        className="resourceCollectionDragHandle"
-        size={14}
-      />
+      <GripVertical aria-hidden="true" className="resourceCollectionDragHandle" size={14} />
       <button
         className="resourceCollectionColumnSelectButton"
         onClick={() => onSelect(collection.id)}
         title={collection.name}
         type="button"
       >
-        {active && children.length ? (
-          <FolderOpen size={16} />
-        ) : (
-          <Folder size={16} />
-        )}
+        {active && children.length ? <FolderOpen size={16} /> : <Folder size={16} />}
         <span>{collection.name}</span>
         {/*<small>{itemCounts[collection.id] || 0}</small>*/}
       </button>
@@ -175,17 +153,11 @@ export function CollectionColumns({
   return (
     <div className="resourceCollectionColumns" ref={columnsRef} role="tree">
       {columnNavigation.columns.map((column, columnIndex) => (
-        <div
-          className="resourceCollectionColumn"
-          key={`${column.parentId || "root"}-${columnIndex}`}
-          role="group"
-        >
+        <div className="resourceCollectionColumn" key={`${column.parentId || "root"}-${columnIndex}`} role="group">
           <div className="resourceCollectionColumnList">
             {column.collections.map((collection) => (
               <CollectionColumnRow
-                active={
-                  columnNavigation.activePath[columnIndex] === collection.id
-                }
+                active={columnNavigation.activePath[columnIndex] === collection.id}
                 canDropOnCollection={canDropOnCollection}
                 childrenByParent={childrenByParent}
                 collection={collection}
@@ -198,9 +170,7 @@ export function CollectionColumns({
                 onDragEnd={() => finishDrag(onDragEnd)}
                 onDragOverCollection={setDropTargetId}
                 onDrop={dropAt}
-                onRename={
-                  selectedCollectionId === collection.id ? onRename : undefined
-                }
+                onRename={selectedCollectionId === collection.id ? onRename : undefined}
                 onSelect={onSelect}
               />
             ))}
@@ -227,8 +197,7 @@ export function CollectionColumns({
               />
             ))}
 
-            {!column.collections.length &&
-            !(itemsByCollection.get(column.parentId) || []).length ? (
+            {!column.collections.length && !(itemsByCollection.get(column.parentId) || []).length ? (
               columnIndex === 0 ? (
                 <IllustratedEmptyState
                   className="resourceCollectionNavigatorEmpty"
@@ -242,20 +211,14 @@ export function CollectionColumns({
                   title="Nada cadastrado ainda"
                 />
               ) : (
-                <p className="resourceCollectionColumnEmpty">
-                  Nenhuma subcoleção
-                </p>
+                <p className="resourceCollectionColumnEmpty">Nenhuma subcoleção</p>
               )
             ) : null}
           </div>
           {onCreate ? (
             <CollectionAddForm
               disabled={creatingParentId === column.parentId}
-              error={
-                creationError?.parentId === column.parentId
-                  ? creationError.message
-                  : ""
-              }
+              error={creationError?.parentId === column.parentId ? creationError.message : ""}
               name={collectionDrafts[column.parentId] || ""}
               onChange={(name) => updateCollectionDraft(column.parentId, name)}
               onSubmit={(event) => createAt(event, column.parentId)}

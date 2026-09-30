@@ -36,10 +36,7 @@ export function EntityIdentifier({
       if (!didCopy) return;
       setCopied(true);
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-      resetTimerRef.current = setTimeout(
-        () => setCopied(false),
-        COPY_FEEDBACK_DURATION_MS,
-      );
+      resetTimerRef.current = setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION_MS);
     } catch {
       setCopied(false);
     }
@@ -61,9 +58,7 @@ export function EntityIdentifier({
       {showCopyButton ? (
         <button
           aria-live="polite"
-          aria-label={
-            copied ? `${label} copiado` : `Copiar ${label.toLowerCase()}`
-          }
+          aria-label={copied ? `${label} copiado` : `Copiar ${label.toLowerCase()}`}
           className="entityIdentifierCopy"
           disabled={!identifier}
           onClick={handleCopy}
@@ -72,11 +67,7 @@ export function EntityIdentifier({
           title={copied ? "Copiado" : `Copiar ${label.toLowerCase()}`}
           type="button"
         >
-          {copied ? (
-            <Check aria-hidden="true" size={13} />
-          ) : (
-            <Copy aria-hidden="true" size={13} />
-          )}
+          {copied ? <Check aria-hidden="true" size={13} /> : <Copy aria-hidden="true" size={13} />}
         </button>
       ) : (
         <></>

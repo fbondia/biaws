@@ -33,9 +33,7 @@ test("request tasks sort by configured status, natural identifier and newest cre
     },
   ];
 
-  tasks.sort((first, second) =>
-    compareRequestTasks(first, second, statusOptions),
-  );
+  tasks.sort((first, second) => compareRequestTasks(first, second, statusOptions));
 
   assert.deepEqual(
     tasks.map(({ id }) => id),

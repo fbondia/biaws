@@ -15,12 +15,7 @@ export function createDocument(document) {
 }
 
 export function saveDocument(id, document) {
-  return sendJson(
-    `${BASE_PATH}/${encodeURIComponent(id)}`,
-    document,
-    undefined,
-    "PUT",
-  );
+  return sendJson(`${BASE_PATH}/${encodeURIComponent(id)}`, document, undefined, "PUT");
 }
 
 export function archiveDocument(id) {
@@ -32,21 +27,11 @@ export function deleteDocument(id) {
 }
 
 export function restoreDocument(id) {
-  return sendJson(
-    `${BASE_PATH}/${encodeURIComponent(id)}/restore`,
-    {},
-    undefined,
-    "PATCH",
-  );
+  return sendJson(`${BASE_PATH}/${encodeURIComponent(id)}/restore`, {}, undefined, "PATCH");
 }
 
 export function moveDocumentToCollection(id, collectionId) {
-  return sendJson(
-    `${BASE_PATH}/${encodeURIComponent(id)}/collection`,
-    { collectionId },
-    undefined,
-    "PATCH",
-  );
+  return sendJson(`${BASE_PATH}/${encodeURIComponent(id)}/collection`, { collectionId }, undefined, "PATCH");
 }
 
 export function fetchDocumentRevisions(id) {
@@ -58,12 +43,7 @@ export function fetchDocumentObservations(id) {
 }
 
 export function addDocumentObservation(id, markdown) {
-  return sendJson(
-    `${BASE_PATH}/${encodeURIComponent(id)}/observations`,
-    { markdown },
-    undefined,
-    "POST",
-  );
+  return sendJson(`${BASE_PATH}/${encodeURIComponent(id)}/observations`, { markdown }, undefined, "POST");
 }
 
 export function replicateDocument(id, destinationWorkspaceIds) {

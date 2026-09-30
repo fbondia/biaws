@@ -1,19 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
-import {
-  fetchEmlSanitizationConfiguration,
-  importEml,
-  saveEmlSanitizationConfiguration,
-} from "../../../../api.js";
+import { fetchEmlSanitizationConfiguration, importEml, saveEmlSanitizationConfiguration } from "../../../../api.js";
 import { useFileDrop } from "../../../shared/useFileDrop.js";
 
-export function useEmlSanitizationDialog({
-  applicationId,
-  onClose,
-  onSaved,
-  sampleFile,
-  workspaceId,
-}) {
+export function useEmlSanitizationDialog({ applicationId, onClose, onSaved, sampleFile, workspaceId }) {
   const [config, setConfig] = useState(null);
   const [source, setSource] = useState("");
   const [previewFile, setPreviewFile] = useState(sampleFile || null);
@@ -46,9 +36,7 @@ export function useEmlSanitizationDialog({
 
   function selectPreviewFiles(files) {
     const file = files.find(
-      (candidate) =>
-        candidate.name.toLowerCase().endsWith(".eml") ||
-        candidate.type === "message/rfc822",
+      (candidate) => candidate.name.toLowerCase().endsWith(".eml") || candidate.type === "message/rfc822",
     );
     if (!file && files.length) {
       setError("Selecione um arquivo EML válido para gerar a prévia.");

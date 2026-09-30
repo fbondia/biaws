@@ -15,11 +15,7 @@ import { EntityIdentifier } from "../../shared/EntityIdentifier/index.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
 import { RequestDetails } from "../RequestDetails.jsx";
 import { RequestStatusChangeDialog } from "../RequestStatusChangeDialog.jsx";
-import {
-  normalizeRequest,
-  requestStatusLabel,
-  requestStatusStyle,
-} from "../requestUtils.js";
+import { normalizeRequest, requestStatusLabel, requestStatusStyle } from "../requestUtils.js";
 import { RequestDialogs } from "./components/RequestDialogs.jsx";
 import { RequestPagination } from "./components/RequestPagination.jsx";
 import { RequestsOverview } from "./components/RequestsOverview.jsx";
@@ -54,9 +50,7 @@ function RequestsNavigator({
   return (
     <ResourceCollectionNavigator
       canDragItem={() => canManageCollections || canReorder}
-      canDropOnCollection={(draggedItem) =>
-        draggedItem.type === "collection" || canManageCollections
-      }
+      canDropOnCollection={(draggedItem) => draggedItem.type === "collection" || canManageCollections}
       canReorderItem={() => canReorder}
       workspaceId={actor.workspaceId}
       className="requestCollectionsNavigator"
@@ -66,9 +60,7 @@ function RequestsNavigator({
       itemLabel="melhorias"
       items={items}
       preferenceKey="demands"
-      onCreate={
-        canManageCollections ? collectionState.createCollection : undefined
-      }
+      onCreate={canManageCollections ? collectionState.createCollection : undefined}
       onDelete={collectionState.removeCollection}
       onDragCollection={
         canManageCollections
@@ -87,13 +79,9 @@ function RequestsNavigator({
           collectionId: request.collectionId || "",
         })
       }
-      onDrop={(collectionId) =>
-        collectionState.dropItem(collectionId, moveImprovementToCollection)
-      }
+      onDrop={(collectionId) => collectionState.dropItem(collectionId, moveImprovementToCollection)}
       onRename={(collection) => collectionState.setCollectionDialog(collection)}
-      onReorderItem={(requestId, targetRequest) =>
-        moveRequest(requestId, targetRequest.id)
-      }
+      onReorderItem={(requestId, targetRequest) => moveRequest(requestId, targetRequest.id)}
       onSelect={onSelectCollection}
       onSelectItem={(request) => {
         setRequestPage(1);
@@ -109,16 +97,11 @@ function RequestsNavigator({
               showCopyButton={false}
               value={request.clientCode}
             />
-            <span
-              className="requestStatusChip"
-              style={requestStatusStyle(request.status)}
-            >
+            <span className="requestStatusChip" style={requestStatusStyle(request.status)}>
               {requestStatusLabel(request.status)}
             </span>
           </span>
-          <span className="requestCollectionItemDescription">
-            {request.title || "Sem título"}
-          </span>
+          <span className="requestCollectionItemDescription">{request.title || "Sem título"}</span>
         </span>
       )}
       selectedCollectionId={collectionState.selectedCollectionId}
@@ -127,11 +110,7 @@ function RequestsNavigator({
   );
 }
 
-export function RequestsView({
-  actor,
-  initialTaskTarget,
-  onInitialTaskTargetHandled,
-}) {
+export function RequestsView({ actor, initialTaskTarget, onInitialTaskTargetHandled }) {
   const [collectionError, setCollectionError] = useState("");
   const [taskToOpenId, setTaskToOpenId] = useState("");
   const [statusChange, setStatusChange] = useState(null);
@@ -235,11 +214,7 @@ export function RequestsView({
     if (!statusChange) return;
     const saved =
       statusChange.type === "request"
-        ? await changeRequestStatus(
-            statusChange.request.id,
-            statusChange.status,
-            statusChange.content,
-          )
+        ? await changeRequestStatus(statusChange.request.id, statusChange.status, statusChange.content)
         : await changeRequestTaskStatus(
             statusChange.request.id,
             statusChange.task.id,
@@ -282,10 +257,7 @@ export function RequestsView({
         <div>
           <span>Operação</span>
           <h2>Projetos e Melhorias</h2>
-          <p>
-            Organize melhorias e acompanhe sua evolução no contexto das
-            aplicações.
-          </p>
+          <p>Organize melhorias e acompanhe sua evolução no contexto das aplicações.</p>
         </div>
         <button
           className="primaryButton"
@@ -298,23 +270,16 @@ export function RequestsView({
         </button>
       </header>
 
-      <RequestError
-        collectionError={collectionError}
-        requestError={requestError}
-      />
+      <RequestError collectionError={collectionError} requestError={requestError} />
 
       <ResourceCollectionsShell
-        canDropRoot={(draggedItem) =>
-          draggedItem.type === "collection" || canManageCollections
-        }
+        canDropRoot={(draggedItem) => draggedItem.type === "collection" || canManageCollections}
         className="requestsCollectionsLayout"
         collections={collectionState.collections}
         detailVisible={Boolean(selectedRequest)}
         draggedItem={collectionState.draggedItem}
         initialNavigationWidth={400}
-        onDropRoot={() =>
-          collectionState.dropItem("", moveImprovementToCollection)
-        }
+        onDropRoot={() => collectionState.dropItem("", moveImprovementToCollection)}
         onNavigateBack={closeSelectedRequest}
         onSelectCollection={selectCollection}
         pathLabel={
@@ -424,12 +389,8 @@ export function RequestsView({
               updateRequest(selectedRequest.id, () => nextRequest);
               schedulePersistRequest(nextRequest);
             }}
-            onChangeStatus={
-              canChangeRequestStatus ? requestStatusChange : undefined
-            }
-            onChangeTaskStatus={
-              canChangeTaskStatus ? taskStatusChange : undefined
-            }
+            onChangeStatus={canChangeRequestStatus ? requestStatusChange : undefined}
+            onChangeTaskStatus={canChangeTaskStatus ? taskStatusChange : undefined}
             onRemoveSpecificationSection={removeSpecificationSection}
             onRemoveChecklistItem={removeChecklistItem}
             onTabChange={setActiveDetailTab}
@@ -454,9 +415,7 @@ export function RequestsView({
             journeyMonths={scheduleJourneyMonths}
             journeyRequests={scheduleJourneyRequests}
             loading={loadingRequests}
-            onChangeTaskStatus={
-              canChangeTaskStatus ? taskStatusChange : undefined
-            }
+            onChangeTaskStatus={canChangeTaskStatus ? taskStatusChange : undefined}
             onSelectRequest={selectRequest}
             onTabChange={setActiveOverviewTab}
             scheduleRequests={scheduleRequests}
@@ -473,22 +432,14 @@ export function RequestsView({
         setNewContext={setNewContext}
       />
       <RequestStatusChangeDialog
-        canAddNote={
-          statusChange?.type === "request" ? canAddRequestNote : canAddTaskNote
-        }
+        canAddNote={statusChange?.type === "request" ? canAddRequestNote : canAddTaskNote}
         draft={statusChange}
         onChange={setStatusChange}
         onClose={() => setStatusChange(null)}
         onSave={() => saveStatusChange()}
-        saving={Boolean(
-          statusChange && savingRequestId === statusChange.request.id,
-        )}
+        saving={Boolean(statusChange && savingRequestId === statusChange.request.id)}
         subjectLabel={statusChange?.type === "request" ? "Melhoria" : "Tarefa"}
-        title={
-          statusChange?.type === "request"
-            ? statusChange.request.title
-            : statusChange?.task.title
-        }
+        title={statusChange?.type === "request" ? statusChange.request.title : statusChange?.task.title}
       />
     </section>
   );

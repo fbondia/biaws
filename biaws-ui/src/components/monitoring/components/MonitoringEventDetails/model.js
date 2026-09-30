@@ -16,13 +16,9 @@ function statusText(value) {
 }
 
 export function monitoringStatusTone(value) {
-  const normalized =
-    typeof value === "string" ? value.trim().toUpperCase() : value;
+  const normalized = typeof value === "string" ? value.trim().toUpperCase() : value;
   if (normalized === true || normalized === "UP") return "healthy";
-  if (
-    normalized === false ||
-    ["DOWN", "OUT_OF_SERVICE", "UNAVAILABLE"].includes(normalized)
-  ) {
+  if (normalized === false || ["DOWN", "OUT_OF_SERVICE", "UNAVAILABLE"].includes(normalized)) {
     return "unavailable";
   }
   return "unknown";
@@ -46,9 +42,7 @@ function formatFileCount(value) {
 
 function formatDate(value) {
   const date = new Date(`${value}T00:00:00.000Z`);
-  return Number.isNaN(date.getTime())
-    ? null
-    : date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
 }
 
 export function formatMonitoringValue(value, format) {
@@ -93,20 +87,13 @@ export function monitoringPresentationSeries(event) {
   return series.flatMap((definition) => {
     const xValues = metadata[definition.xKey];
     const yValues = metadata[definition.yKey];
-    if (
-      !Array.isArray(xValues) ||
-      !Array.isArray(yValues) ||
-      xValues.length !== yValues.length ||
-      !xValues.length
-    ) {
+    if (!Array.isArray(xValues) || !Array.isArray(yValues) || xValues.length !== yValues.length || !xValues.length) {
       return [];
     }
     return [
       {
         ...definition,
-        yFormat: definition.yFormatKey
-          ? metadata[definition.yFormatKey]
-          : definition.yFormat,
+        yFormat: definition.yFormatKey ? metadata[definition.yFormatKey] : definition.yFormat,
         data: xValues.map((x, index) => ({ x, y: yValues[index] })),
       },
     ];

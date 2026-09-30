@@ -12,8 +12,7 @@ test("REST provider validates, resolves references and truncates evidence", asyn
     allowPrivateAddresses: true,
     maxEvidenceBytes: 20,
     lookup: localLookup,
-    resolveReference: async (reference) =>
-      reference === "health-token" ? "Bearer private-value" : "",
+    resolveReference: async (reference) => (reference === "health-token" ? "Bearer private-value" : ""),
     request: async (_url, _configuration, headers) => {
       authorization = headers.Authorization;
       return {
@@ -131,37 +130,19 @@ test("REST templates accept only complete JSON responses and publish parsed evid
     configuration,
     templateRef: { id: "health", version: "1" },
   };
-  const valid = response(
-    { "content-type": "application/health+json; charset=utf-8" },
-    '{"service":{"up":true}}',
-  );
+  const valid = response({ "content-type": "application/health+json; charset=utf-8" }, '{"service":{"up":true}}');
   assert.deepEqual((await valid.execute(monitor, {})).payload, {
     service: { up: true },
   });
-  await assert.rejects(
-    response({ "content-type": "text/plain" }, "{}").execute(monitor, {}),
-    {
-      code: "TEMPLATE_EVALUATION_FAILED",
-    },
-  );
-  await assert.rejects(
-    response({ "content-type": "application/json" }, "not-json").execute(
-      monitor,
-      {},
-    ),
-    {
-      code: "TEMPLATE_EVALUATION_FAILED",
-    },
-  );
-  await assert.rejects(
-    response({ "content-type": "application/json" }, "{}", 8_001).execute(
-      monitor,
-      {},
-    ),
-    {
-      code: "TEMPLATE_EVALUATION_FAILED",
-    },
-  );
+  await assert.rejects(response({ "content-type": "text/plain" }, "{}").execute(monitor, {}), {
+    code: "TEMPLATE_EVALUATION_FAILED",
+  });
+  await assert.rejects(response({ "content-type": "application/json" }, "not-json").execute(monitor, {}), {
+    code: "TEMPLATE_EVALUATION_FAILED",
+  });
+  await assert.rejects(response({ "content-type": "application/json" }, "{}", 8_001).execute(monitor, {}), {
+    code: "TEMPLATE_EVALUATION_FAILED",
+  });
   const explicitlyTruncated = createRestProvider({
     allowedHosts: ["rest.test"],
     allowPrivateAddresses: true,

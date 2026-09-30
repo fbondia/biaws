@@ -43,14 +43,8 @@ test("monitoring template drafts expose the unified JSONata contract", () => {
 
 test("monitoring template preview parses a sanitized JSON sample", () => {
   const draft = monitoringTemplateDraft();
-  const payload = monitoringTemplatePreviewPayload(
-    draft,
-    JSON.stringify(DEFAULT_PREVIEW_SAMPLE),
-  );
+  const payload = monitoringTemplatePreviewPayload(draft, JSON.stringify(DEFAULT_PREVIEW_SAMPLE));
   assert.equal(payload.sample.statusCode, 200);
-  assert.throws(
-    () => monitoringTemplatePreviewPayload(draft, "not-json"),
-    /A amostra contém JSON inválido/u,
-  );
+  assert.throws(() => monitoringTemplatePreviewPayload(draft, "not-json"), /A amostra contém JSON inválido/u);
   assert.equal(templateStatusLabel("active"), "Ativo");
 });

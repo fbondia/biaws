@@ -1,10 +1,6 @@
 import { CheckCircle2, Circle, X } from "lucide-react";
 
-export function RequestChecklistDialog({
-  item,
-  onClose,
-  onUpdateChecklistItem,
-}) {
+export function RequestChecklistDialog({ item, onClose, onUpdateChecklistItem }) {
   if (!item) return null;
 
   return (
@@ -20,12 +16,7 @@ export function RequestChecklistDialog({
             <span>Checklist</span>
             <h3 id="requestChecklistDialogTitle">{item.label}</h3>
           </div>
-          <button
-            className="iconButton"
-            onClick={onClose}
-            title="Fechar"
-            type="button"
-          >
+          <button className="iconButton" onClick={onClose} title="Fechar" type="button">
             <X size={18} />
           </button>
         </header>
@@ -33,9 +24,7 @@ export function RequestChecklistDialog({
         <button
           aria-pressed={item.done}
           className={
-            item.done
-              ? "requestChecklistDialogToggle completedChecklistStatus"
-              : "requestChecklistDialogToggle"
+            item.done ? "requestChecklistDialogToggle completedChecklistStatus" : "requestChecklistDialogToggle"
           }
           onClick={() => onUpdateChecklistItem(item.label, "done", !item.done)}
           type="button"
@@ -47,9 +36,7 @@ export function RequestChecklistDialog({
         <label className="field">
           <span>Data</span>
           <input
-            onChange={(event) =>
-              onUpdateChecklistItem(item.label, "date", event.target.value)
-            }
+            onChange={(event) => onUpdateChecklistItem(item.label, "date", event.target.value)}
             type="date"
             value={item.date}
           />
@@ -58,9 +45,7 @@ export function RequestChecklistDialog({
         <label className="field requestChecklistDialogComment">
           <span>Comentários</span>
           <textarea
-            onChange={(event) =>
-              onUpdateChecklistItem(item.label, "comment", event.target.value)
-            }
+            onChange={(event) => onUpdateChecklistItem(item.label, "comment", event.target.value)}
             value={item.comment}
           />
         </label>

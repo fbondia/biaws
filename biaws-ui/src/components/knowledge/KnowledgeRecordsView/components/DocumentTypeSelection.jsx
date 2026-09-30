@@ -6,27 +6,16 @@ export function DocumentTypeSelection({ onContinue, onSelect, selectedType }) {
       <header>
         <span className="documentTypeCreationEyebrow">Novo documento</span>
         <h2>Qual tipo de documento você quer criar?</h2>
-        <p>
-          Escolha o tipo que melhor representa o conhecimento que será
-          registrado.
-        </p>
+        <p>Escolha o tipo que melhor representa o conhecimento que será registrado.</p>
       </header>
-      <div
-        aria-label="Tipos de documento disponíveis"
-        className="documentTypeCreationGrid"
-        role="group"
-      >
+      <div aria-label="Tipos de documento disponíveis" className="documentTypeCreationGrid" role="group">
         {Object.entries(DOCUMENT_TYPES).map(([value, config]) => {
           const TypeIcon = config.icon;
           const selected = selectedType === value;
           return (
             <button
               aria-pressed={selected}
-              className={
-                selected
-                  ? "documentTypeCreationCard selected"
-                  : "documentTypeCreationCard"
-              }
+              className={selected ? "documentTypeCreationCard selected" : "documentTypeCreationCard"}
               key={value}
               onClick={() => onSelect(value)}
               type="button"

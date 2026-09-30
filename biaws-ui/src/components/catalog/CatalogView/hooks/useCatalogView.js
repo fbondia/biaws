@@ -36,13 +36,8 @@ export function useCatalogView(actor) {
   const [error, setError] = useState("");
   const [dialog, setDialog] = useState(null);
   const applicationLoadVersionRef = useRef(0);
-  const {
-    loadRuntimes,
-    resetRuntimes,
-    runtimeByDeployment,
-    runtimeErrorByDeployment,
-    runtimeLoadingByDeployment,
-  } = useCatalogRuntimes(actor);
+  const { loadRuntimes, resetRuntimes, runtimeByDeployment, runtimeErrorByDeployment, runtimeLoadingByDeployment } =
+    useCatalogRuntimes(actor);
 
   const visibleTabs = useMemo(() => visibleCatalogTabs(actor), [actor]);
 
@@ -57,11 +52,7 @@ export function useCatalogView(actor) {
     });
     if (loadVersion !== applicationLoadVersionRef.current) return;
     setApplications(payload.items || []);
-    setSelectedId((current) =>
-      current && (payload.items || []).some(({ id }) => id === current)
-        ? current
-        : "",
-    );
+    setSelectedId((current) => (current && (payload.items || []).some(({ id }) => id === current) ? current : ""));
   }
 
   async function loadWorkspaceAndApplications() {
@@ -69,9 +60,7 @@ export function useCatalogView(actor) {
     setError("");
     try {
       const payload = await fetchWorkspaces();
-      const operational = (payload.items || []).find(
-        ({ id }) => id === actor.workspaceId,
-      );
+      const operational = (payload.items || []).find(({ id }) => id === actor.workspaceId);
       setWorkspace(operational || null);
       if (operational) await loadApplications(operational);
     } catch (loadError) {
@@ -109,9 +98,7 @@ export function useCatalogView(actor) {
               limit: 100,
             })
           : null,
-        hasPermission(actor, "servers.read") && workspace?.id
-          ? fetchServers(workspace.id, { limit: 100 })
-          : null,
+        hasPermission(actor, "servers.read") && workspace?.id ? fetchServers(workspace.id, { limit: 100 }) : null,
         hasPermission(actor, "integrations.read")
           ? fetchIntegrations(applicationId, {
               includeArchived: true,
@@ -119,19 +106,10 @@ export function useCatalogView(actor) {
             })
           : null,
         workspace?.id ? fetchApplications(workspace.id, { limit: 100 }) : null,
-        hasPermission(actor, "runtimes.read")
-          ? fetchApplicationMonitoringHealth(applicationId)
-          : null,
+        hasPermission(actor, "runtimes.read") ? fetchApplicationMonitoringHealth(applicationId) : null,
       ].map((task) => task || Promise.resolve({ items: [] }));
-      const [
-        components,
-        repositories,
-        deployments,
-        servers,
-        integrations,
-        availableApplications,
-        monitoringHealth,
-      ] = await Promise.all(tasks);
+      const [components, repositories, deployments, servers, integrations, availableApplications, monitoringHealth] =
+        await Promise.all(tasks);
       setContext({
         application: applicationPayload.application,
         components: components.items || [],
@@ -139,9 +117,7 @@ export function useCatalogView(actor) {
         deployments: deployments.items || [],
         servers: servers.items || [],
         integrations: integrations.items || [],
-        availableApplications: (availableApplications.items || []).filter(
-          ({ id }) => id !== applicationId,
-        ),
+        availableApplications: (availableApplications.items || []).filter(({ id }) => id !== applicationId),
         monitoringHealth: monitoringHealth.health || null,
       });
       resetRuntimes();
@@ -193,15 +169,11 @@ export function useCatalogView(actor) {
 
   async function persistEntity(payload) {
     const api = CATALOG_ENTITY_API[dialog.kind];
-    const runtimeDeploymentId =
-      dialog.kind === "runtime"
-        ? dialog.deploymentId || dialog.entity?.deploymentId
-        : "";
+    const runtimeDeploymentId = dialog.kind === "runtime" ? dialog.deploymentId || dialog.entity?.deploymentId : "";
     if (dialog.entity?.id) {
       await api.update(dialog.entity.id, payload);
     } else {
-      const parentId =
-        dialog.kind === "runtime" ? runtimeDeploymentId : selectedId;
+      const parentId = dialog.kind === "runtime" ? runtimeDeploymentId : selectedId;
       await api.create(parentId, payload);
     }
     if (dialog.kind === "runtime") {
@@ -283,12 +255,8 @@ export function useCatalogView(actor) {
     }
   }
 
-  async function archiveApplicationItem(
-    application,
-    { surfaceError = true } = {},
-  ) {
-    if (!application || !(await confirm(`Arquivar “${application.name}”?`)))
-      return false;
+  async function archiveApplicationItem(application, { surfaceError = true } = {}) {
+    if (!application || !(await confirm(`Arquivar “${application.name}”?`))) return false;
     setError("");
     try {
       await archiveApplication(application.id);

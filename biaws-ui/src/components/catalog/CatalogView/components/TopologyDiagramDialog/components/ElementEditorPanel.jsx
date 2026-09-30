@@ -14,9 +14,7 @@ export function ElementEditorPanel({ controller }) {
           aria-describedby="topology-element-validation"
           aria-invalid={!selectedElementType.trim()}
           disabled={!canEdit}
-          onChange={(event) =>
-            actions.updateSelectedElement("type", event.target.value)
-          }
+          onChange={(event) => actions.updateSelectedElement("type", event.target.value)}
           placeholder="Ex.: Firewall, serviço externo, domínio"
           value={selectedElementType}
         />
@@ -27,18 +25,12 @@ export function ElementEditorPanel({ controller }) {
           aria-describedby="topology-element-validation"
           aria-invalid={!element.title.trim()}
           disabled={!canEdit}
-          onChange={(event) =>
-            actions.updateSelectedElement("title", event.target.value)
-          }
+          onChange={(event) => actions.updateSelectedElement("title", event.target.value)}
           value={element.title}
         />
       </label>
       {!selectedElementType.trim() || !element.title.trim() ? (
-        <small
-          className="topologyDiagramGroupValidation"
-          id="topology-element-validation"
-          role="alert"
-        >
+        <small className="topologyDiagramGroupValidation" id="topology-element-validation" role="alert">
           Informe o tipo e o título para salvar o diagrama.
         </small>
       ) : null}
@@ -46,9 +38,7 @@ export function ElementEditorPanel({ controller }) {
         <span>Descrição</span>
         <textarea
           disabled={!canEdit}
-          onChange={(event) =>
-            actions.updateSelectedElement("description", event.target.value)
-          }
+          onChange={(event) => actions.updateSelectedElement("description", event.target.value)}
           rows={4}
           value={element.description || ""}
         />
@@ -59,9 +49,7 @@ export function ElementEditorPanel({ controller }) {
           <input
             aria-label="Cor do cabeçalho"
             disabled={!canEdit}
-            onChange={(event) =>
-              actions.updateSelectedElement("headerColor", event.target.value)
-            }
+            onChange={(event) => actions.updateSelectedElement("headerColor", event.target.value)}
             type="color"
             value={element.headerColor || "#edf9f5"}
           />
@@ -69,11 +57,7 @@ export function ElementEditorPanel({ controller }) {
         </div>
       </label>
       {canEdit ? (
-        <button
-          className="dangerButton"
-          onClick={actions.removeSelectedElement}
-          type="button"
-        >
+        <button className="dangerButton" onClick={actions.removeSelectedElement} type="button">
           <Trash2 size={14} /> Remover elemento
         </button>
       ) : null}

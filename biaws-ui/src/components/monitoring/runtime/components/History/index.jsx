@@ -6,23 +6,11 @@ import { MonitoringHealthTimeline } from "../../../components/MonitoringHealthTi
 import { MonitoringHistoryViewSwitch } from "../../../components/MonitoringHistoryViewSwitch.jsx";
 import { RUNTIME_STATUSES } from "../../../../catalog/CatalogEntityDialog/constants.js";
 import { monitoringOriginLabel } from "../../model.js";
-import {
-  HistoryItems,
-  SelectField,
-  TextField,
-} from "../../../../catalog/CatalogEntityDialog/components/Fields.jsx";
+import { HistoryItems, SelectField, TextField } from "../../../../catalog/CatalogEntityDialog/components/Fields.jsx";
 import { Feedback, formatDate, useNestedDialogKeyboard } from "../support.jsx";
 
-function ObservationDialog({
-  draft,
-  entity,
-  onChange,
-  onClose,
-  onSave,
-  saving,
-}) {
-  const update = (name, value) =>
-    onChange((current) => ({ ...current, [name]: value }));
+function ObservationDialog({ draft, entity, onChange, onClose, onSave, saving }) {
+  const update = (name, value) => onChange((current) => ({ ...current, [name]: value }));
   const dialogRef = useNestedDialogKeyboard(onClose, saving);
   return (
     <div className="dialogBackdrop catalogMonitoringNestedBackdrop">
@@ -51,8 +39,7 @@ function ObservationDialog({
         </header>
         <div className="catalogMonitoringDialogBody">
           <div className="catalogObservationContext catalogWideField">
-            Runtime <strong>{entity?.key}</strong>. Esta observação será
-            distinguida como manual no histórico.
+            Runtime <strong>{entity?.key}</strong>. Esta observação será distinguida como manual no histórico.
           </div>
           <SelectField
             label="Saúde observada"
@@ -79,28 +66,14 @@ function ObservationDialog({
           />
           <label className="field catalogWideField">
             <span>Mensagem</span>
-            <textarea
-              onChange={(event) => update("message", event.target.value)}
-              rows={4}
-              value={draft.message}
-            />
+            <textarea onChange={(event) => update("message", event.target.value)} rows={4} value={draft.message} />
           </label>
         </div>
         <footer>
-          <button
-            className="secondaryButton"
-            disabled={saving}
-            onClick={onClose}
-            type="button"
-          >
+          <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
             Cancelar
           </button>
-          <button
-            className="primaryButton"
-            disabled={saving || !draft.observedAt}
-            onClick={onSave}
-            type="button"
-          >
+          <button className="primaryButton" disabled={saving || !draft.observedAt} onClick={onSave} type="button">
             {saving ? "Registrando..." : "Confirmar observação"}
           </button>
         </footer>
@@ -109,12 +82,7 @@ function ObservationDialog({
   );
 }
 
-export function RuntimeMonitoringHistory({
-  controller,
-  editing,
-  entity,
-  options,
-}) {
+export function RuntimeMonitoringHistory({ controller, editing, entity, options }) {
   const [viewMode, setViewMode] = useState("timeline");
   const {
     activeMonitors = [],
@@ -136,31 +104,19 @@ export function RuntimeMonitoringHistory({
       <div className="catalogMonitoringSectionHeader">
         <div>
           <h3>Histórico unificado</h3>
-          <span>
-            Observações ativas, passivas e manuais com detalhes sanitizados.
-          </span>
+          <span>Observações ativas, passivas e manuais com detalhes sanitizados.</span>
         </div>
         <div className="monitoringHistoryActions">
-          <MonitoringHistoryViewSwitch
-            onChange={setViewMode}
-            value={viewMode}
-          />
+          <MonitoringHistoryViewSwitch onChange={setViewMode} value={viewMode} />
           {options.canUpdateRuntime && editing ? (
-            <button
-              className="primaryButton"
-              onClick={openObservation}
-              type="button"
-            >
+            <button className="primaryButton" onClick={openObservation} type="button">
               <Plus size={16} /> Observação manual
             </button>
           ) : null}
         </div>
       </div>
       {viewMode === "timeline" ? (
-        <MonitoringHealthTimeline
-          monitors={activeMonitors}
-          runtimeId={entity?.id}
-        />
+        <MonitoringHealthTimeline monitors={activeMonitors} runtimeId={entity?.id} />
       ) : monitoringLoading && !monitoringEvents.length ? (
         <div className="catalogHistoryEmpty" role="status">
           Carregando histórico…
@@ -173,9 +129,7 @@ export function RuntimeMonitoringHistory({
             <>
               <div className="catalogMonitoringEventHeading monitoringEventHeading">
                 <strong>{event.status}</strong>
-                <span
-                  className={`monitoringOriginBadge monitoringOriginBadge-${event.origin || "passive"}`}
-                >
+                <span className={`monitoringOriginBadge monitoringOriginBadge-${event.origin || "passive"}`}>
                   {monitoringOriginLabel(event.origin)}
                 </span>
               </div>

@@ -174,27 +174,18 @@
   white-space: nowrap;
 }
 
-.requestCollectionsNavigator
-  .selectedResourceCollectionItem
-  .resourceCollectionItemContent {
+.requestCollectionsNavigator .selectedResourceCollectionItem .resourceCollectionItemContent {
   border-radius: 6px;
   background: var(--palette-blue-36);
   color: var(--palette-neutral-05);
 }
 
-.requestCollectionsNavigator
-  .selectedResourceCollectionItem
-  .requestCollectionItemHeader
-  strong,
-.requestCollectionsNavigator
-  .selectedResourceCollectionItem
-  .requestCollectionItemDescription {
+.requestCollectionsNavigator .selectedResourceCollectionItem .requestCollectionItemHeader strong,
+.requestCollectionsNavigator .selectedResourceCollectionItem .requestCollectionItemDescription {
   color: var(--palette-neutral-05);
 }
 
-.requestCollectionsNavigator
-  .selectedResourceCollectionItem
-  .requestStatusChip {
+.requestCollectionsNavigator .selectedResourceCollectionItem .requestStatusChip {
   border-color: var(--palette-alpha-neutral-02) !important;
   background: var(--palette-alpha-neutral-01) !important;
   color: var(--palette-neutral-01) !important;

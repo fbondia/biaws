@@ -1,13 +1,4 @@
-import {
-  ArrowLeft,
-  Check,
-  ChevronDown,
-  Copy,
-  Settings,
-  SlidersHorizontal,
-  Terminal,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, Copy, Settings, SlidersHorizontal, Terminal, X } from "lucide-react";
 import { buildLocalDevelopmentCommands } from "../../../model.js";
 import { LocalCommandCard, NavigationButton } from "./AppHeaderUtilities.jsx";
 
@@ -19,17 +10,10 @@ const LOCAL_SETUP_TABS = [
 ];
 
 function navigationGroupIsActive(group, activeView) {
-  return group.sections.some(({ views }) =>
-    views.some(({ key }) => key === activeView),
-  );
+  return group.sections.some(({ views }) => views.some(({ key }) => key === activeView));
 }
 
-export function NavigationMenuSection({
-  activeView,
-  groupKey,
-  onSelectView,
-  section,
-}) {
+export function NavigationMenuSection({ activeView, groupKey, onSelectView, section }) {
   return (
     <section aria-label={section.label} className="navigationSubmenuSection">
       <span className="navigationSubmenuLabel">{section.label}</span>
@@ -46,13 +30,7 @@ export function NavigationMenuSection({
   );
 }
 
-export function NavigationMenu({
-  activeView,
-  group,
-  onMenuRef,
-  onOpen,
-  onSelectView,
-}) {
+export function NavigationMenu({ activeView, group, onMenuRef, onOpen, onSelectView }) {
   const GroupIcon = group.icon;
   const active = navigationGroupIsActive(group, activeView);
   return (
@@ -61,10 +39,7 @@ export function NavigationMenu({
       onToggle={(event) => event.currentTarget.open && onOpen(group.key)}
       ref={(menu) => onMenuRef(group.key, menu)}
     >
-      <summary
-        aria-current={active ? "page" : undefined}
-        className={active ? "viewTab activeViewTab" : "viewTab"}
-      >
+      <summary aria-current={active ? "page" : undefined} className={active ? "viewTab activeViewTab" : "viewTab"}>
         <GroupIcon size={16} /> {group.label}
         <ChevronDown className="navigationMenuChevron" size={14} />
       </summary>
@@ -85,11 +60,7 @@ export function NavigationMenu({
 
 export function WorkspaceList({ currentWorkspaceId, onSelect, workspaces }) {
   if (!workspaces.length) {
-    return (
-      <p className="workspaceSwitcherEmpty">
-        Nenhum workspace associado à sua identidade.
-      </p>
-    );
+    return <p className="workspaceSwitcherEmpty">Nenhum workspace associado à sua identidade.</p>;
   }
   return (
     <div className="workspaceSwitcherList">
@@ -98,11 +69,7 @@ export function WorkspaceList({ currentWorkspaceId, onSelect, workspaces }) {
         return (
           <button
             aria-current={selected ? "true" : undefined}
-            className={
-              selected
-                ? "workspaceSwitcherItem selected"
-                : "workspaceSwitcherItem"
-            }
+            className={selected ? "workspaceSwitcherItem selected" : "workspaceSwitcherItem"}
             key={workspace.id}
             onClick={() => onSelect(workspace.id)}
             type="button"
@@ -121,11 +88,7 @@ export function WorkspaceList({ currentWorkspaceId, onSelect, workspaces }) {
 
 export function LocalSetupTabs({ activeTab, onSelect }) {
   return (
-    <div
-      aria-label="Formas de sincronizar o projeto"
-      className="workspaceLocalTabs"
-      role="tablist"
-    >
+    <div aria-label="Formas de sincronizar o projeto" className="workspaceLocalTabs" role="tablist">
       {LOCAL_SETUP_TABS.map((tab) => (
         <button
           aria-controls={`workspace-local-panel-${tab.key}`}
@@ -144,14 +107,7 @@ export function LocalSetupTabs({ activeTab, onSelect }) {
   );
 }
 
-export function LocalSetupPanel({
-  commands,
-  copyStatus,
-  disabled,
-  onCopy,
-  tab,
-  workspaceId,
-}) {
+export function LocalSetupPanel({ commands, copyStatus, disabled, onCopy, tab, workspaceId }) {
   const common = { copyStatus, disabled, onCopy, workspaceId };
   if (tab === "setup")
     return (

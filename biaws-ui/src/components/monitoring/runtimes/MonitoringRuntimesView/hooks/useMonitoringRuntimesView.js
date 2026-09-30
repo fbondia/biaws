@@ -40,9 +40,7 @@ export function useMonitoringRuntimesView(actor) {
   const [runtime, setRuntime] = useState(null);
   const [viewMode, setViewMode] = useState("navigation");
   const [monitoredOnly, setMonitoredOnly] = useState(true);
-  const [monitoredTopology, setMonitoredTopology] = useState(
-    EMPTY_MONITORED_TOPOLOGY,
-  );
+  const [monitoredTopology, setMonitoredTopology] = useState(EMPTY_MONITORED_TOPOLOGY);
   const [loading, setLoading] = useState(true);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [error, setError] = useState("");
@@ -62,26 +60,14 @@ export function useMonitoringRuntimesView(actor) {
         monitoredOnly,
         topology: monitoredTopology,
       }),
-    [
-      applications,
-      collections,
-      components,
-      deployments,
-      monitoredOnly,
-      monitoredTopology,
-    ],
+    [applications, collections, components, deployments, monitoredOnly, monitoredTopology],
   );
   const visibleApplications = useMemo(
-    () =>
-      applicationsInCollection(
-        filteredTopology.applications,
-        selectedCollectionId,
-      ),
+    () => applicationsInCollection(filteredTopology.applications, selectedCollectionId),
     [filteredTopology.applications, selectedCollectionId],
   );
   const showRootCollection = useMemo(
-    () =>
-      applicationsInCollection(filteredTopology.applications, "").length > 0,
+    () => applicationsInCollection(filteredTopology.applications, "").length > 0,
     [filteredTopology.applications],
   );
   const visibleDeployments = useMemo(
@@ -104,16 +90,9 @@ export function useMonitoringRuntimesView(actor) {
     setError("");
     try {
       const workspacePayload = await fetchWorkspaces();
-      const currentWorkspace = (workspacePayload.items || []).find(
-        ({ id }) => id === actor.workspaceId,
-      );
+      const currentWorkspace = (workspacePayload.items || []).find(({ id }) => id === actor.workspaceId);
       if (!currentWorkspace) throw new Error("Workspace atual não encontrado.");
-      const [
-        collectionPayload,
-        applicationPayload,
-        serverPayload,
-        monitoringTopologyPayload,
-      ] = await Promise.all([
+      const [collectionPayload, applicationPayload, serverPayload, monitoringTopologyPayload] = await Promise.all([
         fetchResourceCollections("applications"),
         fetchApplications(currentWorkspace.id, { limit: 100 }),
         hasPermission(actor, "servers.read")
@@ -171,17 +150,10 @@ export function useMonitoringRuntimesView(actor) {
     setLoading(true);
     setError("");
     try {
-      const payload = await fetchRuntimes(
-        nextDeployment.id,
-        runtimeListParams(onlyMonitored),
-      );
+      const payload = await fetchRuntimes(nextDeployment.id, runtimeListParams(onlyMonitored));
       const nextRuntimes = payload.items || [];
       setRuntimes(nextRuntimes);
-      setRuntime((current) =>
-        current && nextRuntimes.some(({ id }) => id === current.id)
-          ? current
-          : null,
-      );
+      setRuntime((current) => (current && nextRuntimes.some(({ id }) => id === current.id) ? current : null));
     } catch (loadError) {
       setError(loadError.message);
     } finally {
@@ -217,10 +189,7 @@ export function useMonitoringRuntimesView(actor) {
           topology: nextTopology,
         }).collections.map(({ id }) => id),
       );
-      if (
-        selectedCollectionId &&
-        !visibleCollectionIds.has(selectedCollectionId)
-      ) {
+      if (selectedCollectionId && !visibleCollectionIds.has(selectedCollectionId)) {
         setSelectedCollectionId("");
       }
       resetNavigation();

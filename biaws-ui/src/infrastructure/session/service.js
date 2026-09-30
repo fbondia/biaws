@@ -32,13 +32,9 @@ function signInCompletionEvent(nextState, durationMs) {
   return {
     context: { durationMs },
     error: failed ? nextState.error : undefined,
-    event: authenticated
-      ? "session.sign_in.completed"
-      : "session.sign_in.incomplete",
+    event: authenticated ? "session.sign_in.completed" : "session.sign_in.incomplete",
     level: authenticated ? "info" : failed ? "error" : "warn",
-    message: authenticated
-      ? "Sign-in completed"
-      : "Sign-in did not establish an authenticated session",
+    message: authenticated ? "Sign-in completed" : "Sign-in did not establish an authenticated session",
   };
 }
 
@@ -49,18 +45,14 @@ function signInFailureEvent(error, durationMs) {
     error,
     event: unauthorized ? "session.sign_in.rejected" : "session.sign_in.failed",
     level: unauthorized ? "warn" : "error",
-    message: unauthorized
-      ? "Sign-in was rejected"
-      : "Sign-in failed unexpectedly",
+    message: unauthorized ? "Sign-in was rejected" : "Sign-in failed unexpectedly",
   };
 }
 
 function ensureReauthenticated(nextState) {
   if (nextState.status === SESSION_STATUS.AUTHENTICATED) return;
   const error = new Error(
-    nextState.error?.message ||
-      nextState.reason ||
-      "Não foi possível restaurar a sessão. Tente novamente.",
+    nextState.error?.message || nextState.reason || "Não foi possível restaurar a sessão. Tente novamente.",
   );
   error.code = nextState.error?.code || "REAUTHENTICATION_INCOMPLETE";
   throw error;
@@ -126,9 +118,7 @@ export function createSessionService({
   function publishRestoredActor(actor, source) {
     confirmedWorkspaceId = adapter.getWorkspaceId();
     const nextState = publish(
-      actor
-        ? { actor, status: SESSION_STATUS.AUTHENTICATED }
-        : { status: SESSION_STATUS.ANONYMOUS },
+      actor ? { actor, status: SESSION_STATUS.AUTHENTICATED } : { status: SESSION_STATUS.ANONYMOUS },
     );
     if (actor && ["initialize", "refresh"].includes(source)) {
       emit({
@@ -141,11 +131,7 @@ export function createSessionService({
     return { applied: true, state: nextState };
   }
 
-  async function handleRestoreFailure(
-    error,
-    version,
-    { preserveSelection, source },
-  ) {
+  async function handleRestoreFailure(error, version, { preserveSelection, source }) {
     if (version !== operationVersion) return { applied: false, state };
     if (isWorkspaceForbidden(error) && adapter.getWorkspaceId()) {
       emit({
@@ -203,10 +189,7 @@ export function createSessionService({
     };
   }
 
-  async function restoreForOperation(
-    version,
-    { preserveSelection = true, source = "refresh" } = {},
-  ) {
+  async function restoreForOperation(version, { preserveSelection = true, source = "refresh" } = {}) {
     try {
       const actor = await adapter.restore();
       if (version !== operationVersion) return { applied: false, state };
@@ -245,8 +228,7 @@ export function createSessionService({
   async function signIn(credentials) {
     const startedAt = now();
     const stateBeforeSignIn = state;
-    const reauthenticating =
-      stateBeforeSignIn.status === SESSION_STATUS.EXPIRED;
+    const reauthenticating = stateBeforeSignIn.status === SESSION_STATUS.EXPIRED;
     clear("sign-in");
     emit({
       event: "session.sign_in.started",
@@ -269,11 +251,7 @@ export function createSessionService({
       return nextState;
     } catch (error) {
       if (isUnauthorized(error)) {
-        publish(
-          reauthenticating
-            ? stateBeforeSignIn
-            : { status: SESSION_STATUS.ANONYMOUS },
-        );
+        publish(reauthenticating ? stateBeforeSignIn : { status: SESSION_STATUS.ANONYMOUS });
       }
       emit(signInFailureEvent(error, Math.max(0, now() - startedAt)));
       throw error;
@@ -366,10 +344,7 @@ export function createSessionService({
         level: "error",
         message: "Workspace switch failed and selection was rolled back",
       });
-    } else if (
-      result.state.status === SESSION_STATUS.AUTHENTICATED &&
-      adapter.getWorkspaceId() === nextWorkspaceId
-    ) {
+    } else if (result.state.status === SESSION_STATUS.AUTHENTICATED && adapter.getWorkspaceId() === nextWorkspaceId) {
       emit({
         context: {
           durationMs: Math.max(0, now() - startedAt),
@@ -410,8 +385,7 @@ export function createSessionService({
     initialize,
     refresh: restore,
     setEventSink(nextEventSink) {
-      eventSink =
-        typeof nextEventSink === "function" ? nextEventSink : () => {};
+      eventSink = typeof nextEventSink === "function" ? nextEventSink : () => {};
     },
     signIn,
     signOut,

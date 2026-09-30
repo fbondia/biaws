@@ -11,9 +11,7 @@ export function DocumentDetailsFields({ disabled, draft, onChange }) {
           <span>Código da regra</span>
           <input
             disabled={disabled}
-            onChange={(event) =>
-              updateDetails(draft, onChange, "ruleCode", event.target.value)
-            }
+            onChange={(event) => updateDetails(draft, onChange, "ruleCode", event.target.value)}
             value={draft.details.ruleCode}
           />
         </label>
@@ -21,14 +19,7 @@ export function DocumentDetailsFields({ disabled, draft, onChange }) {
           <span>Vigente desde</span>
           <input
             disabled={disabled}
-            onChange={(event) =>
-              updateDetails(
-                draft,
-                onChange,
-                "effectiveFrom",
-                event.target.value,
-              )
-            }
+            onChange={(event) => updateDetails(draft, onChange, "effectiveFrom", event.target.value)}
             type="date"
             value={draft.details.effectiveFrom}
           />
@@ -42,9 +33,7 @@ export function DocumentDetailsFields({ disabled, draft, onChange }) {
         <span>Data da decisão</span>
         <input
           disabled={disabled}
-          onChange={(event) =>
-            updateDetails(draft, onChange, "decidedAt", event.target.value)
-          }
+          onChange={(event) => updateDetails(draft, onChange, "decidedAt", event.target.value)}
           type="date"
           value={draft.details.decidedAt}
         />
@@ -58,9 +47,7 @@ export function DocumentDetailsFields({ disabled, draft, onChange }) {
           <span>Escopo da diretriz</span>
           <select
             disabled={disabled}
-            onChange={(event) =>
-              updateDetails(draft, onChange, "scope", event.target.value)
-            }
+            onChange={(event) => updateDetails(draft, onChange, "scope", event.target.value)}
             value={draft.details.scope}
           >
             <option value="workspace">Workspace</option>
@@ -72,9 +59,7 @@ export function DocumentDetailsFields({ disabled, draft, onChange }) {
           <span>Força</span>
           <select
             disabled={disabled}
-            onChange={(event) =>
-              updateDetails(draft, onChange, "enforcement", event.target.value)
-            }
+            onChange={(event) => updateDetails(draft, onChange, "enforcement", event.target.value)}
             value={draft.details.enforcement}
           >
             <option value="required">Obrigatória</option>
@@ -91,9 +76,7 @@ export function DocumentDetailsFields({ disabled, draft, onChange }) {
         <span>Maturidade</span>
         <select
           disabled={disabled}
-          onChange={(event) =>
-            updateDetails(draft, onChange, "maturity", event.target.value)
-          }
+          onChange={(event) => updateDetails(draft, onChange, "maturity", event.target.value)}
           value={draft.details.maturity}
         >
           <option value="planned">Planejada</option>
@@ -109,9 +92,7 @@ export function DocumentDetailsFields({ disabled, draft, onChange }) {
       <span>Natureza da referência</span>
       <select
         disabled={disabled}
-        onChange={(event) =>
-          updateDetails(draft, onChange, "referenceKind", event.target.value)
-        }
+        onChange={(event) => updateDetails(draft, onChange, "referenceKind", event.target.value)}
         value={draft.details.referenceKind}
       >
         <option value="architecture">Arquitetura</option>

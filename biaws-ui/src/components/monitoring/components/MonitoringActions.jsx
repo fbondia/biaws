@@ -16,21 +16,12 @@ export function MonitoringExecutionButton({
       title="Executar monitor agora"
       type="button"
     >
-      {disabled ? (
-        <LoaderCircle className="spinIcon" size={iconSize} />
-      ) : (
-        <Play size={iconSize} />
-      )}
+      {disabled ? <LoaderCircle className="spinIcon" size={iconSize} /> : <Play size={iconSize} />}
     </button>
   );
 }
 
-export function MonitoringHistoryButton({
-  className = "secondaryButton",
-  iconSize = 18,
-  onOpenHistory,
-  runtime,
-}) {
+export function MonitoringHistoryButton({ className = "secondaryButton", iconSize = 18, onOpenHistory, runtime }) {
   return (
     <button
       aria-label={`Abrir histórico de ${runtime.name}`}

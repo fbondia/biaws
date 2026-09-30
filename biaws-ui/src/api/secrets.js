@@ -1,11 +1,4 @@
-import {
-  buildUrl,
-  deleteJson,
-  fetchJson,
-  readPayload,
-  sendJson,
-  workspaceHeaders,
-} from "./client.js";
+import { buildUrl, deleteJson, fetchJson, readPayload, sendJson, workspaceHeaders } from "./client.js";
 import { defaultMessagesService } from "../infrastructure/messages/runtime.js";
 
 export function fetchSecrets(params) {
@@ -47,21 +40,11 @@ export function createSecretFile(secret, file) {
 }
 
 export function updateSecretMetadata(secretId, secret) {
-  return sendJson(
-    `/api/secrets/${encodeURIComponent(secretId)}`,
-    secret,
-    undefined,
-    "PATCH",
-  );
+  return sendJson(`/api/secrets/${encodeURIComponent(secretId)}`, secret, undefined, "PATCH");
 }
 
 export function moveSecretToCollection(secretId, collectionId) {
-  return sendJson(
-    `/api/secrets/${encodeURIComponent(secretId)}/collection`,
-    { collectionId },
-    undefined,
-    "PATCH",
-  );
+  return sendJson(`/api/secrets/${encodeURIComponent(secretId)}/collection`, { collectionId }, undefined, "PATCH");
 }
 
 export function writeSecretValue(secretId, value) {
@@ -71,12 +54,7 @@ export function writeSecretValue(secretId, value) {
 }
 
 export function writeSecretFile(secretId, file) {
-  return sendSecretFile(
-    `/api/secrets/${encodeURIComponent(secretId)}/file`,
-    "PUT",
-    {},
-    file,
-  );
+  return sendSecretFile(`/api/secrets/${encodeURIComponent(secretId)}/file`, "PUT", {}, file);
 }
 
 export function revealSecretValue(secretId) {
@@ -90,16 +68,13 @@ export function copySecretValue(secretId) {
 function retrieveSecretValue(secretId, action, loadingLabel) {
   return defaultMessagesService.run(
     async () => {
-      const response = await fetch(
-        buildUrl(`/api/secrets/${encodeURIComponent(secretId)}/${action}`),
-        {
-          method: "POST",
-          cache: "no-store",
-          credentials: "include",
-          headers: workspaceHeaders({ "Content-Type": "application/json" }),
-          body: "{}",
-        },
-      );
+      const response = await fetch(buildUrl(`/api/secrets/${encodeURIComponent(secretId)}/${action}`), {
+        method: "POST",
+        cache: "no-store",
+        credentials: "include",
+        headers: workspaceHeaders({ "Content-Type": "application/json" }),
+        body: "{}",
+      });
       return readPayload(response);
     },
     loadingLabel,
@@ -110,21 +85,16 @@ function retrieveSecretValue(secretId, action, loadingLabel) {
 export function downloadSecretFile(secretId) {
   return defaultMessagesService.run(
     async () => {
-      const response = await fetch(
-        buildUrl(`/api/secrets/${encodeURIComponent(secretId)}/download`),
-        {
-          method: "POST",
-          cache: "no-store",
-          credentials: "include",
-          headers: workspaceHeaders(),
-        },
-      );
+      const response = await fetch(buildUrl(`/api/secrets/${encodeURIComponent(secretId)}/download`), {
+        method: "POST",
+        cache: "no-store",
+        credentials: "include",
+        headers: workspaceHeaders(),
+      });
       if (!response.ok) await readPayload(response);
       return {
         blob: await response.blob(),
-        fileName: response.headers
-          .get("Content-Disposition")
-          ?.match(/filename\*=UTF-8''([^;]+)/iu)?.[1],
+        fileName: response.headers.get("Content-Disposition")?.match(/filename\*=UTF-8''([^;]+)/iu)?.[1],
       };
     },
     "Baixando arquivo secreto…",
@@ -133,21 +103,11 @@ export function downloadSecretFile(secretId) {
 }
 
 export function archiveSecret(secretId) {
-  return sendJson(
-    `/api/secrets/${encodeURIComponent(secretId)}/archive`,
-    {},
-    undefined,
-    "POST",
-  );
+  return sendJson(`/api/secrets/${encodeURIComponent(secretId)}/archive`, {}, undefined, "POST");
 }
 
 export function restoreSecret(secretId) {
-  return sendJson(
-    `/api/secrets/${encodeURIComponent(secretId)}/restore`,
-    {},
-    undefined,
-    "POST",
-  );
+  return sendJson(`/api/secrets/${encodeURIComponent(secretId)}/restore`, {}, undefined, "POST");
 }
 
 export function deleteSecret(secretId) {

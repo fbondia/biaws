@@ -1,16 +1,7 @@
-import {
-  MarkdownEditor,
-  MarkdownPreview,
-} from "../../../../shared/MarkdownEditor/index.jsx";
+import { MarkdownEditor, MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
 import { todayIso } from "../../models/documentModel.js";
 
-export function DocumentObservations({
-  canUpdate,
-  observationDraft,
-  observations,
-  onAdd,
-  onDraftChange,
-}) {
+export function DocumentObservations({ canUpdate, observationDraft, observations, onAdd, onDraftChange }) {
   return (
     <div className="dialogForm knowledgeRecordPanel">
       {canUpdate ? (
@@ -19,12 +10,7 @@ export function DocumentObservations({
             <span>Nova observação</span>
             <MarkdownEditor onChange={onDraftChange} value={observationDraft} />
           </div>
-          <button
-            className="primaryButton"
-            disabled={!observationDraft.trim()}
-            onClick={() => onAdd()}
-            type="button"
-          >
+          <button className="primaryButton" disabled={!observationDraft.trim()} onClick={() => onAdd()} type="button">
             Adicionar observação
           </button>
         </>
@@ -32,8 +18,7 @@ export function DocumentObservations({
       {observations.map((observation) => (
         <article className="auditEventContent" key={observation.id}>
           <small>
-            {new Date(observation.createdAt).toLocaleString("pt-BR")} ·{" "}
-            {observation.createdBy}
+            {new Date(observation.createdAt).toLocaleString("pt-BR")} · {observation.createdBy}
           </small>
           <MarkdownPreview value={observation.markdown} />
         </article>
@@ -64,8 +49,7 @@ export function DocumentRevisions({ canUpdate, draft, onSave, revisions }) {
         <article className="auditEventContent" key={revision.id}>
           <strong>Revisão {revision.revision}</strong>
           <small>
-            {new Date(revision.createdAt).toLocaleString("pt-BR")} ·{" "}
-            {revision.createdBy}
+            {new Date(revision.createdAt).toLocaleString("pt-BR")} · {revision.createdBy}
           </small>
           <p>{revision.summary}</p>
         </article>

@@ -1,23 +1,15 @@
 import { LoaderCircle, Play, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import {
-  fetchRuntimeActiveMonitors,
-  requestRuntimeActiveMonitorExecution,
-} from "../../../api.js";
+import { fetchRuntimeActiveMonitors, requestRuntimeActiveMonitorExecution } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
-import {
-  useAutoRefresh,
-  useManualExecutionRefresh,
-} from "../../../hooks/useAutoRefresh.js";
+import { useAutoRefresh, useManualExecutionRefresh } from "../../../hooks/useAutoRefresh.js";
 import "../../../styles/features/monitoring-execution.css";
 
 export function canRequestMonitoringExecution(actor, applicationId) {
   if (!hasPermission(actor, "monitoring.active.request")) return false;
   const scope = actor.permissionScopes?.["monitoring.active.request"];
-  return Boolean(
-    scope?.workspace || scope?.applicationIds?.includes(applicationId),
-  );
+  return Boolean(scope?.workspace || scope?.applicationIds?.includes(applicationId));
 }
 
 export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
@@ -55,16 +47,9 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
     setRequestingId(monitor.id);
     setError("");
     try {
-      const result = await requestRuntimeActiveMonitorExecution(
-        target.id,
-        monitor.id,
-      );
+      const result = await requestRuntimeActiveMonitorExecution(target.id, monitor.id);
       setMonitors((current) =>
-        current.map((item) =>
-          item.id === monitor.id
-            ? { ...item, pendingExecution: result.execution }
-            : item,
-        ),
+        current.map((item) => (item.id === monitor.id ? { ...item, pendingExecution: result.execution } : item)),
       );
       onRequested({ monitor, result, target });
       scheduleExecutionRefresh();
@@ -100,9 +85,7 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
           </button>
         </header>
         <div className="monitoringExecutionDialogBody">
-          {loading ? (
-            <div className="homeWidgetPending">Carregando monitores…</div>
-          ) : null}
+          {loading ? <div className="homeWidgetPending">Carregando monitores…</div> : null}
           {error ? (
             <div className="errorBox" role="alert">
               {error}
@@ -112,9 +95,7 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
             <div className="monitoringExecutionList">
               {enabledMonitors.map((monitor) => (
                 <button
-                  disabled={
-                    Boolean(requestingId) || Boolean(monitor.pendingExecution)
-                  }
+                  disabled={Boolean(requestingId) || Boolean(monitor.pendingExecution)}
                   key={monitor.id}
                   onClick={() => requestExecution(monitor)}
                   type="button"
@@ -137,9 +118,7 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
                 </button>
               ))}
               {!enabledMonitors.length ? (
-                <div className="monitoringPanelEmptySelection">
-                  Nenhum monitor habilitado neste runtime.
-                </div>
+                <div className="monitoringPanelEmptySelection">Nenhum monitor habilitado neste runtime.</div>
               ) : null}
             </div>
           ) : null}
@@ -147,12 +126,7 @@ export function MonitoringExecutionDialog({ onClose, onRequested, target }) {
         <footer>
           <span>O executor atenderá a solicitação no próximo polling.</span>
           <div>
-            <button
-              className="secondaryButton"
-              disabled={Boolean(requestingId)}
-              onClick={onClose}
-              type="button"
-            >
+            <button className="secondaryButton" disabled={Boolean(requestingId)} onClick={onClose} type="button">
               Fechar
             </button>
           </div>

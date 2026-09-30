@@ -31,14 +31,8 @@ test("datePeriodRange creates day and calendar-month presets ending today", () =
 test("matchingDatePeriod identifies presets and keeps other ranges custom", () => {
   const today = new Date(2026, 6, 31);
 
-  assert.equal(
-    matchingDatePeriod({ from: "2026-07-24", to: "2026-07-31" }, today),
-    "1w",
-  );
-  assert.equal(
-    matchingDatePeriod({ from: "2026-04-30", to: "2026-07-31" }, today),
-    "3m",
-  );
+  assert.equal(matchingDatePeriod({ from: "2026-07-24", to: "2026-07-31" }, today), "1w");
+  assert.equal(matchingDatePeriod({ from: "2026-04-30", to: "2026-07-31" }, today), "3m");
   assert.equal(matchingDatePeriod({ from: "", to: "" }, today), "custom");
 });
 
@@ -49,12 +43,6 @@ test("selectedOptionSummary uses labels for one option and counts larger selecti
   ];
 
   assert.equal(selectedOptionSummary([], options, "Todos"), "Todos");
-  assert.equal(
-    selectedOptionSummary(["incident"], options, "Todos"),
-    "Incidente",
-  );
-  assert.equal(
-    selectedOptionSummary(["incident", "request"], options, "Todos"),
-    "2 selecionados",
-  );
+  assert.equal(selectedOptionSummary(["incident"], options, "Todos"), "Incidente");
+  assert.equal(selectedOptionSummary(["incident", "request"], options, "Todos"), "2 selecionados");
 });

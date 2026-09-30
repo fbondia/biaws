@@ -1,14 +1,4 @@
-import {
-  Boxes,
-  ChevronRight,
-  CloudCog,
-  Folder,
-  FolderOpen,
-  Layers3,
-  Plus,
-  RefreshCw,
-  Send,
-} from "lucide-react";
+import { Boxes, ChevronRight, CloudCog, Folder, FolderOpen, Layers3, Plus, RefreshCw, Send } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -24,11 +14,7 @@ import "../../styles/features/catalog/index.css";
 import "../../styles/features/monitoring-center.css";
 import "../../styles/features/publications.css";
 import { PUBLICATION_STATUSES } from "../catalog/CatalogEntityDialog/constants.js";
-import {
-  applicationsInCollection,
-  collectionColumns,
-  deploymentsForComponent,
-} from "../monitoring/runtimes/model.js";
+import { applicationsInCollection, collectionColumns, deploymentsForComponent } from "../monitoring/runtimes/model.js";
 
 const EMPTY_PUBLICATION = {
   description: "",
@@ -48,11 +34,7 @@ function formatDate(value) {
 
 function publicationHistory(deployment) {
   if (Array.isArray(deployment.publications)) return deployment.publications;
-  if (
-    !deployment.version &&
-    !deployment.source?.revision &&
-    !deployment.deployedAt
-  ) {
+  if (!deployment.version && !deployment.source?.revision && !deployment.deployedAt) {
     return [];
   }
   return [
@@ -62,21 +44,13 @@ function publicationHistory(deployment) {
       revision: deployment.source?.revision || "",
       repositoryId: deployment.source?.repositoryId || null,
       status: "deployed",
-      publishedAt:
-        deployment.deployedAt || deployment.updatedAt || deployment.createdAt,
+      publishedAt: deployment.deployedAt || deployment.updatedAt || deployment.createdAt,
       description: "",
     },
   ];
 }
 
-function NavigationColumn({
-  empty,
-  icon: Icon,
-  items,
-  onSelect,
-  selectedId,
-  title,
-}) {
+function NavigationColumn({ empty, icon: Icon, items, onSelect, selectedId, title }) {
   return (
     <section className="monitoringNavigatorColumn">
       <header>
@@ -90,11 +64,7 @@ function NavigationColumn({
           items.map((item) => (
             <button
               aria-current={selectedId === item.id ? "true" : undefined}
-              className={
-                selectedId === item.id
-                  ? "monitoringNavigatorItem selected"
-                  : "monitoringNavigatorItem"
-              }
+              className={selectedId === item.id ? "monitoringNavigatorItem selected" : "monitoringNavigatorItem"}
               key={item.id}
               onClick={() => onSelect(item)}
               type="button"
@@ -127,11 +97,7 @@ function CollectionNavigation({ collections, onSelect, selectedId, showRoot }) {
         {index === 0 && showRoot ? (
           <button
             aria-current={!selectedId ? "true" : undefined}
-            className={
-              !selectedId
-                ? "monitoringNavigatorItem selected"
-                : "monitoringNavigatorItem"
-            }
+            className={!selectedId ? "monitoringNavigatorItem selected" : "monitoringNavigatorItem"}
             onClick={() => onSelect("")}
             type="button"
           >
@@ -145,23 +111,15 @@ function CollectionNavigation({ collections, onSelect, selectedId, showRoot }) {
         ) : null}
         {column.items.map((collection) => (
           <button
-            aria-current={
-              column.selectedId === collection.id ? "true" : undefined
-            }
+            aria-current={column.selectedId === collection.id ? "true" : undefined}
             className={
-              column.selectedId === collection.id
-                ? "monitoringNavigatorItem selected"
-                : "monitoringNavigatorItem"
+              column.selectedId === collection.id ? "monitoringNavigatorItem selected" : "monitoringNavigatorItem"
             }
             key={collection.id}
             onClick={() => onSelect(collection.id)}
             type="button"
           >
-            {column.selectedId === collection.id ? (
-              <FolderOpen size={16} />
-            ) : (
-              <Folder size={16} />
-            )}
+            {column.selectedId === collection.id ? <FolderOpen size={16} /> : <Folder size={16} />}
             <span>
               <strong>{collection.name}</strong>
               <small>Coleção</small>
@@ -198,9 +156,7 @@ function PublicationPanel({ actor, deployment, onSaved }) {
           ...publicationItems,
           {
             ...draft,
-            publishedAt: draft.publishedAt
-              ? new Date(draft.publishedAt).toISOString()
-              : undefined,
+            publishedAt: draft.publishedAt ? new Date(draft.publishedAt).toISOString() : undefined,
           },
         ],
       });
@@ -218,15 +174,9 @@ function PublicationPanel({ actor, deployment, onSaved }) {
         <div>
           <span>{deployment.environment || "Ambiente não informado"}</span>
           <h2>{deployment.name}</h2>
-          <p>
-            {deployment.version
-              ? `Versão implantada: ${deployment.version}`
-              : "Nenhuma versão implantada."}
-          </p>
+          <p>{deployment.version ? `Versão implantada: ${deployment.version}` : "Nenhuma versão implantada."}</p>
         </div>
-        <span className={`publicationDeploymentStatus ${deployment.status}`}>
-          {deployment.status}
-        </span>
+        <span className={`publicationDeploymentStatus ${deployment.status}`}>{deployment.status}</span>
       </header>
       <div className="publicationWorkspaceGrid">
         <section className="publicationHistory">
@@ -249,9 +199,7 @@ function PublicationPanel({ actor, deployment, onSaved }) {
                 <li key={publication.id}>
                   <div>
                     <strong>{publication.version}</strong>
-                    <span
-                      className={`publicationStatus ${publication.status || "deployed"}`}
-                    >
+                    <span className={`publicationStatus ${publication.status || "deployed"}`}>
                       {publication.status || "deployed"}
                     </span>
                   </div>
@@ -259,9 +207,7 @@ function PublicationPanel({ actor, deployment, onSaved }) {
                     {formatDate(publication.publishedAt)}
                     {publication.revision ? ` · ${publication.revision}` : ""}
                   </small>
-                  {publication.description ? (
-                    <p>{publication.description}</p>
-                  ) : null}
+                  {publication.description ? <p>{publication.description}</p> : null}
                 </li>
               ))}
             </ol>
@@ -272,11 +218,7 @@ function PublicationPanel({ actor, deployment, onSaved }) {
             <span>Nova publicação</span>
             <h3>Registrar no deployment</h3>
           </header>
-          {!canUpdate ? (
-            <p className="publicationReadOnly">
-              Você tem acesso de leitura às publicações.
-            </p>
-          ) : null}
+          {!canUpdate ? <p className="publicationReadOnly">Você tem acesso de leitura às publicações.</p> : null}
           {error ? (
             <div className="errorBox" role="alert">
               {error}
@@ -356,11 +298,7 @@ function PublicationPanel({ actor, deployment, onSaved }) {
               value={draft.description}
             />
           </label>
-          <button
-            className="primaryButton"
-            disabled={!canUpdate || saving || !draft.version.trim()}
-            type="submit"
-          >
+          <button className="primaryButton" disabled={!canUpdate || saving || !draft.version.trim()} type="submit">
             <Plus size={16} />
             {saving ? "Registrando…" : "Registrar publicação"}
           </button>
@@ -374,9 +312,7 @@ export function PublicationsView({ actor }) {
   const [workspace, setWorkspace] = useState(null);
   const [collections, setCollections] = useState([]);
   const [applications, setApplications] = useState([]);
-  const [deploymentsByApplication, setDeploymentsByApplication] = useState(
-    new Map(),
-  );
+  const [deploymentsByApplication, setDeploymentsByApplication] = useState(new Map());
   const [components, setComponents] = useState([]);
   const [collectionId, setCollectionId] = useState("");
   const [application, setApplication] = useState(null);
@@ -385,10 +321,7 @@ export function PublicationsView({ actor }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const applicationsWithDeployments = useMemo(
-    () =>
-      applications.filter(
-        ({ id }) => (deploymentsByApplication.get(id) || []).length,
-      ),
+    () => applications.filter(({ id }) => (deploymentsByApplication.get(id) || []).length),
     [applications, deploymentsByApplication],
   );
   const visibleApplications = useMemo(
@@ -398,18 +331,12 @@ export function PublicationsView({ actor }) {
   const visibleComponents = useMemo(
     () =>
       components.filter(({ id }) =>
-        (deploymentsByApplication.get(application?.id) || []).some(
-          (item) => item.componentId === id,
-        ),
+        (deploymentsByApplication.get(application?.id) || []).some((item) => item.componentId === id),
       ),
     [application?.id, components, deploymentsByApplication],
   );
   const visibleDeployments = useMemo(
-    () =>
-      deploymentsForComponent(
-        deploymentsByApplication.get(application?.id) || [],
-        component?.id,
-      ),
+    () => deploymentsForComponent(deploymentsByApplication.get(application?.id) || [], component?.id),
     [application?.id, component?.id, deploymentsByApplication],
   );
   const visibleCollectionIds = useMemo(() => {
@@ -430,9 +357,7 @@ export function PublicationsView({ actor }) {
     setError("");
     try {
       const workspacePayload = await fetchWorkspaces();
-      const current = (workspacePayload.items || []).find(
-        ({ id }) => id === actor.workspaceId,
-      );
+      const current = (workspacePayload.items || []).find(({ id }) => id === actor.workspaceId);
       if (!current) throw new Error("Workspace atual não encontrado.");
       const [collectionPayload, applicationPayload] = await Promise.all([
         fetchResourceCollections("applications"),
@@ -440,10 +365,7 @@ export function PublicationsView({ actor }) {
       ]);
       const nextApplications = applicationPayload.items || [];
       const deploymentEntries = await Promise.all(
-        nextApplications.map(async (item) => [
-          item.id,
-          (await fetchDeployments(item.id, { limit: 100 })).items || [],
-        ]),
+        nextApplications.map(async (item) => [item.id, (await fetchDeployments(item.id, { limit: 100 })).items || []]),
       );
       setWorkspace(current);
       setCollections(collectionPayload.items || []);
@@ -485,9 +407,7 @@ export function PublicationsView({ actor }) {
       const result = new Map(current);
       result.set(
         application.id,
-        (result.get(application.id) || []).map((item) =>
-          item.id === next.id ? next : item,
-        ),
+        (result.get(application.id) || []).map((item) => (item.id === next.id ? next : item)),
       );
       return result;
     });
@@ -499,10 +419,7 @@ export function PublicationsView({ actor }) {
         <div>
           <span>{workspace?.name || "Ambiente"}</span>
           <h1>Publicações</h1>
-          <p>
-            Navegue pelas aplicações com deployment e registre versões
-            diretamente no contexto de cada ambiente.
-          </p>
+          <p>Navegue pelas aplicações com deployment e registre versões diretamente no contexto de cada ambiente.</p>
         </div>
         <button
           aria-label="Atualizar publicações"
@@ -521,14 +438,10 @@ export function PublicationsView({ actor }) {
       ) : null}
       <div className="monitoringNavigator" aria-busy={loading}>
         <CollectionNavigation
-          collections={collections.filter(({ id }) =>
-            visibleCollectionIds.has(id),
-          )}
+          collections={collections.filter(({ id }) => visibleCollectionIds.has(id))}
           onSelect={selectCollection}
           selectedId={collectionId}
-          showRoot={
-            applicationsInCollection(applicationsWithDeployments, "").length > 0
-          }
+          showRoot={applicationsInCollection(applicationsWithDeployments, "").length > 0}
         />
         <NavigationColumn
           empty="Nenhuma aplicação com deployment nesta coleção."
@@ -568,20 +481,12 @@ export function PublicationsView({ actor }) {
         </div>
       ) : null}
       {deployment ? (
-        <PublicationPanel
-          actor={actor}
-          deployment={deployment}
-          key={deployment.id}
-          onSaved={saveDeployment}
-        />
+        <PublicationPanel actor={actor} deployment={deployment} key={deployment.id} onSaved={saveDeployment} />
       ) : (
         <div className="monitoringCenterEmpty">
           <Send size={30} />
           <strong>Selecione um deployment</strong>
-          <span>
-            As versões, datas e status das publicações serão exibidos nesta
-            área.
-          </span>
+          <span>As versões, datas e status das publicações serão exibidos nesta área.</span>
         </div>
       )}
     </section>

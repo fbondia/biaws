@@ -1,11 +1,4 @@
-import {
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  Folder,
-  FolderOpen,
-  X,
-} from "lucide-react";
+import { ChevronDown, ChevronRight, FileText, Folder, FolderOpen, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchDocuments, fetchResourceCollections } from "../../../api.js";
@@ -32,22 +25,12 @@ function DocumentLeaf({ checked, document, onToggle }) {
       <span className="runtimeProcedureTreeGuide" />
       <FileText size={15} />
       <span>{document.title}</span>
-      <input
-        checked={checked}
-        onChange={() => onToggle(document.id)}
-        type="checkbox"
-      />
+      <input checked={checked} onChange={() => onToggle(document.id)} type="checkbox" />
     </label>
   );
 }
 
-function CollectionNode({
-  collection,
-  collapsedIds,
-  onToggle,
-  toggleDocument,
-  selectedIds,
-}) {
+function CollectionNode({ collection, collapsedIds, onToggle, toggleDocument, selectedIds }) {
   const collapsed = collapsedIds.has(collection.id);
   const hasContent = collection.children.length || collection.documents.length;
   return (
@@ -58,15 +41,7 @@ function CollectionNode({
         onClick={() => onToggle(collection.id)}
         type="button"
       >
-        {hasContent ? (
-          collapsed ? (
-            <ChevronRight size={15} />
-          ) : (
-            <ChevronDown size={15} />
-          )
-        ) : (
-          <span />
-        )}
+        {hasContent ? collapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} /> : <span />}
         {collapsed ? <Folder size={16} /> : <FolderOpen size={16} />}
         <span>{collection.name}</span>
       </button>
@@ -105,16 +80,11 @@ export function RuntimeProcedureSelectorDialog({
 }) {
   const [collections, setCollections] = useState([]);
   const [documents, setDocuments] = useState([]);
-  const [selectedIds, setSelectedIds] = useState(
-    () => new Set(initialSelectedIds),
-  );
+  const [selectedIds, setSelectedIds] = useState(() => new Set(initialSelectedIds));
   const [collapsedIds, setCollapsedIds] = useState(() => new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const tree = useMemo(
-    () => buildRuntimeDocumentTree(collections, documents),
-    [collections, documents],
-  );
+  const tree = useMemo(() => buildRuntimeDocumentTree(collections, documents), [collections, documents]);
 
   useEffect(() => {
     let active = true;
@@ -179,27 +149,16 @@ export function RuntimeProcedureSelectorDialog({
             <span>Documentos relacionados</span>
             <h2 id="runtimeProcedureSelectorTitle">Selecionar documentos</h2>
           </div>
-          <button
-            aria-label="Fechar"
-            className="iconButton"
-            onClick={onClose}
-            type="button"
-          >
+          <button aria-label="Fechar" className="iconButton" onClick={onClose} type="button">
             <X size={18} />
           </button>
         </header>
         <div className="runtimeProcedureSelectorBody">
-          <p>
-            São exibidos documentos do workspace ou da aplicação deste runtime.
-          </p>
-          {loading ? (
-            <div className="catalogColumnEmpty">Carregando…</div>
-          ) : null}
+          <p>São exibidos documentos do workspace ou da aplicação deste runtime.</p>
+          {loading ? <div className="catalogColumnEmpty">Carregando…</div> : null}
           {error ? <div className="errorBox">{error}</div> : null}
           {!loading && !error && empty ? (
-            <div className="catalogColumnEmpty">
-              Nenhum documento relacionado foi encontrado.
-            </div>
+            <div className="catalogColumnEmpty">Nenhum documento relacionado foi encontrado.</div>
           ) : null}
           {!loading && !error && !empty ? (
             <div className="runtimeProcedureTree" role="tree">

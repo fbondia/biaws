@@ -4,17 +4,8 @@ import { MonitorFormSection } from "../../ActiveMonitorFields.jsx";
 export function MonitorGeneralTab({ draft, update }) {
   return (
     <>
-      <MonitorFormSection
-        description="Identifique o monitoramento e controle seu estado."
-        title="Identificação"
-      >
-        <TextField
-          label="Nome"
-          name="name"
-          onChange={update}
-          required
-          value={draft.name}
-        />
+      <MonitorFormSection description="Identifique o monitoramento e controle seu estado." title="Identificação">
+        <TextField label="Nome" name="name" onChange={update} required value={draft.name} />
         <label className="field catalogMonitoringCheck">
           <input
             checked={draft.enabled}
@@ -32,10 +23,7 @@ export function MonitorGeneralTab({ draft, update }) {
           />
         </label>
       </MonitorFormSection>
-      <MonitorFormSection
-        description="Defina a frequência e o limite de cada execução."
-        title="Agendamento"
-      >
+      <MonitorFormSection description="Defina a frequência e o limite de cada execução." title="Agendamento">
         <TextField
           label="Intervalo (segundos)"
           name="intervalSeconds"

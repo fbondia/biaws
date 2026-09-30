@@ -56,13 +56,7 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
             <span>{isPending ? "Provisionar segredo" : "Nova versão"}</span>
             <h2 id="secret-value-title">{secret.name}</h2>
           </div>
-          <button
-            aria-label="Fechar"
-            className="iconButton"
-            disabled={saving}
-            onClick={onClose}
-            type="button"
-          >
+          <button aria-label="Fechar" className="iconButton" disabled={saving} onClick={onClose} type="button">
             <X size={18} />
           </button>
         </header>
@@ -75,15 +69,11 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
             >
               <span>{isPending ? "Arquivo" : "Novo arquivo"}</span>
               <Upload size={18} />
-              <strong>
-                {file?.name || "Arraste um arquivo ou clique para selecionar"}
-              </strong>
+              <strong>{file?.name || "Arraste um arquivo ou clique para selecionar"}</strong>
               <input
                 autoFocus
                 disabled={saving}
-                onChange={(event) =>
-                  selectFile([...(event.target.files || [])])
-                }
+                onChange={(event) => selectFile([...(event.target.files || [])])}
                 type="file"
               />
               <small>
@@ -106,12 +96,7 @@ export function SecretValueDialog({ secret, onClose, onSaved }) {
             </label>
           )}
           <footer className="userCreateDialogFooter secretDialogFooter">
-            <button
-              className="secondaryButton"
-              disabled={saving}
-              onClick={onClose}
-              type="button"
-            >
+            <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
               Cancelar
             </button>
             <button

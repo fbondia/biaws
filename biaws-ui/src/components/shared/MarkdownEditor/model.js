@@ -115,8 +115,7 @@ function readParagraphBlock(lines, startIndex) {
 }
 
 function markdownBlockToHtml(block) {
-  if (block.type === "code")
-    return `<pre><code>${escapeHtml(block.text)}</code></pre>`;
+  if (block.type === "code") return `<pre><code>${escapeHtml(block.text)}</code></pre>`;
   if (block.type === "heading") {
     const level = Math.min(block.level + 2, 6);
     return `<h${level}>${renderInlineMarkdownHtml(block.text)}</h${level}>`;
@@ -124,10 +123,7 @@ function markdownBlockToHtml(block) {
   if (block.type === "list") return markdownListToHtml(block.list);
   if (block.type === "horizontal-rule") return "<hr>";
   if (block.type === "quote")
-    return `<blockquote>${block.text
-      .split("\n")
-      .map(renderInlineMarkdownHtml)
-      .join("<br>")}</blockquote>`;
+    return `<blockquote>${block.text.split("\n").map(renderInlineMarkdownHtml).join("<br>")}</blockquote>`;
   if (block.type === "table") return markdownTableToHtml(block.lines);
   return `<p>${renderInlineMarkdownHtml(block.text)}</p>`;
 }
@@ -147,11 +143,7 @@ export function markdownListItem(line) {
   };
 }
 
-export function parseMarkdownList(
-  lines,
-  startIndex,
-  baseIndent = markdownListItem(lines[startIndex])?.indent ?? 0,
-) {
+export function parseMarkdownList(lines, startIndex, baseIndent = markdownListItem(lines[startIndex])?.indent ?? 0) {
   const firstItem = markdownListItem(lines[startIndex]);
   const list = {
     ordered: firstItem?.ordered || false,
@@ -184,33 +176,22 @@ export function parseMarkdownList(
 export function markdownListToHtml(list) {
   const tag = list.ordered ? "ol" : "ul";
   const items = list.items
-    .map(
-      (item) =>
-        `<li>${renderInlineMarkdownHtml(item.text)}${item.children.map(markdownListToHtml).join("")}</li>`,
-    )
+    .map((item) => `<li>${renderInlineMarkdownHtml(item.text)}${item.children.map(markdownListToHtml).join("")}</li>`)
     .join("");
   return `<${tag}>${items}</${tag}>`;
 }
 
 export function isMarkdownHorizontalRule(line) {
-  return /^\s{0,3}(?:(?:-\s*){3,}|(?:\*\s*){3,}|(?:_\s*){3,})$/u.test(
-    String(line || ""),
-  );
+  return /^\s{0,3}(?:(?:-\s*){3,}|(?:\*\s*){3,}|(?:_\s*){3,})$/u.test(String(line || ""));
 }
 
 export function isMarkdownTableStart(lines, index) {
-  return (
-    isMarkdownTableLine(lines[index]) &&
-    isMarkdownTableSeparator(lines[index + 1])
-  );
+  return isMarkdownTableLine(lines[index]) && isMarkdownTableSeparator(lines[index + 1]);
 }
 
 export function isMarkdownTableLine(line) {
   const trimmed = String(line || "").trim();
-  return (
-    trimmed.includes("|") &&
-    trimmed.split("|").filter((cell) => cell.trim()).length >= 2
-  );
+  return trimmed.includes("|") && trimmed.split("|").filter((cell) => cell.trim()).length >= 2;
 }
 
 export function isMarkdownTableSeparator(line) {
@@ -254,8 +235,7 @@ export function renderInlineMarkdownHtml(text) {
   let match;
 
   while ((match = pattern.exec(text)) !== null) {
-    if (match.index > cursor)
-      html += escapeHtml(text.slice(cursor, match.index));
+    if (match.index > cursor) html += escapeHtml(text.slice(cursor, match.index));
 
     const token = match[0];
 

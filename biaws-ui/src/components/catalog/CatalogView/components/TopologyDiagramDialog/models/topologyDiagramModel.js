@@ -1,10 +1,6 @@
 import { resizeTopologyGroups } from "./topologyDiagramLayout.js";
 
-export {
-  automaticTopologyHandles,
-  resizeTopologyGroups,
-  routeTopologyEdges,
-} from "./topologyDiagramLayout.js";
+export { automaticTopologyHandles, resizeTopologyGroups, routeTopologyEdges } from "./topologyDiagramLayout.js";
 
 export const TOPOLOGY_ENVIRONMENTS = Object.freeze([
   { value: "production", label: "Produção" },
@@ -37,9 +33,7 @@ export const TOPOLOGY_CONNECTION_LINE_TYPES = Object.freeze([
   { value: "straight", label: "Linha reta" },
 ]);
 
-const connectionLabels = Object.fromEntries(
-  TOPOLOGY_CONNECTION_TYPES.map(({ label, value }) => [value, label]),
-);
+const connectionLabels = Object.fromEntries(TOPOLOGY_CONNECTION_TYPES.map(({ label, value }) => [value, label]));
 const GROUP_MIN_WIDTH = 640;
 const GROUP_MIN_HEIGHT = 380;
 
@@ -76,9 +70,7 @@ function defaultElementPosition(index) {
 }
 
 function runtimeNodeId(runtime) {
-  return runtime.serverId
-    ? `server:${runtime.serverId}`
-    : `runtime:${runtime.id}`;
+  return runtime.serverId ? `server:${runtime.serverId}` : `runtime:${runtime.id}`;
 }
 
 export function buildTopologyGraph({
@@ -92,12 +84,8 @@ export function buildTopologyGraph({
   savedNodes = [],
   servers = [],
 }) {
-  const componentsById = new Map(
-    components.map((component) => [component.id, component]),
-  );
-  const deploymentsById = new Map(
-    deployments.map((deployment) => [deployment.id, deployment]),
-  );
+  const componentsById = new Map(components.map((component) => [component.id, component]));
+  const deploymentsById = new Map(deployments.map((deployment) => [deployment.id, deployment]));
   const serversById = new Map(servers.map((server) => [server.id, server]));
   const savedNodesById = new Map(savedNodes.map((node) => [node.id, node]));
   const groupIds = new Set(savedGroups.map(({ id }) => id));
@@ -105,10 +93,7 @@ export function buildTopologyGraph({
 
   function nodePlacement(id, fallback) {
     const saved = savedNodesById.get(id);
-    const parentId =
-      saved?.parentId && groupIds.has(saved.parentId)
-        ? saved.parentId
-        : undefined;
+    const parentId = saved?.parentId && groupIds.has(saved.parentId) ? saved.parentId : undefined;
     return {
       position: saved?.position || fallback,
       ...(parentId ? { parentId, extent: "parent", expandParent: true } : {}),
@@ -155,15 +140,12 @@ export function buildTopologyGraph({
     id: group.id,
     type: "topologyGroup",
     deletable: false,
-    position:
-      savedNodesById.get(group.id)?.position || defaultGroupPosition(index),
+    position: savedNodesById.get(group.id)?.position || defaultGroupPosition(index),
     style: { width: GROUP_MIN_WIDTH, height: GROUP_MIN_HEIGHT },
     data: { group },
   }));
   const serverNodes = [...runtimeGroups.values()]
-    .sort((left, right) =>
-      left.server.name.localeCompare(right.server.name, "pt-BR"),
-    )
+    .sort((left, right) => left.server.name.localeCompare(right.server.name, "pt-BR"))
     .map((group, index) => ({
       id: group.id,
       type: "topologyServer",
@@ -172,15 +154,11 @@ export function buildTopologyGraph({
       data: {
         server: group.server,
         managed: group.id.startsWith("runtime:"),
-        components: [...group.components.values()].sort((left, right) =>
-          left.name.localeCompare(right.name, "pt-BR"),
-        ),
+        components: [...group.components.values()].sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
       },
     }));
   const integrationNodes = integrations
-    .sort((left, right) =>
-      left.application.name.localeCompare(right.application.name, "pt-BR"),
-    )
+    .sort((left, right) => left.application.name.localeCompare(right.application.name, "pt-BR"))
     .map((integration, index) => {
       const id = `integration:${integration.id}`;
       return {
@@ -198,12 +176,7 @@ export function buildTopologyGraph({
     ...nodePlacement(element.id, defaultElementPosition(index)),
     data: { element },
   }));
-  const nodes = resizeTopologyGroups([
-    ...groupNodes,
-    ...elementNodes,
-    ...integrationNodes,
-    ...serverNodes,
-  ]);
+  const nodes = resizeTopologyGroups([...groupNodes, ...elementNodes, ...integrationNodes, ...serverNodes]);
   const nodeIds = new Set(nodes.map(({ id }) => id));
   const edges = savedEdges
     .filter(({ source, target }) => nodeIds.has(source) && nodeIds.has(target))
@@ -223,12 +196,7 @@ export function buildTopologyGraph({
   return { nodes, edges };
 }
 
-export function filterTopologyGraph({
-  edges = [],
-  hiddenIntegrationIds = [],
-  hiddenServerIds = [],
-  nodes = [],
-}) {
+export function filterTopologyGraph({ edges = [], hiddenIntegrationIds = [], hiddenServerIds = [], nodes = [] }) {
   const hiddenIntegrations = new Set(hiddenIntegrationIds);
   const hiddenServers = new Set(hiddenServerIds);
   const visibleNodes = nodes.flatMap((node) => {
@@ -243,9 +211,7 @@ export function filterTopologyGraph({
     }
 
     const components = (node.data?.components || []).filter(
-      (component) =>
-        !component.integrationId ||
-        !hiddenIntegrations.has(component.integrationId),
+      (component) => !component.integrationId || !hiddenIntegrations.has(component.integrationId),
     );
     if (!components.length) return [];
 
@@ -263,10 +229,7 @@ export function filterTopologyGraph({
 
   return {
     nodes: visibleNodes,
-    edges: edges.filter(
-      ({ source, target }) =>
-        visibleNodeIds.has(source) && visibleNodeIds.has(target),
-    ),
+    edges: edges.filter(({ source, target }) => visibleNodeIds.has(source) && visibleNodeIds.has(target)),
   };
 }
 

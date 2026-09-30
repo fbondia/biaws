@@ -1,18 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  buildAuditLineDiff,
-  formatAuditValue,
-} from "../src/components/shared/auditDiff.js";
+import { buildAuditLineDiff, formatAuditValue } from "../src/components/shared/auditDiff.js";
 
 test("audit values preserve multiline and structured content", () => {
   assert.equal(formatAuditValue(null), "—");
   assert.equal(formatAuditValue(true), "Sim");
-  assert.equal(
-    formatAuditValue({ status: "open" }),
-    '{\n  "status": "open"\n}',
-  );
+  assert.equal(formatAuditValue({ status: "open" }), '{\n  "status": "open"\n}');
 });
 
 test("audit diff marks retained, removed and added lines with line numbers", () => {

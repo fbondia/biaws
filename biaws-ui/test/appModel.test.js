@@ -24,10 +24,7 @@ test("navigation groups operational and administrative destinations", () => {
     ["operation", "administration"],
   );
   assert.deepEqual(
-    NAVIGATION_GROUPS[0].sections.map(({ label, views }) => [
-      label,
-      views.map(({ key }) => key),
-    ]),
+    NAVIGATION_GROUPS[0].sections.map(({ label, views }) => [label, views.map(({ key }) => key)]),
     [
       ["Trabalho", ["issues", "requests"]],
       ["Ambiente", ["catalog", "servers", "publications"]],
@@ -36,19 +33,13 @@ test("navigation groups operational and administrative destinations", () => {
     ],
   );
   assert.deepEqual(
-    NAVIGATION_GROUPS[1].sections.map(({ label, views }) => [
-      label,
-      views.map(({ key }) => key),
-    ]),
+    NAVIGATION_GROUPS[1].sections.map(({ label, views }) => [label, views.map(({ key }) => key)]),
     [
       ["Classificação", ["option-lists", "taxonomy"]],
       ["Acesso", ["secrets", "users", "groups"]],
     ],
   );
-  assert.equal(
-    GROUPED_VIEWS.find(({ key }) => key === "option-lists")?.label,
-    "Listas",
-  );
+  assert.equal(GROUPED_VIEWS.find(({ key }) => key === "option-lists")?.label, "Listas");
 });
 
 test("local setup command scopes the selected workspace and project", () => {
@@ -75,29 +66,17 @@ test("local development commands share instance, client and workspace context", 
     workspaceId: "workspace-a",
   });
 
-  assert.match(
-    commands.configure,
-    /BIAWS_ENV_FILE='instances\/cliente-a\/\.env'/u,
-  );
+  assert.match(commands.configure, /BIAWS_ENV_FILE='instances\/cliente-a\/\.env'/u);
   assert.match(commands.configure, /agent configure codex/u);
   assert.match(commands.configure, /--project '\/Users\/example\/project'/u);
   assert.match(commands.installSkills, /skills install-all/u);
-  assert.match(
-    commands.installSkills,
-    /--target '\/Users\/example\/project\/\.agents\/skills'/u,
-  );
+  assert.match(commands.installSkills, /--target '\/Users\/example\/project\/\.agents\/skills'/u);
   assert.match(commands.updateSkills, /skills update/u);
   assert.match(commands.publishSkill, /skills publish/u);
-  assert.match(
-    commands.publishSkill,
-    /--dir '\/Users\/example\/project\/\.agents\/skills\/minha-skill'/u,
-  );
+  assert.match(commands.publishSkill, /--dir '\/Users\/example\/project\/\.agents\/skills\/minha-skill'/u);
   assert.match(commands.publishSkill, /--version 1\.0\.0/u);
   assert.match(commands.publishAllSkills, /skills publish-all/u);
-  assert.match(
-    commands.publishAllSkills,
-    /--dir '\/Users\/example\/project\/\.agents\/skills'/u,
-  );
+  assert.match(commands.publishAllSkills, /--dir '\/Users\/example\/project\/\.agents\/skills'/u);
   assert.match(commands.publishAllSkills, /--initial-version 1\.0\.0/u);
   assert.match(commands.doctor, /agent doctor codex/u);
   for (const command of Object.values(commands)) {
@@ -147,26 +126,11 @@ test("active views have stable URL routes", () => {
   assert.equal(activeViewPath("documents"), "/documents");
   assert.equal(activeViewFromPath("/documents"), "documents");
   assert.equal(activeViewFromPath("/documents/"), "documents");
-  assert.equal(
-    activeViewPath("monitoring-templates"),
-    "/operation/monitoring/templates",
-  );
-  assert.equal(
-    activeViewFromPath("/monitoring-templates"),
-    "monitoring-templates",
-  );
-  assert.equal(
-    activeViewPath("monitoring-runtimes"),
-    "/operation/monitoring/runtimes",
-  );
-  assert.equal(
-    activeViewPath("publications"),
-    "/operation/environment/publications",
-  );
-  assert.equal(
-    activeViewFromPath("/operation/environment/publications"),
-    "publications",
-  );
+  assert.equal(activeViewPath("monitoring-templates"), "/operation/monitoring/templates");
+  assert.equal(activeViewFromPath("/monitoring-templates"), "monitoring-templates");
+  assert.equal(activeViewPath("monitoring-runtimes"), "/operation/monitoring/runtimes");
+  assert.equal(activeViewPath("publications"), "/operation/environment/publications");
+  assert.equal(activeViewFromPath("/operation/environment/publications"), "publications");
   assert.equal(activeViewPath("unknown"), "/");
   assert.equal(activeViewFromPath("/unknown"), undefined);
 });

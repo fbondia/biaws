@@ -20,10 +20,7 @@ test("code block can be copied without opening the fullscreen dialog", async () 
     value: { writeText: async (value) => copiedValues.push(value) },
   });
   const previous = Object.fromEntries(
-    ["document", "navigator", "window"].map((name) => [
-      name,
-      Object.getOwnPropertyDescriptor(globalThis, name),
-    ]),
+    ["document", "navigator", "window"].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   Object.defineProperties(globalThis, {
     document: { configurable: true, value: dom.window.document },
@@ -40,24 +37,16 @@ test("code block can be copied without opening the fullscreen dialog", async () 
       build: {
         emptyOutDir: false,
         lib: {
-          entry: join(
-            process.cwd(),
-            "test/fixtures/MarkdownPreviewHarness.jsx",
-          ),
+          entry: join(process.cwd(), "test/fixtures/MarkdownPreviewHarness.jsx"),
           fileName: "markdown-preview-harness",
           formats: ["es"],
         },
         outDir: outputDirectory,
       },
     });
-    const { mountMarkdownPreview } = await import(
-      pathToFileURL(join(outputDirectory, "markdown-preview-harness.js"))
-    );
+    const { mountMarkdownPreview } = await import(pathToFileURL(join(outputDirectory, "markdown-preview-harness.js")));
     const source = "const answer = 42;";
-    const harness = mountMarkdownPreview(
-      document.getElementById("app"),
-      `\`\`\`js\n${source}\n\`\`\``,
-    );
+    const harness = mountMarkdownPreview(document.getElementById("app"), `\`\`\`js\n${source}\n\`\`\``);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const copyButton = document.querySelector(".markdownBlockCopyButton");

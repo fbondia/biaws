@@ -2,9 +2,7 @@ import { Columns3, ListTree } from "lucide-react";
 
 export function ViewModeAction({ navigator }) {
   const showColumns = navigator.viewMode === "tree";
-  const label = showColumns
-    ? "Visualizar coleções em colunas"
-    : "Visualizar coleções em árvore";
+  const label = showColumns ? "Visualizar coleções em colunas" : "Visualizar coleções em árvore";
 
   return (
     <button
@@ -14,11 +12,7 @@ export function ViewModeAction({ navigator }) {
       title={label}
       type="button"
     >
-      {showColumns ? (
-        <Columns3 aria-hidden="true" size={16} />
-      ) : (
-        <ListTree aria-hidden="true" size={16} />
-      )}
+      {showColumns ? <Columns3 aria-hidden="true" size={16} /> : <ListTree aria-hidden="true" size={16} />}
     </button>
   );
 }

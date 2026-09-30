@@ -1,17 +1,7 @@
 import { Crown } from "lucide-react";
 
-import {
-  ALL_STATUS_OPTIONS,
-  ALL_TYPE_OPTIONS,
-  DEFAULT_TAG_GROUP_COLOR,
-} from "../../../../constants/issues.js";
-import {
-  formatDate,
-  formatTaxonomyPath,
-  issueDate,
-  statusClass,
-  textPreview,
-} from "../../../../utils/issues.js";
+import { ALL_STATUS_OPTIONS, ALL_TYPE_OPTIONS, DEFAULT_TAG_GROUP_COLOR } from "../../../../constants/issues.js";
+import { formatDate, formatTaxonomyPath, issueDate, statusClass, textPreview } from "../../../../utils/issues.js";
 import { issueTagItems, issueTaxonomyItems, optionLabel } from "../model.js";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
@@ -48,20 +38,12 @@ export function IssueTableRow({
       title="Abrir detalhes"
     >
       <td className="codeCell" data-label="Código">
-        <EntityIdentifier
-          fallback="-"
-          label="Código do issue"
-          value={issue.id}
-        />
+        <EntityIdentifier fallback="-" label="Código do issue" value={issue.id} />
       </td>
       <td data-label="Tipo">
         <InlineIssueSelect
           currentValue={issue.type}
-          disabled={
-            loading ||
-            !onUpdateIssueField ||
-            updatingIssueField === `${issue.id}:type`
-          }
+          disabled={loading || !onUpdateIssueField || updatingIssueField === `${issue.id}:type`}
           fallbackOptions={ALL_TYPE_OPTIONS}
           onChange={(value) => onUpdateIssueField?.(issue, "type", value)}
           options={editableTypeOptions}
@@ -71,11 +53,7 @@ export function IssueTableRow({
         <InlineIssueSelect
           className={`inlineStatusSelect ${statusClass(issue.status)}`}
           currentValue={issue.status}
-          disabled={
-            loading ||
-            !onUpdateIssueField ||
-            updatingIssueField === `${issue.id}:status`
-          }
+          disabled={loading || !onUpdateIssueField || updatingIssueField === `${issue.id}:status`}
           fallbackOptions={ALL_STATUS_OPTIONS}
           onChange={(value) => onUpdateIssueField?.(issue, "status", value)}
           options={editableStatusOptions}
@@ -86,16 +64,10 @@ export function IssueTableRow({
         {issue.title || "-"}
       </td>
       <td className="applicationCell" data-label="Aplicação">
-        {applicationsById[issue.applicationId]?.name ||
-          issue.applicationName ||
-          "-"}
+        {applicationsById[issue.applicationId]?.name || issue.applicationName || "-"}
       </td>
       <td className="taxonomyCell" data-label="Assuntos">
-        {taxonomyItems.length ? (
-          <TaxonomyPills taxonomyItems={taxonomyItems} />
-        ) : (
-          "-"
-        )}
+        {taxonomyItems.length ? <TaxonomyPills taxonomyItems={taxonomyItems} /> : "-"}
       </td>
       <td className="tagsCell" data-label="Tags">
         {tagItems.length ? <TagPills tagItems={tagItems} /> : "-"}
@@ -107,17 +79,8 @@ export function IssueTableRow({
   );
 }
 
-function InlineIssueSelect({
-  className = "",
-  currentValue,
-  disabled,
-  fallbackOptions,
-  onChange,
-  options,
-}) {
-  const hasCurrentValue = options.some(
-    (option) => option.value === currentValue,
-  );
+function InlineIssueSelect({ className = "", currentValue, disabled, fallbackOptions, onChange, options }) {
+  const hasCurrentValue = options.some((option) => option.value === currentValue);
 
   return (
     <select
@@ -147,21 +110,11 @@ function TaxonomyPills({ taxonomyItems }) {
     <div className="issueTaxonomyList">
       {taxonomyItems.map((taxonomy) => (
         <span
-          className={
-            taxonomy.isPrimary
-              ? "issueTaxonomyPill primaryIssueTaxonomyPill"
-              : "issueTaxonomyPill"
-          }
+          className={taxonomy.isPrimary ? "issueTaxonomyPill primaryIssueTaxonomyPill" : "issueTaxonomyPill"}
           key={taxonomy.id}
           title={taxonomy.path.join(" / ")}
         >
-          {taxonomy.isPrimary ? (
-            <Crown
-              className="primaryTaxonomyIcon"
-              size={13}
-              aria-hidden="true"
-            />
-          ) : null}
+          {taxonomy.isPrimary ? <Crown className="primaryTaxonomyIcon" size={13} aria-hidden="true" /> : null}
           {formatTaxonomyPath(taxonomy.path)}
         </span>
       ))}

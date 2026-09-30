@@ -12,9 +12,7 @@ export function fetchSkill(skillId, version, params) {
 }
 
 export function fetchSkillPackage(skillId, version) {
-  return fetchJson(
-    `/api/skills/${encodeURIComponent(skillId)}/${encodeURIComponent(version)}/download`,
-  );
+  return fetchJson(`/api/skills/${encodeURIComponent(skillId)}/${encodeURIComponent(version)}/download`);
 }
 
 export function publishSkill(skill, params) {
@@ -22,12 +20,7 @@ export function publishSkill(skill, params) {
 }
 
 export function moveSkillToCollection(skillId, collectionId) {
-  return sendJson(
-    `/api/skills/${encodeURIComponent(skillId)}/collection`,
-    { collectionId },
-    undefined,
-    "PATCH",
-  );
+  return sendJson(`/api/skills/${encodeURIComponent(skillId)}/collection`, { collectionId }, undefined, "PATCH");
 }
 
 export function deprecateSkill(skillId, version, params) {

@@ -16,10 +16,7 @@ export function CreateTopologyDiagramForm({ controller }) {
       </label>
       <label className="field">
         <span>Ambiente inicial</span>
-        <select
-          onChange={(event) => actions.setNewEnvironment(event.target.value)}
-          value={newEnvironment}
-        >
+        <select onChange={(event) => actions.setNewEnvironment(event.target.value)} value={newEnvironment}>
           {TOPOLOGY_ENVIRONMENTS.map((item) => (
             <option key={item.value} value={item.value}>
               {item.label}
@@ -27,19 +24,11 @@ export function CreateTopologyDiagramForm({ controller }) {
           ))}
         </select>
       </label>
-      <button
-        className="primaryButton"
-        disabled={!newName.trim() || saving}
-        type="submit"
-      >
+      <button className="primaryButton" disabled={!newName.trim() || saving} type="submit">
         Criar
       </button>
       {diagrams.length ? (
-        <button
-          className="secondaryButton"
-          onClick={() => actions.setCreating(false)}
-          type="button"
-        >
+        <button className="secondaryButton" onClick={() => actions.setCreating(false)} type="button">
           Cancelar
         </button>
       ) : null}

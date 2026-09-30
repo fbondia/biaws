@@ -2,21 +2,13 @@ import { useRootCollectionDrop } from "../../ResourceCollectionsShell/hooks/useR
 
 import { NavigatorActions } from "./NavigatorActions.jsx";
 
-export function ResourceCollectionNavigatorHeader({
-  actionsInBar,
-  itemLabel,
-  navigator,
-}) {
+export function ResourceCollectionNavigatorHeader({ actionsInBar, itemLabel, navigator }) {
   const rootDrop = useRootCollectionDrop();
 
   return (
     <header
       {...rootDrop.dropProps}
-      aria-label={
-        rootDrop.enabled
-          ? "Mover item ou coleção para a raiz"
-          : "Navegador de coleções"
-      }
+      aria-label={rootDrop.enabled ? "Mover item ou coleção para a raiz" : "Navegador de coleções"}
       className={[
         rootDrop.enabled ? "resourceCollectionRootDropZone" : "",
         rootDrop.active ? "resourceCollectionDropTarget" : "",

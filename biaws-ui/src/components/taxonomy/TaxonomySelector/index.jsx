@@ -86,9 +86,7 @@ export function TaxonomySelector({
   const selectedValues = normalizeSelectedValues(value, multiple);
   const firstSelectedValue = selectedValues[0] || "";
   const controlledActiveValue = selectable ? firstSelectedValue : activeValue;
-  const [activePath, setActivePath] = useState(() =>
-    findNodePath(nodes, controlledActiveValue),
-  );
+  const [activePath, setActivePath] = useState(() => findNodePath(nodes, controlledActiveValue));
   const [draftLabels, setDraftLabels] = useState({});
   const [addErrors, setAddErrors] = useState({});
   const [editingNode, setEditingNode] = useState(null);
@@ -99,10 +97,7 @@ export function TaxonomySelector({
   const canDeleteNodes = CAN_MODIFY_CATALOG && Boolean(onDeleteNode);
   const canEditNodes = CAN_MODIFY_CATALOG && Boolean(onEditNode);
   const deepestActiveNodeId = activePath[activePath.length - 1] || "";
-  const columns = useMemo(
-    () => buildColumns(nodes, activePath, canAddNodes),
-    [activePath, canAddNodes, nodes],
-  );
+  const columns = useMemo(() => buildColumns(nodes, activePath, canAddNodes), [activePath, canAddNodes, nodes]);
 
   useEffect(() => {
     setActivePath(findNodePath(nodes, controlledActiveValue));
@@ -139,9 +134,7 @@ export function TaxonomySelector({
     event.stopPropagation();
     setEditingNode(node);
     setEditLabel(node.label || "");
-    const applicationIds = Array.isArray(node.applicationIds)
-      ? node.applicationIds
-      : [];
+    const applicationIds = Array.isArray(node.applicationIds) ? node.applicationIds : [];
     setEditApplicationIds(applicationIds);
     setEditScopeMode(applicationIds.length ? "applications" : "workspace");
   }
@@ -160,12 +153,10 @@ export function TaxonomySelector({
     const trimmedLabel = editLabel.trim();
     if (!trimmedLabel) return;
 
-    const applicationIds =
-      editScopeMode === "workspace" ? [] : editApplicationIds;
+    const applicationIds = editScopeMode === "workspace" ? [] : editApplicationIds;
     if (
       trimmedLabel === editingNode.label &&
-      JSON.stringify(applicationIds) ===
-        JSON.stringify(editingNode.applicationIds || [])
+      JSON.stringify(applicationIds) === JSON.stringify(editingNode.applicationIds || [])
     ) {
       closeEditDialog();
       return;
@@ -221,11 +212,7 @@ export function TaxonomySelector({
     <div className="taxonomySelector">
       <div className="taxonomyColumns" role="tree">
         {columns.map((column, columnIndex) => (
-          <div
-            className="taxonomyColumn"
-            key={`${column.parentId}-${columnIndex}`}
-            role="group"
-          >
+          <div className="taxonomyColumn" key={`${column.parentId}-${columnIndex}`} role="group">
             <div className="taxonomyColumnList">
               {!column.nodes.length ? <></> : null}
               {column.nodes.map((node) => {
@@ -233,8 +220,7 @@ export function TaxonomySelector({
                 const disabled = disabledSet.has(node.id);
                 const active = activePath[columnIndex] === node.id;
                 const hasChildren = Boolean(node.children?.length);
-                const canEditThisNode =
-                  canEditNodes && active && deepestActiveNodeId === node.id;
+                const canEditThisNode = canEditNodes && active && deepestActiveNodeId === node.id;
                 const nodePath = findNodePath(nodes, node.id);
                 const pathLabel = nodePath
                   .map((pathNodeId) => findNodeById(nodes, pathNodeId)?.label)
@@ -286,16 +272,10 @@ export function TaxonomySelector({
                         }
                         onClick={(event) => selectPrimary(event, node.id)}
                         onKeyDown={(event) => event.stopPropagation()}
-                        title={
-                          primaryValue === node.id
-                            ? "Assunto principal"
-                            : "Definir como assunto principal"
-                        }
+                        title={primaryValue === node.id ? "Assunto principal" : "Definir como assunto principal"}
                         type="button"
                       >
-                        {primaryValue === node.id
-                          ? "Principal"
-                          : "Definir principal"}
+                        {primaryValue === node.id ? "Principal" : "Definir principal"}
                       </button>
                     ) : null}
                     {canEditThisNode ? (
@@ -318,12 +298,7 @@ export function TaxonomySelector({
             {canAddNodes ? (
               <form
                 className="taxonomyColumnAdd"
-                onSubmit={(event) =>
-                  addNode(
-                    event,
-                    column.parentId === "root" ? null : column.parentId,
-                  )
-                }
+                onSubmit={(event) => addNode(event, column.parentId === "root" ? null : column.parentId)}
               >
                 <input
                   onChange={(event) => {
@@ -339,11 +314,7 @@ export function TaxonomySelector({
                   placeholder="Novo nó"
                   value={draftLabels[column.parentId] || ""}
                 />
-                <button
-                  aria-label="Adicionar nó"
-                  disabled={!draftLabels[column.parentId]?.trim()}
-                  type="submit"
-                >
+                <button aria-label="Adicionar nó" disabled={!draftLabels[column.parentId]?.trim()} type="submit">
                   <Plus size={14} />
                 </button>
                 {addErrors[column.parentId] ? (

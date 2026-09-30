@@ -340,17 +340,13 @@
     display: none;
   }
 
-  .resourceCollectionsLayout
-    > .resourceCollectionsBody
-    > .resourceCollectionsPanel {
+  .resourceCollectionsLayout > .resourceCollectionsBody > .resourceCollectionsPanel {
     position: static;
     border-right: 0;
     border-bottom: 1px solid var(--color-border);
   }
 
-  .resourceCollectionsDetailVisible
-    > .resourceCollectionsBody
-    > .resourceCollectionsPanel {
+  .resourceCollectionsDetailVisible > .resourceCollectionsBody > .resourceCollectionsPanel {
     display: none;
   }
 

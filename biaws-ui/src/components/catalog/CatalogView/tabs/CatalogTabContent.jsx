@@ -14,9 +14,5 @@ const TAB_COMPONENTS = {
 
 export function CatalogTabContent(props) {
   const Component = TAB_COMPONENTS[props.activeTab];
-  return (
-    <div className="catalogTabPanel">
-      {Component ? <Component {...props} /> : null}
-    </div>
-  );
+  return <div className="catalogTabPanel">{Component ? <Component {...props} /> : null}</div>;
 }

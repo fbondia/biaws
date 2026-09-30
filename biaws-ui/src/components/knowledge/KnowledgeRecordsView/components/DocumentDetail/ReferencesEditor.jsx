@@ -20,9 +20,7 @@ export function ReferencesEditor({ disabled, draft, onChange, options }) {
             <span>Documento referenciado</span>
             <select
               disabled={disabled}
-              onChange={(event) =>
-                update(index, "targetDocumentId", event.target.value)
-              }
+              onChange={(event) => update(index, "targetDocumentId", event.target.value)}
               value={reference.targetDocumentId}
             >
               <option value="">Selecione...</option>
@@ -37,9 +35,7 @@ export function ReferencesEditor({ disabled, draft, onChange, options }) {
             <span>Relação</span>
             <input
               disabled={disabled}
-              onChange={(event) =>
-                update(index, "relationship", event.target.value)
-              }
+              onChange={(event) => update(index, "relationship", event.target.value)}
               value={reference.relationship}
             />
           </label>
@@ -49,9 +45,7 @@ export function ReferencesEditor({ disabled, draft, onChange, options }) {
               onClick={() =>
                 onChange({
                   ...draft,
-                  references: draft.references.filter(
-                    (_, itemIndex) => itemIndex !== index,
-                  ),
+                  references: draft.references.filter((_, itemIndex) => itemIndex !== index),
                 })
               }
               type="button"
@@ -67,10 +61,7 @@ export function ReferencesEditor({ disabled, draft, onChange, options }) {
           onClick={() =>
             onChange({
               ...draft,
-              references: [
-                ...draft.references,
-                { targetDocumentId: "", relationship: "related" },
-              ],
+              references: [...draft.references, { targetDocumentId: "", relationship: "related" }],
             })
           }
           type="button"

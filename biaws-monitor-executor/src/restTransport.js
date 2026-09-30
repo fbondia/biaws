@@ -28,9 +28,7 @@ function collectResponse(response, byteLimit, signal) {
       });
     };
     response.on("data", (rawChunk) => {
-      const chunk = Buffer.isBuffer(rawChunk)
-        ? rawChunk
-        : Buffer.from(rawChunk);
+      const chunk = Buffer.isBuffer(rawChunk) ? rawChunk : Buffer.from(rawChunk);
       total += chunk.length;
       if (stored < byteLimit) {
         const part = chunk.subarray(0, byteLimit - stored);
@@ -57,14 +55,7 @@ function collectResponse(response, byteLimit, signal) {
   });
 }
 
-export async function requestRestTarget(
-  url,
-  configuration,
-  headers,
-  destination,
-  policy,
-  signal,
-) {
+export async function requestRestTarget(url, configuration, headers, destination, policy, signal) {
   const transport = url.protocol === "https:" ? https : http;
   return new Promise((resolve, reject) => {
     const request = transport.request(
@@ -80,11 +71,7 @@ export async function requestRestTarget(
         try {
           resolve({
             response,
-            evidence: await collectResponse(
-              response,
-              policy.maxEvidenceBytes,
-              signal,
-            ),
+            evidence: await collectResponse(response, policy.maxEvidenceBytes, signal),
           });
         } catch (error) {
           reject(error);

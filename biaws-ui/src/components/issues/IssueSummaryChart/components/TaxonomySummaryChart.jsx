@@ -15,15 +15,9 @@ export function TaxonomySummaryChart({ items, onOpenIssue, taxonomyPackage }) {
   const [expandedIds, setExpandedIds] = useState(() => new Set());
   const itemsById = useMemo(() => taxonomyItemMap(items), [items]);
   const taxonomyNodes = taxonomyPackage?.taxonomy || [];
-  const knownTaxonomyIds = useMemo(
-    () => collectTaxonomyIds(taxonomyNodes),
-    [taxonomyNodes],
-  );
+  const knownTaxonomyIds = useMemo(() => collectTaxonomyIds(taxonomyNodes), [taxonomyNodes]);
   const tree = useMemo(
-    () =>
-      taxonomyNodes
-        .map((node) => buildTaxonomySummaryNode(node, itemsById))
-        .filter(Boolean),
+    () => taxonomyNodes.map((node) => buildTaxonomySummaryNode(node, itemsById)).filter(Boolean),
     [itemsById, taxonomyNodes],
   );
   const rows = flattenTaxonomySummary(tree);
@@ -57,19 +51,11 @@ export function TaxonomySummaryChart({ items, onOpenIssue, taxonomyPackage }) {
   }
 
   if (!taxonomyNodes.length) {
-    return (
-      <div className="emptyState">
-        Assuntos não carregados para os filtros atuais.
-      </div>
-    );
+    return <div className="emptyState">Assuntos não carregados para os filtros atuais.</div>;
   }
 
   if (!allRows.length) {
-    return (
-      <div className="emptyState">
-        Sem issues classificadas por assunto para os filtros atuais.
-      </div>
-    );
+    return <div className="emptyState">Sem issues classificadas por assunto para os filtros atuais.</div>;
   }
 
   return (
@@ -107,18 +93,12 @@ function TaxonomySummaryTreeNode({ expandedIds, node, onOpenIssue, onToggle }) {
       >
         {canExpand ? (
           <button
-            aria-label={
-              isExpanded ? `Recolher ${node.label}` : `Expandir ${node.label}`
-            }
+            aria-label={isExpanded ? `Recolher ${node.label}` : `Expandir ${node.label}`}
             className="taxonomySummaryToggle"
             onClick={() => onToggle(node.id)}
             type="button"
           >
-            {isExpanded ? (
-              <ChevronDown size={15} />
-            ) : (
-              <ChevronRight size={15} />
-            )}
+            {isExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
           </button>
         ) : (
           <span className="taxonomySummaryTogglePlaceholder" />
@@ -127,19 +107,14 @@ function TaxonomySummaryTreeNode({ expandedIds, node, onOpenIssue, onToggle }) {
         <div className="taxonomySummaryMain">
           <span className="taxonomySummaryLabel">{node.label}</span>
           {node.directCount && node.directCount !== node.totalCount ? (
-            <span className="taxonomySummaryDirect">
-              direto: {node.directCount}
-            </span>
+            <span className="taxonomySummaryDirect">direto: {node.directCount}</span>
           ) : null}
         </div>
       </div>
       {canExpand && isExpanded ? (
         <div className="taxonomySummaryChildren" role="group">
           {hasIssues ? (
-            <div
-              className="taxonomySummaryIssues"
-              style={{ "--depth": node.depth + 1 }}
-            >
+            <div className="taxonomySummaryIssues" style={{ "--depth": node.depth + 1 }}>
               {node.issues.map((issue) => (
                 <article
                   className="taxonomySummaryIssue"
@@ -155,17 +130,10 @@ function TaxonomySummaryTreeNode({ expandedIds, node, onOpenIssue, onToggle }) {
                   tabIndex={0}
                   title={issue.title || issue.id}
                 >
-                  <EntityIdentifier
-                    className="taxonomySummaryIssueCode"
-                    label="Código do issue"
-                    value={issue.id}
-                  />
-                  <span className="taxonomySummaryIssueTitle">
-                    {issue.title || "-"}
-                  </span>
+                  <EntityIdentifier className="taxonomySummaryIssueCode" label="Código do issue" value={issue.id} />
+                  <span className="taxonomySummaryIssueTitle">{issue.title || "-"}</span>
                   <span className="taxonomySummaryIssueMeta">
-                    {chartLabel(issue.type)} · {chartLabel(issue.status)} ·{" "}
-                    {formatDate(issue.date)}
+                    {chartLabel(issue.type)} · {chartLabel(issue.status)} · {formatDate(issue.date)}
                   </span>
                 </article>
               ))}

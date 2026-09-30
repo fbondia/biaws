@@ -88,14 +88,12 @@ test("bulk replication turns an item-level rejection into failures for every des
       {
         workspace: { id: "a", name: "Alpha" },
         status: "failed",
-        message:
-          "O item não foi replicado. Falharam: Sem identificador. Motivo: Identificador obrigatório.",
+        message: "O item não foi replicado. Falharam: Sem identificador. Motivo: Identificador obrigatório.",
       },
       {
         workspace: { id: "b", name: "Beta" },
         status: "failed",
-        message:
-          "O item não foi replicado. Falharam: Sem identificador. Motivo: Identificador obrigatório.",
+        message: "O item não foi replicado. Falharam: Sem identificador. Motivo: Identificador obrigatório.",
       },
     ],
   );

@@ -1,12 +1,5 @@
 import { Activity, LayoutDashboard, X } from "lucide-react";
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 
 import {
   fetchApplicationMonitoringHealth,
@@ -33,10 +26,7 @@ import { runtimeHealthData, selectedMonitoringWidgets } from "./model.js";
 
 export { TargetSelector } from "./components/TargetSelector.jsx";
 
-export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
-  { actor, onLoadingChange },
-  ref,
-) {
+export const MonitoringDashboard = forwardRef(function MonitoringDashboard({ actor, onLoadingChange }, ref) {
   const [targets, setTargets] = useState([]);
   const [widgets, setWidgets] = useState([]);
   const [healthByRuntimeId, setHealthByRuntimeId] = useState({});
@@ -49,15 +39,10 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
   const [historyRuntime, setHistoryRuntime] = useState(null);
   const [pendingExecutions, setPendingExecutions] = useState({});
   const loadPromiseRef = useRef(null);
-  const selectedWidgets = useMemo(
-    () => selectedMonitoringWidgets(targets, widgets),
-    [targets, widgets],
-  );
+  const selectedWidgets = useMemo(() => selectedMonitoringWidgets(targets, widgets), [targets, widgets]);
 
   async function loadHealth(nextTargets) {
-    const applicationIds = [
-      ...new Set(nextTargets.map(({ applicationId }) => applicationId)),
-    ];
+    const applicationIds = [...new Set(nextTargets.map(({ applicationId }) => applicationId))];
     const entries = await Promise.all(
       applicationIds.map(async (applicationId) => {
         const payload = await fetchApplicationMonitoringHealth(applicationId, {
@@ -71,10 +56,7 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
       Object.fromEntries(
         nextTargets.map((target) => [
           target.id,
-          runtimeHealthData(
-            byApplicationId.get(target.applicationId),
-            target.id,
-          ),
+          runtimeHealthData(byApplicationId.get(target.applicationId), target.id),
         ]),
       ),
     );
@@ -101,11 +83,7 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
         ).filter(({ runtimeId }) => availableIds.has(runtimeId));
         setTargets(nextTargets);
         setWidgets(nextWidgets);
-        await loadHealth(
-          selectedMonitoringWidgets(nextTargets, nextWidgets).map(
-            ({ target }) => target,
-          ),
-        );
+        await loadHealth(selectedMonitoringWidgets(nextTargets, nextWidgets).map(({ target }) => target));
       } catch (loadError) {
         setError(loadError.message);
       } finally {
@@ -148,12 +126,8 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
   useEffect(() => {
     const active = activeManualExecutionIds(Object.values(healthByRuntimeId));
     setPendingExecutions((current) => {
-      const entries = Object.entries(current).filter(([, executionId]) =>
-        active.has(executionId),
-      );
-      return entries.length === Object.keys(current).length
-        ? current
-        : Object.fromEntries(entries);
+      const entries = Object.entries(current).filter(([, executionId]) => active.has(executionId));
+      return entries.length === Object.keys(current).length ? current : Object.fromEntries(entries);
     });
   }, [healthByRuntimeId]);
 
@@ -165,11 +139,7 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
       const savedWidgets = preference.widgets || nextWidgets;
       setWidgets(savedWidgets);
       setSelecting(false);
-      await loadHealth(
-        selectedMonitoringWidgets(targets, savedWidgets).map(
-          ({ target }) => target,
-        ),
-      );
+      await loadHealth(selectedMonitoringWidgets(targets, savedWidgets).map(({ target }) => target));
     } catch (saveError) {
       setError(saveError.message);
     } finally {
@@ -200,11 +170,7 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
       {notice ? (
         <div className="monitoringExecutionNotice" role="status">
           {notice}
-          <button
-            aria-label="Fechar aviso"
-            onClick={() => setNotice("")}
-            type="button"
-          >
+          <button aria-label="Fechar aviso" onClick={() => setNotice("")} type="button">
             <X size={15} />
           </button>
         </div>
@@ -214,11 +180,7 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
           <LayoutDashboard size={34} />
           <strong>Seu painel está vazio</strong>
           <span>Selecione os runtimes que deseja acompanhar aqui.</span>
-          <button
-            className="primaryButton"
-            onClick={() => setSelecting(true)}
-            type="button"
-          >
+          <button className="primaryButton" onClick={() => setSelecting(true)} type="button">
             Selecionar monitoramentos
           </button>
         </div>
@@ -226,10 +188,7 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
       {selectedWidgets.length ? (
         <div className="homeWidgetGrid monitoringPanelGrid">
           {selectedWidgets.map(({ target, widget }) => (
-            <article
-              className={`homeWidget homeWidget-${widget.size} monitoringPanelWidget`}
-              key={target.id}
-            >
+            <article className={`homeWidget homeWidget-${widget.size} monitoringPanelWidget`} key={target.id}>
               <header>
                 <div className="homeWidgetHeading">
                   <span>
@@ -238,8 +197,7 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
                   <div>
                     <h2>{target.name}</h2>
                     <small>
-                      {target.application?.name} · {target.component?.name} ·{" "}
-                      {target.deployment?.name}
+                      {target.application?.name} · {target.component?.name} · {target.deployment?.name}
                     </small>
                   </div>
                 </div>
@@ -287,10 +245,7 @@ export const MonitoringDashboard = forwardRef(function MonitoringDashboard(
         />
       ) : null}
       {historyRuntime ? (
-        <RuntimeMonitoringDialog
-          onClose={() => setHistoryRuntime(null)}
-          runtime={historyRuntime}
-        />
+        <RuntimeMonitoringDialog onClose={() => setHistoryRuntime(null)} runtime={historyRuntime} />
       ) : null}
     </section>
   );

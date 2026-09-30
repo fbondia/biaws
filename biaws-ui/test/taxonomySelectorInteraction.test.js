@@ -18,14 +18,9 @@ async function renderSelector(mountTaxonomySelector, options) {
 }
 
 async function enterAndSubmitLastNodeLabel(container, label) {
-  const inputs = [
-    ...container.querySelectorAll('input[placeholder="Novo nó"]'),
-  ];
+  const inputs = [...container.querySelectorAll('input[placeholder="Novo nó"]')];
   const input = inputs.at(-1);
-  const valueSetter = Object.getOwnPropertyDescriptor(
-    window.HTMLInputElement.prototype,
-    "value",
-  ).set;
+  const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
   valueSetter.call(input, label);
   input.dispatchEvent(new window.Event("input", { bubbles: true }));
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -34,11 +29,9 @@ async function enterAndSubmitLastNodeLabel(container, label) {
 }
 
 function getColumnLabels(container, columnIndex) {
-  return [
-    ...container.querySelectorAll(
-      `.taxonomyColumn:nth-child(${columnIndex + 1}) .taxonomyColumnRow > span`,
-    ),
-  ].map((element) => element.textContent);
+  return [...container.querySelectorAll(`.taxonomyColumn:nth-child(${columnIndex + 1}) .taxonomyColumnRow > span`)].map(
+    (element) => element.textContent,
+  );
 }
 
 test("taxonomy selector creates repeated child labels and reports rejected additions", async () => {
@@ -47,10 +40,7 @@ test("taxonomy selector creates repeated child labels and reports rejected addit
     url: "https://biaws.example.test",
   });
   const previous = Object.fromEntries(
-    ["document", "navigator", "window"].map((name) => [
-      name,
-      Object.getOwnPropertyDescriptor(globalThis, name),
-    ]),
+    ["document", "navigator", "window"].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   Object.defineProperties(globalThis, {
     document: { configurable: true, value: dom.window.document },
@@ -67,10 +57,7 @@ test("taxonomy selector creates repeated child labels and reports rejected addit
       build: {
         emptyOutDir: false,
         lib: {
-          entry: join(
-            process.cwd(),
-            "test/fixtures/TaxonomySelectorHarness.jsx",
-          ),
+          entry: join(process.cwd(), "test/fixtures/TaxonomySelectorHarness.jsx"),
           fileName: "taxonomy-selector-harness",
           formats: ["es"],
         },
@@ -82,22 +69,14 @@ test("taxonomy selector creates repeated child labels and reports rejected addit
     );
 
     const successful = await renderSelector(mountTaxonomySelector);
-    assert.deepEqual(getColumnLabels(successful.container, 0), [
-      "Produto",
-      "Serviço",
-    ]);
+    assert.deepEqual(getColumnLabels(successful.container, 0), ["Produto", "Serviço"]);
     successful.container
       .querySelector('[title="Produto"]')
       .dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.deepEqual(getColumnLabels(successful.container, 1), [
-      "Detalhes",
-      "Zebra",
-    ]);
+    assert.deepEqual(getColumnLabels(successful.container, 1), ["Detalhes", "Zebra"]);
     await enterAndSubmitLastNodeLabel(successful.container, "Detalhes");
-    assert.ok(
-      successful.container.querySelector('[title="Produto / Detalhes"]'),
-    );
+    assert.ok(successful.container.querySelector('[title="Produto / Detalhes"]'));
     successful.harness.root.unmount();
     successful.container.remove();
 
@@ -105,10 +84,7 @@ test("taxonomy selector creates repeated child labels and reports rejected addit
       rejectAdd: true,
     });
     await enterAndSubmitLastNodeLabel(rejected.container, "Novo filho");
-    assert.match(
-      rejected.container.querySelector('[role="alert"]').textContent,
-      /não foi possível adicionar/iu,
-    );
+    assert.match(rejected.container.querySelector('[role="alert"]').textContent, /não foi possível adicionar/iu);
     rejected.harness.root.unmount();
   } finally {
     for (const [name, descriptor] of Object.entries(previous)) {

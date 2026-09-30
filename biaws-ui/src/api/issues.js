@@ -13,12 +13,7 @@ export function createIssue(issue, params) {
 }
 
 export function createIssueComment(issueId, comment, params) {
-  return sendJson(
-    `/api/issues/${encodeURIComponent(issueId)}/comments`,
-    comment,
-    params,
-    "POST",
-  );
+  return sendJson(`/api/issues/${encodeURIComponent(issueId)}/comments`, comment, params, "POST");
 }
 
 export function saveIssueComment(issueId, commentId, comment, params) {
@@ -42,18 +37,9 @@ export function saveIssueTaxonomy(taxonomyPackage, params) {
 }
 
 export function saveIssueClassification(issueId, classification, params) {
-  return sendJson(
-    `/api/issues/${encodeURIComponent(issueId)}/classification`,
-    classification,
-    params,
-  );
+  return sendJson(`/api/issues/${encodeURIComponent(issueId)}/classification`, classification, params);
 }
 
 export function updateIssue(issueId, patch, params) {
-  return sendJson(
-    `/api/issues/${encodeURIComponent(issueId)}`,
-    patch,
-    params,
-    "PATCH",
-  );
+  return sendJson(`/api/issues/${encodeURIComponent(issueId)}`, patch, params, "PATCH");
 }

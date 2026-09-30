@@ -61,8 +61,7 @@ export function CollectionTree({
     <div className="resourceCollectionTree">
       <div className="resourceCollectionTreeScroll">
         <div className="resourceCollectionTreeInner">
-          {!(childrenByParent.get("") || []).length &&
-          !(itemsByCollection.get("") || []).length ? (
+          {!(childrenByParent.get("") || []).length && !(itemsByCollection.get("") || []).length ? (
             <IllustratedEmptyState
               className="resourceCollectionNavigatorEmpty"
               compact

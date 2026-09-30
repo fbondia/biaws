@@ -1,8 +1,4 @@
-import {
-  DEFAULT_TAG_GROUP_COLOR,
-  STATUS_OPTIONS,
-  TYPE_OPTIONS,
-} from "../../../../constants/issues.js";
+import { DEFAULT_TAG_GROUP_COLOR, STATUS_OPTIONS, TYPE_OPTIONS } from "../../../../constants/issues.js";
 import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector/index.jsx";
 import { readSelectedTags, toggleSelectedTag } from "../model.js";
 import { OptionFilterDialog } from "./OptionFilterDialog.jsx";
@@ -66,13 +62,7 @@ export function IssueFilterDialogs({
   );
 }
 
-function TagFilterDialog({
-  draftFilters,
-  onChange,
-  selectedTagCount,
-  setTagsDialogOpen,
-  tagGroups,
-}) {
+function TagFilterDialog({ draftFilters, onChange, selectedTagCount, setTagsDialogOpen, tagGroups }) {
   return (
     <div
       className="tagFilterDialogBackdrop"
@@ -80,51 +70,30 @@ function TagFilterDialog({
         if (event.target === event.currentTarget) setTagsDialogOpen(false);
       }}
     >
-      <section
-        aria-label="Filtrar por tags"
-        aria-modal="true"
-        className="tagFilterDialog"
-        role="dialog"
-      >
+      <section aria-label="Filtrar por tags" aria-modal="true" className="tagFilterDialog" role="dialog">
         <header>
           <div>
             <strong>Filtrar por tags</strong>
-            <span>
-              Selecione uma ou mais tags para restringir os resultados.
-            </span>
+            <span>Selecione uma ou mais tags para restringir os resultados.</span>
           </div>
-          {selectedTagCount ? (
-            <small>{selectedTagCount} selecionada(s)</small>
-          ) : null}
+          {selectedTagCount ? <small>{selectedTagCount} selecionada(s)</small> : null}
         </header>
         <div className="tagFilterGroups">
           {tagGroups.map((group) => (
-            <TagFilterGroup
-              draftFilters={draftFilters}
-              group={group}
-              key={group.id}
-              onChange={onChange}
-            />
+            <TagFilterGroup draftFilters={draftFilters} group={group} key={group.id} onChange={onChange} />
           ))}
         </div>
         <footer>
           {selectedTagCount ? (
             <button
               className="secondaryButton clearDialogSelectionButton"
-              onClick={() =>
-                tagGroups.forEach((group) => onChange(`tag_${group.id}`, ""))
-              }
+              onClick={() => tagGroups.forEach((group) => onChange(`tag_${group.id}`, ""))}
               type="button"
             >
               Limpar seleção
             </button>
           ) : null}
-          <button
-            className="primaryButton"
-            data-dialog-close
-            onClick={() => setTagsDialogOpen(false)}
-            type="button"
-          >
+          <button className="primaryButton" data-dialog-close onClick={() => setTagsDialogOpen(false)} type="button">
             Concluir
           </button>
         </footer>
@@ -137,36 +106,23 @@ function TagFilterGroup({ draftFilters, group, onChange }) {
   return (
     <div className="tagFilterGroup">
       <strong>
-        <span
-          className="tagColorSwatch"
-          style={{ backgroundColor: group.color || DEFAULT_TAG_GROUP_COLOR }}
-        />
+        <span className="tagColorSwatch" style={{ backgroundColor: group.color || DEFAULT_TAG_GROUP_COLOR }} />
         {group.label}
       </strong>
       <div className="tagFilterOptions">
         {(group.tags || []).map((tagId) => {
-          const checked = readSelectedTags(draftFilters, group.id).includes(
-            tagId,
-          );
+          const checked = readSelectedTags(draftFilters, group.id).includes(tagId);
           return (
             <label
-              className={
-                checked
-                  ? "tagFilterOption selectedTagFilterOption"
-                  : "tagFilterOption"
-              }
+              className={checked ? "tagFilterOption selectedTagFilterOption" : "tagFilterOption"}
               key={tagId}
               style={{
-                borderColor: checked
-                  ? group.color || DEFAULT_TAG_GROUP_COLOR
-                  : undefined,
+                borderColor: checked ? group.color || DEFAULT_TAG_GROUP_COLOR : undefined,
               }}
             >
               <input
                 checked={checked}
-                onChange={() =>
-                  toggleSelectedTag(draftFilters, group.id, tagId, onChange)
-                }
+                onChange={() => toggleSelectedTag(draftFilters, group.id, tagId, onChange)}
                 type="checkbox"
               />
               <span>{tagId}</span>
@@ -178,12 +134,7 @@ function TagFilterGroup({ draftFilters, group, onChange }) {
   );
 }
 
-function TaxonomyFilterDialog({
-  onChange,
-  selectedTaxonomies,
-  setTaxonomyDialogOpen,
-  taxonomyPackage,
-}) {
+function TaxonomyFilterDialog({ onChange, selectedTaxonomies, setTaxonomyDialogOpen, taxonomyPackage }) {
   return (
     <div
       className="tagFilterDialogBackdrop"
@@ -202,9 +153,7 @@ function TaxonomyFilterDialog({
             <strong>Filtrar por classificações</strong>
             <span>Selecione uma ou mais classificações da árvore.</span>
           </div>
-          {selectedTaxonomies.length ? (
-            <small>{selectedTaxonomies.length} selecionada(s)</small>
-          ) : null}
+          {selectedTaxonomies.length ? <small>{selectedTaxonomies.length} selecionada(s)</small> : null}
         </header>
         <div className="taxonomyFilterDialogContent">
           <TaxonomySelector

@@ -5,8 +5,7 @@ import { ResourceCollectionBarRight } from "./components/Right.jsx";
 
 const ResourceCollectionBarActionsContext = createContext(null);
 
-export const ResourceCollectionBarActionsProvider =
-  ResourceCollectionBarActionsContext.Provider;
+export const ResourceCollectionBarActionsProvider = ResourceCollectionBarActionsContext.Provider;
 
 export function useResourceCollectionBarActionTargets() {
   return useContext(ResourceCollectionBarActionsContext);
@@ -20,13 +19,7 @@ export function ResourceCollectionBar({
   viewModeTargetRef,
 }) {
   return (
-    <div
-      className={
-        atRoot
-          ? "resourceCollectionBar resourceCollectionBarAtRoot"
-          : "resourceCollectionBar"
-      }
-    >
+    <div className={atRoot ? "resourceCollectionBar resourceCollectionBarAtRoot" : "resourceCollectionBar"}>
       <ResourceCollectionBarLeft
         archivedItemsTargetRef={archivedItemsTargetRef}
         collectionFilterTargetRef={collectionFilterTargetRef}

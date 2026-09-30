@@ -22,15 +22,9 @@ test("executor client sends technical identity and workspace only to the API", a
 
   await client.acquire({ executorId: "runner-1", limit: 2, leaseSeconds: 60 });
 
-  assert.equal(
-    captured.url,
-    "https://biaws.example.test/api/monitoring/executor/leases",
-  );
+  assert.equal(captured.url, "https://biaws.example.test/api/monitoring/executor/leases");
   assert.equal(captured.options.headers.Authorization, "Bearer biaws_test_key");
-  assert.equal(
-    captured.options.headers["X-Biaws-Workspace-Id"],
-    "workspace-test",
-  );
+  assert.equal(captured.options.headers["X-Biaws-Workspace-Id"], "workspace-test");
   assert.deepEqual(JSON.parse(captured.options.body), {
     executorId: "runner-1",
     limit: 2,

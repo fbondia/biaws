@@ -11,8 +11,7 @@ export function RequestJourneyTab({
   onJourneyMonthCommit,
   onJourneyCommentChange,
 }) {
-  const { executedTotal, plannedTotal, pendingTotal, overExecutedTotal } =
-    journeyTotals;
+  const { executedTotal, plannedTotal, pendingTotal, overExecutedTotal } = journeyTotals;
   const isOnPlan = pendingTotal === 0 && overExecutedTotal === 0;
 
   return (
@@ -24,13 +23,7 @@ export function RequestJourneyTab({
             {executedTotal} de {plannedTotal} jornadas executadas
           </span>
         </div>
-        <strong
-          className={
-            isOnPlan
-              ? "billingBalance billingBalanced"
-              : "billingBalance billingPending"
-          }
-        >
+        <strong className={isOnPlan ? "billingBalance billingBalanced" : "billingBalance billingPending"}>
           {isOnPlan
             ? "Conforme o previsto"
             : pendingTotal > 0
@@ -72,9 +65,7 @@ export function RequestJourneyTab({
               <label className="field requestBillingComment">
                 <span>Comentário</span>
                 <textarea
-                  onChange={(event) =>
-                    onJourneyCommentChange(item.month, event.target.value)
-                  }
+                  onChange={(event) => onJourneyCommentChange(item.month, event.target.value)}
                   value={item.comment || ""}
                 />
               </label>
@@ -82,9 +73,7 @@ export function RequestJourneyTab({
           ))}
         </div>
       ) : (
-        <div className="emptyState">
-          Informe início e fim para gerar o planejamento mensal da melhoria.
-        </div>
+        <div className="emptyState">Informe início e fim para gerar o planejamento mensal da melhoria.</div>
       )}
     </section>
   );
@@ -111,12 +100,8 @@ function BillingJourneyField({
           <span>{label}</span>
           <input
             min="0"
-            onBlur={(event) =>
-              onJourneyMonthCommit(item.month, field, event.target.value)
-            }
-            onChange={(event) =>
-              onUpdateNumberDraft(draftKey, event.target.value)
-            }
+            onBlur={(event) => onJourneyMonthCommit(item.month, field, event.target.value)}
+            onChange={(event) => onUpdateNumberDraft(draftKey, event.target.value)}
             onFocus={() => onBeginNumberDraft(draftKey, item[field])}
             onKeyDown={(event) => {
               if (event.key === "Enter") event.currentTarget.blur();

@@ -5,15 +5,11 @@ function compareNames(left, right) {
 }
 
 export function buildRuntimeDocumentTree(collections = [], documents = []) {
-  const collectionById = new Map(
-    collections.map((collection) => [collection.id, collection]),
-  );
+  const collectionById = new Map(collections.map((collection) => [collection.id, collection]));
   const documentsByCollection = new Map();
 
   for (const document of documents) {
-    const collectionId = collectionById.has(document.collectionId)
-      ? document.collectionId
-      : "";
+    const collectionId = collectionById.has(document.collectionId) ? document.collectionId : "";
     const items = documentsByCollection.get(collectionId) || [];
     items.push(document);
     documentsByCollection.set(collectionId, items);
@@ -30,11 +26,7 @@ export function buildRuntimeDocumentTree(collections = [], documents = []) {
   for (const collectionId of documentsByCollection.keys()) {
     const visited = new Set();
     let currentId = collectionId;
-    while (
-      currentId &&
-      collectionById.has(currentId) &&
-      !visited.has(currentId)
-    ) {
+    while (currentId && collectionById.has(currentId) && !visited.has(currentId)) {
       visited.add(currentId);
       relevantCollectionIds.add(currentId);
       currentId = collectionById.get(currentId).parentId || "";
@@ -44,9 +36,7 @@ export function buildRuntimeDocumentTree(collections = [], documents = []) {
   const childrenByParent = new Map();
   for (const collection of collections) {
     if (!relevantCollectionIds.has(collection.id)) continue;
-    const parentId = relevantCollectionIds.has(collection.parentId)
-      ? collection.parentId
-      : "";
+    const parentId = relevantCollectionIds.has(collection.parentId) ? collection.parentId : "";
     const children = childrenByParent.get(parentId) || [];
     children.push(collection);
     childrenByParent.set(parentId, children);
@@ -73,8 +63,6 @@ export function buildRuntimeDocumentTree(collections = [], documents = []) {
 
   return {
     documents: documentsByCollection.get("") || [],
-    collections: (childrenByParent.get("") || [])
-      .map((collection) => materialize(collection))
-      .filter(Boolean),
+    collections: (childrenByParent.get("") || []).map((collection) => materialize(collection)).filter(Boolean),
   };
 }

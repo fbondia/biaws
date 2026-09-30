@@ -23,17 +23,13 @@ export function createTopologyEditorActions({
   setSelectedGroupId,
 }) {
   function changeNodes(changes) {
-    const allowedChanges = changes.filter(
-      ({ type }) => type !== "remove" && (canEdit || type !== "position"),
-    );
+    const allowedChanges = changes.filter(({ type }) => type !== "remove" && (canEdit || type !== "position"));
     setNodes((current) => applyNodeChanges(allowedChanges, current));
     if (allowedChanges.some(({ type }) => type === "position")) setDirty(true);
   }
 
   function changeEdges(changes) {
-    const allowedChanges = canEdit
-      ? changes
-      : changes.filter(({ type }) => type === "select");
+    const allowedChanges = canEdit ? changes : changes.filter(({ type }) => type === "select");
     setEdges((current) => applyEdgeChanges(allowedChanges, current));
     if (allowedChanges.some(({ type }) => type !== "select")) setDirty(true);
   }
@@ -46,11 +42,7 @@ export function createTopologyEditorActions({
       addEdge(
         {
           ...connection,
-          ...automaticTopologyHandles(
-            nodes,
-            connection.source,
-            connection.target,
-          ),
+          ...automaticTopologyHandles(nodes, connection.source, connection.target),
           id,
           type: "default",
           ...edgeDirectionMarkers("forward"),
@@ -69,9 +61,7 @@ export function createTopologyEditorActions({
   function createGroup() {
     if (!canEdit) return;
     const id = `group:${crypto.randomUUID()}`;
-    const groupCount = nodes.filter(
-      ({ type }) => type === "topologyGroup",
-    ).length;
+    const groupCount = nodes.filter(({ type }) => type === "topologyGroup").length;
     setNodes((current) => [
       {
         id,
@@ -98,9 +88,7 @@ export function createTopologyEditorActions({
   function createElement() {
     if (!canEdit) return;
     const id = `element:${crypto.randomUUID()}`;
-    const elementCount = nodes.filter(
-      ({ type }) => type === "topologyElement",
-    ).length;
+    const elementCount = nodes.filter(({ type }) => type === "topologyElement").length;
     setNodes((current) => [
       ...current,
       {
@@ -164,9 +152,7 @@ export function createTopologyEditorActions({
     setNodes((current) => {
       const group = current.find(({ id }) => id === selectedGroup.id);
       if (!group) return current;
-      const childCount = current.filter(
-        ({ parentId }) => parentId === group.id,
-      ).length;
+      const childCount = current.filter(({ parentId }) => parentId === group.id).length;
       const targetPosition = {
         x: 24 + (childCount % 2) * 300,
         y: 92 + Math.floor(childCount / 2) * 210,
@@ -221,27 +207,16 @@ export function createTopologyEditorActions({
           ),
       ),
     );
-    setEdges((current) =>
-      current.filter(
-        ({ source, target }) => source !== group.id && target !== group.id,
-      ),
-    );
+    setEdges((current) => current.filter(({ source, target }) => source !== group.id && target !== group.id));
     setSelectedGroupId("");
     setDirty(true);
   }
 
   function removeSelectedElement() {
     if (!selectedElement || !canEdit) return;
-    setNodes((current) =>
-      resizeTopologyGroups(
-        current.filter(({ id }) => id !== selectedElement.id),
-      ),
-    );
+    setNodes((current) => resizeTopologyGroups(current.filter(({ id }) => id !== selectedElement.id)));
     setEdges((current) =>
-      current.filter(
-        ({ source, target }) =>
-          source !== selectedElement.id && target !== selectedElement.id,
-      ),
+      current.filter(({ source, target }) => source !== selectedElement.id && target !== selectedElement.id),
     );
     setSelectedElementId("");
     setDirty(true);
@@ -251,8 +226,7 @@ export function createTopologyEditorActions({
     setEdges((current) =>
       current.map((edge) => {
         if (edge.id !== selectedEdgeId) return edge;
-        const data =
-          field === "lineType" ? edge.data : { ...edge.data, [field]: value };
+        const data = field === "lineType" ? edge.data : { ...edge.data, [field]: value };
         return {
           ...edge,
           ...(field === "lineType" ? { type: value } : {}),

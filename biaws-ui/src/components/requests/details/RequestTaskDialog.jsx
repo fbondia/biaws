@@ -1,10 +1,7 @@
 import { Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import {
-  REQUEST_TASK_STATUS_OPTIONS,
-  requestTaskStatusLabel,
-} from "../requestUtils.js";
+import { REQUEST_TASK_STATUS_OPTIONS, requestTaskStatusLabel } from "../requestUtils.js";
 import {
   deleteEntityAttachment,
   downloadEntityAttachment,
@@ -51,16 +48,12 @@ export function RequestTaskDialog({
   if (!task || !draft) return null;
   const visibleTabs = task.id
     ? TASK_TABS.filter((tab) => tab.key !== "files" || task.code)
-    : TASK_TABS.filter(
-        (tab) => !["notes", "files", "history"].includes(tab.key),
-      );
+    : TASK_TABS.filter((tab) => !["notes", "files", "history"].includes(tab.key));
   const taskTag = String(task.code || "")
     .trim()
     .toLowerCase();
   const taskFiles = (request.attachments || []).filter((attachment) =>
-    (attachment.tags || []).some(
-      (tag) => String(tag).toLowerCase() === taskTag,
-    ),
+    (attachment.tags || []).some((tag) => String(tag).toLowerCase() === taskTag),
   );
 
   function updateField(field, value) {
@@ -89,51 +82,24 @@ export function RequestTaskDialog({
 
   return (
     <div className="dialogBackdrop">
-      <section
-        aria-labelledby="requestTaskDialogTitle"
-        aria-modal="true"
-        className="requestTaskDialog"
-        role="dialog"
-      >
+      <section aria-labelledby="requestTaskDialogTitle" aria-modal="true" className="requestTaskDialog" role="dialog">
         <header className="requestTaskDialogHeader">
           <div>
             <span>Tarefa da melhoria</span>
-            <h3 id="requestTaskDialogTitle">
-              {task.id ? task.title || "Tarefa sem título" : "Nova tarefa"}
-            </h3>
-            {task.id ? (
-              <EntityIdentifier
-                label="Código da tarefa"
-                value={task.code}
-                variant="eyebrow"
-              />
-            ) : null}
+            <h3 id="requestTaskDialogTitle">{task.id ? task.title || "Tarefa sem título" : "Nova tarefa"}</h3>
+            {task.id ? <EntityIdentifier label="Código da tarefa" value={task.code} variant="eyebrow" /> : null}
           </div>
-          <button
-            className="iconButton"
-            disabled={saving}
-            onClick={onClose}
-            title="Fechar"
-            type="button"
-          >
+          <button className="iconButton" disabled={saving} onClick={onClose} title="Fechar" type="button">
             <X size={18} />
           </button>
         </header>
 
         <div className="requestTaskDialogBody">
-          <div
-            className="detailTabs requestTaskTabs"
-            role="tablist"
-            aria-label="Dados da tarefa"
-          >
+          <div className="detailTabs requestTaskTabs" role="tablist" aria-label="Dados da tarefa">
             {visibleTabs.map((tab) => (
               <button
                 aria-selected={activeTab === tab.key}
-                className={
-                  activeTab === tab.key
-                    ? "detailTab activeDetailTab"
-                    : "detailTab"
-                }
+                className={activeTab === tab.key ? "detailTab activeDetailTab" : "detailTab"}
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 role="tab"
@@ -157,9 +123,7 @@ export function RequestTaskDialog({
                   <span>Código</span>
                   <input
                     disabled={saving}
-                    onChange={(event) =>
-                      updateField("code", event.target.value)
-                    }
+                    onChange={(event) => updateField("code", event.target.value)}
                     value={draft.code}
                   />
                 </label>
@@ -168,9 +132,7 @@ export function RequestTaskDialog({
                   <input
                     autoFocus
                     disabled={saving}
-                    onChange={(event) =>
-                      updateField("title", event.target.value)
-                    }
+                    onChange={(event) => updateField("title", event.target.value)}
                     value={draft.title}
                   />
                 </label>
@@ -178,16 +140,11 @@ export function RequestTaskDialog({
                   <span>Status</span>
                   <select
                     disabled={saving}
-                    onChange={(event) =>
-                      updateField("status", event.target.value)
-                    }
+                    onChange={(event) => updateField("status", event.target.value)}
                     value={draft.status}
                   >
-                    {!REQUEST_TASK_STATUS_OPTIONS.includes(draft.status) &&
-                    draft.status ? (
-                      <option value={draft.status}>
-                        {requestTaskStatusLabel(draft.status)} (inativo)
-                      </option>
+                    {!REQUEST_TASK_STATUS_OPTIONS.includes(draft.status) && draft.status ? (
+                      <option value={draft.status}>{requestTaskStatusLabel(draft.status)} (inativo)</option>
                     ) : null}
                     {REQUEST_TASK_STATUS_OPTIONS.map((status) => (
                       <option key={status} value={status}>
@@ -200,9 +157,7 @@ export function RequestTaskDialog({
                   <span>Data de início</span>
                   <input
                     disabled={saving}
-                    onChange={(event) =>
-                      updateField("startDate", event.target.value)
-                    }
+                    onChange={(event) => updateField("startDate", event.target.value)}
                     type="date"
                     value={draft.startDate}
                   />
@@ -211,9 +166,7 @@ export function RequestTaskDialog({
                   <span>Data de fim</span>
                   <input
                     disabled={saving}
-                    onChange={(event) =>
-                      updateField("endDate", event.target.value)
-                    }
+                    onChange={(event) => updateField("endDate", event.target.value)}
                     type="date"
                     value={draft.endDate}
                   />
@@ -223,9 +176,7 @@ export function RequestTaskDialog({
                 <span>Situação</span>
                 <textarea
                   disabled={saving}
-                  onChange={(event) =>
-                    updateField("situation", event.target.value)
-                  }
+                  onChange={(event) => updateField("situation", event.target.value)}
                   placeholder="Descreva em linhas gerais o que precisa ser feito nesta tarefa"
                   rows={4}
                   value={draft.situation}
@@ -233,20 +184,14 @@ export function RequestTaskDialog({
               </label>
               <label className="field requestTaskMarkdownField requestTaskDescriptionField">
                 <span>Descrição</span>
-                <MarkdownEditor
-                  value={draft.description}
-                  onChange={(value) => updateField("description", value)}
-                />
+                <MarkdownEditor value={draft.description} onChange={(value) => updateField("description", value)} />
               </label>
             </div>
           ) : null}
 
           {activeTab === "specification" ? (
             <label className="field requestTaskMarkdownField">
-              <MarkdownEditor
-                value={draft.specification}
-                onChange={(value) => updateField("specification", value)}
-              />
+              <MarkdownEditor value={draft.specification} onChange={(value) => updateField("specification", value)} />
             </label>
           ) : null}
 
@@ -255,9 +200,7 @@ export function RequestTaskDialog({
               notes={task.notes || []}
               onCreateNote={(note) => onCreateNote(task.id, note)}
               onDeleteNote={(noteId) => onDeleteNote(task.id, noteId)}
-              onUpdateNote={(noteId, note) =>
-                onUpdateNote(task.id, noteId, note)
-              }
+              onUpdateNote={(noteId, note) => onUpdateNote(task.id, noteId, note)}
               saving={saving}
               taskId={task.id}
             />
@@ -267,36 +210,18 @@ export function RequestTaskDialog({
             <FilesPanel
               files={taskFiles}
               onDelete={async (attachment) => {
-                const payload = await deleteEntityAttachment(
-                  "requests",
-                  request.id,
-                  attachment,
-                );
+                const payload = await deleteEntityAttachment("requests", request.id, attachment);
                 onRequestUpdated(payload.request);
                 return payload.deleted;
               }}
-              onDownload={(attachment) =>
-                downloadEntityAttachment("requests", request.id, attachment)
-              }
-              onPreview={(attachment) =>
-                fetchEntityAttachment("requests", request.id, attachment)
-              }
+              onDownload={(attachment) => downloadEntityAttachment("requests", request.id, attachment)}
+              onPreview={(attachment) => fetchEntityAttachment("requests", request.id, attachment)}
               onUpdateTags={async (attachment, tags) => {
-                const payload = await updateEntityAttachmentTags(
-                  "requests",
-                  request.id,
-                  attachment,
-                  tags,
-                );
+                const payload = await updateEntityAttachmentTags("requests", request.id, attachment, tags);
                 onRequestUpdated(payload.request);
               }}
               onUpload={async (files) => {
-                const payload = await uploadEntityAttachments(
-                  "requests",
-                  request.id,
-                  files,
-                  { tags: [task.code] },
-                );
+                const payload = await uploadEntityAttachments("requests", request.id, files, { tags: [task.code] });
                 onRequestUpdated(payload.request);
                 return payload.uploaded?.length;
               }}
@@ -304,43 +229,24 @@ export function RequestTaskDialog({
           ) : null}
 
           {activeTab === "history" ? (
-            <AuditHistory
-              entityId={task.id}
-              entityType="task"
-              refreshKey={task.updatedAt}
-            />
+            <AuditHistory entityId={task.id} entityType="task" refreshKey={task.updatedAt} />
           ) : null}
         </div>
 
         <footer className="requestTaskDialogFooter">
           <div>
             {task.id ? (
-              <button
-                className="dangerButton"
-                disabled={saving}
-                onClick={() => onDelete(task)}
-                type="button"
-              >
+              <button className="dangerButton" disabled={saving} onClick={() => onDelete(task)} type="button">
                 <Trash2 size={16} />
                 Excluir
               </button>
             ) : null}
           </div>
           <div>
-            <button
-              className="secondaryButton"
-              disabled={saving}
-              onClick={onClose}
-              type="button"
-            >
+            <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
               Cancelar
             </button>
-            <button
-              className="primaryButton"
-              disabled={saving}
-              onClick={submit}
-              type="button"
-            >
+            <button className="primaryButton" disabled={saving} onClick={submit} type="button">
               <Save size={16} />
               Salvar tarefa
             </button>

@@ -1,19 +1,8 @@
 import { Plus } from "lucide-react";
 
-export function CollectionAddForm({
-  autoFocus = false,
-  className = "",
-  disabled,
-  error,
-  name,
-  onChange,
-  onSubmit,
-}) {
+export function CollectionAddForm({ autoFocus = false, className = "", disabled, error, name, onChange, onSubmit }) {
   return (
-    <form
-      className={["resourceCollectionAdd", className].filter(Boolean).join(" ")}
-      onSubmit={onSubmit}
-    >
+    <form className={["resourceCollectionAdd", className].filter(Boolean).join(" ")} onSubmit={onSubmit}>
       {error ? <small role="alert">{error}</small> : null}
       <div>
         <input
@@ -25,12 +14,7 @@ export function CollectionAddForm({
           placeholder="Nova coleção"
           value={name}
         />
-        <button
-          aria-label="Criar coleção"
-          disabled={disabled || !name.trim()}
-          title="Criar coleção"
-          type="submit"
-        >
+        <button aria-label="Criar coleção" disabled={disabled || !name.trim()} title="Criar coleção" type="submit">
           <Plus size={13} />
         </button>
       </div>

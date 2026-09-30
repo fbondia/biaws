@@ -14,16 +14,12 @@ export function CatalogContextDialogField({
   optional = false,
 }) {
   const [open, setOpen] = useState(false);
-  const selectedApplication = applications.find(
-    ({ id }) => id === applicationId,
-  );
+  const selectedApplication = applications.find(({ id }) => id === applicationId);
   const selectedComponents = components.filter(
     ({ id, applicationId: componentApplicationId }) =>
-      componentApplicationId === applicationId &&
-      affectedComponentIds.includes(id),
+      componentApplicationId === applicationId && affectedComponentIds.includes(id),
   );
-  const selectionCount =
-    Number(Boolean(selectedApplication)) + selectedComponents.length;
+  const selectionCount = Number(Boolean(selectedApplication)) + selectedComponents.length;
   const componentSummary = selectedComponents.length
     ? `${selectedComponents.length} componente(s)`
     : "Nenhum componente";
@@ -60,13 +56,9 @@ export function CatalogContextDialogField({
             <header>
               <div>
                 <strong>Selecionar aplicação e componentes</strong>
-                <span>
-                  Escolha a aplicação e marque os componentes relacionados.
-                </span>
+                <span>Escolha a aplicação e marque os componentes relacionados.</span>
               </div>
-              {selectionCount ? (
-                <small>{selectionCount} selecionado(s)</small>
-              ) : null}
+              {selectionCount ? <small>{selectionCount} selecionado(s)</small> : null}
             </header>
             <div className="catalogFilterDialogContent">
               <CatalogColumnSelector
@@ -75,21 +67,14 @@ export function CatalogContextDialogField({
                 applications={applications}
                 components={components}
                 disabled={disabled}
-                emptyApplicationLabel={
-                  optional ? "Conhecimento geral do workspace" : ""
-                }
+                emptyApplicationLabel={optional ? "Conhecimento geral do workspace" : ""}
                 multipleComponents
                 onChange={onChange}
                 optional={optional}
               />
             </div>
             <footer>
-              <button
-                className="primaryButton"
-                data-dialog-close
-                onClick={() => setOpen(false)}
-                type="button"
-              >
+              <button className="primaryButton" data-dialog-close onClick={() => setOpen(false)} type="button">
                 Concluir
               </button>
             </footer>
@@ -100,24 +85,12 @@ export function CatalogContextDialogField({
   );
 }
 
-export function CatalogFilterFields({
-  applicationId,
-  applications,
-  componentId,
-  components,
-  onChange,
-}) {
+export function CatalogFilterFields({ applicationId, applications, componentId, components, onChange }) {
   const [open, setOpen] = useState(false);
-  const selectedApplication = applications.find(
-    ({ id }) => id === applicationId,
-  );
+  const selectedApplication = applications.find(({ id }) => id === applicationId);
   const selectedComponent = components.find(({ id }) => id === componentId);
-  const selectionCount =
-    Number(Boolean(applicationId)) + Number(Boolean(componentId));
-  const summary =
-    selectedComponent?.name ||
-    selectedApplication?.name ||
-    "Todas as aplicações";
+  const selectionCount = Number(Boolean(applicationId)) + Number(Boolean(componentId));
+  const summary = selectedComponent?.name || selectedApplication?.name || "Todas as aplicações";
 
   function changeSelection(nextContext) {
     onChange("applicationId", nextContext.applicationId);
@@ -150,14 +123,9 @@ export function CatalogFilterFields({
             <header>
               <div>
                 <strong>Filtrar por aplicação e componente</strong>
-                <span>
-                  Navegue pelas aplicações e selecione um componente, se
-                  necessário.
-                </span>
+                <span>Navegue pelas aplicações e selecione um componente, se necessário.</span>
               </div>
-              {selectionCount ? (
-                <small>{selectionCount} selecionado(s)</small>
-              ) : null}
+              {selectionCount ? <small>{selectionCount} selecionado(s)</small> : null}
             </header>
             <div className="catalogFilterDialogContent">
               <CatalogColumnSelector
@@ -186,12 +154,7 @@ export function CatalogFilterFields({
                   Limpar seleção
                 </button>
               ) : null}
-              <button
-                className="primaryButton"
-                data-dialog-close
-                onClick={() => setOpen(false)}
-                type="button"
-              >
+              <button className="primaryButton" data-dialog-close onClick={() => setOpen(false)} type="button">
                 Concluir
               </button>
             </footer>

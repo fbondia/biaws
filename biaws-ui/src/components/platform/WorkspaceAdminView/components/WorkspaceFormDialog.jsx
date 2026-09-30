@@ -46,12 +46,7 @@ export function WorkspaceFormDialog({ actor, onClose, onCreated, users }) {
             <span className="platformDialogKicker">Administração global</span>
             <h2 id="workspace-create-title">Novo workspace</h2>
           </div>
-          <button
-            aria-label="Fechar"
-            className="iconButton"
-            onClick={onClose}
-            type="button"
-          >
+          <button aria-label="Fechar" className="iconButton" onClick={onClose} type="button">
             <X size={18} />
           </button>
         </header>
@@ -60,9 +55,7 @@ export function WorkspaceFormDialog({ actor, onClose, onCreated, users }) {
             <span>Nome</span>
             <input
               maxLength={160}
-              onChange={(event) =>
-                setForm({ ...form, name: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
               required
               value={form.name}
             />
@@ -71,9 +64,7 @@ export function WorkspaceFormDialog({ actor, onClose, onCreated, users }) {
             <span>Chave</span>
             <input
               maxLength={80}
-              onChange={(event) =>
-                setForm({ ...form, key: event.target.value.toLowerCase() })
-              }
+              onChange={(event) => setForm({ ...form, key: event.target.value.toLowerCase() })}
               pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
               placeholder="exemplo-workspace"
               required
@@ -84,9 +75,7 @@ export function WorkspaceFormDialog({ actor, onClose, onCreated, users }) {
             <span>Descrição</span>
             <textarea
               maxLength={1000}
-              onChange={(event) =>
-                setForm({ ...form, description: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, description: event.target.value })}
               rows={3}
               value={form.description}
             />
@@ -94,9 +83,7 @@ export function WorkspaceFormDialog({ actor, onClose, onCreated, users }) {
           <label>
             <span>Administrador inicial</span>
             <select
-              onChange={(event) =>
-                setForm({ ...form, administratorUserId: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, administratorUserId: event.target.value })}
               required
               value={form.administratorUserId}
             >

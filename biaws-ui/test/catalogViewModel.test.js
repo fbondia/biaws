@@ -24,9 +24,7 @@ test("catalog tabs expose topology with either supported read permission", () =>
 test("catalog tabs omit domains without matching permissions", () => {
   assert.deepEqual(visibleCatalogTabs({ permissions: [] }), []);
   assert.deepEqual(
-    visibleCatalogTabs({ permissions: ["repositories.read"] }).map(
-      ({ key }) => key,
-    ),
+    visibleCatalogTabs({ permissions: ["repositories.read"] }).map(({ key }) => key),
     ["repositories"],
   );
 });

@@ -9,9 +9,7 @@ export function FilterDialogButton({
 }) {
   return (
     <button
-      className={["secondaryButton", "filterDialogTriggerButton", className]
-        .filter(Boolean)
-        .join(" ")}
+      className={["secondaryButton", "filterDialogTriggerButton", className].filter(Boolean).join(" ")}
       disabled={disabled}
       onClick={onClick}
       type="button"

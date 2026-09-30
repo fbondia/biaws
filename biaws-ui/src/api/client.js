@@ -1,10 +1,7 @@
 import { defaultMessagesService } from "../infrastructure/messages/runtime.js";
 import { defaultLogger } from "../infrastructure/logging/runtime.js";
 
-const API_BASE_URL = (import.meta.env?.VITE_BIAWS_API_URL || "").replace(
-  /\/$/u,
-  "",
-);
+const API_BASE_URL = (import.meta.env?.VITE_BIAWS_API_URL || "").replace(/\/$/u, "");
 const EMPTY_SESSION_CONTEXT = Object.freeze({
   getWorkspaceId: () => "",
   onUnauthorized: () => {},
@@ -12,25 +9,14 @@ const EMPTY_SESSION_CONTEXT = Object.freeze({
 
 let sessionContext = EMPTY_SESSION_CONTEXT;
 let requestSequence = 0;
-const SESSION_OWNED_PATHS = new Set([
-  "/api/auth/me",
-  "/api/auth/sign-in/email",
-  "/api/auth/sign-out",
-]);
+const SESSION_OWNED_PATHS = new Set(["/api/auth/me", "/api/auth/sign-in/email", "/api/auth/sign-out"]);
 
 function nextRequestId() {
   requestSequence += 1;
   return `ui-api-${Date.now()}-${requestSequence}`;
 }
 
-export function reportApiFailure({
-  durationMs,
-  error,
-  logger = defaultLogger,
-  method,
-  path,
-  requestId,
-}) {
+export function reportApiFailure({ durationMs, error, logger = defaultLogger, method, path, requestId }) {
   const statusCode = Number(error?.statusCode) || undefined;
   const logicalPath = String(path || "").split("?")[0];
   if (statusCode === 401 || SESSION_OWNED_PATHS.has(logicalPath)) return;
@@ -81,10 +67,7 @@ export function configureApiSession({
   };
 }
 
-export function workspaceHeaders(
-  headers = {},
-  workspaceId = sessionContext.getWorkspaceId(),
-) {
+export function workspaceHeaders(headers = {}, workspaceId = sessionContext.getWorkspaceId()) {
   return {
     ...headers,
     ...(workspaceId ? { "X-Biaws-Workspace-Id": workspaceId } : {}),
@@ -106,8 +89,7 @@ function reportAuthenticationFailure(response, payload) {
   if (response.status === 401) {
     sessionContext.onUnauthorized({
       code: payload.error?.code || payload.code || "UNAUTHENTICATED",
-      reason:
-        payload.error?.message || payload.message || "Authentication required",
+      reason: payload.error?.message || payload.message || "Authentication required",
       statusCode: response.status,
     });
   }
@@ -122,14 +104,9 @@ export async function readPayload(response) {
     const error = new Error(
       response.status === 403
         ? `Permissão insuficiente${deniedPermissions.length ? `: ${deniedPermissions.join(", ")}` : ""}.`
-        : payload.error?.message ||
-            payload.message ||
-            `HTTP ${response.status}`,
+        : payload.error?.message || payload.message || `HTTP ${response.status}`,
     );
-    error.code =
-      payload.error?.code ||
-      payload.code ||
-      (response.status === 403 ? "FORBIDDEN" : "HTTP_ERROR");
+    error.code = payload.error?.code || payload.code || (response.status === 403 ? "FORBIDDEN" : "HTTP_ERROR");
     error.statusCode = response.status;
     error.requiredPermissions = deniedPermissions;
     throw error;
@@ -154,10 +131,7 @@ export async function executeApiRequest({
     const response = await fetchImpl(buildUrl(path, params), {
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       credentials: "include",
-      headers: workspaceHeaders(
-        body === undefined ? {} : { "Content-Type": "application/json" },
-        workspaceId,
-      ),
+      headers: workspaceHeaders(body === undefined ? {} : { "Content-Type": "application/json" }, workspaceId),
       ...(method === "GET" ? {} : { method }),
     });
     return await readPayload(response);
@@ -175,20 +149,10 @@ export async function executeApiRequest({
 }
 
 export async function fetchJson(path, params) {
-  return defaultMessagesService.run(
-    () => executeApiRequest({ path, params }),
-    "Carregando dados…",
-    { priority: 0 },
-  );
+  return defaultMessagesService.run(() => executeApiRequest({ path, params }), "Carregando dados…", { priority: 0 });
 }
 
-export async function sendJson(
-  path,
-  body,
-  params,
-  method = "PUT",
-  { workspaceId } = {},
-) {
+export async function sendJson(path, body, params, method = "PUT", { workspaceId } = {}) {
   return defaultMessagesService.run(
     () => executeApiRequest({ body, method, params, path, workspaceId }),
     "Salvando alterações…",

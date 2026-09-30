@@ -4,16 +4,11 @@ import { clampedNavigationWidth } from "../model.js";
 
 export function useNavigationResize(initialNavigationWidth) {
   const bodyRef = useRef(null);
-  const [navigationWidth, setNavigationWidth] = useState(
-    initialNavigationWidth,
-  );
+  const [navigationWidth, setNavigationWidth] = useState(initialNavigationWidth);
   const [resizingNavigation, setResizingNavigation] = useState(false);
 
   function clampWidth(width) {
-    return clampedNavigationWidth(
-      width,
-      bodyRef.current?.getBoundingClientRect().width,
-    );
+    return clampedNavigationWidth(width, bodyRef.current?.getBoundingClientRect().width);
   }
 
   function resizeNavigation(clientX) {

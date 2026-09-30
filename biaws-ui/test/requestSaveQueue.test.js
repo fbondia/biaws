@@ -61,10 +61,7 @@ test("flushPendingRequestSaves tenta todos os rascunhos mesmo quando uma gravaç
 
 test("pending request save preserves the workspace captured when it was scheduled", async () => {
   let currentWorkspaceId = "workspace-1";
-  const pendingSave = createPendingRequestSave(
-    { id: "request-1", title: "Rascunho" },
-    currentWorkspaceId,
-  );
+  const pendingSave = createPendingRequestSave({ id: "request-1", title: "Rascunho" }, currentWorkspaceId);
   currentWorkspaceId = "workspace-2";
   const persisted = [];
 

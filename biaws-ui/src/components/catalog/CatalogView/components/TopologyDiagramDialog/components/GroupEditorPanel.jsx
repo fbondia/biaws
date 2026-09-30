@@ -13,18 +13,12 @@ export function GroupEditorPanel({ controller }) {
           aria-describedby="topology-group-validation"
           aria-invalid={!selectedGroup.data.group.title.trim()}
           disabled={!canEdit}
-          onChange={(event) =>
-            actions.updateSelectedGroup("title", event.target.value)
-          }
+          onChange={(event) => actions.updateSelectedGroup("title", event.target.value)}
           value={selectedGroup.data.group.title}
         />
       </label>
       {!selectedGroup.data.group.title.trim() ? (
-        <small
-          className="topologyDiagramGroupValidation"
-          id="topology-group-validation"
-          role="alert"
-        >
+        <small className="topologyDiagramGroupValidation" id="topology-group-validation" role="alert">
           Informe um título para salvar o diagrama.
         </small>
       ) : null}
@@ -32,9 +26,7 @@ export function GroupEditorPanel({ controller }) {
         <span>Descrição</span>
         <textarea
           disabled={!canEdit}
-          onChange={(event) =>
-            actions.updateSelectedGroup("description", event.target.value)
-          }
+          onChange={(event) => actions.updateSelectedGroup("description", event.target.value)}
           rows={3}
           value={selectedGroup.data.group.description || ""}
         />
@@ -47,19 +39,12 @@ export function GroupEditorPanel({ controller }) {
               <input
                 checked={item.parentId === selectedGroup.id}
                 disabled={!canEdit}
-                onChange={(event) =>
-                  actions.toggleNodeInSelectedGroup(
-                    item.id,
-                    event.target.checked,
-                  )
-                }
+                onChange={(event) => actions.toggleNodeInSelectedGroup(item.id, event.target.checked)}
                 type="checkbox"
               />
               <span>
                 {item.label}
-                {item.parentId && item.parentId !== selectedGroup.id ? (
-                  <small>Em outro grupo</small>
-                ) : null}
+                {item.parentId && item.parentId !== selectedGroup.id ? <small>Em outro grupo</small> : null}
               </span>
             </label>
           ))
@@ -68,11 +53,7 @@ export function GroupEditorPanel({ controller }) {
         )}
       </div>
       {canEdit ? (
-        <button
-          className="dangerButton"
-          onClick={actions.removeSelectedGroup}
-          type="button"
-        >
+        <button className="dangerButton" onClick={actions.removeSelectedGroup} type="button">
           <Trash2 size={14} /> Remover grupo
         </button>
       ) : null}

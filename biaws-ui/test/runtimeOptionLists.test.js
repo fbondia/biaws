@@ -1,15 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  ALL_STATUS_OPTIONS,
-  ALL_TYPE_OPTIONS,
-  configureIssueConstants,
-} from "../src/constants/issues.js";
-import {
-  configureRequestConstants,
-  REQUEST_STATUS_OPTIONS,
-} from "../src/data/requestConstants.js";
+import { ALL_STATUS_OPTIONS, ALL_TYPE_OPTIONS, configureIssueConstants } from "../src/constants/issues.js";
+import { configureRequestConstants, REQUEST_STATUS_OPTIONS } from "../src/data/requestConstants.js";
 import { clearSessionScopedState } from "../src/infrastructure/session/scopedState.js";
 import { createRuntimeOptionListsLoader } from "../src/App/runtimeOptionLists.js";
 
@@ -31,9 +24,7 @@ test("session cleanup resets workspace-scoped option catalogs to build defaults"
   ]);
   configureIssueConstants([
     {
-      items: [
-        { active: true, label: "Workspace only", value: "workspace-only" },
-      ],
+      items: [{ active: true, label: "Workspace only", value: "workspace-only" }],
       key: "issue.type",
     },
   ]);

@@ -35,10 +35,8 @@ export function TemplateDialog({
 }) {
   const [activeTab, setActiveTab] = useState("general");
   const [previewing, setPreviewing] = useState(false);
-  const update = (field, value) =>
-    onChange((current) => ({ ...current, [field]: value }));
-  const currentTab =
-    TEMPLATE_TABS.find(({ key }) => key === activeTab) || TEMPLATE_TABS[0];
+  const update = (field, value) => onChange((current) => ({ ...current, [field]: value }));
+  const currentTab = TEMPLATE_TABS.find(({ key }) => key === activeTab) || TEMPLATE_TABS[0];
   const ActiveTab = currentTab.component;
 
   async function runPreview() {
@@ -61,26 +59,14 @@ export function TemplateDialog({
         <header>
           <div>
             <span>{draft.id ? "Nova versão" : "Novo template"}</span>
-            <h2 id="monitoring-template-dialog-title">
-              {draft.name || "Template de monitoramento"}
-            </h2>
+            <h2 id="monitoring-template-dialog-title">{draft.name || "Template de monitoramento"}</h2>
           </div>
-          <button
-            aria-label="Fechar"
-            className="iconButton"
-            disabled={saving}
-            onClick={onClose}
-            type="button"
-          >
+          <button aria-label="Fechar" className="iconButton" disabled={saving} onClick={onClose} type="button">
             <X size={18} />
           </button>
         </header>
         <div className="monitoringTemplateDialogContent">
-          <div
-            aria-label="Seções do template"
-            className="monitoringDialogTabs"
-            role="tablist"
-          >
+          <div aria-label="Seções do template" className="monitoringDialogTabs" role="tablist">
             {TEMPLATE_TABS.map(({ key, label }) => (
               <button
                 aria-controls={`monitoring-template-panel-${key}`}
@@ -115,25 +101,11 @@ export function TemplateDialog({
           </div>
         </div>
         <footer>
-          <button
-            className="secondaryButton"
-            disabled={saving}
-            onClick={onClose}
-            type="button"
-          >
+          <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
             Cancelar
           </button>
-          <button
-            className="primaryButton"
-            disabled={saving || previewing}
-            onClick={onSave}
-            type="button"
-          >
-            {saving
-              ? "Salvando…"
-              : draft.id
-                ? "Criar versão"
-                : "Criar template"}
+          <button className="primaryButton" disabled={saving || previewing} onClick={onSave} type="button">
+            {saving ? "Salvando…" : draft.id ? "Criar versão" : "Criar template"}
           </button>
         </footer>
       </section>

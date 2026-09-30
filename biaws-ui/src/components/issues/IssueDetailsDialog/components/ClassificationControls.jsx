@@ -1,15 +1,8 @@
 import { Crown, AlertCircle, ClipboardList, Tags, X } from "lucide-react";
 
-import {
-  ALL_STATUS_OPTIONS,
-  DEFAULT_TAG_GROUP_COLOR,
-} from "../../../../constants/issues.js";
+import { ALL_STATUS_OPTIONS, DEFAULT_TAG_GROUP_COLOR } from "../../../../constants/issues.js";
 
-export {
-  buildUniqueTaxonomyId,
-  hasTaxonomyNode,
-  slugifyTaxonomyNode as slugify,
-} from "../../../taxonomy/nodeIds.js";
+export { buildUniqueTaxonomyId, hasTaxonomyNode, slugifyTaxonomyNode as slugify } from "../../../taxonomy/nodeIds.js";
 
 export const DETAIL_TABS = [
   { key: "description", label: "Descrição" },
@@ -33,22 +26,16 @@ export const ISSUE_TYPE_ICONS = {
 };
 
 export function optionLabel(options, value) {
-  return (
-    options.find((option) => option.value === value)?.label || value || "-"
-  );
+  return options.find((option) => option.value === value)?.label || value || "-";
 }
 
 export function normalizeClassification(classification = {}) {
   return {
     primaryTaxonomyId: classification.primaryTaxonomyId || "",
-    secondaryTaxonomyIds: Array.isArray(classification.secondaryTaxonomyIds)
-      ? classification.secondaryTaxonomyIds
-      : [],
+    secondaryTaxonomyIds: Array.isArray(classification.secondaryTaxonomyIds) ? classification.secondaryTaxonomyIds : [],
     summary: classification.summary || "",
     tags:
-      classification.tags &&
-      typeof classification.tags === "object" &&
-      !Array.isArray(classification.tags)
+      classification.tags && typeof classification.tags === "object" && !Array.isArray(classification.tags)
         ? classification.tags
         : {},
   };
@@ -63,10 +50,7 @@ export function flattenTaxonomy(nodes = [], depth = 0, path = []) {
       path: currentPath,
     };
 
-    return [
-      current,
-      ...flattenTaxonomy(node.children || [], depth + 1, currentPath),
-    ];
+    return [current, ...flattenTaxonomy(node.children || [], depth + 1, currentPath)];
   });
 }
 
@@ -75,10 +59,7 @@ export function serializeClassification(classification) {
 }
 
 export function selectedTaxonomyIds(classification) {
-  return [
-    classification.primaryTaxonomyId,
-    ...classification.secondaryTaxonomyIds,
-  ].filter(Boolean);
+  return [classification.primaryTaxonomyId, ...classification.secondaryTaxonomyIds].filter(Boolean);
 }
 
 export function buildTaxonomyById(flatTaxonomy) {
@@ -96,42 +77,23 @@ export function getTaxonomyChipLabel(taxonomyById, taxonomyId) {
   return getTaxonomyDisplayValue(taxonomyById, taxonomyId);
 }
 
-export function TaxonomySelectionChips({
-  onClear,
-  onRemove,
-  primaryTaxonomyId,
-  selectedTaxonomies,
-  taxonomyById,
-}) {
+export function TaxonomySelectionChips({ onClear, onRemove, primaryTaxonomyId, selectedTaxonomies, taxonomyById }) {
   if (!selectedTaxonomies.length) {
     return <></>;
   }
 
   return (
-    <div
-      className="classificationTaxonomyChips"
-      aria-label="Assuntos selecionados"
-    >
+    <div className="classificationTaxonomyChips" aria-label="Assuntos selecionados">
       {selectedTaxonomies.map((taxonomyId) => {
         const isPrimary = taxonomyId === primaryTaxonomyId;
 
         return (
           <span
-            className={
-              isPrimary
-                ? "classificationTaxonomyChip primaryTaxonomyChip"
-                : "classificationTaxonomyChip"
-            }
+            className={isPrimary ? "classificationTaxonomyChip primaryTaxonomyChip" : "classificationTaxonomyChip"}
             key={taxonomyId}
             title={getTaxonomyDisplayValue(taxonomyById, taxonomyId)}
           >
-            {isPrimary ? (
-              <Crown
-                className="primaryTaxonomyIcon"
-                size={13}
-                aria-hidden="true"
-              />
-            ) : null}
+            {isPrimary ? <Crown className="primaryTaxonomyIcon" size={13} aria-hidden="true" /> : null}
             {getTaxonomyChipLabel(taxonomyById, taxonomyId)}
             <button
               aria-label={`Remover ${getTaxonomyChipLabel(taxonomyById, taxonomyId)}`}
@@ -144,11 +106,7 @@ export function TaxonomySelectionChips({
           </span>
         );
       })}
-      <button
-        className="classificationTaxonomyChip clearTaxonomyChip"
-        onClick={onClear}
-        type="button"
-      >
+      <button className="classificationTaxonomyChip clearTaxonomyChip" onClick={onClear} type="button">
         Limpar Tudo
       </button>
     </div>
@@ -192,10 +150,7 @@ export function TagSelectionChips({ onRemove, tags }) {
           style={{ borderColor: tag.color }}
           title={tag.groupLabel}
         >
-          <span
-            className="tagColorSwatch"
-            style={{ backgroundColor: tag.color }}
-          />
+          <span className="tagColorSwatch" style={{ backgroundColor: tag.color }} />
           {tag.tagId}
           <button
             aria-label={`Remover tag ${tag.tagId}`}
@@ -233,12 +188,7 @@ export function TagGroupDialog({ group, onClose, onToggleTag, selectedTags }) {
             <strong>{group.label}</strong>
             {group.description ? <span>{group.description}</span> : null}
           </div>
-          <button
-            className="iconButton"
-            onClick={onClose}
-            title="Fechar"
-            type="button"
-          >
+          <button className="iconButton" onClick={onClose} title="Fechar" type="button">
             <X size={16} />
           </button>
         </header>
@@ -257,9 +207,7 @@ export function TagGroupDialog({ group, onClose, onToggleTag, selectedTags }) {
             ))}
           </div>
         ) : (
-          <div className="emptyState compactEmpty">
-            Nenhuma tag cadastrada neste grupo.
-          </div>
+          <div className="emptyState compactEmpty">Nenhuma tag cadastrada neste grupo.</div>
         )}
       </section>
     </div>
@@ -279,16 +227,13 @@ export function appendTaxonomyNode(nodes = [], parentId, child) {
 
     return {
       ...node,
-      children: node.children?.length
-        ? appendTaxonomyNode(node.children, parentId, child)
-        : node.children,
+      children: node.children?.length ? appendTaxonomyNode(node.children, parentId, child) : node.children,
     };
   });
 }
 
 export function updateTaxonomyNodeLabel(nodes = [], nodeId, patch) {
-  const normalizedPatch =
-    typeof patch === "string" ? { label: patch } : { ...(patch || {}) };
+  const normalizedPatch = typeof patch === "string" ? { label: patch } : { ...(patch || {}) };
   return nodes.map((node) => {
     if (node.id === nodeId) {
       return {
@@ -299,9 +244,7 @@ export function updateTaxonomyNodeLabel(nodes = [], nodeId, patch) {
 
     return {
       ...node,
-      children: node.children?.length
-        ? updateTaxonomyNodeLabel(node.children, nodeId, normalizedPatch)
-        : node.children,
+      children: node.children?.length ? updateTaxonomyNodeLabel(node.children, nodeId, normalizedPatch) : node.children,
     };
   });
 }

@@ -1,20 +1,8 @@
-import {
-  assertAllowedKeys,
-  assertObject,
-  boundedString,
-} from "./providerSupport.js";
+import { assertAllowedKeys, assertObject, boundedString } from "./providerSupport.js";
 import { ProviderConfigurationError } from "./providers.js";
 
-const ALLOWED_METHODS = new Set([
-  "GET",
-  "HEAD",
-  "POST",
-  "PUT",
-  "PATCH",
-  "DELETE",
-]);
-const SENSITIVE_HEADER =
-  /^(authorization|cookie|proxy-authorization|x-api-key)$/iu;
+const ALLOWED_METHODS = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"]);
+const SENSITIVE_HEADER = /^(authorization|cookie|proxy-authorization|x-api-key)$/iu;
 const HEADER_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/u;
 
 export const REST_CONFIGURATION_SCHEMA = Object.freeze({
@@ -49,10 +37,7 @@ export const REST_CONFIGURATION_SCHEMA = Object.freeze({
 
 function validateHeaderReferences(value, field) {
   if (!Array.isArray(value) || value.length > 32)
-    throw new ProviderConfigurationError(
-      "INVALID_HEADER_REFERENCES",
-      `${field} must contain at most 32 entries`,
-    );
+    throw new ProviderConfigurationError("INVALID_HEADER_REFERENCES", `${field} must contain at most 32 entries`);
   return value.map((raw, index) => {
     assertObject(raw, `${field}[${index}]`);
     assertAllowedKeys(raw, ["name", "reference"], `${field}[${index}]`);
@@ -61,10 +46,7 @@ function validateHeaderReferences(value, field) {
       max: 100,
     });
     if (!HEADER_NAME.test(name))
-      throw new ProviderConfigurationError(
-        "INVALID_HEADER_NAME",
-        `${field} contains an invalid header name`,
-      );
+      throw new ProviderConfigurationError("INVALID_HEADER_NAME", `${field} contains an invalid header name`);
     return {
       name,
       reference: boundedString(raw.reference, `${field}[${index}].reference`, {
@@ -80,18 +62,11 @@ function validateHeaders(value, field, { references = false } = {}) {
   if (references) return validateHeaderReferences(value, field);
   assertObject(value, field);
   const entries = Object.entries(value);
-  if (entries.length > 32)
-    throw new ProviderConfigurationError(
-      "TOO_MANY_HEADERS",
-      `${field} has too many entries`,
-    );
+  if (entries.length > 32) throw new ProviderConfigurationError("TOO_MANY_HEADERS", `${field} has too many entries`);
   return Object.fromEntries(
     entries.map(([name, entry]) => {
       if (!HEADER_NAME.test(name) || name.length > 100)
-        throw new ProviderConfigurationError(
-          "INVALID_HEADER_NAME",
-          `${field} contains an invalid header name`,
-        );
+        throw new ProviderConfigurationError("INVALID_HEADER_NAME", `${field} contains an invalid header name`);
       if (SENSITIVE_HEADER.test(name))
         throw new ProviderConfigurationError(
           "INLINE_SECRET_HEADER_REFUSED",
@@ -113,9 +88,7 @@ function validateStatuses(value) {
   if (
     !Array.isArray(value) ||
     value.length > 100 ||
-    value.some(
-      (entry) => !Number.isInteger(entry) || entry < 100 || entry > 599,
-    )
+    value.some((entry) => !Number.isInteger(entry) || entry < 100 || entry > 599)
   )
     throw new ProviderConfigurationError(
       "INVALID_EXPECTED_STATUSES",
@@ -140,10 +113,7 @@ export function validateRestConfiguration(configuration) {
     max: 10,
   }).toUpperCase();
   if (!ALLOWED_METHODS.has(method))
-    throw new ProviderConfigurationError(
-      "HTTP_METHOD_REFUSED",
-      "HTTP method is not allowed",
-    );
+    throw new ProviderConfigurationError("HTTP_METHOD_REFUSED", "HTTP method is not allowed");
   const rawUrl = boundedString(configuration.url, "url", {
     required: true,
     max: 2_048,
@@ -152,34 +122,15 @@ export function validateRestConfiguration(configuration) {
   try {
     url = new URL(rawUrl);
   } catch {
-    throw new ProviderConfigurationError(
-      "INVALID_REST_URL",
-      "url must be an absolute HTTP(S) URL",
-    );
+    throw new ProviderConfigurationError("INVALID_REST_URL", "url must be an absolute HTTP(S) URL");
   }
-  if (
-    !["http:", "https:"].includes(url.protocol) ||
-    url.username ||
-    url.password
-  )
-    throw new ProviderConfigurationError(
-      "REST_URL_REFUSED",
-      "url protocol or embedded credentials are not allowed",
-    );
+  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password)
+    throw new ProviderConfigurationError("REST_URL_REFUSED", "url protocol or embedded credentials are not allowed");
   const body = boundedString(configuration.body, "body", { max: 65_536 });
   if (["GET", "HEAD"].includes(method) && body)
-    throw new ProviderConfigurationError(
-      "HTTP_BODY_REFUSED",
-      `${method} requests cannot contain a body`,
-    );
-  if (
-    configuration.followRedirects !== undefined &&
-    typeof configuration.followRedirects !== "boolean"
-  )
-    throw new ProviderConfigurationError(
-      "INVALID_REDIRECT_POLICY",
-      "followRedirects must be a boolean",
-    );
+    throw new ProviderConfigurationError("HTTP_BODY_REFUSED", `${method} requests cannot contain a body`);
+  if (configuration.followRedirects !== undefined && typeof configuration.followRedirects !== "boolean")
+    throw new ProviderConfigurationError("INVALID_REDIRECT_POLICY", "followRedirects must be a boolean");
   return {
     method,
     url: url.toString(),

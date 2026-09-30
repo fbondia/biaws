@@ -3,15 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { compareRequestTasks } from "../../../../../shared/requestTaskSorting.js";
 
 import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
-import {
-  formatDate,
-  REQUEST_TASK_STATUS_COLORS,
-  REQUEST_TASK_STATUS_OPTIONS,
-} from "../requestUtils.js";
-import {
-  REQUEST_ALL_TASK_STATUS_OPTIONS,
-  REQUEST_DEFAULTS,
-} from "../../../data/requestConstants.js";
+import { formatDate, REQUEST_TASK_STATUS_COLORS, REQUEST_TASK_STATUS_OPTIONS } from "../requestUtils.js";
+import { REQUEST_ALL_TASK_STATUS_OPTIONS, REQUEST_DEFAULTS } from "../../../data/requestConstants.js";
 import { RequestTaskDialog } from "./RequestTaskDialog.jsx";
 import { EntityIdentifier } from "../../shared/EntityIdentifier/index.jsx";
 
@@ -55,9 +48,7 @@ export function RequestTasksTab({
   const [dialogTask, setDialogTask] = useState(null);
   const tasks = useMemo(
     () =>
-      [...request.tasks].sort((first, second) =>
-        compareRequestTasks(first, second, REQUEST_ALL_TASK_STATUS_OPTIONS),
-      ),
+      [...request.tasks].sort((first, second) => compareRequestTasks(first, second, REQUEST_ALL_TASK_STATUS_OPTIONS)),
     [request.tasks],
   );
 
@@ -67,9 +58,7 @@ export function RequestTasksTab({
 
   useEffect(() => {
     if (!initialTaskId) return;
-    setDialogTask(
-      request.tasks.find((task) => task.id === initialTaskId) || null,
-    );
+    setDialogTask(request.tasks.find((task) => task.id === initialTaskId) || null);
     onInitialTaskHandled?.();
   }, [initialTaskId, request.id]);
 
@@ -88,9 +77,7 @@ export function RequestTasksTab({
   }
 
   async function saveTask(task) {
-    const saved = task.id
-      ? await onUpdateTask(task.id, task)
-      : await onCreateTask(task);
+    const saved = task.id ? await onUpdateTask(task.id, task) : await onCreateTask(task);
     if (saved !== false) setDialogTask(null);
   }
 
@@ -112,12 +99,7 @@ export function RequestTasksTab({
           <h3>Tarefas</h3>
           <span>Atividades vinculadas à execução da melhoria</span>
         </div>
-        <button
-          className="primaryButton"
-          disabled={saving}
-          onClick={beginCreate}
-          type="button"
-        >
+        <button className="primaryButton" disabled={saving} onClick={beginCreate} type="button">
           <Plus size={16} />
           Nova tarefa
         </button>
@@ -143,12 +125,7 @@ export function RequestTasksTab({
               >
                 <div className="requestTaskCardHeader">
                   <div className="requestTaskCardTitle">
-                    {task.code ? (
-                      <EntityIdentifier
-                        label="Código da tarefa"
-                        value={task.code}
-                      />
-                    ) : null}
+                    {task.code ? <EntityIdentifier label="Código da tarefa" value={task.code} /> : null}
                     <strong>{task.title}</strong>
                   </div>
                   {onChangeStatus ? (
@@ -157,28 +134,18 @@ export function RequestTasksTab({
                       className="requestTaskStatus requestTaskStatusSelect"
                       onClick={(event) => event.stopPropagation()}
                       onKeyDown={(event) => event.stopPropagation()}
-                      onChange={(event) =>
-                        onChangeStatus(task, event.target.value)
-                      }
+                      onChange={(event) => onChangeStatus(task, event.target.value)}
                       style={statusStyle(task.status)}
                       value={task.status}
                     >
-                      {[
-                        ...new Set([
-                          ...REQUEST_TASK_STATUS_OPTIONS,
-                          task.status,
-                        ]),
-                      ].map((status) => (
+                      {[...new Set([...REQUEST_TASK_STATUS_OPTIONS, task.status])].map((status) => (
                         <option key={status} value={status}>
                           {status}
                         </option>
                       ))}
                     </select>
                   ) : (
-                    <span
-                      className="requestTaskStatus"
-                      style={statusStyle(task.status)}
-                    >
+                    <span className="requestTaskStatus" style={statusStyle(task.status)}>
                       <StatusIcon size={14} />
                       {task.status}
                     </span>
@@ -187,29 +154,17 @@ export function RequestTasksTab({
                 {task.startDate || task.endDate ? (
                   <div className="requestTaskDates">
                     <CalendarDays size={14} />
-                    {task.startDate ? (
-                      <span>{formatDate(task.startDate)}</span>
-                    ) : null}
-                    {task.startDate && task.endDate ? (
-                      <span aria-hidden="true">→</span>
-                    ) : null}
-                    {task.endDate ? (
-                      <span>{formatDate(task.endDate)}</span>
-                    ) : null}
+                    {task.startDate ? <span>{formatDate(task.startDate)}</span> : null}
+                    {task.startDate && task.endDate ? <span aria-hidden="true">→</span> : null}
+                    {task.endDate ? <span>{formatDate(task.endDate)}</span> : null}
                   </div>
                 ) : null}
-                <p>
-                  {task.situation.trim() ||
-                    task.description ||
-                    "Situação não informada."}
-                </p>
+                <p>{task.situation.trim() || task.description || "Situação não informada."}</p>
               </article>
             );
           })
         ) : (
-          <div className="emptyState">
-            Nenhuma tarefa cadastrada para esta melhoria.
-          </div>
+          <div className="emptyState">Nenhuma tarefa cadastrada para esta melhoria.</div>
         )}
       </div>
 
@@ -223,12 +178,7 @@ export function RequestTasksTab({
         onRequestUpdated={onRequestUpdated}
         request={request}
         saving={saving}
-        task={
-          dialogTask?.id
-            ? request.tasks.find((task) => task.id === dialogTask.id) ||
-              dialogTask
-            : dialogTask
-        }
+        task={dialogTask?.id ? request.tasks.find((task) => task.id === dialogTask.id) || dialogTask : dialogTask}
       />
     </section>
   );

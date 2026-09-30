@@ -1,10 +1,4 @@
-import {
-  buildUrl,
-  fetchJson,
-  readPayload,
-  sendJson,
-  workspaceHeaders,
-} from "./client.js";
+import { buildUrl, fetchJson, readPayload, sendJson, workspaceHeaders } from "./client.js";
 
 export async function importEml(
   file,
@@ -37,15 +31,12 @@ export async function importEml(
     form.append("sanitizationConfig", JSON.stringify(sanitizationConfig));
   }
 
-  const response = await fetch(
-    buildUrl("/api/issues/imports/eml", { dryRun }),
-    {
-      method: "POST",
-      credentials: "include",
-      headers: workspaceHeaders(),
-      body: form,
-    },
-  );
+  const response = await fetch(buildUrl("/api/issues/imports/eml", { dryRun }), {
+    method: "POST",
+    credentials: "include",
+    headers: workspaceHeaders(),
+    body: form,
+  });
   return readPayload(response);
 }
 

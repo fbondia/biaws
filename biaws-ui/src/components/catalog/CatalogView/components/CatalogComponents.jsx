@@ -1,11 +1,4 @@
-import {
-  ArchiveRestore,
-  ArrowLeft,
-  Inbox,
-  Pencil,
-  Trash2,
-  X,
-} from "lucide-react";
+import { ArchiveRestore, ArrowLeft, Inbox, Pencil, Trash2, X } from "lucide-react";
 
 import { hasPermission } from "../../../../permissions.js";
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
@@ -35,15 +28,9 @@ export function EntityTable({ actions, columns, empty, items, onOpen }) {
           {items.map((item) => (
             <tr key={item.id}>
               {columns.map((column) => (
-                <td key={column.key}>
-                  {column.render
-                    ? column.render(item)
-                    : item[column.key] || "-"}
-                </td>
+                <td key={column.key}>{column.render ? column.render(item) : item[column.key] || "-"}</td>
               ))}
-              {actions ? (
-                <td className="catalogTableActions">{actions(item, onOpen)}</td>
-              ) : null}
+              {actions ? <td className="catalogTableActions">{actions(item, onOpen)}</td> : null}
             </tr>
           ))}
         </tbody>
@@ -53,31 +40,18 @@ export function EntityTable({ actions, columns, empty, items, onOpen }) {
 }
 
 export function Status({ value }) {
-  return (
-    <span className={`catalogStatus catalogStatus-${value || "unknown"}`}>
-      {value || "unknown"}
-    </span>
-  );
+  return <span className={`catalogStatus catalogStatus-${value || "unknown"}`}>{value || "unknown"}</span>;
 }
 
-export function HeaderActions({
-  actor,
-  application,
-  onBack,
-  onDelete,
-  onEdit,
-  onRestore,
-}) {
+export function HeaderActions({ actor, application, onBack, onDelete, onEdit, onRestore }) {
   return (
     <div className="catalogHeaderActions">
-      {application.status !== "archived" &&
-      hasPermission(actor, "applications.update") ? (
+      {application.status !== "archived" && hasPermission(actor, "applications.update") ? (
         <button className="secondaryButton" onClick={onEdit} type="button">
           <Pencil size={16} /> Editar
         </button>
       ) : null}
-      {hasPermission(actor, "applications.archive") &&
-      application.status === "archived" ? (
+      {hasPermission(actor, "applications.archive") && application.status === "archived" ? (
         <>
           <button className="secondaryButton" onClick={onRestore} type="button">
             <ArchiveRestore size={16} /> Desarquivar

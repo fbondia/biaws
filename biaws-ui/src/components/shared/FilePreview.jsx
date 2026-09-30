@@ -20,25 +20,14 @@ export function canPreviewFile(file) {
   return Boolean(previewKind(file));
 }
 
-export function FilePreview({
-  blob,
-  error,
-  file,
-  loading,
-  onClose,
-  onDownload,
-}) {
+export function FilePreview({ blob, error, file, loading, onClose, onDownload }) {
   const [text, setText] = useState("");
   const [textError, setTextError] = useState("");
   const [htmlView, setHtmlView] = useState("preview");
   const kind = previewKind(file);
-  const htmlDocument = useMemo(
-    () => (kind === "html" ? htmlPreviewDocument(text) : ""),
-    [kind, text],
-  );
+  const htmlDocument = useMemo(() => (kind === "html" ? htmlPreviewDocument(text) : ""), [kind, text]);
   const objectUrl = useMemo(
-    () =>
-      blob && ["image", "pdf"].includes(kind) ? URL.createObjectURL(blob) : "",
+    () => (blob && ["image", "pdf"].includes(kind) ? URL.createObjectURL(blob) : ""),
     [blob, kind],
   );
 
@@ -55,9 +44,7 @@ export function FilePreview({
     setTextError("");
     if (!blob || !["text", "markdown", "html"].includes(kind)) return () => {};
     if (blob.size > TEXT_PREVIEW_LIMIT) {
-      setTextError(
-        "O arquivo textual excede o limite de 2 MB para visualização.",
-      );
+      setTextError("O arquivo textual excede o limite de 2 MB para visualização.");
       return () => {};
     }
     blob
@@ -95,55 +82,32 @@ export function FilePreview({
       className="dialogBackdrop filePreviewBackdrop"
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
     >
-      <section
-        aria-labelledby="filePreviewTitle"
-        aria-modal="true"
-        className="filePreviewDialog"
-        role="dialog"
-      >
+      <section aria-labelledby="filePreviewTitle" aria-modal="true" className="filePreviewDialog" role="dialog">
         <header className="filePreviewHeader">
           <div>
             <span>Visualização do arquivo</span>
             <h3 id="filePreviewTitle">{file.filename || "anexo"}</h3>
           </div>
           <div>
-            <button
-              className="secondaryButton"
-              disabled={loading}
-              onClick={onDownload}
-              type="button"
-            >
+            <button className="secondaryButton" disabled={loading} onClick={onDownload} type="button">
               <Download size={16} /> Baixar
             </button>
-            <button
-              aria-label="Fechar visualização"
-              className="iconButton"
-              onClick={onClose}
-              type="button"
-            >
+            <button aria-label="Fechar visualização" className="iconButton" onClick={onClose} type="button">
               <X size={18} />
             </button>
           </div>
         </header>
         <div className="filePreviewBody">
-          {loading ? (
-            <div className="loadingLine">Carregando arquivo...</div>
-          ) : null}
-          {error || textError ? (
-            <div className="errorBox">{error || textError}</div>
-          ) : null}
+          {loading ? <div className="loadingLine">Carregando arquivo...</div> : null}
+          {error || textError ? <div className="errorBox">{error || textError}</div> : null}
           {!loading && !error && blob && kind === "image" ? (
             <img alt={file.filename || "Imagem"} src={objectUrl} />
           ) : null}
           {!loading && !error && blob && kind === "pdf" ? (
             <iframe src={objectUrl} title={file.filename || "PDF"} />
           ) : null}
-          {!loading && !error && blob && kind === "markdown" ? (
-            <MarkdownPreview value={text} />
-          ) : null}
-          {!loading && !error && blob && kind === "text" ? (
-            <pre>{text}</pre>
-          ) : null}
+          {!loading && !error && blob && kind === "markdown" ? <MarkdownPreview value={text} /> : null}
+          {!loading && !error && blob && kind === "text" ? <pre>{text}</pre> : null}
           {!loading && !error && blob && kind === "html" ? (
             <div className="filePreviewHtml">
               <div aria-label="Modo de visualização do HTML" role="tablist">
@@ -167,11 +131,7 @@ export function FilePreview({
                 </button>
               </div>
               {htmlView === "preview" ? (
-                <iframe
-                  sandbox=""
-                  srcDoc={htmlDocument}
-                  title={`Preview de ${file.filename || "HTML"}`}
-                />
+                <iframe sandbox="" srcDoc={htmlDocument} title={`Preview de ${file.filename || "HTML"}`} />
               ) : (
                 <pre>{text}</pre>
               )}

@@ -1,15 +1,8 @@
 import { ArrowDown, ArrowUp, Check, Copy, Plus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import {
-  normalizeSpecificationSectionTitle,
-  REQUEST_SPECIFICATION_SECTION_TITLES,
-} from "../requestUtils.js";
-import {
-  MarkdownEditor,
-  MarkdownPreview,
-  markdownToHtml,
-} from "../../shared/MarkdownEditor/index.jsx";
+import { normalizeSpecificationSectionTitle, REQUEST_SPECIFICATION_SECTION_TITLES } from "../requestUtils.js";
+import { MarkdownEditor, MarkdownPreview, markdownToHtml } from "../../shared/MarkdownEditor/index.jsx";
 
 export function RequestSpecificationTab({
   request,
@@ -29,17 +22,12 @@ export function RequestSpecificationTab({
     setCopiedSectionId(sectionId);
     window.clearTimeout(copyResetTimerRef.current);
     copyResetTimerRef.current = window.setTimeout(
-      () =>
-        setCopiedSectionId((current) => (current === sectionId ? "" : current)),
+      () => setCopiedSectionId((current) => (current === sectionId ? "" : current)),
       1800,
     );
   }
   const sections = request.specification?.sections || [];
-  const existingTitles = new Set(
-    sections.map((section) =>
-      normalizeSpecificationSectionTitle(section.title),
-    ),
-  );
+  const existingTitles = new Set(sections.map((section) => normalizeSpecificationSectionTitle(section.title)));
   const missingDefaultCount = REQUEST_SPECIFICATION_SECTION_TITLES.filter(
     (title) => !existingTitles.has(normalizeSpecificationSectionTitle(title)),
   ).length;
@@ -54,20 +42,12 @@ export function RequestSpecificationTab({
         {isEditing ? (
           <div className="requestSpecificationHeaderActions">
             {missingDefaultCount ? (
-              <button
-                className="secondaryButton"
-                onClick={onAddMissingSpecificationSections}
-                type="button"
-              >
+              <button className="secondaryButton" onClick={onAddMissingSpecificationSections} type="button">
                 <Plus size={16} />
                 Seções padrão
               </button>
             ) : null}
-            <button
-              className="secondaryButton"
-              onClick={onAddSpecificationSection}
-              type="button"
-            >
+            <button className="secondaryButton" onClick={onAddSpecificationSection} type="button">
               <Plus size={16} />
               Seção
             </button>
@@ -85,13 +65,7 @@ export function RequestSpecificationTab({
                     <label className="field">
                       <span>Título da seção</span>
                       <input
-                        onChange={(event) =>
-                          onUpdateSpecificationSection(
-                            section.id,
-                            "title",
-                            event.target.value,
-                          )
-                        }
+                        onChange={(event) => onUpdateSpecificationSection(section.id, "title", event.target.value)}
                         type="text"
                         value={section.title}
                       />
@@ -99,16 +73,12 @@ export function RequestSpecificationTab({
                     <div className="requestSpecificationSectionActions">
                       <CopySectionButton
                         copied={copiedSectionId === section.id}
-                        onCopy={() =>
-                          copySectionContent(section, markSectionCopied)
-                        }
+                        onCopy={() => copySectionContent(section, markSectionCopied)}
                       />
                       <button
                         className="iconButton"
                         disabled={index === 0}
-                        onClick={() =>
-                          onMoveSpecificationSection(section.id, -1)
-                        }
+                        onClick={() => onMoveSpecificationSection(section.id, -1)}
                         title="Mover para cima"
                         type="button"
                       >
@@ -117,9 +87,7 @@ export function RequestSpecificationTab({
                       <button
                         className="iconButton"
                         disabled={index === sections.length - 1}
-                        onClick={() =>
-                          onMoveSpecificationSection(section.id, 1)
-                        }
+                        onClick={() => onMoveSpecificationSection(section.id, 1)}
                         title="Mover para baixo"
                         type="button"
                       >
@@ -137,13 +105,7 @@ export function RequestSpecificationTab({
                   </div>
                   <label className="field requestSpecificationContentField">
                     <MarkdownEditor
-                      onChange={(value) =>
-                        onUpdateSpecificationSection(
-                          section.id,
-                          "content",
-                          value,
-                        )
-                      }
+                      onChange={(value) => onUpdateSpecificationSection(section.id, "content", value)}
                       value={section.content}
                     />
                   </label>
@@ -154,9 +116,7 @@ export function RequestSpecificationTab({
                     <h4>{section.title}</h4>
                     <CopySectionButton
                       copied={copiedSectionId === section.id}
-                      onCopy={() =>
-                        copySectionContent(section, markSectionCopied)
-                      }
+                      onCopy={() => copySectionContent(section, markSectionCopied)}
                     />
                   </div>
                   <MarkdownPreview value={section.content} />
@@ -166,9 +126,7 @@ export function RequestSpecificationTab({
           ))}
         </div>
       ) : (
-        <div className="emptyState compactEmpty">
-          Nenhuma seção de especificação cadastrada.
-        </div>
+        <div className="emptyState compactEmpty">Nenhuma seção de especificação cadastrada.</div>
       )}
     </section>
   );

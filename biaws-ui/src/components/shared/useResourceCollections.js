@@ -8,10 +8,7 @@ import {
   updateResourceCollection,
 } from "../../api.js";
 
-export function useResourceCollections(
-  resourceType,
-  { onError, onMoved } = {},
-) {
+export function useResourceCollections(resourceType, { onError, onMoved } = {}) {
   const { confirm } = useMessages();
   const [collections, setCollections] = useState([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState("");

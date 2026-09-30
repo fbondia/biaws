@@ -276,10 +276,7 @@
 
 .emlImportEditableFields {
   display: grid;
-  grid-template-columns: minmax(140px, 0.7fr) minmax(130px, 0.5fr) minmax(
-      260px,
-      2fr
-    );
+  grid-template-columns: minmax(140px, 0.7fr) minmax(130px, 0.5fr) minmax(260px, 2fr);
   gap: 8px;
 }
 

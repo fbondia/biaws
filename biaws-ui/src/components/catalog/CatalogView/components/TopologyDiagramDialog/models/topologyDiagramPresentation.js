@@ -3,10 +3,8 @@ import { MarkerType } from "@xyflow/react";
 export function edgeDirectionMarkers(direction = "forward") {
   const marker = { type: MarkerType.ArrowClosed };
   return {
-    markerStart:
-      direction === "reverse" || direction === "both" ? marker : undefined,
-    markerEnd:
-      direction === "forward" || direction === "both" ? marker : undefined,
+    markerStart: direction === "reverse" || direction === "both" ? marker : undefined,
+    markerEnd: direction === "forward" || direction === "both" ? marker : undefined,
   };
 }
 

@@ -1,5 +1,4 @@
-const SECRET_PATTERN =
-  /\b(password|secret|token|credential|authorization|api[_-]?key)\b/iu;
+const SECRET_PATTERN = /\b(password|secret|token|credential|authorization|api[_-]?key)\b/iu;
 
 function sanitize(value, key = "", depth = 0) {
   if (depth > 5) return "[TRUNCATED]";
@@ -12,10 +11,7 @@ function sanitize(value, key = "", depth = 0) {
   }
   if (value && typeof value === "object") {
     return Object.fromEntries(
-      Object.entries(value).map(([entryKey, entryValue]) => [
-        entryKey,
-        sanitize(entryValue, entryKey, depth + 1),
-      ]),
+      Object.entries(value).map(([entryKey, entryValue]) => [entryKey, sanitize(entryValue, entryKey, depth + 1)]),
     );
   }
   return typeof value === "string" ? sanitizeText(value) : value;
@@ -25,10 +21,7 @@ function sanitizeText(value) {
   return String(value)
     .replace(/\b(Bearer\s+)[A-Za-z0-9._~+/=-]+/giu, "$1[REDACTED]")
     .replace(/\b(biaws_)[A-Za-z0-9_-]+/gu, "$1[REDACTED]")
-    .replace(
-      /\b(PASSWORD|SECRET|TOKEN|CREDENTIAL|AUTHORIZATION|API_KEY)=([^\s,;]+)/gu,
-      "$1=[REDACTED]",
-    );
+    .replace(/\b(PASSWORD|SECRET|TOKEN|CREDENTIAL|AUTHORIZATION|API_KEY)=([^\s,;]+)/gu, "$1=[REDACTED]");
 }
 
 export function createLogger({ now = () => new Date(), write } = {}) {

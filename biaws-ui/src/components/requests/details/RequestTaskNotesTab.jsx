@@ -10,14 +10,7 @@ function emptyDraft(note = {}) {
   return { date: note.date || todayDateValue(), content: note.content || "" };
 }
 
-export function RequestTaskNotesTab({
-  taskId,
-  notes,
-  saving,
-  onCreateNote,
-  onDeleteNote,
-  onUpdateNote,
-}) {
+export function RequestTaskNotesTab({ taskId, notes, saving, onCreateNote, onDeleteNote, onUpdateNote }) {
   const { confirm } = useMessages();
   const [mode, setMode] = useState("");
   const [editingId, setEditingId] = useState("");
@@ -32,10 +25,7 @@ export function RequestTaskNotesTab({
   async function saveNote() {
     if (!draft.content.trim()) return;
     const payload = { ...draft, content: draft.content.trim() };
-    const saved =
-      mode === "edit"
-        ? await onUpdateNote(editingId, payload)
-        : await onCreateNote(payload);
+    const saved = mode === "edit" ? await onUpdateNote(editingId, payload) : await onCreateNote(payload);
     if (saved !== false) {
       setMode("");
       setEditingId("");
@@ -70,9 +60,7 @@ export function RequestTaskNotesTab({
       <div className="requestTaskNotesHeader">
         <div>
           <h4>Notas de Execução</h4>
-          <span>
-            Decisões, avanços e observações sobre a execução da tarefa.
-          </span>
+          <span>Decisões, avanços e observações sobre a execução da tarefa.</span>
         </div>
         <button
           className="primaryButton"
@@ -104,12 +92,7 @@ export function RequestTaskNotesTab({
                     <Edit3 size={15} />
                     Editar
                   </button>
-                  <button
-                    className="dangerButton"
-                    disabled={saving}
-                    onClick={() => remove(note.id)}
-                    type="button"
-                  >
+                  <button className="dangerButton" disabled={saving} onClick={() => remove(note.id)} type="button">
                     <Trash2 size={15} />
                     Excluir
                   </button>

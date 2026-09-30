@@ -41,9 +41,7 @@ export function textPreview(value) {
 }
 
 export function formatTaxonomyPath(path, maxLength = 56) {
-  const labels = (Array.isArray(path) ? path : [])
-    .map((label) => String(label || "").trim())
-    .filter(Boolean);
+  const labels = (Array.isArray(path) ? path : []).map((label) => String(label || "").trim()).filter(Boolean);
   const fullPath = labels.join(" / ");
 
   if (fullPath.length <= maxLength || labels.length < 3) return fullPath;

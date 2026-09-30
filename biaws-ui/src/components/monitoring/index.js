@@ -8,7 +8,4 @@ export {
   RuntimeMonitoringTabs,
   useRuntimeMonitoring,
 } from "./runtime/index.js";
-export {
-  monitoringCliExample,
-  monitoringOriginLabel,
-} from "./runtime/index.js";
+export { monitoringCliExample, monitoringOriginLabel } from "./runtime/index.js";

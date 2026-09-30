@@ -12,21 +12,10 @@ export function createResourceCollection(resourceType, collection) {
   return sendJson(basePath(resourceType), collection, undefined, "POST");
 }
 
-export function updateResourceCollection(
-  resourceType,
-  collectionId,
-  collection,
-) {
-  return sendJson(
-    `${basePath(resourceType)}/${encodeURIComponent(collectionId)}`,
-    collection,
-    undefined,
-    "PATCH",
-  );
+export function updateResourceCollection(resourceType, collectionId, collection) {
+  return sendJson(`${basePath(resourceType)}/${encodeURIComponent(collectionId)}`, collection, undefined, "PATCH");
 }
 
 export function deleteResourceCollection(resourceType, collectionId) {
-  return deleteJson(
-    `${basePath(resourceType)}/${encodeURIComponent(collectionId)}`,
-  );
+  return deleteJson(`${basePath(resourceType)}/${encodeURIComponent(collectionId)}`);
 }

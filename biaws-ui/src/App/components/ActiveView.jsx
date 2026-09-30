@@ -1,39 +1,16 @@
 import { lazy } from "react";
 
 function lazyNamed(loader, exportName) {
-  return lazy(() =>
-    loader().then((module) => ({ default: module[exportName] })),
-  );
+  return lazy(() => loader().then((module) => ({ default: module[exportName] })));
 }
 
-const AccountView = lazyNamed(
-  () => import("../../components/auth/AccountView.jsx"),
-  "AccountView",
-);
-const GroupsView = lazyNamed(
-  () => import("../../components/auth/GroupsView/index.jsx"),
-  "GroupsView",
-);
-const UsersView = lazyNamed(
-  () => import("../../components/auth/UsersView.jsx"),
-  "UsersView",
-);
-const CatalogView = lazyNamed(
-  () => import("../../components/catalog/CatalogView/index.jsx"),
-  "CatalogView",
-);
-const ServersView = lazyNamed(
-  () => import("../../components/catalog/ServersView/index.jsx"),
-  "ServersView",
-);
-const IssuesView = lazyNamed(
-  () => import("../../components/issues/IssuesView.jsx"),
-  "IssuesView",
-);
-const RequestsView = lazyNamed(
-  () => import("../../components/requests/RequestsView/index.jsx"),
-  "RequestsView",
-);
+const AccountView = lazyNamed(() => import("../../components/auth/AccountView.jsx"), "AccountView");
+const GroupsView = lazyNamed(() => import("../../components/auth/GroupsView/index.jsx"), "GroupsView");
+const UsersView = lazyNamed(() => import("../../components/auth/UsersView.jsx"), "UsersView");
+const CatalogView = lazyNamed(() => import("../../components/catalog/CatalogView/index.jsx"), "CatalogView");
+const ServersView = lazyNamed(() => import("../../components/catalog/ServersView/index.jsx"), "ServersView");
+const IssuesView = lazyNamed(() => import("../../components/issues/IssuesView.jsx"), "IssuesView");
+const RequestsView = lazyNamed(() => import("../../components/requests/RequestsView/index.jsx"), "RequestsView");
 const OptionListsView = lazyNamed(
   () => import("../../components/settings/OptionListsView/index.jsx"),
   "OptionListsView",
@@ -50,26 +27,17 @@ const PublicationsView = lazyNamed(
   () => import("../../components/publications/PublicationsView.jsx"),
   "PublicationsView",
 );
-const SkillsView = lazyNamed(
-  () => import("../../components/skills/SkillsView/index.jsx"),
-  "SkillsView",
-);
+const SkillsView = lazyNamed(() => import("../../components/skills/SkillsView/index.jsx"), "SkillsView");
 const IssueTaxonomyManager = lazyNamed(
   () => import("../../components/taxonomy/IssueTaxonomyManager/index.jsx"),
   "IssueTaxonomyManager",
 );
-const HomeView = lazyNamed(
-  () => import("../../components/home/HomeView/index.jsx"),
-  "HomeView",
-);
+const HomeView = lazyNamed(() => import("../../components/home/HomeView/index.jsx"), "HomeView");
 const WorkspaceAdminView = lazyNamed(
   () => import("../../components/platform/WorkspaceAdminView/index.jsx"),
   "WorkspaceAdminView",
 );
-const SecretsView = lazyNamed(
-  () => import("../../components/secrets/SecretsView/index.jsx"),
-  "SecretsView",
-);
+const SecretsView = lazyNamed(() => import("../../components/secrets/SecretsView/index.jsx"), "SecretsView");
 const KnowledgeRecordsView = lazyNamed(
   () => import("../../components/knowledge/KnowledgeRecordsView/index.jsx"),
   "KnowledgeRecordsView",
@@ -96,9 +64,7 @@ export function ActiveView({
     case "servers":
       return <ServersView actor={actor} />;
     case "issues":
-      return (
-        <IssuesView key={`issues-${runtimeOptionsVersion}`} {...issuesProps} />
-      );
+      return <IssuesView key={`issues-${runtimeOptionsVersion}`} {...issuesProps} />;
     case "requests":
       return (
         <RequestsView
@@ -121,12 +87,7 @@ export function ActiveView({
     case "secrets":
       return <SecretsView actor={actor} />;
     case "option-lists":
-      return (
-        <OptionListsView
-          actor={actor}
-          onRuntimeChanged={loadRuntimeOptionLists}
-        />
-      );
+      return <OptionListsView actor={actor} onRuntimeChanged={loadRuntimeOptionLists} />;
     case "monitoring-templates":
       return <MonitoringTemplatesView actor={actor} />;
     case "monitoring-runtimes":

@@ -107,9 +107,7 @@ export function useSecretsView(actor) {
       const url = window.URL.createObjectURL(payload.blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = payload.fileName
-        ? decodeURIComponent(payload.fileName)
-        : secret.file?.name || "secret-file";
+      anchor.download = payload.fileName ? decodeURIComponent(payload.fileName) : secret.file?.name || "secret-file";
       document.body.append(anchor);
       anchor.click();
       anchor.remove();
@@ -134,8 +132,7 @@ export function useSecretsView(actor) {
   }
 
   async function restore(secret) {
-    if (!(await confirm(`Desarquivar o segredo “${secret.name}”?`)))
-      return false;
+    if (!(await confirm(`Desarquivar o segredo “${secret.name}”?`))) return false;
     setError("");
     try {
       await restoreSecret(secret.id);

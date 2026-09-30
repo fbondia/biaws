@@ -1,12 +1,4 @@
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import "../../../../styles/shared/monitoring-event.css";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
@@ -20,11 +12,7 @@ import {
 } from "./model.js";
 
 function hasProperties(value) {
-  return Boolean(
-    value &&
-    typeof value === "object" &&
-    (Array.isArray(value) || Object.keys(value).length),
-  );
+  return Boolean(value && typeof value === "object" && (Array.isArray(value) || Object.keys(value).length));
 }
 
 function JsonBlock({ label, showEmpty = false, value }) {
@@ -47,11 +35,7 @@ function PresentedField({ field }) {
       <div className="monitoringMetric monitoringMetricGauge">
         <span>{field.label}</span>
         <strong>{formatted}</strong>
-        <progress
-          aria-label={field.label}
-          max="100"
-          value={Number(field.value)}
-        />
+        <progress aria-label={field.label} max="100" value={Number(field.value)} />
       </div>
     );
   }
@@ -59,9 +43,7 @@ function PresentedField({ field }) {
     return (
       <div className="monitoringMetric">
         <span>{field.label}</span>
-        <strong
-          className={`monitoringStatusBadge monitoringStatusBadge-${monitoringStatusTone(field.value)}`}
-        >
+        <strong className={`monitoringStatusBadge monitoringStatusBadge-${monitoringStatusTone(field.value)}`}>
           {formatted}
         </strong>
       </div>
@@ -80,40 +62,24 @@ function PresentedSeries({ series }) {
     <section className="monitoringSeries">
       <strong>{series.label}</strong>
       <ResponsiveContainer height={220} width="100%">
-        <LineChart
-          data={series.data}
-          margin={{ top: 16, right: 18, bottom: 4, left: 4 }}
-        >
-          <CartesianGrid
-            stroke="var(--color-border-subtle)"
-            strokeDasharray="3 3"
-            vertical={false}
-          />
+        <LineChart data={series.data} margin={{ top: 16, right: 18, bottom: 4, left: 4 }}>
+          <CartesianGrid stroke="var(--color-border-subtle)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="x"
             minTickGap={20}
-            tickFormatter={(value) =>
-              formatMonitoringValue(value, series.xFormat)
-            }
+            tickFormatter={(value) => formatMonitoringValue(value, series.xFormat)}
             tick={{ fill: "var(--color-text-subtle)", fontSize: 11 }}
             tickLine={false}
           />
           <YAxis
-            tickFormatter={(value) =>
-              compactMonitoringValue(value, series.yFormat)
-            }
+            tickFormatter={(value) => compactMonitoringValue(value, series.yFormat)}
             tick={{ fill: "var(--color-text-subtle)", fontSize: 11 }}
             tickLine={false}
             width={58}
           />
           <Tooltip
-            formatter={(value) => [
-              formatMonitoringValue(value, series.yFormat),
-              series.label,
-            ]}
-            labelFormatter={(value) =>
-              formatMonitoringValue(value, series.xFormat)
-            }
+            formatter={(value) => [formatMonitoringValue(value, series.yFormat), series.label]}
+            labelFormatter={(value) => formatMonitoringValue(value, series.xFormat)}
           />
           <Line
             activeDot={{ r: 5 }}
@@ -131,16 +97,11 @@ function PresentedSeries({ series }) {
   );
 }
 
-export function MonitoringMetadataPresentation({
-  event,
-  showRawFallback = false,
-}) {
+export function MonitoringMetadataPresentation({ event, showRawFallback = false }) {
   const fields = monitoringPresentationFields(event);
   const series = monitoringPresentationSeries(event);
   if (!fields.length && !series.length) {
-    return showRawFallback ? (
-      <JsonBlock label="Metadados" value={event?.metadata} />
-    ) : null;
+    return showRawFallback ? <JsonBlock label="Metadados" value={event?.metadata} /> : null;
   }
   return (
     <div className="monitoringPresentation">
@@ -170,11 +131,7 @@ export function MonitoringEventDetails({ event }) {
           <div>
             <dt>ID do sinal</dt>
             <dd>
-              <EntityIdentifier
-                label="Identificador do sinal"
-                value={event.signalId}
-                variant="chip"
-              />
+              <EntityIdentifier label="Identificador do sinal" value={event.signalId} variant="chip" />
             </dd>
           </div>
         ) : null}
@@ -192,9 +149,7 @@ export function MonitoringEventDetails({ event }) {
         ) : null}
       </dl>
       <MonitoringMetadataPresentation event={event} />
-      {!hasPresentation ? (
-        <JsonBlock label="Metadata" value={event.metadata} />
-      ) : null}
+      {!hasPresentation ? <JsonBlock label="Metadata" value={event.metadata} /> : null}
       <JsonBlock label="Payload" showEmpty value={event.payload} />
     </details>
   );

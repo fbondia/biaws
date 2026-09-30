@@ -20,9 +20,7 @@ export function ResourceCollectionPath({
       aria-label={displayedPathLabel || "Raiz"}
       className={[
         "resourceCollectionPath",
-        displayedPathLabel || canNavigateBack
-          ? ""
-          : "resourceCollectionPathEmpty",
+        displayedPathLabel || canNavigateBack ? "" : "resourceCollectionPathEmpty",
         rootDrop.active ? "resourceCollectionDropTarget" : "",
       ]
         .filter(Boolean)
@@ -30,18 +28,10 @@ export function ResourceCollectionPath({
       onClick={() => {
         if (detailVisible) onNavigateBack?.();
         else if (selectedCollectionId) {
-          onSelectCollection?.(
-            parentCollectionId(collections, selectedCollectionId),
-          );
+          onSelectCollection?.(parentCollectionId(collections, selectedCollectionId));
         }
       }}
-      title={
-        detailVisible
-          ? "Voltar à coleção"
-          : selectedCollectionId
-            ? "Voltar à coleção anterior"
-            : "Raiz"
-      }
+      title={detailVisible ? "Voltar à coleção" : selectedCollectionId ? "Voltar à coleção anterior" : "Raiz"}
       type="button"
     >
       {canNavigateBack ? <ChevronLeft aria-hidden="true" size={15} /> : null}

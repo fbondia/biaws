@@ -3,9 +3,7 @@ export function TemplateContractTab({ draft, update }) {
     <section className="monitoringTemplateTabSection">
       <header>
         <h3>Contrato e apresentação</h3>
-        <p>
-          Defina os metadados produzidos e como eles serão apresentados na UI.
-        </p>
+        <p>Defina os metadados produzidos e como eles serão apresentados na UI.</p>
       </header>
       <div className="monitoringTemplateEditorGrid">
         <label className="field">

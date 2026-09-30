@@ -13,11 +13,7 @@ export function WidgetContent({
   onSelectRuntime,
 }) {
   if (!data) {
-    return (
-      <div className="homeWidgetPending">
-        Salve a personalização para carregar este widget.
-      </div>
-    );
+    return <div className="homeWidgetPending">Salve a personalização para carregar este widget.</div>;
   }
   if (data.kind === "stat") return <StatWidget data={data} />;
   if (data.kind === "breakdown") return <BreakdownWidget data={data} />;

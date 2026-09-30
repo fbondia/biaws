@@ -164,9 +164,7 @@ export const NAVIGATION_GROUPS = [
   },
 ];
 
-export const GROUPED_VIEWS = NAVIGATION_GROUPS.flatMap(({ sections }) =>
-  sections.flatMap(({ views }) => views),
-);
+export const GROUPED_VIEWS = NAVIGATION_GROUPS.flatMap(({ sections }) => sections.flatMap(({ views }) => views));
 
 const VIEW_ROUTES = {
   account: "/account",
@@ -203,15 +201,11 @@ export function activeViewFromPath(pathname) {
   if (normalizedPath === "/operation/monitoring") {
     return "monitoring-runtimes";
   }
-  return Object.entries(VIEW_ROUTES).find(
-    ([, route]) => route === normalizedPath,
-  )?.[0];
+  return Object.entries(VIEW_ROUTES).find(([, route]) => route === normalizedPath)?.[0];
 }
 
 export function resolveActiveView(actor, preferredView) {
-  const canManageWorkspaces = actor?.platformPermissions?.includes(
-    "platform.workspaces.manage",
-  );
+  const canManageWorkspaces = actor?.platformPermissions?.includes("platform.workspaces.manage");
 
   if (preferredView === "account") return preferredView;
   if (preferredView === "workspace-admin" && canManageWorkspaces) {
@@ -222,17 +216,12 @@ export function resolveActiveView(actor, preferredView) {
     return canManageWorkspaces ? "workspace-admin" : "account";
   }
 
-  const preferredNavigationView = [...APP_VIEWS, ...GROUPED_VIEWS].find(
-    ({ key }) => key === preferredView,
-  );
+  const preferredNavigationView = [...APP_VIEWS, ...GROUPED_VIEWS].find(({ key }) => key === preferredView);
   if (
     preferredNavigationView &&
-    (!preferredNavigationView.permission ||
-      actor.permissions?.includes(preferredNavigationView.permission)) &&
+    (!preferredNavigationView.permission || actor.permissions?.includes(preferredNavigationView.permission)) &&
     (!preferredNavigationView.platformPermission ||
-      actor.platformPermissions?.includes(
-        preferredNavigationView.platformPermission,
-      ))
+      actor.platformPermissions?.includes(preferredNavigationView.platformPermission))
   ) {
     return preferredView;
   }
@@ -240,8 +229,7 @@ export function resolveActiveView(actor, preferredView) {
   return (
     [...APP_VIEWS, ...GROUPED_VIEWS].find(
       ({ permission, platformPermission }) =>
-        !platformPermission &&
-        (!permission || actor.permissions?.includes(permission)),
+        !platformPermission && (!permission || actor.permissions?.includes(permission)),
     )?.key || "account"
   );
 }
@@ -250,29 +238,18 @@ export const ISSUES_PER_PAGE = 25;
 export const DEFAULT_ISSUE_SORT = "-date";
 
 export function canOpenWorkspaceSwitcher(actor) {
-  return Boolean(
-    actor?.platformPermissions?.includes("platform.workspaces.manage") ||
-    actor?.workspaces?.length > 1,
-  );
+  return Boolean(actor?.platformPermissions?.includes("platform.workspaces.manage") || actor?.workspaces?.length > 1);
 }
 
 export function currentWorkspaceName(actor) {
-  return (
-    actor?.workspaces?.find(({ id }) => id === actor.workspaceId)?.name ||
-    "Workspaces"
-  );
+  return actor?.workspaces?.find(({ id }) => id === actor.workspaceId)?.name || "Workspaces";
 }
 
 function shellQuote(value) {
   return `'${String(value || "").replaceAll("'", `'"'"'`)}'`;
 }
 
-export function buildLocalWorkspaceSetupCommand({
-  client = "codex",
-  instance,
-  projectDirectory,
-  workspaceId,
-}) {
+export function buildLocalWorkspaceSetupCommand({ client = "codex", instance, projectDirectory, workspaceId }) {
   const normalizedClient = client === "claude" ? "claude" : "codex";
   return `./scripts/configure.sh \\
   --client ${normalizedClient} \\
@@ -286,9 +263,7 @@ function localInstanceEnvPath(instance) {
 }
 
 function localSkillTarget(client, projectDirectory) {
-  const project = String(
-    projectDirectory || "/caminho/absoluto/do/projeto",
-  ).replace(/\/+$/u, "");
+  const project = String(projectDirectory || "/caminho/absoluto/do/projeto").replace(/\/+$/u, "");
   return `${project}/${client === "claude" ? ".claude" : ".agents"}/skills`;
 }
 
@@ -297,24 +272,13 @@ function cliPrefix(instance) {
 node biaws-cli/src/index.js`;
 }
 
-export function buildLocalDevelopmentCommands({
-  client = "codex",
-  instance,
-  projectDirectory,
-  workspaceId,
-}) {
+export function buildLocalDevelopmentCommands({ client = "codex", instance, projectDirectory, workspaceId }) {
   const normalizedClient = client === "claude" ? "claude" : "codex";
   const prefix = cliPrefix(instance);
-  const project = shellQuote(
-    projectDirectory || "/caminho/absoluto/do/projeto",
-  );
+  const project = shellQuote(projectDirectory || "/caminho/absoluto/do/projeto");
   const workspace = shellQuote(workspaceId);
-  const target = shellQuote(
-    localSkillTarget(normalizedClient, projectDirectory),
-  );
-  const skillDirectory = shellQuote(
-    `${localSkillTarget(normalizedClient, projectDirectory)}/minha-skill`,
-  );
+  const target = shellQuote(localSkillTarget(normalizedClient, projectDirectory));
+  const skillDirectory = shellQuote(`${localSkillTarget(normalizedClient, projectDirectory)}/minha-skill`);
 
   return {
     setup: buildLocalWorkspaceSetupCommand({
@@ -354,9 +318,7 @@ export function buildLocalDevelopmentCommands({
 
 export function compactSummaryParams(filters) {
   return Object.fromEntries(
-    Object.entries(filters).filter(
-      ([, value]) => value !== "" && value !== undefined && value !== null,
-    ),
+    Object.entries(filters).filter(([, value]) => value !== "" && value !== undefined && value !== null),
   );
 }
 
@@ -365,12 +327,7 @@ export function monthBounds(monthKey) {
     .split("-")
     .map(Number);
 
-  if (
-    !Number.isInteger(year) ||
-    !Number.isInteger(month) ||
-    month < 1 ||
-    month > 12
-  ) {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
     return null;
   }
 
@@ -389,8 +346,7 @@ export function buildMonthSummaryParams(filters, monthKey) {
 
   return compactSummaryParams({
     ...filters,
-    from:
-      filters.from && filters.from > bounds.from ? filters.from : bounds.from,
+    from: filters.from && filters.from > bounds.from ? filters.from : bounds.from,
     to: filters.to && filters.to < bounds.to ? filters.to : bounds.to,
   });
 }

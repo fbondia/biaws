@@ -3,9 +3,7 @@ export function TemplateTransformTab({ draft, update }) {
     <section className="monitoringTemplateTabSection">
       <header>
         <h3>Transformação JSONata</h3>
-        <p>
-          Documente a entrada esperada e transforme-a no resultado normalizado.
-        </p>
+        <p>Documente a entrada esperada e transforme-a no resultado normalizado.</p>
       </header>
       <div className="monitoringTemplateEditorGrid">
         <label className="field">
@@ -17,9 +15,7 @@ export function TemplateTransformTab({ draft, update }) {
             spellCheck="false"
             value={draft.inputSampleText}
           />
-          <small>
-            JSON sanitizado usado como documentação e teste padrão da versão.
-          </small>
+          <small>JSON sanitizado usado como documentação e teste padrão da versão.</small>
         </label>
         <label className="field">
           <span>Expressão JSONata</span>

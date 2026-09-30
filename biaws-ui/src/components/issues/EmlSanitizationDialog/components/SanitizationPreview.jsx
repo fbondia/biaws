@@ -26,10 +26,7 @@ export function SanitizationPreview({
           onClick={() => previewInputRef.current?.click()}
           type="button"
         >
-          <FileSearch size={16} />{" "}
-          {previewFile
-            ? previewFile.name
-            : "Arraste um EML ou clique para selecionar"}
+          <FileSearch size={16} /> {previewFile ? previewFile.name : "Arraste um EML ou clique para selecionar"}
         </button>
         <button
           className="primaryButton"
@@ -37,11 +34,7 @@ export function SanitizationPreview({
           onClick={() => calculatePreview()}
           type="button"
         >
-          {previewing ? (
-            <LoaderCircle className="spinIcon" size={16} />
-          ) : (
-            <RotateCcw size={16} />
-          )}
+          {previewing ? <LoaderCircle className="spinIcon" size={16} /> : <RotateCcw size={16} />}
           Gerar prévia
         </button>
         <input
@@ -56,9 +49,7 @@ export function SanitizationPreview({
         />
       </div>
       {!applicationId ? (
-        <span className="fieldHint">
-          Selecione a aplicação na tela anterior para gerar a prévia.
-        </span>
+        <span className="fieldHint">Selecione a aplicação na tela anterior para gerar a prévia.</span>
       ) : null}
       {preview ? <SanitizedEmlPreview preview={preview} /> : null}
     </section>
@@ -77,8 +68,7 @@ function SanitizedEmlPreview({ preview }) {
         <pre>{preview.issue.text || "Sem conteúdo textual."}</pre>
       </div>
       <span>
-        {preview.comments.total} mensagem(ns) · {preview.attachments.length}{" "}
-        anexo(s)
+        {preview.comments.total} mensagem(ns) · {preview.attachments.length} anexo(s)
       </span>
     </div>
   );

@@ -33,38 +33,24 @@ export function useResourceCollectionNavigator({
   const [itemDropTargetId, setItemDropTargetId] = useState(null);
   const [showOnlyPopulated, setShowOnlyPopulated] = useState(false);
   const [viewMode, setViewMode] = useState(() =>
-    typeof window !== "undefined" &&
-    window.matchMedia("(max-width: 900px)").matches
-      ? "columns"
-      : "tree",
+    typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches ? "columns" : "tree",
   );
   const [collectionDrafts, setCollectionDrafts] = useState({});
   const [creatingParentId, setCreatingParentId] = useState(null);
   const [creationError, setCreationError] = useState(null);
   const columnsRef = useRef(null);
   const visibleCollections = useMemo(
-    () =>
-      showOnlyPopulated
-        ? populatedCollections(collections, items)
-        : collections,
+    () => (showOnlyPopulated ? populatedCollections(collections, items) : collections),
     [collections, items, showOnlyPopulated],
   );
-  const childrenByParent = useMemo(
-    () => buildCollectionTree(visibleCollections),
-    [visibleCollections],
-  );
+  const childrenByParent = useMemo(() => buildCollectionTree(visibleCollections), [visibleCollections]);
   const itemCounts = useMemo(() => countItemsByCollection(items), [items]);
   const itemsByCollection = useMemo(
     () => groupItemsByCollection(visibleCollections, items),
     [items, visibleCollections],
   );
   const columnNavigation = useMemo(
-    () =>
-      buildCollectionColumns(
-        visibleCollections,
-        childrenByParent,
-        selectedCollectionId,
-      ),
+    () => buildCollectionColumns(visibleCollections, childrenByParent, selectedCollectionId),
     [childrenByParent, selectedCollectionId, visibleCollections],
   );
 
@@ -90,11 +76,7 @@ export function useResourceCollectionNavigator({
     let active = true;
     fetchCollectionNavigationPreference(preferenceKey)
       .then((preference) => {
-        if (
-          !active ||
-          preferenceLoadVersionRef.current !== loadVersion ||
-          preferenceMutationVersionsRef.current.size
-        ) {
+        if (!active || preferenceLoadVersionRef.current !== loadVersion || preferenceMutationVersionsRef.current.size) {
           return;
         }
         const loaded = new Set(preference.collapsedCollectionIds || []);
@@ -116,8 +98,7 @@ export function useResourceCollectionNavigator({
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
-    const adaptViewMode = ({ matches }) =>
-      setViewMode(matches ? "columns" : "tree");
+    const adaptViewMode = ({ matches }) => setViewMode(matches ? "columns" : "tree");
     media.addEventListener("change", adaptViewMode);
     return () => media.removeEventListener("change", adaptViewMode);
   }, []);
@@ -173,29 +154,16 @@ export function useResourceCollectionNavigator({
     setCollapsedIds(next);
 
     if (!preferenceKey) return;
-    const mutationVersion =
-      (preferenceMutationVersionsRef.current.get(collectionId) || 0) + 1;
+    const mutationVersion = (preferenceMutationVersionsRef.current.get(collectionId) || 0) + 1;
     preferenceMutationVersionsRef.current.set(collectionId, mutationVersion);
-    const previousMutation =
-      preferenceMutationQueuesRef.current.get(collectionId) ||
-      Promise.resolve();
+    const previousMutation = preferenceMutationQueuesRef.current.get(collectionId) || Promise.resolve();
     const mutation = previousMutation
       .catch(() => undefined)
-      .then(() =>
-        updateCollectionNavigationPreference(
-          preferenceKey,
-          collectionId,
-          collapsed,
-          workspaceId,
-        ),
-      );
+      .then(() => updateCollectionNavigationPreference(preferenceKey, collectionId, collapsed, workspaceId));
     preferenceMutationQueuesRef.current.set(collectionId, mutation);
     mutation
       .catch((error) => {
-        if (
-          preferenceMutationVersionsRef.current.get(collectionId) !==
-          mutationVersion
-        ) {
+        if (preferenceMutationVersionsRef.current.get(collectionId) !== mutationVersion) {
           return;
         }
         const rolledBack = new Set(collapsedIdsRef.current);
@@ -210,9 +178,7 @@ export function useResourceCollectionNavigator({
         });
       })
       .finally(() => {
-        if (
-          preferenceMutationQueuesRef.current.get(collectionId) === mutation
-        ) {
+        if (preferenceMutationQueuesRef.current.get(collectionId) === mutation) {
           preferenceMutationQueuesRef.current.delete(collectionId);
         }
       });

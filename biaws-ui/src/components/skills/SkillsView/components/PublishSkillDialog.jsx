@@ -30,16 +30,10 @@ export function PublishSkillDialog({ onClose, onPublished }) {
     try {
       await runWithLoading(async () => {
         const files = await buildFiles(selected);
-        const skillFile = selected.find(
-          (file) => relativeFilePath(file) === "SKILL.md",
-        );
-        if (!skillFile)
-          throw new Error("O diretório selecionado não contém SKILL.md");
+        const skillFile = selected.find((file) => relativeFilePath(file) === "SKILL.md");
+        if (!skillFile) throw new Error("O diretório selecionado não contém SKILL.md");
         const frontmatter = parseSkillFrontmatter(await skillFile.text());
-        const sourceParts = fileSourcePath(skillFile)
-          .replaceAll("\\", "/")
-          .split("/")
-          .filter(Boolean);
+        const sourceParts = fileSourcePath(skillFile).replaceAll("\\", "/").split("/").filter(Boolean);
         const rootName = sourceParts.length > 1 ? sourceParts[0] : "";
         setDirectoryName(rootName);
         setDraft((current) => ({
@@ -99,10 +93,7 @@ export function PublishSkillDialog({ onClose, onPublished }) {
   }
 
   return (
-    <div
-      className="dialogBackdrop"
-      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
-    >
+    <div className="dialogBackdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section
         aria-labelledby="publish-skill-dialog-title"
         aria-modal="true"
@@ -137,9 +128,7 @@ export function PublishSkillDialog({ onClose, onPublished }) {
           >
             <FolderOpen size={22} />
             <span>
-              <strong>
-                {directoryName || "Selecionar diretório da skill"}
-              </strong>
+              <strong>{directoryName || "Selecionar diretório da skill"}</strong>
               <small>
                 {draft.files.length
                   ? `${draft.files.length} arquivo(s) selecionado(s)`
@@ -158,11 +147,7 @@ export function PublishSkillDialog({ onClose, onPublished }) {
           <div className="skillFormGrid">
             <label>
               <span>Identificador</span>
-              <input
-                onChange={(event) => update("skillId", event.target.value)}
-                required
-                value={draft.skillId}
-              />
+              <input onChange={(event) => update("skillId", event.target.value)} required value={draft.skillId} />
             </label>
             <label>
               <span>Versão</span>
@@ -175,11 +160,7 @@ export function PublishSkillDialog({ onClose, onPublished }) {
             </label>
             <label className="skillFormWide">
               <span>Nome</span>
-              <input
-                onChange={(event) => update("name", event.target.value)}
-                required
-                value={draft.name}
-              />
+              <input onChange={(event) => update("name", event.target.value)} required value={draft.name} />
             </label>
             <label className="skillFormWide">
               <span>Descrição</span>
@@ -201,19 +182,10 @@ export function PublishSkillDialog({ onClose, onPublished }) {
             </label>
           </div>
           <footer className="skillDialogFooter">
-            <button
-              className="secondaryButton"
-              disabled={saving}
-              onClick={onClose}
-              type="button"
-            >
+            <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
               Cancelar
             </button>
-            <button
-              className="primaryButton"
-              disabled={saving || reading || !draft.files.length}
-              type="submit"
-            >
+            <button className="primaryButton" disabled={saving || reading || !draft.files.length} type="submit">
               <Upload size={16} />
               {saving ? "Publicando..." : "Publicar versão"}
             </button>

@@ -14,8 +14,6 @@ function navigationSection(actor, section) {
 export function navigationGroup(actor, group) {
   return {
     ...group,
-    sections: group.sections
-      .map((section) => navigationSection(actor, section))
-      .filter(({ views }) => views.length),
+    sections: group.sections.map((section) => navigationSection(actor, section)).filter(({ views }) => views.length),
   };
 }

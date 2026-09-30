@@ -1,23 +1,5 @@
-const IMAGE_TYPES = new Set([
-  "image/avif",
-  "image/bmp",
-  "image/gif",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]);
-const TEXT_EXTENSIONS = new Set([
-  "csv",
-  "ini",
-  "json",
-  "log",
-  "properties",
-  "sql",
-  "txt",
-  "xml",
-  "yaml",
-  "yml",
-]);
+const IMAGE_TYPES = new Set(["image/avif", "image/bmp", "image/gif", "image/jpeg", "image/png", "image/webp"]);
+const TEXT_EXTENSIONS = new Set(["csv", "ini", "json", "log", "properties", "sql", "txt", "xml", "yaml", "yml"]);
 const HTML_EXTENSIONS = new Set(["htm", "html"]);
 const HTML_PREVIEW_CSP = [
   "default-src 'none'",
@@ -42,14 +24,9 @@ export function previewKind(file) {
     .split(";")[0];
   const fileExtension = extension(file.filename);
   if (IMAGE_TYPES.has(contentType)) return "image";
-  if (contentType === "application/pdf" || fileExtension === "pdf")
-    return "pdf";
+  if (contentType === "application/pdf" || fileExtension === "pdf") return "pdf";
   if (fileExtension === "md" || fileExtension === "markdown") return "markdown";
-  if (
-    contentType === "text/html" ||
-    contentType === "application/xhtml+xml" ||
-    HTML_EXTENSIONS.has(fileExtension)
-  )
+  if (contentType === "text/html" || contentType === "application/xhtml+xml" || HTML_EXTENSIONS.has(fileExtension))
     return "html";
   if (
     contentType.startsWith("text/") ||

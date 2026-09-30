@@ -13,13 +13,7 @@ function draftFromNote(note) {
   };
 }
 
-export function RequestNotesTab({
-  request,
-  saving,
-  onCreateNote,
-  onDeleteNote,
-  onUpdateNote,
-}) {
+export function RequestNotesTab({ request, saving, onCreateNote, onDeleteNote, onUpdateNote }) {
   const { confirm } = useMessages();
   const [mode, setMode] = useState("");
   const [editingNoteId, setEditingNoteId] = useState("");
@@ -39,10 +33,7 @@ export function RequestNotesTab({
       date: draft.date || todayDateValue(),
       content: draft.content.trim(),
     };
-    const saved =
-      mode === "edit"
-        ? await onUpdateNote(editingNoteId, payload)
-        : await onCreateNote(payload);
+    const saved = mode === "edit" ? await onUpdateNote(editingNoteId, payload) : await onCreateNote(payload);
 
     if (saved !== false) {
       setMode("");
@@ -84,16 +75,9 @@ export function RequestNotesTab({
       <div className="panelHeader">
         <div>
           <h3>Anotações</h3>
-          <span>
-            Histórico de decisões, pendências e contexto operacional da melhoria
-          </span>
+          <span>Histórico de decisões, pendências e contexto operacional da melhoria</span>
         </div>
-        <button
-          className="primaryButton"
-          disabled={saving || Boolean(mode)}
-          onClick={beginCreateNote}
-          type="button"
-        >
+        <button className="primaryButton" disabled={saving || Boolean(mode)} onClick={beginCreateNote} type="button">
           <Plus size={16} />
           Incluir anotação
         </button>
@@ -120,12 +104,7 @@ export function RequestNotesTab({
                         <Edit3 size={16} />
                         Editar
                       </button>
-                      <button
-                        className="dangerButton"
-                        disabled={saving}
-                        onClick={() => removeNote(note)}
-                        type="button"
-                      >
+                      <button className="dangerButton" disabled={saving} onClick={() => removeNote(note)} type="button">
                         <Trash2 size={16} />
                         Excluir
                       </button>
@@ -139,9 +118,7 @@ export function RequestNotesTab({
             );
           })
         ) : (
-          <div className="emptyState compactEmpty">
-            Nenhuma anotação registrada para esta melhoria.
-          </div>
+          <div className="emptyState compactEmpty">Nenhuma anotação registrada para esta melhoria.</div>
         )}
       </div>
 

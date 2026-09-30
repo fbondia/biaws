@@ -1,19 +1,11 @@
-import {
-  parseMarkdownBlocks,
-  safeMarkdownHref,
-  splitTableRow,
-} from "../model.js";
+import { parseMarkdownBlocks, safeMarkdownHref, splitTableRow } from "../model.js";
 import { MarkdownBlockViewer } from "./MarkdownBlockViewer.jsx";
 
 export function MarkdownPreview({ value }) {
   const blocks = markdownBlocks(value);
 
   if (!blocks.length) {
-    return (
-      <div className="markdownPreview markdownPreviewEmpty">
-        Conteúdo não informado.
-      </div>
-    );
+    return <div className="markdownPreview markdownPreviewEmpty">Conteúdo não informado.</div>;
   }
 
   return <div className="markdownPreview">{blocks}</div>;
@@ -28,22 +20,14 @@ function markdownBlocks(value) {
 function MarkdownBlock({ block }) {
   if (block.type === "code" && block.language === "mermaid")
     return <MarkdownBlockViewer source={block.text} type="mermaid" />;
-  if (block.type === "code")
-    return (
-      <MarkdownBlockViewer
-        language={block.language}
-        source={block.text}
-        type="code"
-      />
-    );
+  if (block.type === "code") return <MarkdownBlockViewer language={block.language} source={block.text} type="code" />;
   if (block.type === "heading") {
     const Tag = `h${block.level}`;
     return <Tag>{renderInlineMarkdown(block.text)}</Tag>;
   }
   if (block.type === "list") return <MarkdownList list={block.list} />;
   if (block.type === "horizontal-rule") return <hr />;
-  if (block.type === "quote")
-    return <blockquote>{renderMultilineInlineMarkdown(block.text)}</blockquote>;
+  if (block.type === "quote") return <blockquote>{renderMultilineInlineMarkdown(block.text)}</blockquote>;
   if (block.type === "table") return <MarkdownTable lines={block.lines} />;
   return <p>{renderInlineMarkdown(block.text)}</p>;
 }
@@ -51,10 +35,7 @@ function MarkdownBlock({ block }) {
 function renderMultilineInlineMarkdown(text) {
   return String(text || "")
     .split("\n")
-    .flatMap((line, index) => [
-      ...(index ? [<br key={`break-${index}`} />] : []),
-      ...renderInlineMarkdown(line),
-    ]);
+    .flatMap((line, index) => [...(index ? [<br key={`break-${index}`} />] : []), ...renderInlineMarkdown(line)]);
 }
 
 function MarkdownList({ list }) {
@@ -92,9 +73,7 @@ function MarkdownTable({ lines }) {
           {body.map((row, rowIndex) => (
             <tr key={rowIndex}>
               {header.map((_, cellIndex) => (
-                <td key={cellIndex}>
-                  {renderInlineMarkdown(row[cellIndex] || "")}
-                </td>
+                <td key={cellIndex}>{renderInlineMarkdown(row[cellIndex] || "")}</td>
               ))}
             </tr>
           ))}
@@ -125,12 +104,7 @@ function renderInlineMarkdown(text) {
     } else {
       const link = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/u);
       tokens.push(
-        <a
-          href={safeMarkdownHref(link[2])}
-          key={key}
-          rel="noreferrer"
-          target="_blank"
-        >
+        <a href={safeMarkdownHref(link[2])} key={key} rel="noreferrer" target="_blank">
           {link[1]}
         </a>,
       );

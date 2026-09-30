@@ -56,9 +56,7 @@ export function useRequestDraftActions({
     clearNumberDraft("estimatedJourneys");
 
     if (!Number.isFinite(value) || value < 0) {
-      setRequestError(
-        "Jornadas estimadas deve ser um número maior ou igual a zero.",
-      );
+      setRequestError("Jornadas estimadas deve ser um número maior ou igual a zero.");
       return;
     }
 
@@ -71,9 +69,7 @@ export function useRequestDraftActions({
     const nextRequest = normalizeRequest({
       ...selectedRequest,
       checklist: selectedRequest.checklist.map((item) =>
-        item.label === label
-          ? { ...item, [field]: field === "done" ? Boolean(value) : value }
-          : item,
+        item.label === label ? { ...item, [field]: field === "done" ? Boolean(value) : value } : item,
       ),
     });
     updateRequest(selectedRequest.id, () => nextRequest);
@@ -91,9 +87,7 @@ export function useRequestDraftActions({
 
     const nextRequest = normalizeRequest({
       ...selectedRequest,
-      checklist: selectedRequest.checklist.filter(
-        (item) => item.label !== label,
-      ),
+      checklist: selectedRequest.checklist.filter((item) => item.label !== label),
     });
     updateRequest(selectedRequest.id, () => nextRequest);
     setChecklistDialogLabel("");
@@ -119,9 +113,7 @@ export function useRequestDraftActions({
 
     const nextRequest = normalizeRequest({
       ...selectedRequest,
-      journeys: selectedRequest.journeys.map((item) =>
-        item.month === month ? { ...item, comment } : item,
-      ),
+      journeys: selectedRequest.journeys.map((item) => (item.month === month ? { ...item, comment } : item)),
     });
     updateRequest(selectedRequest.id, () => nextRequest);
 
@@ -148,9 +140,7 @@ export function useRequestDraftActions({
   function updateSpecificationSection(sectionId, field, value) {
     const sections = selectedRequest?.specification?.sections || [];
     updateSpecification(
-      sections.map((section) =>
-        section.id === sectionId ? { ...section, [field]: value } : section,
-      ),
+      sections.map((section) => (section.id === sectionId ? { ...section, [field]: value } : section)),
     );
   }
 
@@ -161,11 +151,7 @@ export function useRequestDraftActions({
 
   function addMissingSpecificationSections() {
     const sections = selectedRequest?.specification?.sections || [];
-    const existingTitles = new Set(
-      sections.map((section) =>
-        normalizeSpecificationSectionTitle(section.title),
-      ),
-    );
+    const existingTitles = new Set(sections.map((section) => normalizeSpecificationSectionTitle(section.title)));
     const missingSections = REQUEST_SPECIFICATION_SECTION_TITLES.filter(
       (title) => !existingTitles.has(normalizeSpecificationSectionTitle(title)),
     ).map(createDefaultSpecificationSection);
@@ -182,13 +168,10 @@ export function useRequestDraftActions({
 
   function moveSpecificationSection(sectionId, direction) {
     const sections = [...(selectedRequest?.specification?.sections || [])];
-    const currentIndex = sections.findIndex(
-      (section) => section.id === sectionId,
-    );
+    const currentIndex = sections.findIndex((section) => section.id === sectionId);
     const nextIndex = currentIndex + direction;
 
-    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= sections.length)
-      return;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= sections.length) return;
 
     const [section] = sections.splice(currentIndex, 1);
     sections.splice(nextIndex, 0, section);
@@ -200,9 +183,7 @@ export function useRequestDraftActions({
     clearNumberDraft(`journeys:${field}:${month}`);
 
     if (!Number.isFinite(value) || value < 0) {
-      setRequestError(
-        "Jornadas do mês deve ser um número maior ou igual a zero.",
-      );
+      setRequestError("Jornadas do mês deve ser um número maior ou igual a zero.");
       return;
     }
 

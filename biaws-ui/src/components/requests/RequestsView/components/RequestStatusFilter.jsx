@@ -2,10 +2,7 @@ import { ListChecks } from "lucide-react";
 import { useState } from "react";
 
 import { FilterDialogButton } from "../../../shared/FilterDialogButton.jsx";
-import {
-  requestStatusLabel,
-  REQUEST_STATUS_OPTIONS,
-} from "../../requestUtils.js";
+import { requestStatusLabel, REQUEST_STATUS_OPTIONS } from "../../requestUtils.js";
 
 export function RequestStatusFilter({ onChange, value }) {
   const [open, setOpen] = useState(false);
@@ -17,11 +14,7 @@ export function RequestStatusFilter({ onChange, value }) {
         : "Todos os status";
 
   function toggleStatus(status) {
-    onChange(
-      value.includes(status)
-        ? value.filter((item) => item !== status)
-        : [...value, status],
-    );
+    onChange(value.includes(status) ? value.filter((item) => item !== status) : [...value, status]);
   }
 
   return (
@@ -49,30 +42,18 @@ export function RequestStatusFilter({ onChange, value }) {
             <header>
               <div>
                 <strong>Filtrar melhorias por status</strong>
-                <span>
-                  Selecione um ou mais status para restringir os resultados.
-                </span>
+                <span>Selecione um ou mais status para restringir os resultados.</span>
               </div>
-              {value.length ? (
-                <small>{value.length} selecionado(s)</small>
-              ) : null}
+              {value.length ? <small>{value.length} selecionado(s)</small> : null}
             </header>
             <div className="tagFilterGroups issueOptionFilterDialogContent">
               <div className="tagFilterOptions">
                 {REQUEST_STATUS_OPTIONS.map((status) => (
                   <label
-                    className={
-                      value.includes(status)
-                        ? "tagFilterOption selectedTagFilterOption"
-                        : "tagFilterOption"
-                    }
+                    className={value.includes(status) ? "tagFilterOption selectedTagFilterOption" : "tagFilterOption"}
                     key={status}
                   >
-                    <input
-                      checked={value.includes(status)}
-                      onChange={() => toggleStatus(status)}
-                      type="checkbox"
-                    />
+                    <input checked={value.includes(status)} onChange={() => toggleStatus(status)} type="checkbox" />
                     <span>{requestStatusLabel(status)}</span>
                   </label>
                 ))}
@@ -88,12 +69,7 @@ export function RequestStatusFilter({ onChange, value }) {
                   Limpar seleção
                 </button>
               ) : null}
-              <button
-                className="primaryButton"
-                data-dialog-close
-                onClick={() => setOpen(false)}
-                type="button"
-              >
+              <button className="primaryButton" data-dialog-close onClick={() => setOpen(false)} type="button">
                 Concluir
               </button>
             </footer>

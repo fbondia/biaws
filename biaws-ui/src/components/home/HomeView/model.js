@@ -17,10 +17,7 @@ export function createWidgetInstance(definition, config = {}) {
   return {
     id: crypto.randomUUID(),
     widgetId: definition.id,
-    size:
-      definition.defaultSize === "medium"
-        ? "medium-2"
-        : definition.defaultSize || "medium-2",
+    size: definition.defaultSize === "medium" ? "medium-2" : definition.defaultSize || "medium-2",
     config: { ...config },
   };
 }
@@ -38,9 +35,7 @@ export function moveWidget(widgets, sourceId, targetId) {
 }
 
 export function updateWidgetInstance(widgets, instanceId, patch) {
-  return widgets.map((instance) =>
-    instance.id === instanceId ? { ...instance, ...patch } : instance,
-  );
+  return widgets.map((instance) => (instance.id === instanceId ? { ...instance, ...patch } : instance));
 }
 
 export function mergeHomeMonitoringData(dashboard, payload) {
@@ -54,9 +49,7 @@ export function mergeHomeMonitoringData(dashboard, payload) {
 
 export function widgetTitle(definition, instance) {
   if (instance.widgetId !== "issues-period") return definition.label;
-  return instance.config?.period === "month"
-    ? "Chamados no mês"
-    : "Chamados na semana";
+  return instance.config?.period === "month" ? "Chamados no mês" : "Chamados na semana";
 }
 
 export function widgetSubtitle(definition, instance) {

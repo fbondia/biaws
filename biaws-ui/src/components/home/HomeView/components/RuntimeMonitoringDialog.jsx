@@ -50,14 +50,8 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
 
   function applyFilters(event) {
     event.preventDefault();
-    if (
-      draftFilters.observedFrom &&
-      draftFilters.observedTo &&
-      draftFilters.observedFrom > draftFilters.observedTo
-    ) {
-      setError(
-        "O horário final deve ser igual ou posterior ao horário inicial.",
-      );
+    if (draftFilters.observedFrom && draftFilters.observedTo && draftFilters.observedFrom > draftFilters.observedTo) {
+      setError("O horário final deve ser igual ou posterior ao horário inicial.");
       return;
     }
     setFilters({ ...draftFilters });
@@ -86,16 +80,10 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
             <span>Histórico de monitoramento</span>
             <h2 id="home-monitoring-dialog-title">{runtime.name}</h2>
             <small>
-              {runtime.server?.name || "Sem servidor associado"} · UUID{" "}
-              {runtime.id}
+              {runtime.server?.name || "Sem servidor associado"} · UUID {runtime.id}
             </small>
           </div>
-          <button
-            aria-label="Fechar histórico"
-            className="iconButton"
-            onClick={onClose}
-            type="button"
-          >
+          <button aria-label="Fechar histórico" className="iconButton" onClick={onClose} type="button">
             <X size={18} />
           </button>
         </header>
@@ -108,10 +96,7 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
             setDraftFilters={setDraftFilters}
           />
           <div className="homeMonitoringViewToolbar">
-            <MonitoringHistoryViewSwitch
-              onChange={setViewMode}
-              value={viewMode}
-            />
+            <MonitoringHistoryViewSwitch onChange={setViewMode} value={viewMode} />
           </div>
           <MonitoringSignals
             error={error}
@@ -127,8 +112,7 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
         </div>
         {viewMode === "list" && meta?.total ? (
           <footer>
-            Exibindo {signals.length} de {meta.total} eventos, do mais recente
-            para o mais antigo.
+            Exibindo {signals.length} de {meta.total} eventos, do mais recente para o mais antigo.
           </footer>
         ) : null}
       </section>
@@ -136,13 +120,7 @@ export function RuntimeMonitoringDialog({ runtime, onClose }) {
   );
 }
 
-function MonitoringFilters({
-  applyFilters,
-  clearFilters,
-  draftFilters,
-  loading,
-  setDraftFilters,
-}) {
+function MonitoringFilters({ applyFilters, clearFilters, draftFilters, loading, setDraftFilters }) {
   function update(field, value) {
     setDraftFilters((current) => ({ ...current, [field]: value }));
   }
@@ -169,10 +147,7 @@ function MonitoringFilters({
       </label>
       <label className="field">
         <span>Status</span>
-        <select
-          onChange={(event) => update("status", event.target.value)}
-          value={draftFilters.status}
-        >
+        <select onChange={(event) => update("status", event.target.value)} value={draftFilters.status}>
           <option value="">Todos</option>
           {MONITORING_STATUSES.map((status) => (
             <option key={status} value={status}>
@@ -182,12 +157,7 @@ function MonitoringFilters({
         </select>
       </label>
       <div className="homeMonitoringFilterActions">
-        <button
-          className="secondaryButton"
-          disabled={loading}
-          onClick={clearFilters}
-          type="button"
-        >
+        <button className="secondaryButton" disabled={loading} onClick={clearFilters} type="button">
           Limpar
         </button>
         <button className="primaryButton" disabled={loading} type="submit">
@@ -220,15 +190,10 @@ function MonitoringSignals({
       />
     );
   }
-  if (loading)
-    return <div className="homeWidgetPending">Carregando sinais…</div>;
+  if (loading) return <div className="homeWidgetPending">Carregando sinais…</div>;
   if (error) return <div className="errorBox">{error}</div>;
   if (!signals.length) {
-    return (
-      <div className="homeWidgetEmpty">
-        Nenhum sinal encontrado para os filtros informados.
-      </div>
-    );
+    return <div className="homeWidgetEmpty">Nenhum sinal encontrado para os filtros informados.</div>;
   }
 
   return (
@@ -237,16 +202,10 @@ function MonitoringSignals({
         <article key={signal.id}>
           <div className="homeMonitoringSignalHeading">
             <div className="homeMonitoringSignalBadges monitoringEventHeading">
-              <span className={`catalogStatus catalogStatus-${signal.status}`}>
-                {signal.status}
-              </span>
-              <span className="monitoringOriginBadge">
-                {signal.origin === "manual" ? "Manual" : "Externo"}
-              </span>
+              <span className={`catalogStatus catalogStatus-${signal.status}`}>{signal.status}</span>
+              <span className="monitoringOriginBadge">{signal.origin === "manual" ? "Manual" : "Externo"}</span>
             </div>
-            <time dateTime={signal.observedAt}>
-              {formatMonitoringDate(signal.observedAt)}
-            </time>
+            <time dateTime={signal.observedAt}>{formatMonitoringDate(signal.observedAt)}</time>
           </div>
           <strong>{signal.source}</strong>
           {signal.message ? <p>{signal.message}</p> : null}
@@ -255,10 +214,7 @@ function MonitoringSignals({
             {signal.signalId ? (
               <>
                 {" · "}
-                <EntityIdentifier
-                  label="Identificador do sinal"
-                  value={signal.signalId}
-                />
+                <EntityIdentifier label="Identificador do sinal" value={signal.signalId} />
               </>
             ) : null}
           </small>

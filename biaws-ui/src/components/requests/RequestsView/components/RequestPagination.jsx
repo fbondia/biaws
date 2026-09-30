@@ -12,8 +12,7 @@ export function RequestPagination({
   return (
     <div className="requestCollectionPagination">
       <span>
-        {requestMeta.total} melhoria(s) · página {requestMeta.page} de{" "}
-        {requestMeta.totalPages}
+        {requestMeta.total} melhoria(s) · página {requestMeta.page} de {requestMeta.totalPages}
       </span>
       <button
         className="iconButton"
@@ -27,11 +26,7 @@ export function RequestPagination({
       <button
         className="iconButton"
         disabled={loadingRequests || requestMeta.page >= requestMeta.totalPages}
-        onClick={() =>
-          setRequestPage((current) =>
-            Math.min(requestMeta.totalPages, current + 1),
-          )
-        }
+        onClick={() => setRequestPage((current) => Math.min(requestMeta.totalPages, current + 1))}
         title="Próxima página"
         type="button"
       >
@@ -41,12 +36,7 @@ export function RequestPagination({
         className="iconButton"
         disabled={loadingRequests}
         onClick={() =>
-          void Promise.all([
-            loadRequests(),
-            loadRequestCollectionItems(),
-            loadCollections(),
-            loadSelectedRequest(),
-          ])
+          void Promise.all([loadRequests(), loadRequestCollectionItems(), loadCollections(), loadSelectedRequest()])
         }
         title="Atualizar melhorias"
         type="button"

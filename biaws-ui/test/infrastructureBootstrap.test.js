@@ -43,18 +43,10 @@ test("infrastructure adapters initialize in documented order and dispose in reve
   assert.equal(bootstrap.state.status, BOOTSTRAP_STATUS.READY);
   assert.equal(transitions[0], BOOTSTRAP_STATUS.INITIALIZING);
   assert.equal(transitions.at(-1), BOOTSTRAP_STATUS.READY);
-  assert.deepEqual(events, [
-    "initialize:logging",
-    "initialize:session",
-    "initialize:messages",
-  ]);
+  assert.deepEqual(events, ["initialize:logging", "initialize:session", "initialize:messages"]);
 
   await bootstrap.dispose();
-  assert.deepEqual(events.slice(3), [
-    "dispose:messages",
-    "dispose:session",
-    "dispose:logging",
-  ]);
+  assert.deepEqual(events.slice(3), ["dispose:messages", "dispose:session", "dispose:logging"]);
 });
 
 test("a non-critical failure degrades bootstrap without stopping independent capabilities", async () => {
@@ -103,10 +95,7 @@ test("bootstrap reports capability failures through an initialized logger", asyn
 
   assert.equal(bootstrap.state.status, BOOTSTRAP_STATUS.FAILED);
   assert.equal(fake.records.length, 1);
-  assert.equal(
-    fake.records[0].event,
-    "infrastructure.bootstrap.capability_failed",
-  );
+  assert.equal(fake.records[0].event, "infrastructure.bootstrap.capability_failed");
   assert.deepEqual(fake.records[0].context, {
     capabilityId: "session",
     critical: true,
@@ -135,10 +124,7 @@ test("a reporting failure does not replace the original bootstrap result", async
   });
 
   assert.equal(bootstrap.state.status, BOOTSTRAP_STATUS.FAILED);
-  assert.equal(
-    bootstrap.state.capabilities[1].error.message,
-    "original session failure",
-  );
+  assert.equal(bootstrap.state.capabilities[1].error.message, "original session failure");
 });
 
 test("dispose attempts every capability and aggregates failures without changing order", async () => {

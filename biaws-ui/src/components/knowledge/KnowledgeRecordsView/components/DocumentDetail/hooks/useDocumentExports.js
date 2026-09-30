@@ -70,11 +70,7 @@ export function useDocumentExports(draft) {
   const contentRef = useRef(null);
 
   function exportMarkdown() {
-    downloadBlob(
-      draft.markdown,
-      "text/markdown;charset=utf-8",
-      safeFilename(draft.title, "md"),
-    );
+    downloadBlob(draft.markdown, "text/markdown;charset=utf-8", safeFilename(draft.title, "md"));
   }
 
   function exportPdf() {
@@ -95,10 +91,7 @@ export function useDocumentExports(draft) {
       });
       window.setTimeout(() => frame.remove(), 60_000);
     };
-    frame.srcdoc = printableDocumentHtml(
-      draft,
-      contentRef.current?.innerHTML || "",
-    );
+    frame.srcdoc = printableDocumentHtml(draft, contentRef.current?.innerHTML || "");
     document.body.append(frame);
   }
 

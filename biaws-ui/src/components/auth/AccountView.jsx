@@ -1,12 +1,4 @@
-import {
-  Copy,
-  KeyRound,
-  LockKeyhole,
-  LogOut,
-  Save,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Copy, KeyRound, LockKeyhole, LogOut, Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
@@ -28,10 +20,8 @@ const EMPTY_PASSWORD_FORM = {
 
 function passwordErrorMessage(error) {
   if (error.code === "INVALID_PASSWORD") return "A senha atual está incorreta.";
-  if (error.code === "PASSWORD_TOO_SHORT")
-    return "A nova senha deve ter pelo menos 12 caracteres.";
-  if (error.code === "PASSWORD_TOO_LONG")
-    return "A nova senha deve ter no máximo 128 caracteres.";
+  if (error.code === "PASSWORD_TOO_SHORT") return "A nova senha deve ter pelo menos 12 caracteres.";
+  if (error.code === "PASSWORD_TOO_LONG") return "A nova senha deve ter no máximo 128 caracteres.";
   if (error.code === "CREDENTIAL_ACCOUNT_NOT_FOUND") {
     return "Esta conta não possui uma senha que possa ser alterada.";
   }
@@ -106,9 +96,7 @@ function ChangePasswordDialog({ onChanged, onClose }) {
               autoComplete="current-password"
               autoFocus
               disabled={saving}
-              onChange={(event) =>
-                setForm({ ...form, currentPassword: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, currentPassword: event.target.value })}
               required
               type="password"
               value={form.currentPassword}
@@ -121,9 +109,7 @@ function ChangePasswordDialog({ onChanged, onClose }) {
               disabled={saving}
               maxLength={128}
               minLength={12}
-              onChange={(event) =>
-                setForm({ ...form, newPassword: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, newPassword: event.target.value })}
               required
               type="password"
               value={form.newPassword}
@@ -137,21 +123,14 @@ function ChangePasswordDialog({ onChanged, onClose }) {
               disabled={saving}
               maxLength={128}
               minLength={12}
-              onChange={(event) =>
-                setForm({ ...form, confirmPassword: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })}
               required
               type="password"
               value={form.confirmPassword}
             />
           </label>
           <footer className="userCreateDialogFooter">
-            <button
-              className="secondaryButton"
-              disabled={saving}
-              onClick={onClose}
-              type="button"
-            >
+            <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
               Cancelar
             </button>
             <button className="primaryButton" disabled={saving} type="submit">
@@ -233,9 +212,7 @@ export function AccountView({ actor, onSignOut }) {
       </header>
 
       {error ? <div className="authError">{error}</div> : null}
-      {successMessage ? (
-        <div className="authSuccess">{successMessage}</div>
-      ) : null}
+      {successMessage ? <div className="authSuccess">{successMessage}</div> : null}
 
       {canManageApiKeys && createdSecret ? (
         <div className="secretNotice">
@@ -275,8 +252,7 @@ export function AccountView({ actor, onSignOut }) {
                   <div>
                     <strong>{key.name}</strong>
                     <small>
-                      {key.start || key.prefix || "biaws_"}… · expira em{" "}
-                      {new Date(key.expiresAt).toLocaleDateString()}
+                      {key.start || key.prefix || "biaws_"}… · expira em {new Date(key.expiresAt).toLocaleDateString()}
                     </small>
                   </div>
                   <button
@@ -292,9 +268,7 @@ export function AccountView({ actor, onSignOut }) {
                   </button>
                 </div>
               ))}
-              {!apiKeys.length ? (
-                <p className="emptyText">Nenhuma chave criada.</p>
-              ) : null}
+              {!apiKeys.length ? <p className="emptyText">Nenhuma chave criada.</p> : null}
             </div>
           </article>
         ) : null}
@@ -319,8 +293,7 @@ export function AccountView({ actor, onSignOut }) {
                 <div>
                   <strong>{session.userAgent || "Cliente desconhecido"}</strong>
                   <small>
-                    {session.ipAddress || "IP não informado"} · expira em{" "}
-                    {new Date(session.expiresAt).toLocaleString()}
+                    {session.ipAddress || "IP não informado"} · expira em {new Date(session.expiresAt).toLocaleString()}
                   </small>
                 </div>
                 {session.id !== actor.sessionId ? (

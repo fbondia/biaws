@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 
-import {
-  fetchApplications,
-  fetchComponents,
-  fetchWorkspaces,
-} from "../../../api.js";
+import { fetchApplications, fetchComponents, fetchWorkspaces } from "../../../api.js";
 
 export function useCatalogOptions(enabled = true, workspaceId = "") {
   const [workspace, setWorkspace] = useState(null);
@@ -23,9 +19,7 @@ export function useCatalogOptions(enabled = true, workspaceId = "") {
     Promise.resolve()
       .then(async () => {
         const workspacePayload = await fetchWorkspaces();
-        const operational =
-          (workspacePayload.items || []).find(({ id }) => id === workspaceId) ||
-          null;
+        const operational = (workspacePayload.items || []).find(({ id }) => id === workspaceId) || null;
         if (!operational) {
           return { operational, applications: [], components: [] };
         }
@@ -36,9 +30,7 @@ export function useCatalogOptions(enabled = true, workspaceId = "") {
         const componentGroups = await Promise.all(
           applicationItems.map(async (application) => ({
             applicationId: application.id,
-            items:
-              (await fetchComponents(application.id, { limit: 100 })).items ||
-              [],
+            items: (await fetchComponents(application.id, { limit: 100 })).items || [],
           })),
         );
         return {

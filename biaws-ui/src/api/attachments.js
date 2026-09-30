@@ -1,35 +1,22 @@
 import { buildUrl, deleteJson, sendJson, workspaceHeaders } from "./client.js";
 
-export async function uploadEntityAttachments(
-  entityType,
-  entityId,
-  files,
-  { tags = [] } = {},
-) {
+export async function uploadEntityAttachments(entityType, entityId, files, { tags = [] } = {}) {
   const form = new FormData();
   for (const file of files) form.append("files", file, file.name);
   if (tags.length) form.append("tags", JSON.stringify(tags));
 
-  const response = await fetch(
-    buildUrl(`/api/${entityType}/${encodeURIComponent(entityId)}/attachments`),
-    {
-      method: "POST",
-      credentials: "include",
-      headers: workspaceHeaders(),
-      body: form,
-    },
-  );
+  const response = await fetch(buildUrl(`/api/${entityType}/${encodeURIComponent(entityId)}/attachments`), {
+    method: "POST",
+    credentials: "include",
+    headers: workspaceHeaders(),
+    body: form,
+  });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok)
-    throw new Error(payload.error?.message || `HTTP ${response.status}`);
+  if (!response.ok) throw new Error(payload.error?.message || `HTTP ${response.status}`);
   return payload;
 }
 
-export async function downloadEntityAttachment(
-  entityType,
-  entityId,
-  attachment,
-) {
+export async function downloadEntityAttachment(entityType, entityId, attachment) {
   const blob = await fetchEntityAttachment(entityType, entityId, attachment);
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -44,9 +31,7 @@ export async function downloadEntityAttachment(
 export async function fetchEntityAttachment(entityType, entityId, attachment) {
   const attachmentId = attachment.id ?? attachment.index;
   const response = await fetch(
-    buildUrl(
-      `/api/${entityType}/${encodeURIComponent(entityId)}/attachments/${encodeURIComponent(attachmentId)}`,
-    ),
+    buildUrl(`/api/${entityType}/${encodeURIComponent(entityId)}/attachments/${encodeURIComponent(attachmentId)}`),
     { credentials: "include", headers: workspaceHeaders() },
   );
 
@@ -65,12 +50,7 @@ export async function deleteEntityAttachment(entityType, entityId, attachment) {
   );
 }
 
-export function updateEntityAttachmentTags(
-  entityType,
-  entityId,
-  attachment,
-  tags,
-) {
+export function updateEntityAttachmentTags(entityType, entityId, attachment, tags) {
   const attachmentId = attachment.id ?? attachment.index;
   return sendJson(
     `/api/${entityType}/${encodeURIComponent(entityId)}/attachments/${encodeURIComponent(attachmentId)}/tags`,

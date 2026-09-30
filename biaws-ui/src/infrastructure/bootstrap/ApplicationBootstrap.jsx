@@ -5,12 +5,7 @@ export function ApplicationBootstrap() {
   return (
     <InfrastructureProvider>
       {({ actor, onSignOut, onWorkspaceChange }) => (
-        <App
-          actor={actor}
-          key={actor.workspaceId}
-          onSignOut={onSignOut}
-          onWorkspaceChange={onWorkspaceChange}
-        />
+        <App actor={actor} key={actor.workspaceId} onSignOut={onSignOut} onWorkspaceChange={onWorkspaceChange} />
       )}
     </InfrastructureProvider>
   );

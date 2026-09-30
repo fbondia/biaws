@@ -5,19 +5,14 @@ const MINIMUM_REFRESH_SECONDS = 5;
 
 export function monitoringRefreshIntervalMs(env = import.meta.env) {
   const configured = Number(env?.VITE_MONITORING_REFRESH_SECONDS);
-  const seconds = Number.isFinite(configured)
-    ? Math.max(MINIMUM_REFRESH_SECONDS, configured)
-    : DEFAULT_REFRESH_SECONDS;
+  const seconds = Number.isFinite(configured) ? Math.max(MINIMUM_REFRESH_SECONDS, configured) : DEFAULT_REFRESH_SECONDS;
   return seconds * 1_000;
 }
 
 export const MONITORING_REFRESH_INTERVAL_MS = monitoringRefreshIntervalMs();
 export const MANUAL_EXECUTION_REFRESH_DELAY_MS = 10_000;
 
-export function useManualExecutionRefresh(
-  refresh,
-  delayMs = MANUAL_EXECUTION_REFRESH_DELAY_MS,
-) {
+export function useManualExecutionRefresh(refresh, delayMs = MANUAL_EXECUTION_REFRESH_DELAY_MS) {
   const refreshRef = useRef(refresh);
   const timerRef = useRef();
   refreshRef.current = refresh;
@@ -42,10 +37,7 @@ export function useManualExecutionRefresh(
   }, [delayMs]);
 }
 
-export function useAutoRefresh(
-  refresh,
-  { enabled = true, intervalMs = MONITORING_REFRESH_INTERVAL_MS } = {},
-) {
+export function useAutoRefresh(refresh, { enabled = true, intervalMs = MONITORING_REFRESH_INTERVAL_MS } = {}) {
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
 

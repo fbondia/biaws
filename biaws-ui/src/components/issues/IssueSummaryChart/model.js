@@ -1,17 +1,6 @@
-import {
-  ALL_STATUS_OPTIONS,
-  ALL_TYPE_OPTIONS,
-} from "../../../constants/issues.js";
+import { ALL_STATUS_OPTIONS, ALL_TYPE_OPTIONS } from "../../../constants/issues.js";
 
-export const CHART_COLORS = [
-  "#2d6cdf",
-  "#246b49",
-  "#d98f1f",
-  "#8b5cf6",
-  "#c2410c",
-  "#0f766e",
-  "#64748b",
-];
+export const CHART_COLORS = ["#2d6cdf", "#246b49", "#d98f1f", "#8b5cf6", "#c2410c", "#0f766e", "#64748b"];
 
 export const CHART_TYPES = {
   byDate: "line",
@@ -25,11 +14,7 @@ export const CHART_TYPES = {
 
 export function chartLabel(value) {
   return (
-    [...ALL_TYPE_OPTIONS, ...ALL_STATUS_OPTIONS].find(
-      (option) => option.value === value,
-    )?.label ||
-    value ||
-    "sem valor"
+    [...ALL_TYPE_OPTIONS, ...ALL_STATUS_OPTIONS].find((option) => option.value === value)?.label || value || "sem valor"
   );
 }
 
@@ -64,24 +49,14 @@ export function collectTaxonomyIds(nodes = [], ids = new Set()) {
   return ids;
 }
 
-export function buildTaxonomySummaryNode(
-  node,
-  itemsById,
-  path = [],
-  depth = 0,
-) {
+export function buildTaxonomySummaryNode(node, itemsById, path = [], depth = 0) {
   const nextPath = [...path, node.label || node.id];
   const children = (node.children || [])
-    .map((child) =>
-      buildTaxonomySummaryNode(child, itemsById, nextPath, depth + 1),
-    )
+    .map((child) => buildTaxonomySummaryNode(child, itemsById, nextPath, depth + 1))
     .filter(Boolean);
   const directItem = itemsById.get(node.id);
   const directCount = directItem?.count || 0;
-  const totalCount = children.reduce(
-    (total, child) => total + child.totalCount,
-    directCount,
-  );
+  const totalCount = children.reduce((total, child) => total + child.totalCount, directCount);
 
   if (!totalCount) return null;
 
@@ -98,8 +73,5 @@ export function buildTaxonomySummaryNode(
 }
 
 export function flattenTaxonomySummary(nodes = []) {
-  return nodes.flatMap((node) => [
-    node,
-    ...flattenTaxonomySummary(node.children),
-  ]);
+  return nodes.flatMap((node) => [node, ...flattenTaxonomySummary(node.children)]);
 }

@@ -1,7 +1,5 @@
 export function hasPermission(actor, permission) {
-  return (
-    Array.isArray(actor?.permissions) && actor.permissions.includes(permission)
-  );
+  return Array.isArray(actor?.permissions) && actor.permissions.includes(permission);
 }
 
 export function hasEveryPermission(actor, ...permissions) {

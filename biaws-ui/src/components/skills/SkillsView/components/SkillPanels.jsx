@@ -1,21 +1,11 @@
 import { AlertTriangle, Archive, CheckCircle2, Package } from "lucide-react";
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
-import {
-  collectionPathLabel,
-  ResourceCollectionDialog,
-} from "../../../shared/ResourceCollections/index.jsx";
+import { collectionPathLabel, ResourceCollectionDialog } from "../../../shared/ResourceCollections/index.jsx";
 import { PublishSkillDialog } from "./PublishSkillDialog.jsx";
 import { formatDate } from "../utils.js";
 
-function SkillCard({
-  canDrag,
-  collectionState,
-  onOpen,
-  onToggleSelection,
-  selected,
-  skill,
-}) {
+function SkillCard({ canDrag, collectionState, onOpen, onToggleSelection, selected, skill }) {
   const published = skill.status === "published";
   return (
     <article
@@ -23,9 +13,7 @@ function SkillCard({
       data-collection-browser-item-id={skill.skillId}
       draggable={canDrag && !selected}
       onDragEnd={() => collectionState.setDraggedItem(null)}
-      onDragStart={() =>
-        collectionState.setDraggedItem({ type: "item", id: skill.skillId })
-      }
+      onDragStart={() => collectionState.setDraggedItem({ type: "item", id: skill.skillId })}
     >
       <button
         aria-label={`Abrir ${skill.name}`}
@@ -48,10 +36,7 @@ function SkillCard({
         </div>
         <div>
           <h3>{skill.name}</h3>
-          <EntityIdentifier
-            label="Identificador da skill"
-            value={skill.skillId}
-          />
+          <EntityIdentifier label="Identificador da skill" value={skill.skillId} />
         </div>
       </header>
       <p>{skill.description}</p>
@@ -70,11 +55,7 @@ function SkillCard({
         </div>
       </dl>
       <footer>
-        <span
-          className={
-            published ? "skillStatus published" : "skillStatus deprecated"
-          }
-        >
+        <span className={published ? "skillStatus published" : "skillStatus deprecated"}>
           {published ? <CheckCircle2 size={13} /> : <Archive size={13} />}
           {skill.status}
         </span>
@@ -121,36 +102,19 @@ export function SkillCards({
   );
 }
 
-export function SkillDialogs({
-  collectionState,
-  onPublished,
-  publishing,
-  setPublishing,
-}) {
+export function SkillDialogs({ collectionState, onPublished, publishing, setPublishing }) {
   return (
     <>
       {collectionState.collectionDialog ? (
         <ResourceCollectionDialog
-          collection={
-            collectionState.collectionDialog.id
-              ? collectionState.collectionDialog
-              : null
-          }
+          collection={collectionState.collectionDialog.id ? collectionState.collectionDialog : null}
           onClose={() => collectionState.setCollectionDialog(null)}
           onSave={collectionState.saveCollection}
-          parentLabel={collectionPathLabel(
-            collectionState.collections,
-            collectionState.selectedCollectionId,
-          )}
+          parentLabel={collectionPathLabel(collectionState.collections, collectionState.selectedCollectionId)}
           resourceLabel="skills"
         />
       ) : null}
-      {publishing ? (
-        <PublishSkillDialog
-          onClose={() => setPublishing(false)}
-          onPublished={onPublished}
-        />
-      ) : null}
+      {publishing ? <PublishSkillDialog onClose={() => setPublishing(false)} onPublished={onPublished} /> : null}
     </>
   );
 }

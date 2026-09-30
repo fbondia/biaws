@@ -1,20 +1,7 @@
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import "../../../../styles/features/monitoring-history.css";
-import {
-  monitoringHealthSummaryCaption,
-  monitoringHealthStatusLabel,
-  monitoringHealthTimeline,
-} from "./model.js";
+import { monitoringHealthSummaryCaption, monitoringHealthStatusLabel, monitoringHealthTimeline } from "./model.js";
 import { useMonitoringHealthSummary } from "./hooks/useMonitoringHealthSummary.js";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("pt-BR", {
@@ -26,13 +13,7 @@ function formatTimestamp(value) {
   return DATE_FORMAT.format(new Date(value));
 }
 
-export function MonitoringHealthTimeline({
-  monitors,
-  observedFrom,
-  observedTo,
-  runtimeId,
-  status,
-}) {
+export function MonitoringHealthTimeline({ monitors, observedFrom, observedTo, runtimeId, status }) {
   const { error, loading, summary } = useMonitoringHealthSummary({
     observedFrom,
     observedTo,
@@ -57,23 +38,12 @@ export function MonitoringHealthTimeline({
   }
 
   return (
-    <section
-      aria-label="Evolução temporal da saúde por monitoramento"
-      className="monitoringHealthTimeline"
-      role="img"
-    >
+    <section aria-label="Evolução temporal da saúde por monitoramento" className="monitoringHealthTimeline" role="img">
       <div className="monitoringHealthTimelineScroller">
         <div className="monitoringHealthTimelineChart">
           <ResponsiveContainer height={360} width="100%">
-            <LineChart
-              data={timeline.points}
-              margin={{ top: 20, right: 24, bottom: 12, left: 12 }}
-            >
-              <CartesianGrid
-                stroke="var(--color-border-subtle)"
-                strokeDasharray="3 3"
-                vertical={false}
-              />
+            <LineChart data={timeline.points} margin={{ top: 20, right: 24, bottom: 12, left: 12 }}>
+              <CartesianGrid stroke="var(--color-border-subtle)" strokeDasharray="3 3" vertical={false} />
               <XAxis
                 dataKey="timestamp"
                 domain={["dataMin", "dataMax"]}
@@ -93,8 +63,7 @@ export function MonitoringHealthTimeline({
               />
               <Tooltip
                 formatter={(value, name, item) => {
-                  const eventCount =
-                    item.payload?.[`${item.dataKey}EventCount`] || 0;
+                  const eventCount = item.payload?.[`${item.dataKey}EventCount`] || 0;
                   return [
                     `${monitoringHealthStatusLabel(value)} · ${eventCount} ${eventCount === 1 ? "evento" : "eventos"}`,
                     name,

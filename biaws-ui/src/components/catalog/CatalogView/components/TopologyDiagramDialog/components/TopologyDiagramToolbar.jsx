@@ -39,9 +39,7 @@ export function TopologyDiagramToolbar({ controller }) {
               onChange={(event) => actions.selectDiagram(event.target.value)}
               value={selectedId}
             >
-              {!diagrams.length ? (
-                <option value="">Nenhum gráfico criado</option>
-              ) : null}
+              {!diagrams.length ? <option value="">Nenhum gráfico criado</option> : null}
               {diagrams.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
@@ -50,11 +48,7 @@ export function TopologyDiagramToolbar({ controller }) {
             </select>
           </label>
           {canEdit ? (
-            <button
-              className="secondaryButton topologyDiagramNewButton"
-              onClick={actions.startCreating}
-              type="button"
-            >
+            <button className="secondaryButton topologyDiagramNewButton" onClick={actions.startCreating} type="button">
               <Plus size={15} /> Novo gráfico
             </button>
           ) : null}
@@ -62,9 +56,7 @@ export function TopologyDiagramToolbar({ controller }) {
             <span>Ambiente</span>
             <select
               disabled={!diagram || topologyLoading || !canEdit}
-              onChange={(event) =>
-                actions.changeEnvironment(event.target.value)
-              }
+              onChange={(event) => actions.changeEnvironment(event.target.value)}
               value={environment}
             >
               {TOPOLOGY_ENVIRONMENTS.map((item) => (
@@ -80,13 +72,7 @@ export function TopologyDiagramToolbar({ controller }) {
           {canEdit ? (
             <button
               className="primaryButton"
-              disabled={
-                !diagram ||
-                saving ||
-                topologyLoading ||
-                !dirty ||
-                hasUntitledNode
-              }
+              disabled={!diagram || saving || topologyLoading || !dirty || hasUntitledNode}
               onClick={() => actions.saveDiagram()}
               type="button"
             >
@@ -103,17 +89,13 @@ export function TopologyDiagramToolbar({ controller }) {
             <TopologyVisibilityMenu
               hiddenIds={hiddenIntegrationIds}
               label="Integrações"
-              onChange={(next) =>
-                changeVisibility(actions.setHiddenIntegrationIds, next)
-              }
+              onChange={(next) => changeVisibility(actions.setHiddenIntegrationIds, next)}
               options={integrationOptions}
             />
             <TopologyVisibilityMenu
               hiddenIds={hiddenServerIds}
               label="Servidores"
-              onChange={(next) =>
-                changeVisibility(actions.setHiddenServerIds, next)
-              }
+              onChange={(next) => changeVisibility(actions.setHiddenServerIds, next)}
               options={serverOptions}
             />
           </div>

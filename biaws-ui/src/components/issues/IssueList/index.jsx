@@ -22,13 +22,9 @@ export function IssueList({
   sort,
   updatingIssueField,
 }) {
-  const applicationsById = Object.fromEntries(
-    applications.map((application) => [application.id, application]),
-  );
+  const applicationsById = Object.fromEntries(applications.map((application) => [application.id, application]));
   const tagGroupsById = buildTagGroupsById(taxonomyPackage);
-  const taxonomyItemsById = buildTaxonomyItemsById(
-    taxonomyPackage?.taxonomy || [],
-  );
+  const taxonomyItemsById = buildTaxonomyItemsById(taxonomyPackage?.taxonomy || []);
   const editableTypeOptions = TYPE_OPTIONS.filter((option) => option.value);
   const editableStatusOptions = STATUS_OPTIONS.filter((option) => option.value);
 

@@ -14,9 +14,7 @@ export function MarkdownEditor({
   fullscreen = false,
   initialMode = "preview",
 }) {
-  const [mode, setMode] = useState(() =>
-    initialMode === "text" ? "text" : "preview",
-  );
+  const [mode, setMode] = useState(() => (initialMode === "text" ? "text" : "preview"));
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const textareaRef = useRef(null);
@@ -66,26 +64,12 @@ export function MarkdownEditor({
   }
 
   return (
-    <div
-      className={
-        allowFullscreen
-          ? "markdownEditor"
-          : "markdownEditor markdownEditorWithoutFullscreen"
-      }
-    >
-      <div
-        className="markdownEditorTabs"
-        role="toolbar"
-        aria-label="Ações do editor markdown"
-      >
+    <div className={allowFullscreen ? "markdownEditor" : "markdownEditor markdownEditorWithoutFullscreen"}>
+      <div className="markdownEditorTabs" role="toolbar" aria-label="Ações do editor markdown">
         <button
           aria-label="Editar texto"
           aria-pressed={mode === "text"}
-          className={
-            mode === "text"
-              ? "markdownEditorTab activeMarkdownEditorTab"
-              : "markdownEditorTab"
-          }
+          className={mode === "text" ? "markdownEditorTab activeMarkdownEditorTab" : "markdownEditorTab"}
           onClick={() => setMode("text")}
           title="Texto"
           type="button"
@@ -95,11 +79,7 @@ export function MarkdownEditor({
         <button
           aria-label="Visualizar conteúdo"
           aria-pressed={mode === "preview"}
-          className={
-            mode === "preview"
-              ? "markdownEditorTab activeMarkdownEditorTab"
-              : "markdownEditorTab"
-          }
+          className={mode === "preview" ? "markdownEditorTab activeMarkdownEditorTab" : "markdownEditorTab"}
           onClick={() => setMode("preview")}
           title="Visualização"
           type="button"
@@ -110,13 +90,7 @@ export function MarkdownEditor({
           aria-label={copied ? "Conteúdo copiado" : "Copiar conteúdo"}
           className="markdownEditorTab"
           onClick={copyContent}
-          title={
-            copied
-              ? "Copiado"
-              : mode === "text"
-                ? "Copiar Markdown"
-                : "Copiar conteúdo formatado"
-          }
+          title={copied ? "Copiado" : mode === "text" ? "Copiar Markdown" : "Copiar conteúdo formatado"}
           type="button"
         >
           {copied ? <Check size={15} /> : <Copy size={15} />}
@@ -195,8 +169,7 @@ function resizeTextarea(textarea, fullscreen) {
     : MARKDOWN_TEXTAREA_MAX_HEIGHT;
   textarea.style.height = "auto";
   textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
-  textarea.style.overflowY =
-    textarea.scrollHeight > maxHeight ? "auto" : "hidden";
+  textarea.style.overflowY = textarea.scrollHeight > maxHeight ? "auto" : "hidden";
 }
 
 async function copyPlainText(value) {
@@ -216,7 +189,5 @@ async function copyPlainText(value) {
 }
 
 function htmlToPlainText(html) {
-  return (
-    new DOMParser().parseFromString(html, "text/html").body.textContent || ""
-  );
+  return new DOMParser().parseFromString(html, "text/html").body.textContent || "";
 }

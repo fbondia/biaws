@@ -45,21 +45,10 @@ export function formatSecretBytes(value) {
 }
 
 export function permissionApplicationIds(actor, ...permissions) {
-  return [
-    ...new Set(
-      permissions.flatMap(
-        (permission) =>
-          actor.permissionScopes?.[permission]?.applicationIds || [],
-      ),
-    ),
-  ];
+  return [...new Set(permissions.flatMap((permission) => actor.permissionScopes?.[permission]?.applicationIds || []))];
 }
 
 export function canActOnSecret(actor, permission, secret) {
   const scope = actor.permissionScopes?.[permission];
-  return Boolean(
-    scope?.workspace ||
-    (secret.applicationId &&
-      scope?.applicationIds?.includes(secret.applicationId)),
-  );
+  return Boolean(scope?.workspace || (secret.applicationId && scope?.applicationIds?.includes(secret.applicationId)));
 }

@@ -7,16 +7,8 @@ export function contextFromPreviewIssue(issue, fallbackContext) {
   };
 }
 
-export function shouldRetryContextDiscovery(
-  error,
-  discoverContext,
-  fallbackContext,
-) {
-  return Boolean(
-    discoverContext &&
-    error?.code === "APPLICATION_REQUIRED" &&
-    fallbackContext?.applicationId,
-  );
+export function shouldRetryContextDiscovery(error, discoverContext, fallbackContext) {
+  return Boolean(discoverContext && error?.code === "APPLICATION_REQUIRED" && fallbackContext?.applicationId);
 }
 
 export function cloneEmlClassification(classification = {}) {
@@ -25,10 +17,7 @@ export function cloneEmlClassification(classification = {}) {
     secondaryTaxonomyIds: [...(classification.secondaryTaxonomyIds || [])],
     summary: classification.summary || "",
     tags: Object.fromEntries(
-      Object.entries(classification.tags || {}).map(([groupId, tagIds]) => [
-        groupId,
-        [...tagIds],
-      ]),
+      Object.entries(classification.tags || {}).map(([groupId, tagIds]) => [groupId, [...tagIds]]),
     ),
   };
 }
@@ -49,8 +38,5 @@ export function mergeEmlClassificationSection(current, draft, section) {
 }
 
 export function selectedEmlTaxonomyIds(classification) {
-  return [
-    classification.primaryTaxonomyId,
-    ...classification.secondaryTaxonomyIds,
-  ].filter(Boolean);
+  return [classification.primaryTaxonomyId, ...classification.secondaryTaxonomyIds].filter(Boolean);
 }

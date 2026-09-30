@@ -5,10 +5,7 @@ export function SecretTypeEnvironmentFields({ form, setForm }) {
     <div className="secretFormGrid">
       <label>
         Tipo
-        <select
-          onChange={(event) => setForm({ ...form, type: event.target.value })}
-          value={form.type}
-        >
+        <select onChange={(event) => setForm({ ...form, type: event.target.value })} value={form.type}>
           {SECRET_TYPE_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -18,12 +15,7 @@ export function SecretTypeEnvironmentFields({ form, setForm }) {
       </label>
       <label>
         Ambiente
-        <select
-          onChange={(event) =>
-            setForm({ ...form, environment: event.target.value })
-          }
-          value={form.environment}
-        >
+        <select onChange={(event) => setForm({ ...form, environment: event.target.value })} value={form.environment}>
           {SECRET_ENVIRONMENT_OPTIONS.map((option) => (
             <option key={option.value || "none"} value={option.value}>
               {option.label}
@@ -35,23 +27,13 @@ export function SecretTypeEnvironmentFields({ form, setForm }) {
   );
 }
 
-export function SecretScopeField({
-  allowedApplicationIds,
-  applications,
-  form,
-  setForm,
-  workspaceAllowed,
-}) {
-  const availableApplications = applications.filter(({ id }) =>
-    allowedApplicationIds.includes(id),
-  );
+export function SecretScopeField({ allowedApplicationIds, applications, form, setForm, workspaceAllowed }) {
+  const availableApplications = applications.filter(({ id }) => allowedApplicationIds.includes(id));
   return (
     <label>
       Escopo
       <select
-        onChange={(event) =>
-          setForm({ ...form, applicationId: event.target.value })
-        }
+        onChange={(event) => setForm({ ...form, applicationId: event.target.value })}
         required={!workspaceAllowed}
         value={form.applicationId}
       >
@@ -66,12 +48,7 @@ export function SecretScopeField({
           </option>
         ))}
         {allowedApplicationIds
-          .filter(
-            (id) =>
-              !availableApplications.some(
-                (application) => application.id === id,
-              ),
-          )
+          .filter((id) => !availableApplications.some((application) => application.id === id))
           .map((id) => (
             <option key={id} value={id}>
               Aplicação {id}

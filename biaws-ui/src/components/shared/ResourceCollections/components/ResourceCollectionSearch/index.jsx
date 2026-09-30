@@ -19,8 +19,7 @@ export function ResourceCollectionSearch({
   search,
   hasActiveFilters = Boolean(search),
 }) {
-  const archivedItemsTarget =
-    useResourceCollectionBarActionTargets()?.archivedItemsTarget;
+  const archivedItemsTarget = useResourceCollectionBarActionTargets()?.archivedItemsTarget;
   const archivedItemsAction = (
     <ArchivedItemsAction
       archivedItemsLabel={archivedItemsLabel}
@@ -33,19 +32,13 @@ export function ResourceCollectionSearch({
   return (
     <>
       <form
-        className={["resourceCollectionSearch", className]
-          .filter(Boolean)
-          .join(" ")}
+        className={["resourceCollectionSearch", className].filter(Boolean).join(" ")}
         onSubmit={(event) => {
           event.preventDefault();
           onSearch?.();
         }}
       >
-        {additionalFilters ? (
-          <div className="resourceCollectionAdditionalFilters">
-            {additionalFilters}
-          </div>
-        ) : null}
+        {additionalFilters ? <div className="resourceCollectionAdditionalFilters">{additionalFilters}</div> : null}
 
         <label className="resourceCollectionSearchInput">
           <Search aria-hidden="true" size={15} />
@@ -58,13 +51,7 @@ export function ResourceCollectionSearch({
           />
         </label>
 
-        <button
-          aria-label="Pesquisar"
-          className="iconButton"
-          disabled={loading}
-          title="Pesquisar"
-          type="submit"
-        >
+        <button aria-label="Pesquisar" className="iconButton" disabled={loading} title="Pesquisar" type="submit">
           <Search aria-hidden="true" size={16} />
         </button>
         <button
@@ -88,17 +75,11 @@ export function ResourceCollectionSearch({
           title="Atualizar"
           type="button"
         >
-          <RefreshCw
-            aria-hidden="true"
-            className={loading ? "spinIcon" : undefined}
-            size={16}
-          />
+          <RefreshCw aria-hidden="true" className={loading ? "spinIcon" : undefined} size={16} />
         </button>
       </form>
 
-      {archivedItemsTarget
-        ? createPortal(archivedItemsAction, archivedItemsTarget)
-        : archivedItemsAction}
+      {archivedItemsTarget ? createPortal(archivedItemsAction, archivedItemsTarget) : archivedItemsAction}
     </>
   );
 }

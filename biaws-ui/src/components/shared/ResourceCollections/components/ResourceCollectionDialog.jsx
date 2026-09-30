@@ -43,9 +43,7 @@ export function ResourceCollectionDialog({
         <header className="procedureCollectionDialogHeader">
           <div>
             <span>Organização de {resourceLabel}</span>
-            <h2 id="procedureCollectionDialogTitle">
-              {editing ? "Renomear coleção" : "Nova coleção"}
-            </h2>
+            <h2 id="procedureCollectionDialogTitle">{editing ? "Renomear coleção" : "Nova coleção"}</h2>
           </div>
           <button
             aria-label="Fechar"
@@ -80,27 +78,12 @@ export function ResourceCollectionDialog({
             />
           </label>
           <footer className="procedureCollectionDialogFooter">
-            <button
-              className="secondaryButton"
-              disabled={saving}
-              onClick={onClose}
-              type="button"
-            >
+            <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
               Cancelar
             </button>
-            <button
-              className="primaryButton"
-              disabled={saving || !name.trim()}
-              type="submit"
-            >
+            <button className="primaryButton" disabled={saving || !name.trim()} type="submit">
               {editing ? <Pencil size={16} /> : <FolderPlus size={16} />}
-              {saving
-                ? editing
-                  ? "Salvando..."
-                  : "Criando..."
-                : editing
-                  ? "Salvar nome"
-                  : "Criar coleção"}
+              {saving ? (editing ? "Salvando..." : "Criando...") : editing ? "Salvar nome" : "Criar coleção"}
             </button>
           </footer>
         </form>

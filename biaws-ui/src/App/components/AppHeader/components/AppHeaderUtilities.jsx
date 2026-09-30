@@ -23,11 +23,7 @@ export function LocalCommandCard({
           className="secondaryButton"
           disabled={disabled}
           onClick={() => onCopy(commandKey, command)}
-          title={
-            disabled
-              ? "Informe a instância e o caminho do projeto"
-              : "Copiar comando"
-          }
+          title={disabled ? "Informe a instância e o caminho do projeto" : "Copiar comando"}
           type="button"
         >
           {copied ? <Check size={15} /> : <Copy size={15} />}
@@ -60,13 +56,7 @@ export async function copyPlainText(value) {
   textarea.remove();
 }
 
-export function NavigationButton({
-  active,
-  iconOnly = false,
-  menu = false,
-  onClick,
-  view,
-}) {
+export function NavigationButton({ active, iconOnly = false, menu = false, onClick, view }) {
   const Icon = view.icon;
   const baseClass = menu ? "navigationSubmenuItem" : "viewTab";
   const activeClass = menu ? "activeNavigationSubmenuItem" : "activeViewTab";
@@ -74,9 +64,7 @@ export function NavigationButton({
     <button
       aria-current={active ? "page" : undefined}
       aria-label={iconOnly ? view.label : undefined}
-      className={`${active ? `${baseClass} ${activeClass}` : baseClass}${
-        iconOnly ? " accountNavigationButton" : ""
-      }`}
+      className={`${active ? `${baseClass} ${activeClass}` : baseClass}${iconOnly ? " accountNavigationButton" : ""}`}
       onClick={onClick}
       title={iconOnly ? view.label : undefined}
       type="button"

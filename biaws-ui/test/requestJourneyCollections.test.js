@@ -30,21 +30,12 @@ test("journey rows aggregate nested collections and the general total", () => {
     },
   ];
 
-  const rows = buildJourneyCollectionRows(collections, requests, [
-    "2026-09",
-    "2026-10",
-  ]);
+  const rows = buildJourneyCollectionRows(collections, requests, ["2026-09", "2026-10"]);
 
   assert.deepEqual(
     rows.map((row) =>
       row.kind === "collection"
-        ? [
-            row.name,
-            row.depth,
-            row.itemCount,
-            row.totals.planned,
-            row.totals.executed,
-          ]
+        ? [row.name, row.depth, row.itemCount, row.totals.planned, row.totals.executed]
         : [row.request.id, row.depth, row.totals.planned, row.totals.executed],
     ),
     [
@@ -109,16 +100,7 @@ test("collapsed journey collections hide only their descendants", () => {
   const visibleRows = visibleJourneyRows(rows, ["collection:platform"]);
 
   assert.deepEqual(
-    visibleRows.map((row) =>
-      row.kind === "collection"
-        ? journeyCollectionRowKey(row)
-        : `request:${row.request.id}`,
-    ),
-    [
-      "collection:total",
-      "collection:platform",
-      "collection:support",
-      "request:support-item",
-    ],
+    visibleRows.map((row) => (row.kind === "collection" ? journeyCollectionRowKey(row) : `request:${row.request.id}`)),
+    ["collection:total", "collection:platform", "collection:support", "request:support-item"],
   );
 });

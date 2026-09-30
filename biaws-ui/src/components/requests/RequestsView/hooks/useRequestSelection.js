@@ -51,9 +51,7 @@ export function useRequestSelection({
 
   function toggleSelectedEditMode() {
     if (!selectedRequest) return;
-    setEditingRequestId((current) =>
-      current === selectedRequest.id ? "" : selectedRequest.id,
-    );
+    setEditingRequestId((current) => (current === selectedRequest.id ? "" : selectedRequest.id));
   }
 
   return { closeSelectedRequest, selectRequest, toggleSelectedEditMode };

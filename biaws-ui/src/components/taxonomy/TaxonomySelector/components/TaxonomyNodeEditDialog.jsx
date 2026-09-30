@@ -40,11 +40,7 @@ export function TaxonomyNodeEditDialog({
         <form onSubmit={editNode}>
           <label className="field">
             <span>Título</span>
-            <input
-              autoFocus
-              onChange={(event) => setEditLabel(event.target.value)}
-              value={editLabel}
-            />
+            <input autoFocus onChange={(event) => setEditLabel(event.target.value)} value={editLabel} />
           </label>
           <fieldset className="taxonomyApplicationScope">
             <legend>Aplicável a</legend>
@@ -57,10 +53,7 @@ export function TaxonomyNodeEditDialog({
               />
               <span>
                 <strong>Todas as aplicações</strong>
-                <small>
-                  O item fica disponível em todo o workspace, respeitando o
-                  escopo do item superior.
-                </small>
+                <small>O item fica disponível em todo o workspace, respeitando o escopo do item superior.</small>
               </span>
             </label>
             <label className="taxonomyScopeOption">
@@ -85,56 +78,34 @@ export function TaxonomyNodeEditDialog({
                         <input
                           checked={checked}
                           onChange={() =>
-                            setEditApplicationIds((current) =>
-                              toggleApplicationId(
-                                current,
-                                application.id,
-                                checked,
-                              ),
-                            )
+                            setEditApplicationIds((current) => toggleApplicationId(current, application.id, checked))
                           }
                           type="checkbox"
                         />
                         <span>{application.name || application.id}</span>
-                        {application.status !== "active" ? (
-                          <small>Arquivada</small>
-                        ) : null}
+                        {application.status !== "active" ? <small>Arquivada</small> : null}
                       </label>
                     );
                   })
                 ) : (
-                  <span className="fieldHint">
-                    Nenhuma aplicação cadastrada no workspace.
-                  </span>
+                  <span className="fieldHint">Nenhuma aplicação cadastrada no workspace.</span>
                 )}
               </div>
             ) : null}
           </fieldset>
           <div className="dialogActions">
             {canDeleteNodes ? (
-              <button
-                className="dangerButton taxonomyDeleteNodeButton"
-                onClick={onDelete}
-                type="button"
-              >
+              <button className="dangerButton taxonomyDeleteNodeButton" onClick={onDelete} type="button">
                 <Trash2 size={15} />
                 Excluir nó
               </button>
             ) : null}
-            <button
-              className="secondaryButton"
-              data-dialog-close
-              onClick={onClose}
-              type="button"
-            >
+            <button className="secondaryButton" data-dialog-close onClick={onClose} type="button">
               Cancelar
             </button>
             <button
               className="primaryButton"
-              disabled={
-                !editLabel.trim() ||
-                (editScopeMode === "applications" && !editApplicationIds.length)
-              }
+              disabled={!editLabel.trim() || (editScopeMode === "applications" && !editApplicationIds.length)}
               type="submit"
             >
               Salvar

@@ -167,9 +167,7 @@ test("topology graph identifies integrated components on shared servers", () => 
 
   assert.equal(graph.nodes.length, 1);
   assert.equal(graph.nodes[0].data.components.length, 2);
-  const integrated = graph.nodes[0].data.components.find(
-    ({ id }) => id === "component-integrated",
-  );
+  const integrated = graph.nodes[0].data.components.find(({ id }) => id === "component-integrated");
   assert.equal(integrated.integrated, true);
   assert.equal(integrated.applicationName, "Identidade");
 });
@@ -291,10 +289,10 @@ test("topology groups shrink after children are removed", () => {
   ]);
 
   assert.deepEqual(nodes[0].style, { width: 940, height: 900 });
-  assert.deepEqual(
-    resizeTopologyGroups(nodes.filter(({ id }) => id !== "element:2"))[0].style,
-    { width: 640, height: 380 },
-  );
+  assert.deepEqual(resizeTopologyGroups(nodes.filter(({ id }) => id !== "element:2"))[0].style, {
+    width: 640,
+    height: 380,
+  });
 });
 
 test("topology graph restores positions and discards dangling edges", () => {

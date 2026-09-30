@@ -3,37 +3,20 @@ import { useState } from "react";
 
 import { createSecret, createSecretFile } from "../../../../api.js";
 import { useFileDrop } from "../../../shared/useFileDrop.js";
-import {
-  EMPTY_SECRET_FORM,
-  permissionApplicationIds,
-  suggestSecretIdentifier,
-} from "../model.js";
-import {
-  SecretScopeField,
-  SecretTypeEnvironmentFields,
-} from "./SecretFormFields.jsx";
+import { EMPTY_SECRET_FORM, permissionApplicationIds, suggestSecretIdentifier } from "../model.js";
+import { SecretScopeField, SecretTypeEnvironmentFields } from "./SecretFormFields.jsx";
 
-export function CreateSecretDialog({
-  actor,
-  applications,
-  onClose,
-  onCreated,
-}) {
+export function CreateSecretDialog({ actor, applications, onClose, onCreated }) {
   const [form, setForm] = useState(EMPTY_SECRET_FORM);
   const [identifierTouched, setIdentifierTouched] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const createScope = actor.permissionScopes?.["secrets.create"] || {};
   const writeScope = actor.permissionScopes?.["secrets.value.write"] || {};
-  const canCreateWorkspaceSecret =
-    createScope.workspace && writeScope.workspace;
+  const canCreateWorkspaceSecret = createScope.workspace && writeScope.workspace;
   const allowedApplicationIds = canCreateWorkspaceSecret
     ? applications.map(({ id }) => id)
-    : permissionApplicationIds(
-        actor,
-        "secrets.create",
-        "secrets.value.write",
-      ).filter(
+    : permissionApplicationIds(actor, "secrets.create", "secrets.value.write").filter(
         (id) =>
           (createScope.workspace || createScope.applicationIds?.includes(id)) &&
           (writeScope.workspace || writeScope.applicationIds?.includes(id)),
@@ -91,13 +74,7 @@ export function CreateSecretDialog({
             <span>Cofre local</span>
             <h2 id="create-secret-title">Novo segredo</h2>
           </div>
-          <button
-            aria-label="Fechar"
-            className="iconButton"
-            disabled={saving}
-            onClick={onClose}
-            type="button"
-          >
+          <button aria-label="Fechar" className="iconButton" disabled={saving} onClick={onClose} type="button">
             <X size={18} />
           </button>
         </header>
@@ -113,9 +90,7 @@ export function CreateSecretDialog({
                 setForm({
                   ...form,
                   name,
-                  identifier: identifierTouched
-                    ? form.identifier
-                    : suggestSecretIdentifier(name),
+                  identifier: identifierTouched ? form.identifier : suggestSecretIdentifier(name),
                 });
               }}
               required
@@ -139,17 +114,13 @@ export function CreateSecretDialog({
               spellCheck="false"
               value={form.identifier}
             />
-            <small>
-              Chave técnica única no workspace. Não poderá ser alterada.
-            </small>
+            <small>Chave técnica única no workspace. Não poderá ser alterada.</small>
           </label>
           <label>
             Descrição
             <textarea
               maxLength="500"
-              onChange={(event) =>
-                setForm({ ...form, description: event.target.value })
-              }
+              onChange={(event) => setForm({ ...form, description: event.target.value })}
               rows="3"
               value={form.description}
             />
@@ -186,29 +157,16 @@ export function CreateSecretDialog({
             >
               <span>Arquivo</span>
               <Upload size={18} />
-              <strong>
-                {form.file?.name ||
-                  "Arraste um arquivo ou clique para selecionar"}
-              </strong>
-              <input
-                disabled={saving}
-                onChange={(event) =>
-                  selectFile([...(event.target.files || [])])
-                }
-                type="file"
-              />
-              <small>
-                Até 5 MiB. Chaves, certificados e arquivos .env são aceitos.
-              </small>
+              <strong>{form.file?.name || "Arraste um arquivo ou clique para selecionar"}</strong>
+              <input disabled={saving} onChange={(event) => selectFile([...(event.target.files || [])])} type="file" />
+              <small>Até 5 MiB. Chaves, certificados e arquivos .env são aceitos.</small>
             </label>
           ) : (
             <label>
               Valor
               <textarea
                 autoComplete="off"
-                onChange={(event) =>
-                  setForm({ ...form, value: event.target.value })
-                }
+                onChange={(event) => setForm({ ...form, value: event.target.value })}
                 required
                 rows="5"
                 value={form.value}
@@ -217,12 +175,7 @@ export function CreateSecretDialog({
             </label>
           )}
           <footer className="userCreateDialogFooter secretDialogFooter">
-            <button
-              className="secondaryButton"
-              disabled={saving}
-              onClick={onClose}
-              type="button"
-            >
+            <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
               Cancelar
             </button>
             <button

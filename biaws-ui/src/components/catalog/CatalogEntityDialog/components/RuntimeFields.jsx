@@ -1,11 +1,7 @@
 import { Eye, FolderTree } from "lucide-react";
 
 import { MarkdownEditor } from "../../../shared/MarkdownEditor/index.jsx";
-import {
-  DOCUMENT_PURPOSES,
-  RUNTIME_KINDS,
-  RUNTIME_STATUSES,
-} from "../constants.js";
+import { DOCUMENT_PURPOSES, RUNTIME_KINDS, RUNTIME_STATUSES } from "../constants.js";
 import { EntityFieldGroup, SelectField, TextField } from "./Fields.jsx";
 import {
   RuntimeMonitoringConfiguration,
@@ -13,13 +9,7 @@ import {
   RuntimeMonitoringTabs,
 } from "../../../monitoring/runtime/index.js";
 
-export function RuntimeFields({
-  activeSection,
-  controller,
-  entity,
-  kind,
-  options,
-}) {
+export function RuntimeFields({ activeSection, controller, entity, kind, options }) {
   const {
     draft,
     editing,
@@ -32,18 +22,9 @@ export function RuntimeFields({
   } = controller;
   return (
     <>
-      <EntityFieldGroup
-        active={kind === "runtime" && activeSection === "basic"}
-      >
+      <EntityFieldGroup active={kind === "runtime" && activeSection === "basic"}>
         <>
-          <SelectField
-            label="Tipo"
-            name="kind"
-            onChange={update}
-            options={RUNTIME_KINDS}
-            required
-            value={draft.kind}
-          />
+          <SelectField label="Tipo" name="kind" onChange={update} options={RUNTIME_KINDS} required value={draft.kind} />
           <SelectField
             label="Servidor"
             name="serverId"
@@ -65,36 +46,12 @@ export function RuntimeFields({
         </>
       </EntityFieldGroup>
 
-      <EntityFieldGroup
-        active={kind === "runtime" && activeSection === "service"}
-      >
+      <EntityFieldGroup active={kind === "runtime" && activeSection === "service"}>
         <>
-          <TextField
-            label="Endpoint"
-            name="endpoint"
-            onChange={update}
-            type="url"
-            value={draft.endpoint}
-          />
-          <TextField
-            label="Porta"
-            name="port"
-            onChange={update}
-            type="number"
-            value={draft.port}
-          />
-          <TextField
-            label="Namespace"
-            name="namespace"
-            onChange={update}
-            value={draft.namespace}
-          />
-          <TextField
-            label="Nome no runtime"
-            name="runtimeName"
-            onChange={update}
-            value={draft.runtimeName}
-          />
+          <TextField label="Endpoint" name="endpoint" onChange={update} type="url" value={draft.endpoint} />
+          <TextField label="Porta" name="port" onChange={update} type="number" value={draft.port} />
+          <TextField label="Namespace" name="namespace" onChange={update} value={draft.namespace} />
+          <TextField label="Nome no runtime" name="runtimeName" onChange={update} value={draft.runtimeName} />
           <label className="field catalogWideField">
             <span>Metadata JSON sem segredos</span>
             <textarea
@@ -106,9 +63,7 @@ export function RuntimeFields({
         </>
       </EntityFieldGroup>
 
-      <EntityFieldGroup
-        active={kind === "runtime" && activeSection === "monitoring"}
-      >
+      <EntityFieldGroup active={kind === "runtime" && activeSection === "monitoring"}>
         <RuntimeMonitoringTabs
           configuration={
             <RuntimeMonitoringConfiguration
@@ -120,19 +75,12 @@ export function RuntimeFields({
             />
           }
           history={
-            <RuntimeMonitoringHistory
-              controller={controller}
-              editing={editing}
-              entity={entity}
-              options={options}
-            />
+            <RuntimeMonitoringHistory controller={controller} editing={editing} entity={entity} options={options} />
           }
         />
       </EntityFieldGroup>
 
-      <EntityFieldGroup
-        active={kind === "runtime" && activeSection === "documents"}
-      >
+      <EntityFieldGroup active={kind === "runtime" && activeSection === "documents"}>
         <>
           {options.canReadDocuments ? (
             <div className="catalogWideField runtimeProcedureSection">
@@ -145,39 +93,26 @@ export function RuntimeFields({
                       : "Nenhum documento selecionado"}
                   </span>
                 </div>
-                <button
-                  className="secondaryButton"
-                  onClick={() => setDocumentSelectorOpen(true)}
-                  type="button"
-                >
+                <button className="secondaryButton" onClick={() => setDocumentSelectorOpen(true)} type="button">
                   <FolderTree size={16} /> Selecionar documentos
                 </button>
               </div>
-              {relatedDocumentsLoading ? (
-                <div className="catalogColumnEmpty">Carregando…</div>
-              ) : null}
+              {relatedDocumentsLoading ? <div className="catalogColumnEmpty">Carregando…</div> : null}
               {!relatedDocumentsLoading && relatedDocuments.length ? (
                 <div className="runtimeRelatedProcedureList">
                   {relatedDocuments.map((document) => (
                     <article key={document.id}>
                       <div>
                         <strong>{document.title}</strong>
-                        <span>
-                          {document.loadError
-                            ? document.loadError
-                            : document.summary || "Sem sumário"}
-                        </span>
+                        <span>{document.loadError ? document.loadError : document.summary || "Sem sumário"}</span>
                       </div>
                       <select
                         aria-label={`Finalidade de ${document.title}`}
                         disabled={Boolean(document.loadError)}
-                        onChange={(event) =>
-                          updateDocumentPurpose(document.id, event.target.value)
-                        }
+                        onChange={(event) => updateDocumentPurpose(document.id, event.target.value)}
                         value={
-                          (draft.documentLinks || []).find(
-                            ({ documentId }) => documentId === document.id,
-                          )?.purpose || "reference"
+                          (draft.documentLinks || []).find(({ documentId }) => documentId === document.id)?.purpose ||
+                          "reference"
                         }
                       >
                         {DOCUMENT_PURPOSES.map(([value, label]) => (
@@ -207,8 +142,8 @@ export function RuntimeFields({
               value={draft.operationalNotesMarkdown || ""}
             />
             <small>
-              Use este campo para instruções específicas deste runtime ou quando
-              não quiser criar um documento reutilizável.
+              Use este campo para instruções específicas deste runtime ou quando não quiser criar um documento
+              reutilizável.
             </small>
           </label>
         </>

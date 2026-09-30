@@ -1,12 +1,4 @@
-import {
-  CalendarDays,
-  ClipboardList,
-  Filter,
-  FolderTree,
-  ListChecks,
-  Search,
-  Tags,
-} from "lucide-react";
+import { CalendarDays, ClipboardList, Filter, FolderTree, ListChecks, Search, Tags } from "lucide-react";
 
 import { DATE_FIELDS } from "../../../../constants/issues.js";
 import { CatalogFilterFields } from "../../../catalog/CatalogContextFields/index.jsx";
@@ -64,19 +56,13 @@ export function IssueFilterForm({
             <CalendarDays size={14} />
             Período
           </span>
-          <div
-            aria-label="Período do filtro de data"
-            className="datePeriodOptions"
-            role="group"
-          >
+          <div aria-label="Período do filtro de data" className="datePeriodOptions" role="group">
             {DATE_PERIOD_PRESETS.map((period) => (
               <button
                 aria-label={period.title}
                 aria-pressed={selectedDatePeriod === period.value}
                 className={
-                  selectedDatePeriod === period.value
-                    ? "datePeriodOption activeDatePeriodOption"
-                    : "datePeriodOption"
+                  selectedDatePeriod === period.value ? "datePeriodOption activeDatePeriodOption" : "datePeriodOption"
                 }
                 key={period.value}
                 onClick={() => selectDatePeriod(period)}
@@ -90,9 +76,7 @@ export function IssueFilterForm({
               aria-label="Selecionar campo de data e período personalizado"
               aria-pressed={selectedDatePeriod === "custom"}
               className={
-                selectedDatePeriod === "custom"
-                  ? "datePeriodOption activeDatePeriodOption"
-                  : "datePeriodOption"
+                selectedDatePeriod === "custom" ? "datePeriodOption activeDatePeriodOption" : "datePeriodOption"
               }
               onClick={() => setSelectedDatePeriod("custom")}
               title="Período personalizado"
@@ -103,9 +87,7 @@ export function IssueFilterForm({
           </div>
         </div>
 
-        {selectedDatePeriod === "custom" ? (
-          <CustomDateFields draftFilters={draftFilters} onChange={onChange} />
-        ) : null}
+        {selectedDatePeriod === "custom" ? <CustomDateFields draftFilters={draftFilters} onChange={onChange} /> : null}
 
         {applications.length ? (
           <CatalogFilterFields
@@ -137,11 +119,7 @@ export function IssueFilterForm({
             icon={Tags}
             label="Tags"
             onClick={() => setTagsDialogOpen(true)}
-            summary={
-              selectedTagCount
-                ? `${selectedTagCount} selecionada(s)`
-                : "Todas as tags"
-            }
+            summary={selectedTagCount ? `${selectedTagCount} selecionada(s)` : "Todas as tags"}
           />
         ) : null}
         {taxonomyPackage?.taxonomy?.length ? (
@@ -151,9 +129,7 @@ export function IssueFilterForm({
             label="Classificações"
             onClick={() => setTaxonomyDialogOpen(true)}
             summary={
-              selectedTaxonomies.length
-                ? `${selectedTaxonomies.length} selecionada(s)`
-                : "Todas as classificações"
+              selectedTaxonomies.length ? `${selectedTaxonomies.length} selecionada(s)` : "Todas as classificações"
             }
           />
         ) : null}
@@ -179,10 +155,7 @@ function CustomDateFields({ draftFilters, onChange }) {
     <>
       <label className="field filterDateField">
         <span>Campo de data</span>
-        <select
-          value={draftFilters.dateField}
-          onChange={(event) => onChange("dateField", event.target.value)}
-        >
+        <select value={draftFilters.dateField} onChange={(event) => onChange("dateField", event.target.value)}>
           {DATE_FIELDS.map((field) => (
             <option key={field.value} value={field.value}>
               {field.label}
@@ -192,19 +165,11 @@ function CustomDateFields({ draftFilters, onChange }) {
       </label>
       <label className="field filterFrom">
         <span>De</span>
-        <input
-          type="date"
-          value={draftFilters.from}
-          onChange={(event) => onChange("from", event.target.value)}
-        />
+        <input type="date" value={draftFilters.from} onChange={(event) => onChange("from", event.target.value)} />
       </label>
       <label className="field filterTo">
         <span>Até</span>
-        <input
-          type="date"
-          value={draftFilters.to}
-          onChange={(event) => onChange("to", event.target.value)}
-        />
+        <input type="date" value={draftFilters.to} onChange={(event) => onChange("to", event.target.value)} />
       </label>
     </>
   );

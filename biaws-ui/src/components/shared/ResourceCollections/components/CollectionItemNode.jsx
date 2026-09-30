@@ -22,9 +22,7 @@ export function CollectionItemNode({
 }) {
   const itemId = getItemId(item);
   const archived = item.status === "archived";
-  const content = renderItem
-    ? renderItem(item, { viewMode })
-    : item.name || item.title || itemId;
+  const content = renderItem ? renderItem(item, { viewMode }) : item.name || item.title || itemId;
   const archivedBadge = archived ? (
     <span className="resourceCollectionArchivedBadge">
       <Archive aria-hidden="true" size={10} />
@@ -75,11 +73,7 @@ export function CollectionItemNode({
       role="treeitem"
     >
       {canDrag ? (
-        <GripVertical
-          aria-hidden="true"
-          className="resourceCollectionDragHandle"
-          size={12}
-        />
+        <GripVertical aria-hidden="true" className="resourceCollectionDragHandle" size={12} />
       ) : (
         <span className="resourceCollectionItemSpacer" />
       )}

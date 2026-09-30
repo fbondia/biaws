@@ -8,13 +8,7 @@ export const HOME_WIDGET_ICONS = {
   "application-health": CheckCircle2,
 };
 
-export const MONITORING_STATUSES = [
-  "unknown",
-  "healthy",
-  "degraded",
-  "unavailable",
-  "stopped",
-];
+export const MONITORING_STATUSES = ["unknown", "healthy", "degraded", "unavailable", "stopped"];
 
 export const EMPTY_MONITORING_FILTERS = {
   status: "",
@@ -43,9 +37,7 @@ export function monitoringFilterParams(filters = {}) {
   return Object.fromEntries(
     Object.entries(filters).map(([key, value]) => [
       key,
-      key.startsWith("observed") && value
-        ? new Date(value).toISOString()
-        : value,
+      key.startsWith("observed") && value ? new Date(value).toISOString() : value,
     ]),
   );
 }

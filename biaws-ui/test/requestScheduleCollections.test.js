@@ -19,14 +19,9 @@ test("root schedule includes improvements from every nested collection", () => {
     { id: "sibling", collectionId: "sibling" },
   ];
 
+  assert.deepEqual(requestsInCollectionBranch(collections, requests, ""), requests);
   assert.deepEqual(
-    requestsInCollectionBranch(collections, requests, ""),
-    requests,
-  );
-  assert.deepEqual(
-    requestsInCollectionBranch(collections, requests, "parent").map(
-      (request) => request.id,
-    ),
+    requestsInCollectionBranch(collections, requests, "parent").map((request) => request.id),
     ["parent", "child"],
   );
 });
@@ -43,11 +38,7 @@ test("schedule rows recursively group improvements by collection", () => {
   };
   const apiItem = { request: { id: "api-item", collectionId: "api" } };
 
-  const rows = buildScheduleCollectionRows(collections, [
-    rootItem,
-    platformItem,
-    apiItem,
-  ]);
+  const rows = buildScheduleCollectionRows(collections, [rootItem, platformItem, apiItem]);
 
   assert.deepEqual(
     rows.map((row) =>

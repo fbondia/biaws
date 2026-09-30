@@ -51,11 +51,7 @@ function IssueDescriptionTab({ canEditContext, issue, onIssueUpdated }) {
       <div className="sectionTitleRow">
         <h3>Descrição</h3>
         {canEditContext ? (
-          <button
-            className="secondaryButton"
-            onClick={openEditor}
-            type="button"
-          >
+          <button className="secondaryButton" onClick={openEditor} type="button">
             <Pencil size={15} /> Editar descrição
           </button>
         ) : null}
@@ -87,9 +83,7 @@ function IssueContextTab({
   return (
     <section className="detailSection">
       <h3>Aplicação e impacto</h3>
-      {contextError ? (
-        <div className="errorBox dialogError">{contextError}</div>
-      ) : null}
+      {contextError ? <div className="errorBox dialogError">{contextError}</div> : null}
       <CatalogContextFields
         affectedComponentIds={contextDraft.affectedComponentIds}
         applicationId={contextDraft.applicationId}
@@ -106,8 +100,7 @@ function IssueContextTab({
             onClick={saveContext}
             type="button"
           >
-            <Save size={16} />{" "}
-            {savingContext ? "Salvando..." : "Salvar contexto"}
+            <Save size={16} /> {savingContext ? "Salvando..." : "Salvar contexto"}
           </button>
         </div>
       ) : null}
@@ -120,35 +113,18 @@ function IssueFilesTab({ attachments, issue, onIssueUpdated }) {
     <FilesPanel
       files={attachments}
       onDelete={async (attachment) => {
-        const payload = await deleteEntityAttachment(
-          "issues",
-          issue.id,
-          attachment,
-        );
+        const payload = await deleteEntityAttachment("issues", issue.id, attachment);
         onIssueUpdated?.(payload.issue);
         return payload.deleted;
       }}
-      onDownload={(attachment) =>
-        downloadEntityAttachment("issues", issue.id, attachment)
-      }
-      onPreview={(attachment) =>
-        fetchEntityAttachment("issues", issue.id, attachment)
-      }
+      onDownload={(attachment) => downloadEntityAttachment("issues", issue.id, attachment)}
+      onPreview={(attachment) => fetchEntityAttachment("issues", issue.id, attachment)}
       onUpdateTags={async (attachment, tags) => {
-        const payload = await updateEntityAttachmentTags(
-          "issues",
-          issue.id,
-          attachment,
-          tags,
-        );
+        const payload = await updateEntityAttachmentTags("issues", issue.id, attachment, tags);
         onIssueUpdated?.(payload.issue);
       }}
       onUpload={async (files) => {
-        const payload = await uploadEntityAttachments(
-          "issues",
-          issue.id,
-          files,
-        );
+        const payload = await uploadEntityAttachments("issues", issue.id, files);
         onIssueUpdated?.(payload.issue);
         return payload.uploaded?.length;
       }}
@@ -157,13 +133,7 @@ function IssueFilesTab({ attachments, issue, onIssueUpdated }) {
 }
 
 function IssueHistoryTab({ issue }) {
-  return (
-    <AuditHistory
-      entityId={issue.id}
-      entityType="issue"
-      refreshKey={issue.updatedAt}
-    />
-  );
+  return <AuditHistory entityId={issue.id} entityType="issue" refreshKey={issue.updatedAt} />;
 }
 
 const TAB_COMPONENTS = {

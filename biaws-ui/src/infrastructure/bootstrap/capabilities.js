@@ -33,5 +33,4 @@ export function createInfrastructureCapabilities(adapters = {}) {
   ]);
 }
 
-export const DEFAULT_INFRASTRUCTURE_CAPABILITIES =
-  createInfrastructureCapabilities();
+export const DEFAULT_INFRASTRUCTURE_CAPABILITIES = createInfrastructureCapabilities();

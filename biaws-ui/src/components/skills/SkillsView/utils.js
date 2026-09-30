@@ -39,8 +39,7 @@ export function parseSkillFrontmatter(contents) {
 export function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () =>
-      reject(reader.error || new Error(`Falha ao ler ${file.name}`));
+    reader.onerror = () => reject(reader.error || new Error(`Falha ao ler ${file.name}`));
     reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
     reader.readAsDataURL(file);
   });
@@ -88,9 +87,7 @@ async function filesFromEntry(entry, parentPath = "") {
   if (!entry.isDirectory) return [];
 
   const children = await readDirectoryEntries(entry);
-  const nestedFiles = await Promise.all(
-    children.map((child) => filesFromEntry(child, path)),
-  );
+  const nestedFiles = await Promise.all(children.map((child) => filesFromEntry(child, path)));
   return nestedFiles.flat();
 }
 
@@ -101,9 +98,7 @@ export async function filesFromDataTransfer(dataTransfer) {
     .filter(Boolean);
   if (!entries.length) return [...(dataTransfer?.files || [])];
 
-  const files = await Promise.all(
-    entries.map((entry) => filesFromEntry(entry)),
-  );
+  const files = await Promise.all(entries.map((entry) => filesFromEntry(entry)));
   return files.flat();
 }
 
@@ -119,9 +114,7 @@ export async function buildFiles(fileList) {
 
 export function decodePreview(file) {
   if (!file?.contentBase64) return "";
-  const bytes = Uint8Array.from(atob(file.contentBase64), (character) =>
-    character.charCodeAt(0),
-  );
+  const bytes = Uint8Array.from(atob(file.contentBase64), (character) => character.charCodeAt(0));
   if (bytes.some((byte) => byte === 0)) return null;
   return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
 }

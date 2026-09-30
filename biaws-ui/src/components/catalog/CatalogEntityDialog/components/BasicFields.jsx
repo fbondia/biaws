@@ -1,26 +1,8 @@
-import {
-  COMPONENT_TYPES,
-  REPOSITORY_PROVIDERS,
-  SERVER_STATUSES,
-} from "../constants.js";
+import { COMPONENT_TYPES, REPOSITORY_PROVIDERS, SERVER_STATUSES } from "../constants.js";
 import { MarkdownEditor } from "../../../shared/MarkdownEditor/index.jsx";
-import {
-  EntityFieldGroup,
-  MultiSelectField,
-  SelectField,
-  TextField,
-} from "./Fields.jsx";
+import { EntityFieldGroup, MultiSelectField, SelectField, TextField } from "./Fields.jsx";
 
-export function BasicFields({
-  activeSection,
-  draft,
-  editing,
-  entity,
-  kind,
-  options,
-  sections,
-  update,
-}) {
+export function BasicFields({ activeSection, draft, editing, entity, kind, options, sections, update }) {
   const basicActive = !sections.length || activeSection === "basic";
   return (
     <>
@@ -35,35 +17,14 @@ export function BasicFields({
         />
       </EntityFieldGroup>
       <EntityFieldGroup active={kind !== "repository" && basicActive}>
-        <TextField
-          label="Nome"
-          name="name"
-          onChange={update}
-          required
-          value={draft.name}
-        />
+        <TextField label="Nome" name="name" onChange={update} required value={draft.name} />
       </EntityFieldGroup>
 
       <EntityFieldGroup active={kind === "application"}>
         <>
-          <TextField
-            label="Equipe responsável"
-            name="ownerTeam"
-            onChange={update}
-            value={draft.ownerTeam}
-          />
-          <TextField
-            label="Contato"
-            name="ownerContact"
-            onChange={update}
-            value={draft.ownerContact}
-          />
-          <TextField
-            label="Tags, separadas por vírgula"
-            name="tagsText"
-            onChange={update}
-            value={draft.tagsText}
-          />
+          <TextField label="Equipe responsável" name="ownerTeam" onChange={update} value={draft.ownerTeam} />
+          <TextField label="Contato" name="ownerContact" onChange={update} value={draft.ownerContact} />
+          <TextField label="Tags, separadas por vírgula" name="tagsText" onChange={update} value={draft.tagsText} />
         </>
       </EntityFieldGroup>
 
@@ -77,12 +38,7 @@ export function BasicFields({
             required
             value={draft.type}
           />
-          <TextField
-            label="Tags, separadas por vírgula"
-            name="tagsText"
-            onChange={update}
-            value={draft.tagsText}
-          />
+          <TextField label="Tags, separadas por vírgula" name="tagsText" onChange={update} value={draft.tagsText} />
           <MultiSelectField
             label="Repositórios"
             name="repositoryIds"
@@ -94,9 +50,7 @@ export function BasicFields({
             label="Dependências"
             name="dependencyIds"
             onChange={update}
-            options={(options.components || []).filter(
-              ({ id }) => id !== entity?.id,
-            )}
+            options={(options.components || []).filter(({ id }) => id !== entity?.id)}
             value={draft.dependencyIds}
           />
         </>
@@ -122,9 +76,8 @@ export function BasicFields({
             name="targetApplicationName"
             onChange={() => {}}
             value={
-              (options.applications || []).find(
-                ({ id }) => id === draft.targetApplicationId,
-              )?.name || draft.targetApplicationId
+              (options.applications || []).find(({ id }) => id === draft.targetApplicationId)?.name ||
+              draft.targetApplicationId
             }
           />
         )}
@@ -177,36 +130,16 @@ export function BasicFields({
 
       <EntityFieldGroup active={kind === "server"}>
         <>
-          <TextField
-            label="Hostname"
-            name="hostname"
-            onChange={update}
-            value={draft.hostname}
-          />
-          <TextField
-            label="Provedor"
-            name="provider"
-            onChange={update}
-            value={draft.provider}
-          />
-          <TextField
-            label="Localização"
-            name="location"
-            onChange={update}
-            value={draft.location}
-          />
+          <TextField label="Hostname" name="hostname" onChange={update} value={draft.hostname} />
+          <TextField label="Provedor" name="provider" onChange={update} value={draft.provider} />
+          <TextField label="Localização" name="location" onChange={update} value={draft.location} />
           <TextField
             label="Sistema operacional"
             name="operatingSystem"
             onChange={update}
             value={draft.operatingSystem}
           />
-          <TextField
-            label="Finalidade"
-            name="purpose"
-            onChange={update}
-            value={draft.purpose}
-          />
+          <TextField label="Finalidade" name="purpose" onChange={update} value={draft.purpose} />
           <SelectField
             label="Status"
             name="status"
@@ -215,12 +148,7 @@ export function BasicFields({
             required
             value={draft.status}
           />
-          <TextField
-            label="Tags, separadas por vírgula"
-            name="tagsText"
-            onChange={update}
-            value={draft.tagsText}
-          />
+          <TextField label="Tags, separadas por vírgula" name="tagsText" onChange={update} value={draft.tagsText} />
           <label className="field catalogWideField">
             <span>Endereços, um por linha</span>
             <textarea
@@ -232,22 +160,11 @@ export function BasicFields({
         </>
       </EntityFieldGroup>
 
-      <EntityFieldGroup
-        active={[
-          "application",
-          "component",
-          "integration",
-          "repository",
-          "server",
-        ].includes(kind)}
-      >
+      <EntityFieldGroup active={["application", "component", "integration", "repository", "server"].includes(kind)}>
         <label className="field catalogWideField">
           <span>Descrição</span>
           {kind === "server" ? (
-            <MarkdownEditor
-              onChange={(value) => update("description", value)}
-              value={draft.description || ""}
-            />
+            <MarkdownEditor onChange={(value) => update("description", value)} value={draft.description || ""} />
           ) : (
             <textarea
               onChange={(event) => update("description", event.target.value)}

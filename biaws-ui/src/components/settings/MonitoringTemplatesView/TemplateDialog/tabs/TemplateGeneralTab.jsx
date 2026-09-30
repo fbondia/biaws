@@ -8,11 +8,7 @@ export function TemplateGeneralTab({ draft, update }) {
       <div className="monitoringTemplateTabGrid">
         <label className="field">
           <span>Nome</span>
-          <input
-            onChange={(event) => update("name", event.target.value)}
-            required
-            value={draft.name}
-          />
+          <input onChange={(event) => update("name", event.target.value)} required value={draft.name} />
         </label>
         <label className="field monitoringTemplateWideField">
           <span>Descrição</span>
@@ -24,8 +20,7 @@ export function TemplateGeneralTab({ draft, update }) {
         </label>
         {draft.migratedFromLegacy ? (
           <div className="infoBox monitoringTemplateWideField">
-            Esta nova versão parte do contrato unificado. Revise as demais abas
-            antes de salvar.
+            Esta nova versão parte do contrato unificado. Revise as demais abas antes de salvar.
           </div>
         ) : null}
       </div>

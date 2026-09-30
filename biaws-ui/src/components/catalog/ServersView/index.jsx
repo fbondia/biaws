@@ -28,38 +28,18 @@ import {
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections/index.jsx";
 import { buildServerApplicationGroups } from "./model.js";
-import {
-  ServerContent,
-  ServerDialogs,
-  ServerHeader,
-  ServerList,
-} from "./components/ServerPanels.jsx";
+import { ServerContent, ServerDialogs, ServerHeader, ServerList } from "./components/ServerPanels.jsx";
 
-async function loadServerApplicationGroups({
-  actor,
-  deployments,
-  runtimes,
-  workspaceId,
-}) {
-  const applicationIds = [
-    ...new Set(deployments.map(({ applicationId }) => applicationId)),
-  ];
-  const canReadTopology =
-    hasPermission(actor, "applications.read") &&
-    hasPermission(actor, "components.read");
+async function loadServerApplicationGroups({ actor, deployments, runtimes, workspaceId }) {
+  const applicationIds = [...new Set(deployments.map(({ applicationId }) => applicationId))];
+  const canReadTopology = hasPermission(actor, "applications.read") && hasPermission(actor, "components.read");
   if (!applicationIds.length || !canReadTopology) return [];
   const [applicationsPayload, componentPayloads] = await Promise.all([
     fetchApplications(workspaceId, { limit: 100 }),
-    Promise.all(
-      applicationIds.map((applicationId) =>
-        fetchComponents(applicationId, { limit: 100 }),
-      ),
-    ),
+    Promise.all(applicationIds.map((applicationId) => fetchComponents(applicationId, { limit: 100 }))),
   ]);
   return buildServerApplicationGroups({
-    applications: (applicationsPayload.items || []).filter(({ id }) =>
-      applicationIds.includes(id),
-    ),
+    applications: (applicationsPayload.items || []).filter(({ id }) => applicationIds.includes(id)),
     components: componentPayloads.flatMap(({ items }) => items || []),
     deployments,
     runtimes,
@@ -88,9 +68,7 @@ function ServersNavigator({
       items={servers}
       preferenceKey="servers"
       workspaceId={actor.workspaceId}
-      onCreate={
-        canManageCollections ? collectionState.createCollection : undefined
-      }
+      onCreate={canManageCollections ? collectionState.createCollection : undefined}
       onDelete={collectionState.removeCollection}
       onArchiveItem={canManageServerLifecycle ? onArchive : undefined}
       onDeleteItem={canManageServerLifecycle ? onDelete : undefined}
@@ -104,12 +82,8 @@ function ServersNavigator({
           : undefined
       }
       onDragEnd={() => collectionState.setDraggedItem(null)}
-      onDragItem={(server) =>
-        collectionState.setDraggedItem({ type: "item", id: server.id })
-      }
-      onDrop={(collectionId) =>
-        collectionState.dropItem(collectionId, moveServerToCollection)
-      }
+      onDragItem={(server) => collectionState.setDraggedItem({ type: "item", id: server.id })}
+      onDrop={(collectionId) => collectionState.dropItem(collectionId, moveServerToCollection)}
       onRename={(collection) => collectionState.setCollectionDialog(collection)}
       onRestoreItem={canManageServerLifecycle ? onRestore : undefined}
       onSelect={(collectionId) => {
@@ -168,9 +142,7 @@ export function ServersView({ actor }) {
     setError("");
     try {
       const payload = await fetchWorkspaces();
-      const operational =
-        (payload.items || []).find(({ id }) => id === actor.workspaceId) ||
-        null;
+      const operational = (payload.items || []).find(({ id }) => id === actor.workspaceId) || null;
       setWorkspace(operational);
       await loadList(operational);
     } catch (loadError) {
@@ -237,9 +209,7 @@ export function ServersView({ actor }) {
   }, [workspace?.id, search, includeArchived]);
 
   async function persist(payload) {
-    const result = dialog?.id
-      ? await updateServer(dialog.id, payload)
-      : await createServer(workspace.id, payload);
+    const result = dialog?.id ? await updateServer(dialog.id, payload) : await createServer(workspace.id, payload);
     await loadList();
     if (result.server?.id) await openServer(result.server);
   }
@@ -285,19 +255,14 @@ export function ServersView({ actor }) {
   }
 
   const visibleServers = servers.filter(
-    ({ collectionId }) =>
-      String(collectionId || "") === collectionState.selectedCollectionId,
+    ({ collectionId }) => String(collectionId || "") === collectionState.selectedCollectionId,
   );
   const canManageCollections = hasPermission(actor, "servers.update");
   const canManageServerLifecycle = hasPermission(actor, "servers.archive");
 
   return (
     <section className="catalogPage serversPage">
-      <ServerHeader
-        actor={actor}
-        onCreate={() => setDialog({})}
-        workspace={workspace}
-      />
+      <ServerHeader actor={actor} onCreate={() => setDialog({})} workspace={workspace} />
       {error ? (
         <div className="errorBox" role="alert">
           {error}
@@ -313,10 +278,7 @@ export function ServersView({ actor }) {
         onSelectCollection={collectionState.setSelectedCollectionId}
         pathLabel={
           selected
-            ? `${collectionPathLabel(
-                collectionState.collections,
-                selected.collectionId || "",
-              )} / ${selected.name}`
+            ? `${collectionPathLabel(collectionState.collections, selected.collectionId || "")} / ${selected.name}`
             : undefined
         }
         selectedCollectionId={collectionState.selectedCollectionId}
@@ -375,12 +337,7 @@ export function ServersView({ actor }) {
           />
         )}
       </ResourceCollectionsShell>
-      <ServerDialogs
-        collectionState={collectionState}
-        dialog={dialog}
-        onPersist={persist}
-        setDialog={setDialog}
-      />
+      <ServerDialogs collectionState={collectionState} dialog={dialog} onPersist={persist} setDialog={setDialog} />
     </section>
   );
 }

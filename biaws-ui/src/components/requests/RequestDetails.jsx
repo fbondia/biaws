@@ -105,11 +105,7 @@ function RequestDetailContent({
         <RequestTasksTab
           initialTaskId={initialTaskId}
           onCreateTask={onCreateTask}
-          onChangeStatus={
-            onChangeTaskStatus
-              ? (task, status) => onChangeTaskStatus(request, task, status)
-              : undefined
-          }
+          onChangeStatus={onChangeTaskStatus ? (task, status) => onChangeTaskStatus(request, task, status) : undefined}
           onCreateTaskNote={onCreateTaskNote}
           onDeleteTask={onDeleteTask}
           onDeleteTaskNote={onDeleteTaskNote}
@@ -149,48 +145,25 @@ function RequestDetailContent({
         <FilesPanel
           files={request.attachments || []}
           onDelete={async (attachment) => {
-            const payload = await deleteEntityAttachment(
-              "requests",
-              request.id,
-              attachment,
-            );
+            const payload = await deleteEntityAttachment("requests", request.id, attachment);
             onRequestUpdated(payload.request);
             return payload.deleted;
           }}
-          onDownload={(attachment) =>
-            downloadEntityAttachment("requests", request.id, attachment)
-          }
-          onPreview={(attachment) =>
-            fetchEntityAttachment("requests", request.id, attachment)
-          }
+          onDownload={(attachment) => downloadEntityAttachment("requests", request.id, attachment)}
+          onPreview={(attachment) => fetchEntityAttachment("requests", request.id, attachment)}
           onUpdateTags={async (attachment, tags) => {
-            const payload = await updateEntityAttachmentTags(
-              "requests",
-              request.id,
-              attachment,
-              tags,
-            );
+            const payload = await updateEntityAttachmentTags("requests", request.id, attachment, tags);
             onRequestUpdated(payload.request);
           }}
           onUpload={async (files) => {
-            const payload = await uploadEntityAttachments(
-              "requests",
-              request.id,
-              files,
-            );
+            const payload = await uploadEntityAttachments("requests", request.id, files);
             onRequestUpdated(payload.request);
             return payload.uploaded?.length;
           }}
         />
       );
     case "history":
-      return (
-        <AuditHistory
-          entityId={request.id}
-          entityType="demand"
-          refreshKey={request.updatedAt}
-        />
-      );
+      return <AuditHistory entityId={request.id} entityType="demand" refreshKey={request.updatedAt} />;
     default:
       return null;
   }
@@ -210,19 +183,11 @@ export function RequestDetails(props) {
   return (
     <div className="requestWorkArea">
       <div className="requestDetailTabsBar">
-        <div
-          aria-label="Detalhes da melhoria"
-          className="detailTabs requestDetailTabs"
-          role="tablist"
-        >
+        <div aria-label="Detalhes da melhoria" className="detailTabs requestDetailTabs" role="tablist">
           {REQUEST_DETAIL_TABS.map((tab) => (
             <button
               aria-selected={activeTab === tab.key}
-              className={
-                activeTab === tab.key
-                  ? "detailTab activeDetailTab"
-                  : "detailTab"
-              }
+              className={activeTab === tab.key ? "detailTab activeDetailTab" : "detailTab"}
               key={tab.key}
               onClick={() => onTabChange(tab.key)}
               role="tab"
@@ -233,20 +198,11 @@ export function RequestDetails(props) {
           ))}
         </div>
         <div className="requestDetailActions">
-          <button
-            className="primaryButton"
-            onClick={onToggleEditMode}
-            type="button"
-          >
+          <button className="primaryButton" onClick={onToggleEditMode} type="button">
             {isEditing ? <Save size={16} /> : <Edit3 size={16} />}
             {isEditing ? "Gravar" : "Editar"}
           </button>
-          <button
-            aria-label="Fechar detalhes da melhoria"
-            className="secondaryButton"
-            onClick={onClose}
-            type="button"
-          >
+          <button aria-label="Fechar detalhes da melhoria" className="secondaryButton" onClick={onClose} type="button">
             <X size={16} />
           </button>
         </div>

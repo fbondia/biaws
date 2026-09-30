@@ -3,14 +3,8 @@ import { useState } from "react";
 import { AuditHistory } from "../../../../shared/AuditHistory.jsx";
 import { MarkdownEditor } from "../../../../shared/MarkdownEditor/index.jsx";
 import { guidelineScope, DOCUMENT_TYPES } from "../../model.js";
-import {
-  DocumentObservations,
-  DocumentRevisions,
-} from "./DocumentActivityPanels.jsx";
-import {
-  DocumentExportDialog,
-  DocumentReplicationDialog,
-} from "./DocumentActionDialogs.jsx";
+import { DocumentObservations, DocumentRevisions } from "./DocumentActivityPanels.jsx";
+import { DocumentExportDialog, DocumentReplicationDialog } from "./DocumentActionDialogs.jsx";
 import {
   KnowledgeDocumentReading,
   KnowledgeRecordFooter,
@@ -62,22 +56,12 @@ function DocumentTabContent({
       return (
         <div className="dialogForm knowledgeRecordPanel">
           <div className="field">
-            <MarkdownEditor
-              onChange={(markdown) => onChange({ ...draft, markdown })}
-              value={draft.markdown}
-            />
+            <MarkdownEditor onChange={(markdown) => onChange({ ...draft, markdown })} value={draft.markdown} />
           </div>
         </div>
       );
     case "references":
-      return (
-        <ReferencesEditor
-          disabled={!canUpdate}
-          draft={draft}
-          onChange={onChange}
-          options={referenceOptions}
-        />
-      );
+      return <ReferencesEditor disabled={!canUpdate} draft={draft} onChange={onChange} options={referenceOptions} />;
     case "files":
       return draft.id && canReadAttachments ? (
         <DocumentFilesPanel
@@ -99,22 +83,11 @@ function DocumentTabContent({
         />
       );
     case "revisions":
-      return (
-        <DocumentRevisions
-          canUpdate={canUpdate}
-          draft={draft}
-          onSave={onSave}
-          revisions={revisions}
-        />
-      );
+      return <DocumentRevisions canUpdate={canUpdate} draft={draft} onSave={onSave} revisions={revisions} />;
     case "history":
       return (
         <div className="knowledgeRecordHistory">
-          <AuditHistory
-            entityId={draft.id}
-            entityType="document"
-            refreshKey={refreshKey}
-          />
+          <AuditHistory entityId={draft.id} entityType="document" refreshKey={refreshKey} />
         </div>
       );
     default:
@@ -177,11 +150,7 @@ export function DocumentDetail({
     <section
       aria-labelledby={draft.id ? "knowledgeDetailsDialogTitle" : undefined}
       aria-modal={draft.id ? "true" : undefined}
-      className={
-        draft.id
-          ? "knowledgeDetailsDialog"
-          : "resourceCollectionContent knowledgeRecordDetail"
-      }
+      className={draft.id ? "knowledgeDetailsDialog" : "resourceCollectionContent knowledgeRecordDetail"}
       role={draft.id ? "dialog" : undefined}
     >
       <KnowledgeRecordHeader
@@ -191,20 +160,13 @@ export function DocumentDetail({
         onClose={() => setShowDetails(false)}
         onExport={() => setExportDialogOpen(true)}
         onReplicate={
-          workspaces.some(({ id }) => id !== currentWorkspaceId)
-            ? () => setReplicationDialogOpen(true)
-            : undefined
+          workspaces.some(({ id }) => id !== currentWorkspaceId) ? () => setReplicationDialogOpen(true) : undefined
         }
         onSave={onSave}
         saving={saving}
         titleId={draft.id ? "knowledgeDetailsDialogTitle" : undefined}
       />
-      <KnowledgeRecordTabs
-        canReadAttachments={canReadAttachments}
-        documentId={draft.id}
-        onSelect={setTab}
-        tab={tab}
-      />
+      <KnowledgeRecordTabs canReadAttachments={canReadAttachments} documentId={draft.id} onSelect={setTab} tab={tab} />
       <DocumentTabContent
         addObservation={addObservation}
         canCreateAttachments={canCreateAttachments}
@@ -249,9 +211,7 @@ export function DocumentDetail({
         draft={draft}
         onExport={() => setExportDialogOpen(true)}
         onReplicate={
-          workspaces.some(({ id }) => id !== currentWorkspaceId)
-            ? () => setReplicationDialogOpen(true)
-            : undefined
+          workspaces.some(({ id }) => id !== currentWorkspaceId) ? () => setReplicationDialogOpen(true) : undefined
         }
         onShowDetails={() => setShowDetails(true)}
       />

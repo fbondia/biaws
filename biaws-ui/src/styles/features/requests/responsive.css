@@ -75,10 +75,8 @@
     display: none;
   }
 
-  .requestsLayout.mobileRequestsList:not(.requestDetailSelected)
-    > .requestWorkArea,
-  .requestsLayout.mobileRequestsOverview:not(.requestDetailSelected)
-    > .requestListPanel,
+  .requestsLayout.mobileRequestsList:not(.requestDetailSelected) > .requestWorkArea,
+  .requestsLayout.mobileRequestsOverview:not(.requestDetailSelected) > .requestListPanel,
   .requestsLayout.requestDetailSelected > .requestListPanel {
     display: none;
   }

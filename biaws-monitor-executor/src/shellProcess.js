@@ -12,13 +12,7 @@ function stopProcess(child, signal = "SIGTERM") {
   }
 }
 
-export function executeShellProcess(
-  command,
-  args,
-  options,
-  signal,
-  evidenceLimit,
-) {
+export function executeShellProcess(command, args, options, signal, evidenceLimit) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       ...options,
@@ -33,12 +27,9 @@ export function executeShellProcess(
     let aborted = false;
     let forceTimer;
     const collect = (target, counter) => (rawChunk) => {
-      const chunk = Buffer.isBuffer(rawChunk)
-        ? rawChunk
-        : Buffer.from(rawChunk);
+      const chunk = Buffer.isBuffer(rawChunk) ? rawChunk : Buffer.from(rawChunk);
       const used = counter === "stdout" ? stdoutBytes : stderrBytes;
-      if (used < evidenceLimit)
-        target.push(chunk.subarray(0, evidenceLimit - used));
+      if (used < evidenceLimit) target.push(chunk.subarray(0, evidenceLimit - used));
       if (counter === "stdout") stdoutBytes += chunk.length;
       else stderrBytes += chunk.length;
     };
@@ -56,8 +47,7 @@ export function executeShellProcess(
     child.on("close", (code, childSignal) => {
       clearTimeout(forceTimer);
       signal?.removeEventListener("abort", abort);
-      if (aborted)
-        return reject(signal?.reason || new Error("Shell provider aborted"));
+      if (aborted) return reject(signal?.reason || new Error("Shell provider aborted"));
       resolve({
         code,
         signal: childSignal,

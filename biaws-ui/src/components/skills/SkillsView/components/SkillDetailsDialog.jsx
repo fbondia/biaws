@@ -1,21 +1,8 @@
-import {
-  AlertTriangle,
-  Archive,
-  ArrowLeft,
-  Code2,
-  CopyPlus,
-  Download,
-  File,
-  X,
-} from "lucide-react";
+import { AlertTriangle, Archive, ArrowLeft, Code2, CopyPlus, Download, File, X } from "lucide-react";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  deprecateSkill,
-  downloadSkillPackage,
-  fetchSkillPackage,
-} from "../../../../api.js";
+import { deprecateSkill, downloadSkillPackage, fetchSkillPackage } from "../../../../api.js";
 import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 import { decodePreview, formatBytes, formatDate } from "../utils.js";
 import { SkillReplicationDialog } from "./SkillReplicationDialog.jsx";
@@ -36,26 +23,19 @@ export function SkillDetailsDialog({
   const [error, setError] = useState("");
   const [replicationOpen, setReplicationOpen] = useState(false);
   const { confirm, run: runWithLoading } = useMessages();
-  const version = skill.versions.find(
-    (item) => item.version === selectedVersion,
-  );
+  const version = skill.versions.find((item) => item.version === selectedVersion);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError("");
     setSkillPackage(null);
-    runWithLoading(
-      () => fetchSkillPackage(skill.skillId, selectedVersion),
-      "Carregando pacote da skill…",
-    )
+    runWithLoading(() => fetchSkillPackage(skill.skillId, selectedVersion), "Carregando pacote da skill…")
       .then((payload) => {
         if (!active) return;
         setSkillPackage(payload);
         const paths = payload.skill.files?.map((file) => file.path) || [];
-        setSelectedFile(
-          paths.includes("SKILL.md") ? "SKILL.md" : paths[0] || "",
-        );
+        setSelectedFile(paths.includes("SKILL.md") ? "SKILL.md" : paths[0] || "");
       })
       .catch((loadError) => active && setError(loadError.message))
       .finally(() => active && setLoading(false));
@@ -64,14 +44,11 @@ export function SkillDetailsDialog({
     };
   }, [skill.skillId, selectedVersion]);
 
-  const activeFile = skillPackage?.skill?.files?.find(
-    (file) => file.path === selectedFile,
-  );
+  const activeFile = skillPackage?.skill?.files?.find((file) => file.path === selectedFile);
   const preview = useMemo(() => decodePreview(activeFile), [activeFile]);
 
   async function deprecate() {
-    if (!(await confirm(`Descontinuar ${skill.skillId}@${selectedVersion}?`)))
-      return;
+    if (!(await confirm(`Descontinuar ${skill.skillId}@${selectedVersion}?`))) return;
     setActionLoading("deprecate");
     setError("");
     try {
@@ -91,22 +68,14 @@ export function SkillDetailsDialog({
     <section
       aria-label={embedded ? `Detalhes da skill ${skill.name}` : undefined}
       aria-modal={embedded ? undefined : "true"}
-      className={[
-        "skillDialog",
-        "skillDetailsDialog",
-        embedded ? "embeddedCollectionItemDetail" : "",
-      ]
+      className={["skillDialog", "skillDetailsDialog", embedded ? "embeddedCollectionItemDetail" : ""]
         .filter(Boolean)
         .join(" ")}
       role={embedded ? "region" : "dialog"}
     >
       <header className="skillDialogHeader">
         <div>
-          <EntityIdentifier
-            label="Identificador da skill"
-            value={skill.skillId}
-            variant="eyebrow"
-          />
+          <EntityIdentifier label="Identificador da skill" value={skill.skillId} variant="eyebrow" />
           <h2>{skill.name}</h2>
         </div>
         <button
@@ -124,22 +93,14 @@ export function SkillDetailsDialog({
           {skill.versions.map((item) => (
             <button
               className={
-                selectedVersion === item.version
-                  ? "skillVersionButton activeSkillVersion"
-                  : "skillVersionButton"
+                selectedVersion === item.version ? "skillVersionButton activeSkillVersion" : "skillVersionButton"
               }
               key={item.version}
               onClick={() => setSelectedVersion(item.version)}
               type="button"
             >
               <span>{item.version}</span>
-              <small
-                className={
-                  item.status === "deprecated" ? "skillDeprecatedText" : ""
-                }
-              >
-                {item.status}
-              </small>
+              <small className={item.status === "deprecated" ? "skillDeprecatedText" : ""}>{item.status}</small>
             </button>
           ))}
         </aside>
@@ -156,8 +117,7 @@ export function SkillDetailsDialog({
                   setError("");
                   try {
                     await runWithLoading(
-                      () =>
-                        downloadSkillPackage(skill.skillId, selectedVersion),
+                      () => downloadSkillPackage(skill.skillId, selectedVersion),
                       "Preparando download da skill…",
                     );
                   } catch (downloadError) {
@@ -169,11 +129,7 @@ export function SkillDetailsDialog({
                 <Download size={15} /> Baixar
               </button>
               {workspaces.some(({ id }) => id !== currentWorkspaceId) ? (
-                <button
-                  className="secondaryButton"
-                  onClick={() => setReplicationOpen(true)}
-                  type="button"
-                >
+                <button className="secondaryButton" onClick={() => setReplicationOpen(true)} type="button">
                   <CopyPlus size={15} /> Replicar
                 </button>
               ) : null}
@@ -202,11 +158,7 @@ export function SkillDetailsDialog({
               <nav aria-label="Arquivos da skill" className="skillFileList">
                 {skillPackage.skill.files.map((file) => (
                   <button
-                    className={
-                      selectedFile === file.path
-                        ? "skillFileButton activeSkillFile"
-                        : "skillFileButton"
-                    }
+                    className={selectedFile === file.path ? "skillFileButton activeSkillFile" : "skillFileButton"}
                     key={file.path}
                     onClick={() => setSelectedFile(file.path)}
                     type="button"
@@ -223,9 +175,7 @@ export function SkillDetailsDialog({
                   <strong>{selectedFile}</strong>
                 </header>
                 {preview === null ? (
-                  <div className="emptyState">
-                    Arquivo binário — utilize o download do pacote.
-                  </div>
+                  <div className="emptyState">Arquivo binário — utilize o download do pacote.</div>
                 ) : (
                   <pre>{preview}</pre>
                 )}
@@ -257,10 +207,7 @@ export function SkillDetailsDialog({
     );
 
   return (
-    <div
-      className="dialogBackdrop"
-      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
-    >
+    <div className="dialogBackdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       {details}
       {replicationDialog}
     </div>

@@ -1,20 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-import {
-  fetchHomeDashboard,
-  fetchHomeMonitoringData,
-  updateHomeConfiguration,
-} from "../../../../api.js";
-import {
-  createWidgetInstance,
-  mergeHomeMonitoringData,
-  moveWidget,
-  updateWidgetInstance,
-} from "../model.js";
-import {
-  MONITORING_REFRESH_INTERVAL_MS,
-  useAutoRefresh,
-} from "../../../../hooks/useAutoRefresh.js";
+import { fetchHomeDashboard, fetchHomeMonitoringData, updateHomeConfiguration } from "../../../../api.js";
+import { createWidgetInstance, mergeHomeMonitoringData, moveWidget, updateWidgetInstance } from "../model.js";
+import { MONITORING_REFRESH_INTERVAL_MS, useAutoRefresh } from "../../../../hooks/useAutoRefresh.js";
 
 export function useHomeView() {
   const [dashboard, setDashboard] = useState(null);
@@ -30,9 +18,7 @@ export function useHomeView() {
   const loadPromiseRef = useRef(null);
   const monitoringLoadPromiseRef = useRef(null);
   const hasMonitoringWidgets = Boolean(
-    dashboard?.configuration.widgets?.some(
-      ({ widgetId }) => widgetId === "application-health",
-    ),
+    dashboard?.configuration.widgets?.some(({ widgetId }) => widgetId === "application-health"),
   );
 
   async function load() {
@@ -88,13 +74,7 @@ export function useHomeView() {
 
   useAutoRefresh(refreshMonitoring, {
     enabled:
-      hasMonitoringWidgets &&
-      !loading &&
-      !editing &&
-      !catalogOpen &&
-      !configuration &&
-      !monitoringRuntime &&
-      !saving,
+      hasMonitoringWidgets && !loading && !editing && !catalogOpen && !configuration && !monitoringRuntime && !saving,
     intervalMs: MONITORING_REFRESH_INTERVAL_MS,
   });
 
@@ -118,9 +98,7 @@ export function useHomeView() {
     if (creating) {
       setDraftWidgets((current) => [...current, { ...instance, config }]);
     } else {
-      setDraftWidgets((current) =>
-        updateWidgetInstance(current, instance.id, { config }),
-      );
+      setDraftWidgets((current) => updateWidgetInstance(current, instance.id, { config }));
     }
     setConfiguration(null);
   }
@@ -151,21 +129,15 @@ export function useHomeView() {
   }
 
   function removeWidget(id) {
-    setDraftWidgets((current) =>
-      current.filter((instance) => instance.id !== id),
-    );
+    setDraftWidgets((current) => current.filter((instance) => instance.id !== id));
   }
 
   function configureWidget(definition, instance) {
     setConfiguration({ definition, instance, creating: false });
   }
 
-  const widgets = editing
-    ? draftWidgets
-    : dashboard?.configuration.widgets || [];
-  const catalogById = new Map(
-    (dashboard?.catalog || []).map((item) => [item.id, item]),
-  );
+  const widgets = editing ? draftWidgets : dashboard?.configuration.widgets || [];
+  const catalogById = new Map((dashboard?.catalog || []).map((item) => [item.id, item]));
 
   return {
     addWidget,

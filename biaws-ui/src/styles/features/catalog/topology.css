@@ -396,9 +396,7 @@
   font-size: 0.7rem;
 }
 
-.topologyDiagramCanvas
-  .react-flow__node-topologyElement.selected
-  .topologyElementNode {
+.topologyDiagramCanvas .react-flow__node-topologyElement.selected .topologyElementNode {
   border-color: var(--color-topology-element-text);
   box-shadow: 0 0 0 3px var(--color-topology-element-focus-ring);
 }
@@ -412,9 +410,7 @@
   box-shadow: inset 0 0 0 1px var(--palette-alpha-neutral-06);
 }
 
-.topologyDiagramCanvas
-  .react-flow__node-topologyGroup.selected
-  .topologyGroupNode {
+.topologyDiagramCanvas .react-flow__node-topologyGroup.selected .topologyGroupNode {
   border-color: var(--color-topology-group-selected-border);
   box-shadow:
     0 0 0 3px var(--color-topology-group-focus-ring),

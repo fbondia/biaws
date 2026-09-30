@@ -5,12 +5,7 @@ export function createPendingRequestSave(request, workspaceId) {
   });
 }
 
-export function flushPendingRequestSaves({
-  timers,
-  pendingRequests,
-  persist,
-  clearTimer = clearTimeout,
-}) {
+export function flushPendingRequestSaves({ timers, pendingRequests, persist, clearTimer = clearTimeout }) {
   for (const timeoutId of timers.values()) clearTimer(timeoutId);
 
   const requests = [...pendingRequests.values()];

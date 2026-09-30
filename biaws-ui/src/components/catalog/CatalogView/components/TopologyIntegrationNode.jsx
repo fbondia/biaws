@@ -4,9 +4,7 @@ import { memo } from "react";
 import { Status } from "./CatalogComponents.jsx";
 import { TopologyNodeHandles } from "./TopologyNodeHandles.jsx";
 
-export const TopologyIntegrationNode = memo(function TopologyIntegrationNode({
-  data,
-}) {
+export const TopologyIntegrationNode = memo(function TopologyIntegrationNode({ data }) {
   return (
     <article className="topologyIntegrationNode">
       <TopologyNodeHandles />
@@ -22,9 +20,7 @@ export const TopologyIntegrationNode = memo(function TopologyIntegrationNode({
         <small>{data.integration.name}</small>
       </div>
       {data.topologyUnavailable ? (
-        <small className="topologyIntegrationUnavailable">
-          Infraestrutura indisponível para consulta
-        </small>
+        <small className="topologyIntegrationUnavailable">Infraestrutura indisponível para consulta</small>
       ) : null}
     </article>
   );

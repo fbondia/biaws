@@ -8,11 +8,7 @@ import { createShellProvider } from "../src/shellProvider.js";
 
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), "biaws-shell-provider-"));
-  t.after(() =>
-    import("node:fs/promises").then(({ rm }) =>
-      rm(root, { recursive: true, force: true }),
-    ),
-  );
+  t.after(() => import("node:fs/promises").then(({ rm }) => rm(root, { recursive: true, force: true })));
   return root;
 }
 
@@ -23,10 +19,7 @@ async function executable(filename, content) {
 
 test("shell provider executes only an allowlisted script without a shell", async (t) => {
   const root = await fixture(t);
-  await executable(
-    path.join(root, "check.sh"),
-    '#!/bin/sh\nprintf \'%s:%s:%s\' "$1" "$TARGET" "$API_TOKEN"\n',
-  );
+  await executable(path.join(root, "check.sh"), '#!/bin/sh\nprintf \'%s:%s:%s\' "$1" "$TARGET" "$API_TOKEN"\n');
   const provider = createShellProvider({
     root,
     maxEvidenceBytes: 100,
@@ -106,10 +99,7 @@ test("shell provider rejects unsupported failure and capture modes", async (t) =
 
 test("shell provider truncates only captured output", async (t) => {
   const root = await fixture(t);
-  await executable(
-    path.join(root, "verbose.sh"),
-    "#!/bin/sh\nprintf '123456789'\nprintf 'abcdefghi' >&2\n",
-  );
+  await executable(path.join(root, "verbose.sh"), "#!/bin/sh\nprintf '123456789'\nprintf 'abcdefghi' >&2\n");
   const provider = createShellProvider({
     root,
     maxEvidenceBytes: 5,
@@ -151,10 +141,7 @@ test("shell provider refuses arbitrary commands, arguments and symlink escapes",
     scriptId: "health",
     arguments: ["; touch /tmp/not-allowed"],
   });
-  await assert.rejects(
-    provider.execute({ configuration: unsafeArgument }, {}),
-    { code: "SCRIPT_ARGUMENT_REFUSED" },
-  );
+  await assert.rejects(provider.execute({ configuration: unsafeArgument }, {}), { code: "SCRIPT_ARGUMENT_REFUSED" });
   const escaped = provider.validateConfiguration({ scriptId: "escaped" });
   await assert.rejects(provider.execute({ configuration: escaped }, {}), {
     code: "PATH_OUTSIDE_POLICY_ROOT",
@@ -171,17 +158,8 @@ test("shell provider abort terminates a timed out process", async (t) => {
   const configuration = provider.validateConfiguration({ scriptId: "slow" });
   const controller = new AbortController();
   const startedAt = Date.now();
-  const execution = provider.execute(
-    { configuration },
-    { signal: controller.signal },
-  );
-  setTimeout(
-    () =>
-      controller.abort(
-        Object.assign(new Error("timeout"), { code: "PROVIDER_TIMEOUT" }),
-      ),
-    50,
-  );
+  const execution = provider.execute({ configuration }, { signal: controller.signal });
+  setTimeout(() => controller.abort(Object.assign(new Error("timeout"), { code: "PROVIDER_TIMEOUT" })), 50);
   await assert.rejects(execution, { code: "PROVIDER_TIMEOUT" });
   assert.ok(Date.now() - startedAt < 2_000);
 });

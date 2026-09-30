@@ -10,11 +10,7 @@ import {
   ResourceCollectionsShell,
 } from "../../shared/ResourceCollections/index.jsx";
 import { useResourceCollections } from "../../shared/useResourceCollections.js";
-import {
-  CatalogApplicationItems,
-  CatalogDialogs,
-  CatalogSelectedDetail,
-} from "./components/CatalogViewPanels.jsx";
+import { CatalogApplicationItems, CatalogDialogs, CatalogSelectedDetail } from "./components/CatalogViewPanels.jsx";
 import { useCatalogView } from "./hooks/useCatalogView.js";
 
 function CatalogNavigator({
@@ -39,13 +35,9 @@ function CatalogNavigator({
       items={applications}
       preferenceKey="applications"
       workspaceId={actor.workspaceId}
-      onCreate={
-        canManageCollections ? collectionState.createCollection : undefined
-      }
+      onCreate={canManageCollections ? collectionState.createCollection : undefined}
       onDelete={collectionState.removeCollection}
-      onDeleteItem={
-        canManageApplicationLifecycle ? deleteArchivedApplication : undefined
-      }
+      onDeleteItem={canManageApplicationLifecycle ? deleteArchivedApplication : undefined}
       onDragCollection={
         canManageCollections
           ? (collection) =>
@@ -62,13 +54,9 @@ function CatalogNavigator({
           id: application.id,
         })
       }
-      onDrop={(collectionId) =>
-        collectionState.dropItem(collectionId, moveApplicationToCollection)
-      }
+      onDrop={(collectionId) => collectionState.dropItem(collectionId, moveApplicationToCollection)}
       onRename={(collection) => collectionState.setCollectionDialog(collection)}
-      onRestoreItem={
-        canManageApplicationLifecycle ? restoreArchivedApplication : undefined
-      }
+      onRestoreItem={canManageApplicationLifecycle ? restoreArchivedApplication : undefined}
       onSelect={(collectionId) => {
         collectionState.setSelectedCollectionId(collectionId);
         setSelectedId("");
@@ -131,29 +119,21 @@ export function CatalogView({ actor }) {
     },
   });
   const visibleApplications = applications.filter(
-    ({ collectionId }) =>
-      String(collectionId || "") === collectionState.selectedCollectionId,
+    ({ collectionId }) => String(collectionId || "") === collectionState.selectedCollectionId,
   );
   const updateScope = actor.permissionScopes?.["applications.update"] || {};
   const canMoveApplication = (application) =>
     hasPermission(actor, "applications.update") &&
-    (updateScope.workspace === true ||
-      updateScope.applicationIds?.includes(application.id));
+    (updateScope.workspace === true || updateScope.applicationIds?.includes(application.id));
   const canManageCollections = updateScope.workspace === true;
-  const canManageApplicationLifecycle = hasPermission(
-    actor,
-    "applications.archive",
-  );
+  const canManageApplicationLifecycle = hasPermission(actor, "applications.archive");
   return (
     <section className="catalogPage">
       <header className="catalogHero">
         <div>
           <span>{workspace?.name || "Workspace padrão"}</span>
           <h2>Catálogo de aplicações</h2>
-          <p>
-            Produtos, componentes, código e topologia operacional em um único
-            contexto.
-          </p>
+          <p>Produtos, componentes, código e topologia operacional em um único contexto.</p>
         </div>
         {hasPermission(actor, "applications.create") && workspace ? (
           <button
@@ -177,9 +157,7 @@ export function CatalogView({ actor }) {
         collections={collectionState.collections}
         detailVisible={Boolean(selectedId)}
         draggedItem={collectionState.draggedItem}
-        onDropRoot={() =>
-          collectionState.dropItem("", moveApplicationToCollection)
-        }
+        onDropRoot={() => collectionState.dropItem("", moveApplicationToCollection)}
         onNavigateBack={() => setSelectedId("")}
         onSelectCollection={collectionState.setSelectedCollectionId}
         pathLabel={
@@ -231,9 +209,7 @@ export function CatalogView({ actor }) {
             loading={loading}
             onBack={() => setSelectedId("")}
             onDelete={() => deleteArchivedApplication(context.application)}
-            onEdit={() =>
-              setDialog({ kind: "application", entity: context.application })
-            }
+            onEdit={() => setDialog({ kind: "application", entity: context.application })}
             onRestore={() => restoreArchivedApplication(context.application)}
             onSelectTab={setActiveTab}
             tabProps={{

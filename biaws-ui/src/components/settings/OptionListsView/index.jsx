@@ -9,18 +9,14 @@ import { ListEditor } from "./components/ListEditor/index.jsx";
 import { groupOptionLists, LIST_ICONS } from "./model.js";
 
 function retainActiveGroup(groups, current) {
-  return groups.some((group) => group.key === current)
-    ? current
-    : groups[0]?.key || "";
+  return groups.some((group) => group.key === current) ? current : groups[0]?.key || "";
 }
 
 function retainSelectedLists(groups, current) {
   return Object.fromEntries(
     groups.map((group) => [
       group.key,
-      group.lists.some((list) => list.key === current[group.key])
-        ? current[group.key]
-        : group.lists[0]?.key || "",
+      group.lists.some((list) => list.key === current[group.key]) ? current[group.key] : group.lists[0]?.key || "",
     ]),
   );
 }
@@ -43,9 +39,7 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
         const groups = groupOptionLists(items);
         setLists(items);
         setActiveGroupKey((current) => retainActiveGroup(groups, current));
-        setSelectedListByGroup((current) =>
-          retainSelectedLists(groups, current),
-        );
+        setSelectedListByGroup((current) => retainSelectedLists(groups, current));
       } catch (loadError) {
         if (active) setError(loadError.message);
       } finally {
@@ -59,18 +53,13 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
   }, []);
 
   function saved(optionList) {
-    setLists((current) =>
-      current.map((list) => (list.key === optionList.key ? optionList : list)),
-    );
+    setLists((current) => current.map((list) => (list.key === optionList.key ? optionList : list)));
     onRuntimeChanged?.();
   }
 
   const groupedLists = groupOptionLists(lists);
-  const activeGroup =
-    groupedLists.find((group) => group.key === activeGroupKey) ||
-    groupedLists[0];
-  const activeKey =
-    selectedListByGroup[activeGroup?.key] || activeGroup?.lists[0]?.key || "";
+  const activeGroup = groupedLists.find((group) => group.key === activeGroupKey) || groupedLists[0];
+  const activeKey = selectedListByGroup[activeGroup?.key] || activeGroup?.lists[0]?.key || "";
 
   return (
     <section className="adminPage optionListsView">
@@ -78,10 +67,7 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
         <div>
           <span>Administração</span>
           <h2>Listas de Opções</h2>
-          <p>
-            Gerencie os valores disponíveis nos campos de configuração do
-            workspace.
-          </p>
+          <p>Gerencie os valores disponíveis nos campos de configuração do workspace.</p>
         </div>
       </header>
       {loading ? <p>Carregando listas…</p> : null}
@@ -93,11 +79,7 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
       ) : null}
       {lists.length ? (
         <>
-          <div
-            aria-label="Contexto das listas de opções"
-            className="detailTabs optionListCategoryTabs"
-            role="tablist"
-          >
+          <div aria-label="Contexto das listas de opções" className="detailTabs optionListCategoryTabs" role="tablist">
             {groupedLists.map((group) => {
               const GroupIcon = group.icon;
               const selected = activeGroup?.key === group.key;
@@ -107,9 +89,7 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
                   aria-controls={`option-list-group-panel-${group.key}`}
                   aria-selected={selected}
                   className={
-                    selected
-                      ? "detailTab optionListCategoryTab activeDetailTab"
-                      : "detailTab optionListCategoryTab"
+                    selected ? "detailTab optionListCategoryTab activeDetailTab" : "detailTab optionListCategoryTab"
                   }
                   id={`option-list-group-tab-${group.key}`}
                   key={group.key}
@@ -148,11 +128,7 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
                     <button
                       aria-controls={`option-list-panel-${list.key}`}
                       aria-selected={activeKey === list.key}
-                      className={
-                        activeKey === list.key
-                          ? "detailTab activeDetailTab"
-                          : "detailTab"
-                      }
+                      className={activeKey === list.key ? "detailTab activeDetailTab" : "detailTab"}
                       id={`option-list-tab-${list.key}`}
                       key={list.key}
                       onClick={() =>

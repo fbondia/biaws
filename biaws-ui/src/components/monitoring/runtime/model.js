@@ -1,7 +1,4 @@
-import {
-  EMPTY_ACTIVE_MONITOR_DRAFT,
-  EMPTY_OBSERVATION_DRAFT,
-} from "../../catalog/CatalogEntityDialog/constants.js";
+import { EMPTY_ACTIVE_MONITOR_DRAFT, EMPTY_OBSERVATION_DRAFT } from "../../catalog/CatalogEntityDialog/constants.js";
 
 const text = (value) => String(value ?? "").trim();
 
@@ -47,8 +44,7 @@ function parseArray(value, label) {
   } catch {
     throw new Error(`${label} deve conter JSON válido.`);
   }
-  if (!Array.isArray(parsed))
-    throw new Error(`${label} deve conter uma lista.`);
+  if (!Array.isArray(parsed)) throw new Error(`${label} deve conter uma lista.`);
   return parsed;
 }
 
@@ -80,11 +76,7 @@ export function activeMonitorDraft(monitor) {
     restFollowRedirects: configuration.followRedirects === true,
     shellScriptId: configuration.scriptId || "",
     shellArgumentsText: (configuration.arguments || []).join("\n"),
-    shellEnvironmentText: JSON.stringify(
-      configuration.environment || {},
-      null,
-      2,
-    ),
+    shellEnvironmentText: JSON.stringify(configuration.environment || {}, null, 2),
     shellFailureStatus: configuration.failureStatus || "unavailable",
     shellCaptureOutput: configuration.captureOutput || "none",
     templateId: monitor.templateRef?.id || "",
@@ -95,21 +87,11 @@ export function activeMonitorDraft(monitor) {
 function validatedSchedule(draft) {
   const intervalSeconds = Number(draft.intervalSeconds);
   const timeoutSeconds = Number(draft.timeoutSeconds);
-  if (
-    !Number.isInteger(intervalSeconds) ||
-    intervalSeconds < 10 ||
-    intervalSeconds > 86_400
-  ) {
+  if (!Number.isInteger(intervalSeconds) || intervalSeconds < 10 || intervalSeconds > 86_400) {
     throw new Error("O intervalo deve estar entre 10 e 86400 segundos.");
   }
-  if (
-    !Number.isInteger(timeoutSeconds) ||
-    timeoutSeconds < 1 ||
-    timeoutSeconds > Math.min(300, intervalSeconds)
-  ) {
-    throw new Error(
-      "O timeout deve ser inteiro, positivo e não superar o intervalo ou 300 segundos.",
-    );
+  if (!Number.isInteger(timeoutSeconds) || timeoutSeconds < 1 || timeoutSeconds > Math.min(300, intervalSeconds)) {
+    throw new Error("O timeout deve ser inteiro, positivo e não superar o intervalo ou 300 segundos.");
   }
   return { intervalSeconds, timeoutSeconds };
 }
@@ -122,14 +104,8 @@ function restMonitorConfiguration(draft) {
   } catch {
     throw new Error("Informe uma URL REST absoluta válida.");
   }
-  if (
-    !["http:", "https:"].includes(parsedUrl.protocol) ||
-    parsedUrl.username ||
-    parsedUrl.password
-  ) {
-    throw new Error(
-      "A URL REST deve usar HTTP(S) e não pode conter credenciais.",
-    );
+  if (!["http:", "https:"].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
+    throw new Error("A URL REST deve usar HTTP(S) e não pode conter credenciais.");
   }
   const method = text(draft.restMethod).toUpperCase();
   if (["GET", "HEAD"].includes(method) && text(draft.restBody)) {
@@ -140,14 +116,8 @@ function restMonitorConfiguration(draft) {
     .map((entry) => entry.trim())
     .filter(Boolean)
     .map(Number);
-  if (
-    expectedStatuses.some(
-      (status) => !Number.isInteger(status) || status < 100 || status > 599,
-    )
-  ) {
-    throw new Error(
-      "Status HTTP esperado deve conter códigos entre 100 e 599.",
-    );
+  if (expectedStatuses.some((status) => !Number.isInteger(status) || status < 100 || status > 599)) {
+    throw new Error("Status HTTP esperado deve conter códigos entre 100 e 599.");
   }
   return {
     method,
@@ -195,10 +165,7 @@ export function activeMonitorPayload(draft) {
   const configuration = monitorConfiguration(draft);
   const templateId = text(draft.templateId);
   const templateVersion = text(draft.templateVersion);
-  if (
-    draft.provider !== "shell" &&
-    Boolean(templateId) !== Boolean(templateVersion)
-  ) {
+  if (draft.provider !== "shell" && Boolean(templateId) !== Boolean(templateVersion)) {
     throw new Error("Informe o identificador e a versão do template juntos.");
   }
   return {
@@ -209,12 +176,7 @@ export function activeMonitorPayload(draft) {
     intervalSeconds,
     timeoutSeconds,
     configuration,
-    templateRef:
-      draft.provider === "shell"
-        ? null
-        : templateId
-          ? { id: templateId, version: templateVersion }
-          : null,
+    templateRef: draft.provider === "shell" ? null : templateId ? { id: templateId, version: templateVersion } : null,
   };
 }
 
@@ -241,25 +203,18 @@ export function mergeMonitoringEvents(current = [], incoming = []) {
   const events = new Map();
   for (const event of [...current, ...incoming]) events.set(event.id, event);
   return [...events.values()].sort(
-    (left, right) =>
-      new Date(right.observedAt).getTime() -
-      new Date(left.observedAt).getTime(),
+    (left, right) => new Date(right.observedAt).getTime() - new Date(left.observedAt).getTime(),
   );
 }
 
-export function selectableMonitoringTemplates(
-  templates = [],
-  currentReference = {},
-) {
+export function selectableMonitoringTemplates(templates = [], currentReference = {}) {
   const currentId = String(currentReference.id || "");
   const currentVersion = String(currentReference.version || "");
   const items = templates
     .map((template) => {
       const versions = (template.versions || []).filter(
         (version) =>
-          version.status === "active" ||
-          (template.id === currentId &&
-            String(version.version) === currentVersion),
+          version.status === "active" || (template.id === currentId && String(version.version) === currentVersion),
       );
       if (
         template.id === currentId &&

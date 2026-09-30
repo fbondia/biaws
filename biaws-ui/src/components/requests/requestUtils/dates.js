@@ -6,27 +6,17 @@ export function monthKeysBetween(startDate, endDate) {
   const start = new Date(`${startDate || ""}T00:00:00Z`);
   const end = new Date(`${endDate || ""}T00:00:00Z`);
 
-  if (
-    Number.isNaN(start.getTime()) ||
-    Number.isNaN(end.getTime()) ||
-    start > end
-  ) {
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
     return [];
   }
 
   const months = [];
-  let cursor = new Date(
-    Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1),
-  );
+  let cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
   const limit = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1));
 
   while (cursor <= limit) {
-    months.push(
-      `${cursor.getUTCFullYear()}-${padMonth(cursor.getUTCMonth() + 1)}`,
-    );
-    cursor = new Date(
-      Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1),
-    );
+    months.push(`${cursor.getUTCFullYear()}-${padMonth(cursor.getUTCMonth() + 1)}`);
+    cursor = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1));
   }
 
   return months;

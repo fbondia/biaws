@@ -33,13 +33,7 @@ export function RequestStatusChangeDialog({
             <span>{subjectLabel}</span>
             <h3 id="requestStatusChangeDialogTitle">Alterar status</h3>
           </div>
-          <button
-            className="iconButton"
-            disabled={saving}
-            onClick={onClose}
-            title="Fechar"
-            type="button"
-          >
+          <button className="iconButton" disabled={saving} onClick={onClose} title="Fechar" type="button">
             <X size={18} />
           </button>
         </header>
@@ -49,29 +43,16 @@ export function RequestStatusChangeDialog({
           {canAddNote ? (
             <label className="field">
               <span>Observação (opcional)</span>
-              <MarkdownEditor
-                onChange={(content) => onChange({ ...draft, content })}
-                value={draft.content}
-              />
+              <MarkdownEditor onChange={(content) => onChange({ ...draft, content })} value={draft.content} />
             </label>
           ) : null}
         </div>
 
         <footer className="requestStatusChangeDialogFooter">
-          <button
-            className="secondaryButton"
-            disabled={saving}
-            onClick={onClose}
-            type="button"
-          >
+          <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
             Cancelar
           </button>
-          <button
-            className="primaryButton"
-            disabled={saving}
-            onClick={onSave}
-            type="button"
-          >
+          <button className="primaryButton" disabled={saving} onClick={onSave} type="button">
             <Save size={16} />
             {saving ? "Salvando..." : "Confirmar alteração"}
           </button>

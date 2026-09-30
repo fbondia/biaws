@@ -29,9 +29,7 @@ export function PendingTasksWidget({ data, onOpenTask }) {
   const [items, setItems] = useState(data.items || []);
   const [page, setPage] = useState(data.page || 1);
   const [total, setTotal] = useState(data.value || 0);
-  const [hasMore, setHasMore] = useState(
-    data.hasMore ?? (data.items || []).length < (data.value || 0),
-  );
+  const [hasMore, setHasMore] = useState(data.hasMore ?? (data.items || []).length < (data.value || 0));
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState("");
   const [collapsedGroupIds, setCollapsedGroupIds] = useState(() => new Set());
@@ -66,10 +64,7 @@ export function PendingTasksWidget({ data, onOpenTask }) {
       });
       setItems((current) => {
         const existingIds = new Set(current.map(({ id }) => id));
-        return [
-          ...current,
-          ...(payload.items || []).filter(({ id }) => !existingIds.has(id)),
-        ];
+        return [...current, ...(payload.items || []).filter(({ id }) => !existingIds.has(id))];
       });
       setPage(payload.page);
       setTotal(payload.value);
@@ -108,9 +103,7 @@ export function PendingTasksWidget({ data, onOpenTask }) {
                       aria-label={`${expanded ? "Recolher" : "Expandir"} tarefas de ${group.title}`}
                       className="homeTaskGroupToggle"
                       onClick={() => toggleGroup(group.id)}
-                      title={
-                        expanded ? "Recolher melhoria" : "Expandir melhoria"
-                      }
+                      title={expanded ? "Recolher melhoria" : "Expandir melhoria"}
                       type="button"
                     >
                       {expanded ? (
@@ -126,18 +119,12 @@ export function PendingTasksWidget({ data, onOpenTask }) {
                         <article key={task.id}>
                           <div className="homeTaskIdentity">
                             {task.code ? (
-                              <EntityIdentifier
-                                label="Código da tarefa"
-                                value={task.code}
-                                variant="eyebrow"
-                              />
+                              <EntityIdentifier label="Código da tarefa" value={task.code} variant="eyebrow" />
                             ) : null}
                             <strong>{task.title}</strong>
                           </div>
                           <div className="homeTaskActions">
-                            <span className="homeTaskStatus">
-                              {task.status}
-                            </span>
+                            <span className="homeTaskStatus">{task.status}</span>
                             <button
                               aria-label={`Abrir tarefa ${task.title}`}
                               className="secondaryButton homeTaskOpenButton"

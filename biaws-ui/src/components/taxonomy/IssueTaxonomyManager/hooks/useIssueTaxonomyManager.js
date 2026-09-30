@@ -17,18 +17,14 @@ import {
 import { buildUniqueTaxonomyId } from "../../nodeIds.js";
 
 function updateGroup(groups, selectedGroupId, update) {
-  return groups.map((group) =>
-    group.id === selectedGroupId ? update(group) : group,
-  );
+  return groups.map((group) => (group.id === selectedGroupId ? update(group) : group));
 }
 
 function addSortedTag(group, tagId) {
   if (group.tags.includes(tagId)) return group;
   return {
     ...group,
-    tags: [...group.tags, tagId].sort((left, right) =>
-      left.localeCompare(right),
-    ),
+    tags: [...group.tags, tagId].sort((left, right) => left.localeCompare(right)),
   };
 }
 
@@ -38,19 +34,12 @@ function withoutTag(group, tagId) {
 
 export function useIssueTaxonomyManager() {
   const uploadInputRef = useRef(null);
-  const [catalog, setCatalog] = useState(() =>
-    editableCatalog(cloneCatalog(EMPTY_CATALOG)),
-  );
+  const [catalog, setCatalog] = useState(() => editableCatalog(cloneCatalog(EMPTY_CATALOG)));
   const [persistedSnapshot, setPersistedSnapshot] = useState("");
   const [applications, setApplications] = useState([]);
-  const [selectedGroupId, setSelectedGroupId] = useState(
-    catalog.tagGroups[0]?.id || "",
-  );
-  const [selectedNodeId, setSelectedNodeId] = useState(
-    catalog.taxonomy[0]?.id || "",
-  );
-  const [activeDefinitionTab, setActiveDefinitionTab] =
-    useState("classification");
+  const [selectedGroupId, setSelectedGroupId] = useState(catalog.tagGroups[0]?.id || "");
+  const [selectedNodeId, setSelectedNodeId] = useState(catalog.taxonomy[0]?.id || "");
+  const [activeDefinitionTab, setActiveDefinitionTab] = useState("classification");
   const [newTag, setNewTag] = useState("");
   const [addingTag, setAddingTag] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -58,9 +47,7 @@ export function useIssueTaxonomyManager() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const selectedGroup = catalog.tagGroups.find(
-    (group) => group.id === selectedGroupId,
-  );
+  const selectedGroup = catalog.tagGroups.find((group) => group.id === selectedGroupId);
   const exportPayload = useMemo(() => editableCatalog(catalog), [catalog]);
   const hasPendingChanges = serializeCatalog(catalog) !== persistedSnapshot;
 
@@ -89,9 +76,7 @@ export function useIssueTaxonomyManager() {
       const nextCatalog = editableCatalog(EMPTY_CATALOG);
       applyCatalog(nextCatalog);
       setPersistedSnapshot(serializeCatalog(nextCatalog));
-      setMessage(
-        "Taxonomia não encontrada na base de dados. Envie um arquivo JSON para iniciar o rascunho.",
-      );
+      setMessage("Taxonomia não encontrada na base de dados. Envie um arquivo JSON para iniciar o rascunho.");
 
       if (!String(loadError.message || "").includes("not found")) {
         setError(loadError.message);
@@ -123,9 +108,7 @@ export function useIssueTaxonomyManager() {
 
     setCatalog((current) => ({
       ...current,
-      tagGroups: updateGroup(current.tagGroups, selectedGroupId, (group) =>
-        addSortedTag(group, id),
-      ),
+      tagGroups: updateGroup(current.tagGroups, selectedGroupId, (group) => addSortedTag(group, id)),
     }));
     setNewTag("");
     setAddingTag(false);
@@ -144,9 +127,7 @@ export function useIssueTaxonomyManager() {
   function removeTag(tagId) {
     setCatalog((current) => ({
       ...current,
-      tagGroups: updateGroup(current.tagGroups, selectedGroupId, (group) =>
-        withoutTag(group, tagId),
-      ),
+      tagGroups: updateGroup(current.tagGroups, selectedGroupId, (group) => withoutTag(group, tagId)),
     }));
   }
 
@@ -180,11 +161,7 @@ export function useIssueTaxonomyManager() {
     if (!trimmedLabel) return null;
 
     const applicationIds = [
-      ...new Set(
-        (patch?.applicationIds || [])
-          .map((id) => String(id || "").trim())
-          .filter(Boolean),
-      ),
+      ...new Set((patch?.applicationIds || []).map((id) => String(id || "").trim()).filter(Boolean)),
     ];
 
     setCatalog((current) => ({
@@ -218,9 +195,7 @@ export function useIssueTaxonomyManager() {
     try {
       const text = await file.text();
       const parsed = JSON.parse(text);
-      const nextCatalog = editableCatalog(
-        parsed.taxonomy && !parsed.tagGroups ? parsed.taxonomy : parsed,
-      );
+      const nextCatalog = editableCatalog(parsed.taxonomy && !parsed.tagGroups ? parsed.taxonomy : parsed);
 
       applyCatalog({
         ...nextCatalog,
@@ -229,9 +204,7 @@ export function useIssueTaxonomyManager() {
           uploadedFileName: file.name,
         },
       });
-      setMessage(
-        "Arquivo carregado no rascunho. Clique em Gravar alterações para enviar ao banco de dados.",
-      );
+      setMessage("Arquivo carregado no rascunho. Clique em Gravar alterações para enviar ao banco de dados.");
     } catch (uploadError) {
       setError(`Não foi possível carregar o arquivo: ${uploadError.message}`);
     }

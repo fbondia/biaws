@@ -1,17 +1,7 @@
-export function IllustratedEmptyState({
-  className = "",
-  compact = false,
-  description,
-  icon: Icon,
-  title,
-}) {
+export function IllustratedEmptyState({ className = "", compact = false, description, icon: Icon, title }) {
   return (
     <div
-      className={[
-        "illustratedEmptyState",
-        compact ? "compactIllustratedEmptyState" : "",
-        className,
-      ]
+      className={["illustratedEmptyState", compact ? "compactIllustratedEmptyState" : "", className]
         .filter(Boolean)
         .join(" ")}
       role="status"

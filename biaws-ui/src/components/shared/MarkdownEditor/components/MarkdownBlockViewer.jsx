@@ -34,11 +34,7 @@ export function MarkdownBlockViewer({ language, source, type }) {
   const title = isMermaid ? "Diagrama Mermaid" : "Bloco de código";
 
   return (
-    <div
-      className={`markdownExpandableBlock ${
-        isMermaid ? "markdownExpandableMermaid" : "markdownExpandableCode"
-      }`}
-    >
+    <div className={`markdownExpandableBlock ${isMermaid ? "markdownExpandableMermaid" : "markdownExpandableCode"}`}>
       {!isMermaid ? (
         <button
           aria-label={copied ? "Código copiado" : "Copiar código"}
@@ -79,17 +75,7 @@ export function MarkdownBlockViewer({ language, source, type }) {
   );
 }
 
-function MarkdownBlockDialog({
-  copied,
-  dialogTitleId,
-  isMermaid,
-  language,
-  onClose,
-  onCopy,
-  source,
-  title,
-  type,
-}) {
+function MarkdownBlockDialog({ copied, dialogTitleId, isMermaid, language, onClose, onCopy, source, title, type }) {
   return createPortal(
     <div
       className="dialogBackdrop markdownBlockDialogBackdrop"
@@ -97,12 +83,7 @@ function MarkdownBlockDialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section
-        aria-labelledby={dialogTitleId}
-        aria-modal="true"
-        className="markdownBlockDialog"
-        role="dialog"
-      >
+      <section aria-labelledby={dialogTitleId} aria-modal="true" className="markdownBlockDialog" role="dialog">
         <header className="markdownBlockDialogHeader">
           <div>
             <h3 id={dialogTitleId}>{title}</h3>
@@ -133,11 +114,7 @@ function MarkdownBlockDialog({
           </div>
         </header>
         <div className="markdownBlockDialogBody">
-          <MarkdownBlockContent
-            language={language}
-            source={source}
-            type={type}
-          />
+          <MarkdownBlockContent language={language} source={source} type={type} />
         </div>
       </section>
     </div>,
@@ -150,9 +127,7 @@ function MarkdownBlockContent({ language, source, type }) {
 
   return (
     <pre>
-      <code className={language ? `language-${language}` : undefined}>
-        {source}
-      </code>
+      <code className={language ? `language-${language}` : undefined}>{source}</code>
     </pre>
   );
 }

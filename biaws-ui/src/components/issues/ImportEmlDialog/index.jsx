@@ -39,23 +39,14 @@ export function ImportEmlDialog({
         components={components}
         onClose={onClose}
       />
-      <ImportEmlContextDialog
-        {...dialog}
-        applications={applications}
-        components={components}
-      />
-      <ImportEmlClassificationDialog
-        {...dialog}
-        taxonomyPackage={taxonomyPackage}
-      />
+      <ImportEmlContextDialog {...dialog} applications={applications} components={components} />
+      <ImportEmlClassificationDialog {...dialog} taxonomyPackage={taxonomyPackage} />
       {dialog.sanitizationOpen ? (
         <EmlSanitizationDialog
           applicationId={dialog.sanitizationApplicationId}
           onClose={() => dialog.setSanitizationOpen(false)}
           onSaved={dialog.handleSanitizationSaved}
-          sampleFile={
-            dialog.entries.find((entry) => entry.status !== "done")?.file
-          }
+          sampleFile={dialog.entries.find((entry) => entry.status !== "done")?.file}
           workspaceId={workspace?.id}
         />
       ) : null}

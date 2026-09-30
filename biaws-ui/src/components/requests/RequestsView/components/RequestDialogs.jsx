@@ -1,17 +1,7 @@
 import { CatalogContextFields } from "../../../catalog/CatalogContextFields/index.jsx";
-import {
-  collectionPathLabel,
-  ResourceCollectionDialog,
-} from "../../../shared/ResourceCollections/index.jsx";
+import { collectionPathLabel, ResourceCollectionDialog } from "../../../shared/ResourceCollections/index.jsx";
 
-export function RequestDialogs({
-  addRequest,
-  catalog,
-  collectionState,
-  newContext,
-  savingRequestId,
-  setNewContext,
-}) {
+export function RequestDialogs({ addRequest, catalog, collectionState, newContext, savingRequestId, setNewContext }) {
   return (
     <>
       {newContext ? (
@@ -34,8 +24,7 @@ export function RequestDialogs({
               </div>
             </header>
             <p>
-              A melhoria precisa pertencer a uma aplicação. Os componentes
-              afetados podem ser definidos agora ou depois.
+              A melhoria precisa pertencer a uma aplicação. Os componentes afetados podem ser definidos agora ou depois.
             </p>
             <CatalogContextFields
               affectedComponentIds={newContext.affectedComponentIds}
@@ -45,18 +34,12 @@ export function RequestDialogs({
               onChange={setNewContext}
             />
             <footer>
-              <button
-                className="secondaryButton"
-                onClick={() => setNewContext(null)}
-                type="button"
-              >
+              <button className="secondaryButton" onClick={() => setNewContext(null)} type="button">
                 Cancelar
               </button>
               <button
                 className="primaryButton"
-                disabled={
-                  !newContext.applicationId || savingRequestId === "new"
-                }
+                disabled={!newContext.applicationId || savingRequestId === "new"}
                 onClick={() => addRequest(newContext)}
                 type="button"
               >
@@ -68,17 +51,10 @@ export function RequestDialogs({
       ) : null}
       {collectionState.collectionDialog ? (
         <ResourceCollectionDialog
-          collection={
-            collectionState.collectionDialog.id
-              ? collectionState.collectionDialog
-              : null
-          }
+          collection={collectionState.collectionDialog.id ? collectionState.collectionDialog : null}
           onClose={() => collectionState.setCollectionDialog(null)}
           onSave={collectionState.saveCollection}
-          parentLabel={collectionPathLabel(
-            collectionState.collections,
-            collectionState.selectedCollectionId,
-          )}
+          parentLabel={collectionPathLabel(collectionState.collections, collectionState.selectedCollectionId)}
           resourceLabel="melhorias"
         />
       ) : null}

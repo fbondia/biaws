@@ -3,12 +3,7 @@ import { Plus } from "lucide-react";
 import { hasPermission } from "../../../../permissions.js";
 import { EntityTable } from "../components/CatalogComponents.jsx";
 
-export function CatalogRepositoriesTab({
-  actor,
-  context,
-  entityActions,
-  setDialog,
-}) {
+export function CatalogRepositoriesTab({ actor, context, entityActions, setDialog }) {
   return (
     <section>
       <div className="catalogSectionHeader">
@@ -26,11 +21,7 @@ export function CatalogRepositoriesTab({
         ) : null}
       </div>
       <EntityTable
-        actions={entityActions(
-          "repository",
-          "repositories.update",
-          "repositories.archive",
-        )}
+        actions={entityActions("repository", "repositories.update", "repositories.archive")}
         columns={[
           { key: "name", label: "Nome" },
           { key: "provider", label: "Provedor" },

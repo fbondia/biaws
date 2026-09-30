@@ -18,12 +18,7 @@ const EMPTY_CLASSIFICATION = {
   tags: {},
 };
 
-export function useImportEmlDialog({
-  applications,
-  classificationScope,
-  onImported,
-  workspace,
-}) {
+export function useImportEmlDialog({ applications, classificationScope, onImported, workspace }) {
   const [entries, setEntries] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [sanitizationOpen, setSanitizationOpen] = useState(false);
@@ -33,20 +28,14 @@ export function useImportEmlDialog({
     affectedComponentIds: [],
   });
   const [classificationEntryKey, setClassificationEntryKey] = useState("");
-  const [classificationSection, setClassificationSection] =
-    useState("taxonomy");
-  const [classificationDraft, setClassificationDraft] =
-    useState(EMPTY_CLASSIFICATION);
+  const [classificationSection, setClassificationSection] = useState("taxonomy");
+  const [classificationDraft, setClassificationDraft] = useState(EMPTY_CLASSIFICATION);
   const inputRef = useRef(null);
   const typeOptions = TYPE_OPTIONS.filter((option) => option.value);
   const defaultType = typeOptions[0]?.value || "";
 
   function updateEntry(key, patch) {
-    setEntries((current) =>
-      current.map((entry) =>
-        entry.key === key ? { ...entry, ...patch } : entry,
-      ),
-    );
+    setEntries((current) => current.map((entry) => (entry.key === key ? { ...entry, ...patch } : entry)));
   }
 
   function updateOverride(key, field, value) {
@@ -68,52 +57,28 @@ export function useImportEmlDialog({
     );
   }
 
-  function requestEntryPreview(
-    entry,
-    overrides,
-    entryContext,
-    discoverContext,
-  ) {
+  function requestEntryPreview(entry, overrides, entryContext, discoverContext) {
     return importEml(entry.file, {
       dryRun: true,
-      ...(discoverContext
-        ? {}
-        : { workspaceId: workspace?.id, ...(entryContext || {}) }),
+      ...(discoverContext ? {} : { workspaceId: workspace?.id, ...(entryContext || {}) }),
       ...(entry.classification ? { classification: entry.classification } : {}),
       ...(overrides || {}),
     });
   }
 
-  async function analyzeEntry(
-    entry,
-    overrides = null,
-    entryContext = entry.context,
-    discoverContext = false,
-  ) {
+  async function analyzeEntry(entry, overrides = null, entryContext = entry.context, discoverContext = false) {
     updateEntry(entry.key, { status: "analyzing", error: "" });
     try {
       let resolvedContext = entryContext;
       let preview;
       try {
-        preview = await requestEntryPreview(
-          entry,
-          overrides,
-          entryContext,
-          discoverContext,
-        );
+        preview = await requestEntryPreview(entry, overrides, entryContext, discoverContext);
       } catch (error) {
-        if (
-          !shouldRetryContextDiscovery(error, discoverContext, entry.context)
-        ) {
+        if (!shouldRetryContextDiscovery(error, discoverContext, entry.context)) {
           throw error;
         }
         resolvedContext = entry.context;
-        preview = await requestEntryPreview(
-          entry,
-          overrides,
-          resolvedContext,
-          false,
-        );
+        preview = await requestEntryPreview(entry, overrides, resolvedContext, false);
       }
       if (discoverContext && !resolvedContext) {
         resolvedContext = contextFromPreviewIssue(preview.issue, entry.context);
@@ -135,9 +100,7 @@ export function useImportEmlDialog({
   }
 
   async function addFiles(fileList) {
-    const files = [...fileList].filter((file) =>
-      file.name.toLowerCase().endsWith(".eml"),
-    );
+    const files = [...fileList].filter((file) => file.name.toLowerCase().endsWith(".eml"));
     const additions = files.map((file) => ({
       key: crypto.randomUUID(),
       file,
@@ -163,9 +126,7 @@ export function useImportEmlDialog({
       const result = await importEml(entry.file, {
         workspaceId: workspace?.id,
         ...entry.context,
-        ...(entry.classification
-          ? { classification: entry.classification }
-          : {}),
+        ...(entry.classification ? { classification: entry.classification } : {}),
         ...(entry.overrides || {}),
       });
       updateEntry(entry.key, { result, status: "done" });
@@ -176,9 +137,7 @@ export function useImportEmlDialog({
   }
 
   async function importReady() {
-    for (const entry of entries.filter(
-      (item) => item.status === "ready" && isValidEmlEntry(item),
-    )) {
+    for (const entry of entries.filter((item) => item.status === "ready" && isValidEmlEntry(item))) {
       await importEntry(entry);
     }
   }
@@ -195,11 +154,7 @@ export function useImportEmlDialog({
   }
 
   async function applyContextToEntries(applyToAll) {
-    const targets = entries.filter(
-      (entry) =>
-        entry.status !== "done" &&
-        (applyToAll || entry.key === contextEntryKey),
-    );
+    const targets = entries.filter((entry) => entry.status !== "done" && (applyToAll || entry.key === contextEntryKey));
     const nextContext = {
       applicationId: contextDraft.applicationId,
       affectedComponentIds: [...contextDraft.affectedComponentIds],
@@ -215,11 +170,7 @@ export function useImportEmlDialog({
   function openClassificationDialog(entry, section) {
     setClassificationEntryKey(entry.key);
     setClassificationSection(section);
-    setClassificationDraft(
-      cloneEmlClassification(
-        entry.classification || entry.preview?.issue?.classification,
-      ),
-    );
+    setClassificationDraft(cloneEmlClassification(entry.classification || entry.preview?.issue?.classification));
   }
 
   function updateTaxonomies(taxonomyIds) {
@@ -230,9 +181,7 @@ export function useImportEmlDialog({
       return {
         ...current,
         primaryTaxonomyId,
-        secondaryTaxonomyIds: taxonomyIds.filter(
-          (taxonomyId) => taxonomyId !== primaryTaxonomyId,
-        ),
+        secondaryTaxonomyIds: taxonomyIds.filter((taxonomyId) => taxonomyId !== primaryTaxonomyId),
       };
     });
   }
@@ -241,9 +190,7 @@ export function useImportEmlDialog({
     setClassificationDraft((current) => ({
       ...current,
       primaryTaxonomyId,
-      secondaryTaxonomyIds: selectedEmlTaxonomyIds(current).filter(
-        (taxonomyId) => taxonomyId !== primaryTaxonomyId,
-      ),
+      secondaryTaxonomyIds: selectedEmlTaxonomyIds(current).filter((taxonomyId) => taxonomyId !== primaryTaxonomyId),
     }));
   }
 
@@ -285,12 +232,8 @@ export function useImportEmlDialog({
     }
   }
 
-  const busy = entries.some((entry) =>
-    ["analyzing", "importing"].includes(entry.status),
-  );
-  const readyCount = entries.filter(
-    (entry) => entry.status === "ready" && isValidEmlEntry(entry),
-  ).length;
+  const busy = entries.some((entry) => ["analyzing", "importing"].includes(entry.status));
+  const readyCount = entries.filter((entry) => entry.status === "ready" && isValidEmlEntry(entry)).length;
 
   return {
     addFiles,
@@ -299,9 +242,7 @@ export function useImportEmlDialog({
     applyContextToEntries,
     busy,
     classificationDraft,
-    classificationEntry: entries.find(
-      (entry) => entry.key === classificationEntryKey,
-    ),
+    classificationEntry: entries.find((entry) => entry.key === classificationEntryKey),
     classificationSection,
     contextDraft,
     contextEntry: entries.find((entry) => entry.key === contextEntryKey),
@@ -315,12 +256,9 @@ export function useImportEmlDialog({
     openClassificationDialog,
     openContextDialog,
     readyCount,
-    removeEntry: (entryKey) =>
-      setEntries((current) => current.filter((item) => item.key !== entryKey)),
+    removeEntry: (entryKey) => setEntries((current) => current.filter((item) => item.key !== entryKey)),
     sanitizationApplicationId:
-      entries.find((entry) => entry.status !== "done")?.context.applicationId ||
-      applications[0]?.id ||
-      "",
+      entries.find((entry) => entry.status !== "done")?.context.applicationId || applications[0]?.id || "",
     sanitizationOpen,
     setClassificationEntryKey,
     setContextDraft,

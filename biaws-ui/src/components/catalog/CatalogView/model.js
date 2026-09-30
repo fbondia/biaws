@@ -22,8 +22,6 @@ export const CATALOG_TABS = [
 
 export function visibleCatalogTabs(actor) {
   return CATALOG_TABS.filter(({ permission }) =>
-    (Array.isArray(permission) ? permission : [permission]).some((candidate) =>
-      hasPermission(actor, candidate),
-    ),
+    (Array.isArray(permission) ? permission : [permission]).some((candidate) => hasPermission(actor, candidate)),
   );
 }

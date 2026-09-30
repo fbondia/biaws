@@ -14,17 +14,13 @@ export const REQUEST_DEFAULTS = {
   taskStatus: FALLBACK_TASK_STATUS,
 };
 export const REQUEST_CHECKLIST_ITEMS = [...FALLBACK_CHECKLIST_ITEMS];
-export const REQUEST_SPECIFICATION_SECTION_TITLES = [
-  ...FALLBACK_SPECIFICATION_TITLES,
-];
+export const REQUEST_SPECIFICATION_SECTION_TITLES = [...FALLBACK_SPECIFICATION_TITLES];
 export const REQUEST_STATUS_OPTIONS = [...FALLBACK_STATUS_OPTIONS];
 export const REQUEST_ALL_STATUS_OPTIONS = [...FALLBACK_STATUS_OPTIONS];
 export const REQUEST_STATUS_COLORS = structuredClone(FALLBACK_STATUS_COLORS);
 export const REQUEST_TASK_STATUS_COLORS = structuredClone(FALLBACK_TASK_COLORS);
 export const REQUEST_TASK_STATUS_OPTIONS = [...FALLBACK_TASK_STATUS_OPTIONS];
-export const REQUEST_ALL_TASK_STATUS_OPTIONS = [
-  ...FALLBACK_TASK_STATUS_OPTIONS,
-];
+export const REQUEST_ALL_TASK_STATUS_OPTIONS = [...FALLBACK_TASK_STATUS_OPTIONS];
 export const REQUEST_OPTION_LABELS = {};
 
 function activeItems(list) {
@@ -44,10 +40,7 @@ export function resetRequestConstants() {
   REQUEST_DEFAULTS.status = FALLBACK_REQUEST_STATUS;
   REQUEST_DEFAULTS.taskStatus = FALLBACK_TASK_STATUS;
   replaceArray(REQUEST_CHECKLIST_ITEMS, FALLBACK_CHECKLIST_ITEMS);
-  replaceArray(
-    REQUEST_SPECIFICATION_SECTION_TITLES,
-    FALLBACK_SPECIFICATION_TITLES,
-  );
+  replaceArray(REQUEST_SPECIFICATION_SECTION_TITLES, FALLBACK_SPECIFICATION_TITLES);
   replaceArray(REQUEST_STATUS_OPTIONS, FALLBACK_STATUS_OPTIONS);
   replaceArray(REQUEST_ALL_STATUS_OPTIONS, FALLBACK_STATUS_OPTIONS);
   replaceObject(REQUEST_STATUS_COLORS, FALLBACK_STATUS_COLORS);
@@ -63,9 +56,7 @@ export function configureRequestConstants(optionLists = []) {
   const demandStatuses = activeItems(byKey["demand.status"]);
   const taskStatuses = activeItems(byKey["demand.task-status"]);
   const checklist = activeItems(byKey["demand.checklist"]);
-  const specificationSections = activeItems(
-    byKey["demand.specification-sections"],
-  );
+  const specificationSections = activeItems(byKey["demand.specification-sections"]);
   for (const list of optionLists) {
     REQUEST_OPTION_LABELS[list.key] = Object.fromEntries(
       (list.items || []).map((item) => [item.value, item.label || item.value]),
@@ -81,10 +72,8 @@ export function configureRequestConstants(optionLists = []) {
       REQUEST_ALL_STATUS_OPTIONS,
       (byKey["demand.status"].items || []).map((item) => item.value),
     );
-    REQUEST_DEFAULTS.status =
-      byKey["demand.status"].defaultValue || REQUEST_STATUS_OPTIONS[0];
-    for (const key of Object.keys(REQUEST_STATUS_COLORS))
-      delete REQUEST_STATUS_COLORS[key];
+    REQUEST_DEFAULTS.status = byKey["demand.status"].defaultValue || REQUEST_STATUS_OPTIONS[0];
+    for (const key of Object.keys(REQUEST_STATUS_COLORS)) delete REQUEST_STATUS_COLORS[key];
     for (const item of demandStatuses) {
       REQUEST_STATUS_COLORS[item.value] = {
         ...(FALLBACK_STATUS_COLORS[item.value] || {}),
@@ -101,13 +90,9 @@ export function configureRequestConstants(optionLists = []) {
       REQUEST_ALL_TASK_STATUS_OPTIONS,
       (byKey["demand.task-status"].items || []).map((item) => item.value),
     );
-    REQUEST_DEFAULTS.taskStatus =
-      byKey["demand.task-status"].defaultValue ||
-      REQUEST_TASK_STATUS_OPTIONS[0];
-    for (const key of Object.keys(REQUEST_TASK_STATUS_COLORS))
-      delete REQUEST_TASK_STATUS_COLORS[key];
-    for (const item of taskStatuses)
-      REQUEST_TASK_STATUS_COLORS[item.value] = item.metadata || {};
+    REQUEST_DEFAULTS.taskStatus = byKey["demand.task-status"].defaultValue || REQUEST_TASK_STATUS_OPTIONS[0];
+    for (const key of Object.keys(REQUEST_TASK_STATUS_COLORS)) delete REQUEST_TASK_STATUS_COLORS[key];
+    for (const item of taskStatuses) REQUEST_TASK_STATUS_COLORS[item.value] = item.metadata || {};
   }
   if (byKey["demand.checklist"])
     replaceArray(

@@ -41,12 +41,7 @@ export function ImportEmlClassificationDialog({
             <strong>{isTaxonomy ? "Classificação / taxonomia" : "Tags"}</strong>
             <span>{classificationEntry.file.name}</span>
           </div>
-          <button
-            className="iconButton"
-            onClick={() => setClassificationEntryKey("")}
-            title="Fechar"
-            type="button"
-          >
+          <button className="iconButton" onClick={() => setClassificationEntryKey("")} title="Fechar" type="button">
             <X size={18} />
           </button>
         </header>
@@ -55,9 +50,7 @@ export function ImportEmlClassificationDialog({
             <section>
               <div className="emlClassificationSectionTitle">
                 <strong>Classificação de taxonomia</strong>
-                <span>
-                  Selecione os assuntos e defina um deles como principal.
-                </span>
+                <span>Selecione os assuntos e defina um deles como principal.</span>
               </div>
               <TaxonomySelector
                 multiple
@@ -131,28 +124,16 @@ function TagGroups({ classificationDraft, tagGroups, toggleTag }) {
             </strong>
             <div className="tagFilterOptions">
               {(group.tags || []).map((tagId) => {
-                const checked = (
-                  classificationDraft.tags[group.id] || []
-                ).includes(tagId);
+                const checked = (classificationDraft.tags[group.id] || []).includes(tagId);
                 return (
                   <label
-                    className={
-                      checked
-                        ? "tagFilterOption selectedTagFilterOption"
-                        : "tagFilterOption"
-                    }
+                    className={checked ? "tagFilterOption selectedTagFilterOption" : "tagFilterOption"}
                     key={tagId}
                     style={{
-                      borderColor: checked
-                        ? group.color || DEFAULT_TAG_GROUP_COLOR
-                        : undefined,
+                      borderColor: checked ? group.color || DEFAULT_TAG_GROUP_COLOR : undefined,
                     }}
                   >
-                    <input
-                      checked={checked}
-                      onChange={() => toggleTag(group.id, tagId)}
-                      type="checkbox"
-                    />
+                    <input checked={checked} onChange={() => toggleTag(group.id, tagId)} type="checkbox" />
                     <span>{tagId}</span>
                   </label>
                 );

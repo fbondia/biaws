@@ -15,12 +15,7 @@ async function loadCssGraph(entryFile, visited = new Set()) {
   const importedSources = [];
   for (const match of source.matchAll(/@import\s+["']([^"']+)["']/gu)) {
     if (!match[1].startsWith(".")) continue;
-    importedSources.push(
-      await loadCssGraph(
-        path.resolve(path.dirname(absoluteFile), match[1]),
-        visited,
-      ),
-    );
+    importedSources.push(await loadCssGraph(path.resolve(path.dirname(absoluteFile), match[1]), visited));
   }
   return [source, ...importedSources].join("\n");
 }
@@ -56,20 +51,13 @@ test("requests CSS graph includes its shared collection and UI primitives", asyn
 });
 
 test("shared collection navigation is not owned by the knowledge feature", async () => {
-  const globalEntry = await readFile(
-    path.join(UI_ROOT, "src/styles.css"),
-    "utf8",
-  );
-  const knowledgeEntry = await readFile(
-    path.join(UI_ROOT, "src/styles/features/knowledge/index.css"),
-    "utf8",
-  );
+  const globalEntry = await readFile(path.join(UI_ROOT, "src/styles.css"), "utf8");
+  const knowledgeEntry = await readFile(path.join(UI_ROOT, "src/styles/features/knowledge/index.css"), "utf8");
 
   assert.match(globalEntry, /shared\/resource-collection-navigator\.css/u);
   assert.doesNotMatch(knowledgeEntry, /resource-collection-navigator/u);
   assert.ok(
-    globalEntry.indexOf("resource-collection-navigator.css") <
-      globalEntry.indexOf("resource-collections.css"),
+    globalEntry.indexOf("resource-collection-navigator.css") < globalEntry.indexOf("resource-collections.css"),
     "legacy navigator rules must load before shared component rules",
   );
 });
@@ -90,17 +78,8 @@ test("shared filter dialogs are available before feature styles load", async () 
 test("administrative page layout is available before lazy feature styles load", async () => {
   const source = await loadCssGraph("src/styles.css");
   const [optionListsView, taxonomyView] = await Promise.all([
-    readFile(
-      path.join(UI_ROOT, "src/components/settings/OptionListsView/index.jsx"),
-      "utf8",
-    ),
-    readFile(
-      path.join(
-        UI_ROOT,
-        "src/components/taxonomy/IssueTaxonomyManager/index.jsx",
-      ),
-      "utf8",
-    ),
+    readFile(path.join(UI_ROOT, "src/components/settings/OptionListsView/index.jsx"), "utf8"),
+    readFile(path.join(UI_ROOT, "src/components/taxonomy/IssueTaxonomyManager/index.jsx"), "utf8"),
   ]);
 
   for (const selector of ["adminPage", "adminHero", "adminHeroActions"]) {

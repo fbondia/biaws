@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  detectEmlIssueType,
-  newItem,
-  removeItem,
-} from "../src/components/settings/OptionListsView/model.js";
+import { detectEmlIssueType, newItem, removeItem } from "../src/components/settings/OptionListsView/model.js";
 
 test("new issue types start with EML detection disabled", () => {
   const item = newItem({

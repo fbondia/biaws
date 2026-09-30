@@ -20,21 +20,13 @@ export function IssueListHeader({
       </div>
       <div className="pagination">
         {onOpenCreate ? (
-          <button
-            className="primaryButton"
-            onClick={onOpenCreate}
-            type="button"
-          >
+          <button className="primaryButton" onClick={onOpenCreate} type="button">
             <Plus size={16} />
             Incluir issue
           </button>
         ) : null}
         {onOpenImport ? (
-          <button
-            className="secondaryButton"
-            onClick={onOpenImport}
-            type="button"
-          >
+          <button className="secondaryButton" onClick={onOpenImport} type="button">
             <Upload size={16} />
             Importar
           </button>

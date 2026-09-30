@@ -27,15 +27,8 @@ export function LineSummaryChart({ items }) {
   return (
     <SummaryChartFrame>
       <ResponsiveContainer height={300} width="100%">
-        <LineChart
-          data={data}
-          margin={{ top: 14, right: 18, bottom: 10, left: 0 }}
-        >
-          <CartesianGrid
-            stroke="#e5e7eb"
-            strokeDasharray="3 3"
-            vertical={false}
-          />
+        <LineChart data={data} margin={{ top: 14, right: 18, bottom: 10, left: 0 }}>
+          <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="name"
             interval="preserveStartEnd"
@@ -43,12 +36,7 @@ export function LineSummaryChart({ items }) {
             tick={{ fill: "#667085", fontSize: 12 }}
             tickLine={false}
           />
-          <YAxis
-            allowDecimals={false}
-            tick={{ fill: "#667085", fontSize: 12 }}
-            tickLine={false}
-            width={38}
-          />
+          <YAxis allowDecimals={false} tick={{ fill: "#667085", fontSize: 12 }} tickLine={false} width={38} />
           <Tooltip content={<SummaryTooltip />} />
           <Line
             activeDot={{ r: 6 }}
@@ -72,23 +60,14 @@ function formatBarLabel(value) {
 export function BarSummaryChart({ activeTab, items, onSelectMonthTaxonomy }) {
   const data = chartData(items);
   const isStackedByType = activeTab === "byMonth" || activeTab === "byYear";
-  const canSelectMonth =
-    activeTab === "byMonth" && Boolean(onSelectMonthTaxonomy);
-  const configuredTypeValues = TYPE_OPTIONS.filter(
-    (option) => option.value,
-  ).map((option) => option.value);
+  const canSelectMonth = activeTab === "byMonth" && Boolean(onSelectMonthTaxonomy);
+  const configuredTypeValues = TYPE_OPTIONS.filter((option) => option.value).map((option) => option.value);
   const observedTypeValues = items.flatMap((item) =>
     Object.entries(item)
-      .filter(
-        ([key, value]) =>
-          !["key", "count", "color", "name"].includes(key) &&
-          Number.isFinite(Number(value)),
-      )
+      .filter(([key, value]) => !["key", "count", "color", "name"].includes(key) && Number.isFinite(Number(value)))
       .map(([key]) => key),
   );
-  const stackedTypeBars = [
-    ...new Set([...configuredTypeValues, ...observedTypeValues]),
-  ].map((key, index) => ({
+  const stackedTypeBars = [...new Set([...configuredTypeValues, ...observedTypeValues])].map((key, index) => ({
     key,
     label: chartLabel(key),
     color: CHART_COLORS[index % CHART_COLORS.length],
@@ -108,10 +87,7 @@ export function BarSummaryChart({ activeTab, items, onSelectMonthTaxonomy }) {
     const selectedItem =
       event?.activePayload?.[0]?.payload ||
       data[event?.activeTooltipIndex] ||
-      data.find(
-        (item) =>
-          item.key === event?.activeLabel || item.name === event?.activeLabel,
-      );
+      data.find((item) => item.key === event?.activeLabel || item.name === event?.activeLabel);
 
     selectMonthItem(selectedItem);
   }
@@ -125,30 +101,14 @@ export function BarSummaryChart({ activeTab, items, onSelectMonthTaxonomy }) {
           onClick={handleChartClick}
           style={{ cursor: canSelectMonth ? "pointer" : "default" }}
         >
-          <CartesianGrid
-            stroke="#e5e7eb"
-            strokeDasharray="3 3"
-            vertical={false}
-          />
-          <XAxis
-            dataKey="name"
-            interval={0}
-            tick={{ fill: "#667085", fontSize: 12 }}
-            tickLine={false}
-          />
-          <YAxis
-            allowDecimals={false}
-            tick={{ fill: "#667085", fontSize: 12 }}
-            tickLine={false}
-            width={38}
-          />
+          <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="name" interval={0} tick={{ fill: "#667085", fontSize: 12 }} tickLine={false} />
+          <YAxis allowDecimals={false} tick={{ fill: "#667085", fontSize: 12 }} tickLine={false} width={38} />
           <Tooltip content={<SummaryTooltip />} />
           {isStackedByType ? (
             <>
               <Legend
-                formatter={(value) => (
-                  <span className="summaryLegendText">{value}</span>
-                )}
+                formatter={(value) => <span className="summaryLegendText">{value}</span>}
                 iconType="circle"
                 verticalAlign="top"
               />
@@ -159,11 +119,7 @@ export function BarSummaryChart({ activeTab, items, onSelectMonthTaxonomy }) {
                   key={typeBar.key}
                   name={typeBar.label}
                   onClick={canSelectMonth ? handleBarClick : undefined}
-                  radius={
-                    index === stackedTypeBars.length - 1
-                      ? [6, 6, 0, 0]
-                      : [0, 0, 0, 0]
-                  }
+                  radius={index === stackedTypeBars.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
                   stackId="type"
                 >
                   <LabelList
@@ -203,15 +159,7 @@ export function BarSummaryChart({ activeTab, items, onSelectMonthTaxonomy }) {
   );
 }
 
-export function MonthTaxonomyPanel({
-  error,
-  loading,
-  onClear,
-  onOpenIssue,
-  selectedMonth,
-  summary,
-  taxonomyPackage,
-}) {
+export function MonthTaxonomyPanel({ error, loading, onClear, onOpenIssue, selectedMonth, summary, taxonomyPackage }) {
   if (!selectedMonth && !loading && !error) return null;
 
   return (
@@ -226,9 +174,7 @@ export function MonthTaxonomyPanel({
         </button>
       </div>
 
-      {loading ? (
-        <div className="loadingLine">Carregando assuntos...</div>
-      ) : null}
+      {loading ? <div className="loadingLine">Carregando assuntos...</div> : null}
       {error ? <div className="summaryDrilldownError">{error}</div> : null}
       {!loading && !error ? (
         <TaxonomySummaryChart
@@ -250,9 +196,7 @@ export function PieSummaryChart({ items }) {
         <PieChart>
           <Tooltip content={<SummaryTooltip />} />
           <Legend
-            formatter={(value) => (
-              <span className="summaryLegendText">{value}</span>
-            )}
+            formatter={(value) => <span className="summaryLegendText">{value}</span>}
             iconType="circle"
             verticalAlign="middle"
           />

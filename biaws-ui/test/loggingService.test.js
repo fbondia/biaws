@@ -1,15 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  createLogger,
-  normalizeLogError,
-  sanitizeLogValue,
-} from "../src/infrastructure/logging/service.js";
-import {
-  connectSessionLoggingContext,
-  loggingContextFromSessionState,
-} from "../src/infrastructure/session/runtime.js";
+import { createLogger, normalizeLogError, sanitizeLogValue } from "../src/infrastructure/logging/service.js";
+import { connectSessionLoggingContext, loggingContextFromSessionState } from "../src/infrastructure/session/runtime.js";
 import { connectGlobalErrorLogging } from "../src/infrastructure/logging/runtime.js";
 import { createFakeLoggingTransport } from "../src/infrastructure/logging/testing.js";
 
@@ -54,10 +47,7 @@ test("logger emits structured records and enriches context after session starts"
   assert.equal(fake.records[0].level, "error");
   assert.equal(fake.records[0].service, "biaws-ui");
   assert.equal(fake.records[0].timestamp, "2026-08-12T23:00:00.000Z");
-  assert.doesNotMatch(
-    JSON.stringify(fake.records[0]),
-    /synthetic-(token|password|bearer)/,
-  );
+  assert.doesNotMatch(JSON.stringify(fake.records[0]), /synthetic-(token|password|bearer)/);
   assert.equal(fake.records[0].error.code, "UPSTREAM_FAILED");
   assert.equal(fake.records[0].error.statusCode, 503);
   assert.equal(fake.records[0].error.cause.name, "Error");
@@ -109,13 +99,8 @@ test("transport failures and volume limits never interrupt callers", async () =>
     ],
   });
 
-  assert.doesNotThrow(() =>
-    logger.warn("logging.transport.write_failed", { message: "synthetic" }),
-  );
-  assert.equal(
-    logger.info("logging.volume.entry_dropped", { message: "synthetic" }),
-    null,
-  );
+  assert.doesNotThrow(() => logger.warn("logging.transport.write_failed", { message: "synthetic" }));
+  assert.equal(logger.info("logging.volume.entry_dropped", { message: "synthetic" }), null);
   await logger.flush();
   assert.equal(logger.getDiagnostics().droppedEntries, 4);
 });
@@ -126,39 +111,29 @@ test("error normalization accepts non-errors and event names are validated", () 
       "password=synthetic https://person:pass@example.test?token=synthetic eyJheader.payload.signature",
     ),
     {
-      message:
-        "password=[REDACTED] https://[REDACTED]@example.test?token=[REDACTED]",
+      message: "password=[REDACTED] https://[REDACTED]@example.test?token=[REDACTED]",
       name: "Error",
     },
   );
   const logger = createLogger();
-  assert.throws(
-    () => logger.info("not-valid", { message: "invalid event" }),
-    /dominio\.acao\.resultado/,
-  );
-  assert.deepEqual(
-    normalizeLogError({ code: "SESSION_ERROR", message: "Unavailable" }),
-    { code: "SESSION_ERROR", message: "Unavailable", name: "Error" },
-  );
+  assert.throws(() => logger.info("not-valid", { message: "invalid event" }), /dominio\.acao\.resultado/);
+  assert.deepEqual(normalizeLogError({ code: "SESSION_ERROR", message: "Unavailable" }), {
+    code: "SESSION_ERROR",
+    message: "Unavailable",
+    name: "Error",
+  });
 });
 
 test("text redaction removes spaced, Basic Auth and stringified JSON credentials", () => {
-  const secrets = [
-    "correct horse battery staple",
-    "dXNlcjpwYXNz",
-    "synthetic-json-secret",
-  ];
+  const secrets = ["correct horse battery staple", "dXNlcjpwYXNz", "synthetic-json-secret"];
   const normalized = normalizeLogError(
-    [
-      `password=${secrets[0]}`,
-      `Authorization: Basic ${secrets[1]}`,
-      JSON.stringify({ password: secrets[2] }),
-    ].join("\n"),
+    [`password=${secrets[0]}`, `Authorization: Basic ${secrets[1]}`, JSON.stringify({ password: secrets[2] })].join(
+      "\n",
+    ),
   );
   const serialized = JSON.stringify(normalized);
 
-  for (const secret of secrets)
-    assert.doesNotMatch(serialized, new RegExp(secret));
+  for (const secret of secrets) assert.doesNotMatch(serialized, new RegExp(secret));
   assert.match(serialized, /password=\[REDACTED\]/);
   assert.match(serialized, /authorization=\[REDACTED\]/i);
 });

@@ -12,16 +12,11 @@ const FOCUSABLE_SELECTOR = [
 ].join(",");
 
 function visibleElements(container, selector) {
-  return [...container.querySelectorAll(selector)].filter(
-    (element) => element.getClientRects().length > 0,
-  );
+  return [...container.querySelectorAll(selector)].filter((element) => element.getClientRects().length > 0);
 }
 
 function activeModal() {
-  const dialogs = visibleElements(
-    document,
-    '[role="dialog"][aria-modal="true"]',
-  );
+  const dialogs = visibleElements(document, '[role="dialog"][aria-modal="true"]');
   return dialogs.at(-1) || null;
 }
 
@@ -30,9 +25,7 @@ function syncTabStops() {
     const tabs = [...tabList.querySelectorAll('[role="tab"]:not([disabled])')];
     if (!tabs.length) continue;
 
-    const selectedTab =
-      tabs.find((tab) => tab.getAttribute("aria-selected") === "true") ||
-      tabs[0];
+    const selectedTab = tabs.find((tab) => tab.getAttribute("aria-selected") === "true") || tabs[0];
     for (const tab of tabs) tab.tabIndex = tab === selectedTab ? 0 : -1;
   }
 }
@@ -108,8 +101,7 @@ export function AccessibilityProvider({ children }) {
       window.cancelAnimationFrame(focusFrame);
 
       if (currentDialog) {
-        if (!currentDialog.hasAttribute("tabindex"))
-          currentDialog.setAttribute("tabindex", "-1");
+        if (!currentDialog.hasAttribute("tabindex")) currentDialog.setAttribute("tabindex", "-1");
         focusFrame = window.requestAnimationFrame(() => {
           const focusTarget =
             currentDialog.querySelector("[data-dialog-initial-focus]") ||
@@ -120,8 +112,7 @@ export function AccessibilityProvider({ children }) {
         });
       } else {
         document.body.style.overflow = originalBodyOverflow;
-        if (focusBeforeDialog?.isConnected)
-          focusBeforeDialog.focus({ preventScroll: true });
+        if (focusBeforeDialog?.isConnected) focusBeforeDialog.focus({ preventScroll: true });
         focusBeforeDialog = null;
       }
     }

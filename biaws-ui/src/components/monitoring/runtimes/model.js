@@ -28,10 +28,7 @@ export function collectionColumns(collections = [], selectedId = "") {
 
 export function applicationsInCollection(applications = [], collectionId = "") {
   return applications
-    .filter(
-      (application) =>
-        String(application.collectionId || "") === String(collectionId || ""),
-    )
+    .filter((application) => String(application.collectionId || "") === String(collectionId || ""))
     .sort((left, right) => left.name.localeCompare(right.name, "pt-BR"));
 }
 
@@ -42,11 +39,7 @@ export function deploymentsForComponent(deployments = [], componentId = "") {
 }
 
 export function latestEventForMonitor(events = [], monitorId = "") {
-  return (
-    events.find(
-      ({ monitorId: eventMonitorId }) => eventMonitorId === monitorId,
-    ) || null
-  );
+  return events.find(({ monitorId: eventMonitorId }) => eventMonitorId === monitorId) || null;
 }
 
 export function runtimeListParams(monitoredOnly = false) {
@@ -70,15 +63,9 @@ export function filterMonitoredTopology({
   const applicationIds = new Set(topology.applicationIds || []);
   const componentIds = new Set(topology.componentIds || []);
   const deploymentIds = new Set(topology.deploymentIds || []);
-  const filteredApplications = applications.filter(({ id }) =>
-    applicationIds.has(id),
-  );
-  const filteredComponents = components.filter(({ id }) =>
-    componentIds.has(id),
-  );
-  const filteredDeployments = deployments.filter(({ id }) =>
-    deploymentIds.has(id),
-  );
+  const filteredApplications = applications.filter(({ id }) => applicationIds.has(id));
+  const filteredComponents = components.filter(({ id }) => componentIds.has(id));
+  const filteredDeployments = deployments.filter(({ id }) => deploymentIds.has(id));
   const collectionById = new Map(collections.map((item) => [item.id, item]));
   const visibleCollectionIds = new Set();
   for (const application of filteredApplications) {

@@ -8,10 +8,7 @@ import {
   reportApiFailure,
   workspaceHeaders,
 } from "../src/api/client.js";
-import {
-  createSessionService,
-  SESSION_STATUS,
-} from "../src/infrastructure/session/service.js";
+import { createSessionService, SESSION_STATUS } from "../src/infrastructure/session/service.js";
 import { createFakeSessionAdapter } from "../src/infrastructure/session/testing.js";
 
 function sessionError(message, { code, statusCode } = {}) {
@@ -30,13 +27,10 @@ test("API client obtains workspace and expiration through the narrow session int
       Accept: "application/json",
       "X-Biaws-Workspace-Id": "workspace-explicit",
     });
-    assert.deepEqual(
-      workspaceHeaders({ Accept: "application/json" }, "workspace-captured"),
-      {
-        Accept: "application/json",
-        "X-Biaws-Workspace-Id": "workspace-captured",
-      },
-    );
+    assert.deepEqual(workspaceHeaders({ Accept: "application/json" }, "workspace-captured"), {
+      Accept: "application/json",
+      "X-Biaws-Workspace-Id": "workspace-captured",
+    });
 
     await assert.rejects(
       readPayload(
@@ -106,10 +100,7 @@ test("failed reauthentication keeps the expired state until credentials are acce
   await service.initialize();
   fake.expire("Sessão expirada");
 
-  await assert.rejects(
-    service.signIn({ email: "user@example.test", password: "invalid" }),
-    /Credenciais inválidas/u,
-  );
+  await assert.rejects(service.signIn({ email: "user@example.test", password: "invalid" }), /Credenciais inválidas/u);
   assert.deepEqual(service.getState(), {
     reason: "Sessão expirada",
     status: SESSION_STATUS.EXPIRED,
@@ -190,9 +181,7 @@ test("sign in restores the compatibility actor and sign out clears local session
   assert.deepEqual(cleared, ["sign-in", "sign-out"]);
   assert.deepEqual(fake.calls.at(-1), ["setWorkspaceId", ""]);
   assert.deepEqual(
-    events
-      .filter(({ event }) => event.includes("sign_"))
-      .map(({ event, level }) => [event, level]),
+    events.filter(({ event }) => event.includes("sign_")).map(({ event, level }) => [event, level]),
     [
       ["session.sign_in.started", "info"],
       ["session.sign_in.completed", "info"],
@@ -221,9 +210,7 @@ test("workspace switch is deterministic and rolls selection back after a transie
   assert.equal(service.getState().status, SESSION_STATUS.ERROR);
   assert.deepEqual(fake.calls.at(-1), ["setWorkspaceId", "workspace-2"]);
   assert.deepEqual(
-    events
-      .filter(({ event }) => event.includes("workspace_switch"))
-      .map(({ event, level }) => [event, level]),
+    events.filter(({ event }) => event.includes("workspace_switch")).map(({ event, level }) => [event, level]),
     [
       ["session.workspace_switch.started", "info"],
       ["session.workspace_switch.completed", "info"],
@@ -267,9 +254,7 @@ test("an obsolete workspace switch cannot roll back a newer failed switch", asyn
 
   const firstSwitch = service.switchWorkspace("workspace-2");
   const secondSwitch = service.switchWorkspace("workspace-3");
-  pendingRestores
-    .find(({ workspaceId }) => workspaceId === "workspace-3")
-    .reject(sessionError("Temporary failure"));
+  pendingRestores.find(({ workspaceId }) => workspaceId === "workspace-3").reject(sessionError("Temporary failure"));
   await secondSwitch;
   assert.equal(selectedWorkspaceId, "workspace-1");
   assert.equal(service.getState().status, SESSION_STATUS.ERROR);
@@ -318,11 +303,7 @@ test("forbidden persisted workspace is cleared before restoring the unscoped act
       ["restore", ""],
     ],
   );
-  assert.equal(
-    events.find(({ event }) => event === "session.workspace_selection.rejected")
-      ?.level,
-    "warn",
-  );
+  assert.equal(events.find(({ event }) => event === "session.workspace_selection.rejected")?.level, "warn");
 });
 
 test("failed server sign out still removes the local actor and workspace", async () => {

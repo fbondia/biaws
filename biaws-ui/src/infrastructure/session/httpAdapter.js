@@ -1,8 +1,4 @@
-import {
-  fetchCurrentActor,
-  signIn as requestSignIn,
-  signOut as requestSignOut,
-} from "../../api/auth.js";
+import { fetchCurrentActor, signIn as requestSignIn, signOut as requestSignOut } from "../../api/auth.js";
 import { configureApiSession } from "../../api/client.js";
 import { defineSessionAdapter } from "./contract.js";
 
@@ -22,9 +18,7 @@ export function createHttpSessionAdapter({
   storage = defaultStorage(),
 } = {}) {
   let disconnectClient;
-  let workspaceId = String(
-    storage?.getItem?.(WORKSPACE_STORAGE_KEY) || "",
-  ).trim();
+  let workspaceId = String(storage?.getItem?.(WORKSPACE_STORAGE_KEY) || "").trim();
 
   function setWorkspaceId(nextWorkspaceId) {
     workspaceId = String(nextWorkspaceId || "").trim();

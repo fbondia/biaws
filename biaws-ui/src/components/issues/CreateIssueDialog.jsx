@@ -23,12 +23,7 @@ function initialDraft() {
   };
 }
 
-export function CreateIssueDialog({
-  applications = [],
-  components = [],
-  onClose,
-  onCreated,
-}) {
+export function CreateIssueDialog({ applications = [], components = [], onClose, onCreated }) {
   const [draft, setDraft] = useState(initialDraft);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -38,8 +33,7 @@ export function CreateIssueDialog({
   }
 
   async function save() {
-    if (!draft.title.trim() || !draft.text.trim() || !draft.applicationId)
-      return;
+    if (!draft.title.trim() || !draft.text.trim() || !draft.applicationId) return;
     setSaving(true);
     setError("");
     try {
@@ -69,24 +63,13 @@ export function CreateIssueDialog({
       }}
       role="presentation"
     >
-      <section
-        aria-labelledby="createIssueDialogTitle"
-        aria-modal="true"
-        className="issueFormDialog"
-        role="dialog"
-      >
+      <section aria-labelledby="createIssueDialogTitle" aria-modal="true" className="issueFormDialog" role="dialog">
         <header className="issueFormDialogHeader">
           <div>
             <span>Registro manual</span>
             <h2 id="createIssueDialogTitle">Incluir issue</h2>
           </div>
-          <button
-            className="iconButton"
-            disabled={saving}
-            onClick={onClose}
-            title="Fechar"
-            type="button"
-          >
+          <button className="iconButton" disabled={saving} onClick={onClose} title="Fechar" type="button">
             <X size={18} />
           </button>
         </header>
@@ -109,11 +92,7 @@ export function CreateIssueDialog({
             </label>
             <label className="field">
               <span>Tipo</span>
-              <select
-                disabled={saving}
-                onChange={(event) => update("type", event.target.value)}
-                value={draft.type}
-              >
+              <select disabled={saving} onChange={(event) => update("type", event.target.value)} value={draft.type}>
                 {TYPE_OPTIONS.filter((option) => option.value).map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -123,18 +102,12 @@ export function CreateIssueDialog({
             </label>
             <label className="field">
               <span>Status</span>
-              <select
-                disabled={saving}
-                onChange={(event) => update("status", event.target.value)}
-                value={draft.status}
-              >
-                {STATUS_OPTIONS.filter((option) => option.value).map(
-                  (option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ),
-                )}
+              <select disabled={saving} onChange={(event) => update("status", event.target.value)} value={draft.status}>
+                {STATUS_OPTIONS.filter((option) => option.value).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="field">
@@ -154,44 +127,26 @@ export function CreateIssueDialog({
             applications={applications}
             components={components}
             disabled={saving}
-            onChange={(context) =>
-              setDraft((current) => ({ ...current, ...context }))
-            }
+            onChange={(context) => setDraft((current) => ({ ...current, ...context }))}
           />
 
           <label className="field issueFormMarkdownField">
             <span>Descrição</span>
-            <MarkdownEditor
-              onChange={(value) => update("text", value)}
-              value={draft.text}
-            />
+            <MarkdownEditor onChange={(value) => update("text", value)} value={draft.text} />
           </label>
           <label className="field issueFormMarkdownField">
             <span>Comentário inicial (opcional)</span>
-            <MarkdownEditor
-              onChange={(value) => update("comment", value)}
-              value={draft.comment}
-            />
+            <MarkdownEditor onChange={(value) => update("comment", value)} value={draft.comment} />
           </label>
         </div>
 
         <footer className="issueFormDialogFooter">
-          <button
-            className="secondaryButton"
-            disabled={saving}
-            onClick={onClose}
-            type="button"
-          >
+          <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
             Cancelar
           </button>
           <button
             className="primaryButton"
-            disabled={
-              saving ||
-              !draft.title.trim() ||
-              !draft.text.trim() ||
-              !draft.applicationId
-            }
+            disabled={saving || !draft.title.trim() || !draft.text.trim() || !draft.applicationId}
             onClick={save}
             type="button"
           >

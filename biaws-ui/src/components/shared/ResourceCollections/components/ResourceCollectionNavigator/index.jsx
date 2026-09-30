@@ -52,9 +52,7 @@ export function ResourceCollectionNavigator({
 
   function canDropOnItem(item) {
     return (
-      Boolean(onReorderItem) &&
-      isItemReorderDrop(draggedItem, item, getItemId) &&
-      canReorderItem(draggedItem, item)
+      Boolean(onReorderItem) && isItemReorderDrop(draggedItem, item, getItemId) && canReorderItem(draggedItem, item)
     );
   }
 
@@ -98,41 +96,20 @@ export function ResourceCollectionNavigator({
       navigator.setDropTargetId(collectionId);
     },
   };
-  const actionsInBar = Boolean(
-    barActionTargets?.collectionFilterTarget ||
-    barActionTargets?.viewModeTarget,
-  );
+  const actionsInBar = Boolean(barActionTargets?.collectionFilterTarget || barActionTargets?.viewModeTarget);
 
   return (
-    <aside
-      className={["resourceCollectionsPanel", className]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      <ResourceCollectionNavigatorHeader
-        actionsInBar={actionsInBar}
-        itemLabel={itemLabel}
-        navigator={navigator}
-      />
+    <aside className={["resourceCollectionsPanel", className].filter(Boolean).join(" ")}>
+      <ResourceCollectionNavigatorHeader actionsInBar={actionsInBar} itemLabel={itemLabel} navigator={navigator} />
 
       {barActionTargets?.viewModeTarget
-        ? createPortal(
-            <ViewModeAction navigator={navigator} />,
-            barActionTargets.viewModeTarget,
-          )
+        ? createPortal(<ViewModeAction navigator={navigator} />, barActionTargets.viewModeTarget)
         : null}
       {barActionTargets?.collectionFilterTarget
-        ? createPortal(
-            <CollectionFilterAction navigator={navigator} />,
-            barActionTargets.collectionFilterTarget,
-          )
+        ? createPortal(<CollectionFilterAction navigator={navigator} />, barActionTargets.collectionFilterTarget)
         : null}
 
-      {navigator.viewMode === "tree" ? (
-        <CollectionTree {...viewProps} />
-      ) : (
-        <CollectionColumns {...viewProps} />
-      )}
+      {navigator.viewMode === "tree" ? <CollectionTree {...viewProps} /> : <CollectionColumns {...viewProps} />}
     </aside>
   );
 }

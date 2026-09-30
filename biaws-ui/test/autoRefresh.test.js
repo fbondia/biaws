@@ -6,22 +6,12 @@ import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 
-import {
-  monitoringRefreshIntervalMs,
-  useAutoRefresh,
-  useManualExecutionRefresh,
-} from "../src/hooks/useAutoRefresh.js";
+import { monitoringRefreshIntervalMs, useAutoRefresh, useManualExecutionRefresh } from "../src/hooks/useAutoRefresh.js";
 
 test("monitoring refresh interval has a safe default and lower bound", () => {
   assert.equal(monitoringRefreshIntervalMs({}), 30_000);
-  assert.equal(
-    monitoringRefreshIntervalMs({ VITE_MONITORING_REFRESH_SECONDS: "15" }),
-    15_000,
-  );
-  assert.equal(
-    monitoringRefreshIntervalMs({ VITE_MONITORING_REFRESH_SECONDS: "1" }),
-    5_000,
-  );
+  assert.equal(monitoringRefreshIntervalMs({ VITE_MONITORING_REFRESH_SECONDS: "15" }), 15_000);
+  assert.equal(monitoringRefreshIntervalMs({ VITE_MONITORING_REFRESH_SECONDS: "1" }), 5_000);
   assert.equal(
     monitoringRefreshIntervalMs({
       VITE_MONITORING_REFRESH_SECONDS: "invalid",
@@ -33,10 +23,7 @@ test("monitoring refresh interval has a safe default and lower bound", () => {
 function installDom() {
   const dom = new JSDOM("<!doctype html><div id=app></div>");
   const previous = Object.fromEntries(
-    ["document", "window"].map((name) => [
-      name,
-      Object.getOwnPropertyDescriptor(globalThis, name),
-    ]),
+    ["document", "window"].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   Object.defineProperties(globalThis, {
     document: { configurable: true, value: dom.window.document },

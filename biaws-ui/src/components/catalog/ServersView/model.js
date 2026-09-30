@@ -1,15 +1,6 @@
-export function buildServerApplicationGroups({
-  applications = [],
-  components = [],
-  deployments = [],
-  runtimes = [],
-}) {
-  const applicationsById = new Map(
-    applications.map((application) => [application.id, application]),
-  );
-  const componentsById = new Map(
-    components.map((component) => [component.id, component]),
-  );
+export function buildServerApplicationGroups({ applications = [], components = [], deployments = [], runtimes = [] }) {
+  const applicationsById = new Map(applications.map((application) => [application.id, application]));
+  const componentsById = new Map(components.map((component) => [component.id, component]));
   const runtimesByDeployment = runtimes.reduce((groups, runtime) => {
     const current = groups.get(runtime.deploymentId) || [];
     current.push(runtime);
@@ -37,8 +28,7 @@ export function buildServerApplicationGroups({
     };
     componentGroup.environments.add(deployment.environment);
     componentGroup.deploymentCount += 1;
-    componentGroup.runtimeCount +=
-      runtimesByDeployment.get(deployment.id)?.length || 0;
+    componentGroup.runtimeCount += runtimesByDeployment.get(deployment.id)?.length || 0;
     applicationGroup.components.set(component.id, componentGroup);
     grouped.set(application.id, applicationGroup);
   });
@@ -49,9 +39,7 @@ export function buildServerApplicationGroups({
       components: [...application.components.values()]
         .map((component) => ({
           ...component,
-          environments: [...component.environments].sort((left, right) =>
-            left.localeCompare(right, "pt-BR"),
-          ),
+          environments: [...component.environments].sort((left, right) => left.localeCompare(right, "pt-BR")),
         }))
         .sort((left, right) => left.name.localeCompare(right.name, "pt-BR")),
     }))

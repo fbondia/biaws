@@ -21,8 +21,7 @@ export function RuntimeProcedureDetailsDialog({
     .filter(Boolean)
     .find(({ id }) => id === document.applicationId);
   const componentNames = (document.affectedComponentIds || []).map(
-    (componentId) =>
-      components.find(({ id }) => id === componentId)?.name || componentId,
+    (componentId) => components.find(({ id }) => id === componentId)?.name || componentId,
   );
 
   return (
@@ -43,12 +42,7 @@ export function RuntimeProcedureDetailsDialog({
             <span>Documento relacionado</span>
             <h2 id="runtimeProcedureDetailsTitle">{document.title}</h2>
           </div>
-          <button
-            aria-label="Fechar"
-            className="iconButton"
-            onClick={onClose}
-            type="button"
-          >
+          <button aria-label="Fechar" className="iconButton" onClick={onClose} type="button">
             <X size={18} />
           </button>
         </header>
@@ -60,17 +54,11 @@ export function RuntimeProcedureDetailsDialog({
           <div className="runtimeProcedureDetailsMetadata">
             <div>
               <span>Aplicação</span>
-              <strong>
-                {application?.name || "Conhecimento geral do workspace"}
-              </strong>
+              <strong>{application?.name || "Conhecimento geral do workspace"}</strong>
             </div>
             <div>
               <span>Componentes afetados</span>
-              <strong>
-                {componentNames.length
-                  ? componentNames.join(", ")
-                  : "Nenhum componente informado"}
-              </strong>
+              <strong>{componentNames.length ? componentNames.join(", ") : "Nenhum componente informado"}</strong>
             </div>
             <div>
               <span>Data de criação</span>

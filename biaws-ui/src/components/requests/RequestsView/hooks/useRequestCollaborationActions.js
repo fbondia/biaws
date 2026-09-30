@@ -30,9 +30,7 @@ export function useRequestCollaborationActions({
       setRequestError(error.message);
       return false;
     } finally {
-      setSavingRequestId((current) =>
-        current === selectedRequest.id ? "" : current,
-      );
+      setSavingRequestId((current) => (current === selectedRequest.id ? "" : current));
     }
   }
 
@@ -50,9 +48,7 @@ export function useRequestCollaborationActions({
       setRequestError(error.message);
       return false;
     } finally {
-      setSavingRequestId((current) =>
-        current === selectedRequest.id ? "" : current,
-      );
+      setSavingRequestId((current) => (current === selectedRequest.id ? "" : current));
     }
   }
 
@@ -70,9 +66,7 @@ export function useRequestCollaborationActions({
       setRequestError(error.message);
       return false;
     } finally {
-      setSavingRequestId((current) =>
-        current === selectedRequest.id ? "" : current,
-      );
+      setSavingRequestId((current) => (current === selectedRequest.id ? "" : current));
     }
   }
 
@@ -89,9 +83,7 @@ export function useRequestCollaborationActions({
       setRequestError(error.message);
       return false;
     } finally {
-      setSavingRequestId((current) =>
-        current === selectedRequest.id ? "" : current,
-      );
+      setSavingRequestId((current) => (current === selectedRequest.id ? "" : current));
     }
   }
 
@@ -108,9 +100,7 @@ export function useRequestCollaborationActions({
       setRequestError(error.message);
       return false;
     } finally {
-      setSavingRequestId((current) =>
-        current === selectedRequest.id ? "" : current,
-      );
+      setSavingRequestId((current) => (current === selectedRequest.id ? "" : current));
     }
   }
 
@@ -127,9 +117,7 @@ export function useRequestCollaborationActions({
       setRequestError(error.message);
       return false;
     } finally {
-      setSavingRequestId((current) =>
-        current === selectedRequest.id ? "" : current,
-      );
+      setSavingRequestId((current) => (current === selectedRequest.id ? "" : current));
     }
   }
 
@@ -138,20 +126,14 @@ export function useRequestCollaborationActions({
     setSavingRequestId(selectedRequest.id);
     setRequestError("");
     try {
-      const payload = await createRequestTaskNote(
-        selectedRequest.id,
-        taskId,
-        note,
-      );
+      const payload = await createRequestTaskNote(selectedRequest.id, taskId, note);
       if (payload.request) upsertRequestInList(payload.request);
       return true;
     } catch (error) {
       setRequestError(error.message);
       return false;
     } finally {
-      setSavingRequestId((current) =>
-        current === selectedRequest.id ? "" : current,
-      );
+      setSavingRequestId((current) => (current === selectedRequest.id ? "" : current));
     }
   }
 
@@ -160,21 +142,14 @@ export function useRequestCollaborationActions({
     setSavingRequestId(selectedRequest.id);
     setRequestError("");
     try {
-      const payload = await saveRequestTaskNote(
-        selectedRequest.id,
-        taskId,
-        noteId,
-        note,
-      );
+      const payload = await saveRequestTaskNote(selectedRequest.id, taskId, noteId, note);
       if (payload.request) upsertRequestInList(payload.request);
       return true;
     } catch (error) {
       setRequestError(error.message);
       return false;
     } finally {
-      setSavingRequestId((current) =>
-        current === selectedRequest.id ? "" : current,
-      );
+      setSavingRequestId((current) => (current === selectedRequest.id ? "" : current));
     }
   }
 
@@ -183,20 +158,14 @@ export function useRequestCollaborationActions({
     setSavingRequestId(selectedRequest.id);
     setRequestError("");
     try {
-      const payload = await deleteRequestTaskNote(
-        selectedRequest.id,
-        taskId,
-        noteId,
-      );
+      const payload = await deleteRequestTaskNote(selectedRequest.id, taskId, noteId);
       if (payload.request) upsertRequestInList(payload.request);
       return true;
     } catch (error) {
       setRequestError(error.message);
       return false;
     } finally {
-      setSavingRequestId((current) =>
-        current === selectedRequest.id ? "" : current,
-      );
+      setSavingRequestId((current) => (current === selectedRequest.id ? "" : current));
     }
   }
 

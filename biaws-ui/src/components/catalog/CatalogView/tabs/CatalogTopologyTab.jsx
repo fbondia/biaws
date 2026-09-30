@@ -35,9 +35,7 @@ export function CatalogTopologyTab({
     hasPermission(actor, "applications.read");
   const components = useMemo(() => {
     if (canReadComponents) return context.components;
-    const componentIds = [
-      ...new Set(context.deployments.map(({ componentId }) => componentId)),
-    ];
+    const componentIds = [...new Set(context.deployments.map(({ componentId }) => componentId))];
     return componentIds.map((id) => ({
       id,
       name: id,
@@ -47,45 +45,27 @@ export function CatalogTopologyTab({
   }, [canReadComponents, context.components, context.deployments]);
   const visibleComponents = useMemo(() => {
     if (!deployableOnly) return components;
-    const deployableComponentIds = new Set(
-      context.deployments.map(({ componentId }) => componentId),
-    );
+    const deployableComponentIds = new Set(context.deployments.map(({ componentId }) => componentId));
     return components.filter(({ id }) => deployableComponentIds.has(id));
   }, [components, context.deployments, deployableOnly]);
   const deployments = useMemo(
     () =>
-      selectedComponentId
-        ? context.deployments.filter(
-            ({ componentId }) => componentId === selectedComponentId,
-          )
-        : [],
+      selectedComponentId ? context.deployments.filter(({ componentId }) => componentId === selectedComponentId) : [],
     [context.deployments, selectedComponentId],
   );
-  const runtimes = selectedDeploymentId
-    ? runtimeByDeployment[selectedDeploymentId]
-    : undefined;
-  const selectedComponent = components.find(
-    ({ id }) => id === selectedComponentId,
-  );
-  const selectedDeployment = context.deployments.find(
-    ({ id }) => id === selectedDeploymentId,
-  );
+  const runtimes = selectedDeploymentId ? runtimeByDeployment[selectedDeploymentId] : undefined;
+  const selectedComponent = components.find(({ id }) => id === selectedComponentId);
+  const selectedDeployment = context.deployments.find(({ id }) => id === selectedDeploymentId);
 
   useEffect(() => {
-    if (
-      selectedComponentId &&
-      !visibleComponents.some(({ id }) => id === selectedComponentId)
-    ) {
+    if (selectedComponentId && !visibleComponents.some(({ id }) => id === selectedComponentId)) {
       setSelectedComponentId("");
       setSelectedDeploymentId("");
     }
   }, [selectedComponentId, visibleComponents]);
 
   useEffect(() => {
-    if (
-      selectedDeploymentId &&
-      !deployments.some(({ id }) => id === selectedDeploymentId)
-    ) {
+    if (selectedDeploymentId && !deployments.some(({ id }) => id === selectedDeploymentId)) {
       setSelectedDeploymentId("");
     }
   }, [deployments, selectedDeploymentId]);
@@ -100,13 +80,7 @@ export function CatalogTopologyTab({
     ) {
       loadRuntimes(selectedDeploymentId);
     }
-  }, [
-    canReadRuntimes,
-    selectedDeploymentId,
-    runtimes,
-    runtimeLoadingByDeployment,
-    runtimeErrorByDeployment,
-  ]);
+  }, [canReadRuntimes, selectedDeploymentId, runtimes, runtimeLoadingByDeployment, runtimeErrorByDeployment]);
 
   function selectComponent(componentId) {
     setSelectedComponentId(componentId);

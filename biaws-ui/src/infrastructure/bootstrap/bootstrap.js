@@ -32,9 +32,7 @@ function validateCapabilities(capabilities) {
 
   for (const capability of capabilities) {
     if (!capability?.id || typeof capability.initialize !== "function") {
-      throw new TypeError(
-        "Bootstrap capabilities require an id and an initialize function",
-      );
+      throw new TypeError("Bootstrap capabilities require an id and an initialize function");
     }
     if (ids.has(capability.id)) {
       throw new Error(`Duplicate bootstrap capability: ${capability.id}`);
@@ -45,9 +43,7 @@ function validateCapabilities(capabilities) {
   for (const capability of capabilities) {
     for (const dependencyId of capability.dependsOn || []) {
       if (!ids.has(dependencyId)) {
-        throw new Error(
-          `Unknown bootstrap dependency ${dependencyId} for ${capability.id}`,
-        );
+        throw new Error(`Unknown bootstrap dependency ${dependencyId} for ${capability.id}`);
       }
     }
   }
@@ -81,9 +77,7 @@ function replaceCapability(state, id, update) {
 
 function finalStatus(capabilities) {
   const failures = capabilities.filter((capability) =>
-    [CAPABILITY_STATUS.FAILED, CAPABILITY_STATUS.BLOCKED].includes(
-      capability.status,
-    ),
+    [CAPABILITY_STATUS.FAILED, CAPABILITY_STATUS.BLOCKED].includes(capability.status),
   );
 
   if (failures.some((capability) => capability.critical)) {
@@ -124,17 +118,11 @@ async function disposeInitializedCapabilities(initialized) {
   }
 
   if (failures.length) {
-    throw new AggregateError(
-      failures,
-      "Failed to dispose one or more infrastructure capabilities",
-    );
+    throw new AggregateError(failures, "Failed to dispose one or more infrastructure capabilities");
   }
 }
 
-export async function disposeInfrastructureSafely(
-  bootstrap,
-  onDisposeError = () => {},
-) {
+export async function disposeInfrastructureSafely(bootstrap, onDisposeError = () => {}) {
   if (!bootstrap) return;
 
   try {
@@ -148,10 +136,7 @@ export async function disposeInfrastructureSafely(
  * Initializes capabilities in declaration order while containing individual
  * failures. Only hard dependencies in `dependsOn` block another capability.
  */
-export async function initializeInfrastructure({
-  capabilities,
-  onStateChange = () => {},
-}) {
+export async function initializeInfrastructure({ capabilities, onStateChange = () => {} }) {
   let state = createInitialBootstrapState(capabilities);
   const initialized = [];
   const values = new Map();
@@ -159,9 +144,7 @@ export async function initializeInfrastructure({
 
   for (const capability of capabilities) {
     const unavailableDependency = (capability.dependsOn || []).find(
-      (dependencyId) =>
-        state.capabilities.find(({ id }) => id === dependencyId)?.status !==
-        CAPABILITY_STATUS.READY,
+      (dependencyId) => state.capabilities.find(({ id }) => id === dependencyId)?.status !== CAPABILITY_STATUS.READY,
     );
 
     if (unavailableDependency) {

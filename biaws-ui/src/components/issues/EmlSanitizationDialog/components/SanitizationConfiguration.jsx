@@ -12,10 +12,7 @@ export function SanitizationConfiguration({ config, updateConfig }) {
       <section className="sanitizationSection">
         <div>
           <h3>Prefixos do assunto</h3>
-          <p>
-            Um prefixo por linha. Eles são removidos repetidamente do início do
-            assunto.
-          </p>
+          <p>Um prefixo por linha. Eles são removidos repetidamente do início do assunto.</p>
         </div>
         <textarea
           onChange={(event) =>
@@ -31,22 +28,15 @@ export function SanitizationConfiguration({ config, updateConfig }) {
       <section className="sanitizationSection">
         <div>
           <h3>Trechos removidos do corpo</h3>
-          <p>
-            As expressões regulares ativas são aplicadas na ordem apresentada.
-          </p>
+          <p>As expressões regulares ativas são aplicadas na ordem apresentada.</p>
         </div>
-        <RuleEditor
-          onChange={(bodyRules) => updateConfig({ bodyRules })}
-          rules={config.bodyRules}
-        />
+        <RuleEditor onChange={(bodyRules) => updateConfig({ bodyRules })} rules={config.bodyRules} />
       </section>
 
       <section className="sanitizationSection">
         <div>
           <h3>Separadores da conversa</h3>
-          <p>
-            Expressões que identificam o começo de cada mensagem encaminhada.
-          </p>
+          <p>Expressões que identificam o começo de cada mensagem encaminhada.</p>
         </div>
         <SeparatorEditor config={config} updateConfig={updateConfig} />
       </section>
@@ -82,11 +72,7 @@ export function SanitizationConfiguration({ config, updateConfig }) {
 
 function RuleEditor({ rules, onChange }) {
   function update(index, patch) {
-    onChange(
-      rules.map((rule, ruleIndex) =>
-        ruleIndex === index ? { ...rule, ...patch } : rule,
-      ),
-    );
+    onChange(rules.map((rule, ruleIndex) => (ruleIndex === index ? { ...rule, ...patch } : rule)));
   }
 
   return (
@@ -96,26 +82,19 @@ function RuleEditor({ rules, onChange }) {
           <label className="sanitizationRuleEnabled">
             <input
               checked={rule.enabled !== false}
-              onChange={(event) =>
-                update(index, { enabled: event.target.checked })
-              }
+              onChange={(event) => update(index, { enabled: event.target.checked })}
               type="checkbox"
             />
             Ativa
           </label>
           <label>
             <span>Nome</span>
-            <input
-              onChange={(event) => update(index, { label: event.target.value })}
-              value={rule.label}
-            />
+            <input onChange={(event) => update(index, { label: event.target.value })} value={rule.label} />
           </label>
           <label className="sanitizationPatternField">
             <span>Expressão regular</span>
             <textarea
-              onChange={(event) =>
-                update(index, { pattern: event.target.value })
-              }
+              onChange={(event) => update(index, { pattern: event.target.value })}
               rows={2}
               spellCheck={false}
               value={rule.pattern}
@@ -131,9 +110,7 @@ function RuleEditor({ rules, onChange }) {
           </label>
           <button
             className="iconButton"
-            onClick={() =>
-              onChange(rules.filter((_, ruleIndex) => ruleIndex !== index))
-            }
+            onClick={() => onChange(rules.filter((_, ruleIndex) => ruleIndex !== index))}
             title="Excluir regra"
             type="button"
           >
@@ -171,9 +148,8 @@ function SeparatorEditor({ config, updateConfig }) {
           <textarea
             onChange={(event) =>
               updateConfig({
-                threadSeparators: config.threadSeparators.map(
-                  (item, itemIndex) =>
-                    itemIndex === index ? event.target.value : item,
+                threadSeparators: config.threadSeparators.map((item, itemIndex) =>
+                  itemIndex === index ? event.target.value : item,
                 ),
               })
             }
@@ -185,9 +161,7 @@ function SeparatorEditor({ config, updateConfig }) {
             className="iconButton"
             onClick={() =>
               updateConfig({
-                threadSeparators: config.threadSeparators.filter(
-                  (_, itemIndex) => itemIndex !== index,
-                ),
+                threadSeparators: config.threadSeparators.filter((_, itemIndex) => itemIndex !== index),
               })
             }
             title="Excluir separador"

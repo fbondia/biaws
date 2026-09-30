@@ -54,10 +54,7 @@ function monitor(overrides = {}) {
 test("execution logs carry monitor and catalog context", async () => {
   const entries = [];
   const contextualLogger = Object.fromEntries(
-    ["info", "warn", "error"].map((level) => [
-      level,
-      (event, fields) => entries.push({ level, event, fields }),
-    ]),
+    ["info", "warn", "error"].map((level) => [level, (event, fields) => entries.push({ level, event, fields })]),
   );
   const engine = new ExecutorEngine({
     api: {
@@ -80,12 +77,8 @@ test("execution logs carry monitor and catalog context", async () => {
 
   await engine.pollOnce();
 
-  const started = entries.find(
-    ({ event }) => event === "executor_execution_started",
-  );
-  const completed = entries.find(
-    ({ event }) => event === "executor_execution_completed",
-  );
+  const started = entries.find(({ event }) => event === "executor_execution_started");
+  const completed = entries.find(({ event }) => event === "executor_execution_completed");
   assert.deepEqual(started.fields, {
     workspaceId: "workspace-1",
     applicationId: "application-1",
@@ -136,9 +129,7 @@ test("two replicas sharing the API publish one acquired occurrence", async () =>
       }),
   );
 
-  const acquired = await Promise.all(
-    engines.map((engine) => engine.pollOnce()),
-  );
+  const acquired = await Promise.all(engines.map((engine) => engine.pollOnce()));
 
   assert.equal(acquired.flat().length, 1);
   assert.equal(published.length, 1);
@@ -152,8 +143,7 @@ test("temporary API failures use bounded exponential backoff", async () => {
     api: {
       async acquire() {
         attempts += 1;
-        if (attempts < 3)
-          throw Object.assign(new Error("temporary"), { retryable: true });
+        if (attempts < 3) throw Object.assign(new Error("temporary"), { retryable: true });
         return { items: [] };
       },
     },

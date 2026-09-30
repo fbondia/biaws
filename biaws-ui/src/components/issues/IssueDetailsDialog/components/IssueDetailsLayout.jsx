@@ -2,11 +2,7 @@ import { X } from "lucide-react";
 
 import { ALL_STATUS_OPTIONS } from "../../../../constants/issues.js";
 import { formatDate, statusClass } from "../../../../utils/issues.js";
-import {
-  DETAIL_TABS,
-  getTaxonomyDisplayValue,
-  optionLabel,
-} from "./ClassificationControls.jsx";
+import { DETAIL_TABS, getTaxonomyDisplayValue, optionLabel } from "./ClassificationControls.jsx";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
 export function IssueDetailsLayout({
@@ -27,26 +23,14 @@ export function IssueDetailsLayout({
   typeLabel,
   updatingIssueField,
 }) {
-  const hasCurrentStatus = editableStatusOptions.some(
-    (option) => option.value === issue.status,
-  );
+  const hasCurrentStatus = editableStatusOptions.some((option) => option.value === issue.status);
   return (
     <div className="dialogBackdrop" onMouseDown={closeOnBackdrop}>
-      <section
-        aria-labelledby="issue-dialog-title"
-        aria-modal="true"
-        className="issueDialog"
-        role="dialog"
-      >
+      <section aria-labelledby="issue-dialog-title" aria-modal="true" className="issueDialog" role="dialog">
         <header className="dialogHeader">
           <div className="dialogTitleBlock">
             <div className="dialogKicker">
-              <EntityIdentifier
-                fallback="Issue"
-                label="Código do issue"
-                value={issue.id}
-                variant="chip"
-              />
+              <EntityIdentifier fallback="Issue" label="Código do issue" value={issue.id} variant="chip" />
               <span className="typeBadge">
                 <TypeIcon size={14} />
                 {typeLabel}
@@ -54,14 +38,8 @@ export function IssueDetailsLayout({
               <select
                 aria-label="Status do issue"
                 className={`dialogStatusSelect inlineIssueSelect inlineStatusSelect ${statusClass(issue.status)}`}
-                disabled={
-                  loading ||
-                  updatingIssueField === `${issue.id}:status` ||
-                  !onUpdateIssueField
-                }
-                onChange={(event) =>
-                  onUpdateIssueField?.(issue, "status", event.target.value)
-                }
+                disabled={loading || updatingIssueField === `${issue.id}:status` || !onUpdateIssueField}
+                onChange={(event) => onUpdateIssueField?.(issue, "status", event.target.value)}
                 value={hasCurrentStatus ? issue.status : ""}
               >
                 {hasCurrentStatus ? null : (
@@ -76,25 +54,16 @@ export function IssueDetailsLayout({
                 ))}
               </select>
             </div>
-            <h2 id="issue-dialog-title">
-              {issue.title || "Detalhes do issue"}
-            </h2>
+            <h2 id="issue-dialog-title">{issue.title || "Detalhes do issue"}</h2>
           </div>
-          <button
-            className="iconButton"
-            type="button"
-            onClick={onClose}
-            title="Fechar"
-          >
+          <button className="iconButton" type="button" onClick={onClose} title="Fechar">
             <X size={18} />
           </button>
         </header>
 
         <div className="dialogBody">
           {error ? <div className="errorBox dialogError">{error}</div> : null}
-          {loading ? (
-            <div className="loadingLine">Carregando detalhes...</div>
-          ) : null}
+          {loading ? <div className="loadingLine">Carregando detalhes...</div> : null}
 
           <section className="detailGrid" aria-label="Dados do issue">
             <div>
@@ -115,21 +84,14 @@ export function IssueDetailsLayout({
             </div>
             <div className="detailTaxonomyCard">
               <span>Assunto principal</span>
-              <strong>
-                {getTaxonomyDisplayValue(
-                  taxonomyById,
-                  persistedClassification.primaryTaxonomyId,
-                )}
-              </strong>
+              <strong>{getTaxonomyDisplayValue(taxonomyById, persistedClassification.primaryTaxonomyId)}</strong>
             </div>
             <div className="detailTaxonomyCard">
               <span>Assuntos secundários</span>
               <strong>
                 {persistedClassification.secondaryTaxonomyIds.length
                   ? persistedClassification.secondaryTaxonomyIds
-                      .map((taxonomyId) =>
-                        getTaxonomyDisplayValue(taxonomyById, taxonomyId),
-                      )
+                      .map((taxonomyId) => getTaxonomyDisplayValue(taxonomyById, taxonomyId))
                       .join("; ")
                   : "Sem classificação"}
               </strong>
@@ -139,14 +101,8 @@ export function IssueDetailsLayout({
               {selectedTagEntries.length ? (
                 <div className="detailTagList">
                   {selectedTagEntries.map((tag) => (
-                    <span
-                      className="issueTagPill"
-                      key={`${tag.groupLabel}-${tag.tagId}`}
-                    >
-                      <span
-                        className="tagColorSwatch"
-                        style={{ backgroundColor: tag.color }}
-                      />
+                    <span className="issueTagPill" key={`${tag.groupLabel}-${tag.tagId}`}>
+                      <span className="tagColorSwatch" style={{ backgroundColor: tag.color }} />
                       {tag.groupLabel}: {tag.tagId}
                     </span>
                   ))}
@@ -157,19 +113,11 @@ export function IssueDetailsLayout({
             </div>
           </section>
 
-          <div
-            className="detailTabs"
-            role="tablist"
-            aria-label="Conteúdo do issue"
-          >
+          <div className="detailTabs" role="tablist" aria-label="Conteúdo do issue">
             {DETAIL_TABS.map((tab) => (
               <button
                 aria-selected={activeTab === tab.key}
-                className={
-                  activeTab === tab.key
-                    ? "detailTab activeDetailTab"
-                    : "detailTab"
-                }
+                className={activeTab === tab.key ? "detailTab activeDetailTab" : "detailTab"}
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 role="tab"

@@ -28,15 +28,9 @@ export function TopologyDiagramDialog({ actor, context, onClose }) {
           saving={controller.saving}
         />
         <TopologyDiagramToolbar controller={controller} />
-        {controller.creating ? (
-          <CreateTopologyDiagramForm controller={controller} />
-        ) : null}
-        {controller.error ? (
-          <div className="errorBox">{controller.error}</div>
-        ) : null}
-        {controller.integrationWarning ? (
-          <div className="warningBox">{controller.integrationWarning}</div>
-        ) : null}
+        {controller.creating ? <CreateTopologyDiagramForm controller={controller} /> : null}
+        {controller.error ? <div className="errorBox">{controller.error}</div> : null}
+        {controller.integrationWarning ? <div className="warningBox">{controller.integrationWarning}</div> : null}
         <TopologyDiagramCanvas controller={controller} />
       </section>
     </div>

@@ -9,9 +9,7 @@ import { dateTimeValue, requestListRankValue } from "./ordering.js";
 import { normalizeRequestStatus } from "./status.js";
 
 export function requestChecklist(items) {
-  const sourceItems = Array.isArray(items)
-    ? items
-    : REQUEST_CHECKLIST_ITEMS.map((label) => ({ label }));
+  const sourceItems = Array.isArray(items) ? items : REQUEST_CHECKLIST_ITEMS.map((label) => ({ label }));
   const byLabel = new Map(sourceItems.map((item) => [item.label, item]));
   const labels = sourceItems
     .map((item) => item.label)
@@ -31,8 +29,7 @@ export function journeyRowsForRequest(request) {
       item.month,
       {
         plannedJourneys: Number(item.plannedJourneys ?? item.journeys) || 0,
-        executedJourneys:
-          Number(item.executedJourneys ?? item.billedJourneys) || 0,
+        executedJourneys: Number(item.executedJourneys ?? item.billedJourneys) || 0,
         comment: item.comment || "",
       },
     ]),
@@ -67,9 +64,7 @@ export function normalizeSpecificationSectionTitle(title) {
 
 export function createDefaultSpecificationSection(title) {
   const defaultIndex = REQUEST_SPECIFICATION_SECTION_TITLES.findIndex(
-    (sectionTitle) =>
-      normalizeSpecificationSectionTitle(sectionTitle) ===
-      normalizeSpecificationSectionTitle(title),
+    (sectionTitle) => normalizeSpecificationSectionTitle(sectionTitle) === normalizeSpecificationSectionTitle(title),
   );
 
   return {
@@ -93,9 +88,7 @@ export function normalizeSpecification(specification) {
         id: String(section?.id || `section-${index + 1}`),
         title: String(section?.title || "Nova seção"),
         content: String(section?.content || ""),
-        order: Number.isFinite(Number(section?.order))
-          ? Number(section.order)
-          : index,
+        order: Number.isFinite(Number(section?.order)) ? Number(section.order) : index,
       }))
       .sort((first, second) => first.order - second.order)
       .map((section, index) => ({ ...section, order: index })),
@@ -140,9 +133,7 @@ export function normalizeRequestTasks(tasks) {
     requestId: String(task?.requestId || ""),
     code: String(task?.code || ""),
     title: String(task?.title || ""),
-    status: REQUEST_ALL_TASK_STATUS_OPTIONS.includes(task?.status)
-      ? task.status
-      : REQUEST_DEFAULTS.taskStatus,
+    status: REQUEST_ALL_TASK_STATUS_OPTIONS.includes(task?.status) ? task.status : REQUEST_DEFAULTS.taskStatus,
     startDate: String(task?.startDate || ""),
     endDate: String(task?.endDate || ""),
     situation: String(task?.situation || ""),
@@ -175,9 +166,7 @@ export function normalizeRequest(request) {
     ...request,
     collectionId: String(request.collectionId || ""),
     applicationId: String(request.applicationId || ""),
-    affectedComponentIds: Array.isArray(request.affectedComponentIds)
-      ? request.affectedComponentIds
-      : [],
+    affectedComponentIds: Array.isArray(request.affectedComponentIds) ? request.affectedComponentIds : [],
     listRank: requestListRankValue(request),
     status: normalizeRequestStatus(request.status),
     description: request.description || "",

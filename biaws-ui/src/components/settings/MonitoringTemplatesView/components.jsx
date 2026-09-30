@@ -17,26 +17,16 @@ export function VersionRow({
     <li>
       <div>
         <strong>v{version.version}</strong>
-        <span
-          className={`catalogStatus catalogStatus-${version.status === "active" ? "active" : "archived"}`}
-        >
+        <span className={`catalogStatus catalogStatus-${version.status === "active" ? "active" : "archived"}`}>
           {templateStatusLabel(version.status)}
         </span>
         <small>{new Date(version.updatedAt).toLocaleString("pt-BR")}</small>
       </div>
       <div className="monitoringTemplateVersionActions">
-        <button
-          className="secondaryButton"
-          onClick={() => onUsage(version)}
-          type="button"
-        >
+        <button className="secondaryButton" onClick={() => onUsage(version)} type="button">
           Uso
         </button>
-        <button
-          className="secondaryButton"
-          onClick={() => onValidate(version)}
-          type="button"
-        >
+        <button className="secondaryButton" onClick={() => onValidate(version)} type="button">
           {validated ? "Teste aprovado" : "Testar versão"}
         </button>
         {canManage ? (
@@ -62,8 +52,7 @@ export function VersionRow({
       </div>
       {usage?.templateRef?.version === version.version ? (
         <p className="monitoringTemplateUsage">
-          {usage.monitors ?? usage.activeMonitors} monitoramento(s) ·{" "}
-          {usage.observations} observação(ões) histórica(s)
+          {usage.monitors ?? usage.activeMonitors} monitoramento(s) · {usage.observations} observação(ões) histórica(s)
         </p>
       ) : null}
     </li>

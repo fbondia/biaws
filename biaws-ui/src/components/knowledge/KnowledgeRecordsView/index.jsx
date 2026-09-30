@@ -38,22 +38,14 @@ function KnowledgeCollectionDialog({ collectionsState }) {
   );
 }
 
-function documentPathLabel({
-  collectionsState,
-  creating,
-  draft,
-  searchActive,
-}) {
+function documentPathLabel({ collectionsState, creating, draft, searchActive }) {
   if (draft) {
-    const typeLabel =
-      DOCUMENT_TYPES[draft.documentType].label.toLocaleLowerCase("pt-BR");
+    const typeLabel = DOCUMENT_TYPES[draft.documentType].label.toLocaleLowerCase("pt-BR");
     const title = draft.title || `Novo ${typeLabel}`;
     return `${collectionPathLabel(collectionsState.collections, draft.collectionId)} / ${title}`;
   }
   if (creating) {
-    const collectionId = searchActive
-      ? ""
-      : collectionsState.selectedCollectionId;
+    const collectionId = searchActive ? "" : collectionsState.selectedCollectionId;
     return `${collectionPathLabel(collectionsState.collections, collectionId)} / Novo documento`;
   }
   return searchActive ? "Resultados da busca" : undefined;
@@ -100,9 +92,7 @@ function KnowledgeNavigator({
           collectionId: record.collectionId || "",
         })
       }
-      onDrop={(collectionId) =>
-        collectionsState.dropItem(collectionId, moveItem)
-      }
+      onDrop={(collectionId) => collectionsState.dropItem(collectionId, moveItem)}
       onRename={collectionsState.setCollectionDialog}
       onRestoreItem={permissions.archive ? onRestore : undefined}
       onSelect={onSelectCollection}
@@ -175,9 +165,7 @@ export function KnowledgeRecordsView({ actor }) {
   );
 
   useEffect(() => {
-    const visibleIds = new Set(
-      visibleRecordIdsKey ? visibleRecordIdsKey.split("\u0000") : [],
-    );
+    const visibleIds = new Set(visibleRecordIdsKey ? visibleRecordIdsKey.split("\u0000") : []);
     setSelectedRecordIds((current) => {
       const next = current.filter((recordId) => visibleIds.has(recordId));
       return next.length === current.length ? current : next;
@@ -186,9 +174,7 @@ export function KnowledgeRecordsView({ actor }) {
 
   function toggleRecordSelection(recordId) {
     setSelectedRecordIds((current) =>
-      current.includes(recordId)
-        ? current.filter((id) => id !== recordId)
-        : [...current, recordId],
+      current.includes(recordId) ? current.filter((id) => id !== recordId) : [...current, recordId],
     );
   }
 
@@ -203,17 +189,11 @@ export function KnowledgeRecordsView({ actor }) {
         <div className="knowledgeRecordsHero">
           <span>Conhecimento</span>
           <h2>Documentação</h2>
-          <p>
-            Centralize documentos e referências operacionais das aplicações.
-          </p>
+          <p>Centralize documentos e referências operacionais das aplicações.</p>
         </div>
         {permissions.create ? (
           <div className="documentCreateActions">
-            <button
-              className="primaryButton"
-              onClick={startCreating}
-              type="button"
-            >
+            <button className="primaryButton" onClick={startCreating} type="button">
               <Plus size={16} /> Novo documento
             </button>
           </div>
@@ -274,17 +254,12 @@ export function KnowledgeRecordsView({ actor }) {
                       }}
                     />
                   ) : null}
-                  <DocumentTypeFilter
-                    onChange={selectTypeFilter}
-                    value={typeFilter}
-                  />
+                  <DocumentTypeFilter onChange={selectTypeFilter} value={typeFilter} />
                 </div>
               }
               archivedItemsLabel="documentos arquivados"
               className="knowledgeCollectionSearch"
-              hasActiveFilters={Boolean(
-                search || typeFilter || applicationFilter || componentFilter,
-              )}
+              hasActiveFilters={Boolean(search || typeFilter || applicationFilter || componentFilter)}
               includeArchived={includeArchived}
               loading={loading}
               onClearFilters={() => {
@@ -305,11 +280,7 @@ export function KnowledgeRecordsView({ actor }) {
         }
       >
         {creating ? (
-          <DocumentTypeSelection
-            onContinue={continueCreation}
-            onSelect={setCreateType}
-            selectedType={createType}
-          />
+          <DocumentTypeSelection onContinue={continueCreation} onSelect={setCreateType} selectedType={createType} />
         ) : draft ? (
           <DocumentDetail
             canArchive={permissions.archive}
@@ -362,15 +333,12 @@ export function KnowledgeRecordsView({ actor }) {
         currentWorkspaceId={actor.workspaceId}
         description={
           <p>
-            Cada documento será criado ou atualizado pelo identificador. O
-            contexto, a classificação e o histórico existentes no destino serão
-            preservados.
+            Cada documento será criado ou atualizado pelo identificador. O contexto, a classificação e o histórico
+            existentes no destino serão preservados.
           </p>
         }
         eyebrow={`${selectedRecords.length} ${
-          selectedRecords.length === 1
-            ? "documento selecionado"
-            : "documentos selecionados"
+          selectedRecords.length === 1 ? "documento selecionado" : "documentos selecionados"
         }`}
         onClose={() => setBulkReplicationOpen(false)}
         onComplete={completeBulkReplication}
@@ -379,15 +347,12 @@ export function KnowledgeRecordsView({ actor }) {
             destinationWorkspaceIds,
             getItemLabel: (record) => record.title,
             items: selectedRecords,
-            replicateItem: (record, workspaceIds) =>
-              replicateDocument(record.id, workspaceIds),
+            replicateItem: (record, workspaceIds) => replicateDocument(record.id, workspaceIds),
             workspaces: actor.workspaces || [],
           })
         }
         open={bulkReplicationOpen}
-        resourceKey={`bulk-documents:${selectedRecords
-          .map(({ id }) => id)
-          .join("|")}`}
+        resourceKey={`bulk-documents:${selectedRecords.map(({ id }) => id).join("|")}`}
         retryFailed={false}
         title="Replicar documentos"
         workspaces={actor.workspaces || []}

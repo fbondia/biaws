@@ -17,32 +17,18 @@ const targets = [
 ];
 
 test("monitoring grid fills the panel and large widgets span every column", () => {
-  const styles = readFileSync(
-    new URL("../src/styles/features/monitoring-center.css", import.meta.url),
-    "utf8",
-  );
-  assert.match(
-    styles,
-    /\.monitoringPanelGrid\s*\{[^}]*width:\s*100%;[^}]*justify-self:\s*stretch;/su,
-  );
-  assert.match(
-    styles,
-    /\.monitoringPanelWidget\.homeWidget-large\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;/su,
-  );
+  const styles = readFileSync(new URL("../src/styles/features/monitoring-center.css", import.meta.url), "utf8");
+  assert.match(styles, /\.monitoringPanelGrid\s*\{[^}]*width:\s*100%;[^}]*justify-self:\s*stretch;/su);
+  assert.match(styles, /\.monitoringPanelWidget\.homeWidget-large\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;/su);
 });
 
 test("monitoring panel selection preserves catalog order and groups applications", () => {
   assert.deepEqual(
-    selectedMonitoringTargets(targets, ["runtime-3", "runtime-1"]).map(
-      ({ id }) => id,
-    ),
+    selectedMonitoringTargets(targets, ["runtime-3", "runtime-1"]).map(({ id }) => id),
     ["runtime-1", "runtime-3"],
   );
   assert.deepEqual(
-    groupMonitoringTargets(targets).map(({ application, targets: items }) => [
-      application.id,
-      items.length,
-    ]),
+    groupMonitoringTargets(targets).map(({ application, targets: items }) => [application.id, items.length]),
     [
       ["app-1", 2],
       ["app-2", 1],
@@ -70,9 +56,7 @@ test("monitoring panel reorders widgets by runtime id", () => {
     { runtimeId: "runtime-3", size: "large" },
   ];
   assert.deepEqual(
-    moveMonitoringWidget(widgets, "runtime-3", "runtime-1").map(
-      ({ runtimeId }) => runtimeId,
-    ),
+    moveMonitoringWidget(widgets, "runtime-3", "runtime-1").map(({ runtimeId }) => runtimeId),
     ["runtime-3", "runtime-1", "runtime-2"],
   );
   assert.equal(moveMonitoringWidget(widgets, "missing", "runtime-1"), widgets);

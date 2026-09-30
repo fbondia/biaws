@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  htmlPreviewDocument,
-  previewKind,
-} from "../src/components/shared/filePreviewModel.js";
+import { htmlPreviewDocument, previewKind } from "../src/components/shared/filePreviewModel.js";
 
 test("HTML preview recognizes extensions and content types", () => {
   assert.equal(

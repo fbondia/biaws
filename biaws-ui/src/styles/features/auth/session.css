@@ -13,12 +13,7 @@
 
 .loginPage {
   background:
-    radial-gradient(
-      circle at top left,
-      var(--palette-alpha-blue-16),
-      transparent 38%
-    ),
-    var(--color-background);
+    radial-gradient(circle at top left, var(--palette-alpha-blue-16), transparent 38%), var(--color-background);
   padding: 24px;
 }
 

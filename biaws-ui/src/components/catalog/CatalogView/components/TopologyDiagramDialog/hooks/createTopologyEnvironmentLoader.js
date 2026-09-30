@@ -1,12 +1,5 @@
-import {
-  fetchComponents,
-  fetchDeployments,
-  fetchRuntimes,
-} from "../../../../../../api.js";
-import {
-  buildTopologyGraph,
-  topologyDiagramPayload,
-} from "../models/topologyDiagramModel.js";
+import { fetchComponents, fetchDeployments, fetchRuntimes } from "../../../../../../api.js";
+import { buildTopologyGraph, topologyDiagramPayload } from "../models/topologyDiagramModel.js";
 import { edgeDirectionMarkers } from "../models/topologyDiagramPresentation.js";
 
 export function createTopologyEnvironmentLoader({
@@ -32,24 +25,16 @@ export function createTopologyEnvironmentLoader({
     setters.setIntegrationWarning("");
     setters.setVisibleDeploymentCount(0);
     try {
-      const localDeployments = context.deployments.filter(
-        (deployment) => deployment.environment === nextEnvironment,
-      );
+      const localDeployments = context.deployments.filter((deployment) => deployment.environment === nextEnvironment);
       const localRuntimeGroups = await Promise.all(
-        localDeployments.map((deployment) =>
-          fetchRuntimes(deployment.id, { limit: 100 }),
-        ),
+        localDeployments.map((deployment) => fetchRuntimes(deployment.id, { limit: 100 })),
       );
       const applicationsById = new Map(
-        (context.availableApplications || []).map((application) => [
-          application.id,
-          application,
-        ]),
+        (context.availableApplications || []).map((application) => [application.id, application]),
       );
       const integratedResults = await Promise.allSettled(
         (context.integrations || []).map(async (integration) => {
-          const application =
-            applicationsById.get(integration.targetApplicationId) || {};
+          const application = applicationsById.get(integration.targetApplicationId) || {};
           const [componentsPayload, deploymentsPayload] = await Promise.all([
             fetchComponents(integration.targetApplicationId, { limit: 100 }),
             fetchDeployments(integration.targetApplicationId, { limit: 100 }),
@@ -58,9 +43,7 @@ export function createTopologyEnvironmentLoader({
             (deployment) => deployment.environment === nextEnvironment,
           );
           const runtimeGroups = await Promise.all(
-            deployments.map((deployment) =>
-              fetchRuntimes(deployment.id, { limit: 100 }),
-            ),
+            deployments.map((deployment) => fetchRuntimes(deployment.id, { limit: 100 })),
           );
           return {
             integration,
@@ -72,8 +55,7 @@ export function createTopologyEnvironmentLoader({
             },
             components: (componentsPayload.items || []).map((component) => ({
               ...component,
-              applicationName:
-                application.name || integration.targetApplicationId,
+              applicationName: application.name || integration.targetApplicationId,
               integrated: true,
               integrationId: integration.id,
             })),
@@ -87,9 +69,7 @@ export function createTopologyEnvironmentLoader({
       const integratedTopology = integratedResults
         .filter(({ status }) => status === "fulfilled")
         .map(({ value }) => value);
-      const unavailableIntegrations = integratedResults.filter(
-        ({ status }) => status === "rejected",
-      ).length;
+      const unavailableIntegrations = integratedResults.filter(({ status }) => status === "rejected").length;
       if (unavailableIntegrations) {
         setters.setIntegrationWarning(
           `${unavailableIntegrations} integração(ões) não pôde(ram) ser carregada(s) com as permissões atuais.`,
@@ -104,22 +84,16 @@ export function createTopologyEnvironmentLoader({
         })),
         ...integratedTopology.flatMap(({ components: items }) => items),
       ];
-      const deployments = [
-        ...localDeployments,
-        ...integratedTopology.flatMap(({ deployments: items }) => items),
-      ];
+      const deployments = [...localDeployments, ...integratedTopology.flatMap(({ deployments: items }) => items)];
       setters.setVisibleDeploymentCount(deployments.length);
       const runtimes = [
         ...localRuntimeGroups.flatMap(({ items }) => items || []),
         ...integratedTopology.flatMap(({ runtimes: items }) => items),
       ];
-      const integratedTopologyById = new Map(
-        integratedTopology.map((result) => [result.integration.id, result]),
-      );
+      const integratedTopologyById = new Map(integratedTopology.map((result) => [result.integration.id, result]));
       const integrations = (context.integrations || []).map((integration) => {
         const loaded = integratedTopologyById.get(integration.id);
-        const application =
-          applicationsById.get(integration.targetApplicationId) || {};
+        const application = applicationsById.get(integration.targetApplicationId) || {};
         return {
           id: integration.id,
           integration,

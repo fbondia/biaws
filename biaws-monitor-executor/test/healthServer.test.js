@@ -33,8 +33,5 @@ test("health handler distinguishes liveness, readiness and metrics", async () =>
   assert.equal((await request(handler, "/health/ready")).statusCode, 503);
   ready = true;
   assert.equal((await request(handler, "/health/ready")).statusCode, 200);
-  assert.match(
-    (await request(handler, "/metrics")).body,
-    /biaws_monitor_executor_polls_total 1/u,
-  );
+  assert.match((await request(handler, "/metrics")).body, /biaws_monitor_executor_polls_total 1/u);
 });

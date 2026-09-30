@@ -1,16 +1,8 @@
 import { ClipboardList } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  fetchIssueTaxonomy,
-  saveIssueClassification,
-  saveIssueTaxonomy,
-  updateIssue,
-} from "../../../../api.js";
-import {
-  ALL_TYPE_OPTIONS,
-  STATUS_OPTIONS,
-} from "../../../../constants/issues.js";
+import { fetchIssueTaxonomy, saveIssueClassification, saveIssueTaxonomy, updateIssue } from "../../../../api.js";
+import { ALL_TYPE_OPTIONS, STATUS_OPTIONS } from "../../../../constants/issues.js";
 import {
   appendTaxonomyNode,
   buildTaxonomyById,
@@ -27,20 +19,14 @@ import {
 } from "../components/ClassificationControls.jsx";
 import { findTaxonomyNode } from "../../../taxonomy/scope.js";
 
-export function useIssueDetailsDialog({
-  details,
-  onClose,
-  onIssueUpdated,
-  preview,
-}) {
+export function useIssueDetailsDialog({ details, onClose, onIssueUpdated, preview }) {
   const baseIssue = details?.issue || preview || {};
   const [activeTab, setActiveTab] = useState("description");
   const [activeTagGroupId, setActiveTagGroupId] = useState("");
   const [taxonomyPackage, setTaxonomyPackage] = useState(null);
   const [taxonomyLoading, setTaxonomyLoading] = useState(false);
   const [taxonomyError, setTaxonomyError] = useState("");
-  const [classificationDraft, setClassificationDraft] =
-    useState(EMPTY_CLASSIFICATION);
+  const [classificationDraft, setClassificationDraft] = useState(EMPTY_CLASSIFICATION);
   const [savedClassification, setSavedClassification] = useState(null);
   const [savingClassification, setSavingClassification] = useState(false);
   const [classificationMessage, setClassificationMessage] = useState("");
@@ -58,48 +44,24 @@ export function useIssueDetailsDialog({
   };
   const comments = details?.comments || [];
   const attachments = issue.attachments || [];
-  const flatTaxonomy = useMemo(
-    () => flattenTaxonomy(taxonomyPackage?.taxonomy || []),
-    [taxonomyPackage],
-  );
-  const taxonomyById = useMemo(
-    () => buildTaxonomyById(flatTaxonomy),
-    [flatTaxonomy],
-  );
-  const persistedClassification = useMemo(
-    () => normalizeClassification(issue.classification),
-    [issue.classification],
-  );
+  const flatTaxonomy = useMemo(() => flattenTaxonomy(taxonomyPackage?.taxonomy || []), [taxonomyPackage]);
+  const taxonomyById = useMemo(() => buildTaxonomyById(flatTaxonomy), [flatTaxonomy]);
+  const persistedClassification = useMemo(() => normalizeClassification(issue.classification), [issue.classification]);
   const selectedTagEntries = useMemo(
-    () =>
-      getSelectedTagEntries(
-        persistedClassification,
-        taxonomyPackage?.tagGroups || [],
-      ),
+    () => getSelectedTagEntries(persistedClassification, taxonomyPackage?.tagGroups || []),
     [persistedClassification, taxonomyPackage],
   );
   const draftSelectedTagEntries = useMemo(
-    () =>
-      getSelectedTagEntries(
-        classificationDraft,
-        taxonomyPackage?.tagGroups || [],
-      ),
+    () => getSelectedTagEntries(classificationDraft, taxonomyPackage?.tagGroups || []),
     [classificationDraft, taxonomyPackage],
   );
-  const selectedTaxonomies = useMemo(
-    () => selectedTaxonomyIds(classificationDraft),
-    [classificationDraft],
-  );
+  const selectedTaxonomies = useMemo(() => selectedTaxonomyIds(classificationDraft), [classificationDraft]);
   const activeTagGroup = useMemo(
-    () =>
-      (taxonomyPackage?.tagGroups || []).find(
-        (group) => group.id === activeTagGroupId,
-      ),
+    () => (taxonomyPackage?.tagGroups || []).find((group) => group.id === activeTagGroupId),
     [activeTagGroupId, taxonomyPackage],
   );
   const hasClassificationChanges =
-    serializeClassification(classificationDraft) !==
-    serializeClassification(persistedClassification);
+    serializeClassification(classificationDraft) !== serializeClassification(persistedClassification);
 
   useEffect(() => {
     setSavedClassification(null);
@@ -161,17 +123,14 @@ export function useIssueDetailsDialog({
     const nextValues = [...new Set(values)];
     setClassificationDraft((current) => {
       const nextPrimary =
-        current.primaryTaxonomyId &&
-        nextValues.includes(current.primaryTaxonomyId)
+        current.primaryTaxonomyId && nextValues.includes(current.primaryTaxonomyId)
           ? current.primaryTaxonomyId
           : nextValues[0] || "";
 
       return {
         ...current,
         primaryTaxonomyId: nextPrimary,
-        secondaryTaxonomyIds: nextValues.filter(
-          (taxonomyId) => taxonomyId !== nextPrimary,
-        ),
+        secondaryTaxonomyIds: nextValues.filter((taxonomyId) => taxonomyId !== nextPrimary),
       };
     });
   }
@@ -184,19 +143,13 @@ export function useIssueDetailsDialog({
       return {
         ...current,
         primaryTaxonomyId: value,
-        secondaryTaxonomyIds: nextValues.filter(
-          (taxonomyId) => taxonomyId !== value,
-        ),
+        secondaryTaxonomyIds: nextValues.filter((taxonomyId) => taxonomyId !== value),
       };
     });
   }
 
   function removeTaxonomy(taxonomyId) {
-    updateTaxonomies(
-      selectedTaxonomies.filter(
-        (selectedTaxonomyId) => selectedTaxonomyId !== taxonomyId,
-      ),
-    );
+    updateTaxonomies(selectedTaxonomies.filter((selectedTaxonomyId) => selectedTaxonomyId !== taxonomyId));
   }
 
   function toggleGroupTag(groupId, tagId) {
@@ -224,9 +177,7 @@ export function useIssueDetailsDialog({
         ...current,
         tags: {
           ...current.tags,
-          [groupId]: currentGroupTags.filter(
-            (currentTagId) => currentTagId !== tagId,
-          ),
+          [groupId]: currentGroupTags.filter((currentTagId) => currentTagId !== tagId),
         },
       };
     });
@@ -247,13 +198,8 @@ export function useIssueDetailsDialog({
     setClassificationMessage("");
 
     try {
-      const payload = await saveIssueClassification(
-        issue.id,
-        classificationDraft,
-      );
-      const nextClassification = normalizeClassification(
-        payload.issue?.classification,
-      );
+      const payload = await saveIssueClassification(issue.id, classificationDraft);
+      const nextClassification = normalizeClassification(payload.issue?.classification);
       setSavedClassification(nextClassification);
       setClassificationDraft(nextClassification);
       onIssueUpdated?.(payload.issue);
@@ -276,24 +222,13 @@ export function useIssueDetailsDialog({
     setClassificationMessage("");
 
     const nextNode = {
-      id: buildUniqueTaxonomyId(
-        taxonomyPackage.taxonomy || [],
-        parentId,
-        trimmedLabel,
-      ),
+      id: buildUniqueTaxonomyId(taxonomyPackage.taxonomy || [], parentId, trimmedLabel),
       label: trimmedLabel,
-      applicationIds: [
-        ...(findTaxonomyNode(taxonomyPackage.taxonomy || [], parentId)
-          ?.applicationIds || []),
-      ],
+      applicationIds: [...(findTaxonomyNode(taxonomyPackage.taxonomy || [], parentId)?.applicationIds || [])],
     };
     const nextTaxonomyPackage = {
       ...taxonomyPackage,
-      taxonomy: appendTaxonomyNode(
-        taxonomyPackage.taxonomy || [],
-        parentId,
-        nextNode,
-      ),
+      taxonomy: appendTaxonomyNode(taxonomyPackage.taxonomy || [], parentId, nextNode),
     };
 
     try {
@@ -314,9 +249,7 @@ export function useIssueDetailsDialog({
 
     const trimmedLabel = String(patch?.label || "").trim();
     if (!nodeId || !trimmedLabel) return null;
-    const applicationIds = [
-      ...new Set((patch?.applicationIds || []).map(String).filter(Boolean)),
-    ];
+    const applicationIds = [...new Set((patch?.applicationIds || []).map(String).filter(Boolean))];
 
     setSavingTaxonomyCatalog(true);
     setTaxonomyError("");
@@ -324,11 +257,10 @@ export function useIssueDetailsDialog({
 
     const nextTaxonomyPackage = {
       ...taxonomyPackage,
-      taxonomy: updateTaxonomyNodeLabel(
-        taxonomyPackage.taxonomy || [],
-        nodeId,
-        { label: trimmedLabel, applicationIds },
-      ),
+      taxonomy: updateTaxonomyNodeLabel(taxonomyPackage.taxonomy || [], nodeId, {
+        label: trimmedLabel,
+        applicationIds,
+      }),
     };
 
     try {

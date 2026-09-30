@@ -31,10 +31,7 @@ test("runtime document tree keeps only collection paths containing filtered docu
 });
 
 test("documents with an unknown collection are exposed at the root", () => {
-  const tree = buildRuntimeDocumentTree(
-    [],
-    [{ id: "document-1", title: "Publicar", collectionId: "removed" }],
-  );
+  const tree = buildRuntimeDocumentTree([], [{ id: "document-1", title: "Publicar", collectionId: "removed" }]);
   assert.deepEqual(
     tree.documents.map(({ id }) => id),
     ["document-1"],

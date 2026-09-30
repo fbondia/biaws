@@ -8,11 +8,7 @@ import {
 } from "../../../../../../api.js";
 import { useMessages } from "../../../../../../infrastructure/messages/MessagesProvider.jsx";
 import { hasPermission } from "../../../../../../permissions.js";
-import {
-  filterTopologyGraph,
-  routeTopologyEdges,
-  topologyDiagramPayload,
-} from "../models/topologyDiagramModel.js";
+import { filterTopologyGraph, routeTopologyEdges, topologyDiagramPayload } from "../models/topologyDiagramModel.js";
 import { createTopologyEditorActions } from "./createTopologyEditorActions.js";
 import { createTopologyEnvironmentLoader } from "./createTopologyEnvironmentLoader.js";
 import { diagramSummary } from "../models/topologyDiagramPresentation.js";
@@ -69,10 +65,7 @@ export function useTopologyDiagram({ actor, context, onClose }) {
   const serverOptions = useMemo(
     () =>
       nodes
-        .filter(
-          ({ type, data }) =>
-            type === "topologyServer" && !data.managed && data.server?.id,
-        )
+        .filter(({ type, data }) => type === "topologyServer" && !data.managed && data.server?.id)
         .map(({ data }) => ({
           id: data.server.id,
           label: data.server.name,
@@ -80,38 +73,21 @@ export function useTopologyDiagram({ actor, context, onClose }) {
         .sort((left, right) => left.label.localeCompare(right.label, "pt-BR")),
     [nodes],
   );
-  const selectedEdge =
-    visibleGraph.edges.find(({ id }) => id === selectedEdgeId) || null;
-  const selectedGroup =
-    nodes.find(
-      ({ id, type }) => id === selectedGroupId && type === "topologyGroup",
-    ) || null;
-  const selectedElement =
-    nodes.find(
-      ({ id, type }) => id === selectedElementId && type === "topologyElement",
-    ) || null;
+  const selectedEdge = visibleGraph.edges.find(({ id }) => id === selectedEdgeId) || null;
+  const selectedGroup = nodes.find(({ id, type }) => id === selectedGroupId && type === "topologyGroup") || null;
+  const selectedElement = nodes.find(({ id, type }) => id === selectedElementId && type === "topologyElement") || null;
   const hasUntitledNode = nodes.some(
     ({ type, data }) =>
       (type === "topologyGroup" && !data.group.title.trim()) ||
       (type === "topologyElement" &&
-        (!(
-          data.element.type === undefined ? "Elemento" : data.element.type
-        ).trim() ||
-          !data.element.title.trim())),
+        (!(data.element.type === undefined ? "Elemento" : data.element.type).trim() || !data.element.title.trim())),
   );
   const selectedElementType =
-    selectedElement?.data.element.type === undefined
-      ? "Elemento"
-      : selectedElement?.data.element.type || "";
+    selectedElement?.data.element.type === undefined ? "Elemento" : selectedElement?.data.element.type || "";
   const groupableNodes = useMemo(
     () =>
       nodes
-        .filter(
-          ({ type }) =>
-            type === "topologyElement" ||
-            type === "topologyIntegration" ||
-            type === "topologyServer",
-        )
+        .filter(({ type }) => type === "topologyElement" || type === "topologyIntegration" || type === "topologyServer")
         .map((node) => ({
           id: node.id,
           label:
@@ -127,10 +103,7 @@ export function useTopologyDiagram({ actor, context, onClose }) {
     [nodes],
   );
   const selectedDeployments = useMemo(
-    () =>
-      context.deployments.filter(
-        (deployment) => deployment.environment === environment,
-      ),
+    () => context.deployments.filter((deployment) => deployment.environment === environment),
     [context.deployments, environment],
   );
 
@@ -198,30 +171,21 @@ export function useTopologyDiagram({ actor, context, onClose }) {
   }
 
   async function requestClose() {
-    if (
-      dirty &&
-      !(await confirm("Descartar as alterações não salvas deste gráfico?"))
-    ) {
+    if (dirty && !(await confirm("Descartar as alterações não salvas deste gráfico?"))) {
       return;
     }
     onClose();
   }
 
   async function selectDiagram(diagramId) {
-    if (
-      dirty &&
-      !(await confirm("Descartar as alterações não salvas deste gráfico?"))
-    ) {
+    if (dirty && !(await confirm("Descartar as alterações não salvas deste gráfico?"))) {
       return;
     }
     void openDiagram(diagramId);
   }
 
   async function startCreating() {
-    if (
-      dirty &&
-      !(await confirm("Descartar as alterações não salvas deste gráfico?"))
-    ) {
+    if (dirty && !(await confirm("Descartar as alterações não salvas deste gráfico?"))) {
       return;
     }
     setCreating(true);
@@ -309,11 +273,7 @@ export function useTopologyDiagram({ actor, context, onClose }) {
       );
       const updated = payload.diagram;
       setDiagram(updated);
-      setDiagrams((current) =>
-        current.map((item) =>
-          item.id === updated.id ? diagramSummary(updated) : item,
-        ),
-      );
+      setDiagrams((current) => current.map((item) => (item.id === updated.id ? diagramSummary(updated) : item)));
       setDirty(false);
     } catch (saveError) {
       setError(saveError.message);

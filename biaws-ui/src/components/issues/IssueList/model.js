@@ -1,9 +1,7 @@
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../constants/issues.js";
 
 export function buildTagGroupsById(taxonomyPackage) {
-  return Object.fromEntries(
-    (taxonomyPackage?.tagGroups || []).map((group) => [group.id, group]),
-  );
+  return Object.fromEntries((taxonomyPackage?.tagGroups || []).map((group) => [group.id, group]));
 }
 
 export function buildTaxonomyItemsById(nodes = [], path = []) {
@@ -36,9 +34,7 @@ export function issueTaxonomyItems(issue, taxonomyItemsById) {
   const primaryTaxonomyId = issue.classification?.primaryTaxonomyId || "";
   const taxonomyIds = [
     primaryTaxonomyId,
-    ...(Array.isArray(issue.classification?.secondaryTaxonomyIds)
-      ? issue.classification.secondaryTaxonomyIds
-      : []),
+    ...(Array.isArray(issue.classification?.secondaryTaxonomyIds) ? issue.classification.secondaryTaxonomyIds : []),
   ].filter(Boolean);
 
   return [...new Set(taxonomyIds)].map((taxonomyId) => ({
@@ -65,7 +61,5 @@ export function issueTagItems(issue, tagGroupsById) {
 }
 
 export function optionLabel(options, value) {
-  return (
-    options.find((option) => option.value === value)?.label || value || "-"
-  );
+  return options.find((option) => option.value === value)?.label || value || "-";
 }

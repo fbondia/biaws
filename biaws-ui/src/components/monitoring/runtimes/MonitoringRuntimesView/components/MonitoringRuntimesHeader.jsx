@@ -1,10 +1,4 @@
-import {
-  LayoutDashboard,
-  ListFilter,
-  Network,
-  RefreshCw,
-  Settings2,
-} from "lucide-react";
+import { LayoutDashboard, ListFilter, Network, RefreshCw, Settings2 } from "lucide-react";
 
 export function MonitoringRuntimesHeader({ controller }) {
   const { dashboard, loading, monitoredOnly, viewMode, workspace } = controller;
@@ -13,17 +7,10 @@ export function MonitoringRuntimesHeader({ controller }) {
       <div>
         <span>{workspace?.name || "Monitoramento"}</span>
         <h1>Runtimes monitorados</h1>
-        <p>
-          Navegue pela topologia operacional e gerencie monitores sem alterar o
-          catálogo.
-        </p>
+        <p>Navegue pela topologia operacional e gerencie monitores sem alterar o catálogo.</p>
       </div>
       <div className="monitoringCenterHeroActions">
-        <div
-          aria-label="Modo da central de monitoramento"
-          className="monitoringCenterModeSwitch"
-          role="group"
-        >
+        <div aria-label="Modo da central de monitoramento" className="monitoringCenterModeSwitch" role="group">
           <button
             aria-pressed={viewMode === "navigation"}
             onClick={() => controller.setViewMode("navigation")}
@@ -84,10 +71,7 @@ export function MonitoringRuntimesHeader({ controller }) {
               onClick={() => dashboard.ref.current?.refresh()}
               type="button"
             >
-              <RefreshCw
-                className={dashboard.loading ? "spinIcon" : undefined}
-                size={17}
-              />
+              <RefreshCw className={dashboard.loading ? "spinIcon" : undefined} size={17} />
             </button>
           </>
         ) : null}

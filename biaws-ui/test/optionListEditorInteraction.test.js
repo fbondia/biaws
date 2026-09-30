@@ -10,17 +10,12 @@ import { JSDOM } from "jsdom";
 import { build } from "vite";
 
 test("new option keeps input focus while its value is typed", async () => {
-  const outputDirectory = await mkdtemp(
-    join(tmpdir(), "biaws-option-list-ui-"),
-  );
+  const outputDirectory = await mkdtemp(join(tmpdir(), "biaws-option-list-ui-"));
   const dom = new JSDOM("<!doctype html><div id=app></div>", {
     url: "https://biaws.example.test",
   });
   const previous = Object.fromEntries(
-    ["document", "navigator", "window"].map((name) => [
-      name,
-      Object.getOwnPropertyDescriptor(globalThis, name),
-    ]),
+    ["document", "navigator", "window"].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   Object.defineProperties(globalThis, {
     document: { configurable: true, value: dom.window.document },
@@ -37,10 +32,7 @@ test("new option keeps input focus while its value is typed", async () => {
       build: {
         emptyOutDir: false,
         lib: {
-          entry: join(
-            process.cwd(),
-            "test/fixtures/OptionListEditorHarness.jsx",
-          ),
+          entry: join(process.cwd(), "test/fixtures/OptionListEditorHarness.jsx"),
           fileName: "option-list-editor-harness",
           formats: ["es"],
         },
@@ -53,18 +45,11 @@ test("new option keeps input focus while its value is typed", async () => {
     const harness = mountOptionListEditor(document.getElementById("app"));
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    [...document.querySelectorAll("button")]
-      .find((button) => button.textContent.includes("Adicionar opção"))
-      .click();
+    [...document.querySelectorAll("button")].find((button) => button.textContent.includes("Adicionar opção")).click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const valueInput = document.querySelector(
-      ".optionListTable tbody tr:last-child td:nth-child(2) input",
-    );
-    const valueSetter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      "value",
-    ).set;
+    const valueInput = document.querySelector(".optionListTable tbody tr:last-child td:nth-child(2) input");
+    const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
     valueInput.focus();
 
     for (const value of ["r", "re", "req", "requ"]) {

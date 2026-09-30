@@ -14,14 +14,7 @@ import { descendantCollectionIds } from "../../../model.js";
 import { CollectionAddForm } from "../../CollectionAddForm.jsx";
 import { CollectionItemNode } from "../../CollectionItemNode.jsx";
 
-function CollectionRowActions({
-  addingSubcollection,
-  collection,
-  createAt,
-  onDelete,
-  onRename,
-  onToggleAdd,
-}) {
+function CollectionRowActions({ addingSubcollection, collection, createAt, onDelete, onRename, onToggleAdd }) {
   return (
     <div className="procedureCollectionRowActions">
       {createAt ? (
@@ -120,20 +113,12 @@ export function CollectionTreeNode({
   const expanded = !collapsedIds.has(collection.id);
   const invalidCollectionDrop =
     draggedItem?.type === "collection" &&
-    (draggedItem.id === collection.id ||
-      descendantCollectionIds(childrenByParent, draggedItem.id).has(
-        collection.id,
-      ));
-  const canDrop =
-    Boolean(draggedItem) &&
-    !invalidCollectionDrop &&
-    canDropOnCollection(draggedItem, collection);
+    (draggedItem.id === collection.id || descendantCollectionIds(childrenByParent, draggedItem.id).has(collection.id));
+  const canDrop = Boolean(draggedItem) && !invalidCollectionDrop && canDropOnCollection(draggedItem, collection);
   const addingSubcollection = addingParentId === collection.id;
 
   function toggleSubcollectionForm() {
-    setAddingParentId((current) =>
-      current === collection.id ? null : collection.id,
-    );
+    setAddingParentId((current) => (current === collection.id ? null : collection.id));
     if (!expanded) onToggle(collection.id);
   }
 
@@ -147,9 +132,7 @@ export function CollectionTreeNode({
       <div
         className={[
           "resourceCollectionTreeRow",
-          selectedCollectionId === collection.id
-            ? "selectedResourceCollection"
-            : "",
+          selectedCollectionId === collection.id ? "selectedResourceCollection" : "",
           dropTargetId === collection.id ? "resourceCollectionDropTarget" : "",
         ]
           .filter(Boolean)
@@ -162,10 +145,7 @@ export function CollectionTreeNode({
             return;
           }
           event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData(
-            "text/plain",
-            `collection:${collection.id}`,
-          );
+          event.dataTransfer.setData("text/plain", `collection:${collection.id}`);
           onDragCollection(collection);
         }}
         onDragOver={(event) => {
@@ -181,17 +161,9 @@ export function CollectionTreeNode({
           onDrop(collection.id);
         }}
       >
-        <GripVertical
-          aria-hidden="true"
-          className="resourceCollectionDragHandle"
-          size={14}
-        />
+        <GripVertical aria-hidden="true" className="resourceCollectionDragHandle" size={14} />
         <button
-          aria-label={
-            expanded
-              ? `Recolher ${collection.name}`
-              : `Expandir ${collection.name}`
-          }
+          aria-label={expanded ? `Recolher ${collection.name}` : `Expandir ${collection.name}`}
           className="resourceCollectionExpandButton"
           disabled={!hasContents}
           onClick={() => onToggle(collection.id)}
@@ -208,11 +180,7 @@ export function CollectionTreeNode({
           title={collection.name}
           type="button"
         >
-          {expanded && hasContents ? (
-            <FolderOpen size={16} />
-          ) : (
-            <Folder size={16} />
-          )}
+          {expanded && hasContents ? <FolderOpen size={16} /> : <Folder size={16} />}
           <span>{collection.name}</span>
           {/*<small>{itemCounts[collection.id] || 0}</small>*/}
         </button>
@@ -234,11 +202,7 @@ export function CollectionTreeNode({
           <CollectionAddForm
             autoFocus
             disabled={creatingParentId === collection.id}
-            error={
-              creationError?.parentId === collection.id
-                ? creationError.message
-                : ""
-            }
+            error={creationError?.parentId === collection.id ? creationError.message : ""}
             name={collectionDrafts[collection.id] || ""}
             onChange={(name) => updateCollectionDraft(collection.id, name)}
             onSubmit={createSubcollection}

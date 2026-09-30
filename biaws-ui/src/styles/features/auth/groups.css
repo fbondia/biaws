@@ -15,9 +15,7 @@
   position: sticky;
   top: 1rem;
   border-radius: 14px;
-  background:
-    linear-gradient(180deg, var(--palette-alpha-blue-07), transparent 120px),
-    var(--color-surface);
+  background: linear-gradient(180deg, var(--palette-alpha-blue-07), transparent 120px), var(--color-surface);
   box-shadow: 0 8px 28px var(--palette-alpha-neutral-13);
 }
 
@@ -70,11 +68,7 @@
 
 .groupListItem.selected {
   border-color: var(--color-accent-border);
-  background: linear-gradient(
-    135deg,
-    var(--palette-alpha-blue-11),
-    var(--palette-alpha-blue-06)
-  );
+  background: linear-gradient(135deg, var(--palette-alpha-blue-11), var(--palette-alpha-blue-06));
   box-shadow: 0 6px 18px var(--palette-alpha-blue-12);
 }
 
@@ -310,11 +304,7 @@
 }
 
 .permissionCategory.expanded .permissionCategoryTrigger {
-  background: linear-gradient(
-    90deg,
-    var(--palette-alpha-blue-11),
-    var(--palette-alpha-blue-05)
-  );
+  background: linear-gradient(90deg, var(--palette-alpha-blue-11), var(--palette-alpha-blue-05));
 }
 
 .permissionCategoryTitle {

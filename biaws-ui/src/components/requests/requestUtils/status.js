@@ -12,9 +12,7 @@ const DEFAULT_STATUS_COLORS = {
 };
 
 export function normalizeRequestStatus(status) {
-  return REQUEST_ALL_STATUS_OPTIONS.includes(status)
-    ? status
-    : REQUEST_DEFAULTS.status;
+  return REQUEST_ALL_STATUS_OPTIONS.includes(status) ? status : REQUEST_DEFAULTS.status;
 }
 
 export function requestStatusLabel(status) {
@@ -32,19 +30,15 @@ export function requestChecklistLabel(value) {
 function requestStatusColors(status) {
   const normalizedStatus = normalizeRequestStatus(status);
   return (
-    REQUEST_STATUS_COLORS[normalizedStatus] ||
-    REQUEST_STATUS_COLORS[REQUEST_DEFAULTS.status] ||
-    DEFAULT_STATUS_COLORS
+    REQUEST_STATUS_COLORS[normalizedStatus] || REQUEST_STATUS_COLORS[REQUEST_DEFAULTS.status] || DEFAULT_STATUS_COLORS
   );
 }
 
 export function requestStatusStyle(status) {
   const colors = requestStatusColors(status);
   return {
-    "--request-status-foreground":
-      colors.foreground || DEFAULT_STATUS_COLORS.foreground,
-    "--request-status-background":
-      colors.background || DEFAULT_STATUS_COLORS.background,
+    "--request-status-foreground": colors.foreground || DEFAULT_STATUS_COLORS.foreground,
+    "--request-status-background": colors.background || DEFAULT_STATUS_COLORS.background,
     "--request-status-border": colors.border || DEFAULT_STATUS_COLORS.border,
   };
 }

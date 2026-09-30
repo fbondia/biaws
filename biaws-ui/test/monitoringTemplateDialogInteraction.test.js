@@ -15,10 +15,7 @@ test("template dialog exposes each semantic section as an independent tab", asyn
     url: "https://biaws.example.test",
   });
   const previous = Object.fromEntries(
-    ["document", "navigator", "window"].map((name) => [
-      name,
-      Object.getOwnPropertyDescriptor(globalThis, name),
-    ]),
+    ["document", "navigator", "window"].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
   );
   Object.defineProperties(globalThis, {
     document: { configurable: true, value: dom.window.document },
@@ -35,10 +32,7 @@ test("template dialog exposes each semantic section as an independent tab", asyn
       build: {
         emptyOutDir: false,
         lib: {
-          entry: join(
-            process.cwd(),
-            "test/fixtures/MonitoringTemplateDialogHarness.jsx",
-          ),
+          entry: join(process.cwd(), "test/fixtures/MonitoringTemplateDialogHarness.jsx"),
           fileName: "monitoring-template-dialog-harness",
           formats: ["es"],
         },
@@ -46,17 +40,12 @@ test("template dialog exposes each semantic section as an independent tab", asyn
       },
     });
     const { mountMonitoringTemplateDialog } = await import(
-      pathToFileURL(
-        join(outputDirectory, "monitoring-template-dialog-harness.js"),
-      )
+      pathToFileURL(join(outputDirectory, "monitoring-template-dialog-harness.js"))
     );
     let previewRuns = 0;
-    const root = mountMonitoringTemplateDialog(
-      document.getElementById("app"),
-      () => {
-        previewRuns += 1;
-      },
-    );
+    const root = mountMonitoringTemplateDialog(document.getElementById("app"), () => {
+      previewRuns += 1;
+    });
     const dialog = document.querySelector('[role="dialog"]');
     const tabs = [...dialog.querySelectorAll('[role="tab"]')];
     assert.deepEqual(

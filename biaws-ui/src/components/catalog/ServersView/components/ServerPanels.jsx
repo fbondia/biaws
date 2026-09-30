@@ -1,30 +1,13 @@
-import {
-  Archive,
-  ArchiveRestore,
-  Pencil,
-  Plus,
-  Server,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Archive, ArchiveRestore, Pencil, Plus, Server, Trash2, X } from "lucide-react";
 
 import { hasPermission } from "../../../../permissions.js";
 import { AuditHistory } from "../../../shared/AuditHistory.jsx";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 import { MarkdownPreview } from "../../../shared/MarkdownEditor/index.jsx";
-import {
-  collectionPathLabel,
-  ResourceCollectionDialog,
-} from "../../../shared/ResourceCollections/index.jsx";
+import { collectionPathLabel, ResourceCollectionDialog } from "../../../shared/ResourceCollections/index.jsx";
 import { CatalogEntityDialog } from "../../CatalogEntityDialog/index.jsx";
 
-export function ServerList({
-  canDrag,
-  collectionState,
-  loading,
-  onOpen,
-  servers,
-}) {
+export function ServerList({ canDrag, collectionState, loading, onOpen, servers }) {
   return (
     <div className="catalogCollectionItems">
       {servers.map((server) => (
@@ -34,9 +17,7 @@ export function ServerList({
           key={server.id}
           onClick={() => onOpen(server)}
           onDragEnd={() => collectionState.setDraggedItem(null)}
-          onDragStart={() =>
-            collectionState.setDraggedItem({ type: "item", id: server.id })
-          }
+          onDragStart={() => collectionState.setDraggedItem({ type: "item", id: server.id })}
           type="button"
         >
           <span className="catalogCollectionItemIcon">
@@ -46,41 +27,23 @@ export function ServerList({
             <strong>{server.name}</strong>
             <small>{server.hostname || server.key}</small>
           </span>
-          <span className={`catalogStatus catalogStatus-${server.status}`}>
-            {server.status}
-          </span>
+          <span className={`catalogStatus catalogStatus-${server.status}`}>{server.status}</span>
         </button>
       ))}
-      {!servers.length && !loading ? (
-        <div className="emptyState compactEmpty">
-          Nenhum servidor encontrado.
-        </div>
-      ) : null}
+      {!servers.length && !loading ? <div className="emptyState compactEmpty">Nenhum servidor encontrado.</div> : null}
     </div>
   );
 }
 
-export function ServerDialogs({
-  collectionState,
-  dialog,
-  onPersist,
-  setDialog,
-}) {
+export function ServerDialogs({ collectionState, dialog, onPersist, setDialog }) {
   return (
     <>
       {collectionState.collectionDialog ? (
         <ResourceCollectionDialog
-          collection={
-            collectionState.collectionDialog.id
-              ? collectionState.collectionDialog
-              : null
-          }
+          collection={collectionState.collectionDialog.id ? collectionState.collectionDialog : null}
           onClose={() => collectionState.setCollectionDialog(null)}
           onSave={collectionState.saveCollection}
-          parentLabel={collectionPathLabel(
-            collectionState.collections,
-            collectionState.selectedCollectionId,
-          )}
+          parentLabel={collectionPathLabel(collectionState.collections, collectionState.selectedCollectionId)}
           resourceLabel="servidores"
         />
       ) : null}
@@ -154,38 +117,24 @@ function ServerDetails({
     <div className="catalogCollectionPanel catalogContent">
       <header className="catalogDetailHeader">
         <div>
-          <EntityIdentifier
-            label="Identificador do servidor"
-            value={selected.key}
-            variant="eyebrow"
-          />
+          <EntityIdentifier label="Identificador do servidor" value={selected.key} variant="eyebrow" />
           <h2>{selected.name}</h2>
           <p>{selected.hostname || "Hostname não informado."}</p>
         </div>
         <div className="catalogHeaderActions">
           {hasPermission(actor, "servers.update") ? (
-            <button
-              className="secondaryButton"
-              onClick={() => onEdit(selected)}
-              type="button"
-            >
+            <button className="secondaryButton" onClick={() => onEdit(selected)} type="button">
               <Pencil size={16} /> Editar
             </button>
           ) : null}
-          {hasPermission(actor, "servers.archive") &&
-          selected.status !== "archived" ? (
+          {hasPermission(actor, "servers.archive") && selected.status !== "archived" ? (
             <button className="dangerButton" onClick={onArchive} type="button">
               <Archive size={16} /> Arquivar
             </button>
           ) : null}
-          {hasPermission(actor, "servers.archive") &&
-          selected.status === "archived" ? (
+          {hasPermission(actor, "servers.archive") && selected.status === "archived" ? (
             <>
-              <button
-                className="secondaryButton"
-                onClick={onRestore}
-                type="button"
-              >
+              <button className="secondaryButton" onClick={onRestore} type="button">
                 <ArchiveRestore size={16} /> Desarquivar
               </button>
               <button className="dangerButton" onClick={onDelete} type="button">
@@ -207,9 +156,7 @@ function ServerDetails({
         {tabs.map(([key, label]) => (
           <button
             aria-selected={activeTab === key}
-            className={
-              activeTab === key ? "detailTab activeDetailTab" : "detailTab"
-            }
+            className={activeTab === key ? "detailTab activeDetailTab" : "detailTab"}
             key={key}
             onClick={() => onSelectTab(key)}
             role="tab"
@@ -219,11 +166,7 @@ function ServerDetails({
           </button>
         ))}
       </div>
-      <ServerTabPanel
-        activeTab={activeTab}
-        selected={selected}
-        serverApplications={serverApplications}
-      />
+      <ServerTabPanel activeTab={activeTab} selected={selected} serverApplications={serverApplications} />
     </div>
   );
 }
@@ -245,9 +188,7 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
             <div>
               <dt>Status</dt>
               <dd>
-                <span
-                  className={`catalogStatus catalogStatus-${selected.status || "unknown"}`}
-                >
+                <span className={`catalogStatus catalogStatus-${selected.status || "unknown"}`}>
                   {selected.status || "unknown"}
                 </span>
               </dd>
@@ -278,18 +219,12 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
             </div>
           </dl>
 
-          <section
-            aria-labelledby="server-description-title"
-            className="serverOverviewDescription"
-          >
+          <section aria-labelledby="server-description-title" className="serverOverviewDescription">
             <h3 id="server-description-title">Finalidade</h3>
             <div>{selected.purpose || "-"}</div>
           </section>
 
-          <section
-            aria-labelledby="server-description-title"
-            className="serverOverviewDescription"
-          >
+          <section aria-labelledby="server-description-title" className="serverOverviewDescription">
             <h3 id="server-description-title">Tags</h3>
             {selected.tags?.length ? (
               <span className="serverTagList">
@@ -304,10 +239,7 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
             )}
           </section>
 
-          <section
-            aria-labelledby="server-description-title"
-            className="serverOverviewDescription"
-          >
+          <section aria-labelledby="server-description-title" className="serverOverviewDescription">
             <h3 id="server-description-title">Descrição</h3>
             <MarkdownPreview value={selected.description || ""} />
           </section>
@@ -324,11 +256,7 @@ function ServerTabPanel({ activeTab, selected, serverApplications }) {
   }
   return (
     <div className="catalogTabPanel">
-      <AuditHistory
-        entityId={selected.id}
-        entityType="server"
-        refreshKey={selected.updatedAt}
-      />
+      <AuditHistory entityId={selected.id} entityType="server" refreshKey={selected.updatedAt} />
     </div>
   );
 }
@@ -347,10 +275,8 @@ function ServerApplications({ groups }) {
               <div className="serverApplicationComponent" key={component.id}>
                 <strong>{component.name}</strong>
                 <small>
-                  {component.environments.join(", ") ||
-                    "Ambiente não informado"}{" "}
-                  · {component.deploymentCount} deployment(s) ·{" "}
-                  {component.runtimeCount} runtime(s)
+                  {component.environments.join(", ") || "Ambiente não informado"} · {component.deploymentCount}{" "}
+                  deployment(s) · {component.runtimeCount} runtime(s)
                 </small>
               </div>
             ))}
@@ -358,9 +284,7 @@ function ServerApplications({ groups }) {
         </article>
       ))}
       {!groups.length ? (
-        <div className="emptyState catalogEmptyState">
-          Nenhuma aplicação utiliza este servidor.
-        </div>
+        <div className="emptyState catalogEmptyState">Nenhuma aplicação utiliza este servidor.</div>
       ) : null}
     </div>
   );

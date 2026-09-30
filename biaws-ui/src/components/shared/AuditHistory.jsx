@@ -65,13 +65,9 @@ function AuditChange({ change, changeId }) {
       </div>
       {!expanded ? (
         <div className="auditChangeSummary">
-          <pre className="auditChangeBefore">
-            {formatAuditValue(change.before)}
-          </pre>
+          <pre className="auditChangeBefore">{formatAuditValue(change.before)}</pre>
           <span aria-hidden="true">→</span>
-          <pre className="auditChangeAfter">
-            {formatAuditValue(change.after)}
-          </pre>
+          <pre className="auditChangeAfter">{formatAuditValue(change.after)}</pre>
         </div>
       ) : (
         <div className="auditDiff" id={diffId}>
@@ -79,35 +75,25 @@ function AuditChange({ change, changeId }) {
             <span className="auditDiffRemoved">− removido</span>
             <span className="auditDiffAdded">+ adicionado</span>
           </div>
-          <div
-            className="auditDiffCode"
-            role="table"
-            aria-label="Comparação das alterações"
-          >
-            {buildAuditLineDiff(change.before, change.after).map(
-              (line, index) => (
-                <div
-                  className={`auditDiffLine auditDiffLine-${line.type}`}
-                  key={`${line.type}-${line.beforeLine}-${line.afterLine}-${index}`}
-                  role="row"
-                >
-                  <span className="auditDiffLineNumber" role="cell">
-                    {line.beforeLine ?? ""}
-                  </span>
-                  <span className="auditDiffLineNumber" role="cell">
-                    {line.afterLine ?? ""}
-                  </span>
-                  <span className="auditDiffMarker" aria-hidden="true">
-                    {line.type === "removed"
-                      ? "−"
-                      : line.type === "added"
-                        ? "+"
-                        : " "}
-                  </span>
-                  <code role="cell">{line.value || " "}</code>
-                </div>
-              ),
-            )}
+          <div className="auditDiffCode" role="table" aria-label="Comparação das alterações">
+            {buildAuditLineDiff(change.before, change.after).map((line, index) => (
+              <div
+                className={`auditDiffLine auditDiffLine-${line.type}`}
+                key={`${line.type}-${line.beforeLine}-${line.afterLine}-${index}`}
+                role="row"
+              >
+                <span className="auditDiffLineNumber" role="cell">
+                  {line.beforeLine ?? ""}
+                </span>
+                <span className="auditDiffLineNumber" role="cell">
+                  {line.afterLine ?? ""}
+                </span>
+                <span className="auditDiffMarker" aria-hidden="true">
+                  {line.type === "removed" ? "−" : line.type === "added" ? "+" : " "}
+                </span>
+                <code role="cell">{line.value || " "}</code>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -130,10 +116,7 @@ export function AuditHistory({ entityType, entityId, refreshKey }) {
         if (active) setEvents(payload.events || []);
       })
       .catch((requestError) => {
-        if (active)
-          setError(
-            requestError.message || "Não foi possível carregar o histórico.",
-          );
+        if (active) setError(requestError.message || "Não foi possível carregar o histórico.");
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -143,8 +126,7 @@ export function AuditHistory({ entityType, entityId, refreshKey }) {
     };
   }, [entityType, entityId, refreshKey, reloadKey]);
 
-  if (loading)
-    return <div className="loadingLine">Carregando histórico...</div>;
+  if (loading) return <div className="loadingLine">Carregando histórico...</div>;
 
   return (
     <section className="auditHistory" aria-label="Histórico de alterações">
@@ -165,28 +147,17 @@ export function AuditHistory({ entityType, entityId, refreshKey }) {
         </button>
       </header>
       {error ? <div className="errorBox">{error}</div> : null}
-      {!error && !events.length ? (
-        <div className="emptyState compactEmpty">
-          Nenhuma alteração registrada.
-        </div>
-      ) : null}
+      {!error && !events.length ? <div className="emptyState compactEmpty">Nenhuma alteração registrada.</div> : null}
       <div className="auditTimeline">
         {events.map((event) => {
           const actor =
-            event.actor?.displayName ||
-            event.actor?.email ||
-            event.actor?.userId ||
-            "Usuário não identificado";
+            event.actor?.displayName || event.actor?.email || event.actor?.userId || "Usuário não identificado";
           return (
             <article className="auditEvent" key={event.id}>
               <div className="auditEventMarker" />
               <div className="auditEventContent">
                 <header>
-                  <strong>
-                    {event.summary ||
-                      ACTION_LABELS[event.action] ||
-                      event.action}
-                  </strong>
+                  <strong>{event.summary || ACTION_LABELS[event.action] || event.action}</strong>
                   <span>
                     <Clock3 size={13} /> {formatDateTime(event.occurredAt)}
                   </span>
@@ -194,24 +165,14 @@ export function AuditHistory({ entityType, entityId, refreshKey }) {
                 <div className="auditActor">
                   <UserRound size={14} />
                   <span>{actor}</span>
-                  {event.actor?.email && event.actor.email !== actor ? (
-                    <small>{event.actor.email}</small>
-                  ) : null}
+                  {event.actor?.email && event.actor.email !== actor ? <small>{event.actor.email}</small> : null}
                 </div>
-                {event.target?.label ? (
-                  <div className="auditTarget">{event.target.label}</div>
-                ) : null}
+                {event.target?.label ? <div className="auditTarget">{event.target.label}</div> : null}
                 {event.changes?.length ? (
                   <div className="auditChanges">
                     {event.changes.map((change, index) => {
                       const changeId = `${event.id}-${change.field}-${index}`;
-                      return (
-                        <AuditChange
-                          change={change}
-                          changeId={changeId}
-                          key={changeId}
-                        />
-                      );
+                      return <AuditChange change={change} changeId={changeId} key={changeId} />;
                     })}
                   </div>
                 ) : null}

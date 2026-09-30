@@ -1,8 +1,4 @@
-import {
-  MonitorFormSection,
-  RestMonitorFields,
-  ShellMonitorFields,
-} from "../../ActiveMonitorFields.jsx";
+import { MonitorFormSection, RestMonitorFields, ShellMonitorFields } from "../../ActiveMonitorFields.jsx";
 
 export function MonitorProviderTab({ draft, rest, update }) {
   return (

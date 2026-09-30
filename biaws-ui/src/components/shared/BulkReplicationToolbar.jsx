@@ -1,28 +1,15 @@
 import { CopyPlus, X } from "lucide-react";
 
-export function BulkReplicationToolbar({
-  canReplicate,
-  count,
-  onClear,
-  onReplicate,
-}) {
+export function BulkReplicationToolbar({ canReplicate, count, onClear, onReplicate }) {
   if (!count) return null;
 
   return (
-    <div
-      aria-label="Ações dos itens selecionados"
-      className="bulkReplicationToolbar"
-      role="group"
-    >
+    <div aria-label="Ações dos itens selecionados" className="bulkReplicationToolbar" role="group">
       <button
         className="primaryButton"
         disabled={!canReplicate}
         onClick={onReplicate}
-        title={
-          canReplicate
-            ? undefined
-            : "Nenhum outro workspace acessível para replicação"
-        }
+        title={canReplicate ? undefined : "Nenhum outro workspace acessível para replicação"}
         type="button"
       >
         <CopyPlus aria-hidden="true" size={16} /> Replicar

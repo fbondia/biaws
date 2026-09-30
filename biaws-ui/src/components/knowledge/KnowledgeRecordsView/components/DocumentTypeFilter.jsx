@@ -6,9 +6,7 @@ import { TYPE_FILTERS } from "../model.js";
 export function DocumentTypeFilter({ onChange, value }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
-  const selected =
-    TYPE_FILTERS.find(([filterValue]) => filterValue === value) ||
-    TYPE_FILTERS[0];
+  const selected = TYPE_FILTERS.find(([filterValue]) => filterValue === value) || TYPE_FILTERS[0];
   const [, selectedLabel, SelectedIcon] = selected;
 
   useEffect(() => {
@@ -44,11 +42,7 @@ export function DocumentTypeFilter({ onChange, value }) {
         <ChevronDown aria-hidden="true" size={14} />
       </button>
       {open ? (
-        <div
-          aria-label="Tipo de documento"
-          className="documentTypeFilterMenu"
-          role="listbox"
-        >
+        <div aria-label="Tipo de documento" className="documentTypeFilterMenu" role="listbox">
           {TYPE_FILTERS.map(([filterValue, label, TypeIcon]) => (
             <button
               aria-selected={filterValue === value}

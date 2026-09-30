@@ -3,11 +3,7 @@ import { Suspense, useEffect, useState } from "react";
 import { ActiveView } from "./components/ActiveView.jsx";
 import { AppHeader } from "./components/AppHeader/index.jsx";
 import { useApp } from "./hooks/useApp.js";
-import {
-  activeViewFromPath,
-  activeViewPath,
-  resolveActiveView,
-} from "./model.js";
+import { activeViewFromPath, activeViewPath, resolveActiveView } from "./model.js";
 
 export default function App({ actor, onSignOut, onWorkspaceChange }) {
   const [requestTaskTarget, setRequestTaskTarget] = useState(null);
@@ -32,9 +28,7 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
 
   useEffect(() => {
     function restoreViewFromHistory() {
-      setActiveView(
-        resolveActiveView(actor, activeViewFromPath(window.location.pathname)),
-      );
+      setActiveView(resolveActiveView(actor, activeViewFromPath(window.location.pathname)));
     }
 
     window.addEventListener("popstate", restoreViewFromHistory);

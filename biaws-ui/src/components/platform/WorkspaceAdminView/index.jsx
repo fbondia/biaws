@@ -1,15 +1,4 @@
-import {
-  Archive,
-  Building2,
-  Check,
-  Copy,
-  Plus,
-  RefreshCw,
-  RotateCcw,
-  Save,
-  UserPlus,
-  X,
-} from "lucide-react";
+import { Archive, Building2, Check, Copy, Plus, RefreshCw, RotateCcw, Save, UserPlus, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import "../../../styles/features/platform.css";
@@ -78,13 +67,12 @@ export function WorkspaceAdminView({ actor }) {
     try {
       setError("");
       const workspace = workspaces.find(({ id }) => id === workspaceId);
-      const [summaryPayload, memberPayload, groupPayload, auditPayload] =
-        await Promise.all([
-          getPlatformWorkspaceSummary(workspaceId),
-          listPlatformWorkspaceMembers(workspaceId),
-          listPlatformWorkspaceGroups(workspaceId),
-          listPlatformWorkspaceAudit(workspaceId),
-        ]);
+      const [summaryPayload, memberPayload, groupPayload, auditPayload] = await Promise.all([
+        getPlatformWorkspaceSummary(workspaceId),
+        listPlatformWorkspaceMembers(workspaceId),
+        listPlatformWorkspaceGroups(workspaceId),
+        listPlatformWorkspaceAudit(workspaceId),
+      ]);
       if (requestId !== detailRequestId.current) return;
       setSelected(workspace || null);
       setDraft({
@@ -102,10 +90,9 @@ export function WorkspaceAdminView({ actor }) {
   }
 
   useEffect(() => {
-    Promise.all([
-      loadWorkspaces(),
-      listPlatformUsers().then((payload) => setUsers(payload.users || [])),
-    ]).catch((loadError) => setError(loadError.message));
+    Promise.all([loadWorkspaces(), listPlatformUsers().then((payload) => setUsers(payload.users || []))]).catch(
+      (loadError) => setError(loadError.message),
+    );
   }, []);
 
   useEffect(() => {
@@ -192,20 +179,13 @@ export function WorkspaceAdminView({ actor }) {
         <div>
           <span className="platformEyebrow">Plano global</span>
           <h2>Workspaces</h2>
-          <p>
-            Gerencie fronteiras, membros e provisionamento sem ampliar
-            permissões operacionais.
-          </p>
+          <p>Gerencie fronteiras, membros e provisionamento sem ampliar permissões operacionais.</p>
         </div>
         <div className="platformHeaderActions">
           <button className="secondaryButton" onClick={refresh} type="button">
             <RefreshCw size={16} /> Atualizar
           </button>
-          <button
-            className="primaryButton"
-            onClick={() => setCreating(true)}
-            type="button"
-          >
+          <button className="primaryButton" onClick={() => setCreating(true)} type="button">
             <Plus size={16} /> Novo workspace
           </button>
         </div>
@@ -226,11 +206,7 @@ export function WorkspaceAdminView({ actor }) {
               placeholder="Buscar…"
               value={query}
             />
-            <select
-              aria-label="Filtrar status"
-              onChange={(event) => setStatus(event.target.value)}
-              value={status}
-            >
+            <select aria-label="Filtrar status" onChange={(event) => setStatus(event.target.value)} value={status}>
               <option value="">Todos</option>
               <option value="active">Ativos</option>
               <option value="archived">Arquivados</option>
@@ -242,11 +218,7 @@ export function WorkspaceAdminView({ actor }) {
           <div className="platformWorkspaceItems">
             {workspaces.map((workspace) => (
               <button
-                className={
-                  workspace.id === selectedId
-                    ? "platformWorkspaceItem selected"
-                    : "platformWorkspaceItem"
-                }
+                className={workspace.id === selectedId ? "platformWorkspaceItem selected" : "platformWorkspaceItem"}
                 key={workspace.id}
                 onClick={() => setSelectedId(workspace.id)}
                 type="button"
@@ -255,8 +227,7 @@ export function WorkspaceAdminView({ actor }) {
                   <Building2 size={16} /> {workspace.name}
                 </span>
                 <small>
-                  {workspace.key} ·{" "}
-                  {workspace.status === "active" ? "Ativo" : "Arquivado"}
+                  {workspace.key} · {workspace.status === "active" ? "Ativo" : "Arquivado"}
                 </small>
               </button>
             ))}

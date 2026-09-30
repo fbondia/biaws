@@ -16,18 +16,12 @@ export function selectActiveLoading(operations, blocking) {
   return operations
     .filter((operation) => operation.blocking === blocking)
     .reduce(
-      (selected, operation) =>
-        !selected || operation.priority >= selected.priority
-          ? operation
-          : selected,
+      (selected, operation) => (!selected || operation.priority >= selected.priority ? operation : selected),
       null,
     );
 }
 
-export function createMessagesService({
-  clearTimeoutFn = clearTimeout,
-  setTimeoutFn = setTimeout,
-} = {}) {
+export function createMessagesService({ clearTimeoutFn = clearTimeout, setTimeoutFn = setTimeout } = {}) {
   let nextId = 0;
   let snapshot = Object.freeze({
     dialog: null,
@@ -48,9 +42,7 @@ export function createMessagesService({
     if (timer) clearTimeoutFn(timer);
     noticeTimers.delete(id);
     publish({
-      notices: Object.freeze(
-        snapshot.notices.filter((notice) => notice.id !== id),
-      ),
+      notices: Object.freeze(snapshot.notices.filter((notice) => notice.id !== id)),
     });
   }
 
@@ -94,9 +86,7 @@ export function createMessagesService({
     const options = normalizeDialogOptions(input, defaults);
 
     return new Promise((resolve) => {
-      dialogQueue.push(
-        Object.freeze({ focusTarget, id: ++nextId, options, resolve, type }),
-      );
+      dialogQueue.push(Object.freeze({ focusTarget, id: ++nextId, options, resolve, type }));
       showNextDialog();
     });
   }
@@ -124,9 +114,7 @@ export function createMessagesService({
         if (finished) return;
         finished = true;
         publish({
-          loadings: Object.freeze(
-            snapshot.loadings.filter(({ id }) => id !== operation.id),
-          ),
+          loadings: Object.freeze(snapshot.loadings.filter(({ id }) => id !== operation.id)),
         });
       },
       id: operation.id,
@@ -145,9 +133,7 @@ export function createMessagesService({
   function dispose() {
     for (const timer of noticeTimers.values()) clearTimeoutFn(timer);
     noticeTimers.clear();
-    snapshot.dialog?.resolve(
-      snapshot.dialog.type === MESSAGE_DIALOG.CONFIRM ? false : null,
-    );
+    snapshot.dialog?.resolve(snapshot.dialog.type === MESSAGE_DIALOG.CONFIRM ? false : null);
     for (const dialog of dialogQueue) {
       dialog.resolve(dialog.type === MESSAGE_DIALOG.CONFIRM ? false : null);
     }
@@ -162,19 +148,15 @@ export function createMessagesService({
 
   return Object.freeze({
     cancelDialog() {
-      resolveDialog(
-        snapshot.dialog?.type === MESSAGE_DIALOG.CONFIRM ? false : null,
-      );
+      resolveDialog(snapshot.dialog?.type === MESSAGE_DIALOG.CONFIRM ? false : null);
     },
-    confirm: (options, context) =>
-      requestDialog(MESSAGE_DIALOG.CONFIRM, options, context),
+    confirm: (options, context) => requestDialog(MESSAGE_DIALOG.CONFIRM, options, context),
     dismiss: removeNotice,
     dispose,
     error: (message, options) => notify(MESSAGE_LEVEL.ERROR, message, options),
     getSnapshot: () => snapshot,
     info: (message, options) => notify(MESSAGE_LEVEL.INFO, message, options),
-    prompt: (options, context) =>
-      requestDialog(MESSAGE_DIALOG.PROMPT, options, context),
+    prompt: (options, context) => requestDialog(MESSAGE_DIALOG.PROMPT, options, context),
     resolveDialog,
     run,
     startLoading,
@@ -182,9 +164,7 @@ export function createMessagesService({
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    success: (message, options) =>
-      notify(MESSAGE_LEVEL.SUCCESS, message, options),
-    warning: (message, options) =>
-      notify(MESSAGE_LEVEL.WARNING, message, options),
+    success: (message, options) => notify(MESSAGE_LEVEL.SUCCESS, message, options),
+    warning: (message, options) => notify(MESSAGE_LEVEL.WARNING, message, options),
   });
 }

@@ -1,14 +1,5 @@
-import {
-  DEPLOYMENT_STATUSES,
-  ENVIRONMENTS,
-  PUBLICATION_STATUSES,
-} from "../constants.js";
-import {
-  EntityFieldGroup,
-  HistoryItems,
-  SelectField,
-  TextField,
-} from "./Fields.jsx";
+import { DEPLOYMENT_STATUSES, ENVIRONMENTS, PUBLICATION_STATUSES } from "../constants.js";
+import { EntityFieldGroup, HistoryItems, SelectField, TextField } from "./Fields.jsx";
 
 function formatDate(value) {
   if (!value) return "Data não informada";
@@ -31,9 +22,7 @@ export function DeploymentFields({
 }) {
   return (
     <>
-      <EntityFieldGroup
-        active={kind === "deployment" && activeSection === "basic"}
-      >
+      <EntityFieldGroup active={kind === "deployment" && activeSection === "basic"}>
         <>
           {!editing ? (
             <SelectField
@@ -77,9 +66,7 @@ export function DeploymentFields({
         </>
       </EntityFieldGroup>
 
-      <EntityFieldGroup
-        active={kind === "deployment" && activeSection === "publications"}
-      >
+      <EntityFieldGroup active={kind === "deployment" && activeSection === "publications"}>
         <div className="catalogHistorySection catalogWideField">
           <div className="catalogHistoryComposer">
             <TextField
@@ -176,9 +163,7 @@ export function DeploymentFields({
                   {formatDate(publication.publishedAt)}
                   {publication.revision ? ` · ${publication.revision}` : ""}
                 </small>
-                {publication.description ? (
-                  <p>{publication.description}</p>
-                ) : null}
+                {publication.description ? <p>{publication.description}</p> : null}
               </>
             )}
           />

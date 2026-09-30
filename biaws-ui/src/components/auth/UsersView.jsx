@@ -14,9 +14,7 @@ import { hasEveryPermission, hasPermission } from "../../permissions.js";
 import { useMessages } from "../../infrastructure/messages/MessagesProvider.jsx";
 
 function toggleId(values, id) {
-  return values.includes(id)
-    ? values.filter((value) => value !== id)
-    : [...values, id];
+  return values.includes(id) ? values.filter((value) => value !== id) : [...values, id];
 }
 
 export function UsersView({ actor }) {
@@ -36,11 +34,7 @@ export function UsersView({ actor }) {
   const canCreate = hasPermission(actor, "users.create");
   const canDisable = hasPermission(actor, "users.disable");
   const canResetPassword = hasPermission(actor, "users.password.reset");
-  const canManageGroups = hasEveryPermission(
-    actor,
-    "users.update",
-    "roles.manage",
-  );
+  const canManageGroups = hasEveryPermission(actor, "users.update", "roles.manage");
   const canReadGroups = hasPermission(actor, "roles.read");
 
   async function load() {
@@ -48,18 +42,12 @@ export function UsersView({ actor }) {
       try {
         const [userPayload, groupPayload] = await Promise.all([
           listUsers(),
-          canReadGroups
-            ? listPermissionGroups()
-            : Promise.resolve({ groups: [] }),
+          canReadGroups ? listPermissionGroups() : Promise.resolve({ groups: [] }),
         ]);
         const loadedUsers = userPayload.users || [];
         setUsers(loadedUsers);
         setGroups((groupPayload.groups || []).filter(({ active }) => active));
-        setAccessByUser(
-          Object.fromEntries(
-            loadedUsers.map((user) => [user.id, user.groupIds || []]),
-          ),
-        );
+        setAccessByUser(Object.fromEntries(loadedUsers.map((user) => [user.id, user.groupIds || []])));
       } catch (loadError) {
         setError(loadError.message);
       }
@@ -125,14 +113,9 @@ export function UsersView({ actor }) {
 
   async function changeUserGroup(user, group) {
     const current = accessByUser[user.id] || [];
-    const groupIds = current.includes(group.id)
-      ? current.filter((id) => id !== group.id)
-      : [...current, group.id];
+    const groupIds = current.includes(group.id) ? current.filter((id) => id !== group.id) : [...current, group.id];
     try {
-      await runWithLoading(
-        () => setUserGroups(user.id, groupIds),
-        "Atualizando grupos do usuário…",
-      );
+      await runWithLoading(() => setUserGroups(user.id, groupIds), "Atualizando grupos do usuário…");
       setAccessByUser((access) => ({ ...access, [user.id]: groupIds }));
     } catch (groupError) {
       setError(groupError.message);
@@ -186,9 +169,7 @@ export function UsersView({ actor }) {
                     {groups.map((group) => (
                       <label key={group.id}>
                         <input
-                          checked={(accessByUser[user.id] || []).includes(
-                            group.id,
-                          )}
+                          checked={(accessByUser[user.id] || []).includes(group.id)}
                           onChange={userGroupChangeHandler(user, group)}
                           type="checkbox"
                         />
@@ -200,11 +181,7 @@ export function UsersView({ actor }) {
               </div>
               <div>
                 {canResetPassword ? (
-                  <button
-                    className="secondaryButton"
-                    onClick={() => resetPassword(user)}
-                    type="button"
-                  >
+                  <button className="secondaryButton" onClick={() => resetPassword(user)} type="button">
                     Redefinir senha
                   </button>
                 ) : null}
@@ -219,9 +196,7 @@ export function UsersView({ actor }) {
                             await setUserDisabled(user.id, !user.banned);
                             await load();
                           },
-                          user.banned
-                            ? "Ativando usuário…"
-                            : "Desativando usuário…",
+                          user.banned ? "Ativando usuário…" : "Desativando usuário…",
                         );
                       } catch (statusError) {
                         setError(statusError.message);
@@ -241,16 +216,10 @@ export function UsersView({ actor }) {
         <div
           className="dialogBackdrop"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !saving)
-              setCreating(false);
+            if (event.target === event.currentTarget && !saving) setCreating(false);
           }}
         >
-          <section
-            aria-labelledby="createUserDialogTitle"
-            aria-modal="true"
-            className="userCreateDialog"
-            role="dialog"
-          >
+          <section aria-labelledby="createUserDialogTitle" aria-modal="true" className="userCreateDialog" role="dialog">
             <header className="userCreateDialogHeader">
               <div>
                 <span>Administração de usuários</span>
@@ -274,9 +243,7 @@ export function UsersView({ actor }) {
                 <input
                   autoFocus
                   disabled={saving}
-                  onChange={(event) =>
-                    setForm({ ...form, name: event.target.value })
-                  }
+                  onChange={(event) => setForm({ ...form, name: event.target.value })}
                   required
                   value={form.name}
                 />
@@ -285,9 +252,7 @@ export function UsersView({ actor }) {
                 <span>E-mail</span>
                 <input
                   disabled={saving}
-                  onChange={(event) =>
-                    setForm({ ...form, email: event.target.value })
-                  }
+                  onChange={(event) => setForm({ ...form, email: event.target.value })}
                   required
                   type="email"
                   value={form.email}
@@ -298,9 +263,7 @@ export function UsersView({ actor }) {
                 <input
                   disabled={saving}
                   minLength={12}
-                  onChange={(event) =>
-                    setForm({ ...form, password: event.target.value })
-                  }
+                  onChange={(event) => setForm({ ...form, password: event.target.value })}
                   required
                   type="password"
                   value={form.password}
@@ -326,19 +289,10 @@ export function UsersView({ actor }) {
                 </fieldset>
               ) : null}
               <footer className="userCreateDialogFooter">
-                <button
-                  className="secondaryButton"
-                  disabled={saving}
-                  onClick={() => setCreating(false)}
-                  type="button"
-                >
+                <button className="secondaryButton" disabled={saving} onClick={() => setCreating(false)} type="button">
                   Cancelar
                 </button>
-                <button
-                  className="primaryButton"
-                  disabled={saving}
-                  type="submit"
-                >
+                <button className="primaryButton" disabled={saving} type="submit">
                   <UserPlus size={16} />
                   {saving ? "Criando..." : "Criar usuário"}
                 </button>

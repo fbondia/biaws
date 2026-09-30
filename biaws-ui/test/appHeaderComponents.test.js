@@ -19,19 +19,14 @@ test("navigation menu section resolves its navigation button dependency", async 
       build: {
         emptyOutDir: false,
         lib: {
-          entry: join(
-            process.cwd(),
-            "src/App/components/AppHeader/components/AppHeaderPanels.jsx",
-          ),
+          entry: join(process.cwd(), "src/App/components/AppHeader/components/AppHeaderPanels.jsx"),
           fileName: "app-header-panels",
           formats: ["es"],
         },
         outDir: outputDirectory,
       },
     });
-    const { NavigationMenuSection } = await import(
-      pathToFileURL(join(outputDirectory, "app-header-panels.js"))
-    );
+    const { NavigationMenuSection } = await import(pathToFileURL(join(outputDirectory, "app-header-panels.js")));
     assert.doesNotThrow(() =>
       NavigationMenuSection({
         activeView: "home",

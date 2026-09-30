@@ -1,11 +1,4 @@
-import {
-  Background,
-  ConnectionMode,
-  Controls,
-  MiniMap,
-  Panel,
-  ReactFlow,
-} from "@xyflow/react";
+import { Background, ConnectionMode, Controls, MiniMap, Panel, ReactFlow } from "@xyflow/react";
 
 import { TopologyElementNode } from "../../TopologyElementNode.jsx";
 import { TopologyGroupNode } from "../../TopologyGroupNode.jsx";
@@ -23,12 +16,7 @@ const nodeTypes = {
   topologyServer: TopologyServerNode,
 };
 
-function SelectedEditor({
-  controller,
-  selectedEdge,
-  selectedElement,
-  selectedGroup,
-}) {
+function SelectedEditor({ controller, selectedEdge, selectedElement, selectedGroup }) {
   if (selectedGroup) return <GroupEditorPanel controller={controller} />;
   if (selectedElement) return <ElementEditorPanel controller={controller} />;
   if (selectedEdge) return <EdgeEditorPanel controller={controller} />;
@@ -68,28 +56,20 @@ export function TopologyDiagramCanvas({ controller }) {
 
   function selectNode(node) {
     actions.setSelectedEdgeId("");
-    actions.setSelectedElementId(
-      node.type === "topologyElement" ? node.id : "",
-    );
+    actions.setSelectedElementId(node.type === "topologyElement" ? node.id : "");
     actions.setSelectedGroupId(node.type === "topologyGroup" ? node.id : "");
   }
 
   function finishNodeDrag(draggedNode) {
     const positionedNodes = nodes.map((node) =>
-      node.id === draggedNode.id
-        ? { ...node, position: draggedNode.position }
-        : node,
+      node.id === draggedNode.id ? { ...node, position: draggedNode.position } : node,
     );
-    actions.setEdges((current) =>
-      actions.routeTopologyEdges(positionedNodes, current),
-    );
+    actions.setEdges((current) => actions.routeTopologyEdges(positionedNodes, current));
   }
 
   return (
     <div className="topologyDiagramCanvas">
-      {loading || topologyLoading ? (
-        <div className="topologyDiagramLoading">Carregando topologia…</div>
-      ) : null}
+      {loading || topologyLoading ? <div className="topologyDiagramLoading">Carregando topologia…</div> : null}
       {!loading && !diagram && !creating ? (
         <div className="topologyDiagramLoading">Nenhum gráfico disponível.</div>
       ) : null}
@@ -116,13 +96,7 @@ export function TopologyDiagramCanvas({ controller }) {
         >
           <Background gap={22} size={1} />
           <Controls position="top-left" />
-          <MiniMap
-            maskColor="rgba(226, 232, 240, 0.55)"
-            nodeColor="#dbeafe"
-            pannable
-            position="top-right"
-            zoomable
-          />
+          <MiniMap maskColor="rgba(226, 232, 240, 0.55)" nodeColor="#dbeafe" pannable position="top-right" zoomable />
           {!visibleGraph.nodes.length && nodes.length ? (
             <Panel className="topologyDiagramEmptyFilter" position="top-center">
               Nenhum elemento corresponde aos filtros de exibição.

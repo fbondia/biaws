@@ -33,8 +33,7 @@ export const TAG_GROUP_ALIASES = {
   tratamentos: {
     id: "tratamento",
     label: "Tratamento",
-    description:
-      "Tipo de análise, correção ou encaminhamento aplicado ao issue.",
+    description: "Tipo de análise, correção ou encaminhamento aplicado ao issue.",
   },
 };
 
@@ -113,9 +112,7 @@ export function normalizeTagGroups(tagGroups) {
 }
 
 export function compactTreeNode(node) {
-  const children = Array.isArray(node.children)
-    ? node.children.map(compactTreeNode)
-    : [];
+  const children = Array.isArray(node.children) ? node.children.map(compactTreeNode) : [];
   const compacted = {
     id: node.id,
     label: node.label,
@@ -155,11 +152,9 @@ export function flatTaxonomyToTree(rows) {
   }
 
   const roots = [];
-  const sortedNodes = [...nodesByPathId.entries()].sort(
-    ([, first], [, second]) => {
-      return first.sourceLine - second.sourceLine;
-    },
-  );
+  const sortedNodes = [...nodesByPathId.entries()].sort(([, first], [, second]) => {
+    return first.sourceLine - second.sourceLine;
+  });
 
   for (const [, node] of sortedNodes) {
     if (node.parentPathId && nodesByPathId.has(node.parentPathId)) {
@@ -175,10 +170,7 @@ export function flatTaxonomyToTree(rows) {
 export function normalizeTaxonomy(taxonomy) {
   if (!Array.isArray(taxonomy)) return [];
 
-  const looksFlat = taxonomy.some(
-    (node) =>
-      Object.hasOwn(node, "parentPathId") || Object.hasOwn(node, "pathId"),
-  );
+  const looksFlat = taxonomy.some((node) => Object.hasOwn(node, "parentPathId") || Object.hasOwn(node, "pathId"));
 
   if (looksFlat) {
     return flatTaxonomyToTree(taxonomy);
@@ -197,10 +189,7 @@ export function flattenTree(nodes, depth = 0, parentId = null, path = []) {
       path: currentPath,
     };
 
-    return [
-      current,
-      ...flattenTree(node.children || [], depth + 1, node.id, currentPath),
-    ];
+    return [current, ...flattenTree(node.children || [], depth + 1, node.id, currentPath)];
   });
 }
 
@@ -212,9 +201,7 @@ export function updateNode(nodes, nodeId, patch) {
 
     return {
       ...node,
-      children: node.children
-        ? updateNode(node.children, nodeId, patch)
-        : undefined,
+      children: node.children ? updateNode(node.children, nodeId, patch) : undefined,
     };
   });
 }
@@ -232,9 +219,7 @@ export function appendChild(nodes, parentId, child) {
 
     return {
       ...node,
-      children: node.children
-        ? appendChild(node.children, parentId, child)
-        : undefined,
+      children: node.children ? appendChild(node.children, parentId, child) : undefined,
     };
   });
 }

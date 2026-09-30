@@ -1,9 +1,4 @@
-export function TopologyVisibilityMenu({
-  hiddenIds,
-  label,
-  onChange,
-  options,
-}) {
+export function TopologyVisibilityMenu({ hiddenIds, label, onChange, options }) {
   const hidden = new Set(hiddenIds);
   const visibleCount = options.filter(({ id }) => !hidden.has(id)).length;
 
@@ -30,10 +25,7 @@ export function TopologyVisibilityMenu({
               <button onClick={() => onChange([])} type="button">
                 Todos
               </button>
-              <button
-                onClick={() => onChange(options.map(({ id }) => id))}
-                type="button"
-              >
+              <button onClick={() => onChange(options.map(({ id }) => id))} type="button">
                 Nenhum
               </button>
             </span>

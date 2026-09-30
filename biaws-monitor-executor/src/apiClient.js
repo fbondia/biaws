@@ -16,10 +16,7 @@ function isRetryableStatus(status) {
   return status === 408 || status === 425 || status === 429 || status >= 500;
 }
 
-export function createExecutorApiClient(
-  { apiUrl, apiKey, workspaceId, requestTimeoutMs },
-  { fetchImpl = fetch } = {},
-) {
+export function createExecutorApiClient({ apiUrl, apiKey, workspaceId, requestTimeoutMs }, { fetchImpl = fetch } = {}) {
   async function request(path, body, { signal } = {}) {
     const timeout = AbortSignal.timeout(requestTimeoutMs);
     const requestSignal = signal ? AbortSignal.any([signal, timeout]) : timeout;
@@ -38,22 +35,18 @@ export function createExecutorApiClient(
       });
     } catch (error) {
       throw new ExecutorApiError("Executor API request failed", {
-        code:
-          error?.name === "TimeoutError" ? "API_TIMEOUT" : "API_UNAVAILABLE",
+        code: error?.name === "TimeoutError" ? "API_TIMEOUT" : "API_UNAVAILABLE",
         retryable: true,
         cause: error,
       });
     }
     const data = await response.json().catch(() => null);
     if (!response.ok) {
-      throw new ExecutorApiError(
-        data?.error?.message || `Executor API returned HTTP ${response.status}`,
-        {
-          code: data?.error?.code,
-          statusCode: response.status,
-          retryable: isRetryableStatus(response.status),
-        },
-      );
+      throw new ExecutorApiError(data?.error?.message || `Executor API returned HTTP ${response.status}`, {
+        code: data?.error?.code,
+        statusCode: response.status,
+        retryable: isRetryableStatus(response.status),
+      });
     }
     return data;
   }
@@ -63,18 +56,10 @@ export function createExecutorApiClient(
       return request("/api/monitoring/executor/leases", payload, options);
     },
     renew(leaseToken, payload, options) {
-      return request(
-        `/api/monitoring/executor/leases/${encodeURIComponent(leaseToken)}/renew`,
-        payload,
-        options,
-      );
+      return request(`/api/monitoring/executor/leases/${encodeURIComponent(leaseToken)}/renew`, payload, options);
     },
     publish(leaseToken, payload, options) {
-      return request(
-        `/api/monitoring/executor/leases/${encodeURIComponent(leaseToken)}/results`,
-        payload,
-        options,
-      );
+      return request(`/api/monitoring/executor/leases/${encodeURIComponent(leaseToken)}/results`, payload, options);
     },
   };
 }

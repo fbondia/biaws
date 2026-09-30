@@ -8,10 +8,7 @@ import {
   fetchSummary,
   updateIssue,
 } from "../../api.js";
-import {
-  configureIssueConstants,
-  DEFAULT_FILTERS,
-} from "../../constants/issues.js";
+import { configureIssueConstants, DEFAULT_FILTERS } from "../../constants/issues.js";
 import { configureRequestConstants } from "../../data/requestConstants.js";
 import { hasPermission } from "../../permissions.js";
 import { defaultLogger } from "../../infrastructure/logging/runtime.js";
@@ -29,9 +26,7 @@ import { createRuntimeOptionListsLoader } from "../runtimeOptionLists.js";
 import { navigationGroup } from "../navigationModel.js";
 
 export function useApp(actor, preferredView) {
-  const [activeView, setActiveView] = useState(() =>
-    resolveActiveView(actor, preferredView),
-  );
+  const [activeView, setActiveView] = useState(() => resolveActiveView(actor, preferredView));
   const [draftFilters, setDraftFilters] = useState(DEFAULT_FILTERS);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
@@ -62,23 +57,16 @@ export function useApp(actor, preferredView) {
         ({ permission, platformPermission }) =>
           Boolean(actor.workspaceId) &&
           (!permission || hasPermission(actor, permission)) &&
-          (!platformPermission ||
-            actor.platformPermissions?.includes(platformPermission)),
+          (!platformPermission || actor.platformPermissions?.includes(platformPermission)),
       ),
     [actor],
   );
   const availableNavigationGroups = useMemo(() => {
     if (!actor.workspaceId) return [];
-    return NAVIGATION_GROUPS.map((group) =>
-      navigationGroup(actor, group),
-    ).filter(({ sections }) => sections.length);
+    return NAVIGATION_GROUPS.map((group) => navigationGroup(actor, group)).filter(({ sections }) => sections.length);
   }, [actor]);
   const params = useMemo(
-    () =>
-      compactParams(
-        { ...filters, limit: ISSUES_PER_PAGE, sort: issueSort },
-        page,
-      ),
+    () => compactParams({ ...filters, limit: ISSUES_PER_PAGE, sort: issueSort }, page),
     [filters, issueSort, page],
   );
 
@@ -87,10 +75,7 @@ export function useApp(actor, preferredView) {
     setError("");
 
     try {
-      const [issuesPayload, summaryPayload] = await Promise.all([
-        fetchIssues(params),
-        fetchSummary(params),
-      ]);
+      const [issuesPayload, summaryPayload] = await Promise.all([fetchIssues(params), fetchSummary(params)]);
       setIssuesResult(issuesPayload);
       setSummary(summaryPayload);
     } catch (loadError) {
@@ -154,8 +139,7 @@ export function useApp(actor, preferredView) {
       defaultLogger.warn("application.option_lists.load_failed", {
         context: { workspaceId: actor.workspaceId },
         error: loadError,
-        message:
-          "Runtime option lists could not be loaded; defaults remain active",
+        message: "Runtime option lists could not be loaded; defaults remain active",
       });
     });
 
@@ -234,22 +218,14 @@ export function useApp(actor, preferredView) {
       return {
         ...current,
         items: current.items.map((currentIssue) =>
-          currentIssue.id === updatedIssue.id
-            ? { ...currentIssue, ...updatedIssue }
-            : currentIssue,
+          currentIssue.id === updatedIssue.id ? { ...currentIssue, ...updatedIssue } : currentIssue,
         ),
       };
     });
 
-    setSelectedIssue((current) =>
-      current?.id === updatedIssue.id
-        ? { ...current, ...updatedIssue }
-        : current,
-    );
+    setSelectedIssue((current) => (current?.id === updatedIssue.id ? { ...current, ...updatedIssue } : current));
     setIssueDetails((current) =>
-      current?.issue?.id === updatedIssue.id
-        ? { ...current, issue: { ...current.issue, ...updatedIssue } }
-        : current,
+      current?.issue?.id === updatedIssue.id ? { ...current, issue: { ...current.issue, ...updatedIssue } } : current,
     );
   }
 

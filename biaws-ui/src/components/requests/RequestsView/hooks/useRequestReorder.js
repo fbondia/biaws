@@ -12,41 +12,23 @@ export function useRequestReorder({
   upsertRequestInList,
 }) {
   async function moveRequest(requestId, targetRequestId) {
-    if (
-      !requestId ||
-      !targetRequestId ||
-      requestId === targetRequestId ||
-      statusFilters.length
-    )
-      return;
+    if (!requestId || !targetRequestId || requestId === targetRequestId || statusFilters.length) return;
 
-    const movedRequest = requestCollectionItems.find(
-      (request) => request.id === requestId,
-    );
-    const targetRequest = requestCollectionItems.find(
-      (request) => request.id === targetRequestId,
-    );
+    const movedRequest = requestCollectionItems.find((request) => request.id === requestId);
+    const targetRequest = requestCollectionItems.find((request) => request.id === targetRequestId);
     if (
       !movedRequest ||
       !targetRequest ||
-      String(movedRequest.collectionId || "") !==
-        String(targetRequest.collectionId || "")
+      String(movedRequest.collectionId || "") !== String(targetRequest.collectionId || "")
     )
       return;
 
     const collectionRequests = requestCollectionItems.filter(
-      (request) =>
-        String(request.collectionId || "") ===
-        String(movedRequest.collectionId || ""),
+      (request) => String(request.collectionId || "") === String(movedRequest.collectionId || ""),
     );
-    const currentIndex = collectionRequests.findIndex(
-      (request) => request.id === requestId,
-    );
-    const targetIndex = collectionRequests.findIndex(
-      (request) => request.id === targetRequestId,
-    );
-    if (currentIndex < 0 || targetIndex < 0 || currentIndex === targetIndex)
-      return;
+    const currentIndex = collectionRequests.findIndex((request) => request.id === requestId);
+    const targetIndex = collectionRequests.findIndex((request) => request.id === targetRequestId);
+    if (currentIndex < 0 || targetIndex < 0 || currentIndex === targetIndex) return;
 
     const nextCollectionRequests = [...collectionRequests];
     nextCollectionRequests.splice(currentIndex, 1);
@@ -66,11 +48,7 @@ export function useRequestReorder({
 
     const applyOptimisticRank = (items) =>
       sortRequestsForList(
-        items.map((request) =>
-          request.id === requestId
-            ? { ...request, listRank: optimisticRank }
-            : request,
-        ),
+        items.map((request) => (request.id === requestId ? { ...request, listRank: optimisticRank } : request)),
       );
     setRequests((current) => applyOptimisticRank(current));
     setRequestCollectionItems((current) => applyOptimisticRank(current));

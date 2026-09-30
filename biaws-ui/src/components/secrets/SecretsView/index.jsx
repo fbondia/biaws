@@ -34,15 +34,7 @@ function SecretsStatus({ error, loading, secrets }) {
   return null;
 }
 
-function SecretsGrid({
-  canDrag,
-  cardProps,
-  collectionState,
-  loading,
-  onOpen,
-  secrets,
-  visibleSecrets,
-}) {
+function SecretsGrid({ canDrag, cardProps, collectionState, loading, onOpen, secrets, visibleSecrets }) {
   return (
     <div className="secretsGrid">
       {visibleSecrets.map((secret) => (
@@ -51,9 +43,7 @@ function SecretsGrid({
           draggable={canDrag(secret)}
           key={secret.id}
           onDragEnd={() => collectionState.setDraggedItem(null)}
-          onDragStart={() =>
-            collectionState.setDraggedItem({ type: "item", id: secret.id })
-          }
+          onDragStart={() => collectionState.setDraggedItem({ type: "item", id: secret.id })}
           onOpen={() => onOpen(secret)}
         />
       ))}
@@ -101,11 +91,7 @@ function SecretDialogs({
         />
       ) : null}
       {versioning ? (
-        <SecretValueDialog
-          onClose={() => setVersioning(null)}
-          onSaved={finishVersioning}
-          secret={versioning}
-        />
+        <SecretValueDialog onClose={() => setVersioning(null)} onSaved={finishVersioning} secret={versioning} />
       ) : null}
     </>
   );
@@ -133,9 +119,7 @@ function buildSecretCardProps(secret, context) {
   const archived = secret.status === "archived";
   const canArchive = permissions.archive && allowed("secrets.archive", secret);
   return {
-    applicationName: secret.applicationId
-      ? applicationNames[secret.applicationId] || secret.applicationId
-      : "",
+    applicationName: secret.applicationId ? applicationNames[secret.applicationId] || secret.applicationId : "",
     canArchive: !archived && canArchive,
     canDelete: archived && canArchive,
     canReveal:
@@ -144,10 +128,8 @@ function buildSecretCardProps(secret, context) {
       permissions.reveal &&
       allowed("secrets.value.reveal", secret),
     canRestore: archived && canArchive,
-    canUpdate:
-      !archived && permissions.update && allowed("secrets.update", secret),
-    canWrite:
-      !archived && permissions.write && allowed("secrets.value.write", secret),
+    canUpdate: !archived && permissions.update && allowed("secrets.update", secret),
+    canWrite: !archived && permissions.write && allowed("secrets.value.write", secret),
     copied: copiedSecretId === secret.id,
     onArchive: async () => {
       if (await archive(secret)) closeSecret();
@@ -196,18 +178,14 @@ function SecretsNavigator({
 }) {
   return (
     <ResourceCollectionNavigator
-      canDragItem={(secret) =>
-        permissions.update && allowed("secrets.update", secret)
-      }
+      canDragItem={(secret) => permissions.update && allowed("secrets.update", secret)}
       collections={collectionState.collections}
       draggedItem={collectionState.draggedItem}
       itemLabel="segredos"
       items={secrets}
       preferenceKey="secrets"
       workspaceId={actor.workspaceId}
-      onCreate={
-        permissions.update ? collectionState.createCollection : undefined
-      }
+      onCreate={permissions.update ? collectionState.createCollection : undefined}
       onDelete={collectionState.removeCollection}
       onArchiveItem={permissions.archive ? archive : undefined}
       onDeleteItem={permissions.archive ? remove : undefined}
@@ -221,12 +199,8 @@ function SecretsNavigator({
           : undefined
       }
       onDragEnd={() => collectionState.setDraggedItem(null)}
-      onDragItem={(secret) =>
-        collectionState.setDraggedItem({ type: "item", id: secret.id })
-      }
-      onDrop={(collectionId) =>
-        collectionState.dropItem(collectionId, moveSecretToCollection)
-      }
+      onDragItem={(secret) => collectionState.setDraggedItem({ type: "item", id: secret.id })}
+      onDrop={(collectionId) => collectionState.dropItem(collectionId, moveSecretToCollection)}
       onRename={(collection) => collectionState.setCollectionDialog(collection)}
       onRestoreItem={permissions.archive ? restore : undefined}
       onSelect={(collectionId) => {
@@ -295,11 +269,7 @@ export function SecretsView({ actor }) {
     [secrets, selectedSecretId],
   );
   const visibleSecrets = useMemo(() => {
-    return secretsInCollection(
-      secrets,
-      collectionState.selectedCollectionId,
-      search,
-    );
+    return secretsInCollection(secrets, collectionState.selectedCollectionId, search);
   }, [secrets, search, collectionState.selectedCollectionId]);
 
   function closeSecret() {
@@ -332,23 +302,16 @@ export function SecretsView({ actor }) {
     setVersioning,
     showValue,
   };
-  const secretCardProps = (secret) =>
-    buildSecretCardProps(secret, secretCardContext);
+  const secretCardProps = (secret) => buildSecretCardProps(secret, secretCardContext);
   return (
     <section className="securityView secretsView">
       <header className="securityHeader">
         <div>
           <h2>Segredos</h2>
-          <p>
-            Credenciais armazenadas e necessidades aguardando provisionamento.
-          </p>
+          <p>Credenciais armazenadas e necessidades aguardando provisionamento.</p>
         </div>
         {permissions.create ? (
-          <button
-            className="primaryButton"
-            onClick={() => setCreating(true)}
-            type="button"
-          >
+          <button className="primaryButton" onClick={() => setCreating(true)} type="button">
             <Plus size={16} /> Novo segredo
           </button>
         ) : null}
@@ -403,16 +366,10 @@ export function SecretsView({ actor }) {
         }
       >
         {selectedSecret ? (
-          <SecretCard
-            {...secretCardProps(selectedSecret)}
-            detail
-            onBack={closeSecret}
-          />
+          <SecretCard {...secretCardProps(selectedSecret)} detail onBack={closeSecret} />
         ) : (
           <SecretsGrid
-            canDrag={(secret) =>
-              permissions.update && allowed("secrets.update", secret)
-            }
+            canDrag={(secret) => permissions.update && allowed("secrets.update", secret)}
             cardProps={secretCardProps}
             collectionState={collectionState}
             loading={loading}
@@ -424,17 +381,10 @@ export function SecretsView({ actor }) {
       </ResourceCollectionsShell>
       {collectionState.collectionDialog ? (
         <ResourceCollectionDialog
-          collection={
-            collectionState.collectionDialog.id
-              ? collectionState.collectionDialog
-              : null
-          }
+          collection={collectionState.collectionDialog.id ? collectionState.collectionDialog : null}
           onClose={() => collectionState.setCollectionDialog(null)}
           onSave={collectionState.saveCollection}
-          parentLabel={collectionPathLabel(
-            collectionState.collections,
-            collectionState.selectedCollectionId,
-          )}
+          parentLabel={collectionPathLabel(collectionState.collections, collectionState.selectedCollectionId)}
           resourceLabel="segredos"
         />
       ) : null}

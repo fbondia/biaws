@@ -41,12 +41,8 @@ async function copySvgToClipboard(svgElement) {
   }
 
   const bounds = svgElement.getBoundingClientRect();
-  const width = Math.ceil(
-    bounds.width || Number(svgElement.getAttribute("width")) || 800,
-  );
-  const height = Math.ceil(
-    bounds.height || Number(svgElement.getAttribute("height")) || 320,
-  );
+  const width = Math.ceil(bounds.width || Number(svgElement.getAttribute("width")) || 800);
+  const height = Math.ceil(bounds.height || Number(svgElement.getAttribute("height")) || 320);
   const clone = svgElement.cloneNode(true);
 
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -72,17 +68,13 @@ async function copySvgToClipboard(svgElement) {
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-    const pngBlob = await new Promise((resolve) =>
-      canvas.toBlob(resolve, "image/png"),
-    );
-    if (!pngBlob)
-      throw new Error("Não foi possível gerar a imagem do gráfico.");
+    const pngBlob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    if (!pngBlob) throw new Error("Não foi possível gerar a imagem do gráfico.");
 
     const pngDataUrl = await blobToDataUrl(pngBlob);
-    const htmlBlob = new Blob(
-      [`<img src="${pngDataUrl}" alt="Gráfico do sumário de chamados">`],
-      { type: "text/html" },
-    );
+    const htmlBlob = new Blob([`<img src="${pngDataUrl}" alt="Gráfico do sumário de chamados">`], {
+      type: "text/html",
+    });
     const textBlob = new Blob(["Gráfico do sumário de chamados"], {
       type: "text/plain",
     });
@@ -118,10 +110,7 @@ export function SummaryChartFrame({ children, className = "" }) {
       })
       .filter((candidate) => candidate.area > 0);
 
-    return (
-      candidates.sort((left, right) => right.area - left.area)[0]?.element ||
-      null
-    );
+    return candidates.sort((left, right) => right.area - left.area)[0]?.element || null;
   }
 
   async function handleCopy(event) {
@@ -143,25 +132,14 @@ export function SummaryChartFrame({ children, className = "" }) {
       setCopyStatus("failed");
     } finally {
       window.clearTimeout(copyResetTimerRef.current);
-      copyResetTimerRef.current = window.setTimeout(
-        () => setCopyStatus("idle"),
-        1800,
-      );
+      copyResetTimerRef.current = window.setTimeout(() => setCopyStatus("idle"), 1800);
     }
   }
 
-  const statusLabel =
-    copyStatus === "copied"
-      ? "Copiado"
-      : copyStatus === "failed"
-        ? "Erro"
-        : "Copiar";
+  const statusLabel = copyStatus === "copied" ? "Copiado" : copyStatus === "failed" ? "Erro" : "Copiar";
 
   return (
-    <div
-      className={`summaryChartCard summaryCopyChartCard ${className}`.trim()}
-      ref={chartRef}
-    >
+    <div className={`summaryChartCard summaryCopyChartCard ${className}`.trim()} ref={chartRef}>
       <button
         className={`summaryChartCopyButton ${copyStatus === "failed" ? "summaryChartCopyError" : ""}`}
         disabled={copyStatus === "copying"}

@@ -33,8 +33,7 @@ function StatusIcon({ status }) {
 
 export function canClassifyContext(context, classificationScope) {
   return Boolean(
-    classificationScope?.workspace ||
-    classificationScope?.applicationIds?.includes(context.applicationId),
+    classificationScope?.workspace || classificationScope?.applicationIds?.includes(context.applicationId),
   );
 }
 
@@ -43,27 +42,18 @@ export function isValidEmlEntry(entry) {
     entry.context?.applicationId &&
     entry.overrides?.id?.trim() &&
     entry.overrides?.title?.trim() &&
-    TYPE_OPTIONS.some(
-      (option) => option.value && option.value === entry.overrides?.type,
-    ),
+    TYPE_OPTIONS.some((option) => option.value && option.value === entry.overrides?.type),
   );
 }
 
 function selectedTaxonomyIds(classification) {
-  return [
-    classification.primaryTaxonomyId,
-    ...(classification.secondaryTaxonomyIds || []),
-  ].filter(Boolean);
+  return [classification.primaryTaxonomyId, ...(classification.secondaryTaxonomyIds || [])].filter(Boolean);
 }
 
 function formatContextSummary(context, applications, components) {
-  const application = applications.find(
-    ({ id }) => id === context.applicationId,
-  );
+  const application = applications.find(({ id }) => id === context.applicationId);
   if (!application) return "Selecionar aplicação";
-  const selectedComponents = components.filter((component) =>
-    context.affectedComponentIds.includes(component.id),
-  );
+  const selectedComponents = components.filter((component) => context.affectedComponentIds.includes(component.id));
   if (!selectedComponents.length) return application.name;
   if (selectedComponents.length === 1) {
     return `${application.name} · ${selectedComponents[0].name}`;
@@ -75,17 +65,12 @@ function formatTaxonomySummary(classification) {
   if (!classification) return "Nenhuma classificação";
   const taxonomyCount = selectedTaxonomyIds(classification).length;
   if (!taxonomyCount) return "Nenhuma classificação";
-  return taxonomyCount === 1
-    ? "1 classificação selecionada"
-    : `${taxonomyCount} classificações selecionadas`;
+  return taxonomyCount === 1 ? "1 classificação selecionada" : `${taxonomyCount} classificações selecionadas`;
 }
 
 function formatTagsSummary(classification) {
   if (!classification) return "Nenhuma tag";
-  const tagCount = Object.values(classification.tags || {}).reduce(
-    (total, tagIds) => total + tagIds.length,
-    0,
-  );
+  const tagCount = Object.values(classification.tags || {}).reduce((total, tagIds) => total + tagIds.length, 0);
   if (!tagCount) return "Nenhuma tag";
   return tagCount === 1 ? "1 tag selecionada" : `${tagCount} tags selecionadas`;
 }
@@ -108,23 +93,14 @@ export function ImportEmlItem({
 }) {
   const working = ["analyzing", "importing"].includes(entry.status);
   const locked = working || entry.status === "done";
-  const effectiveClassification =
-    entry.classification || entry.preview?.issue?.classification;
-  const taxonomyCount = effectiveClassification
-    ? selectedTaxonomyIds(effectiveClassification).length
-    : 0;
+  const effectiveClassification = entry.classification || entry.preview?.issue?.classification;
+  const taxonomyCount = effectiveClassification ? selectedTaxonomyIds(effectiveClassification).length : 0;
   const tagCount = effectiveClassification
-    ? Object.values(effectiveClassification.tags || {}).reduce(
-        (total, tagIds) => total + tagIds.length,
-        0,
-      )
+    ? Object.values(effectiveClassification.tags || {}).reduce((total, tagIds) => total + tagIds.length, 0)
     : 0;
 
   return (
-    <article
-      className={`emlImportItem emlImportItem--${entry.status}`}
-      aria-busy={working}
-    >
+    <article className={`emlImportItem emlImportItem--${entry.status}`} aria-busy={working}>
       <header className="emlImportItemHeader">
         <div className="emlImportStatus" aria-hidden="true">
           <StatusIcon status={entry.status} />
@@ -154,14 +130,9 @@ export function ImportEmlItem({
           icon={Layers3}
           label="Aplicação"
           onClick={onOpenContext}
-          summary={formatContextSummary(
-            entry.context,
-            applications,
-            components,
-          )}
+          summary={formatContextSummary(entry.context, applications, components)}
         />
-        {canClassify &&
-        canClassifyContext(entry.context, classificationScope) ? (
+        {canClassify && canClassifyContext(entry.context, classificationScope) ? (
           <>
             <FilterDialogButton
               className="emlAssignmentButton emlClassificationButton"
@@ -200,9 +171,7 @@ export function ImportEmlItem({
               <span>Tipo</span>
               <select
                 disabled={locked}
-                onChange={(event) =>
-                  onUpdateOverride("type", event.target.value)
-                }
+                onChange={(event) => onUpdateOverride("type", event.target.value)}
                 value={entry.overrides?.type || defaultType}
               >
                 {typeOptions.map((option) => (
@@ -216,9 +185,7 @@ export function ImportEmlItem({
               <span>Título</span>
               <input
                 disabled={locked}
-                onChange={(event) =>
-                  onUpdateOverride("title", event.target.value)
-                }
+                onChange={(event) => onUpdateOverride("title", event.target.value)}
                 value={entry.overrides?.title || ""}
               />
             </label>
@@ -227,9 +194,7 @@ export function ImportEmlItem({
             <div className="emlImportFacts">
               <span>{entry.preview.comments.new} comentário(s)</span>
               <span>{entry.preview.attachments.length} anexo(s)</span>
-              {entry.preview.reopenedIssue ? (
-                <em>A issue será reaberta</em>
-              ) : null}
+              {entry.preview.reopenedIssue ? <em>A issue será reaberta</em> : null}
             </div>
             {entry.status !== "done" ? (
               <button

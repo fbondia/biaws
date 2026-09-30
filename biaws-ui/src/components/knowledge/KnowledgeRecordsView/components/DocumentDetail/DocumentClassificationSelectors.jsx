@@ -35,9 +35,7 @@ function TaxonomyDialog({
             <strong>Selecionar classificações</strong>
             <span>Selecione os assuntos e defina um deles como principal.</span>
           </div>
-          {selectedIds.length ? (
-            <small>{selectedIds.length} selecionada(s)</small>
-          ) : null}
+          {selectedIds.length ? <small>{selectedIds.length} selecionada(s)</small> : null}
         </header>
         <div className="taxonomyFilterDialogContent">
           {nodes.length ? (
@@ -53,18 +51,14 @@ function TaxonomyDialog({
                   : (primaryTaxonomyId) =>
                       onUpdateClassification({
                         primaryTaxonomyId,
-                        secondaryTaxonomyIds: selectedIds.filter(
-                          (id) => id !== primaryTaxonomyId,
-                        ),
+                        secondaryTaxonomyIds: selectedIds.filter((id) => id !== primaryTaxonomyId),
                       })
               }
               primaryValue={classification.primaryTaxonomyId}
               value={selectedIds}
             />
           ) : (
-            <div className="emptyState compactEmpty">
-              Nenhuma taxonomia disponível para este contexto.
-            </div>
+            <div className="emptyState compactEmpty">Nenhuma taxonomia disponível para este contexto.</div>
           )}
         </div>
         <footer>
@@ -77,12 +71,7 @@ function TaxonomyDialog({
               Limpar seleção
             </button>
           ) : null}
-          <button
-            className="primaryButton"
-            data-dialog-close
-            onClick={onClose}
-            type="button"
-          >
+          <button className="primaryButton" data-dialog-close onClick={onClose} type="button">
             Concluir
           </button>
         </footer>
@@ -94,31 +83,16 @@ function TaxonomyDialog({
 function TagOption({ checked, color, disabled, onChange, tagId }) {
   return (
     <label
-      className={
-        checked ? "tagFilterOption selectedTagFilterOption" : "tagFilterOption"
-      }
+      className={checked ? "tagFilterOption selectedTagFilterOption" : "tagFilterOption"}
       style={{ borderColor: checked ? color : undefined }}
     >
-      <input
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-        type="checkbox"
-      />
+      <input checked={checked} disabled={disabled} onChange={onChange} type="checkbox" />
       <span>{tagId}</span>
     </label>
   );
 }
 
-function TagsDialog({
-  classification,
-  disabled,
-  groups,
-  onClear,
-  onClose,
-  onToggleTag,
-  selectedCount,
-}) {
+function TagsDialog({ classification, disabled, groups, onClear, onClose, onToggleTag, selectedCount }) {
   return (
     <div
       className="tagFilterDialogBackdrop"
@@ -126,12 +100,7 @@ function TagsDialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section
-        aria-label="Selecionar tags do documento"
-        aria-modal="true"
-        className="tagFilterDialog"
-        role="dialog"
-      >
+      <section aria-label="Selecionar tags do documento" aria-modal="true" className="tagFilterDialog" role="dialog">
         <header>
           <div>
             <strong>Selecionar tags</strong>
@@ -146,18 +115,13 @@ function TagsDialog({
               return (
                 <div className="tagFilterGroup" key={group.id}>
                   <strong>
-                    <span
-                      className="tagColorSwatch"
-                      style={{ backgroundColor: color }}
-                    />
+                    <span className="tagColorSwatch" style={{ backgroundColor: color }} />
                     {group.label}
                   </strong>
                   <div className="tagFilterOptions">
                     {(group.tags || []).map((tagId) => (
                       <TagOption
-                        checked={Boolean(
-                          classification.tags?.[group.id]?.includes(tagId),
-                        )}
+                        checked={Boolean(classification.tags?.[group.id]?.includes(tagId))}
                         color={color}
                         disabled={disabled}
                         key={tagId}
@@ -175,20 +139,11 @@ function TagsDialog({
         )}
         <footer>
           {!disabled && selectedCount ? (
-            <button
-              className="secondaryButton clearDialogSelectionButton"
-              onClick={onClear}
-              type="button"
-            >
+            <button className="secondaryButton clearDialogSelectionButton" onClick={onClear} type="button">
               Limpar seleção
             </button>
           ) : null}
-          <button
-            className="primaryButton"
-            data-dialog-close
-            onClick={onClose}
-            type="button"
-          >
+          <button className="primaryButton" data-dialog-close onClick={onClose} type="button">
             Concluir
           </button>
         </footer>
@@ -197,13 +152,7 @@ function TagsDialog({
   );
 }
 
-export function DocumentClassificationSelectors({
-  applications,
-  disabled,
-  draft,
-  onChange,
-  taxonomyPackage,
-}) {
+export function DocumentClassificationSelectors({ applications, disabled, draft, onChange, taxonomyPackage }) {
   const [taxonomyDialogOpen, setTaxonomyDialogOpen] = useState(false);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const classification = draft.classification || {
@@ -212,22 +161,11 @@ export function DocumentClassificationSelectors({
     tags: {},
   };
   const selectedIds = [
-    ...new Set(
-      [
-        classification.primaryTaxonomyId,
-        ...(classification.secondaryTaxonomyIds || []),
-      ].filter(Boolean),
-    ),
+    ...new Set([classification.primaryTaxonomyId, ...(classification.secondaryTaxonomyIds || [])].filter(Boolean)),
   ];
-  const taxonomyNodes = filterTaxonomyForApplication(
-    taxonomyPackage?.taxonomy || [],
-    draft.applicationId,
-  );
+  const taxonomyNodes = filterTaxonomyForApplication(taxonomyPackage?.taxonomy || [], draft.applicationId);
   const tagGroups = taxonomyPackage?.tagGroups || [];
-  const selectedTagCount = Object.values(classification.tags || {}).reduce(
-    (count, values) => count + values.length,
-    0,
-  );
+  const selectedTagCount = Object.values(classification.tags || {}).reduce((count, values) => count + values.length, 0);
 
   function updateClassification(next) {
     onChange({ ...draft, classification: { ...classification, ...next } });
@@ -248,9 +186,7 @@ export function DocumentClassificationSelectors({
     updateClassification({
       tags: {
         ...(classification.tags || {}),
-        [groupId]: selected.includes(tagId)
-          ? selected.filter((id) => id !== tagId)
-          : [...selected, tagId],
+        [groupId]: selected.includes(tagId) ? selected.filter((id) => id !== tagId) : [...selected, tagId],
       },
     });
   }
@@ -262,22 +198,14 @@ export function DocumentClassificationSelectors({
         icon={FolderTree}
         label="Classificações"
         onClick={() => setTaxonomyDialogOpen(true)}
-        summary={
-          selectedIds.length
-            ? `${selectedIds.length} selecionada(s)`
-            : "Nenhuma classificação"
-        }
+        summary={selectedIds.length ? `${selectedIds.length} selecionada(s)` : "Nenhuma classificação"}
       />
       <FilterDialogButton
         count={selectedTagCount}
         icon={Tags}
         label="Tags"
         onClick={() => setTagsDialogOpen(true)}
-        summary={
-          selectedTagCount
-            ? `${selectedTagCount} selecionada(s)`
-            : "Nenhuma tag"
-        }
+        summary={selectedTagCount ? `${selectedTagCount} selecionada(s)` : "Nenhuma tag"}
       />
 
       {taxonomyDialogOpen ? (

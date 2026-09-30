@@ -13,11 +13,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import companyLogo from "../../../../assets/logo-company.png";
-import {
-  buildLocalDevelopmentCommands,
-  canOpenWorkspaceSwitcher,
-  currentWorkspaceName,
-} from "../../model.js";
+import { buildLocalDevelopmentCommands, canOpenWorkspaceSwitcher, currentWorkspaceName } from "../../model.js";
 import {
   LocalSetupPanel,
   LocalSetupTabs,
@@ -25,11 +21,7 @@ import {
   WorkspaceList,
   WorkspaceSwitcherFooter,
 } from "./components/AppHeaderPanels.jsx";
-import {
-  LocalCommandCard,
-  copyPlainText,
-  NavigationButton,
-} from "./components/AppHeaderUtilities.jsx";
+import { LocalCommandCard, copyPlainText, NavigationButton } from "./components/AppHeaderUtilities.jsx";
 
 export function AppHeader({
   activeView,
@@ -49,14 +41,10 @@ export function AppHeader({
   const [localProject, setLocalProject] = useState("");
   const [copyStatus, setCopyStatus] = useState("idle");
   const navigationMenuRefs = useRef({});
-  const canManageWorkspaces = actor.platformPermissions?.includes(
-    "platform.workspaces.manage",
-  );
+  const canManageWorkspaces = actor.platformPermissions?.includes("platform.workspaces.manage");
   const workspaces = actor.workspaces || [];
   const workspaceName = currentWorkspaceName(actor);
-  const selectedWorkspace = workspaces.find(
-    ({ id }) => id === actor.workspaceId,
-  );
+  const selectedWorkspace = workspaces.find(({ id }) => id === actor.workspaceId);
   const localCommands = buildLocalDevelopmentCommands({
     client: localSetupClient,
     instance: localInstance,
@@ -121,12 +109,7 @@ export function AppHeader({
       <header className="topBar">
         <div className="topBarHeading">
           <div className="productBrand">
-            <img
-              alt=""
-              aria-hidden="true"
-              className="productBrandLogo"
-              src={companyLogo}
-            />
+            <img alt="" aria-hidden="true" className="productBrandLogo" src={companyLogo} />
             <div className="productBrandName" aria-label="BIAWS">
               <span className="productBrandCompany">BIAWS</span>
               <span className="workspaceBrandContext">
@@ -150,9 +133,7 @@ export function AppHeader({
           <button
             aria-controls="application-navigation"
             aria-expanded={mobileMenuOpen}
-            aria-label={
-              mobileMenuOpen ? "Fechar menu principal" : "Abrir menu principal"
-            }
+            aria-label={mobileMenuOpen ? "Fechar menu principal" : "Abrir menu principal"}
             className="mobileMenuButton iconButton"
             onClick={() => onMobileMenuChange(!mobileMenuOpen)}
             type="button"
@@ -160,16 +141,8 @@ export function AppHeader({
             {mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}
           </button>
         </div>
-        <div
-          className={
-            mobileMenuOpen ? "topBarActions mobileMenuOpen" : "topBarActions"
-          }
-        >
-          <nav
-            className="viewTabs"
-            id="application-navigation"
-            aria-label="Telas da aplicação"
-          >
+        <div className={mobileMenuOpen ? "topBarActions mobileMenuOpen" : "topBarActions"}>
+          <nav className="viewTabs" id="application-navigation" aria-label="Telas da aplicação">
             {availableViews.map((view) => (
               <NavigationButton
                 active={activeView === view.key}
@@ -209,28 +182,15 @@ export function AppHeader({
           <section
             aria-labelledby="workspace-switcher-title"
             aria-modal="true"
-            className={
-              localSetupOpen
-                ? "workspaceSwitcherDialog localSetupOpen"
-                : "workspaceSwitcherDialog"
-            }
+            className={localSetupOpen ? "workspaceSwitcherDialog localSetupOpen" : "workspaceSwitcherDialog"}
             role="dialog"
           >
             <header className="workspaceSwitcherHeader">
               <div>
-                <span>
-                  {localSetupOpen ? "Integração MCP" : "Contexto atual"}
-                </span>
-                <h2 id="workspace-switcher-title">
-                  {localSetupOpen ? "Configuração local" : "Workspaces"}
-                </h2>
+                <span>{localSetupOpen ? "Integração MCP" : "Contexto atual"}</span>
+                <h2 id="workspace-switcher-title">{localSetupOpen ? "Configuração local" : "Workspaces"}</h2>
               </div>
-              <button
-                aria-label="Fechar"
-                className="iconButton"
-                onClick={closeWorkspaceDialog}
-                type="button"
-              >
+              <button aria-label="Fechar" className="iconButton" onClick={closeWorkspaceDialog} type="button">
                 <X size={18} />
               </button>
             </header>
@@ -241,19 +201,16 @@ export function AppHeader({
                   <div>
                     <strong>{selectedWorkspace?.name || workspaceName}</strong>
                     <p>
-                      Execute o comando na raiz do clone do BIAWS. Ele reutiliza
-                      a instância existente e configura este workspace no
-                      projeto local informado. A identidade técnica da instância
-                      precisa ser membro ativo deste workspace.
+                      Execute o comando na raiz do clone do BIAWS. Ele reutiliza a instância existente e configura este
+                      workspace no projeto local informado. A identidade técnica da instância precisa ser membro ativo
+                      deste workspace.
                     </p>
                   </div>
                 </div>
                 <div className="workspaceLocalSetupFields">
                   <div className="workspaceLocalFieldsHeader">
                     <strong>Ambiente local</strong>
-                    <small>
-                      Esses valores são compartilhados por todos os comandos.
-                    </small>
+                    <small>Esses valores são compartilhados por todos os comandos.</small>
                   </div>
                   <label>
                     <span>Cliente</span>

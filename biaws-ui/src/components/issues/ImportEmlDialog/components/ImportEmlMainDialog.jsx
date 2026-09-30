@@ -28,12 +28,7 @@ export function ImportEmlMainDialog({
   updateOverride,
 }) {
   return (
-    <section
-      className="issueDialog importDialog"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="import-title"
-    >
+    <section className="issueDialog importDialog" role="dialog" aria-modal="true" aria-labelledby="import-title">
       <header className="dialogHeader">
         <div className="dialogTitleBlock">
           <div className="dialogKicker">
@@ -43,22 +38,11 @@ export function ImportEmlMainDialog({
         </div>
         <div className="dialogHeaderActions">
           {canConfigureSanitization ? (
-            <button
-              className="primaryButton"
-              disabled={busy}
-              onClick={() => setSanitizationOpen(true)}
-              type="button"
-            >
+            <button className="primaryButton" disabled={busy} onClick={() => setSanitizationOpen(true)} type="button">
               <Settings2 size={16} /> Sanitização
             </button>
           ) : null}
-          <button
-            className="iconButton"
-            disabled={busy}
-            onClick={onClose}
-            title="Fechar"
-            type="button"
-          >
+          <button className="iconButton" disabled={busy} onClick={onClose} title="Fechar" type="button">
             <X size={18} />
           </button>
         </div>
@@ -84,9 +68,7 @@ export function ImportEmlMainDialog({
         >
           <Upload size={24} />
           <strong>Arraste arquivos EML ou clique para selecionar</strong>
-          <span>
-            Os arquivos serão analisados individualmente antes da importação.
-          </span>
+          <span>Os arquivos serão analisados individualmente antes da importação.</span>
         </button>
         <input
           accept=".eml,message/rfc822"
@@ -116,9 +98,7 @@ export function ImportEmlMainDialog({
               onOpenTaxonomy={() => openClassificationDialog(entry, "taxonomy")}
               onRecalculate={() => analyzeEntry(entry, entry.overrides)}
               onRemove={() => removeEntry(entry.key)}
-              onUpdateOverride={(field, value) =>
-                updateOverride(entry.key, field, value)
-              }
+              onUpdateOverride={(field, value) => updateOverride(entry.key, field, value)}
               typeOptions={typeOptions}
             />
           ))}
@@ -130,20 +110,10 @@ export function ImportEmlMainDialog({
           {entries.length} arquivo(s), {readyCount} pronto(s) para importar
         </span>
         <div>
-          <button
-            className="secondaryButton"
-            disabled={busy}
-            onClick={onClose}
-            type="button"
-          >
+          <button className="secondaryButton" disabled={busy} onClick={onClose} type="button">
             Fechar
           </button>
-          <button
-            className="primaryButton"
-            disabled={busy || !readyCount}
-            onClick={() => importReady()}
-            type="button"
-          >
+          <button className="primaryButton" disabled={busy || !readyCount} onClick={() => importReady()} type="button">
             Importar arquivos válidos
           </button>
         </div>

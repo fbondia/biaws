@@ -1,13 +1,4 @@
-import {
-  Download,
-  File,
-  Paperclip,
-  Plus,
-  Tag,
-  Trash2,
-  Upload,
-  X,
-} from "lucide-react";
+import { Download, File, Paperclip, Plus, Tag, Trash2, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
@@ -18,11 +9,7 @@ import { buildFileTagCounts, tagColor } from "./model.js";
 
 function filterFilesByTags(files, selectedTags) {
   if (!selectedTags.length) return files;
-  return files.filter((file) =>
-    (file.tags || []).some((tag) =>
-      selectedTags.includes(String(tag).toLowerCase()),
-    ),
-  );
+  return files.filter((file) => (file.tags || []).some((tag) => selectedTags.includes(String(tag).toLowerCase())));
 }
 
 function retainAvailableTags(current, tags) {
@@ -82,9 +69,7 @@ export function FilesPanel({
     setMessage("");
     try {
       const count = await onUpload(selected);
-      setMessage(
-        `${count ?? selected.length} arquivo(s) enviado(s) com sucesso.`,
-      );
+      setMessage(`${count ?? selected.length} arquivo(s) enviado(s) com sucesso.`);
     } catch (uploadError) {
       setError(uploadError.message);
     } finally {
@@ -173,11 +158,7 @@ export function FilesPanel({
   }
 
   function toggleFilter(tag) {
-    setSelectedTags((current) =>
-      current.includes(tag)
-        ? current.filter((item) => item !== tag)
-        : [...current, tag],
-    );
+    setSelectedTags((current) => (current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]));
   }
 
   function removeTag(file, tag) {
@@ -211,11 +192,7 @@ export function FilesPanel({
             .join(" ")}
         >
           <Upload size={20} />
-          <strong>
-            {uploading
-              ? "Enviando arquivos..."
-              : "Arraste arquivos ou clique para selecionar"}
-          </strong>
+          <strong>{uploading ? "Enviando arquivos..." : "Arraste arquivos ou clique para selecionar"}</strong>
           <span>
             Até {maxFiles} arquivos por envio, com até {maxFileSizeMb} MB cada.
           </span>
@@ -241,11 +218,7 @@ export function FilesPanel({
             {tags.map(({ tag, count }) => (
               <button
                 aria-pressed={selectedTags.includes(tag)}
-                className={
-                  selectedTags.includes(tag)
-                    ? "fileTagChip activeFileTagChip"
-                    : "fileTagChip"
-                }
+                className={selectedTags.includes(tag) ? "fileTagChip activeFileTagChip" : "fileTagChip"}
                 key={tag}
                 onClick={() => toggleFilter(tag)}
                 style={tagColor(tag)}
@@ -256,11 +229,7 @@ export function FilesPanel({
               </button>
             ))}
             {selectedTags.length ? (
-              <button
-                className="clearFileTagFilter"
-                onClick={() => setSelectedTags([])}
-                type="button"
-              >
+              <button className="clearFileTagFilter" onClick={() => setSelectedTags([])} type="button">
                 Limpar filtro
               </button>
             ) : null}
@@ -276,35 +245,21 @@ export function FilesPanel({
             const deleting = deletingId === fileId;
             const savingTags = savingTagsId === fileId;
             return (
-              <article
-                className="attachmentItem fileAttachmentItem"
-                key={`${fileId}-${file.filename}`}
-              >
+              <article className="attachmentItem fileAttachmentItem" key={`${fileId}-${file.filename}`}>
                 <div className="fileAttachmentContent">
-                  <button
-                    className="filePreviewButton"
-                    onClick={() => openFile(file)}
-                    type="button"
-                  >
+                  <button className="filePreviewButton" onClick={() => openFile(file)} type="button">
                     <File aria-hidden="true" size={20} />
                     <span>
                       <strong>{file.filename || "anexo"}</strong>
                       <small>
-                        {detailValue(file.contentType)} ·{" "}
-                        {formatBytes(file.size)} ·{" "}
-                        {file.uploadedAt
-                          ? `Adicionado em ${formatDate(file.uploadedAt)}`
-                          : "Data não registrada"}
+                        {detailValue(file.contentType)} · {formatBytes(file.size)} ·{" "}
+                        {file.uploadedAt ? `Adicionado em ${formatDate(file.uploadedAt)}` : "Data não registrada"}
                       </small>
                     </span>
                   </button>
                   <div className="fileTags">
                     {(file.tags || []).map((tag) => (
-                      <span
-                        className="fileTagChip"
-                        key={tag}
-                        style={tagColor(tag)}
-                      >
+                      <span className="fileTagChip" key={tag} style={tagColor(tag)}>
                         {tag}
                         {canUpdate ? (
                           <button
@@ -333,18 +288,10 @@ export function FilesPanel({
                           placeholder="Nova tag"
                           value={tagDraft}
                         />
-                        <button
-                          className="secondaryButton"
-                          disabled={savingTags || !tagDraft.trim()}
-                          type="submit"
-                        >
+                        <button className="secondaryButton" disabled={savingTags || !tagDraft.trim()} type="submit">
                           Adicionar
                         </button>
-                        <button
-                          className="iconButton"
-                          onClick={() => setEditingTagsId("")}
-                          type="button"
-                        >
+                        <button className="iconButton" onClick={() => setEditingTagsId("")} type="button">
                           <X size={14} />
                         </button>
                       </form>
@@ -391,9 +338,7 @@ export function FilesPanel({
         </div>
       ) : (
         <div className="emptyState compactEmpty">
-          {files.length
-            ? "Nenhum arquivo corresponde às tags selecionadas."
-            : "Nenhum arquivo registrado."}
+          {files.length ? "Nenhum arquivo corresponde às tags selecionadas." : "Nenhum arquivo registrado."}
         </div>
       )}
       {preview ? (

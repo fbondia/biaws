@@ -20,18 +20,9 @@ const ISSUE_TABS = [
 function IssueViewTabs({ activeTab, loading, onRefresh, onSelect }) {
   return (
     <div className="issueViewNavigation">
-      <div
-        className="issueSectionTabs"
-        role="tablist"
-        aria-label="Visualização de chamados"
-      >
+      <div className="issueSectionTabs" role="tablist" aria-label="Visualização de chamados">
         {ISSUE_TABS.map((tab) => (
-          <IssueViewTab
-            active={activeTab === tab.key}
-            key={tab.key}
-            onSelect={onSelect}
-            tab={tab}
-          />
+          <IssueViewTab active={activeTab === tab.key} key={tab.key} onSelect={onSelect} tab={tab} />
         ))}
       </div>
       <button
@@ -54,9 +45,7 @@ function IssueViewTab({ active, onSelect, tab }) {
     <button
       aria-controls={`issues-panel-${tab.key}`}
       aria-selected={active}
-      className={
-        active ? "issueSectionTab activeIssueSectionTab" : "issueSectionTab"
-      }
+      className={active ? "issueSectionTab activeIssueSectionTab" : "issueSectionTab"}
       id={`issues-tab-${tab.key}`}
       onClick={() => onSelect(tab.key)}
       role="tab"
@@ -68,11 +57,7 @@ function IssueViewTab({ active, onSelect, tab }) {
   );
 }
 
-function authorizedUpdater(
-  canUpdateIssue,
-  canUpdateStatus,
-  onUpdateIssueField,
-) {
+function authorizedUpdater(canUpdateIssue, canUpdateStatus, onUpdateIssueField) {
   if (!canUpdateIssue && !canUpdateStatus) return undefined;
   return (issue, field, value) => {
     const allowed = field === "status" ? canUpdateStatus : canUpdateIssue;
@@ -86,10 +71,7 @@ function IssuesPanel({ activeTab, listProps, summaryProps }) {
 }
 
 function canReadIssueCatalog(actor) {
-  return (
-    hasPermission(actor, "applications.read") &&
-    hasPermission(actor, "components.read")
-  );
+  return hasPermission(actor, "applications.read") && hasPermission(actor, "components.read");
 }
 
 function IssueFiltersControl({ filtersVisible, onToggle }) {
@@ -97,11 +79,7 @@ function IssueFiltersControl({ filtersVisible, onToggle }) {
     <button
       aria-controls="issue-filters"
       aria-expanded={filtersVisible}
-      className={
-        filtersVisible
-          ? "secondaryButton activeFiltersButton"
-          : "secondaryButton"
-      }
+      className={filtersVisible ? "secondaryButton activeFiltersButton" : "secondaryButton"}
       onClick={onToggle}
       type="button"
     >
@@ -230,22 +208,16 @@ export function IssuesView({
   const [importOpen, setImportOpen] = useState(false);
   const canCreate = hasPermission(actor, "issues.create");
   const canClassify = hasPermission(actor, "issues.classification.update");
-  const classificationScope =
-    actor?.permissionScopes?.["issues.classification.update"] || null;
+  const classificationScope = actor?.permissionScopes?.["issues.classification.update"] || null;
   const canCreateComment = hasPermission(actor, "issues.comment.create");
   const canUpdateComment = hasPermission(actor, "issues.comment.update");
   const canImport = hasPermission(actor, "issues.import.eml");
-  const canConfigureImport =
-    actor?.permissionScopes?.["issues.import.eml"]?.workspace === true;
+  const canConfigureImport = actor?.permissionScopes?.["issues.import.eml"]?.workspace === true;
   const canReadCatalog = canReadIssueCatalog(actor);
   const catalog = useCatalogOptions(canReadCatalog, actor.workspaceId);
   const canUpdateIssue = hasPermission(actor, "issues.update");
   const canUpdateStatus = hasPermission(actor, "issues.status.update");
-  const onAuthorizedUpdate = authorizedUpdater(
-    canUpdateIssue,
-    canUpdateStatus,
-    onUpdateIssueField,
-  );
+  const onAuthorizedUpdate = authorizedUpdater(canUpdateIssue, canUpdateStatus, onUpdateIssueField);
   const listProps = {
     applications: catalog.applications,
     dateField,
@@ -283,12 +255,7 @@ export function IssuesView({
   return (
     <>
       <section className="issueViewControls contentBand">
-        <IssueViewTabs
-          activeTab={activeTab}
-          loading={loading}
-          onRefresh={onRefresh}
-          onSelect={setActiveTab}
-        />
+        <IssueViewTabs activeTab={activeTab} loading={loading} onRefresh={onRefresh} onSelect={setActiveTab} />
         <IssueFiltersControl
           filtersVisible={filtersVisible}
           onToggle={() => setFiltersVisible((current) => !current)}
@@ -314,16 +281,8 @@ export function IssuesView({
         </div>
       ) : null}
 
-      <div
-        aria-labelledby={`issues-tab-${activeTab}`}
-        id={`issues-panel-${activeTab}`}
-        role="tabpanel"
-      >
-        <IssuesPanel
-          activeTab={activeTab}
-          listProps={listProps}
-          summaryProps={summaryProps}
-        />
+      <div aria-labelledby={`issues-tab-${activeTab}`} id={`issues-panel-${activeTab}`} role="tabpanel">
+        <IssuesPanel activeTab={activeTab} listProps={listProps} summaryProps={summaryProps} />
       </div>
 
       <IssueOverlays

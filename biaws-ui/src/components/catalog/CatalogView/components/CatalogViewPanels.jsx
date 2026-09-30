@@ -3,10 +3,7 @@ import { Layers3 } from "lucide-react";
 import { hasPermission } from "../../../../permissions.js";
 import { IllustratedEmptyState } from "../../../shared/IllustratedEmptyState.jsx";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
-import {
-  collectionPathLabel,
-  ResourceCollectionDialog,
-} from "../../../shared/ResourceCollections/index.jsx";
+import { collectionPathLabel, ResourceCollectionDialog } from "../../../shared/ResourceCollections/index.jsx";
 import { CatalogEntityDialog } from "../../CatalogEntityDialog/index.jsx";
 import { CatalogTabContent } from "../tabs/CatalogTabContent.jsx";
 import { HeaderActions } from "./CatalogComponents.jsx";
@@ -46,11 +43,7 @@ export function CatalogSelectedDetail({
     <div className="catalogCollectionPanel catalogContent">
       <header className="catalogDetailHeader">
         <div>
-          <EntityIdentifier
-            label="Identificador da aplicação"
-            value={context.application.key}
-            variant="eyebrow"
-          />
+          <EntityIdentifier label="Identificador da aplicação" value={context.application.key} variant="eyebrow" />
           <h2>{context.application.name}</h2>
           <p>{context.application.description || "Sem descrição."}</p>
         </div>
@@ -63,17 +56,11 @@ export function CatalogSelectedDetail({
           onRestore={onRestore}
         />
       </header>
-      <div
-        className="detailTabs catalogTabs"
-        role="tablist"
-        aria-label="Detalhes da aplicação"
-      >
+      <div className="detailTabs catalogTabs" role="tablist" aria-label="Detalhes da aplicação">
         {visibleTabs.map((tab) => (
           <button
             aria-selected={activeTab === tab.key}
-            className={
-              activeTab === tab.key ? "detailTab activeDetailTab" : "detailTab"
-            }
+            className={activeTab === tab.key ? "detailTab activeDetailTab" : "detailTab"}
             key={tab.key}
             onClick={() => onSelectTab(tab.key)}
             role="tab"
@@ -83,12 +70,7 @@ export function CatalogSelectedDetail({
           </button>
         ))}
       </div>
-      <CatalogTabContent
-        activeTab={activeTab}
-        actor={actor}
-        context={context}
-        {...tabProps}
-      />
+      <CatalogTabContent activeTab={activeTab} actor={actor} context={context} {...tabProps} />
     </div>
   );
 }
@@ -109,9 +91,7 @@ export function CatalogApplicationItems({
           key={application.id}
           draggable={canMove(application)}
           onDragEnd={() => collectionState.setDraggedItem(null)}
-          onDragStart={() =>
-            collectionState.setDraggedItem({ type: "item", id: application.id })
-          }
+          onDragStart={() => collectionState.setDraggedItem({ type: "item", id: application.id })}
           onClick={() => onSelect(application.id)}
           type="button"
         >
@@ -166,17 +146,10 @@ export function CatalogDialogs({
     <>
       {collectionState.collectionDialog ? (
         <ResourceCollectionDialog
-          collection={
-            collectionState.collectionDialog.id
-              ? collectionState.collectionDialog
-              : null
-          }
+          collection={collectionState.collectionDialog.id ? collectionState.collectionDialog : null}
           onClose={() => collectionState.setCollectionDialog(null)}
           onSave={collectionState.saveCollection}
-          parentLabel={collectionPathLabel(
-            collectionState.collections,
-            collectionState.selectedCollectionId,
-          )}
+          parentLabel={collectionPathLabel(collectionState.collections, collectionState.selectedCollectionId)}
           resourceLabel="aplicações"
         />
       ) : null}
@@ -186,17 +159,11 @@ export function CatalogDialogs({
           kind={dialog.kind}
           onClose={() => setDialog(null)}
           onArchive={
-            dialog.entity?.status !== "archived" &&
-            archivePermission &&
-            hasPermission(actor, archivePermission)
+            dialog.entity?.status !== "archived" && archivePermission && hasPermission(actor, archivePermission)
               ? archiveDialogEntity
               : undefined
           }
-          onSave={
-            dialog.kind === "application"
-              ? onPersistApplication
-              : onPersistEntity
-          }
+          onSave={dialog.kind === "application" ? onPersistApplication : onPersistEntity}
           options={{
             application: context?.application,
             applications: context?.availableApplications || [],

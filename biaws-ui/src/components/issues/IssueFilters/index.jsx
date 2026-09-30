@@ -25,24 +25,14 @@ export function IssueFilters({
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [taxonomyDialogOpen, setTaxonomyDialogOpen] = useState(false);
   const [optionDialogOpen, setOptionDialogOpen] = useState("");
-  const [selectedDatePeriod, setSelectedDatePeriod] = useState(() =>
-    matchingDatePeriod(draftFilters),
-  );
+  const [selectedDatePeriod, setSelectedDatePeriod] = useState(() => matchingDatePeriod(draftFilters));
   const tagGroups = taxonomyPackage?.tagGroups || [];
   const selectedTagCount = countSelectedTags(draftFilters, tagGroups);
   const selectedTaxonomies = readSelectedTaxonomies(draftFilters);
   const selectedTypes = readSelectedOptions(draftFilters, "type");
   const selectedStatuses = readSelectedOptions(draftFilters, "status");
-  const typeSummary = selectedOptionSummary(
-    selectedTypes,
-    TYPE_OPTIONS,
-    "Todos os tipos",
-  );
-  const statusSummary = selectedOptionSummary(
-    selectedStatuses,
-    STATUS_OPTIONS,
-    "Todos os status",
-  );
+  const typeSummary = selectedOptionSummary(selectedTypes, TYPE_OPTIONS, "Todos os tipos");
+  const statusSummary = selectedOptionSummary(selectedStatuses, STATUS_OPTIONS, "Todos os status");
 
   useEffect(() => {
     if (!draftFilters.from && !draftFilters.to) setSelectedDatePeriod("custom");

@@ -1,11 +1,4 @@
-import {
-  ChevronDown,
-  ChevronUp,
-  MessageSquare,
-  Pencil,
-  Plus,
-  Search,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, MessageSquare, Pencil, Plus, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { createIssueComment, saveIssueComment } from "../../../../api.js";
@@ -39,18 +32,9 @@ function IssueCommentMeta({ comment }) {
   );
 }
 
-function IssueCommentItem({
-  canUpdateComment,
-  comment,
-  commentId,
-  expanded,
-  onEdit,
-  onToggle,
-}) {
+function IssueCommentItem({ canUpdateComment, comment, commentId, expanded, onEdit, onToggle }) {
   return (
-    <article
-      className={expanded ? "commentItem" : "commentItem collapsedCommentItem"}
-    >
+    <article className={expanded ? "commentItem" : "commentItem collapsedCommentItem"}>
       <header>
         <div>
           <strong>{comment.from || "Origem não identificada"}</strong>
@@ -84,9 +68,7 @@ function IssueCommentItem({
           <MarkdownPreview value={comment.text || ""} />
         </>
       ) : (
-        <p className="commentCollapsedPreview">
-          {commentPreview(comment.text)}
-        </p>
+        <p className="commentCollapsedPreview">{commentPreview(comment.text)}</p>
       )}
     </article>
   );
@@ -107,36 +89,24 @@ export function IssueCommentsTab({
   const [commentError, setCommentError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedCommentIds, setExpandedCommentIds] = useState(new Set());
-  const mostRecentCommentId = String(
-    comments[0]?._id || comments[0]?.hash || "",
-  );
+  const mostRecentCommentId = String(comments[0]?._id || comments[0]?.hash || "");
   const filteredComments = useMemo(() => {
     const query = normalizedSearchText(searchTerm);
     if (!query) return comments;
     return comments.filter((comment) =>
-      normalizedSearchText(
-        [
-          comment.text,
-          comment.from,
-          comment.to,
-          comment.cc,
-          comment.rawDate,
-        ].join(" "),
-      ).includes(query),
+      normalizedSearchText([comment.text, comment.from, comment.to, comment.cc, comment.rawDate].join(" ")).includes(
+        query,
+      ),
     );
   }, [comments, searchTerm]);
 
   useEffect(() => {
-    setExpandedCommentIds(
-      mostRecentCommentId ? new Set([mostRecentCommentId]) : new Set(),
-    );
+    setExpandedCommentIds(mostRecentCommentId ? new Set([mostRecentCommentId]) : new Set());
   }, [issue.id, mostRecentCommentId]);
 
   function dateInputValue(value) {
     const date = value ? new Date(value) : new Date();
-    return Number.isNaN(date.getTime())
-      ? new Date().toISOString().slice(0, 10)
-      : date.toISOString().slice(0, 10);
+    return Number.isNaN(date.getTime()) ? new Date().toISOString().slice(0, 10) : date.toISOString().slice(0, 10);
   }
 
   function openCreate() {
@@ -189,9 +159,7 @@ export function IssueCommentsTab({
         <div className="issueCommentTitleActions">
           <span>
             <MessageSquare size={14} />
-            {searchTerm
-              ? `${filteredComments.length} de ${comments.length}`
-              : comments.length}
+            {searchTerm ? `${filteredComments.length} de ${comments.length}` : comments.length}
           </span>
           <label className="issueCommentSearch">
             <Search aria-hidden="true" size={15} />
@@ -204,25 +172,17 @@ export function IssueCommentsTab({
             />
           </label>
           {canCreateComment ? (
-            <button
-              className="primaryButton"
-              onClick={openCreate}
-              type="button"
-            >
+            <button className="primaryButton" onClick={openCreate} type="button">
               <Plus size={16} /> Incluir comentário
             </button>
           ) : null}
         </div>
       </div>
-      {commentError ? (
-        <div className="errorBox dialogError">{commentError}</div>
-      ) : null}
+      {commentError ? <div className="errorBox dialogError">{commentError}</div> : null}
       {filteredComments.length ? (
         <div className="commentList">
           {filteredComments.map((comment, index) => {
-            const commentId = String(
-              comment._id || comment.hash || `comment-${index}`,
-            );
+            const commentId = String(comment._id || comment.hash || `comment-${index}`);
             return (
               <IssueCommentItem
                 canUpdateComment={canUpdateComment}

@@ -1,7 +1,4 @@
-import {
-  COLLECTION_NAVIGATION_MAX_WIDTH,
-  COLLECTION_NAVIGATION_MIN_WIDTH,
-} from "../model.js";
+import { COLLECTION_NAVIGATION_MAX_WIDTH, COLLECTION_NAVIGATION_MIN_WIDTH } from "../model.js";
 
 export function ResourceCollectionsResizer({
   clampWidth,
@@ -18,10 +15,7 @@ export function ResourceCollectionsResizer({
       aria-valuemax={COLLECTION_NAVIGATION_MAX_WIDTH}
       aria-valuemin={COLLECTION_NAVIGATION_MIN_WIDTH}
       aria-valuenow={navigationWidth}
-      className={[
-        "resourceCollectionsResizer",
-        resizingNavigation ? "resourceCollectionsResizing" : "",
-      ]
+      className={["resourceCollectionsResizer", resizingNavigation ? "resourceCollectionsResizing" : ""]
         .filter(Boolean)
         .join(" ")}
       onKeyDown={(event) => {

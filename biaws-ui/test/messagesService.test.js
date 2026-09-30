@@ -11,10 +11,7 @@ test("loading handles preserve concurrent operations and are idempotent", () => 
   const second = service.startLoading("Segunda", { priority: 2 });
 
   assert.equal(service.getSnapshot().loadings.length, 2);
-  assert.equal(
-    selectActiveLoading(service.getSnapshot().loadings, true).label,
-    "Segunda",
-  );
+  assert.equal(selectActiveLoading(service.getSnapshot().loadings, true).label, "Segunda");
   first.finish();
   first.finish();
   assert.deepEqual(
@@ -30,23 +27,14 @@ test("blocking and background loading remain independent", () => {
   service.startLoading("Bloqueante");
   service.startLoading("Segundo plano", { blocking: false });
 
-  assert.equal(
-    selectActiveLoading(service.getSnapshot().loadings, true).label,
-    "Bloqueante",
-  );
-  assert.equal(
-    selectActiveLoading(service.getSnapshot().loadings, false).label,
-    "Segundo plano",
-  );
+  assert.equal(selectActiveLoading(service.getSnapshot().loadings, true).label, "Bloqueante");
+  assert.equal(selectActiveLoading(service.getSnapshot().loadings, false).label, "Segundo plano");
 });
 
 test("run preserves return values, errors and concurrent loading", async () => {
   const { service } = createMessagesTestService();
   let release;
-  const pending = service.run(
-    () => new Promise((resolve) => (release = resolve)),
-    "Pendente",
-  );
+  const pending = service.run(() => new Promise((resolve) => (release = resolve)), "Pendente");
   const failure = new Error("falha técnica");
 
   await assert.rejects(

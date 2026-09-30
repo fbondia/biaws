@@ -1,11 +1,4 @@
-import {
-  CalendarDays,
-  CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  Circle,
-  Clock3,
-} from "lucide-react";
+import { CalendarDays, CheckCircle2, ChevronDown, ChevronRight, Circle, Clock3 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { compareRequestTasks } from "../../../../shared/requestTaskSorting.js";
 
@@ -45,35 +38,18 @@ function taskDateLabel(task) {
   }
   if (task.endDate) return `Até ${formatDate(task.endDate)}`;
   if (task.startDate) return `Início ${formatDate(task.startDate)}`;
-  if (task.createdAt)
-    return `Criada em ${formatDate(String(task.createdAt).slice(0, 10))}`;
+  if (task.createdAt) return `Criada em ${formatDate(String(task.createdAt).slice(0, 10))}`;
   return "Sem data";
 }
 
-export function RequestTasksOverview({
-  onChangeStatus,
-  requests,
-  onSelectRequest,
-}) {
-  const [selectedStatuses, setSelectedStatuses] = useState(
-    () => new Set(REQUEST_TASK_STATUS_OPTIONS),
-  );
-  const [collapsedRequestIds, setCollapsedRequestIds] = useState(
-    () => new Set(),
-  );
+export function RequestTasksOverview({ onChangeStatus, requests, onSelectRequest }) {
+  const [selectedStatuses, setSelectedStatuses] = useState(() => new Set(REQUEST_TASK_STATUS_OPTIONS));
+  const [collapsedRequestIds, setCollapsedRequestIds] = useState(() => new Set());
   const tasks = useMemo(() => {
     return requests
-      .flatMap((request) =>
-        (request.tasks || []).map((task) => ({ request, task })),
-      )
+      .flatMap((request) => (request.tasks || []).map((task) => ({ request, task })))
       .filter(({ task }) => selectedStatuses.has(task.status))
-      .sort((first, second) =>
-        compareRequestTasks(
-          first.task,
-          second.task,
-          REQUEST_ALL_TASK_STATUS_OPTIONS,
-        ),
-      );
+      .sort((first, second) => compareRequestTasks(first.task, second.task, REQUEST_ALL_TASK_STATUS_OPTIONS));
   }, [requests, selectedStatuses]);
   const taskGroups = useMemo(() => {
     const groups = new Map();
@@ -119,22 +95,14 @@ export function RequestTasksOverview({
         </div>
         */}
 
-        <div
-          className="requestTasksStatusFilter"
-          role="group"
-          aria-label="Filtrar tarefas por status"
-        >
+        <div className="requestTasksStatusFilter" role="group" aria-label="Filtrar tarefas por status">
           <div className="requestTasksStatusChips">
             {REQUEST_TASK_STATUS_OPTIONS.map((status) => {
               const selected = selectedStatuses.has(status);
               return (
                 <button
                   aria-pressed={selected}
-                  className={
-                    selected
-                      ? "requestTasksStatusChip selected"
-                      : "requestTasksStatusChip"
-                  }
+                  className={selected ? "requestTasksStatusChip selected" : "requestTasksStatusChip"}
                   key={status}
                   onClick={() => toggleStatus(status)}
                   style={selected ? statusStyle(status) : undefined}
@@ -201,15 +169,9 @@ export function RequestTasksOverview({
                           <div className="requestTasksOverviewMain">
                             <div className="requestTasksOverviewIdentity">
                               {task.code ? (
-                                <EntityIdentifier
-                                  label="Código da tarefa"
-                                  value={task.code}
-                                  variant="eyebrow"
-                                />
+                                <EntityIdentifier label="Código da tarefa" value={task.code} variant="eyebrow" />
                               ) : null}
-                              <strong>
-                                {task.title || "Tarefa sem título"}
-                              </strong>
+                              <strong>{task.title || "Tarefa sem título"}</strong>
                             </div>
                             {onChangeStatus ? (
                               <select
@@ -217,32 +179,18 @@ export function RequestTasksOverview({
                                 className="requestTaskStatus requestTaskStatusSelect"
                                 onClick={(event) => event.stopPropagation()}
                                 onKeyDown={(event) => event.stopPropagation()}
-                                onChange={(event) =>
-                                  onChangeStatus(
-                                    request,
-                                    task,
-                                    event.target.value,
-                                  )
-                                }
+                                onChange={(event) => onChangeStatus(request, task, event.target.value)}
                                 style={statusStyle(task.status)}
                                 value={task.status}
                               >
-                                {[
-                                  ...new Set([
-                                    ...REQUEST_TASK_STATUS_OPTIONS,
-                                    task.status,
-                                  ]),
-                                ].map((status) => (
+                                {[...new Set([...REQUEST_TASK_STATUS_OPTIONS, task.status])].map((status) => (
                                   <option key={status} value={status}>
                                     {status}
                                   </option>
                                 ))}
                               </select>
                             ) : (
-                              <span
-                                className="requestTaskStatus"
-                                style={statusStyle(task.status)}
-                              >
+                              <span className="requestTaskStatus" style={statusStyle(task.status)}>
                                 <StatusIcon size={14} />
                                 {task.status}
                               </span>

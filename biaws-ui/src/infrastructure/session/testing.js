@@ -28,9 +28,7 @@ export function createFakeSessionAdapter({
     async restore() {
       calls.push(["restore", selectedWorkspaceId]);
       const error =
-        typeof currentRestoreError === "function"
-          ? currentRestoreError(selectedWorkspaceId)
-          : currentRestoreError;
+        typeof currentRestoreError === "function" ? currentRestoreError(selectedWorkspaceId) : currentRestoreError;
       if (error) throw error;
       return currentActor;
     },

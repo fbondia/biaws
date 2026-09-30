@@ -2,9 +2,7 @@ import { ChevronDown, Plus } from "lucide-react";
 import { groupPermissionsBySection } from "../model.js";
 
 function PermissionOption({ canManage, draft, onToggle, permission }) {
-  const disabled =
-    !canManage ||
-    (draft.scope?.type === "applications" && permission.scope === "workspace");
+  const disabled = !canManage || (draft.scope?.type === "applications" && permission.scope === "workspace");
   return (
     <label className="permissionOption">
       <input
@@ -21,13 +19,7 @@ function PermissionOption({ canManage, draft, onToggle, permission }) {
   );
 }
 
-function PermissionSection({
-  canManage,
-  draft,
-  onToggle,
-  permissions,
-  section,
-}) {
+function PermissionSection({ canManage, draft, onToggle, permissions, section }) {
   return (
     <section className="permissionSection">
       <h4>{section}</h4>
@@ -57,17 +49,11 @@ function PermissionCategory({
   onTogglePermission,
   permissions,
 }) {
-  const selectedCount = permissions.filter(({ id }) =>
-    draft.permissions.includes(id),
-  ).length;
+  const selectedCount = permissions.filter(({ id }) => draft.permissions.includes(id)).length;
   const isExpanded = domain === activeDomain;
   const sections = groupPermissionsBySection(permissions);
   return (
-    <article
-      className={
-        isExpanded ? "permissionCategory expanded" : "permissionCategory"
-      }
-    >
+    <article className={isExpanded ? "permissionCategory expanded" : "permissionCategory"}>
       <button
         aria-controls={`${categoriesId}-panel-${index}`}
         aria-expanded={isExpanded}
@@ -79,10 +65,7 @@ function PermissionCategory({
         <span className="permissionCategoryTitle">
           <strong>{domain}</strong>
           <small>
-            {permissions.length}{" "}
-            {permissions.length === 1
-              ? "permissão disponível"
-              : "permissões disponíveis"}
+            {permissions.length} {permissions.length === 1 ? "permissão disponível" : "permissões disponíveis"}
           </small>
         </span>
         <span className="permissionCategorySummary">
@@ -92,11 +75,7 @@ function PermissionCategory({
           >
             {selectedCount}/{permissions.length}
           </span>
-          <ChevronDown
-            aria-hidden="true"
-            className="permissionCategoryChevron"
-            size={18}
-          />
+          <ChevronDown aria-hidden="true" className="permissionCategoryChevron" size={18} />
         </span>
       </button>
       {isExpanded ? (
@@ -132,18 +111,14 @@ export function PermissionCategories({
   onTogglePermission,
 }) {
   return (
-    <section
-      aria-label="Categorias de permissões"
-      className="permissionCategoriesSection"
-    >
+    <section aria-label="Categorias de permissões" className="permissionCategoriesSection">
       <div className="permissionCategoriesHeader">
         <div>
           <h3>Permissões</h3>
           <p>Expanda uma categoria para configurar as permissões.</p>
         </div>
         <span>
-          {draft.permissions.length}{" "}
-          {draft.permissions.length === 1 ? "selecionada" : "selecionadas"}
+          {draft.permissions.length} {draft.permissions.length === 1 ? "selecionada" : "selecionadas"}
         </span>
       </div>
       <div className="permissionCategoryList">

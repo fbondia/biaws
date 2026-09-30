@@ -9,12 +9,7 @@ export function createPlatformWorkspace(payload) {
 }
 
 export function updatePlatformWorkspace(workspaceId, payload) {
-  return sendJson(
-    `/api/platform/workspaces/${encodeURIComponent(workspaceId)}`,
-    payload,
-    undefined,
-    "PATCH",
-  );
+  return sendJson(`/api/platform/workspaces/${encodeURIComponent(workspaceId)}`, payload, undefined, "PATCH");
 }
 
 export function archivePlatformWorkspace(workspaceId, confirmation) {
@@ -27,36 +22,23 @@ export function archivePlatformWorkspace(workspaceId, confirmation) {
 }
 
 export function reactivatePlatformWorkspace(workspaceId) {
-  return sendJson(
-    `/api/platform/workspaces/${encodeURIComponent(workspaceId)}/reactivate`,
-    {},
-    undefined,
-    "POST",
-  );
+  return sendJson(`/api/platform/workspaces/${encodeURIComponent(workspaceId)}/reactivate`, {}, undefined, "POST");
 }
 
 export function getPlatformWorkspaceSummary(workspaceId) {
-  return fetchJson(
-    `/api/platform/workspaces/${encodeURIComponent(workspaceId)}/summary`,
-  );
+  return fetchJson(`/api/platform/workspaces/${encodeURIComponent(workspaceId)}/summary`);
 }
 
 export function listPlatformWorkspaceMembers(workspaceId) {
-  return fetchJson(
-    `/api/platform/workspaces/${encodeURIComponent(workspaceId)}/members`,
-  );
+  return fetchJson(`/api/platform/workspaces/${encodeURIComponent(workspaceId)}/members`);
 }
 
 export function listPlatformWorkspaceGroups(workspaceId) {
-  return fetchJson(
-    `/api/platform/workspaces/${encodeURIComponent(workspaceId)}/groups`,
-  );
+  return fetchJson(`/api/platform/workspaces/${encodeURIComponent(workspaceId)}/groups`);
 }
 
 export function listPlatformWorkspaceAudit(workspaceId) {
-  return fetchJson(
-    `/api/platform/workspaces/${encodeURIComponent(workspaceId)}/audit`,
-  );
+  return fetchJson(`/api/platform/workspaces/${encodeURIComponent(workspaceId)}/audit`);
 }
 
 export function listPlatformUsers() {
@@ -64,10 +46,9 @@ export function listPlatformUsers() {
 }
 
 export function setPlatformWorkspaceMember(workspaceId, userId, groupIds) {
-  return sendJson(
-    `/api/platform/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(userId)}`,
-    { groupIds },
-  );
+  return sendJson(`/api/platform/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(userId)}`, {
+    groupIds,
+  });
 }
 
 export function removePlatformWorkspaceMember(workspaceId, userId) {

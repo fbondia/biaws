@@ -1,18 +1,6 @@
-import {
-  BookMarked,
-  BookOpen,
-  Boxes,
-  FileText,
-  GitBranch,
-  ListChecks,
-  Scale,
-} from "lucide-react";
+import { BookMarked, BookOpen, Boxes, FileText, GitBranch, ListChecks, Scale } from "lucide-react";
 
-import {
-  createEmptyDocumentDraft,
-  documentStatusLabel,
-  normalizeDocumentDraft,
-} from "./models/documentModel.js";
+import { createEmptyDocumentDraft, documentStatusLabel, normalizeDocumentDraft } from "./models/documentModel.js";
 import { hasPermission } from "../../../permissions.js";
 
 export const DOCUMENT_TYPES = Object.freeze({
@@ -28,8 +16,7 @@ export const DOCUMENT_TYPES = Object.freeze({
     ],
     defaultStatus: "draft",
     details: { ruleCode: "", effectiveFrom: "" },
-    template:
-      "## Regra\n\n## Motivação\n\n## Cenários e exceções\n\n## Critérios de validação\n",
+    template: "## Regra\n\n## Motivação\n\n## Cenários e exceções\n\n## Critérios de validação\n",
   },
   "architecture-decision": {
     label: "Decisão arquitetural",
@@ -44,8 +31,7 @@ export const DOCUMENT_TYPES = Object.freeze({
     ],
     defaultStatus: "proposed",
     details: { decidedAt: "" },
-    template:
-      "## Contexto\n\n## Decisão\n\n## Alternativas consideradas\n\n## Consequências\n",
+    template: "## Contexto\n\n## Decisão\n\n## Alternativas consideradas\n\n## Consequências\n",
   },
   guideline: {
     label: "Guideline",
@@ -104,18 +90,13 @@ export const DOCUMENT_TYPES = Object.freeze({
     ],
     defaultStatus: "draft",
     details: {},
-    template:
-      "## Objetivo\n\n## Pré-requisitos\n\n## Passos\n\n## Validação\n\n## Rollback\n",
+    template: "## Objetivo\n\n## Pré-requisitos\n\n## Passos\n\n## Validação\n\n## Rollback\n",
   },
 });
 
 export const TYPE_FILTERS = [
   ["", "Todos", BookMarked],
-  ...Object.entries(DOCUMENT_TYPES).map(([type, config]) => [
-    type,
-    config.plural,
-    config.icon,
-  ]),
+  ...Object.entries(DOCUMENT_TYPES).map(([type, config]) => [type, config.plural, config.icon]),
 ];
 
 export const DOCUMENT_TABS = [
@@ -144,16 +125,11 @@ export function statusLabel(document) {
 export function guidelineScope(draft, context) {
   if (!context.applicationId) return "workspace";
   if (context.affectedComponentIds?.length) return "component";
-  return draft.details.scope === "workspace"
-    ? "application"
-    : draft.details.scope;
+  return draft.details.scope === "workspace" ? "application" : draft.details.scope;
 }
 
 export function taxonomyIds(nodes = []) {
-  return nodes.flatMap((node) => [
-    node.id,
-    ...taxonomyIds(node.children || []),
-  ]);
+  return nodes.flatMap((node) => [node.id, ...taxonomyIds(node.children || [])]);
 }
 
 export function documentPermissions(actor) {

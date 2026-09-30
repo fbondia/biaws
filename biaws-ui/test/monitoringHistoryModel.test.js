@@ -102,8 +102,5 @@ test("monitoring health timeline ignores invalid compact points and describes ag
   assert.equal(timeline.points[0].series0, 0);
   assert.equal(monitoringHealthStatusLabel(0), "Parado");
   assert.equal(monitoringHealthStatusLabel(4), "Saudável");
-  assert.equal(
-    monitoringHealthSummaryCaption(timeline.meta),
-    "1 evento resumido em 1 ponto, com resolução 6h.",
-  );
+  assert.equal(monitoringHealthSummaryCaption(timeline.meta), "1 evento resumido em 1 ponto, com resolução 6h.");
 });

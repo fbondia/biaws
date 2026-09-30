@@ -17,14 +17,7 @@ export function IssueTable({ items, loading, onSort, sort, ...rowProps }) {
         <thead>
           <tr>
             {SORTABLE_COLUMNS.map(([field, label]) => (
-              <SortableHeader
-                field={field}
-                key={field}
-                label={label}
-                loading={loading}
-                onSort={onSort}
-                sort={sort}
-              />
+              <SortableHeader field={field} key={field} label={label} loading={loading} onSort={onSort} sort={sort} />
             ))}
             <th>Aplicação</th>
             <th>Assuntos</th>
@@ -34,12 +27,7 @@ export function IssueTable({ items, loading, onSort, sort, ...rowProps }) {
         </thead>
         <tbody>
           {items.map((issue) => (
-            <IssueTableRow
-              {...rowProps}
-              issue={issue}
-              key={issue.id || issue._id}
-              loading={loading}
-            />
+            <IssueTableRow {...rowProps} issue={issue} key={issue.id || issue._id} loading={loading} />
           ))}
           {!loading && items.length === 0 ? (
             <tr>
@@ -61,16 +49,9 @@ function SortableHeader({ field, label, loading, onSort, sort }) {
   const Icon = active ? (descending ? ArrowDown : ArrowUp) : ArrowUpDown;
 
   return (
-    <th
-      className="sortableTableHeader"
-      aria-sort={active ? (descending ? "descending" : "ascending") : "none"}
-    >
+    <th className="sortableTableHeader" aria-sort={active ? (descending ? "descending" : "ascending") : "none"}>
       <button
-        className={
-          active
-            ? "sortableColumnHeader activeSortableColumnHeader"
-            : "sortableColumnHeader"
-        }
+        className={active ? "sortableColumnHeader activeSortableColumnHeader" : "sortableColumnHeader"}
         disabled={loading}
         onClick={() => onSort(field)}
         title={`Ordenar por ${label.toLowerCase()}`}

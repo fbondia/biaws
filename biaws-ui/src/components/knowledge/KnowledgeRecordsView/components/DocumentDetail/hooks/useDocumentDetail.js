@@ -20,10 +20,7 @@ export function useDocumentDetail(draft) {
   useEffect(() => {
     if (!draft.id) return;
     let active = true;
-    Promise.all([
-      fetchDocumentObservations(draft.id),
-      fetchDocumentRevisions(draft.id),
-    ])
+    Promise.all([fetchDocumentObservations(draft.id), fetchDocumentRevisions(draft.id)])
       .then(([observationPayload, revisionPayload]) => {
         if (!active) return;
         setObservations(observationPayload.items || []);
@@ -44,11 +41,7 @@ export function useDocumentDetail(draft) {
     let active = true;
     fetchAllDocumentPages(fetchDocuments)
       .then((payload) =>
-        active
-          ? setReferenceOptions(
-              (payload.items || []).filter(({ id }) => id !== draft.id),
-            )
-          : undefined,
+        active ? setReferenceOptions((payload.items || []).filter(({ id }) => id !== draft.id)) : undefined,
       )
       .catch(() => {
         if (active) setReferenceOptions([]);

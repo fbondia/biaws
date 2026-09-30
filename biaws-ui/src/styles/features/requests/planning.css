@@ -478,10 +478,7 @@
 
 .requestBillingMatrix {
   display: grid;
-  grid-template-columns: minmax(180px, 0.6fr) repeat(
-      var(--billing-month-count),
-      minmax(96px, 0.2fr)
-    );
+  grid-template-columns: minmax(180px, 0.6fr) repeat(var(--billing-month-count), minmax(96px, 0.2fr));
   min-width: max-content;
 }
 
@@ -569,9 +566,53 @@
 
 .requestJourneyCalendarSummary {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
+}
+
+.requestJourneyCalendarFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.requestJourneyMonthFilter {
+  flex: 0 1 160px;
+}
+
+.requestJourneyBalanceFilter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--control-height);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.requestJourneyBalanceFilter input {
+  flex: 0 0 auto;
+  accent-color: var(--color-focus);
+}
+
+.requestJourneyCalendarFilterHelp {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .requestJourneyMonthFilter {
+    flex: 1 1 140px;
+  }
+
+  .requestJourneyBalanceFilter {
+    flex-basis: 100%;
+  }
 }
 
 .requestJourneyCollectionActions {
@@ -630,29 +671,63 @@
   background: var(--palette-neutral-02);
 }
 
-.requestBillingMatrixChip {
-  display: inline-flex;
-  width: fit-content;
-  max-width: 100%;
-  min-height: 24px;
-  align-items: center;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  padding: 2px 7px;
+.requestJourneyBalanceBar {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.requestJourneyBalanceTrack {
+  display: flex;
+  height: 12px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+.requestJourneyBalanceSegment {
+  flex: 0 0 auto;
+  height: 100%;
+}
+
+.requestJourneyBalanceBalanced {
+  background: var(--palette-blue-37);
+}
+
+.requestJourneyBalancePending {
+  background: var(--color-warning-accent);
+}
+
+.requestJourneyBalanceExcess {
+  background: var(--color-success-action);
+}
+
+.requestJourneyBalanceNumbers {
+  color: var(--color-text-secondary);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
-.requestBillingMatrixChipPlanned {
-  border-color: var(--palette-orange-06);
-  background: var(--palette-orange-01);
-  color: var(--palette-orange-12);
+.requestJourneyBalanceLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: var(--color-text-muted);
+  font-size: 12px;
 }
 
-.requestBillingMatrixChipBilled {
-  border-color: var(--palette-green-12);
-  background: var(--palette-green-01);
-  color: var(--palette-green-23);
+.requestJourneyBalanceLegend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.requestJourneyBalanceLegend i {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm);
 }
 
 .requestBillingMatrixEmpty {

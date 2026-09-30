@@ -8,6 +8,18 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- UI atualizada de `0.3.0` para `0.4.0`, incluindo os filtros e a barra de
+  balanceamento do calendário de jornadas das melhorias.
+
+- Calendário de jornadas das melhorias permite limitar meses para trás e para
+  frente do mês atual e exibir somente melhorias com totais previstos e
+  executados desbalanceados; agregações exibidas acompanham o período filtrado.
+  Totais de jornadas dos grupos, inclusive o total geral, aparecem somente
+  quando contraídos, evitando duplicidade visual com as melhorias expandidas.
+  Chips são substituídos por uma barra de balanceamento: azul para jornadas
+  previstas e executadas, amarelo para previsões pendentes e verde para execução
+  excedente, com valores numéricos, legenda e descrição acessível.
+
 - CLI atualizado de `0.4.0` para `0.5.0`, incluindo a gestão de atualização
   de instalações por manifesto de release.
 

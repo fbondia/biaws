@@ -40,6 +40,16 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
 - Ações e áreas de navegação condicionadas às permissões do ator autenticado
 - Filtros por texto, código, tipo, status e intervalo de datas
 - Seleção do campo de data usado nos filtros
+- Calendário de jornadas das melhorias com filtros de meses antes e depois do
+  mês atual (campos vazios mantêm o período sem limite) e opção de mostrar apenas
+  melhorias cujo total previsto difere do executado. O desbalanceamento considera
+  toda a melhoria; as linhas e os totais exibidos consideram o período filtrado.
+  Grupos expandidos mantêm as células de jornadas vazias; seus totais mensais e
+  acumulados aparecem somente quando contraídos, incluindo o total geral.
+  Cada célula usa uma barra proporcional: azul para jornadas previstas e
+  executadas, amarelo para previsões pendentes e verde para execução excedente.
+  Os números abaixo da barra seguem a ordem executadas / previstas; o tooltip
+  e a descrição acessível detalham as quantidades de cada segmento.
 - Paginação
 - Importação de múltiplos arquivos EML por drag-and-drop, com dry-run individual antes da gravação
 - Ordenação básica

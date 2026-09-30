@@ -1,6 +1,6 @@
 import { LoaderCircle } from "lucide-react";
 
-import { JourneyCalendar } from "../../JourneyCalendar.jsx";
+import { JourneyCalendar } from "../../JourneyCalendar/index.jsx";
 import { RequestSchedule } from "../../RequestSchedule.jsx";
 import { RequestTasksOverview } from "../../RequestTasksOverview.jsx";
 import { REQUEST_OVERVIEW_TABS } from "../../requestUtils.js";

@@ -192,6 +192,7 @@ jobs:
         shell: bash
         run: |
           expected_version="$(node -p "require('./biaws-mcp/package.json').version")"
+          npm ci --prefix biaws-mcp
           npm pack ./biaws-mcp --pack-destination "${RUNNER_TEMP}"
           npm install --no-save --package-lock=false --ignore-scripts \
             "${RUNNER_TEMP}/biaws-mcp-${expected_version}.tgz"

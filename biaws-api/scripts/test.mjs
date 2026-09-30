@@ -1,4 +1,5 @@
-import { mkdir, readdir, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, rm } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 
@@ -34,6 +35,7 @@ const files = (await discover(domain ? `${testRoot}/${domain}` : testRoot)).sort
   return !layer || actual === layer;
 });
 if (!files.length) throw new Error("Nenhum teste encontrado");
+const testStorageRoot = await mkdtemp(path.join(os.tmpdir(), "biaws-api-test-"));
 const child = spawn(
   process.execPath,
   [
@@ -52,9 +54,21 @@ const child = spawn(
   ],
   {
     stdio: "inherit",
-    env: process.env,
+    env: {
+      ...process.env,
+      BIAWS_ISSUE_DIR: path.join(testStorageRoot, "issues"),
+      BIAWS_REQUEST_DIR: path.join(testStorageRoot, "requests"),
+      BIAWS_DOCUMENT_DIR: path.join(testStorageRoot, "documents"),
+    },
   },
 );
-child.on("exit", (code, signal) => {
-  process.exitCode = code ?? (signal ? 1 : 0);
-});
+let exitCode;
+try {
+  exitCode = await new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("exit", (code, signal) => resolve(code ?? (signal ? 1 : 0)));
+  });
+} finally {
+  await rm(testStorageRoot, { recursive: true, force: true });
+}
+process.exitCode = exitCode;

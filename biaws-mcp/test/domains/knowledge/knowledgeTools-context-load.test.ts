@@ -14,13 +14,15 @@ test("knowledge context loader fetches current unified documents", async () => {
     if (path.endsWith("/documents")) {
       return jsonResponse({
         items: [
-          { id: "rule-1", documentType: "business-rule" },
+          { id: "rule-1", applicationId: null, identifier: null, documentType: "business-rule" },
           { id: "feature-1", documentType: "feature" },
         ],
       });
     }
     if (path.endsWith("/documents/rule-1")) {
-      return jsonResponse({ document: { id: "rule-1", markdown: "# R" } });
+      return jsonResponse({
+        document: { id: "rule-1", applicationId: null, identifier: null, markdown: "# R" },
+      });
     }
     return jsonResponse({ document: { id: "feature-1", markdown: "# F" } });
   };

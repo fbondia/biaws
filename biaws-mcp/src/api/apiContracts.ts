@@ -21,12 +21,12 @@ export interface ApiEntity {
   markdown?: string;
   summary?: string;
   date?: string;
-  applicationId?: string;
+  applicationId?: string | null;
   componentId?: string;
   deploymentId?: string;
   workspaceId?: string;
   targetDocumentId?: string;
-  identifier?: string;
+  identifier?: string | null;
   collectionId?: string;
   startDate?: string;
   endDate?: string;
@@ -64,12 +64,10 @@ const strings = [
   "markdown",
   "summary",
   "date",
-  "applicationId",
   "componentId",
   "deploymentId",
   "workspaceId",
   "targetDocumentId",
-  "identifier",
   "collectionId",
   "startDate",
   "endDate",
@@ -83,6 +81,8 @@ export const apiEntitySchema: z.ZodType<ApiEntity> = z.lazy(() =>
   z.looseObject({
     ...Object.fromEntries(strings.map((key) => [key, z.string().optional()])),
     ...Object.fromEntries(numbers.map((key) => [key, z.number().optional()])),
+    applicationId: z.string().nullable().optional(),
+    identifier: z.string().nullable().optional(),
     active: z.boolean().optional(),
     affectedComponentIds: z.array(z.string()).optional(),
     applicationIds: z.array(z.string()).optional(),

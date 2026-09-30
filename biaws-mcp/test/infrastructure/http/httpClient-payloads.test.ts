@@ -45,6 +45,25 @@ test("unknown upstream fields survive schema validation at every level", async (
   assert.deepEqual(await fetchJson("/api/requests/demand-a"), payload);
 });
 
+test("nullable document context and identifier survive schema validation", async (t) => {
+  const previous = globalThis.fetch;
+  const payload = {
+    items: [
+      {
+        id: "workspace-guide",
+        applicationId: null,
+        identifier: null,
+        documentType: "guideline",
+      },
+    ],
+  };
+  globalThis.fetch = async () => Response.json(payload);
+  t.after(() => {
+    globalThis.fetch = previous;
+  });
+  assert.deepEqual(await fetchJson("/api/knowledge/documents"), payload);
+});
+
 test("query parameters preserve scalars and reject objects before HTTP", async (t) => {
   const previous = globalThis.fetch;
   const calls: URL[] = [];

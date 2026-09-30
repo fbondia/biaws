@@ -148,6 +148,8 @@ export const replacements = [
     payload: {
       document: {
         id: "canonical-document",
+        applicationId: null,
+        identifier: null,
         key: "alias",
         detail: "preserved",
         markdown: "# content",

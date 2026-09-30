@@ -160,6 +160,10 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
 
 ### Fixed
 
+- MCP `0.12.1` aceita `applicationId` e `identifier` nulos nas respostas válidas
+  de documentação, evitando erros `INVALID_UPSTREAM_PAYLOAD` com status `502`
+  nas consultas de documentos de workspace e sem identificador opcional;
+
 - MCP `0.9.0` consulta demandas diretamente por ID ou pelo filtro exato de
   código, sem depender da listagem paginada para localizar tarefas;
 - MCP `0.8.0` passa a declarar os status aceitos por

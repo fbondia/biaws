@@ -1,7 +1,6 @@
 import { Save, Tags } from "lucide-react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../../constants/issues.js";
-import { MarkdownEditor } from "../../../shared/MarkdownEditor/index.jsx";
 import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector/index.jsx";
 import { filterTaxonomyForApplication } from "../../../taxonomy/scope.js";
 import { TagGroupDialog, TagSelectionChips, TaxonomySelectionChips } from "./ClassificationControls.jsx";
@@ -20,6 +19,7 @@ export function IssueKnowledgeTab({
   removeTaxonomy,
   saveClassification,
   savingClassification,
+  savingSummary,
   savingTaxonomyCatalog,
   selectedTaxonomies,
   setActiveTagGroupId,
@@ -28,7 +28,6 @@ export function IssueKnowledgeTab({
   taxonomyLoading,
   taxonomyPackage,
   toggleGroupTag,
-  updateKbSummary,
   updatePrimaryTaxonomy,
   updateTaxonomies,
 }) {
@@ -42,13 +41,6 @@ export function IssueKnowledgeTab({
       {taxonomyLoading ? <div className="loadingLine">Carregando assuntos...</div> : null}
 
       <div className="classificationGrid">
-        <section className="classificationPanel kbSummaryPanel">
-          <label className="field">
-            <span>Resumo</span>
-            <MarkdownEditor onChange={updateKbSummary} value={classificationDraft.summary} />
-          </label>
-        </section>
-
         <section className="classificationPanel taxonomyChooserPanel">
           <div className="sectionTitleRow">
             <h3>Tags</h3>
@@ -115,7 +107,7 @@ export function IssueKnowledgeTab({
       <div className="dialogActions">
         <button
           className="primaryButton"
-          disabled={savingClassification || !hasClassificationChanges || !issue.id}
+          disabled={savingClassification || savingSummary || !hasClassificationChanges || !issue.id}
           onClick={saveClassification}
           type="button"
         >

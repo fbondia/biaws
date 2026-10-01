@@ -2,7 +2,17 @@ import { Save, X } from "lucide-react";
 
 import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
 
-export function IssueDescriptionDialog({ draft, error, onChange, onClose, onSave, open, saving }) {
+export function IssueDescriptionDialog({
+  attachments,
+  draft,
+  error,
+  onChange,
+  onClose,
+  onLoadAttachment,
+  onSave,
+  open,
+  saving,
+}) {
   if (!open) return null;
 
   return (
@@ -41,7 +51,13 @@ export function IssueDescriptionDialog({ draft, error, onChange, onClose, onSave
           </label>
           <label className="field issueDescriptionContentField">
             <span>Descrição</span>
-            <MarkdownEditor onChange={(text) => onChange({ ...draft, text })} value={draft.text} />
+            <MarkdownEditor
+              ariaLabel="Descrição"
+              attachments={attachments}
+              onChange={(text) => onChange({ ...draft, text })}
+              onLoadAttachment={onLoadAttachment}
+              value={draft.text}
+            />
           </label>
         </div>
         <footer className="issueDescriptionDialogFooter">

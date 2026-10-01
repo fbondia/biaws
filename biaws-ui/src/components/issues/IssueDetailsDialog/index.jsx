@@ -29,6 +29,9 @@ export function IssueDetailsDialog({
     taxonomyError,
     classificationDraft,
     savingClassification,
+    savingSummary,
+    summaryError,
+    summaryMessage,
     classificationMessage,
     savingTaxonomyCatalog,
     contextDraft,
@@ -44,6 +47,7 @@ export function IssueDetailsDialog({
     selectedTaxonomies,
     activeTagGroup,
     hasClassificationChanges,
+    hasSummaryChanges,
     saveContext,
     closeOnBackdrop,
     updateTaxonomies,
@@ -53,6 +57,7 @@ export function IssueDetailsDialog({
     removeGroupTag,
     updateKbSummary,
     saveClassification,
+    saveSummary,
     addTaxonomyCatalogNode,
     editTaxonomyCatalogNode,
     TypeIcon,
@@ -61,7 +66,7 @@ export function IssueDetailsDialog({
   } = useIssueDetailsDialog({
     details,
     onClose,
-    onIssueDetailsUpdated,
+    onIssueUpdated,
     preview,
   });
 
@@ -102,6 +107,7 @@ export function IssueDetailsDialog({
         draftSelectedTagEntries={draftSelectedTagEntries}
         editTaxonomyCatalogNode={editTaxonomyCatalogNode}
         hasClassificationChanges={hasClassificationChanges}
+        hasSummaryChanges={hasSummaryChanges}
         issue={issue}
         loading={loading}
         onIssueDetailsUpdated={onIssueDetailsUpdated}
@@ -109,8 +115,12 @@ export function IssueDetailsDialog({
         removeGroupTag={removeGroupTag}
         removeTaxonomy={removeTaxonomy}
         saveClassification={saveClassification}
+        saveSummary={saveSummary}
         saveContext={saveContext}
         savingClassification={savingClassification}
+        savingSummary={savingSummary}
+        summaryError={summaryError}
+        summaryMessage={summaryMessage}
         savingContext={savingContext}
         savingTaxonomyCatalog={savingTaxonomyCatalog}
         selectedTaxonomies={selectedTaxonomies}

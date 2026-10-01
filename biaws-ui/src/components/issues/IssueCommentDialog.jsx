@@ -2,7 +2,7 @@ import { Save, X } from "lucide-react";
 
 import { MarkdownEditor } from "../shared/MarkdownEditor/index.jsx";
 
-export function IssueCommentDialog({ draft, mode, onChange, onClose, onSave, saving }) {
+export function IssueCommentDialog({ attachments, draft, mode, onChange, onClose, onLoadAttachment, onSave, saving }) {
   if (!mode) return null;
 
   return (
@@ -35,7 +35,13 @@ export function IssueCommentDialog({ draft, mode, onChange, onClose, onSave, sav
           </label>
           <label className="field issueCommentContentField">
             <span>Comentário</span>
-            <MarkdownEditor onChange={(text) => onChange({ ...draft, text })} value={draft.text} />
+            <MarkdownEditor
+              ariaLabel="Comentário"
+              attachments={attachments}
+              onChange={(text) => onChange({ ...draft, text })}
+              onLoadAttachment={onLoadAttachment}
+              value={draft.text}
+            />
           </label>
         </div>
         <footer className="issueCommentDialogFooter">

@@ -1,74 +1,19 @@
-import { Pencil, Save } from "lucide-react";
-import { useState } from "react";
+import { Save } from "lucide-react";
+import { useCallback } from "react";
 
 import {
   deleteEntityAttachment,
   downloadEntityAttachment,
   fetchEntityAttachment,
   updateEntityAttachmentTags,
-  updateIssue,
   uploadEntityAttachments,
 } from "../../../../api.js";
 import { CatalogContextFields } from "../../../catalog/CatalogContextFields/index.jsx";
 import { AuditHistory } from "../../../shared/AuditHistory.jsx";
 import { FilesPanel } from "../../../shared/FilesPanel/index.jsx";
-import { MarkdownPreview } from "../../../shared/MarkdownEditor/index.jsx";
-import { IssueDescriptionDialog } from "../../IssueDescriptionDialog.jsx";
 import { IssueCommentsTab } from "./IssueCommentsTab.jsx";
+import { IssueDescriptionTab } from "./IssueDescriptionTab.jsx";
 import { IssueKnowledgeTab } from "./IssueKnowledgeTab.jsx";
-
-function IssueDescriptionTab({ canEditContext, issue, onIssueUpdated }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState({ title: "", text: "" });
-  const [saving, setSaving] = useState(false);
-  const [descriptionError, setDescriptionError] = useState("");
-
-  function openEditor() {
-    setDraft({ title: issue.title || "", text: issue.text || "" });
-    setDescriptionError("");
-    setEditing(true);
-  }
-
-  async function saveDescription() {
-    setSaving(true);
-    setDescriptionError("");
-    try {
-      const payload = await updateIssue(issue.id, {
-        title: draft.title.trim(),
-        text: draft.text.trim(),
-      });
-      await onIssueUpdated?.(payload.issue);
-      setEditing(false);
-    } catch (saveError) {
-      setDescriptionError(saveError.message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <section className="detailSection">
-      <div className="sectionTitleRow">
-        <h3>Descrição</h3>
-        {canEditContext ? (
-          <button className="secondaryButton" onClick={openEditor} type="button">
-            <Pencil size={15} /> Editar descrição
-          </button>
-        ) : null}
-      </div>
-      <MarkdownPreview value={issue.text || ""} />
-      <IssueDescriptionDialog
-        draft={draft}
-        error={descriptionError}
-        onChange={setDraft}
-        onClose={() => setEditing(false)}
-        onSave={saveDescription}
-        open={editing}
-        saving={saving}
-      />
-    </section>
-  );
-}
 
 function IssueContextTab({
   applications,
@@ -146,6 +91,10 @@ const TAB_COMPONENTS = {
 };
 
 export function IssueDetailContent(props) {
+  const onLoadAttachment = useCallback(
+    (attachment) => fetchEntityAttachment("issues", props.issue.id, attachment),
+    [props.issue.id],
+  );
   const Component = TAB_COMPONENTS[props.activeTab];
-  return Component ? <Component {...props} /> : null;
+  return Component ? <Component {...props} onLoadAttachment={onLoadAttachment} /> : null;
 }

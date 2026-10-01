@@ -9,6 +9,7 @@
   left: 8px;
   display: inline-flex;
   width: fit-content;
+  max-width: calc(100% - 16px);
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -42,6 +43,41 @@
 .activeMarkdownEditorTab {
   background: var(--color-info-surface);
   color: var(--color-accent-text);
+}
+
+.markdownAttachmentPicker {
+  min-width: 0;
+}
+
+.markdownAttachmentPicker select {
+  width: auto;
+  min-width: 0;
+  max-width: 110px;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font: inherit;
+}
+
+.markdownAttachmentImage {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.markdownAttachmentImage img {
+  display: block;
+  max-width: 100%;
+  max-height: 560px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.markdownAttachmentImageStatus {
+  color: var(--color-text-subtle);
+  font-size: 13px;
 }
 
 .markdownFullscreenBackdrop {
@@ -415,4 +451,10 @@
 .markdownPreviewEmpty {
   color: var(--palette-neutral-18);
   font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .markdownAttachmentPicker select {
+    max-width: 70px;
+  }
 }

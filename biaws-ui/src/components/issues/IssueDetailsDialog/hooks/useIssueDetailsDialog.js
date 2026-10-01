@@ -1,5 +1,5 @@
 import { ClipboardList } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchIssueTaxonomy, saveIssueClassification, saveIssueTaxonomy, updateIssue } from "../../../../api.js";
 import { ALL_TYPE_OPTIONS, STATUS_OPTIONS } from "../../../../constants/issues.js";
@@ -18,6 +18,7 @@ import {
   updateTaxonomyNodeLabel,
 } from "../components/ClassificationControls.jsx";
 import { findTaxonomyNode } from "../../../taxonomy/scope.js";
+import { reconcileClassificationDraft } from "../model.js";
 
 export function useIssueDetailsDialog({ details, onClose, onIssueUpdated, preview }) {
   const baseIssue = details?.issue || preview || {};
@@ -30,6 +31,10 @@ export function useIssueDetailsDialog({ details, onClose, onIssueUpdated, previe
   const [savedClassification, setSavedClassification] = useState(null);
   const [savingClassification, setSavingClassification] = useState(false);
   const [classificationMessage, setClassificationMessage] = useState("");
+  const [savingSummary, setSavingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState("");
+  const [summaryMessage, setSummaryMessage] = useState("");
+  const previousClassificationRef = useRef({ issueId: baseIssue.id, classification: EMPTY_CLASSIFICATION });
   const [savingTaxonomyCatalog, setSavingTaxonomyCatalog] = useState(false);
   const [contextDraft, setContextDraft] = useState({
     applicationId: baseIssue.applicationId || "",
@@ -61,12 +66,23 @@ export function useIssueDetailsDialog({ details, onClose, onIssueUpdated, previe
     [activeTagGroupId, taxonomyPackage],
   );
   const hasClassificationChanges =
-    serializeClassification(classificationDraft) !== serializeClassification(persistedClassification);
+    serializeClassification({ ...classificationDraft, summary: "" }) !==
+    serializeClassification({ ...persistedClassification, summary: "" });
+  const hasSummaryChanges = classificationDraft.summary !== persistedClassification.summary;
 
   useEffect(() => {
+    const previous = previousClassificationRef.current;
+    const next = normalizeClassification(baseIssue.classification);
     setSavedClassification(null);
-    setClassificationDraft(normalizeClassification(baseIssue.classification));
-    setClassificationMessage("");
+    setClassificationDraft((current) =>
+      previous.issueId === baseIssue.id ? reconcileClassificationDraft(current, previous.classification, next) : next,
+    );
+    previousClassificationRef.current = { issueId: baseIssue.id, classification: next };
+    if (previous.issueId !== baseIssue.id) {
+      setClassificationMessage("");
+      setSummaryMessage("");
+      setSummaryError("");
+    }
   }, [baseIssue.id, baseIssue.classification]);
 
   useEffect(() => {
@@ -184,6 +200,7 @@ export function useIssueDetailsDialog({ details, onClose, onIssueUpdated, previe
   }
 
   function updateKbSummary(value) {
+    setSummaryMessage("");
     setClassificationDraft((current) => ({
       ...current,
       summary: value,
@@ -191,23 +208,44 @@ export function useIssueDetailsDialog({ details, onClose, onIssueUpdated, previe
   }
 
   async function saveClassification() {
-    if (!issue.id) return;
+    if (!issue.id || savingSummary || savingClassification) return;
+    const submitted = { ...classificationDraft, summary: persistedClassification.summary };
 
     setSavingClassification(true);
     setTaxonomyError("");
     setClassificationMessage("");
 
     try {
-      const payload = await saveIssueClassification(issue.id, classificationDraft);
+      const payload = await saveIssueClassification(issue.id, submitted);
       const nextClassification = normalizeClassification(payload.issue?.classification);
       setSavedClassification(nextClassification);
-      setClassificationDraft(nextClassification);
+      setClassificationDraft((current) => reconcileClassificationDraft(current, submitted, nextClassification));
       onIssueUpdated?.(payload.issue);
-      setClassificationMessage("Classificação gravada no MongoDB.");
+      setClassificationMessage("Classificação salva.");
     } catch (saveError) {
       setTaxonomyError(saveError.message);
     } finally {
       setSavingClassification(false);
+    }
+  }
+
+  async function saveSummary() {
+    if (!issue.id || savingSummary || savingClassification) return;
+    const submitted = { ...persistedClassification, summary: classificationDraft.summary };
+    setSavingSummary(true);
+    setSummaryError("");
+    setSummaryMessage("");
+    try {
+      const payload = await saveIssueClassification(issue.id, submitted);
+      const nextClassification = normalizeClassification(payload.issue?.classification);
+      setSavedClassification(nextClassification);
+      setClassificationDraft((current) => reconcileClassificationDraft(current, submitted, nextClassification));
+      onIssueUpdated?.(payload.issue);
+      setSummaryMessage("Resumo salvo.");
+    } catch (saveError) {
+      setSummaryError(saveError.message);
+    } finally {
+      setSavingSummary(false);
     }
   }
 
@@ -290,6 +328,9 @@ export function useIssueDetailsDialog({ details, onClose, onIssueUpdated, previe
     taxonomyError,
     classificationDraft,
     savingClassification,
+    savingSummary,
+    summaryError,
+    summaryMessage,
     classificationMessage,
     savingTaxonomyCatalog,
     contextDraft,
@@ -305,6 +346,7 @@ export function useIssueDetailsDialog({ details, onClose, onIssueUpdated, previe
     selectedTaxonomies,
     activeTagGroup,
     hasClassificationChanges,
+    hasSummaryChanges,
     saveContext,
     closeOnBackdrop,
     updateTaxonomies,
@@ -314,6 +356,7 @@ export function useIssueDetailsDialog({ details, onClose, onIssueUpdated, previe
     removeGroupTag,
     updateKbSummary,
     saveClassification,
+    saveSummary,
     addTaxonomyCatalogNode,
     editTaxonomyCatalogNode,
     TypeIcon,

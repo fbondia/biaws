@@ -1,8 +1,10 @@
-import { Check, Copy, Eye, FileText, Maximize2, X } from "lucide-react";
+import { Check, Copy, Eye, FileText, ImagePlus, Maximize2, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { markdownToHtml } from "../model.js";
+import { attachmentImageMarkdown } from "../attachmentImages.js";
+import { previewKind } from "../../filePreviewModel.js";
 import { MarkdownPreview } from "./MarkdownPreview.jsx";
 
 const MARKDOWN_TEXTAREA_MAX_HEIGHT = 420;
@@ -13,15 +15,28 @@ export function MarkdownEditor({
   allowFullscreen = true,
   fullscreen = false,
   initialMode = "preview",
+  ariaLabel,
+  attachments = [],
+  onLoadAttachment,
 }) {
   const [mode, setMode] = useState(() => (initialMode === "text" ? "text" : "preview"));
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const textareaRef = useRef(null);
   const copyResetTimerRef = useRef(null);
+  const insertionCursorRef = useRef(null);
+  const imageAttachments = attachments.filter(
+    (file) => previewKind(file) === "image" && (file.id ?? file.index) !== undefined,
+  );
 
   useLayoutEffect(() => {
-    if (mode === "text") resizeTextarea(textareaRef.current, fullscreen);
+    if (mode !== "text") return;
+    resizeTextarea(textareaRef.current, fullscreen);
+    if (insertionCursorRef.current !== null && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(insertionCursorRef.current, insertionCursorRef.current);
+      insertionCursorRef.current = null;
+    }
   }, [fullscreen, mode, value]);
 
   useEffect(() => {
@@ -36,6 +51,18 @@ export function MarkdownEditor({
   }, [isFullscreen]);
 
   useEffect(() => () => window.clearTimeout(copyResetTimerRef.current), []);
+
+  function insertAttachmentImage(id) {
+    const file = imageAttachments.find((attachment) => String(attachment.id ?? attachment.index) === id);
+    if (!file) return;
+    const text = String(value || "");
+    const start = textareaRef.current?.selectionStart ?? text.length;
+    const end = textareaRef.current?.selectionEnd ?? text.length;
+    const image = attachmentImageMarkdown(file);
+    insertionCursorRef.current = start + image.length;
+    onChange(`${text.slice(0, start)}${image}${text.slice(end)}`);
+    setMode("text");
+  }
 
   async function copyContent() {
     const markdown = String(value || "");
@@ -106,10 +133,28 @@ export function MarkdownEditor({
             <Maximize2 size={15} />
           </button>
         ) : null}
+        {imageAttachments.length && onLoadAttachment ? (
+          <span className="markdownEditorTab markdownAttachmentPicker" title="Inserir imagem de anexo">
+            <ImagePlus aria-hidden="true" size={15} />
+            <select
+              aria-label="Inserir imagem de anexo"
+              onChange={(event) => insertAttachmentImage(event.target.value)}
+              value=""
+            >
+              <option value="">Imagem</option>
+              {imageAttachments.map((file) => (
+                <option key={file.id ?? file.index} value={String(file.id ?? file.index)}>
+                  {file.filename}
+                </option>
+              ))}
+            </select>
+          </span>
+        ) : null}
       </div>
 
       {mode === "text" ? (
         <textarea
+          aria-label={ariaLabel}
           autoFocus={fullscreen}
           onChange={(event) => {
             resizeTextarea(event.currentTarget, fullscreen);
@@ -119,7 +164,7 @@ export function MarkdownEditor({
           value={value}
         />
       ) : (
-        <MarkdownPreview value={value} />
+        <MarkdownPreview attachments={attachments} onLoadAttachment={onLoadAttachment} value={value} />
       )}
 
       {isFullscreen
@@ -146,9 +191,12 @@ export function MarkdownEditor({
                 <div className="markdownFullscreenBody">
                   <MarkdownEditor
                     allowFullscreen={false}
+                    ariaLabel={ariaLabel}
+                    attachments={attachments}
                     fullscreen
                     initialMode={mode}
                     onChange={onChange}
+                    onLoadAttachment={onLoadAttachment}
                     value={value}
                   />
                 </div>

@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- UI exibe imagens dos anexos referenciadas na descrição, no resumo e nos
+  comentários dos issues, com seleção de imagens carregadas nos editores.
+  O resumo passa da aba KB para a aba Descrição, antes da descrição completa,
+  com salvamento independente de assuntos e tags.
+
 - Release da plataforma atualizada de `0.6.0` para `0.7.0`, com API `0.8.0`
   e UI `0.6.0` sincronizadas no manifesto; API, UI e MCP `0.14.0` passam a
   permitir a exclusão auditada de comentários de issues com permissão dedicada.

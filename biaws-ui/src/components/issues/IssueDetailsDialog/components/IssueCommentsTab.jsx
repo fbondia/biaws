@@ -34,6 +34,7 @@ function IssueCommentMeta({ comment }) {
 }
 
 function IssueCommentItem({
+  attachments,
   canDeleteComment,
   canUpdateComment,
   comment,
@@ -42,6 +43,7 @@ function IssueCommentItem({
   expanded,
   onDelete,
   onEdit,
+  onLoadAttachment,
   onToggle,
 }) {
   return (
@@ -87,7 +89,7 @@ function IssueCommentItem({
       {expanded ? (
         <>
           <IssueCommentMeta comment={comment} />
-          <MarkdownPreview value={comment.text || ""} />
+          <MarkdownPreview attachments={attachments} onLoadAttachment={onLoadAttachment} value={comment.text || ""} />
         </>
       ) : (
         <p className="commentCollapsedPreview">{commentPreview(comment.text)}</p>
@@ -97,6 +99,7 @@ function IssueCommentItem({
 }
 
 export function IssueCommentsTab({
+  attachments,
   canCreateComment,
   canDeleteComment,
   canUpdateComment,
@@ -104,6 +107,7 @@ export function IssueCommentsTab({
   issue,
   loading,
   onIssueDetailsUpdated,
+  onLoadAttachment,
 }) {
   const { confirm } = useMessages();
   const [dialogMode, setDialogMode] = useState("");
@@ -231,6 +235,7 @@ export function IssueCommentsTab({
             const commentId = String(comment._id || comment.hash || `comment-${index}`);
             return (
               <IssueCommentItem
+                attachments={attachments}
                 canDeleteComment={canDeleteComment}
                 canUpdateComment={canUpdateComment}
                 comment={comment}
@@ -240,6 +245,7 @@ export function IssueCommentsTab({
                 key={commentId}
                 onDelete={removeComment}
                 onEdit={openEdit}
+                onLoadAttachment={onLoadAttachment}
                 onToggle={toggleComment}
               />
             );
@@ -255,10 +261,12 @@ export function IssueCommentsTab({
         </div>
       )}
       <IssueCommentDialog
+        attachments={attachments}
         draft={draft}
         mode={dialogMode}
         onChange={setDraft}
         onClose={() => setDialogMode("")}
+        onLoadAttachment={onLoadAttachment}
         onSave={saveComment}
         saving={saving}
       />

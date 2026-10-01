@@ -228,34 +228,53 @@ export function markdownTableToHtml(lines) {
   ].join("");
 }
 
-export function renderInlineMarkdownHtml(text) {
-  let html = "";
-  const pattern = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/gu;
+export function parseInlineMarkdown(text) {
+  const tokens = [];
+  const pattern =
+    /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|!\[[^\]]*\]\([^)]+\)|\[[^\]]+\]\([^)]+\)|\[(?:anexo:\s*|cid:)[^\]]+\])/giu;
   let cursor = 0;
   let match;
 
   while ((match = pattern.exec(text)) !== null) {
-    if (match.index > cursor) html += escapeHtml(text.slice(cursor, match.index));
+    if (match.index > cursor) tokens.push({ type: "text", text: text.slice(cursor, match.index) });
 
     const token = match[0];
 
     if (token.startsWith("`")) {
-      html += `<code>${escapeHtml(token.slice(1, -1))}</code>`;
+      tokens.push({ type: "code", text: token.slice(1, -1) });
     } else if (token.startsWith("**")) {
-      html += `<strong>${escapeHtml(token.slice(2, -2))}</strong>`;
+      tokens.push({ type: "strong", text: token.slice(2, -2) });
     } else if (token.startsWith("*")) {
-      html += `<em>${escapeHtml(token.slice(1, -1))}</em>`;
+      tokens.push({ type: "emphasis", text: token.slice(1, -1) });
+    } else if (token.startsWith("!")) {
+      const image = token.match(/^!\[([^\]]*)\]\(([^)]+)\)$/u);
+      tokens.push({ type: "image", text: image[1], reference: image[2], raw: token });
+    } else if (/^\[(?:anexo:|cid:)/iu.test(token) && !token.includes("](")) {
+      tokens.push({ type: "image", text: "", reference: token.slice(1, -1), raw: token });
     } else {
       const link = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/u);
-      html += `<a href="${escapeHtmlAttribute(safeMarkdownHref(link[2]))}">${escapeHtml(link[1])}</a>`;
+      tokens.push({ type: "link", text: link[1], href: link[2] });
     }
 
     cursor = match.index + token.length;
   }
 
-  if (cursor < text.length) html += escapeHtml(text.slice(cursor));
+  if (cursor < text.length) tokens.push({ type: "text", text: text.slice(cursor) });
 
-  return html;
+  return tokens;
+}
+
+export function renderInlineMarkdownHtml(text) {
+  return parseInlineMarkdown(text)
+    .map((token) => {
+      if (token.type === "code") return `<code>${escapeHtml(token.text)}</code>`;
+      if (token.type === "strong") return `<strong>${escapeHtml(token.text)}</strong>`;
+      if (token.type === "emphasis") return `<em>${escapeHtml(token.text)}</em>`;
+      if (token.type === "link")
+        return `<a href="${escapeHtmlAttribute(safeMarkdownHref(token.href))}">${escapeHtml(token.text)}</a>`;
+      return escapeHtml(token.raw ?? token.text);
+    })
+    .join("");
 }
 
 export function escapeHtml(value) {

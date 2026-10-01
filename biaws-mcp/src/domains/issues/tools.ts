@@ -3,6 +3,7 @@ import type { ToolDefinition, ToolHandler } from "../../mcp/tools/contracts.js";
 import { issueTools as definitions } from "./schemas.js";
 import {
   addIssueComment,
+  analyzeEmlFile,
   classifyIssue,
   createIssue,
   createTaxonomyItem,
@@ -10,6 +11,7 @@ import {
   getIssueClassificationCatalog,
   getIssueDetails,
   importEml,
+  importEmlFile,
   searchIssues,
   suggestTaxonomy,
   summarizeIssuesForSupport,
@@ -31,6 +33,8 @@ const handlers: Record<string, ToolHandler> = {
   issues_aggregate: bindTool("issues_aggregate", summarizeIssuesForSupport),
   issues_create: bindTool("issues_create", createIssue),
   issues_import_eml: bindTool("issues_import_eml", importEml),
+  issues_analyze_eml_file: bindTool("issues_analyze_eml_file", analyzeEmlFile),
+  issues_import_eml_file: bindTool("issues_import_eml_file", importEmlFile),
   issues_update_state: bindTool("issues_update_state", updateIssueState),
   issues_suggest_taxonomy: bindTool("issues_suggest_taxonomy", suggestTaxonomy),
   issues_classify: bindTool("issues_classify", classifyIssue),

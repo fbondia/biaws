@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "version": "0.5.1",
+  "version": "0.6.0",
   "deploymentRevision": 1,
   "components": {
-    "biaws-api": "0.6.1",
-    "biaws-ui": "0.4.1",
+    "biaws-api": "0.7.0",
+    "biaws-ui": "0.5.0",
     "biaws-monitor-executor": "0.1.0"
   }
 }

@@ -15,10 +15,27 @@ test("EML import sends application context through multipart fields", async () =
       contentBase64: Buffer.from("Subject: Example\n\nBody").toString("base64"),
       applicationId: "application-1",
       affectedComponentIds: ["component-1"],
+      title: "Sanitized title",
+      classification: {
+        primaryTaxonomyId: "taxonomy-1",
+        secondaryTaxonomyIds: [],
+        summary: "Summary",
+        tags: {},
+      },
     });
     assert.ok(sentForm instanceof FormData);
     assert.equal(sentForm.get("applicationId"), "application-1");
     assert.equal(sentForm.get("affectedComponentIds"), JSON.stringify(["component-1"]));
+    assert.equal(sentForm.get("title"), "Sanitized title");
+    assert.equal(
+      sentForm.get("classification"),
+      JSON.stringify({
+        primaryTaxonomyId: "taxonomy-1",
+        secondaryTaxonomyIds: [],
+        summary: "Summary",
+        tags: {},
+      }),
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }

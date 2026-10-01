@@ -147,6 +147,14 @@
   color: var(--color-text-muted);
 }
 
+.textCell .markdownPreview {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
 .taxonomyCell {
   min-width: 300px;
 }

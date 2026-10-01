@@ -7,6 +7,12 @@ test("issue and demand creation schemas require applicationId", () => {
   for (const name of ["issues_create", "issues_import_eml", "demands_create"] as const) {
     assert.equal(required(required(byName.get(name)).inputSchema.required).includes("applicationId"), true, name);
   }
+  assert.deepEqual(required(byName.get("issues_analyze_eml_file")).inputSchema.required, ["filePath"]);
+  assert.deepEqual(required(byName.get("issues_import_eml_file")).inputSchema.required, [
+    "filePath",
+    "expectedSha256",
+    "applicationId",
+  ]);
   for (const name of ["documents_create", "documents_update"] as const) {
     assert.equal(required(required(byName.get(name)).inputSchema.required).includes("applicationId"), false, name);
     assert.ok(required(byName.get(name)).inputSchema.properties.affectedComponentIds);

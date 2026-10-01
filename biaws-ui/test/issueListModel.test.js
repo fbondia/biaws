@@ -9,6 +9,7 @@ import {
   issueTaxonomyItems,
   optionLabel,
 } from "../src/components/issues/IssueList/model.js";
+import { textPreview } from "../src/utils/issues.js";
 
 test("issue list taxonomy items preserve paths, primary state and uniqueness", () => {
   const itemsById = buildTaxonomyItemsById([
@@ -87,4 +88,11 @@ test("issue list text prefers the classification summary", () => {
 test("issue list text falls back to the issue description without a summary", () => {
   assert.equal(issueListText({ text: "Descrição original", classification: { summary: "   " } }), "Descrição original");
   assert.equal(issueListText({ text: "Descrição original" }), "Descrição original");
+});
+
+test("issue list preview preserves markdown and truncates after 300 characters", () => {
+  const markdown = `## Título\n\n${"a".repeat(290)}`;
+
+  assert.equal(textPreview(markdown), `${markdown.slice(0, 300)}...`);
+  assert.equal(textPreview("- primeiro\n- segundo"), "- primeiro\n- segundo");
 });

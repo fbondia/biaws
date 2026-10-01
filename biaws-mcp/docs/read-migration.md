@@ -1,8 +1,10 @@
 # Migração de tools de leitura (MCP-SERVER-REVIEW-T04)
 
-Mudança incompatível prevista para a próxima publicação: 119 → 98 tools. Retirada
-intencional após a preservação de contratos em T01/T02. Não há aliases de tools.
-Os 98 contratos restantes conservam nomes, schemas, descrições e ordem relativa.
+Mudança incompatível prevista para a próxima publicação: 119 → 100 tools. São
+retiradas 21 leituras redundantes e adicionadas duas operações de EML local no
+host. A retirada é intencional após a preservação de contratos em T01/T02. Não
+há aliases de tools. Os contratos preservados conservam nomes, schemas,
+descrições e ordem relativa.
 Resources passam de 77 para 84 templates, com sete entradas diretas para preservar
 as permissões das entidades sem exigir leitura de ancestrais. Versão do pacote
 não é alterada por esta tarefa; não houve publicação.

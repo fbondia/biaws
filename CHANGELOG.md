@@ -8,6 +8,21 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Release da plataforma atualizada de `0.5.1` para `0.6.0`, com API `0.7.0`
+  e UI `0.5.0` sincronizadas no manifesto.
+
+- API atualizada de `0.6.1` para `0.7.0` e MCP de `0.12.2` para `0.13.0`:
+  importações EML passam a aceitar análise segura de arquivos locais no host,
+  associação assistida a aplicações e componentes e classificação no mesmo
+  plano de importação, com dry-run e verificação SHA-256.
+
+- UI atualizada de `0.4.1` para `0.5.0`: a prévia de texto das issues preserva
+  Markdown, usa o renderizador compartilhado e amplia o limite para 300
+  caracteres.
+
+- CLI atualizado de `0.5.1` para `0.5.2`, passando a fixar o MCP `0.13.0` nas
+  configurações gerenciadas de agentes.
+
 - CLI atualizado de `0.5.0` para `0.5.1`, passando a fixar o MCP `0.12.2`
   nas configurações gerenciadas de agentes.
 

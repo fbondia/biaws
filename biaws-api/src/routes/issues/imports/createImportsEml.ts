@@ -1,5 +1,5 @@
 import type { Router, Request, Response } from "express";
-import { importEmlBuffer } from "../../../services/emlImportService.js";
+import { analyzeEmlBuffer, importEmlBuffer } from "../../../services/emlImportService.js";
 import {
   authorizationQuery,
   requireAllPermissions,
@@ -35,19 +35,31 @@ export function registerCreateImportsEml(router: Router) {
           .trim()
           .toLowerCase(),
       );
-      const result = await importEmlBuffer(req.file.buffer, {
-        dryRun,
+      const analysisOnly = ["1", "true", "yes"].includes(
+        String(req.query.analysisOnly ?? req.body.analysisOnly ?? "")
+          .trim()
+          .toLowerCase(),
+      );
+      const commonOptions = {
         explicitId: req.body.id,
         filename: req.file.originalname,
         title: req.body.title,
         type: req.body.type,
         workspaceId: req.body.workspaceId,
+        sanitizationConfig: analysisOnly || dryRun ? parseSanitizationConfig(req.body.sanitizationConfig) : undefined,
+        actor: req.actor.email || req.actor.userId,
+        authorizationScope: authorizationQuery(req.actor, "issues.import.eml").authorizationScope,
+      };
+      if (analysisOnly) {
+        res.json(await analyzeEmlBuffer(req.file.buffer, commonOptions));
+        return;
+      }
+      const result = await importEmlBuffer(req.file.buffer, {
+        ...commonOptions,
+        dryRun,
         applicationId: req.body.applicationId,
         affectedComponentIds: parseAffectedComponentIds(req.body.affectedComponentIds),
         classification: parseClassification(req.body.classification),
-        sanitizationConfig: dryRun ? parseSanitizationConfig(req.body.sanitizationConfig) : undefined,
-        actor: req.actor.email || req.actor.userId,
-        authorizationScope: authorizationQuery(req.actor, "issues.import.eml").authorizationScope,
       });
       if (!dryRun) {
         await recordAuditEvent({

@@ -234,7 +234,7 @@ export function buildOpenApiDocument() {
     openapi: "3.1.0",
     info: {
       title: "Bondia Workspaces API",
-      version: "0.6.1",
+      version: "0.7.0",
       description:
         "Contrato HTTP dos routers BIAWS. As rotas /api/auth/* são delegadas ao Better Auth e descritas em docs/authentication.md; não fazem parte deste documento gerado. Try it out executa operações reais e respeita as permissões do backend.",
     },

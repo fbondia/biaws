@@ -305,7 +305,7 @@ function validateImportFile(content: unknown, options: ImportOptions) {
   return sourceFile;
 }
 
-async function prepareImport(content: Source, options: ImportOptions) {
+async function parseImport(content: Source, options: ImportOptions) {
   const { explicitId, title, type } = validateOptions(options);
   const sourceFile = validateImportFile(content, options);
   const db = await getMongoDatabase(options);
@@ -343,6 +343,16 @@ async function prepareImport(content: Source, options: ImportOptions) {
   parsedIssue.status = defaultStatus;
   parsedIssue.dates.closedAt = defaultStatus === "closed" ? new Date() : null;
   if (title) parsedIssue.title = title;
+  return {
+    db,
+    parsedIssue,
+    explicitId,
+    defaultStatus,
+  };
+}
+
+async function prepareImport(content: Source, options: ImportOptions) {
+  const { db, parsedIssue, explicitId, defaultStatus } = await parseImport(content, options);
   const plan = await planImport(
     db,
     parsedIssue,
@@ -379,6 +389,33 @@ async function prepareImport(content: Source, options: ImportOptions) {
     defaultStatus,
     classificationProvided,
   };
+}
+
+export function buildEmlAnalysis(parsedIssue: ParsedIssue, explicitId = "") {
+  return {
+    mode: "analysis",
+    issue: {
+      id: explicitId || parsedIssue.idFromSubject || null,
+      type: parsedIssue.type,
+      title: parsedIssue.title,
+      text: parsedIssue.text,
+      dates: parsedIssue.dates,
+      status: parsedIssue.status,
+      source: {
+        file: parsedIssue.sourceFile,
+        messageId: parsedIssue.sourceMessageId,
+        inReplyTo: parsedIssue.sourceInReplyTo,
+        references: parsedIssue.sourceReferences,
+      },
+    },
+    messages: parsedIssue.messages,
+    attachments: parsedIssue.attachments,
+  };
+}
+
+export async function analyzeEmlBuffer(content: Buffer<ArrayBufferLike>, options: ImportOptions = {}) {
+  const { parsedIssue, explicitId } = await parseImport(content, options);
+  return buildEmlAnalysis(parsedIssue, explicitId);
 }
 
 async function storeAttachments(

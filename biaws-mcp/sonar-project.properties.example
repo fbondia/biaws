@@ -1,6 +1,6 @@
 sonar.projectKey=BIAWS-MCP
 sonar.projectName=BIAWS MCP
-sonar.projectVersion=0.12.2
+sonar.projectVersion=0.13.0
 sonar.host.url=http://localhost:9000
 sonar.sourceEncoding=UTF-8
 

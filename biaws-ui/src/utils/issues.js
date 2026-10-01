@@ -32,12 +32,10 @@ export function issueDate(issue, dateField) {
   return dateField === "updatedAt" ? issue.updatedAt : issue.dates?.[dateField];
 }
 
-export function textPreview(value) {
-  const text = String(value || "")
-    .replace(/\s+/gu, " ")
-    .trim();
+export function textPreview(value, maxLength = 300) {
+  const text = String(value || "").trim();
   if (!text) return "-";
-  return text.length > 180 ? `${text.slice(0, 180)}...` : text;
+  return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
 }
 
 export function formatTaxonomyPath(path, maxLength = 56) {

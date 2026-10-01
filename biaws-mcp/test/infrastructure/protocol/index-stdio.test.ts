@@ -24,7 +24,7 @@ for (const mode of ["legacy", { pin: "2026-07-28" }] as const) {
     const client = new Client({ name: "stdio-test", version: "1.0.0" }, { versionNegotiation: { mode } });
     try {
       await client.connect(transport);
-      assert.equal(required(client.getServerVersion()).version, "0.12.2");
+      assert.equal(required(client.getServerVersion()).version, "0.13.0");
       assert.ok((await client.listTools()).tools.length > 0);
     } finally {
       await client.close();

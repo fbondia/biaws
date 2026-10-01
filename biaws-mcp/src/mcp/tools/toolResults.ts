@@ -67,6 +67,7 @@ import type {
 } from "../../domains/demands/service.js";
 import type {
   addIssueComment,
+  analyzeEmlFile,
   classifyIssue,
   createIssue,
   createTaxonomyItem,
@@ -74,6 +75,7 @@ import type {
   getIssueClassificationCatalog,
   getIssueDetails,
   importEml,
+  importEmlFile,
   searchIssues,
   suggestTaxonomy,
   summarizeIssuesForSupport,
@@ -121,6 +123,8 @@ export interface ToolResultMap {
   issues_aggregate: Awaited<ReturnType<typeof summarizeIssuesForSupport>>;
   issues_create: Awaited<ReturnType<typeof createIssue>>;
   issues_import_eml: Awaited<ReturnType<typeof importEml>>;
+  issues_analyze_eml_file: Awaited<ReturnType<typeof analyzeEmlFile>>;
+  issues_import_eml_file: Awaited<ReturnType<typeof importEmlFile>>;
   issues_update_state: Awaited<ReturnType<typeof updateIssueState>>;
   issues_suggest_taxonomy: Awaited<ReturnType<typeof suggestTaxonomy>>;
   issues_classify: Awaited<ReturnType<typeof classifyIssue>>;

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { parseEmlBuffer } from "../../src/helpers/emailParser.js";
-import { attachmentDedupeKey } from "../../src/services/emlImportService.js";
+import { attachmentDedupeKey, buildEmlAnalysis } from "../../src/services/emlImportService.js";
 
 test("EML attachments receive the default email tag", async () => {
   const eml = Buffer.from(
@@ -32,6 +32,38 @@ test("EML attachments receive the default email tag", async () => {
 
   assert.equal(parsed.attachments.length, 1);
   assert.deepEqual(parsed.attachments[0].tags, ["Anexo E-Mail"]);
+});
+
+test("EML analysis exposes sanitized messages and attachment metadata without binary content", async () => {
+  const parsed = await parseEmlBuffer(
+    Buffer.from(
+      [
+        "Subject: INC12345 Failure",
+        'Content-Type: multipart/mixed; boundary="example"',
+        "",
+        "--example",
+        "Content-Type: text/plain; charset=utf-8",
+        "",
+        "Service unavailable.",
+        "--example",
+        'Content-Type: text/plain; name="details.txt"',
+        'Content-Disposition: attachment; filename="details.txt"',
+        "Content-Transfer-Encoding: base64",
+        "",
+        Buffer.from("attachment contents").toString("base64"),
+        "--example--",
+      ].join("\r\n"),
+    ),
+    { sourceFile: "issue.eml" },
+  );
+
+  const analysis = buildEmlAnalysis(parsed);
+  assert.equal(analysis.mode, "analysis");
+  assert.equal(analysis.issue.id, "INC12345");
+  assert.match(analysis.messages[0].text, /Service unavailable/u);
+  assert.equal(analysis.attachments[0].filename, "details.txt");
+  assert.equal(Object.hasOwn(analysis.attachments[0], "content"), false);
+  assert.equal(Object.hasOwn(analysis, "attachmentContents"), false);
 });
 
 test("attachment deduplication prioritizes checksum and has a metadata fallback", () => {

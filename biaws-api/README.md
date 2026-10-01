@@ -234,6 +234,18 @@ curl -X POST 'http://127.0.0.1:3100/api/issues/imports/eml?dryRun=true' \
   -F 'applicationId=<application-id>'
 ```
 
+Para obter somente o conteúdo sanitizado e os metadados necessários à
+classificação, sem exigir contexto de aplicação e sem planejar ou persistir uma
+issue, use `analysisOnly=true`:
+
+```bash
+curl -X POST 'http://127.0.0.1:3100/api/issues/imports/eml?analysisOnly=true' \
+  -F 'file=@./email.eml'
+```
+
+Essa resposta inclui a prévia da issue, as mensagens sanitizadas e os
+metadados dos anexos, mas nunca o conteúdo binário dos anexos.
+
 Importar efetivamente:
 
 ```bash
@@ -242,14 +254,17 @@ curl -X POST http://127.0.0.1:3100/api/issues/imports/eml \
   -F 'applicationId=<application-id>'
 ```
 
-O multipart também aceita os campos opcionais `type` (um tipo ativo da lista
-`issue.type`) e `id`. A API identifica tipo e código pelas expressões
-configuradas em `metadata.emlImport.subjectPatterns` de cada tipo, respeitando a
-ordem da lista. Uma captura nomeada `(?<code>...)` coleta o código; regras sem
-essa captura apenas identificam o tipo. Correspondências que coletam código têm
-preferência e, quando nenhuma regra corresponde, a API usa o tipo padrão e
-gera ou localiza um ID sintético. A configuração inicial preserva os padrões
-legados de `INC`, `REQ`, `erro` e `incidente`.
+O multipart também aceita `type` (um tipo ativo da lista `issue.type`), `id`,
+`title`, `workspaceId`, `applicationId`, `affectedComponentIds` e
+`classification`. A classificação é JSON e exige a permissão específica; ela é
+validada no escopo da aplicação e gravada junto com a importação. A API
+identifica tipo e código pelas expressões configuradas em
+`metadata.emlImport.subjectPatterns` de cada tipo, respeitando a ordem da lista.
+Uma captura nomeada `(?<code>...)` coleta o código; regras sem essa captura
+apenas identificam o tipo. Correspondências que coletam código têm preferência
+e, quando nenhuma regra corresponde, a API usa o tipo padrão e gera ou localiza
+um ID sintético. A configuração inicial preserva os padrões legados de `INC`,
+`REQ`, `erro` e `incidente`.
 
 A API deduplica IDs sintéticos por data e assunto, deduplica comentários por
 hash e reabre uma issue existente quando o EML a atualiza. Na importação

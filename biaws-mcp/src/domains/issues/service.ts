@@ -3,6 +3,7 @@ import type { ApiEntity, ApiPayload } from "../../api/apiContracts.js";
 import type { ServiceArguments } from "../../mcp/tools/contracts.js";
 import { BiawsError } from "../../runtime/errors.js";
 import { cleanParams, fetchJson, sendJson, sendMultipart } from "../../api/httpClient.js";
+import { assertExpectedEmlHash, readLocalEml } from "./emlFile.js";
 interface FlatTaxonomy {
   id?: string;
   label?: string;
@@ -287,6 +288,7 @@ export async function importEml(args: ServiceArguments<"issues_import_eml"> = {}
   form.append("file", new Blob([content], { type: "message/rfc822" }), filename);
   if (args.type) form.append("type", args.type);
   if (args.id) form.append("id", args.id);
+  if (args.title) form.append("title", args.title);
   if (!String(args.applicationId || "").trim()) {
     throw new BiawsError("applicationId is required");
   }
@@ -295,10 +297,64 @@ export async function importEml(args: ServiceArguments<"issues_import_eml"> = {}
   if (args.affectedComponentIds !== undefined) {
     form.append("affectedComponentIds", JSON.stringify(args.affectedComponentIds));
   }
+  if (args.classification !== undefined) {
+    form.append("classification", JSON.stringify(args.classification));
+  }
+  if (args.dryRun !== false && args.sanitizationConfig !== undefined) {
+    form.append("sanitizationConfig", JSON.stringify(args.sanitizationConfig));
+  }
 
   return sendMultipart("/api/issues/imports/eml", form, {
     dryRun: args.dryRun !== false,
   });
+}
+
+function appendOptionalEmlFields(form: FormData, args: Record<string, unknown>) {
+  for (const field of ["type", "id", "title", "workspaceId", "applicationId"] as const) {
+    const value = String(args[field] || "").trim();
+    if (value) form.append(field, value);
+  }
+  for (const field of ["affectedComponentIds", "classification", "sanitizationConfig"] as const) {
+    if (args[field] !== undefined) form.append(field, JSON.stringify(args[field]));
+  }
+}
+
+function localEmlForm(file: Awaited<ReturnType<typeof readLocalEml>>, args: Record<string, unknown>) {
+  const form = new FormData();
+  form.append("file", new Blob([Uint8Array.from(file.content)], { type: "message/rfc822" }), file.filename);
+  appendOptionalEmlFields(form, args);
+  return form;
+}
+
+function localEmlMetadata(file: Awaited<ReturnType<typeof readLocalEml>>) {
+  return {
+    filename: file.filename,
+    size: file.size,
+    sha256: file.sha256,
+  };
+}
+
+export async function analyzeEmlFile(args: ServiceArguments<"issues_analyze_eml_file"> = {}) {
+  const file = await readLocalEml(args.filePath);
+  const result = await sendMultipart("/api/issues/imports/eml", localEmlForm(file, args), {
+    analysisOnly: true,
+  });
+  return {
+    ...result,
+    localFile: localEmlMetadata(file),
+  };
+}
+
+export async function importEmlFile(args: ServiceArguments<"issues_import_eml_file"> = {}) {
+  const file = await readLocalEml(args.filePath);
+  assertExpectedEmlHash(file.sha256, args.expectedSha256);
+  if (!String(args.applicationId || "").trim()) throw new BiawsError("applicationId is required");
+  const dryRun = args.dryRun !== false;
+  const result = await sendMultipart("/api/issues/imports/eml", localEmlForm(file, args), { dryRun });
+  return {
+    ...result,
+    localFile: localEmlMetadata(file),
+  };
 }
 
 export async function updateIssueState(args: ServiceArguments<"issues_update_state"> = {}) {

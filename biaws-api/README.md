@@ -302,6 +302,15 @@ Buscar uma issue com comentários:
 curl http://127.0.0.1:3100/api/issues/INC1234567
 ```
 
+Comentários são criados em `POST /api/issues/:id/comments` e editados em
+`PUT /api/issues/:id/comments/:commentId`, com `text` obrigatório e `date`
+opcional. Na criação, omitir `date` usa o instante atual. Na edição, omitir
+`date` preserva o valor existente, inclusive uma data desconhecida. Enviar
+`date: null` grava uma data desconhecida; datas inválidas ou strings vazias
+retornam `422`. O texto original de data (`rawDate`) dos EMLs é preservado na
+edição. `createdAt` e `updatedAt` registram os instantes de cadastro e alteração,
+sem substituir a data do comentário.
+
 Enviar até 10 anexos:
 
 ```bash

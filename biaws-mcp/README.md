@@ -82,13 +82,13 @@ O pacote público expõe o executável `biaws-mcp`. Clientes configurados pelo C
 usam uma versão fixada por meio do cache local do npm:
 
 ```bash
-npx --yes biaws-mcp@0.14.0
+npx --yes biaws-mcp@0.14.1
 ```
 
 Também é possível instalá-lo explicitamente:
 
 ```bash
-npm install --global biaws-mcp@0.14.0
+npm install --global biaws-mcp@0.14.1
 biaws-mcp
 ```
 
@@ -115,7 +115,7 @@ empacotamento continuam em JavaScript e não integram a lógica do servidor.
 Em um cliente MCP, configure o comando:
 
 ```bash
-npx --yes biaws-mcp@0.14.0
+npx --yes biaws-mcp@0.14.1
 ```
 
 O fluxo recomendado é gerar a configuração completa com:
@@ -324,9 +324,11 @@ paginação. As consultas usam o workspace configurado no MCP.
   `biaws-api`, inclusive por workspace, aplicação e componente afetado.
 - `issues_get`: obtém uma issue com comentários e metadados dos anexos.
 - `issues_add_comment`: adiciona um comentário em Markdown a uma issue
-  existente; a autoria é atribuída pela identidade autenticada na API.
+  existente; a autoria é atribuída pela identidade autenticada na API. Data
+  omitida usa o instante atual; `date: null` registra uma data desconhecida.
 - `issues_update_comment`: atualiza o conteúdo e, opcionalmente, a data de um
-  comentário existente, preservando sua autoria original.
+  comentário existente, preservando sua autoria original. Data omitida preserva
+  o valor existente, inclusive `null`; `date: null` remove a data.
 - `issues_delete_comment`: exclui permanentemente um comentário existente.
 - `issues_get_classification_catalog`: obtém a árvore taxonômica e os grupos de tags válidos; opcionalmente inclui listas achatadas de IDs e caminhos.
 - `issues_create_taxonomy_item`: inclui um item na raiz ou sob outro item,

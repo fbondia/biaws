@@ -129,7 +129,7 @@ export async function addIssueComment(args: ServiceArguments<"issues_add_comment
 
   return sendJson(
     `/api/issues/${encodeURIComponent(issueId)}/comments`,
-    cleanParams({ text, date: args.date }),
+    { text, ...(args.date !== undefined ? { date: args.date } : {}) },
     {},
     "POST",
   );
@@ -143,10 +143,10 @@ export async function updateIssueComment(args: ServiceArguments<"issues_update_c
   if (!commentId) throw new BiawsError("commentId is required");
   if (!text) throw new BiawsError("text is required");
 
-  return sendJson(
-    `/api/issues/${encodeURIComponent(issueId)}/comments/${encodeURIComponent(commentId)}`,
-    cleanParams({ text, date: args.date }),
-  );
+  return sendJson(`/api/issues/${encodeURIComponent(issueId)}/comments/${encodeURIComponent(commentId)}`, {
+    text,
+    ...(args.date !== undefined ? { date: args.date } : {}),
+  });
 }
 
 export async function deleteIssueComment(args: ServiceArguments<"issues_delete_comment"> = {}) {

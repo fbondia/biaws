@@ -194,8 +194,9 @@ export const issueTools = [
           description: "Conteúdo do comentário em Markdown.",
         },
         date: {
-          type: "string",
-          description: "Data do comentário em formato aceito pela API; usa o momento atual quando omitida.",
+          type: ["string", "null"],
+          minLength: 1,
+          description: "Data do comentário; null indica data desconhecida. Usa o momento atual quando omitida.",
         },
       },
     },
@@ -224,8 +225,9 @@ export const issueTools = [
           description: "Novo conteúdo do comentário em Markdown.",
         },
         date: {
-          type: "string",
-          description: "Nova data do comentário; usa o momento atual quando omitida.",
+          type: ["string", "null"],
+          minLength: 1,
+          description: "Nova data do comentário; null remove a data. Quando omitida, preserva a data existente.",
         },
       },
     },

@@ -59,12 +59,15 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
 - Resumo em Markdown na aba Descrição, antes da descrição completa, com salvamento
   independente dos assuntos e tags da aba KB.
 - Imagens dos anexos exibidas no resumo, na descrição e nos comentários quando
-  referenciadas por `[anexo: imagem.png]`, `[cid:identificador]` ou
-  `![Legenda](attachment:identificador)`. Os editores permitem selecionar uma
+  referenciadas por `[anexo: imagem.png]`, `[cid:identificador]` ou por uma
+  imagem Markdown com destino `attachment:identificador`. Os editores permitem selecionar uma
   imagem já carregada para inserir sua referência por ID (ou índice nos anexos
   importados). Referências por nome ou CID precisam identificar um único arquivo;
   anexos ausentes, ambíguos ou de outros tipos permanecem como texto. O conteúdo
   é buscado pela API com autenticação, workspace e permissão de leitura de anexos.
+- Comentários sem data conhecida exibem “Data não identificada” e podem ser
+  salvos com o campo de data vazio. Editar apenas o texto preserva a data e o
+  horário existentes, inclusive uma data desconhecida (`null`).
 - Cores por grupo de tags, filtros por tag e exibição de tags na grid de issues
 - Home pessoal com widgets configuráveis e filtrados pelas permissões do ator
 - Histórico de publicações por deployment

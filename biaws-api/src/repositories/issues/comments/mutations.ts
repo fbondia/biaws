@@ -33,7 +33,7 @@ export async function createIssueComment(
     to: [],
     cc: [],
     date: comment.date,
-    rawDate: comment.date.toISOString(),
+    rawDate: comment.date?.toISOString() ?? "",
     index: Number(lastComment?.index ?? -1) + 1,
     source: { kind: "api" },
     createdAt: now,
@@ -67,21 +67,25 @@ export async function updateIssueComment(
   await ensureIndexes(db);
   issueId = (await ensureIssueExists(db, issueId, query)).id;
 
-  const comment = normalizeCommentPayload(payload);
+  const filter = { _id: commentObjectId(String(commentId)), issueId };
+  const existing = await db.collection(COMMENTS_COLLECTION).findOne(filter, { projection: { date: 1, source: 1 } });
+  if (!existing) {
+    throw createHttpError(404, `Issue comment not found: ${commentId}`);
+  }
+  const comment = normalizeCommentPayload(payload, existing.date ?? null);
   const now = new Date();
-  const result = await db.collection(COMMENTS_COLLECTION).updateOne(
-    { _id: commentObjectId(String(commentId)), issueId },
-    {
-      $set: {
-        text: comment.text,
-        date: comment.date,
-        rawDate: comment.date.toISOString(),
-        hash: hashComment(issueId, comment.text, comment.date),
-        updatedAt: now,
-        updatedBy: payload.updatedBy || "biaws-api",
-      },
+  const result = await db.collection(COMMENTS_COLLECTION).updateOne(filter, {
+    $set: {
+      text: comment.text,
+      ...(payload.date !== undefined ? { date: comment.date } : {}),
+      ...(payload.date !== undefined && existing.source?.kind === "api"
+        ? { rawDate: comment.date?.toISOString() ?? "" }
+        : {}),
+      hash: hashComment(issueId, comment.text, comment.date),
+      updatedAt: now,
+      updatedBy: payload.updatedBy || "biaws-api",
     },
-  );
+  });
   if (!result.matchedCount) {
     throw createHttpError(404, `Issue comment not found: ${commentId}`);
   }

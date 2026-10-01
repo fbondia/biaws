@@ -25,7 +25,7 @@ export function IssueCommentDialog({ attachments, draft, mode, onChange, onClose
         </header>
         <div className="issueCommentDialogBody">
           <label className="field issueCommentDateField">
-            <span>Data</span>
+            <span>Data (opcional)</span>
             <input
               disabled={saving}
               onChange={(event) => onChange({ ...draft, date: event.target.value })}
@@ -48,12 +48,7 @@ export function IssueCommentDialog({ attachments, draft, mode, onChange, onClose
           <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
             Cancelar
           </button>
-          <button
-            className="primaryButton"
-            disabled={saving || !draft.text.trim() || !draft.date}
-            onClick={onSave}
-            type="button"
-          >
+          <button className="primaryButton" disabled={saving || !draft.text.trim()} onClick={onSave} type="button">
             <Save size={16} />
             Salvar comentário
           </button>

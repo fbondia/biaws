@@ -13,7 +13,7 @@ for (const mode of ["legacy", { pin: "2026-07-28" }] as const) {
       (await session.client.listResourceTemplates()).resourceTemplates,
       listResourceTemplates().resourceTemplates,
     );
-    assert.equal(required(session.client.getServerVersion()).version, "0.14.0");
+    assert.equal(required(session.client.getServerVersion()).version, "0.14.1");
     assert.equal((await session.client.listResources()).resources[0].uri, "biaws://workspaces");
   });
 }

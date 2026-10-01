@@ -14,4 +14,6 @@ test("issue comment tools expose bounded schemas", () => {
   assert.equal(required(add).inputSchema.additionalProperties, false);
   assert.equal(required(update).inputSchema.additionalProperties, false);
   assert.equal(required(remove).inputSchema.additionalProperties, false);
+  assert.deepEqual(required(add).inputSchema.properties?.date.type, ["string", "null"]);
+  assert.deepEqual(required(update).inputSchema.properties?.date.type, ["string", "null"]);
 });

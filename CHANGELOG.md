@@ -8,6 +8,15 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Versões atualizadas para API `0.8.1`, UI `0.6.1` e MCP `0.14.1` pela
+  correção das datas dos comentários de issues. CLI `0.5.3` passa a fixar o
+  MCP `0.14.1`; o manifesto da plataforma passa para `0.7.1`.
+
+- API, MCP e UI preservam datas desconhecidas (`null`) dos comentários de
+  issues. Editar somente o texto mantém a data e o horário existentes; a UI
+  permite salvar sem data e exibe “Data não identificada”. O texto original de
+  data dos EMLs é preservado.
+
 - UI exibe imagens dos anexos referenciadas na descrição, no resumo e nos
   comentários dos issues, com seleção de imagens carregadas nos editores.
   O resumo passa da aba KB para a aba Descrição, antes da descrição completa,

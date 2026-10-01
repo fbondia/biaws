@@ -82,6 +82,96 @@ after(async () => {
   await rm(outputDirectory, { force: true, recursive: true });
 });
 
+async function changeField(element, value) {
+  const prototype =
+    element.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+  await harnessModule.act(async () => {
+    Object.getOwnPropertyDescriptor(prototype, "value").set.call(element, value);
+    element.dispatchEvent(new window.Event("input", { bubbles: true }));
+    element.dispatchEvent(new window.Event("change", { bubbles: true }));
+  });
+}
+
+test("comment editing preserves unknown dates and complete timestamps when only text changes", async () => {
+  for (const date of [null, "2026-07-30T13:42:15.123Z"]) {
+    const issue = { id: "DATE-TEST", title: "Synthetic comment date test", text: "Description", attachments: [] };
+    let comment = {
+      _id: "comment-date",
+      from: "Synthetic sender",
+      date,
+      createdAt: "2026-10-01T12:00:00Z",
+      text: "Historical comment",
+    };
+    const bodies = [];
+    globalThis.fetch = async (url, options = {}) => {
+      if (url.pathname.endsWith("/taxonomy")) return Response.json({ taxonomy: { taxonomy: [], tagGroups: [] } });
+      assert.equal(url.pathname, "/api/issues/DATE-TEST/comments/comment-date");
+      const body = JSON.parse(options.body);
+      bodies.push(body);
+      comment = { ...comment, ...body };
+      return Response.json({ issue, comments: [comment] });
+    };
+    let harness;
+    await harnessModule.act(async () => {
+      harness = harnessModule.mountIssueDetails(document.getElementById("app"), { issue, comments: [comment] });
+    });
+    try {
+      await click(button("Comentários"));
+      if (date === null)
+        assert.match(document.querySelector(".commentItem header").textContent, /Data não identificada/u);
+      await click(button("Editar"));
+      const dialog = document.querySelector(".issueCommentDialog");
+      assert.equal(dialog.querySelector('input[type="date"]').value, date ? "2026-07-30" : "");
+      await click(dialog.querySelector('[aria-label="Editar texto"]'));
+      await changeField(dialog.querySelector("textarea"), "Updated historical comment");
+      assert.equal(button("Salvar comentário", dialog).disabled, false);
+      await click(button("Salvar comentário", dialog));
+      assert.deepEqual(bodies, [{ text: "Updated historical comment" }]);
+      assert.equal(comment.date, date);
+      if (date) {
+        await click(button("Editar"));
+        await changeField(document.querySelector('.issueCommentDialog input[type="date"]'), "");
+        await click(button("Salvar comentário", document.querySelector(".issueCommentDialog")));
+        assert.deepEqual(bodies[1], { text: "Updated historical comment", date: null });
+        assert.match(document.querySelector(".commentItem header").textContent, /Data não identificada/u);
+      }
+    } finally {
+      await harnessModule.act(async () => harness.root.unmount());
+      harness.resetSession();
+    }
+  }
+});
+
+test("a new manual comment can be saved with an explicitly unknown date", async () => {
+  const issue = { id: "NEW-DATE-TEST", title: "New synthetic comment", text: "Description", attachments: [] };
+  let body;
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.pathname.endsWith("/taxonomy")) return Response.json({ taxonomy: { taxonomy: [], tagGroups: [] } });
+    assert.equal(url.pathname, "/api/issues/NEW-DATE-TEST/comments");
+    body = JSON.parse(options.body);
+    return Response.json({ issue, comments: [{ _id: "new-comment", ...body }] });
+  };
+  let harness;
+  await harnessModule.act(async () => {
+    harness = harnessModule.mountIssueDetails(document.getElementById("app"), { issue, comments: [] });
+  });
+  try {
+    await click(button("Comentários"));
+    await click(button("Incluir comentário"));
+    const dialog = document.querySelector(".issueCommentDialog");
+    assert.ok(dialog.querySelector('input[type="date"]').value);
+    await changeField(dialog.querySelector('input[type="date"]'), "");
+    await click(dialog.querySelector('[aria-label="Editar texto"]'));
+    await changeField(dialog.querySelector("textarea"), "Comment without a known date");
+    assert.equal(button("Salvar comentário", dialog).disabled, false);
+    await click(button("Salvar comentário", dialog));
+    assert.deepEqual(body, { text: "Comment without a known date", date: null });
+  } finally {
+    await harnessModule.act(async () => harness.root.unmount());
+    harness.resetSession();
+  }
+});
+
 function button(text, scope = document) {
   const match = [...scope.querySelectorAll("button")].find((item) => item.textContent.trim() === text);
   assert.ok(match, `Button not found: ${text}`);

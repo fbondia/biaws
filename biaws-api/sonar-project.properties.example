@@ -1,6 +1,6 @@
 sonar.projectKey=BIAWS-API
 sonar.projectName=BIAWS API
-sonar.projectVersion=0.8.0
+sonar.projectVersion=0.8.1
 sonar.host.url=http://localhost:9000
 sonar.sourceEncoding=UTF-8
 

@@ -3,6 +3,39 @@ import test from "node:test";
 import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 import { response } from "./issueCommentTools.fixtures.js";
+test("comment tools transmit explicit null dates and preserve omission", async () => {
+  const originalFetch = globalThis.fetch;
+  const bodies: unknown[] = [];
+  globalThis.fetch = async (_url, options = {}) => {
+    bodies.push(JSON.parse(String(options.body)));
+    return response();
+  };
+  try {
+    await dispatchTool("issues_add_comment", { issueId: "ISSUE-1", text: "Unknown", date: null });
+    await dispatchTool("issues_update_comment", {
+      issueId: "ISSUE-1",
+      commentId: "comment-1",
+      text: "Cleared",
+      date: null,
+    });
+    await dispatchTool("issues_update_comment", { issueId: "ISSUE-1", commentId: "comment-1", text: "Preserved" });
+    assert.deepEqual(bodies, [{ text: "Unknown", date: null }, { text: "Cleared", date: null }, { text: "Preserved" }]);
+    for (const tool of ["issues_add_comment", "issues_update_comment"] as const) {
+      await assert.rejects(
+        dispatchTool(tool, {
+          issueId: "ISSUE-1",
+          ...(tool === "issues_update_comment" ? { commentId: "comment-1" } : {}),
+          text: "Comment",
+          date: "",
+        }),
+        /date/u,
+      );
+    }
+    assert.equal(bodies.length, 3);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
 test("issues_add_comment posts text and an optional date to the issue route", async () => {
   const originalFetch = globalThis.fetch;
   let call: { url: string; options: RequestInit } | undefined;

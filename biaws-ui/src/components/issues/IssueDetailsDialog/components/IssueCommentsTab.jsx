@@ -51,7 +51,7 @@ function IssueCommentItem({
       <header>
         <div>
           <strong>{comment.from || "Origem não identificada"}</strong>
-          <span>{formatDate(comment.date || comment.createdAt)}</span>
+          <span>{comment.date ? formatDate(comment.date) : "Data não identificada"}</span>
         </div>
         <div className="issueCommentItemActions">
           {canUpdateComment && comment._id ? (
@@ -113,6 +113,7 @@ export function IssueCommentsTab({
   const [dialogMode, setDialogMode] = useState("");
   const [selectedCommentId, setSelectedCommentId] = useState("");
   const [draft, setDraft] = useState({ date: "", text: "" });
+  const [initialDateInput, setInitialDateInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState("");
   const [commentError, setCommentError] = useState("");
@@ -134,21 +135,24 @@ export function IssueCommentsTab({
   }, [issue.id, mostRecentCommentId]);
 
   function dateInputValue(value) {
-    const date = value ? new Date(value) : new Date();
-    return Number.isNaN(date.getTime()) ? new Date().toISOString().slice(0, 10) : date.toISOString().slice(0, 10);
+    if (!value) return "";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
   }
 
   function openCreate() {
     setSelectedCommentId("");
-    setDraft({ date: dateInputValue(), text: "" });
+    setDraft({ date: dateInputValue(new Date()), text: "" });
     setCommentError("");
     setDialogMode("create");
   }
 
   function openEdit(comment) {
     setSelectedCommentId(String(comment._id || ""));
+    const date = dateInputValue(comment.date);
+    setInitialDateInput(date);
     setDraft({
-      date: dateInputValue(comment.date || comment.createdAt),
+      date,
       text: comment.text || "",
     });
     setCommentError("");
@@ -159,10 +163,14 @@ export function IssueCommentsTab({
     setSaving(true);
     setCommentError("");
     try {
+      const comment = {
+        text: draft.text,
+        ...(dialogMode === "edit" && draft.date === initialDateInput ? {} : { date: draft.date || null }),
+      };
       const payload =
         dialogMode === "edit"
-          ? await saveIssueComment(issue.id, selectedCommentId, draft)
-          : await createIssueComment(issue.id, draft);
+          ? await saveIssueComment(issue.id, selectedCommentId, comment)
+          : await createIssueComment(issue.id, comment);
       await onIssueDetailsUpdated?.(payload);
       setDialogMode("");
     } catch (saveError) {

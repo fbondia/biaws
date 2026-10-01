@@ -1,4 +1,4 @@
-import { isolatedDatabaseName, restoreEnvironmentAfter, availablePort } from "../support/integration.js";
+import { isolatedDatabaseName, restoreEnvironmentAfter } from "../support/integration.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { issueResponseSchema } from "../../src/contracts/domainSchemas.js";
@@ -65,6 +65,60 @@ test(
       assert.equal(edited.comments[0].updatedBy, "editor@example.test");
       assert.ok(edited.comments[0].date);
       assert.equal(edited.comments[0].date.toISOString().slice(0, 10), "2026-07-31");
+
+      const unchangedDate = await updateIssueComment(
+        created.issueId,
+        withComment.comments[0]._id,
+        { text: "**Edited** comment" },
+        query,
+      );
+      assert.equal(unchangedDate.comments[0].date?.toISOString(), "2026-07-31T00:00:00.000Z");
+      const unknown = await createIssueComment(created.issueId, { text: "Unknown date", date: null }, query);
+      const unknownId = unknown.createdCommentId;
+      assert.equal(unknown.comments.find((comment) => comment._id === unknownId)?.date, null);
+      const preservedUnknown = await updateIssueComment(
+        created.issueId,
+        unknownId,
+        { text: "Edited without a date" },
+        query,
+      );
+      assert.equal(preservedUnknown.comments.find((comment) => comment._id === unknownId)?.date, null);
+      const dated = await updateIssueComment(
+        created.issueId,
+        unknownId,
+        { text: "Dated", date: "2026-07-30T13:42:15.123Z" },
+        query,
+      );
+      assert.equal(
+        dated.comments.find((comment) => comment._id === unknownId)?.date?.toISOString(),
+        "2026-07-30T13:42:15.123Z",
+      );
+      const preservedTime = await updateIssueComment(
+        created.issueId,
+        unknownId,
+        { text: "Edited dated comment" },
+        query,
+      );
+      assert.equal(
+        preservedTime.comments.find((comment) => comment._id === unknownId)?.date?.toISOString(),
+        "2026-07-30T13:42:15.123Z",
+      );
+      const cleared = await updateIssueComment(created.issueId, unknownId, { text: "Cleared", date: null }, query);
+      assert.equal(cleared.comments.find((comment) => comment._id === unknownId)?.date, null);
+      for (const date of ["", "not-a-date"]) {
+        await assert.rejects(
+          updateIssueComment(created.issueId, unknownId, { text: "Invalid date", date }, query),
+          /date must be a valid date/u,
+        );
+      }
+      await deleteIssueComment(created.issueId, unknownId, {}, query);
+
+      const beforeCreation = Date.now();
+      const defaultDate = await createIssueComment(created.issueId, { text: "New manual comment" }, query);
+      const manual = defaultDate.comments.find((comment) => comment._id === defaultDate.createdCommentId);
+      assert.ok(manual?.date);
+      assert.ok(manual.date.getTime() >= beforeCreation && manual.date.getTime() <= Date.now());
+      await deleteIssueComment(created.issueId, defaultDate.createdCommentId, {}, query);
 
       const withNewerComment = await createIssueComment(
         created.issueId,

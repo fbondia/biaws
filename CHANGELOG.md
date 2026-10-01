@@ -8,6 +8,9 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- CLI atualizado de `0.5.0` para `0.5.1`, passando a fixar o MCP `0.12.2`
+  nas configurações gerenciadas de agentes.
+
 - UI atualizada de `0.4.0` para `0.4.1`: o resumo das issues passa a ser
   identificado como “Resumo”, renderizado e editado em Markdown nos detalhes e
   priorizado sobre a descrição na coluna de texto da listagem.
@@ -163,6 +166,11 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
   `X-Request-Id` e omissão de credenciais, payloads e query strings;
 
 ### Fixed
+
+- API atualizada de `0.6.0` para `0.6.1` e MCP de `0.12.1` para `0.12.2`:
+  ambos aceitam datas nulas em comentários de issues importados sem uma data
+  reconhecível, evitando erros `INVALID_UPSTREAM_PAYLOAD` com status `502` ao
+  consultar issues e seus comentários;
 
 - MCP `0.12.1` aceita `applicationId` e `identifier` nulos nas respostas válidas
   de documentação, evitando erros `INVALID_UPSTREAM_PAYLOAD` com status `502`

@@ -64,6 +64,25 @@ test("nullable document context and identifier survive schema validation", async
   assert.deepEqual(await fetchJson("/api/knowledge/documents"), payload);
 });
 
+test("nullable issue comment dates survive schema validation", async (t) => {
+  const previous = globalThis.fetch;
+  const payload = {
+    comments: [
+      {
+        _id: "legacy-comment",
+        issueId: "issue-a",
+        text: "Imported comment without a recognized date",
+        date: null,
+      },
+    ],
+  };
+  globalThis.fetch = async () => Response.json(payload);
+  t.after(() => {
+    globalThis.fetch = previous;
+  });
+  assert.deepEqual(await fetchJson("/api/issues/issue-a"), payload);
+});
+
 test("query parameters preserve scalars and reject objects before HTTP", async (t) => {
   const previous = globalThis.fetch;
   const calls: URL[] = [];

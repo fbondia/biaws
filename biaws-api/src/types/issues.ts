@@ -33,7 +33,7 @@ export interface IssueCommentDocument extends Document {
   hash: string;
   text: string;
   from: string;
-  date: Date;
+  date: Date | null;
   updatedBy?: string;
 }
 export type PublicIssueCommentDocument = Pick<

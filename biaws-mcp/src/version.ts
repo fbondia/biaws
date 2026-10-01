@@ -1,2 +1,2 @@
 export const SERVER_NAME = "biaws-mcp";
-export const SERVER_VERSION = "0.12.1";
+export const SERVER_VERSION = "0.12.2";

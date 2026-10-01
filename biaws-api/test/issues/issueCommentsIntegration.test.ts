@@ -63,6 +63,7 @@ test(
       assert.equal(edited.comments[0].text, "**Edited** comment");
       assert.equal(edited.comments[0].from, "author@example.test");
       assert.equal(edited.comments[0].updatedBy, "editor@example.test");
+      assert.ok(edited.comments[0].date);
       assert.equal(edited.comments[0].date.toISOString().slice(0, 10), "2026-07-31");
 
       const withNewerComment = await createIssueComment(

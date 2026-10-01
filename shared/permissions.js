@@ -51,6 +51,7 @@ const definitions = [
   ["issues.status.update", "Chamados", "Alterar o status de chamados"],
   ["issues.comment.create", "Chamados", "Adicionar comentários a chamados"],
   ["issues.comment.update", "Chamados", "Alterar comentários de chamados"],
+  ["issues.comment.delete", "Chamados", "Excluir comentários de chamados"],
   [
     "issues.classification.update",
     "Chamados",

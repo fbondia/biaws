@@ -71,6 +71,7 @@ import type {
   classifyIssue,
   createIssue,
   createTaxonomyItem,
+  deleteIssueComment,
   findIssuesByTaxonomy,
   getIssueClassificationCatalog,
   getIssueDetails,
@@ -116,6 +117,7 @@ export interface ToolResultMap {
   issues_update: Awaited<ReturnType<typeof updateIssue>>;
   issues_add_comment: Awaited<ReturnType<typeof addIssueComment>>;
   issues_update_comment: Awaited<ReturnType<typeof updateIssueComment>>;
+  issues_delete_comment: Awaited<ReturnType<typeof deleteIssueComment>>;
   issues_get_classification_catalog: Awaited<ReturnType<typeof getIssueClassificationCatalog>>;
   issues_create_taxonomy_item: Awaited<ReturnType<typeof createTaxonomyItem>>;
   issues_update_taxonomy_item: Awaited<ReturnType<typeof updateTaxonomyItem>>;

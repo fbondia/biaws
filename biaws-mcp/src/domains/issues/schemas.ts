@@ -231,6 +231,27 @@ export const issueTools = [
     },
   },
   {
+    name: "issues_delete_comment",
+    description: "Exclui permanentemente um comentário de uma issue existente.",
+    inputSchema: {
+      type: "object",
+      required: ["issueId", "commentId"],
+      additionalProperties: false,
+      properties: {
+        issueId: {
+          type: "string",
+          minLength: 1,
+          description: "ID ou identificador exato da issue",
+        },
+        commentId: {
+          type: "string",
+          minLength: 1,
+          description: "ID do comentário retornado por issues_get.",
+        },
+      },
+    },
+  },
+  {
     name: "issues_get_classification_catalog",
     description: "Obtém a árvore de taxonomia e os grupos de tags válidos para analisar e classificar issues.",
     inputSchema: {

@@ -506,6 +506,11 @@
       "handlers": 2
     },
     {
+      "path": "/:id/comments/:commentId",
+      "methods": ["delete"],
+      "handlers": 2
+    },
+    {
       "path": "/by-taxonomy/:taxonomyId",
       "methods": ["get"],
       "handlers": 2

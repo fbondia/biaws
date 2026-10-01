@@ -68,6 +68,7 @@ identidades também conserva as verificações internas do Better Auth.
 | `PUT`    | `/api/issues/:id/classification`                 | `issues.classification.update`                       |
 | `POST`   | `/api/issues/:id/comments`                       | `issues.comment.create`                              |
 | `PUT`    | `/api/issues/:id/comments/:commentId`            | `issues.comment.update`                              |
+| `DELETE` | `/api/issues/:id/comments/:commentId`            | `issues.comment.delete`                              |
 | `PATCH`  | `/api/issues/:id`                                | por campo: `issues.update` ou `issues.status.update` |
 | `GET`    | `/api/issues/:id`                                | `issues.read`                                        |
 | `POST`   | `/api/issues/:id/attachments`                    | `issues.attachment.create`                           |

@@ -1,7 +1,8 @@
-import { ChevronDown, ChevronUp, MessageSquare, Pencil, Plus, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, MessageSquare, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { createIssueComment, saveIssueComment } from "../../../../api.js";
+import { createIssueComment, deleteIssueComment, saveIssueComment } from "../../../../api.js";
+import { useMessages } from "../../../../infrastructure/messages/MessagesProvider.jsx";
 import { formatDate } from "../../../../utils/issues.js";
 import { MarkdownPreview } from "../../../shared/MarkdownEditor/index.jsx";
 import { IssueCommentDialog } from "../../IssueCommentDialog.jsx";
@@ -32,7 +33,17 @@ function IssueCommentMeta({ comment }) {
   );
 }
 
-function IssueCommentItem({ canUpdateComment, comment, commentId, expanded, onEdit, onToggle }) {
+function IssueCommentItem({
+  canDeleteComment,
+  canUpdateComment,
+  comment,
+  commentId,
+  deleting,
+  expanded,
+  onDelete,
+  onEdit,
+  onToggle,
+}) {
   return (
     <article className={expanded ? "commentItem" : "commentItem collapsedCommentItem"}>
       <header>
@@ -49,6 +60,17 @@ function IssueCommentItem({ canUpdateComment, comment, commentId, expanded, onEd
               type="button"
             >
               <Pencil size={15} /> Editar
+            </button>
+          ) : null}
+          {canDeleteComment && comment._id ? (
+            <button
+              className="dangerButton issueCommentDeleteButton"
+              disabled={deleting}
+              onClick={() => onDelete(comment)}
+              title="Excluir comentário"
+              type="button"
+            >
+              <Trash2 size={15} /> Excluir
             </button>
           ) : null}
           <button
@@ -76,16 +98,19 @@ function IssueCommentItem({ canUpdateComment, comment, commentId, expanded, onEd
 
 export function IssueCommentsTab({
   canCreateComment,
+  canDeleteComment,
   canUpdateComment,
   comments,
   issue,
   loading,
   onIssueDetailsUpdated,
 }) {
+  const { confirm } = useMessages();
   const [dialogMode, setDialogMode] = useState("");
   const [selectedCommentId, setSelectedCommentId] = useState("");
   const [draft, setDraft] = useState({ date: "", text: "" });
   const [saving, setSaving] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState("");
   const [commentError, setCommentError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedCommentIds, setExpandedCommentIds] = useState(new Set());
@@ -143,6 +168,27 @@ export function IssueCommentsTab({
     }
   }
 
+  async function removeComment(comment) {
+    const commentId = String(comment._id || "");
+    if (!commentId) return;
+    const confirmed = await confirm({
+      message: "Excluir este comentário? Esta ação não pode ser desfeita.",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
+    setDeletingCommentId(commentId);
+    setCommentError("");
+    try {
+      const payload = await deleteIssueComment(issue.id, commentId);
+      await onIssueDetailsUpdated?.(payload);
+    } catch (deleteError) {
+      setCommentError(deleteError.message);
+    } finally {
+      setDeletingCommentId("");
+    }
+  }
+
   function toggleComment(commentId) {
     setExpandedCommentIds((current) => {
       const next = new Set(current);
@@ -185,11 +231,14 @@ export function IssueCommentsTab({
             const commentId = String(comment._id || comment.hash || `comment-${index}`);
             return (
               <IssueCommentItem
+                canDeleteComment={canDeleteComment}
                 canUpdateComment={canUpdateComment}
                 comment={comment}
                 commentId={commentId}
+                deleting={deletingCommentId === commentId}
                 expanded={expandedCommentIds.has(commentId)}
                 key={commentId}
+                onDelete={removeComment}
                 onEdit={openEdit}
                 onToggle={toggleComment}
               />

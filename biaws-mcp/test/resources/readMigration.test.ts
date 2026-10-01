@@ -11,7 +11,7 @@ for (const mode of ["legacy", { pin: "2026-07-28" }] as const) {
     const session = await connectTestServer({}, { versionNegotiation: { mode } });
     t.after(() => session.close());
     const catalog = await session.client.listTools();
-    assert.equal(catalog.tools.length, 100);
+    assert.equal(catalog.tools.length, 101);
     for (const { name } of replacements) {
       assert.equal(
         catalog.tools.some((tool) => tool.name === name),
@@ -169,7 +169,7 @@ test("cancellation of a direct replacement reaches HTTP while catalog stays usab
       const pending = session.client.readResource({ uri: W + "/components/id" }, { signal: controller.signal });
       const rejected = assert.rejects(pending);
       await started;
-      assert.equal((await session.client.listTools()).tools.length, 100);
+      assert.equal((await session.client.listTools()).tools.length, 101);
       controller.abort();
       await rejected;
       await aborted;

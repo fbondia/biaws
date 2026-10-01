@@ -56,6 +56,28 @@ test("issues_update_comment puts the replacement text on the comment route", asy
   }
 });
 
+test("issues_delete_comment deletes the selected comment", async () => {
+  const originalFetch = globalThis.fetch;
+  let call: { url: string; options: RequestInit } | undefined;
+  globalThis.fetch = async (url, options = {}) => {
+    call = { url: String(url), options };
+    return response({ deletedCommentId: "comment/1" });
+  };
+
+  try {
+    const result = await dispatchTool("issues_delete_comment", {
+      issueId: " ISSUE-001 ",
+      commentId: " comment/1 ",
+    });
+
+    assert.equal(new URL(required(call).url).pathname, "/api/issues/ISSUE-001/comments/comment%2F1");
+    assert.equal(required(call).options.method, "DELETE");
+    assert.equal(result.deletedCommentId, "comment/1");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("issue comment tools reject blank values before making a request", async () => {
   const originalFetch = globalThis.fetch;
   let calls = 0;
@@ -79,6 +101,13 @@ test("issue comment tools reject blank values before making a request", async ()
         text: "Updated",
       }),
       /commentId is required/u,
+    );
+    await assert.rejects(
+      dispatchTool("issues_delete_comment", {
+        issueId: "   ",
+        commentId: "comment-1",
+      }),
+      /issueId is required/u,
     );
     assert.equal(calls, 0);
   } finally {

@@ -6,7 +6,7 @@ import { issueResponseSchema } from "../../src/contracts/domainSchemas.js";
 const integrationEnabled = Boolean(process.env.BIAWS_INTEGRATION_MONGO_URI);
 
 test(
-  "issue comments can be created and edited without losing their metadata",
+  "issue comments can be created, edited and deleted without losing their metadata",
   { skip: !integrationEnabled },
   async (t) => {
     restoreEnvironmentAfter(t);
@@ -15,7 +15,7 @@ test(
 
     const { closeMongoClient, getMongoDatabase } = await import("../../src/helpers/mongoClient.js");
     const { createApplication, ensureDefaultWorkspace } = await import("../../src/repositories/catalog/index.js");
-    const { createIssue, createIssueComment, updateIssueComment } =
+    const { createIssue, createIssueComment, deleteIssueComment, updateIssueComment } =
       await import("../../src/repositories/issues/index.js");
     const db = await getMongoDatabase();
 
@@ -78,6 +78,22 @@ test(
       assert.deepEqual(
         withNewerComment.comments.map(({ text }) => text),
         ["Newer comment", "**Edited** comment"],
+      );
+
+      const deleted = await deleteIssueComment(
+        created.issueId,
+        withComment.comments[0]._id,
+        { deletedBy: "deleter@example.test" },
+        query,
+      );
+      assert.equal(deleted.deletedCommentId, String(withComment.comments[0]._id));
+      assert.deepEqual(
+        deleted.comments.map(({ text }) => text),
+        ["Newer comment"],
+      );
+      await assert.rejects(
+        deleteIssueComment(created.issueId, withComment.comments[0]._id, {}, query),
+        /Issue comment not found/u,
       );
     } finally {
       await db.dropDatabase();

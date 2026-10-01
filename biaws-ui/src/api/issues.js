@@ -1,4 +1,4 @@
-import { fetchJson, sendJson } from "./client.js";
+import { deleteJson, fetchJson, sendJson } from "./client.js";
 
 export function fetchIssues(params) {
   return fetchJson("/api/issues", params);
@@ -22,6 +22,10 @@ export function saveIssueComment(issueId, commentId, comment, params) {
     comment,
     params,
   );
+}
+
+export function deleteIssueComment(issueId, commentId, params) {
+  return deleteJson(`/api/issues/${encodeURIComponent(issueId)}/comments/${encodeURIComponent(commentId)}`, params);
 }
 
 export function fetchSummary(params) {

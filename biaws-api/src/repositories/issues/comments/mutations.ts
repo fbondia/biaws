@@ -97,3 +97,38 @@ export async function updateIssueComment(
 
   return getIssue(issueId, query);
 }
+
+export async function deleteIssueComment(
+  issueId: string | string[],
+  commentId: string | string[],
+  payload: Record<string, unknown> = {},
+  query: RepositoryQuery = {},
+) {
+  const db = await getMongoDatabase({ db: query.db, database: query.database });
+  await ensureIndexes(db);
+  issueId = (await ensureIssueExists(db, issueId, query)).id;
+
+  const result = await db.collection(COMMENTS_COLLECTION).deleteOne({
+    _id: commentObjectId(String(commentId)),
+    issueId,
+  });
+  if (!result.deletedCount) {
+    throw createHttpError(404, `Issue comment not found: ${commentId}`);
+  }
+
+  const now = new Date();
+  await db.collection(ISSUES_COLLECTION).updateOne(
+    { id: issueId },
+    {
+      $set: {
+        updatedAt: now,
+        updatedBy: payload.deletedBy || "biaws-api",
+      },
+    },
+  );
+
+  return {
+    ...(await getIssue(issueId, query)),
+    deletedCommentId: String(commentId),
+  };
+}

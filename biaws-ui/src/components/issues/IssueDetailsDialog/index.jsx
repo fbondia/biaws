@@ -6,6 +6,7 @@ export function IssueDetailsDialog({
   applications = [],
   canEditContext = false,
   canCreateComment = false,
+  canDeleteComment = false,
   canUpdateComment = false,
   components = [],
   details,
@@ -89,6 +90,7 @@ export function IssueDetailsDialog({
         applications={applications}
         attachments={attachments}
         canCreateComment={canCreateComment}
+        canDeleteComment={canDeleteComment}
         canEditContext={canEditContext}
         canUpdateComment={canUpdateComment}
         classificationDraft={classificationDraft}

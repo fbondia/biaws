@@ -8,6 +8,10 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Release da plataforma atualizada de `0.6.0` para `0.7.0`, com API `0.8.0`
+  e UI `0.6.0` sincronizadas no manifesto; API, UI e MCP `0.14.0` passam a
+  permitir a exclusão auditada de comentários de issues com permissão dedicada.
+
 - Release da plataforma atualizada de `0.5.1` para `0.6.0`, com API `0.7.0`
   e UI `0.5.0` sincronizadas no manifesto.
 

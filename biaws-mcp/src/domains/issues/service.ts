@@ -2,7 +2,7 @@ import { scalarText } from "../../runtime/text.js";
 import type { ApiEntity, ApiPayload } from "../../api/apiContracts.js";
 import type { ServiceArguments } from "../../mcp/tools/contracts.js";
 import { BiawsError } from "../../runtime/errors.js";
-import { cleanParams, fetchJson, sendJson, sendMultipart } from "../../api/httpClient.js";
+import { cleanParams, deleteJson, fetchJson, sendJson, sendMultipart } from "../../api/httpClient.js";
 import { assertExpectedEmlHash, readLocalEml } from "./emlFile.js";
 interface FlatTaxonomy {
   id?: string;
@@ -147,6 +147,15 @@ export async function updateIssueComment(args: ServiceArguments<"issues_update_c
     `/api/issues/${encodeURIComponent(issueId)}/comments/${encodeURIComponent(commentId)}`,
     cleanParams({ text, date: args.date }),
   );
+}
+
+export async function deleteIssueComment(args: ServiceArguments<"issues_delete_comment"> = {}) {
+  const issueId = String(args.issueId || "").trim();
+  const commentId = String(args.commentId || "").trim();
+  if (!issueId) throw new BiawsError("issueId is required");
+  if (!commentId) throw new BiawsError("commentId is required");
+
+  return deleteJson(`/api/issues/${encodeURIComponent(issueId)}/comments/${encodeURIComponent(commentId)}`);
 }
 
 export async function getIssueClassificationCatalog(args: ServiceArguments<"issues_get_classification_catalog"> = {}) {

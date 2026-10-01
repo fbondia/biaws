@@ -4,7 +4,7 @@ Análise da árvore de código de 2026-09-29 no projeto [BIAWS-API](http://local
 
 ## Preparação e execução
 
-- `sonar-project.properties.example` versiona a configuração sem credencial: versão 0.7.0, `src` e `test/**/*.test.ts`, exclusão de `dist` e `coverage`, e importação de `coverage/lcov.info`. As configurações locais ignoradas pelo Git continuam fornecendo os tokens dos quatro projetos.
+- `sonar-project.properties.example` versiona a configuração sem credencial: versão 0.8.0, `src` e `test/**/*.test.ts`, exclusão de `dist` e `coverage`, e importação de `coverage/lcov.info`. As configurações locais ignoradas pelo Git continuam fornecendo os tokens dos quatro projetos.
 - `npm run test:coverage` gera LCOV com o test runner do Node. O arquivo é ignorado pelo Git. Nesta execução, o LCOV registra 26.518 de 40.189 linhas cobertas (65,98%); o Sonar exibe 66,5% conforme seu próprio cálculo.
 - `bash sonar-analysis.sh` executou testes e scanners de API, UI, CLI e MCP, verificando o status de cada módulo. Os quatro scanners concluíram com `ANALYSIS SUCCESSFUL`. A API passou em 222 testes de fonte e 222 testes compilados com MongoDB sintético e integração HTTP; o teste novo executa a classificação de status no MongoDB real. Typecheck, formatação, contrato OpenAPI e checagem de diff também passaram.
 

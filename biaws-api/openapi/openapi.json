@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Bondia Workspaces API",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "description": "Contrato HTTP dos routers BIAWS. As rotas /api/auth/* são delegadas ao Better Auth e descritas em docs/authentication.md; não fazem parte deste documento gerado. Try it out executa operações reais e respeita as permissões do backend."
   },
   "components": {
@@ -7293,6 +7293,76 @@
       }
     },
     "/api/issues/{id}/comments/{commentId}": {
+      "delete": {
+        "operationId": "issues_delete_id_comments_commentId",
+        "tags": ["issues"],
+        "summary": "DELETE /api/issues/:id/comments/:commentId",
+        "description": "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
+        "security": [{ "sessionCookie": [] }, { "bearerApiKey": [] }],
+        "parameters": [
+          { "schema": { "type": "string", "minLength": 1 }, "required": true, "name": "id", "in": "path" },
+          { "schema": { "type": "string", "minLength": 1 }, "required": true, "name": "commentId", "in": "path" },
+          {
+            "schema": { "type": "string", "description": "Página; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Página; interpretação e defaults dependem da operação",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "description": "Limite; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Limite; interpretação e defaults dependem da operação",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Necessário quando a identidade possui acesso a múltiplos workspaces; dispensado em rotas de plataforma"
+            },
+            "required": false,
+            "description": "Necessário quando a identidade possui acesso a múltiplos workspaces; dispensado em rotas de plataforma",
+            "name": "X-Biaws-Workspace-Id",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Consulta ou requisição inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "401": {
+            "description": "Autenticação necessária",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "403": {
+            "description": "Acesso negado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "422": {
+            "description": "Entrada ou regra de domínio inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          }
+        }
+      },
       "get": {
         "operationId": "issues_get_id_comments_commentId",
         "tags": ["issues"],

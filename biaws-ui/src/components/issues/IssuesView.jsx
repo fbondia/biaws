@@ -93,6 +93,7 @@ function IssueOverlays({
   canClassify,
   canCreate,
   canCreateComment,
+  canDeleteComment,
   canImport,
   canConfigureImport,
   canUpdateComment,
@@ -124,6 +125,7 @@ function IssueOverlays({
           applications={catalog.applications}
           canEditContext={canUpdateIssue}
           canCreateComment={canCreateComment}
+          canDeleteComment={canDeleteComment}
           canUpdateComment={canUpdateComment}
           components={catalog.components}
           details={selectedIssueDetails}
@@ -210,6 +212,7 @@ export function IssuesView({
   const canClassify = hasPermission(actor, "issues.classification.update");
   const classificationScope = actor?.permissionScopes?.["issues.classification.update"] || null;
   const canCreateComment = hasPermission(actor, "issues.comment.create");
+  const canDeleteComment = hasPermission(actor, "issues.comment.delete");
   const canUpdateComment = hasPermission(actor, "issues.comment.update");
   const canImport = hasPermission(actor, "issues.import.eml");
   const canConfigureImport = actor?.permissionScopes?.["issues.import.eml"]?.workspace === true;
@@ -289,6 +292,7 @@ export function IssuesView({
         canClassify={canClassify}
         canCreate={canCreate}
         canCreateComment={canCreateComment}
+        canDeleteComment={canDeleteComment}
         canConfigureImport={canConfigureImport}
         canImport={canImport}
         canUpdateComment={canUpdateComment}

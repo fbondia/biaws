@@ -91,7 +91,8 @@
 }
 
 .issueCommentToggleButton,
-.issueCommentEditButton {
+.issueCommentEditButton,
+.issueCommentDeleteButton {
   min-height: 32px;
   padding: 5px 9px;
 }

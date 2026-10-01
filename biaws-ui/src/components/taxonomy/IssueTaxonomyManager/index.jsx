@@ -24,6 +24,7 @@ export function IssueTaxonomyManager() {
     addingTag,
     loading,
     saving,
+    transferring,
     message,
     error,
     selectedGroup,
@@ -42,9 +43,10 @@ export function IssueTaxonomyManager() {
     openUploadDialog,
     downloadTaxonomyFile,
     saveCatalog,
+    transferNode,
   } = useIssueTaxonomyManager();
   const { isDraggingFiles, dropTargetProps } = useFileDrop({
-    disabled: loading || saving,
+    disabled: loading || saving || transferring,
     onDropFiles: (files) => loadTaxonomyFile(files[0]),
   });
   return (
@@ -56,14 +58,19 @@ export function IssueTaxonomyManager() {
           <p>Estruture categorias, grupos e marcadores para organizar chamados e documentos.</p>
         </div>
         <div className="adminHeroActions">
-          <button className="secondaryButton" disabled={loading || saving} type="button" onClick={loadTaxonomy}>
+          <button
+            className="secondaryButton"
+            disabled={loading || saving || transferring}
+            type="button"
+            onClick={loadTaxonomy}
+          >
             <RefreshCw size={16} />
             Recarregar
           </button>
           <button
             {...dropTargetProps}
             className={`secondaryButton${isDraggingFiles ? " fileDropTargetActive" : ""}`}
-            disabled={loading || saving}
+            disabled={loading || saving || transferring}
             type="button"
             onClick={openUploadDialog}
           >
@@ -77,13 +84,18 @@ export function IssueTaxonomyManager() {
             ref={uploadInputRef}
             type="file"
           />
-          <button className="secondaryButton" disabled={loading || saving} type="button" onClick={downloadTaxonomyFile}>
+          <button
+            className="secondaryButton"
+            disabled={loading || saving || transferring}
+            type="button"
+            onClick={downloadTaxonomyFile}
+          >
             <Download size={16} />
             Baixar JSON
           </button>
           <button
             className="primaryButton"
-            disabled={loading || saving || !hasPendingChanges}
+            disabled={loading || saving || transferring || !hasPendingChanges}
             type="button"
             onClick={saveCatalog}
           >
@@ -165,7 +177,12 @@ export function IssueTaxonomyManager() {
             onAddNode={addNode}
             onDeleteNode={deleteNode}
             onEditNode={editNode}
+            onTransferNode={transferNode}
             selectable={false}
+            transferDisabled={hasPendingChanges || transferring}
+            transferDisabledReason={
+              hasPendingChanges ? "Grave ou recarregue as alterações antes de transferir vínculos" : ""
+            }
           />
         </section>
       ) : null}

@@ -23,7 +23,7 @@ durante a execução local, sem credenciais reais.
 | UI                            | `npm test` em `biaws-ui`                       | 189 passaram, 0 ignorados             |
 | Documentação                  | `node scripts/check-documentation.mjs` na raiz | passou                                |
 
-O inventário congelado em T01 é comparado aos 245 contratos Zod e às operações
+O inventário congelado em T01 é comparado aos 246 contratos Zod e às operações
 do OpenAPI. As jornadas HTTP exercitam sessão, chave de API, negação por permissão,
 escopo de workspace/aplicação, identificadores e códigos, paginação, conflitos,
 auditoria e monitoramento. Os testes Mongo cobrem isolamento, idempotência do seed

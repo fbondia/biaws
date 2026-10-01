@@ -8031,6 +8031,104 @@
         }
       }
     },
+    "/api/issues/taxonomy/transfer": {
+      "post": {
+        "operationId": "issues_post_taxonomy_transfer",
+        "tags": ["issues"],
+        "summary": "POST /api/issues/taxonomy/transfer",
+        "description": "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
+        "security": [{ "sessionCookie": [] }, { "bearerApiKey": [] }],
+        "parameters": [
+          {
+            "schema": { "type": "string", "description": "Página; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Página; interpretação e defaults dependem da operação",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "description": "Limite; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Limite; interpretação e defaults dependem da operação",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Necessário quando a identidade possui acesso a múltiplos workspaces; dispensado em rotas de plataforma"
+            },
+            "required": false,
+            "description": "Necessário quando a identidade possui acesso a múltiplos workspaces; dispensado em rotas de plataforma",
+            "name": "X-Biaws-Workspace-Id",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sourceTaxonomyId": { "type": "string", "minLength": 1 },
+                  "destinationTaxonomyId": { "type": "string", "minLength": 1 }
+                },
+                "required": ["sourceTaxonomyId", "destinationTaxonomyId"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Consulta ou requisição inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "401": {
+            "description": "Autenticação necessária",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "403": {
+            "description": "Acesso negado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "422": {
+            "description": "Entrada ou regra de domínio inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          }
+        }
+      }
+    },
     "/api/knowledge/document-types": {
       "get": {
         "operationId": "knowledgeRecords_get_document_types",

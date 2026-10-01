@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { fetchIssueTaxonomy, saveIssueTaxonomy } from "../../../../api.js";
+import { fetchIssueTaxonomy, saveIssueTaxonomy, transferIssueTaxonomy } from "../../../../api.js";
 import {
   appendChild,
   cloneCatalog,
@@ -44,6 +44,7 @@ export function useIssueTaxonomyManager() {
   const [addingTag, setAddingTag] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [transferring, setTransferring] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -244,6 +245,29 @@ export function useIssueTaxonomyManager() {
     }
   }
 
+  async function transferNode(sourceTaxonomyId, destinationTaxonomyId) {
+    setTransferring(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const payload = await transferIssueTaxonomy(sourceTaxonomyId, destinationTaxonomyId);
+      const issueCount = payload.transfer?.results?.issues?.modified || 0;
+      const documentCount = payload.transfer?.results?.documents?.modified || 0;
+      setMessage(
+        `Transferência concluída: ${issueCount} issue${issueCount === 1 ? "" : "s"} e ${documentCount} documento${
+          documentCount === 1 ? "" : "s"
+        } atualizados.`,
+      );
+      return true;
+    } catch (transferError) {
+      setError(transferError.message);
+      return false;
+    } finally {
+      setTransferring(false);
+    }
+  }
+
   return {
     uploadInputRef,
     catalog,
@@ -259,6 +283,7 @@ export function useIssueTaxonomyManager() {
     addingTag,
     loading,
     saving,
+    transferring,
     message,
     error,
     selectedGroup,
@@ -277,5 +302,6 @@ export function useIssueTaxonomyManager() {
     openUploadDialog,
     downloadTaxonomyFile,
     saveCatalog,
+    transferNode,
   };
 }

@@ -70,6 +70,6 @@ executada durante leituras de melhorias continua em `requests/legacyMigration.ts
 Para validar alterações, executar formatação, sintaxe e testes da API. A suíte HTTP
 e MongoDB cobre os contratos dos agregados, autorização, isolamento, índices,
 concorrência e recursos filhos. O teste de contrato de rotas protege os métodos,
-caminhos e a precedência dos 245 endpoints existentes.
+caminhos e a precedência dos 246 endpoints existentes.
 
 Os imports relativos no TypeScript usam extensão `.js` para resolver corretamente no ESM compilado.

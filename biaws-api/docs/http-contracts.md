@@ -1,7 +1,7 @@
 # Contratos HTTP da API
 
 `src/contracts/routers.ts` associa os 16 routers protegidos aos prefixos públicos.
-`collectRouteContracts` cria um contrato Zod para cada uma das 245 operações,
+`collectRouteContracts` cria um contrato Zod para cada uma das 246 operações,
 identificadas por método e caminho. Cada contrato contém `params`, `query`, `body`
 e `response`. Os parâmetros são extraídos dos segmentos `:nome` do caminho.
 

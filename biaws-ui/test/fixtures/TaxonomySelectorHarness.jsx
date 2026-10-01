@@ -17,8 +17,9 @@ const INITIAL_NODES = [
   },
 ];
 
-export function mountTaxonomySelector(container, { rejectAdd = false } = {}) {
+export function mountTaxonomySelector(container, { rejectAdd = false, withTransfer = false } = {}) {
   const root = createRoot(container);
+  const transfers = [];
 
   function Harness() {
     const [nodes, setNodes] = useState(INITIAL_NODES);
@@ -36,17 +37,24 @@ export function mountTaxonomySelector(container, { rejectAdd = false } = {}) {
       return node;
     }
 
+    function transferNode(sourceTaxonomyId, destinationTaxonomyId) {
+      transfers.push({ sourceTaxonomyId, destinationTaxonomyId });
+      return true;
+    }
+
     return (
       <TaxonomySelector
         activeValue={activeNodeId}
         nodes={nodes}
         onActiveChange={setActiveNodeId}
         onAddNode={addNode}
+        onEditNode={withTransfer ? () => true : undefined}
+        onTransferNode={withTransfer ? transferNode : undefined}
         selectable={false}
       />
     );
   }
 
   root.render(<Harness />);
-  return { root };
+  return { root, transfers };
 }

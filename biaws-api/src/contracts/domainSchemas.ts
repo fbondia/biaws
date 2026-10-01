@@ -31,6 +31,13 @@ export const issueCreateBodySchema = z.looseObject({
   affectedComponentIds: z.unknown().optional(),
 });
 
+export const taxonomyTransferBodySchema = z
+  .object({
+    sourceTaxonomyId: z.string().trim().min(1),
+    destinationTaxonomyId: z.string().trim().min(1),
+  })
+  .strict();
+
 export type IssueCreateInput = z.input<typeof issueCreateBodySchema>;
 export type IssueCreateOutput = z.output<typeof issueCreateBodySchema>;
 
@@ -106,6 +113,9 @@ export type ContractDomain = keyof typeof domainBodySchemas;
 export function operationBodySchema(domain: ContractDomain, method: string, routePath: string): z.ZodType {
   if (domain === "issuesRouter" && method === "post" && routePath === "/") {
     return issueCreateBodySchema;
+  }
+  if (domain === "issuesRouter" && method === "post" && routePath === "/taxonomy/transfer") {
+    return taxonomyTransferBodySchema;
   }
   return method === "get" ? z.unknown() : domainBodySchemas[domain];
 }

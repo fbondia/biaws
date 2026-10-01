@@ -18,8 +18,8 @@ import { availablePort } from "../support/integration.js";
 
 test("every protected route has parameter, query, body and public response schemas", () => {
   const contracts = collectRouteContracts(contractRouters);
-  assert.equal(contracts.length, 245);
-  assert.equal(new Set(contracts.map(({ method, path }) => `${method} ${path}`)).size, 245);
+  assert.equal(contracts.length, 246);
+  assert.equal(new Set(contracts.map(({ method, path }) => `${method} ${path}`)).size, 246);
   for (const contract of contracts) {
     assert.ok(contract.params);
     assert.ok(contract.query);

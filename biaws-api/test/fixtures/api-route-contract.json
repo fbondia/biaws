@@ -471,6 +471,11 @@
       "handlers": 2
     },
     {
+      "path": "/taxonomy/transfer",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
       "path": "/:id/attachments",
       "methods": ["post"],
       "handlers": 3

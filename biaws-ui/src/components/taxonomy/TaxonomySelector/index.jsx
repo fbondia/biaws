@@ -1,7 +1,8 @@
-import { ChevronRight, Pencil, Plus } from "lucide-react";
+import { ArrowRightLeft, ChevronRight, Pencil, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { TaxonomyNodeEditDialog } from "./components/TaxonomyNodeEditDialog.jsx";
+import { TaxonomyNodeTransferDialog } from "./components/TaxonomyNodeTransferDialog.jsx";
 
 const CAN_MODIFY_CATALOG = true;
 
@@ -78,8 +79,11 @@ export function TaxonomySelector({
   onDeleteNode,
   onEditNode,
   onPrimaryChange,
+  onTransferNode,
   primaryValue = "",
   selectable = true,
+  transferDisabled = false,
+  transferDisabledReason = "",
   value,
 }) {
   const disabledSet = useMemo(() => new Set(disabledIds), [disabledIds]);
@@ -90,12 +94,15 @@ export function TaxonomySelector({
   const [draftLabels, setDraftLabels] = useState({});
   const [addErrors, setAddErrors] = useState({});
   const [editingNode, setEditingNode] = useState(null);
+  const [transferringNode, setTransferringNode] = useState(null);
+  const [transferDestinationNodeId, setTransferDestinationNodeId] = useState("");
   const [editLabel, setEditLabel] = useState("");
   const [editScopeMode, setEditScopeMode] = useState("workspace");
   const [editApplicationIds, setEditApplicationIds] = useState([]);
   const canAddNodes = CAN_MODIFY_CATALOG && Boolean(onAddNode);
   const canDeleteNodes = CAN_MODIFY_CATALOG && Boolean(onDeleteNode);
   const canEditNodes = CAN_MODIFY_CATALOG && Boolean(onEditNode);
+  const canTransferNodes = CAN_MODIFY_CATALOG && Boolean(onTransferNode);
   const deepestActiveNodeId = activePath[activePath.length - 1] || "";
   const columns = useMemo(() => buildColumns(nodes, activePath, canAddNodes), [activePath, canAddNodes, nodes]);
 
@@ -144,6 +151,18 @@ export function TaxonomySelector({
     setEditLabel("");
     setEditApplicationIds([]);
     setEditScopeMode("workspace");
+  }
+
+  function openTransferDialog(event, node) {
+    event.stopPropagation();
+    if (transferDisabled) return;
+    setTransferringNode(node);
+    setTransferDestinationNodeId("");
+  }
+
+  function closeTransferDialog() {
+    setTransferringNode(null);
+    setTransferDestinationNodeId("");
   }
 
   async function editNode(event) {
@@ -221,6 +240,7 @@ export function TaxonomySelector({
                 const active = activePath[columnIndex] === node.id;
                 const hasChildren = Boolean(node.children?.length);
                 const canEditThisNode = canEditNodes && active && deepestActiveNodeId === node.id;
+                const canTransferThisNode = canTransferNodes && active && deepestActiveNodeId === node.id;
                 const nodePath = findNodePath(nodes, node.id);
                 const pathLabel = nodePath
                   .map((pathNodeId) => findNodeById(nodes, pathNodeId)?.label)
@@ -278,17 +298,34 @@ export function TaxonomySelector({
                         {primaryValue === node.id ? "Principal" : "Definir principal"}
                       </button>
                     ) : null}
-                    {canEditThisNode ? (
-                      <button
-                        className="taxonomyColumnEditButton"
-                        onClick={(event) => openEditDialog(event, node)}
-                        onKeyDown={(event) => event.stopPropagation()}
-                        title="Editar título do assunto"
-                        type="button"
-                      >
-                        <Pencil size={13} />
-                        Editar
-                      </button>
+                    {canEditThisNode || canTransferThisNode ? (
+                      <span className="taxonomyColumnActions">
+                        {canEditThisNode ? (
+                          <button
+                            aria-label={`Editar ${node.label}`}
+                            className="taxonomyColumnActionButton"
+                            onClick={(event) => openEditDialog(event, node)}
+                            onKeyDown={(event) => event.stopPropagation()}
+                            title="Editar assunto"
+                            type="button"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                        ) : null}
+                        {canTransferThisNode ? (
+                          <button
+                            aria-label={`Transferir vínculos de ${node.label}`}
+                            className="taxonomyColumnActionButton taxonomyColumnTransferButton"
+                            disabled={transferDisabled}
+                            onClick={(event) => openTransferDialog(event, node)}
+                            onKeyDown={(event) => event.stopPropagation()}
+                            title={transferDisabledReason || "Transferir vínculos para outro assunto"}
+                            type="button"
+                          >
+                            <ArrowRightLeft size={13} />
+                          </button>
+                        ) : null}
+                      </span>
                     ) : null}
                     {hasChildren ? <ChevronRight size={15} /> : null}
                   </div>
@@ -342,6 +379,21 @@ export function TaxonomySelector({
           setEditLabel={setEditLabel}
           setEditScopeMode={setEditScopeMode}
         />
+      ) : null}
+      {transferringNode ? (
+        <TaxonomyNodeTransferDialog
+          destinationNodeId={transferDestinationNodeId}
+          onClose={closeTransferDialog}
+          onTransfer={onTransferNode}
+          sourceNode={transferringNode}
+        >
+          <TaxonomySelector
+            disabledIds={[transferringNode.id]}
+            nodes={nodes}
+            onChange={setTransferDestinationNodeId}
+            value={transferDestinationNodeId}
+          />
+        </TaxonomyNodeTransferDialog>
       ) : null}
     </div>
   );

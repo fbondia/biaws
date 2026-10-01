@@ -36,6 +36,10 @@ export function saveIssueTaxonomy(taxonomyPackage, params) {
   return sendJson("/api/issues/taxonomy", taxonomyPackage, params);
 }
 
+export function transferIssueTaxonomy(sourceTaxonomyId, destinationTaxonomyId, params) {
+  return sendJson("/api/issues/taxonomy/transfer", { sourceTaxonomyId, destinationTaxonomyId }, params, "POST");
+}
+
 export function saveIssueClassification(issueId, classification, params) {
   return sendJson(`/api/issues/${encodeURIComponent(issueId)}/classification`, classification, params);
 }

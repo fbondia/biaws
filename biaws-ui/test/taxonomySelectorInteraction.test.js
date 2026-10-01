@@ -96,3 +96,67 @@ test("taxonomy selector creates repeated child labels and reports rejected addit
     await rm(outputDirectory, { force: true, recursive: true });
   }
 });
+
+test("taxonomy selector transfers the active node to a selected destination", async () => {
+  const outputDirectory = await mkdtemp(join(tmpdir(), "biaws-taxonomy-transfer-ui-"));
+  const dom = new JSDOM("<!doctype html><body></body>", {
+    url: "https://biaws.example.test",
+  });
+  const previous = Object.fromEntries(
+    ["document", "navigator", "window"].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]),
+  );
+  Object.defineProperties(globalThis, {
+    document: { configurable: true, value: dom.window.document },
+    navigator: { configurable: true, value: dom.window.navigator },
+    window: { configurable: true, value: dom.window },
+  });
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
+  try {
+    await build({
+      configFile: false,
+      logLevel: "silent",
+      plugins: [react()],
+      build: {
+        emptyOutDir: false,
+        lib: {
+          entry: join(process.cwd(), "test/fixtures/TaxonomySelectorHarness.jsx"),
+          fileName: "taxonomy-selector-harness",
+          formats: ["es"],
+        },
+        outDir: outputDirectory,
+      },
+    });
+    const { mountTaxonomySelector } = await import(
+      pathToFileURL(join(outputDirectory, "taxonomy-selector-harness.js"))
+    );
+    const { container, harness } = await renderSelector(mountTaxonomySelector, { withTransfer: true });
+
+    const editButton = container.querySelector('[aria-label="Editar Serviço"]');
+    assert.ok(editButton);
+    assert.equal(editButton.textContent, "");
+    const transferButton = container.querySelector('[aria-label="Transferir vínculos de Serviço"]');
+    assert.ok(transferButton);
+    assert.equal(transferButton.textContent, "");
+    transferButton.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const destination = container.querySelector('[aria-label="Selecionar Produto"]');
+    destination.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    container.querySelector('[aria-label="Transferir vínculos de taxonomia"] form').requestSubmit();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    assert.deepEqual(harness.transfers, [{ sourceTaxonomyId: "servico", destinationTaxonomyId: "produto" }]);
+    assert.equal(container.querySelector('[aria-label="Transferir vínculos de taxonomia"]'), null);
+    harness.root.unmount();
+  } finally {
+    for (const [name, descriptor] of Object.entries(previous)) {
+      if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+      else delete globalThis[name];
+    }
+    delete globalThis.IS_REACT_ACT_ENVIRONMENT;
+    dom.window.close();
+    await rm(outputDirectory, { force: true, recursive: true });
+  }
+});

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildTagGroupsById,
   buildTaxonomyItemsById,
+  issueListText,
   issueTagItems,
   issueTaxonomyItems,
   optionLabel,
@@ -71,4 +72,19 @@ test("issue list option labels prefer the catalog and fall back safely", () => {
   assert.equal(optionLabel(options, "incident"), "Incidente");
   assert.equal(optionLabel(options, "legacy"), "legacy");
   assert.equal(optionLabel(options, ""), "-");
+});
+
+test("issue list text prefers the classification summary", () => {
+  assert.equal(
+    issueListText({
+      text: "Descrição original",
+      classification: { summary: "  Correção aplicada  " },
+    }),
+    "Correção aplicada",
+  );
+});
+
+test("issue list text falls back to the issue description without a summary", () => {
+  assert.equal(issueListText({ text: "Descrição original", classification: { summary: "   " } }), "Descrição original");
+  assert.equal(issueListText({ text: "Descrição original" }), "Descrição original");
 });

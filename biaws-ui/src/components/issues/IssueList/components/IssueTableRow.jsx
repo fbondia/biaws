@@ -2,7 +2,7 @@ import { Crown } from "lucide-react";
 
 import { ALL_STATUS_OPTIONS, ALL_TYPE_OPTIONS, DEFAULT_TAG_GROUP_COLOR } from "../../../../constants/issues.js";
 import { formatDate, formatTaxonomyPath, issueDate, statusClass, textPreview } from "../../../../utils/issues.js";
-import { issueTagItems, issueTaxonomyItems, optionLabel } from "../model.js";
+import { issueListText, issueTagItems, issueTaxonomyItems, optionLabel } from "../model.js";
 import { EntityIdentifier } from "../../../shared/EntityIdentifier/index.jsx";
 
 export function IssueTableRow({
@@ -73,7 +73,7 @@ export function IssueTableRow({
         {tagItems.length ? <TagPills tagItems={tagItems} /> : "-"}
       </td>
       <td className="textCell" data-label="Texto">
-        {textPreview(issue.text)}
+        {textPreview(issueListText(issue))}
       </td>
     </tr>
   );

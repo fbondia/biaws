@@ -1,6 +1,7 @@
 import { Save, Tags } from "lucide-react";
 
 import { DEFAULT_TAG_GROUP_COLOR } from "../../../../constants/issues.js";
+import { MarkdownEditor } from "../../../shared/MarkdownEditor/index.jsx";
 import { TaxonomySelector } from "../../../taxonomy/TaxonomySelector/index.jsx";
 import { filterTaxonomyForApplication } from "../../../taxonomy/scope.js";
 import { TagGroupDialog, TagSelectionChips, TaxonomySelectionChips } from "./ClassificationControls.jsx";
@@ -43,13 +44,8 @@ export function IssueKnowledgeTab({
       <div className="classificationGrid">
         <section className="classificationPanel kbSummaryPanel">
           <label className="field">
-            <span>Sumário do que foi feito</span>
-            <textarea
-              onChange={(event) => updateKbSummary(event.target.value)}
-              placeholder="Registre um resumo objetivo da análise, correção ou encaminhamento realizado."
-              rows={4}
-              value={classificationDraft.summary}
-            />
+            <span>Resumo</span>
+            <MarkdownEditor onChange={updateKbSummary} value={classificationDraft.summary} />
           </label>
         </section>
 

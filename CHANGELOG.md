@@ -8,6 +8,10 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- UI atualizada de `0.4.0` para `0.4.1`: o resumo das issues passa a ser
+  identificado como “Resumo”, renderizado e editado em Markdown nos detalhes e
+  priorizado sobre a descrição na coluna de texto da listagem.
+
 - UI atualizada de `0.3.0` para `0.4.0`, incluindo os filtros e a barra de
   balanceamento do calendário de jornadas das melhorias.
 

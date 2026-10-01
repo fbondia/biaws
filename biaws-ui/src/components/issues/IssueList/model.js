@@ -60,6 +60,11 @@ export function issueTagItems(issue, tagGroupsById) {
   });
 }
 
+export function issueListText(issue) {
+  const summary = String(issue.classification?.summary || "").trim();
+  return summary || issue.text;
+}
+
 export function optionLabel(options, value) {
   return options.find((option) => option.value === value)?.label || value || "-";
 }

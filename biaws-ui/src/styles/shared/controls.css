@@ -19,7 +19,8 @@
 
 .field input,
 .field select,
-.field textarea {
+.field textarea,
+.markdownEditor > textarea {
   width: 100%;
   min-height: 38px;
   border: 1px solid var(--color-border-strong);
@@ -30,7 +31,8 @@
   outline: none;
 }
 
-.field textarea {
+.field textarea,
+.markdownEditor > textarea {
   min-height: 112px;
   resize: vertical;
   line-height: 1.45;
@@ -38,7 +40,8 @@
 
 .field input:focus,
 .field select:focus,
-.field textarea:focus {
+.field textarea:focus,
+.markdownEditor > textarea:focus {
   border-color: var(--color-focus);
   box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
@@ -265,7 +268,8 @@
   }
   .field input,
   .field select,
-  .field textarea {
+  .field textarea,
+  .markdownEditor > textarea {
     min-width: 0;
     font-size: 16px;
   }

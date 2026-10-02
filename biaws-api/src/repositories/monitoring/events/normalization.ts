@@ -1,5 +1,5 @@
 import type { Actor } from "../../../types/http.js";
-import { SIGNAL_ID_PATTERN, SIGNAL_STATUSES, DAY_MS } from "./constants.js";
+import { SIGNAL_ID_PATTERN, SIGNAL_STATUSES } from "./constants.js";
 import { normalizeMonitoringPayload } from "./payload.js";
 import { actorId } from "../../shared/topology/lifecycle.js";
 import {
@@ -44,11 +44,7 @@ export function normalizeMonitoringSignal(payload: Record<string, unknown> = {},
   };
 }
 
-export function monitoringExpirationDate(receivedAt: string | number | Date, retentionDays: number) {
-  const days = Number(retentionDays);
-  if (!Number.isInteger(days) || days <= 0) return null;
-  return new Date(new Date(receivedAt).getTime() + days * DAY_MS);
-}
+export { calculateExpirationDate as monitoringExpirationDate } from "../../../helpers/retention.js";
 
 export function normalizeManualMonitoringObservation(
   payload: Record<string, unknown> = {},

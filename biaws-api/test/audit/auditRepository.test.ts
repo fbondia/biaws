@@ -104,3 +104,15 @@ test("audit sanitization removes secret aliases with every supported separator",
     assert.deepEqual(sanitizeAuditValue({ ...record, title: "Example" }), { title: "Example" });
   }
 });
+
+test("audit expiration uses the event date and indefinite retention omits expiresAt", () => {
+  const input = {
+    action: "updated",
+    target: { type: "issue", id: "audit-retention-test" },
+    occurredAt: new Date("2026-01-01T12:00:00.000Z"),
+  };
+  assert.equal(buildAuditEvent(input, { retentionDays: 365 }).expiresAt?.toISOString(), "2027-01-01T12:00:00.000Z");
+  assert.equal(Object.hasOwn(buildAuditEvent(input), "expiresAt"), false);
+  assert.equal(Object.hasOwn(buildAuditEvent(input, { retentionDays: 0 }), "expiresAt"), false);
+  assert.equal(input.occurredAt.toISOString(), "2026-01-01T12:00:00.000Z");
+});

@@ -13,6 +13,7 @@ export async function auditCollection() {
     }),
     collection.createIndex({ "actor.userId": 1, occurredAt: -1 }),
     collection.createIndex({ occurredAt: -1 }),
+    collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: "audit_expiration" }),
   ]);
   return collection;
 }

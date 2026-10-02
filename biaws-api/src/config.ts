@@ -59,6 +59,14 @@ function readRateLimitConfig(
   };
 }
 
+export function getAuditRetentionDays() {
+  const days = Number(readEnv(["BIAWS_AUDIT_RETENTION_DAYS"], "0"));
+  if (!Number.isInteger(days) || days < 0 || days > 3_650) {
+    throw new Error("BIAWS_AUDIT_RETENTION_DAYS must be an integer between 0 and 3650");
+  }
+  return days;
+}
+
 export function getServerConfig() {
   const host = readEnv(["BIAWS_API_HOST", "HOST"], "127.0.0.1");
   const port = readNumberEnv(["BIAWS_API_PORT", "PORT"], 3100);
@@ -66,6 +74,7 @@ export function getServerConfig() {
   return {
     host,
     port,
+    audit: { retentionDays: getAuditRetentionDays() },
     maxEmlBytes: readNumberEnv(["BIAWS_API_MAX_EML_BYTES"], 25 * 1024 * 1024),
     maxAttachmentBytes: readNumberEnv(["BIAWS_API_MAX_ATTACHMENT_BYTES"], 50 * 1024 * 1024),
     maxJsonBytes: readNumberEnv(["BIAWS_API_MAX_JSON_BYTES"], 4 * 1024 * 1024),

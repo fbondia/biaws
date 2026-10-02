@@ -300,6 +300,8 @@ e uma janela de indisponibilidade aprovada.
 - páginas HTTP: 25 itens por padrão e no máximo 100;
 - contexto agregado de aplicação: no máximo 100 itens por coleção;
 - auditoria por consulta: no máximo 200 eventos;
+- auditoria: retenção por instância em `BIAWS_AUDIT_RETENTION_DAYS`, com padrão
+  `0` (indefinida); valores positivos, até 3650 dias, usam TTL sobre `expiresAt`;
 - escopo de um grupo: no máximo 250 aplicações;
 - JSON: 4 MiB por padrão;
 - anexo: 50 MiB por padrão;
@@ -307,6 +309,53 @@ e uma janela de indisponibilidade aprovada.
 - sinais de monitoramento: páginas de até 100; retenção por runtime com padrão
   de 10 dias e índice TTL sobre `expiresAt`. Use `monitoringRetentionDays: 0`
   somente quando houver necessidade explícita de histórico permanente.
+
+## Retenção de auditoria
+
+Na `.env` da instância, defina `BIAWS_AUDIT_RETENTION_DAYS` conforme a política
+de retenção. Por exemplo, `365` mantém cada evento por 365 dias a partir de
+`occurredAt`; `0` desativa a expiração. Recrie o serviço `api` com a imagem que
+contém esta implementação para carregar a configuração. Reiniciar o container
+sem recriá-lo não atualiza suas variáveis de ambiente.
+
+Para uma instância gerenciada, usando seus caminhos e nome de projeto Compose:
+
+```bash
+docker compose --env-file instances/producao/.env --project-name biaws-producao up -d --build api
+
+# Inspeção do histórico usando a configuração da API em execução.
+./scripts/recalculate-audit-retention.sh -- \
+  --env-file instances/producao/.env --project-name biaws-producao
+
+# Aplicação após conferir a simulação e preservar um backup.
+./scripts/recalculate-audit-retention.sh --apply -- \
+  --env-file instances/producao/.env --project-name biaws-producao
+```
+
+Sem instâncias separadas, omita as opções depois de `--`. O script usa
+`compose.yaml` na raiz; opções adicionais do Compose, como `--file` e
+`--project-directory`, podem ser passadas depois de `--`. Não há comando novo
+no BIAWS CLI. A execução equivalente dentro do serviço é:
+
+```bash
+docker compose exec -T api node dist/biaws-api/src/scripts/recalculateAuditRetention.js --apply
+```
+
+O resumo JSON informa banco, dias de retenção, total de eventos, registros
+elegíveis, datas inválidas, eventos que venceriam pela política e quantidade
+modificada. A simulação não realiza escritas. A aplicação recalcula `expiresAt`
+em lotes de 500, sem alterar `occurredAt` ou o conteúdo funcional da auditoria.
+Com retenção positiva, registros sem uma data BSON válida são preservados e
+contados para investigação. Com `0`, o script remove a expiração do histórico.
+
+O índice TTL exclui documentos vencidos em segundo plano e pode removê-los
+durante o recálculo. Faça backup antes de aplicar uma redução de prazo ou a
+primeira expiração do histórico. Para desfazer a política, configure `0`, recrie
+a API e reaplique o script; dados já excluídos exigem restauração do backup.
+Mudanças na variável não recalculam o histórico automaticamente: reaplique o
+script sempre que quiser aplicar a nova política aos registros existentes.
+
+## Rate limiting
 
 O rate limiting possui três camadas independentes:
 

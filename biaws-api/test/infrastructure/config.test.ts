@@ -22,6 +22,7 @@ const MANAGED_KEYS = [
   "BIAWS_SECRETS_KEY_FILE",
   "BIAWS_SECRETS_KEY_PATH",
   "BIAWS_SECRETS_MAX_FILE_BYTES",
+  "BIAWS_AUDIT_RETENTION_DAYS",
 ];
 
 function preserveEnvironment() {
@@ -129,6 +130,24 @@ test("instance host paths take precedence for local secret access", () => {
     assert.equal(config.secrets.local.keyFile, "/instance/master.key");
     assert.equal(config.secrets.maxFileBytes, 1048576);
     assert.equal(config.secrets.local.maxBytes, 1048576);
+  } finally {
+    restore();
+  }
+});
+
+test("audit retention defaults to indefinite and accepts bounded whole days including zero", () => {
+  const restore = preserveEnvironment();
+  try {
+    delete process.env.BIAWS_AUDIT_RETENTION_DAYS;
+    assert.equal(getServerConfig().audit.retentionDays, 0);
+    for (const days of [0, 1, 365, 3650]) {
+      process.env.BIAWS_AUDIT_RETENTION_DAYS = String(days);
+      assert.equal(getServerConfig().audit.retentionDays, days);
+    }
+    for (const value of ["-1", "1.5", "3651", "invalid", "Infinity"]) {
+      process.env.BIAWS_AUDIT_RETENTION_DAYS = value;
+      assert.throws(() => getServerConfig(), /BIAWS_AUDIT_RETENTION_DAYS/u);
+    }
   } finally {
     restore();
   }

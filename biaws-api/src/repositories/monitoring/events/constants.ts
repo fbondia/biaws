@@ -17,4 +17,4 @@ export const PAYLOAD_LIMITS = Object.freeze({
   string: 8_000,
 });
 
-export const DAY_MS = 86_400_000;
+export { DAY_MS } from "../../../helpers/retention.js";

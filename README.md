@@ -134,6 +134,8 @@ mas apresente a proposta e as evidências antes de registrar qualquer mudança.
 - cofre local para textos e arquivos secretos reversíveis, com versões criptografadas e chave
   mestra separada;
 - trilha de auditoria funcional;
+- retenção opcional de auditoria por instância, com TTL e
+  [recálculo do histórico](docs/operations.md#retenção-de-auditoria);
 - servidor MCP com ferramentas de catálogo, topologia, issues, melhorias,
   procedimentos, conhecimento, coleções e metadados de segredos;
 - CLI público para instalar e administrar a plataforma, manter perfis de acesso,

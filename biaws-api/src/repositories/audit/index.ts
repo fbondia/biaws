@@ -5,3 +5,5 @@ export { buildAuditFilter } from "./filters.js";
 export { recordAuditEvent } from "./mutations.js";
 
 export { listAuditEvents } from "./queries.js";
+
+export { recalculateAuditExpiration } from "./retention.js";

@@ -16,6 +16,7 @@ Os eventos são armazenados em `auditEvents` e contêm:
 - `target`: tipo, identificador e rótulo do elemento alterado;
 - `rootType` e `rootId`: entidade principal em cuja linha do tempo o evento aparece;
 - `occurredAt`: instante da alteração;
+- `expiresAt`: data de expiração, presente somente quando a retenção é finita;
 - `summary`: descrição curta;
 - `changes`: caminhos dos campos com valores anterior e novo;
 - `metadata`: contexto funcional adicional sanitizado.
@@ -63,14 +64,37 @@ tarefa.
 
 ## Retenção, índices e volume
 
-Nesta versão, a retenção é indefinida e não existe índice TTL. A exclusão
-automática só deve ser introduzida após uma política institucional de retenção,
-evitando perda silenciosa de evidência de governança.
+A retenção é configurada por instância em `BIAWS_AUDIT_RETENTION_DAYS`, um inteiro
+entre 0 e 3650. O padrão é `0`, que mantém a retenção indefinida. Um valor positivo
+faz cada novo evento receber `expiresAt = occurredAt + dias de retenção`, usando
+intervalos de 24 horas. O índice `audit_expiration` sobre `expiresAt`, com
+`expireAfterSeconds: 0`, permite ao MongoDB excluir os documentos vencidos em
+segundo plano. A exclusão não é instantânea e não arquiva o conteúdo.
+
+Auditoria e monitoramento compartilham o cálculo de expiração. Monitoramento
+usa `receivedAt` e uma política por runtime; auditoria usa `occurredAt` e a
+política da instância. Documentos sem `expiresAt` não expiram.
+
+Alterar a variável e recriar a API aplica a política aos novos eventos. Para
+atribuir ou recalcular `expiresAt` do histórico existente, execute
+[`scripts/recalculate-audit-retention.sh`](../../scripts/recalculate-audit-retention.sh).
+Sem `--apply`, o script apenas inspeciona o banco, sem criar índices nem atualizar
+documentos. Com `--apply`, recalcula em lotes de 500 registros e preserva
+`occurredAt`. Datas ausentes ou que não sejam BSON Date são contadas em
+`invalidOccurredAt` e ignoradas quando a retenção é positiva. Com retenção `0`,
+remove `expiresAt` de todos os registros que ainda existam, inclusive daqueles
+com data inválida.
+
+O script é repetível e pode ser usado após alterações da política, inclusive
+redução, ampliação ou desativação da retenção. Eventos já vencidos podem ser
+excluídos durante a aplicação; aumentar o prazo não recupera eventos removidos.
+Antes de aplicar, confira as contagens e faça backup. Veja os comandos e limites
+em [`docs/operations.md`](../../docs/operations.md#retenção-de-auditoria).
 
 Há índices por entidade raiz, alvo direto, ator e data. A consulta é limitada a
 200 eventos para proteger a API e a UI. Antes de liberar consultas agregadas ou
 grandes volumes, devem ser definidos paginação por cursor, política formal de
-retenção e arquivamento.
+arquivamento.
 
 ## Comportamento em falha
 

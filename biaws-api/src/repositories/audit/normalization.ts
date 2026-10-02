@@ -1,4 +1,5 @@
 import type { AuditInput, AuditChange } from "../../types/audit.js";
+import { calculateExpirationDate } from "../../helpers/retention.js";
 import { isRecord } from "../../helpers/records.js";
 import type { Actor } from "../../types/http.js";
 import { MAX_STRING_LENGTH, MAX_ARRAY_LENGTH, IGNORED_FIELDS, SECRET_FIELD_PATTERN } from "./constants.js";
@@ -78,17 +79,21 @@ function normalizeActor(actor: Partial<Actor> = {}) {
   };
 }
 
-export function buildAuditEvent({
-  actor,
-  action,
-  target,
-  root = target,
-  before = null,
-  after = null,
-  summary = "",
-  metadata = {},
-  occurredAt = new Date(),
-}: AuditInput) {
+export function buildAuditEvent(
+  {
+    actor,
+    action,
+    target,
+    root = target,
+    before = null,
+    after = null,
+    summary = "",
+    metadata = {},
+    occurredAt = new Date(),
+  }: AuditInput,
+  { retentionDays = 0 }: { retentionDays?: number } = {},
+) {
+  const expiresAt = calculateExpirationDate(occurredAt, retentionDays);
   return {
     actor: normalizeActor(actor),
     action,
@@ -103,5 +108,6 @@ export function buildAuditEvent({
     changes: calculateAuditChanges(before, after),
     metadata: sanitizeAuditValue(metadata),
     occurredAt,
+    ...(expiresAt ? { expiresAt } : {}),
   };
 }

@@ -60,7 +60,8 @@ menos uma release pública operada com o runbook atual.
 ## Débitos deliberados
 
 - storage local não suporta múltiplas réplicas;
-- auditoria não é transacional com a mutação de domínio e não possui retenção;
+- auditoria não é transacional com a mutação de domínio; a retenção por instância
+  é opcional, com padrão indefinido e recálculo explícito do histórico;
 - contratos HTTP não têm OpenAPI versionada;
 - caminhos físicos de anexos legados ainda não incluem workspace/tipo;
 - paginação usa `skip/limit`; cursores devem ser considerados para coleções

@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- UI atualizada de `0.6.1` para `0.6.2`, com correções de responsividade nas
+  listagens e detalhes de issues e melhorias, visualização de arquivos,
+  documentação, topologia e componentes compartilhados para uso em dispositivos
+  móveis.
+
 - Versões atualizadas para API `0.8.1`, UI `0.6.1` e MCP `0.14.1` pela
   correção das datas dos comentários de issues. CLI `0.5.3` passa a fixar o
   MCP `0.14.1`; o manifesto da plataforma passa para `0.7.1`.

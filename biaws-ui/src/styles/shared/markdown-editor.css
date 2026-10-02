@@ -1,4 +1,5 @@
 .markdownEditor {
+  min-width: 0;
   position: relative;
 }
 
@@ -131,6 +132,7 @@
 }
 
 .markdownPreview {
+  overflow-wrap: anywhere;
   width: 100%;
   min-width: 0;
   max-width: 100%;
@@ -424,6 +426,7 @@
 
 .markdownPreview th,
 .markdownPreview td {
+  min-width: 100px;
   border-bottom: 1px solid var(--color-border-subtle);
   border-right: 1px solid var(--color-border-subtle);
   padding: 8px 10px;
@@ -454,7 +457,54 @@
 }
 
 @media (max-width: 720px) {
+  .markdownEditorTabs {
+    position: static;
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    overflow: visible;
+  }
+  .markdownEditorTab {
+    min-height: 44px;
+    flex: 0 0 auto;
+  }
+  .markdownAttachmentPicker {
+    flex: 1 1 120px;
+  }
   .markdownAttachmentPicker select {
-    max-width: 70px;
+    width: 100%;
+    max-width: 100%;
+    font-size: 16px;
+  }
+  .markdownEditor > textarea,
+  .markdownEditor > .markdownPreview {
+    padding-top: 12px;
+  }
+  .markdownFullscreenDialog,
+  .markdownBlockDialog {
+    height: calc(100dvh - 20px);
+  }
+  .markdownFullscreenHeader,
+  .markdownBlockDialogHeader {
+    flex: 0 0 auto;
+    gap: 10px;
+    padding: 12px;
+  }
+  .markdownFullscreenHeader h3,
+  .markdownBlockDialogHeader h3 {
+    overflow-wrap: anywhere;
+  }
+  .markdownBlockDialogHeader {
+    flex-wrap: wrap;
+  }
+  .markdownBlockDialogActions {
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+  .markdownFullscreenBody,
+  .markdownBlockDialogBody {
+    padding: 12px;
   }
 }

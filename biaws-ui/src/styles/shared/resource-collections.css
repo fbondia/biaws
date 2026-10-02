@@ -409,3 +409,18 @@
     width: 100%;
   }
 }
+
+@media (max-width: 720px) {
+  .resourceCollectionBarPrimary,
+  .resourceCollectionBarUtilities {
+    flex-wrap: wrap;
+  }
+  .resourceCollectionSearch {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .resourceCollectionBarActionSlot {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}

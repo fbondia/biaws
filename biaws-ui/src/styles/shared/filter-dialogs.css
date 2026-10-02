@@ -155,3 +155,9 @@
 .selectedTagFilterOption {
   background: var(--color-surface);
 }
+
+@media (max-width: 1120px) {
+  .tagFilterGroups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

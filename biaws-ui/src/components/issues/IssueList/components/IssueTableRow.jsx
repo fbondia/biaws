@@ -43,6 +43,7 @@ export function IssueTableRow({
       </td>
       <td data-label="Tipo">
         <InlineIssueSelect
+          label="Tipo do issue"
           currentValue={issue.type}
           disabled={loading || !onUpdateIssueField || updatingIssueField === `${issue.id}:type`}
           fallbackOptions={ALL_TYPE_OPTIONS}
@@ -52,6 +53,7 @@ export function IssueTableRow({
       </td>
       <td data-label="Status">
         <InlineIssueSelect
+          label="Status do issue"
           className={`inlineStatusSelect ${statusClass(issue.status)}`}
           currentValue={issue.status}
           disabled={loading || !onUpdateIssueField || updatingIssueField === `${issue.id}:status`}
@@ -80,11 +82,12 @@ export function IssueTableRow({
   );
 }
 
-function InlineIssueSelect({ className = "", currentValue, disabled, fallbackOptions, onChange, options }) {
+function InlineIssueSelect({ className = "", currentValue, disabled, fallbackOptions, label, onChange, options }) {
   const hasCurrentValue = options.some((option) => option.value === currentValue);
 
   return (
     <select
+      aria-label={label}
       className={`inlineIssueSelect ${className}`.trim()}
       disabled={disabled}
       onChange={(event) => onChange(event.target.value)}

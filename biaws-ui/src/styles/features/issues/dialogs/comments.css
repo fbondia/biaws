@@ -215,3 +215,36 @@
     width: 100%;
   }
 }
+
+.issueCommentDialog {
+  display: flex;
+  flex-direction: column;
+  max-height: min(840px, calc(100dvh - 44px));
+}
+.issueCommentDialogHeader,
+.issueCommentDialogFooter {
+  flex: 0 0 auto;
+}
+.issueCommentDialogBody {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 720px) {
+  .issueCommentDialogFooter {
+    flex-wrap: wrap;
+  }
+  .issueCommentDialogHeader,
+  .issueCommentDialogBody,
+  .issueCommentDialogFooter {
+    padding-inline: 14px;
+  }
+  .commentItem header > div {
+    flex-wrap: wrap;
+  }
+  .issueCommentItemActions {
+    flex-wrap: wrap;
+  }
+}

@@ -37,6 +37,9 @@
 
 .issueFormDialogBody {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
   gap: 18px;
   overflow: auto;
   padding: 18px 20px 22px;
@@ -132,5 +135,48 @@
 
   .issueFormTitleField {
     grid-column: 1 / -1;
+  }
+}
+
+.issueDescriptionDialog {
+  display: flex;
+  flex-direction: column;
+  max-height: min(840px, calc(100dvh - 44px));
+}
+.issueDescriptionDialogHeader,
+.issueDescriptionDialogFooter {
+  flex: 0 0 auto;
+}
+.issueDescriptionDialogBody {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 720px) {
+  .issueDescriptionDialogFooter {
+    flex-wrap: wrap;
+  }
+  .issueDescriptionDialogHeader,
+  .issueDescriptionDialogBody,
+  .issueDescriptionDialogFooter {
+    padding-inline: 14px;
+  }
+  .issueFormGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .issueFormTitleField {
+    grid-column: auto;
+  }
+  .issueFormDialogFooter {
+    flex-wrap: wrap;
+  }
+  .issueFormDialogHeader,
+  .issueFormDialogFooter {
+    flex: 0 0 auto;
+  }
+  .issueFormDialogBody {
+    min-height: 0;
   }
 }

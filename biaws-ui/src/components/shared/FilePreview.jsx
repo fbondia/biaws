@@ -86,7 +86,9 @@ export function FilePreview({ blob, error, file, loading, onClose, onDownload })
         <header className="filePreviewHeader">
           <div>
             <span>Visualização do arquivo</span>
-            <h3 id="filePreviewTitle">{file.filename || "anexo"}</h3>
+            <h3 id="filePreviewTitle" title={file.filename || "anexo"}>
+              {file.filename || "anexo"}
+            </h3>
           </div>
           <div>
             <button className="secondaryButton" disabled={loading} onClick={onDownload} type="button">

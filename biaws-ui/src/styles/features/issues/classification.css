@@ -228,3 +228,17 @@
   min-height: 0;
   overflow: auto;
 }
+
+.classificationTaxonomyChip,
+.classificationTagChip {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .classificationPanelHeader {
+    flex-wrap: wrap;
+  }
+  .tagPickerGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -659,3 +659,12 @@
     box-shadow: none;
   }
 }
+
+@media (max-width: 720px) {
+  .topBar {
+    padding-inline: 16px;
+  }
+  .topBarHeading {
+    align-items: center;
+  }
+}

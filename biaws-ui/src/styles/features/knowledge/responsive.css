@@ -82,3 +82,44 @@
     width: 100%;
   }
 }
+
+@media (max-width: 720px) {
+  .knowledgeDetailsDialog {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+  }
+  .knowledgeRecordTitle h2 {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .knowledgeRecordHeader,
+  .knowledgeRecordPanel,
+  .knowledgeRecordFooter {
+    padding-inline: 14px;
+  }
+  .knowledgeDocumentMarkdown {
+    padding: 20px 14px;
+  }
+  .knowledgeRecordFooter {
+    flex-wrap: wrap;
+  }
+  .procedureDialog {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+  }
+  .procedureDialogHeader,
+  .procedureDialogFooter {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+  }
+  .procedureDialogBody {
+    min-height: 0;
+  }
+  .procedureDates {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .knowledgeRecordTitle {
+    width: 100%;
+    max-width: 100%;
+  }
+}

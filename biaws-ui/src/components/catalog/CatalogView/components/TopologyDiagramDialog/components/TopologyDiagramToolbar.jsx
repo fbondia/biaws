@@ -1,9 +1,12 @@
-import { Box, Layers3, Plus, Save } from "lucide-react";
+import { Box, ChevronDown, ChevronUp, Layers3, Plus, Save } from "lucide-react";
+import { useId, useState } from "react";
 
 import { TOPOLOGY_ENVIRONMENTS } from "../models/topologyDiagramModel.js";
 import { TopologyVisibilityMenu } from "./TopologyVisibilityMenu.jsx";
 
 export function TopologyDiagramToolbar({ controller }) {
+  const [toolsExpanded, setToolsExpanded] = useState(false);
+  const toolsId = useId();
   const {
     actions,
     canEdit,
@@ -30,99 +33,115 @@ export function TopologyDiagramToolbar({ controller }) {
 
   return (
     <div className="topologyDiagramToolbar">
-      <div className="topologyDiagramToolbarPrimary">
-        <div className="topologyDiagramSelectors">
-          <label className="field topologyDiagramSelector">
-            <span>Gráfico</span>
-            <select
-              disabled={loading || saving}
-              onChange={(event) => actions.selectDiagram(event.target.value)}
-              value={selectedId}
-            >
-              {!diagrams.length ? <option value="">Nenhum gráfico criado</option> : null}
-              {diagrams.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          {canEdit ? (
-            <button className="secondaryButton topologyDiagramNewButton" onClick={actions.startCreating} type="button">
-              <Plus size={15} /> Novo gráfico
-            </button>
-          ) : null}
-          <label className="field topologyDiagramEnvironment">
-            <span>Ambiente</span>
-            <select
-              disabled={!diagram || topologyLoading || !canEdit}
-              onChange={(event) => actions.changeEnvironment(event.target.value)}
-              value={environment}
-            >
-              {TOPOLOGY_ENVIRONMENTS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div className="topologyDiagramToolbarActions">
-          {dirty ? <small>Alterações não salvas</small> : null}
-          {canEdit ? (
-            <button
-              className="primaryButton"
-              disabled={!diagram || saving || topologyLoading || !dirty || hasUntitledNode}
-              onClick={() => actions.saveDiagram()}
-              type="button"
-            >
-              <Save size={15} /> {saving ? "Salvando…" : "Salvar"}
-            </button>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="topologyDiagramToolbarSecondary">
-        <div className="topologyDiagramToolbarGroup">
-          <span className="topologyDiagramToolbarLabel">Exibir</span>
-          <div className="topologyDiagramVisibility">
-            <TopologyVisibilityMenu
-              hiddenIds={hiddenIntegrationIds}
-              label="Integrações"
-              onChange={(next) => changeVisibility(actions.setHiddenIntegrationIds, next)}
-              options={integrationOptions}
-            />
-            <TopologyVisibilityMenu
-              hiddenIds={hiddenServerIds}
-              label="Servidores"
-              onChange={(next) => changeVisibility(actions.setHiddenServerIds, next)}
-              options={serverOptions}
-            />
+      <button
+        aria-controls={toolsId}
+        aria-expanded={toolsExpanded}
+        className="secondaryButton topologyDiagramToolsToggle"
+        onClick={() => setToolsExpanded((current) => !current)}
+        type="button"
+      >
+        {dirty ? "Opções · alterações não salvas" : "Opções da topologia"}
+        {toolsExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+      </button>
+      <div className={`topologyDiagramToolbarBody${toolsExpanded ? " expanded" : ""}`} id={toolsId}>
+        <div className="topologyDiagramToolbarPrimary">
+          <div className="topologyDiagramSelectors">
+            <label className="field topologyDiagramSelector">
+              <span>Gráfico</span>
+              <select
+                disabled={loading || saving}
+                onChange={(event) => actions.selectDiagram(event.target.value)}
+                value={selectedId}
+              >
+                {!diagrams.length ? <option value="">Nenhum gráfico criado</option> : null}
+                {diagrams.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {canEdit ? (
+              <button
+                className="secondaryButton topologyDiagramNewButton"
+                onClick={actions.startCreating}
+                type="button"
+              >
+                <Plus size={15} /> Novo gráfico
+              </button>
+            ) : null}
+            <label className="field topologyDiagramEnvironment">
+              <span>Ambiente</span>
+              <select
+                disabled={!diagram || topologyLoading || !canEdit}
+                onChange={(event) => actions.changeEnvironment(event.target.value)}
+                value={environment}
+              >
+                {TOPOLOGY_ENVIRONMENTS.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="topologyDiagramToolbarActions">
+            {dirty ? <small>Alterações não salvas</small> : null}
+            {canEdit ? (
+              <button
+                className="primaryButton"
+                disabled={!diagram || saving || topologyLoading || !dirty || hasUntitledNode}
+                onClick={() => actions.saveDiagram()}
+                type="button"
+              >
+                <Save size={15} /> {saving ? "Salvando…" : "Salvar"}
+              </button>
+            ) : null}
           </div>
         </div>
-        {canEdit ? (
-          <div className="topologyDiagramToolbarGroup topologyDiagramAddGroup">
-            <span className="topologyDiagramToolbarLabel">Adicionar</span>
-            <div className="topologyDiagramCreateNodes">
-              <button
-                className="secondaryButton"
-                disabled={!diagram || topologyLoading}
-                onClick={actions.createElement}
-                type="button"
-              >
-                <Box size={15} /> Elemento
-              </button>
-              <button
-                className="secondaryButton"
-                disabled={!diagram || topologyLoading}
-                onClick={actions.createGroup}
-                type="button"
-              >
-                <Layers3 size={15} /> Grupo
-              </button>
+
+        <div className="topologyDiagramToolbarSecondary">
+          <div className="topologyDiagramToolbarGroup">
+            <span className="topologyDiagramToolbarLabel">Exibir</span>
+            <div className="topologyDiagramVisibility">
+              <TopologyVisibilityMenu
+                hiddenIds={hiddenIntegrationIds}
+                label="Integrações"
+                onChange={(next) => changeVisibility(actions.setHiddenIntegrationIds, next)}
+                options={integrationOptions}
+              />
+              <TopologyVisibilityMenu
+                hiddenIds={hiddenServerIds}
+                label="Servidores"
+                onChange={(next) => changeVisibility(actions.setHiddenServerIds, next)}
+                options={serverOptions}
+              />
             </div>
           </div>
-        ) : null}
+          {canEdit ? (
+            <div className="topologyDiagramToolbarGroup topologyDiagramAddGroup">
+              <span className="topologyDiagramToolbarLabel">Adicionar</span>
+              <div className="topologyDiagramCreateNodes">
+                <button
+                  className="secondaryButton"
+                  disabled={!diagram || topologyLoading}
+                  onClick={actions.createElement}
+                  type="button"
+                >
+                  <Box size={15} /> Elemento
+                </button>
+                <button
+                  className="secondaryButton"
+                  disabled={!diagram || topologyLoading}
+                  onClick={actions.createGroup}
+                  type="button"
+                >
+                  <Layers3 size={15} /> Grupo
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );

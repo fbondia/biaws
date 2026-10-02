@@ -152,3 +152,64 @@
   gap: 8px;
   flex: 0 0 auto;
 }
+
+@media (max-width: 1120px) {
+  .filterGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .filterDatePeriod {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 720px) {
+  .issueViewControls {
+    display: grid;
+    align-items: stretch;
+  }
+  .issueViewNavigation {
+    width: 100%;
+  }
+  .issueSectionTabs {
+    flex: 1;
+  }
+  .issueSectionTab {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
+    padding-inline: 8px;
+  }
+  .filterGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .filterGrid > * {
+    grid-column: auto;
+  }
+  .filterFooter {
+    display: grid;
+  }
+  .filterActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .filterActions button {
+    min-width: 0;
+    width: 100%;
+  }
+  .datePeriodOptions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .datePeriodOption {
+    min-width: 0;
+    min-height: 44px;
+    padding-inline: 8px;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .datePeriodOption:nth-child(4n) {
+    border-right: 0;
+  }
+  .datePeriodOption:nth-child(n + 5) {
+    border-bottom: 0;
+  }
+}

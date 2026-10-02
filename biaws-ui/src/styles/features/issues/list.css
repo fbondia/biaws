@@ -26,11 +26,6 @@
   font-size: 13px;
 }
 
-.pagination {
-  display: flex;
-  gap: 8px;
-}
-
 .tableWrap {
   overflow: auto;
   border: 1px solid var(--color-border);
@@ -46,6 +41,7 @@
 
 .issueTable th,
 .issueTable td {
+  overflow-wrap: anywhere;
   border-bottom: 1px solid var(--color-border-subtle);
   padding: 11px 12px;
   text-align: left;
@@ -235,6 +231,7 @@
 }
 
 .issueTagPill {
+  overflow-wrap: anywhere;
   display: inline-flex;
   align-items: center;
   max-width: 100%;
@@ -283,4 +280,128 @@
 
 .emptyTable {
   padding: 28px 12px;
+}
+
+.issueListHeaderActions,
+.issueListCreateActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.issueListHeaderActions {
+  justify-content: flex-end;
+}
+
+.issueMobileSort {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .tableBand {
+    padding: 0 16px 16px;
+  }
+  .tableHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .issueListHeaderActions {
+    flex-wrap: wrap;
+  }
+  .issueListCreateActions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .issueListCreateActions > button {
+    flex: 1;
+  }
+  .issueMobileSort {
+    display: flex;
+    align-items: end;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .tableWrap:has(.issueTable) {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .issueTable {
+    display: block;
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .issueTable thead {
+    display: none;
+  }
+
+  .issueTable tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .issueTable tbody > tr {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .issueTable tr td {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: 10px 12px;
+  }
+
+  .issueTable td::before {
+    content: attr(data-label);
+    color: var(--color-text-subtle);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .issueTable .titleCell,
+  .issueTable .applicationCell,
+  .issueTable .textCell,
+  .issueTable .taxonomyCell,
+  .issueTable .tagsCell {
+    min-width: 0;
+  }
+
+  .issueTable .inlineIssueSelect {
+    width: 100%;
+    max-width: none;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .issueTable .emptyTable {
+    display: block;
+    border: 0;
+    padding: 24px 12px;
+  }
+
+  .issueTable .emptyTable::before {
+    content: none;
+  }
+
+  .issueTable tbody > tr > td:last-child {
+    border-bottom: 0;
+  }
+  .issueMobileSort > .field {
+    flex: 1;
+  }
+  .issueTable tbody > tr:last-child td:not(:last-child) {
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
 }

@@ -354,3 +354,75 @@ button.fileTagChip:hover,
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.filePreviewHeader > div:first-child {
+  min-width: 0;
+}
+.filePreviewHeader > div:last-child {
+  flex: 0 0 auto;
+}
+.filePreviewBody,
+.filePreviewHtml {
+  min-width: 0;
+}
+.fileTagChip {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .fileAttachmentItem {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fileAttachmentActions {
+    flex-wrap: wrap;
+  }
+  .fileTagForm {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+  .fileTagForm input {
+    min-width: 0;
+    flex: 1 1 120px;
+    font-size: 16px;
+  }
+  .filePreviewDialog {
+    width: 100%;
+    height: calc(100dvh - 20px);
+  }
+  .filePreviewHeader {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+  }
+  .filePreviewHeader > div:first-child {
+    flex: 1 1 160px;
+  }
+  .filePreviewHeader h3 {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .filePreviewHeader > div:last-child {
+    margin-left: auto;
+  }
+  .filePreviewBody {
+    padding: 12px;
+    overscroll-behavior: contain;
+  }
+  .filePreviewBody > iframe,
+  .filePreviewHtml > iframe {
+    min-height: 0;
+  }
+  .filePreviewHeader h3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+@media (max-height: 500px) {
+  .filePreviewBody > iframe,
+  .filePreviewHtml > iframe {
+    min-height: 0;
+  }
+}

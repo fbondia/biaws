@@ -563,3 +563,9 @@
     flex-wrap: wrap;
   }
 }
+
+@media (max-width: 720px) {
+  .skillCards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

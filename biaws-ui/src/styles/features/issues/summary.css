@@ -353,3 +353,41 @@
   font-weight: 700;
   text-align: right;
 }
+
+@media (max-width: 720px) {
+  .summaryBand {
+    padding: 0 16px 16px;
+  }
+  .summaryHeader {
+    display: grid;
+  }
+  .summaryMetrics {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .summaryMetrics .metric {
+    flex: 1;
+    min-width: 0;
+  }
+  .summaryDrilldownHeader {
+    flex-wrap: wrap;
+  }
+  .taxonomySummaryRow {
+    grid-template-columns: 26px auto minmax(0, 1fr);
+    gap: 6px;
+    padding-left: min(calc(12px + var(--depth) * 12px), 72px);
+  }
+  .taxonomySummaryMain {
+    flex-wrap: wrap;
+  }
+  .taxonomySummaryIssues {
+    padding-left: min(calc(38px + var(--depth) * 12px), 72px);
+  }
+  .taxonomySummaryIssue {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+  .taxonomySummaryIssueMeta {
+    text-align: left;
+  }
+}

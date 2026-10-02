@@ -6,9 +6,6 @@
   .catalogKnowledgeGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-
-@media (max-width: 1120px) {
   .applicationsCollectionsLayout .resourceCollectionTree,
   .serversCollectionsLayout .resourceCollectionTree {
     max-height: 280px;
@@ -159,7 +156,19 @@
   .catalogDetailHeader {
     padding: var(--space-4);
   }
+  .catalogRuntimeHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .catalogDetailHeader h2 {
+    overflow-wrap: anywhere;
+  }
+  .catalogMonitoringNestedBackdrop > .catalogMonitoringDialog {
+    max-height: 100dvh;
+  }
+}
 
+@media (max-width: 900px) {
   .topologyDiagramBackdrop {
     padding: 0;
   }
@@ -241,5 +250,83 @@
 
   .topologyDiagramCreateNodes {
     width: 100%;
+  }
+  .topologyDiagramDialog > header {
+    flex: 0 0 auto;
+  }
+  .topologyDiagramDialog > header > div {
+    min-width: 0;
+  }
+  .topologyDiagramDialog > header h2 {
+    overflow-wrap: anywhere;
+    font-size: 18px;
+  }
+  .topologyDiagramToolbar {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+  .topologyDiagramToolsToggle {
+    display: flex;
+    justify-content: space-between;
+    margin: var(--space-2) var(--space-3);
+  }
+  .topologyDiagramToolbarBody {
+    display: none;
+    min-height: 0;
+    max-height: min(45dvh, max(44px, calc(100dvh - 320px)));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .topologyDiagramToolbarBody.expanded {
+    display: block;
+  }
+  .topologyDiagramToolbar .field {
+    min-width: 0;
+  }
+  .topologyDiagramVisibilityMenu {
+    min-width: 0;
+  }
+  .topologyDiagramVisibilityPopover {
+    position: static;
+    width: 100%;
+    margin-top: var(--space-2);
+  }
+  .topologyDiagramCreate {
+    max-height: 35dvh;
+    flex: 0 1 auto;
+    overflow-y: auto;
+    flex-wrap: wrap;
+  }
+  .topologyDiagramCanvas {
+    min-height: 160px;
+  }
+  .topologyDiagramCanvas .react-flow__minimap {
+    display: none;
+  }
+  .topologyDiagramCanvas .react-flow__attribution {
+    right: 0;
+  }
+  .topologyDiagramDialog > .errorBox,
+  .topologyDiagramDialog > .warningBox {
+    flex: 0 1 auto;
+    max-height: 20dvh;
+    overflow: auto;
+  }
+  .topologyDiagramCanvas .react-flow__controls-button {
+    width: 36px;
+    height: 36px;
+  }
+  .topologyDiagramBackdrop > .topologyDiagramDialog {
+    max-height: 100dvh;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 500px) {
+  .topologyDiagramCanvas {
+    min-height: 120px;
+  }
+  .topologyDiagramComments {
+    max-height: 90px;
+    overflow-y: auto;
   }
 }

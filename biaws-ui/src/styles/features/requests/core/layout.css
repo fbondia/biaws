@@ -330,6 +330,9 @@
 }
 
 .requestListItemDescription {
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--palette-neutral-17);
   font-size: 0.7rem;
 }

@@ -730,3 +730,10 @@
 .topologyDiagramCanvas .react-flow__attribution {
   right: 315px;
 }
+
+.topologyDiagramToolsToggle {
+  display: none;
+}
+.topologyDiagramToolbarBody {
+  display: contents;
+}

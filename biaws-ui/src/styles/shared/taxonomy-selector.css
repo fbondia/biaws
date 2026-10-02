@@ -345,82 +345,6 @@
   .taxonomyApplicationList {
     grid-template-columns: 1fr;
   }
-  .tableWrap:has(.issueTable) {
-    overflow: visible;
-    border: 0;
-    background: transparent;
-  }
-
-  .issueTable {
-    display: block;
-    min-width: 0;
-    border-collapse: separate;
-  }
-
-  .issueTable thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .issueTable tbody {
-    display: grid;
-    gap: 12px;
-  }
-
-  .issueTable tr {
-    display: grid;
-    overflow: hidden;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface);
-  }
-
-  .issueTable tr td {
-    display: grid;
-    grid-template-columns: minmax(88px, 0.34fr) minmax(0, 1fr);
-    gap: 10px;
-    min-width: 0;
-    border-bottom: 1px solid var(--color-border-subtle);
-    padding: 10px 12px;
-  }
-
-  .issueTable td::before {
-    content: attr(data-label);
-    color: var(--color-text-subtle);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-
-  .issueTable .titleCell,
-  .issueTable .applicationCell,
-  .issueTable .textCell,
-  .issueTable .taxonomyCell,
-  .issueTable .tagsCell {
-    min-width: 0;
-  }
-
-  .issueTable .inlineIssueSelect {
-    width: 100%;
-    max-width: none;
-  }
-
-  .issueTable .emptyTable {
-    display: block;
-    border: 0;
-    padding: 24px 12px;
-  }
-
-  .issueTable .emptyTable::before {
-    content: none;
-  }
-
   .taxonomyColumns {
     height: min(420px, calc(100dvh - 190px));
     min-height: 280px;
@@ -431,6 +355,12 @@
   .taxonomyColumn {
     min-width: min(86vw, 320px);
     scroll-snap-align: start;
+  }
+  .tagCheckGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dialogActions {
+    flex-wrap: wrap;
   }
 }
 
@@ -504,4 +434,10 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 14px;
+}
+
+@media (max-width: 1120px) {
+  .tagCheckGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

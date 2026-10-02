@@ -257,4 +257,59 @@
   .contentBand {
     padding: 16px;
   }
+  .dialogBackdrop > [role="dialog"] {
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: calc(100dvh - 20px);
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    min-width: 0;
+    font-size: 16px;
+  }
+  .primaryButton,
+  .secondaryButton,
+  .dangerButton,
+  .iconButton,
+  .tab,
+  .detailTab {
+    min-height: 44px;
+  }
+  .iconButton {
+    width: 44px;
+    height: 44px;
+  }
+  .primaryButton,
+  .secondaryButton,
+  .dangerButton {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    padding-block: 6px;
+  }
+  .primaryButton > svg,
+  .secondaryButton > svg,
+  .dangerButton > svg {
+    flex: 0 0 auto;
+  }
+  .detailTabs {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+  .detailTab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .panelHeader > div {
+    min-width: 0;
+  }
+}
+
+.pagination {
+  display: flex;
+  gap: 8px;
 }

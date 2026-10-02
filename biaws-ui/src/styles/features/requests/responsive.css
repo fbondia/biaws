@@ -1,54 +1,6 @@
 @media (max-width: 1120px) {
-  .filterGrid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-
-  .filterCode {
-    grid-column: span 2;
-  }
-
-  .filterText {
-    grid-column: span 4;
-  }
-
-  .filterDatePeriod {
-    grid-column: span 6;
-  }
-
-  .filterDateField,
-  .filterFrom,
-  .filterTo {
-    grid-column: span 2;
-  }
-
-  .filterFooter {
-    grid-column: 1 / -1;
-  }
-
-  .summaryBand {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .aggregateArea {
-    grid-column: 1 / -1;
-  }
-
-  .detailGrid {
-    grid-template-columns: repeat(2, minmax(140px, 1fr));
-  }
-
-  .tagFilterGroups {
-    grid-template-columns: 1fr;
-  }
-
-  .tagCheckGrid {
-    grid-template-columns: repeat(2, minmax(140px, 1fr));
-  }
-
-  .taxonomyMetrics,
-  .requestsLayout,
   .requestMetrics {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .requestsMobileTabs {
@@ -89,14 +41,6 @@
     position: static;
   }
 
-  .requestFormGrid {
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
-  }
-
-  .requestDetailsGrid {
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
-  }
-
   .requestCodeField,
   .requestTitleField,
   .requestDetailTitle,
@@ -105,52 +49,24 @@
     grid-column: auto;
   }
 
+  .requestTaskDialog {
+    max-height: calc(100dvh - 20px);
+  }
+  .requestFormGrid,
+  .requestDetailsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .requestFormGrid > .catalogContextField {
+    grid-column: auto;
+  }
   .requestChecklistItem,
   .readOnlyChecklistItem,
   .requestBillingRow {
-    grid-template-columns:
-      minmax(180px, 0.8fr) minmax(120px, 0.35fr) minmax(120px, 0.35fr)
-      minmax(220px, 1fr);
-  }
-
-  .requestTaskDialog {
-    max-height: calc(100dvh - 20px);
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 720px) {
-  .topBar,
-  .contentBand,
-  .summaryBand,
-  .tableBand,
-  .requestsPage {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .topBar {
-    align-items: flex-start;
-    display: grid;
-  }
-
-  .topBarHeading {
-    display: flex;
-    width: 100%;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .mobileMenuButton.iconButton {
-    display: inline-flex;
-  }
-
-  .topBarActions {
-    display: none;
-    width: 100%;
-  }
-
-  .topBarActions.mobileMenuOpen,
   .requestsHero,
   .requestDetailTabsBar {
     display: grid;
@@ -159,57 +75,23 @@
 
   .requestDetailActions {
     justify-content: stretch;
+    flex-wrap: wrap;
   }
 
   .requestDetailActions button {
     flex: 1;
   }
 
-  .viewTabs {
-    display: grid;
-    width: 100%;
-    align-items: stretch;
-  }
-
-  .viewTab {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .navigationMenu {
-    width: 100%;
-  }
-
-  .navigationSubmenu {
-    position: static;
-    min-width: 0;
-    margin-top: 4px;
-    box-shadow: none;
-  }
-
-  .filterGrid,
-  .summaryBand,
-  .taxonomyMetrics,
   .requestsLayout,
   .requestMetrics,
   .requestFormGrid,
   .requestDetailsGrid,
   .requestChecklistItem,
+  .readOnlyChecklistItem,
   .requestBillingRow,
   .requestNoteReadHeader,
   .requestScheduleMain {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .tagGroupsWorkspace,
-  .tagGroupFields,
-  .tagGroupTagsSection {
-    grid-template-columns: 1fr;
-  }
-
-  .tagGroupNavigation {
-    border-right: 0;
-    border-bottom: 1px solid var(--color-border-subtle);
   }
 
   .requestNoteActions {
@@ -240,152 +122,68 @@
     grid-column: auto;
   }
 
-  .requestTaskCardHeader,
-  .requestTaskDialogFooter {
+  .requestTaskCardHeader {
     display: grid;
   }
 
+  .requestTaskDialogFooter,
   .requestTaskDialogFooter > div {
-    display: grid;
-  }
-
-  .filterCode,
-  .filterText,
-  .filterDatePeriod,
-  .filterDateField,
-  .filterFrom,
-  .filterTo,
-  .filterFooter,
-  .aggregateArea {
-    grid-column: auto;
-  }
-
-  .datePeriodOptions {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .datePeriodOption {
-    min-width: 0;
-    min-height: 38px;
-    border-bottom: 1px solid var(--color-border);
-    padding-inline: 8px;
-  }
-
-  .datePeriodOption:nth-child(4n) {
-    border-right: 0;
-  }
-
-  .datePeriodOption:nth-child(n + 5) {
-    border-bottom: 0;
-  }
-
-  .filterFooter {
-    display: grid;
-    gap: 10px;
-  }
-
-  .issueViewControls,
-  .issueSectionTabs {
-    width: 100%;
-  }
-
-  .issueViewNavigation {
     display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .issueViewNavigation .issueSectionTabs {
-    width: auto;
-    flex: 1;
-  }
-
-  .issueViewControls {
-    align-items: stretch;
-    display: grid;
-  }
-
-  .filterActions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    justify-content: stretch;
-  }
-
-  .filterActions button {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .summaryHeader {
-    display: grid;
-  }
-
-  .summaryMetrics {
-    width: 100%;
-  }
-
-  .summaryMetrics .metric {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .taxonomySummaryRow {
-    grid-template-columns: 26px auto minmax(0, 1fr);
-    gap: 6px;
-  }
-
-  .taxonomySummaryIssues {
-    padding-left: calc(38px + (var(--depth) * 12px));
-  }
-
-  .taxonomySummaryIssue {
-    grid-template-columns: 1fr;
-    gap: 3px;
-  }
-
-  .taxonomySummaryIssueMeta {
-    text-align: left;
-  }
-
-  .inlineForm,
-  .treeActions {
-    grid-template-columns: 1fr;
+    flex-wrap: wrap;
+    max-width: 100%;
   }
 
   .requestWorkArea {
     grid-column: auto;
   }
-
-  .issueDialog {
-    max-height: calc(100dvh - 20px);
+  .requestsPage {
+    padding-inline: 16px;
   }
-
-  .dialogHeader,
-  .dialogBody {
-    padding-left: 14px;
-    padding-right: 14px;
+  .requestListPanel .panelHeader {
+    flex-wrap: wrap;
   }
-
-  .detailGrid {
-    grid-template-columns: 1fr;
+  .requestListPanel .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
   }
-
-  .detailTaxonomyCard,
-  .detailTagsCard {
-    grid-column: auto;
+  .requestCollectionToolbar,
+  .requestCollectionPagination {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
-
-  .commentItem header {
-    display: grid;
+  .requestCollectionToolbar .filterDialogTriggerButton {
+    width: 100%;
+    min-width: 0;
+    flex-basis: 100%;
   }
-
-  .tagCheckGrid {
-    grid-template-columns: 1fr;
+  .requestSpecificationReadHeader,
+  .requestSpecificationSectionHeader {
+    grid-template-columns: minmax(0, 1fr);
   }
+  .requestSpecificationSectionActions {
+    flex-wrap: wrap;
+  }
+  .requestNoteDialogFooter,
+  .requestStatusChangeDialogFooter {
+    flex-wrap: wrap;
+  }
+}
 
-  .dialogActions {
-    display: grid;
+@media (max-width: 720px) {
+  .requestTaskDialog {
+    width: 100%;
+    height: calc(100dvh - 20px);
+  }
+  .requestTaskDialogHeader > div {
+    min-width: 0;
+  }
+  .requestTaskDates {
+    flex-wrap: wrap;
+  }
+  .requestTaskList + .panelHeader,
+  .requestPanel > .panelHeader {
+    flex-wrap: wrap;
   }
 }

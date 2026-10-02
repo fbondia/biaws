@@ -5,6 +5,9 @@
 
 .requestTaskCard {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  overflow-wrap: anywhere;
   gap: 8px;
   width: 100%;
   border: 1px solid var(--color-border);
@@ -41,6 +44,7 @@
 
 .requestTaskCardTitle {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 2px;
   min-width: 0;
 }
@@ -101,6 +105,7 @@
 .requestTaskDialogHeader,
 .requestTaskDialogFooter {
   display: flex;
+  flex: 0 0 auto;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
@@ -119,6 +124,7 @@
 }
 
 .requestTaskDialogHeader h3 {
+  overflow-wrap: anywhere;
   margin: 4px 0 0;
   color: var(--color-text);
   font-size: 18px;
@@ -126,7 +132,8 @@
 
 .requestTaskDialogBody {
   flex: 1;
-  min-height: 320px;
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
   padding: 16px 18px;
 }

@@ -12,33 +12,58 @@ const SORTABLE_COLUMNS = [
 
 export function IssueTable({ items, loading, onSort, sort, ...rowProps }) {
   return (
-    <div className="tableWrap">
-      <table className="issueTable">
-        <thead>
-          <tr>
+    <>
+      <div className="issueMobileSort">
+        <label className="field">
+          <span>Ordenar por</span>
+          <select disabled={loading} onChange={(event) => onSort(event.target.value)} value={sort.replace(/^-/, "")}>
             {SORTABLE_COLUMNS.map(([field, label]) => (
-              <SortableHeader field={field} key={field} label={label} loading={loading} onSort={onSort} sort={sort} />
+              <option key={field} value={field}>
+                {label}
+              </option>
             ))}
-            <th>Aplicação</th>
-            <th>Assuntos</th>
-            <th>Tags</th>
-            <th>Texto</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((issue) => (
-            <IssueTableRow {...rowProps} issue={issue} key={issue.id || issue._id} loading={loading} />
-          ))}
-          {!loading && items.length === 0 ? (
+          </select>
+        </label>
+        <button
+          aria-label={
+            sort.startsWith("-") ? "Ordenação decrescente. Usar crescente" : "Ordenação crescente. Usar decrescente"
+          }
+          className="iconButton"
+          disabled={loading}
+          onClick={() => onSort(sort.replace(/^-/, ""))}
+          type="button"
+        >
+          {sort.startsWith("-") ? <ArrowDown size={18} /> : <ArrowUp size={18} />}
+        </button>
+      </div>
+      <div className="tableWrap">
+        <table className="issueTable">
+          <thead>
             <tr>
-              <td className="emptyTable" colSpan="9">
-                Nenhuma issue encontrada.
-              </td>
+              {SORTABLE_COLUMNS.map(([field, label]) => (
+                <SortableHeader field={field} key={field} label={label} loading={loading} onSort={onSort} sort={sort} />
+              ))}
+              <th>Aplicação</th>
+              <th>Assuntos</th>
+              <th>Tags</th>
+              <th>Texto</th>
             </tr>
-          ) : null}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {items.map((issue) => (
+              <IssueTableRow {...rowProps} issue={issue} key={issue.id || issue._id} loading={loading} />
+            ))}
+            {!loading && items.length === 0 ? (
+              <tr>
+                <td className="emptyTable" colSpan="9">
+                  Nenhuma issue encontrada.
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 

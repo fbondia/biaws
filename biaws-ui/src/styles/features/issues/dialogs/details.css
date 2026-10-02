@@ -139,3 +139,22 @@
   color: var(--color-text-subtle);
   font-size: 12px;
 }
+
+@media (max-width: 1120px) {
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .detailTaxonomyCard,
+  .detailTagsCard {
+    grid-column: 1 / -1;
+  }
+  .sectionTitleRow {
+    flex-wrap: wrap;
+  }
+}

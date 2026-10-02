@@ -8,7 +8,7 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
-- Auditoria passa a suportar retenção por instância em
+- API atualizada de `0.8.1` para `0.9.0`: auditoria passa a suportar retenção por instância em
   `BIAWS_AUDIT_RETENTION_DAYS`, com padrão indefinido (`0`) e índice TTL sobre
   `expiresAt`. O script `scripts/recalculate-audit-retention.sh` simula ou aplica
   a política ao histórico em lotes, preservando `occurredAt`.

@@ -3,7 +3,7 @@
   "version": "0.7.1",
   "deploymentRevision": 1,
   "components": {
-    "biaws-api": "0.8.1",
+    "biaws-api": "0.9.0",
     "biaws-ui": "0.6.2",
     "biaws-monitor-executor": "0.1.0"
   }

@@ -159,6 +159,10 @@ async function initializeAuth() {
     advanced: {
       cookiePrefix: "biaws",
       useSecureCookies: config.secureCookies,
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+      },
       ipAddress: {
         trustedProxies: config.trustedProxies,
       },

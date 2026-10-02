@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 
 import { ALL_STATUS_OPTIONS } from "../../../../constants/issues.js";
 import { formatDate, statusClass } from "../../../../utils/issues.js";
@@ -14,6 +14,7 @@ export function IssueDetailsLayout({
   issue,
   loading,
   onClose,
+  onEditIdentity,
   onUpdateIssueField,
   persistedClassification,
   selectedTagEntries,
@@ -31,6 +32,9 @@ export function IssueDetailsLayout({
           <div className="dialogTitleBlock">
             <div className="dialogKicker">
               <EntityIdentifier fallback="Issue" label="Código do issue" value={issue.id} variant="chip" />
+              {issue.identifier ? (
+                <EntityIdentifier label="Identificador do issue" value={issue.identifier} variant="chip" />
+              ) : null}
               <span className="typeBadge">
                 <TypeIcon size={14} />
                 {typeLabel}
@@ -54,7 +58,22 @@ export function IssueDetailsLayout({
                 ))}
               </select>
             </div>
-            <h2 id="issue-dialog-title">{issue.title || "Detalhes do issue"}</h2>
+            <div className="issueDialogTitleRow">
+              <h2 id="issue-dialog-title">{issue.title || "Detalhes do issue"}</h2>
+              {onEditIdentity ? (
+                <button
+                  aria-label="Editar identificador e título"
+                  className="iconButton"
+                  data-dialog-initial-focus
+                  disabled={loading || !issue.id}
+                  onClick={onEditIdentity}
+                  title="Editar identificador e título"
+                  type="button"
+                >
+                  <Pencil aria-hidden="true" size={16} />
+                </button>
+              ) : null}
+            </div>
           </div>
           <button className="iconButton" type="button" onClick={onClose} title="Fechar">
             <X size={18} />

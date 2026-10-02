@@ -8,6 +8,9 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- UI permite editar o identificador de negócio e o título de uma issue pelo
+  ícone ao lado do título no diálogo de detalhes, respeitando `issues.update`.
+
 - UI atualizada de `0.6.1` para `0.6.2`, com correções de responsividade nas
   listagens e detalhes de issues e melhorias, visualização de arquivos,
   documentação, topologia e componentes compartilhados para uso em dispositivos

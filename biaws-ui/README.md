@@ -56,6 +56,9 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
 - Resumos agregados por data, semana, mês, ano, tipo e status
 - Gerenciamento da taxonomia de issues com upload de JSON, rascunho local e gravação do pacote inteiro via `PUT /api/issues/taxonomy`
 - Classificação de issue no diálogo de detalhes, com taxonomia principal, taxonomias secundárias e tags por grupo gravadas em `issues.classification`
+- Edição do identificador de negócio e do título pelo ícone junto ao título nos
+  detalhes da issue, com permissão `issues.update`. O diálogo permite remover o
+  identificador e atualiza os detalhes e a listagem após salvar.
 - Resumo em Markdown na aba Descrição, antes da descrição completa, com salvamento
   independente dos assuntos e tags da aba KB.
 - Imagens dos anexos exibidas no resumo, na descrição e nos comentários quando

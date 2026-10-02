@@ -1,0 +1,20 @@
+.issueIdentityDialogBackdrop {
+  align-items: center;
+  z-index: var(--z-nested-dialog);
+}
+
+.issueIdentityDialog {
+  width: min(560px, 100%);
+}
+
+.issueIdentityDialog .errorBox {
+  margin: 0;
+}
+
+.issueIdentityDialog small {
+  color: var(--color-text-subtle);
+}
+
+.issueIdentityDialog [aria-invalid="true"] + small {
+  color: var(--color-danger-text);
+}

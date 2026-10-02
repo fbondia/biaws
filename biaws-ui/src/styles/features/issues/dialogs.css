@@ -1,6 +1,7 @@
 @import "./dialogs/base.css";
 @import "./dialogs/import.css";
 @import "./dialogs/create.css";
+@import "./dialogs/identity.css";
 @import "./dialogs/sanitization.css";
 @import "./dialogs/details.css";
 @import "./dialogs/comments.css";

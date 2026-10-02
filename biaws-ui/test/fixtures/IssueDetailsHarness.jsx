@@ -10,7 +10,7 @@ import "../../src/styles/features/issues/index.css";
 export { act } from "react";
 export { mountMarkdownPreview } from "./MarkdownPreviewHarness.jsx";
 
-export function mountIssueDetails(element, initialDetails, onIssueUpdated = () => {}) {
+export function mountIssueDetails(element, initialDetails, onIssueUpdated = () => {}, options = {}) {
   const root = createRoot(element);
   const resetSession = configureApiSession({ getWorkspaceId: () => "synthetic-workspace" });
   function Harness() {
@@ -18,10 +18,11 @@ export function mountIssueDetails(element, initialDetails, onIssueUpdated = () =
     return (
       <MessagesProvider>
         <IssueDetailsDialog
-          canEditContext
+          canEditContext={options.canEditContext ?? true}
           canCreateComment
           canUpdateComment
           details={details}
+          loading={options.loading}
           onClose={() => {}}
           onIssueDetailsUpdated={setDetails}
           onIssueUpdated={(issue) => {

@@ -39,6 +39,17 @@
   min-width: 0;
 }
 
+.issueDialogTitleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.issueDialogTitleRow h2 {
+  min-width: 0;
+  align-self: center;
+}
+
 .dialogKicker {
   display: flex;
   flex-wrap: wrap;

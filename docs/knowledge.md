@@ -14,7 +14,7 @@ ele define validação, template, metadados específicos e ciclo de vida.
 | `guideline`             | Diretrizes e padrões de desenvolvimento                        | `draft`, `published`, `deprecated`, `archived`               |
 | `feature`               | Descrição funcional e técnica aprofundada de uma capacidade    | `draft`, `published`, `deprecated`, `archived`               |
 | `technical-reference`   | Arquitetura atual, contratos, schemas, protocolos e mecanismos | `draft`, `published`, `deprecated`, `archived`               |
-| `procedure`             | Instruções operacionais reutilizáveis                           | `draft`, `published`, `deprecated`, `archived`               |
+| `procedure`             | Instruções operacionais reutilizáveis                          | `draft`, `published`, `deprecated`, `archived`               |
 
 Regras, decisões e features exigem uma aplicação. Guidelines, referências
 técnicas e procedimentos também podem existir no escopo geral do workspace.
@@ -64,6 +64,25 @@ Auto-referências, duplicatas e alvos fora do escopo autorizado são recusados.
 `definedAt`, `lastReviewedAt`, `nextReviewAt` e `reviewedBy` distinguem vigência
 conceitual das datas técnicas. Cada alteração cria uma revisão imutável;
 observações são append-only.
+
+## Arquivos no Markdown
+
+Depois de salvar o documento, envie seus anexos pela aba **Arquivos**. No editor
+do conteúdo ou de uma observação, o seletor **Imagem** insere uma imagem no corpo
+do texto, e **Anexo** insere um link de download para qualquer arquivo:
+
+```markdown
+![Captura de tela](attachment:id-da-imagem)
+[Manual em PDF](attachment:id-do-anexo)
+```
+
+As referências usam o ID do arquivo e funcionam na leitura do documento,
+na prévia do editor e nas observações. As imagens também aceitam referências
+por nome (`[anexo: captura.png]`) ou CID, desde que identifiquem um único anexo.
+O acesso ao conteúdo exige a permissão `documents.attachments.read` e usa a API
+autenticada no workspace atual. Outros arquivos são carregados somente ao
+acionar o download. Referências ausentes, ambíguas ou sem permissão de leitura
+permanecem como texto.
 
 ## API, MCP e contexto
 

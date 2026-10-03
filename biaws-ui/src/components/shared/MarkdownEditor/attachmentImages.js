@@ -14,7 +14,7 @@ function normalizeCid(value) {
     .replace(/^<|>$/gu, "");
 }
 
-export function resolveAttachmentImage(reference, attachments = []) {
+export function resolveAttachment(reference, attachments = []) {
   const value = String(reference || "").trim();
   let matches;
   if (/^attachment:/iu.test(value)) {
@@ -31,10 +31,25 @@ export function resolveAttachmentImage(reference, attachments = []) {
       matches = attachments.filter((file) => String(file.filename || "").normalize("NFC") === decoded);
     }
   }
-  return matches.length === 1 && previewKind(matches[0]) === "image" ? matches[0] : null;
+  return matches.length === 1 ? matches[0] : null;
+}
+
+export function resolveAttachmentImage(reference, attachments = []) {
+  const attachment = resolveAttachment(reference, attachments);
+  return attachment && previewKind(attachment) === "image" ? attachment : null;
+}
+
+export function attachmentLinkMarkdown(file) {
+  const label =
+    String(file.filename || "Anexo")
+      .replace(/[\[\]\r\n]/gu, " ")
+      .trim() || "Anexo";
+  const id = encodeURIComponent(file.id ?? file.index).replace(/[()]/gu, (character) =>
+    character === "(" ? "%28" : "%29",
+  );
+  return `[${label}](attachment:${id})`;
 }
 
 export function attachmentImageMarkdown(file) {
-  const alt = String(file.filename || "Imagem").replace(/[\[\]\r\n]/gu, " ");
-  return `![${alt}](attachment:${encodeURIComponent(file.id ?? file.index)})`;
+  return `!${attachmentLinkMarkdown({ ...file, filename: file.filename || "Imagem" })}`;
 }

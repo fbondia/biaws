@@ -43,7 +43,7 @@ for (const file of markdownFiles(root)) {
     if (target.startsWith("<") && target.endsWith(">")) {
       target = target.slice(1, -1);
     }
-    if (/^(?:https?:|mailto:|#)/u.test(target)) continue;
+    if (/^(?:https?:|mailto:|attachment:|cid:|#)/iu.test(target)) continue;
     target = target.split("#", 1)[0];
     if (!target) continue;
     const resolved = path.resolve(path.dirname(file), decodeURI(target));

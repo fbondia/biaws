@@ -68,6 +68,14 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
   importados). Referências por nome ou CID precisam identificar um único arquivo;
   anexos ausentes, ambíguos ou de outros tipos permanecem como texto. O conteúdo
   é buscado pela API com autenticação, workspace e permissão de leitura de anexos.
+- Conteúdo e observações das documentações também exibem imagens dos anexos e
+  permitem selecioná-las no editor. Envie os arquivos pela aba Arquivos de um
+  documento salvo antes de inseri-los no Markdown.
+- O seletor Anexo dos editores com anexos permite inserir links para baixar
+  qualquer tipo de arquivo, inclusive imagens, usando
+  `[Nome do arquivo](attachment:identificador)`. O download busca o conteúdo
+  somente ao clicar, pela mesma API autenticada. Referências indisponíveis ou
+  ambíguas permanecem como texto, e falhas de download permitem nova tentativa.
 - Comentários sem data conhecida exibem “Data não identificada” e podem ser
   salvos com o campo de data vazio. Editar apenas o texto preserva a data e o
   horário existentes, inclusive uma data desconhecida (`null`).

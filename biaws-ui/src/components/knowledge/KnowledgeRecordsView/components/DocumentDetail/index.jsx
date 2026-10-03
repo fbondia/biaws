@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
+import { fetchEntityAttachment } from "../../../../../api.js";
 import { AuditHistory } from "../../../../shared/AuditHistory.jsx";
 import { MarkdownEditor } from "../../../../shared/MarkdownEditor/index.jsx";
 import { guidelineScope, DOCUMENT_TYPES } from "../../model.js";
@@ -31,6 +32,7 @@ function DocumentTabContent({
   observationDraft,
   observations,
   onChange,
+  onLoadAttachment,
   onSave,
   referenceOptions,
   refreshKey,
@@ -56,7 +58,12 @@ function DocumentTabContent({
       return (
         <div className="dialogForm knowledgeRecordPanel">
           <div className="field">
-            <MarkdownEditor onChange={(markdown) => onChange({ ...draft, markdown })} value={draft.markdown} />
+            <MarkdownEditor
+              attachments={draft.attachments}
+              onChange={(markdown) => onChange({ ...draft, markdown })}
+              onLoadAttachment={onLoadAttachment}
+              value={draft.markdown}
+            />
           </div>
         </div>
       );
@@ -75,11 +82,13 @@ function DocumentTabContent({
     case "observations":
       return (
         <DocumentObservations
+          attachments={draft.attachments}
           canUpdate={canUpdate}
           observationDraft={observationDraft}
           observations={observations}
           onAdd={addObservation}
           onDraftChange={setObservationDraft}
+          onLoadAttachment={onLoadAttachment}
         />
       );
     case "revisions":
@@ -120,6 +129,11 @@ export function DocumentDetail({
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [replicationDialogOpen, setReplicationDialogOpen] = useState(false);
   const { contentRef, exportMarkdown, exportPdf } = useDocumentExports(draft);
+  const loadAttachment = useCallback(
+    (attachment) => fetchEntityAttachment("knowledge/documents", draft.id, attachment),
+    [draft.id],
+  );
+  const onLoadAttachment = draft.id && canReadAttachments ? loadAttachment : undefined;
   const {
     addObservation,
     observationDraft,
@@ -181,6 +195,7 @@ export function DocumentDetail({
         observationDraft={observationDraft}
         observations={observations}
         onChange={onChange}
+        onLoadAttachment={onLoadAttachment}
         onSave={onSave}
         referenceOptions={referenceOptions}
         refreshKey={refreshKey}
@@ -209,6 +224,7 @@ export function DocumentDetail({
         config={config}
         contentRef={contentRef}
         draft={draft}
+        onLoadAttachment={onLoadAttachment}
         onExport={() => setExportDialogOpen(true)}
         onReplicate={
           workspaces.some(({ id }) => id !== currentWorkspaceId) ? () => setReplicationDialogOpen(true) : undefined

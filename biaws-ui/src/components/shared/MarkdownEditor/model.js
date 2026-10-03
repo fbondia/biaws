@@ -270,6 +270,8 @@ export function renderInlineMarkdownHtml(text) {
       if (token.type === "code") return `<code>${escapeHtml(token.text)}</code>`;
       if (token.type === "strong") return `<strong>${escapeHtml(token.text)}</strong>`;
       if (token.type === "emphasis") return `<em>${escapeHtml(token.text)}</em>`;
+      if (token.type === "link" && /^(attachment:|cid:|anexo:)/iu.test(token.href))
+        return escapeHtml(`[${token.text}](${token.href})`);
       if (token.type === "link")
         return `<a href="${escapeHtmlAttribute(safeMarkdownHref(token.href))}">${escapeHtml(token.text)}</a>`;
       return escapeHtml(token.raw ?? token.text);

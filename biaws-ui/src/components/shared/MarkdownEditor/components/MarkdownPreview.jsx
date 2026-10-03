@@ -1,6 +1,7 @@
-import { resolveAttachmentImage } from "../attachmentImages.js";
+import { resolveAttachment, resolveAttachmentImage } from "../attachmentImages.js";
 import { parseInlineMarkdown, parseMarkdownBlocks, safeMarkdownHref, splitTableRow } from "../model.js";
 import { MarkdownAttachmentImage } from "./MarkdownAttachmentImage.jsx";
+import { MarkdownAttachmentLink } from "./MarkdownAttachmentLink.jsx";
 import { MarkdownBlockViewer } from "./MarkdownBlockViewer.jsx";
 
 export function MarkdownPreview({ value, attachments, onLoadAttachment }) {
@@ -95,6 +96,16 @@ function renderInlineMarkdown(text, { attachments, onLoadAttachment }) {
     if (token.type === "code") return <code key={index}>{token.text}</code>;
     if (token.type === "strong") return <strong key={index}>{token.text}</strong>;
     if (token.type === "emphasis") return <em key={index}>{token.text}</em>;
+    if (token.type === "link" && /^(attachment:|cid:|anexo:)/iu.test(token.href)) {
+      const attachment = onLoadAttachment && resolveAttachment(token.href, attachments);
+      return attachment ? (
+        <MarkdownAttachmentLink attachment={attachment} key={index} onLoadAttachment={onLoadAttachment}>
+          {token.text}
+        </MarkdownAttachmentLink>
+      ) : (
+        `[${token.text}](${token.href})`
+      );
+    }
     if (token.type === "link")
       return (
         <a href={safeMarkdownHref(token.href)} key={index} rel="noreferrer" target="_blank">

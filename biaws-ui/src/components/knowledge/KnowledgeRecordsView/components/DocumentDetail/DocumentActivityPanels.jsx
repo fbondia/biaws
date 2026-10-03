@@ -1,14 +1,27 @@
 import { MarkdownEditor, MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
 import { todayIso } from "../../models/documentModel.js";
 
-export function DocumentObservations({ canUpdate, observationDraft, observations, onAdd, onDraftChange }) {
+export function DocumentObservations({
+  attachments,
+  canUpdate,
+  observationDraft,
+  observations,
+  onAdd,
+  onDraftChange,
+  onLoadAttachment,
+}) {
   return (
     <div className="dialogForm knowledgeRecordPanel">
       {canUpdate ? (
         <>
           <div className="field">
             <span>Nova observação</span>
-            <MarkdownEditor onChange={onDraftChange} value={observationDraft} />
+            <MarkdownEditor
+              attachments={attachments}
+              onChange={onDraftChange}
+              onLoadAttachment={onLoadAttachment}
+              value={observationDraft}
+            />
           </div>
           <button className="primaryButton" disabled={!observationDraft.trim()} onClick={() => onAdd()} type="button">
             Adicionar observação
@@ -20,7 +33,7 @@ export function DocumentObservations({ canUpdate, observationDraft, observations
           <small>
             {new Date(observation.createdAt).toLocaleString("pt-BR")} · {observation.createdBy}
           </small>
-          <MarkdownPreview value={observation.markdown} />
+          <MarkdownPreview attachments={attachments} onLoadAttachment={onLoadAttachment} value={observation.markdown} />
         </article>
       ))}
     </div>

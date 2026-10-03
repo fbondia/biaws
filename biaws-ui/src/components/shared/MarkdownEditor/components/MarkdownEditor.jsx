@@ -1,9 +1,9 @@
-import { Check, Copy, Eye, FileText, ImagePlus, Maximize2, X } from "lucide-react";
+import { Check, Copy, Eye, FileText, ImagePlus, Maximize2, Paperclip, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { markdownToHtml } from "../model.js";
-import { attachmentImageMarkdown } from "../attachmentImages.js";
+import { attachmentImageMarkdown, attachmentLinkMarkdown } from "../attachmentImages.js";
 import { previewKind } from "../../filePreviewModel.js";
 import { MarkdownPreview } from "./MarkdownPreview.jsx";
 
@@ -25,9 +25,8 @@ export function MarkdownEditor({
   const textareaRef = useRef(null);
   const copyResetTimerRef = useRef(null);
   const insertionCursorRef = useRef(null);
-  const imageAttachments = attachments.filter(
-    (file) => previewKind(file) === "image" && (file.id ?? file.index) !== undefined,
-  );
+  const availableAttachments = attachments.filter((file) => (file.id ?? file.index) != null);
+  const imageAttachments = availableAttachments.filter((file) => previewKind(file) === "image");
 
   useLayoutEffect(() => {
     if (mode !== "text") return;
@@ -52,15 +51,16 @@ export function MarkdownEditor({
 
   useEffect(() => () => window.clearTimeout(copyResetTimerRef.current), []);
 
-  function insertAttachmentImage(id) {
-    const file = imageAttachments.find((attachment) => String(attachment.id ?? attachment.index) === id);
+  function insertAttachment(id, asImage = false) {
+    const files = asImage ? imageAttachments : availableAttachments;
+    const file = files.find((attachment) => String(attachment.id ?? attachment.index) === id);
     if (!file) return;
     const text = String(value || "");
     const start = textareaRef.current?.selectionStart ?? text.length;
     const end = textareaRef.current?.selectionEnd ?? text.length;
-    const image = attachmentImageMarkdown(file);
-    insertionCursorRef.current = start + image.length;
-    onChange(`${text.slice(0, start)}${image}${text.slice(end)}`);
+    const reference = asImage ? attachmentImageMarkdown(file) : attachmentLinkMarkdown(file);
+    insertionCursorRef.current = start + reference.length;
+    onChange(`${text.slice(0, start)}${reference}${text.slice(end)}`);
     setMode("text");
   }
 
@@ -138,11 +138,28 @@ export function MarkdownEditor({
             <ImagePlus aria-hidden="true" size={15} />
             <select
               aria-label="Inserir imagem de anexo"
-              onChange={(event) => insertAttachmentImage(event.target.value)}
+              onChange={(event) => insertAttachment(event.target.value, true)}
               value=""
             >
               <option value="">Imagem</option>
               {imageAttachments.map((file) => (
+                <option key={file.id ?? file.index} value={String(file.id ?? file.index)}>
+                  {file.filename}
+                </option>
+              ))}
+            </select>
+          </span>
+        ) : null}
+        {availableAttachments.length && onLoadAttachment ? (
+          <span className="markdownEditorTab markdownAttachmentPicker" title="Inserir link para anexo">
+            <Paperclip aria-hidden="true" size={15} />
+            <select
+              aria-label="Inserir link para anexo"
+              onChange={(event) => insertAttachment(event.target.value)}
+              value=""
+            >
+              <option value="">Anexo</option>
+              {availableAttachments.map((file) => (
                 <option key={file.id ?? file.index} value={String(file.id ?? file.index)}>
                   {file.filename}
                 </option>

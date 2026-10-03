@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   attachmentImageMarkdown,
+  attachmentLinkMarkdown,
+  resolveAttachment,
   resolveAttachmentImage,
 } from "../src/components/shared/MarkdownEditor/attachmentImages.js";
 import { markdownToHtml, parseInlineMarkdown } from "../src/components/shared/MarkdownEditor/model.js";
@@ -67,6 +69,28 @@ test("editor creates stable references even for filenames containing brackets", 
     "![captura  1 .png](attachment:image-one)",
   );
   assert.equal(attachmentImageMarkdown({ index: 7, filename: "foto.jpg" }), "![foto.jpg](attachment:7)");
+});
+
+test("download links resolve every attachment type without relaxing inline image restrictions", () => {
+  const files = [image, pdf, { index: 0, filename: "dados.csv", contentType: "text/csv" }];
+  assert.equal(resolveAttachment("attachment:document-one", files), pdf);
+  assert.equal(resolveAttachment("attachment:0", files), files[2]);
+  assert.equal(resolveAttachment("anexo: manual.pdf", files), pdf);
+  assert.equal(resolveAttachment("attachment:image-one", files), image);
+  assert.equal(resolveAttachment("attachment:missing", files), null);
+  assert.equal(resolveAttachment("anexo: manual.pdf", [...files, { ...pdf, id: "duplicate" }]), null);
+  assert.equal(resolveAttachmentImage("attachment:document-one", files), null);
+  assert.equal(attachmentLinkMarkdown(pdf), "[manual.pdf](attachment:document-one)");
+  assert.equal(attachmentLinkMarkdown(files[2]), "[dados.csv](attachment:0)");
+});
+
+test("download links encode IDs and preserve references in formatted copies without dead links", () => {
+  const file = { id: "arquivo (1)/á", filename: "manual [1]\n.pdf" };
+  const markdown = attachmentLinkMarkdown(file);
+  const [token] = parseInlineMarkdown(markdown);
+  assert.equal(token.type, "link");
+  assert.equal(resolveAttachment(token.href, [file]), file);
+  assert.equal(markdownToHtml(markdown), `<p>${markdown}</p>`);
 });
 
 test("Markdown image tokens coexist with links and remain literal inside code", () => {

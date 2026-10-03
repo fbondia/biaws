@@ -96,7 +96,15 @@ export function KnowledgeRecordFooter({ canArchive, canDelete, canRestore, draft
   );
 }
 
-export function KnowledgeDocumentReading({ config, contentRef, draft, onExport, onReplicate, onShowDetails }) {
+export function KnowledgeDocumentReading({
+  config,
+  contentRef,
+  draft,
+  onExport,
+  onLoadAttachment,
+  onReplicate,
+  onShowDetails,
+}) {
   const TypeIcon = config.icon;
   return (
     <section className="resourceCollectionContent knowledgeRecordDetail knowledgeDocumentReading">
@@ -124,7 +132,7 @@ export function KnowledgeDocumentReading({ config, contentRef, draft, onExport, 
         </div>
       </header>
       <article className="knowledgeDocumentMarkdown" ref={contentRef}>
-        <MarkdownPreview value={draft.markdown} />
+        <MarkdownPreview attachments={draft.attachments} onLoadAttachment={onLoadAttachment} value={draft.markdown} />
       </article>
     </section>
   );

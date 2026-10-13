@@ -86,6 +86,13 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
 - Catálogo de skills e documentos tipados em Markdown
 - Cofre de segredos, usuários, grupos, listas de opções e auditoria funcional
 
+As listas de opções do workspace, incluindo tipos específicos de issues, são
+recarregadas após autenticação e troca de workspace. Falhas transitórias de
+carregamento geram até três novas tentativas, após 1, 2 e 4 segundos. Se o erro
+persistir, a UI tenta novamente ao recuperar a conexão ou voltar à aba e oferece
+um botão de recarga no aviso de erro. Respostas de sessões ou workspaces antigos
+são descartadas; erros de autenticação e permissão não geram tentativas automáticas.
+
 Enquanto houver somente o workspace padrão, a UI o resolve automaticamente e
 não apresenta um seletor de tenant. Autorização e validação das relações
 continuam sendo responsabilidades da API.

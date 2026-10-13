@@ -7,6 +7,7 @@ const SORTABLE_COLUMNS = [
   ["type", "Tipo"],
   ["status", "Status"],
   ["date", "Data"],
+  ["updatedAt", "Última alteração"],
   ["title", "Título"],
 ];
 
@@ -43,10 +44,10 @@ export function IssueTable({ items, loading, onSort, sort, ...rowProps }) {
               {SORTABLE_COLUMNS.map(([field, label]) => (
                 <SortableHeader field={field} key={field} label={label} loading={loading} onSort={onSort} sort={sort} />
               ))}
-              <th>Aplicação</th>
               <th>Assuntos</th>
-              <th>Tags</th>
               <th>Texto</th>
+              <th>Tags</th>
+              <th>Aplicação</th>
             </tr>
           </thead>
           <tbody>
@@ -55,7 +56,7 @@ export function IssueTable({ items, loading, onSort, sort, ...rowProps }) {
             ))}
             {!loading && items.length === 0 ? (
               <tr>
-                <td className="emptyTable" colSpan="9">
+                <td className="emptyTable" colSpan="10">
                   Nenhuma issue encontrada.
                 </td>
               </tr>

@@ -62,21 +62,26 @@ export function IssueTableRow({
           options={editableStatusOptions}
         />
       </td>
-      <td data-label="Data">{formatDate(issueDate(issue, dateField))}</td>
+      <td data-label="Criado em">
+        <div style={{ width: "115px" }}>{formatDate(issueDate(issue, dateField))}</div>
+      </td>
+      <td data-label="Alterado em">
+        <div style={{ width: "115px" }}>{formatDate(issue.updatedAt)}</div>
+      </td>
       <td className="titleCell" data-label="Título">
         {issue.title || "-"}
-      </td>
-      <td className="applicationCell" data-label="Aplicação">
-        {applicationsById[issue.applicationId]?.name || issue.applicationName || "-"}
       </td>
       <td className="taxonomyCell" data-label="Assuntos">
         {taxonomyItems.length ? <TaxonomyPills taxonomyItems={taxonomyItems} /> : "-"}
       </td>
+      <td className="textCell" data-label="Texto">
+        <MarkdownPreview value={textPreview(issueListText(issue))} />
+      </td>
       <td className="tagsCell" data-label="Tags">
         {tagItems.length ? <TagPills tagItems={tagItems} /> : "-"}
       </td>
-      <td className="textCell" data-label="Texto">
-        <MarkdownPreview value={textPreview(issueListText(issue))} />
+      <td className="applicationCell" data-label="Aplicação">
+        {applicationsById[issue.applicationId]?.name || issue.applicationName || "-"}
       </td>
     </tr>
   );

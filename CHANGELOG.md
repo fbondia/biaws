@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- UI atualizada de `0.6.2` para `0.7.0`: a listagem de issues exibe a coluna
+  “Última alteração” e permite ordenar por ela em ordem crescente ou decrescente,
+  inclusive em dispositivos móveis. A data considera alterações na issue e
+  inclusão, edição ou exclusão de comentários registradas no sistema.
+
 - UI permite inserir e exibir imagens dos anexos no conteúdo e nas observações
   das documentações. O editor Markdown também oferece links para baixar
   qualquer tipo de anexo nas documentações e issues, pela API autenticada.
@@ -216,6 +221,10 @@ codex|claude`, com seleção de workspace e confirmação antes da escrita;
   `X-Request-Id` e omissão de credenciais, payloads e query strings;
 
 ### Fixed
+
+- UI recarrega as opções específicas do workspace após novo login na mesma
+  sessão e se recupera de falhas transitórias no catálogo com tentativas
+  automáticas, retorno à aba/conexão e botão para tentar novamente.
 
 - API atualizada de `0.6.0` para `0.6.1` e MCP de `0.12.1` para `0.12.2`:
   ambos aceitam datas nulas em comentários de issues importados sem uma data

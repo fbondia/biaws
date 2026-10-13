@@ -16,6 +16,7 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
     setMobileMenuOpen,
     issuesProps,
     loadRuntimeOptionLists,
+    runtimeOptionsError,
     runtimeOptionsVersion,
   } = useApp(actor, activeViewFromPath(window.location.pathname));
 
@@ -62,6 +63,14 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
         onViewChange={selectActiveView}
         onWorkspaceChange={onWorkspaceChange}
       />
+      {runtimeOptionsError ? (
+        <div className="errorBox" role="alert">
+          <p>{runtimeOptionsError}</p>
+          <button className="secondaryButton" onClick={() => loadRuntimeOptionLists().catch(() => {})} type="button">
+            Tentar carregar opções novamente
+          </button>
+        </div>
+      ) : null}
       <Suspense
         fallback={
           <div aria-busy="true" className="emptyState" role="status">

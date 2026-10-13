@@ -1,17 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  fetchIssueDetails,
-  fetchIssues,
-  fetchIssueTaxonomy,
-  fetchRuntimeOptionLists,
-  fetchSummary,
-  updateIssue,
-} from "../../api.js";
-import { configureIssueConstants, DEFAULT_FILTERS } from "../../constants/issues.js";
-import { configureRequestConstants } from "../../data/requestConstants.js";
+import { fetchIssueDetails, fetchIssues, fetchIssueTaxonomy, fetchSummary, updateIssue } from "../../api.js";
+import { DEFAULT_FILTERS } from "../../constants/issues.js";
 import { hasPermission } from "../../permissions.js";
-import { defaultLogger } from "../../infrastructure/logging/runtime.js";
 import { compactParams } from "../../utils/issues.js";
 import {
   APP_VIEWS,
@@ -22,8 +13,8 @@ import {
   NAVIGATION_GROUPS,
   resolveActiveView,
 } from "../model.js";
-import { createRuntimeOptionListsLoader } from "../runtimeOptionLists.js";
 import { navigationGroup } from "../navigationModel.js";
+import { useRuntimeOptionLists } from "./useRuntimeOptionLists.js";
 
 export function useApp(actor, preferredView) {
   const [activeView, setActiveView] = useState(() => resolveActiveView(actor, preferredView));
@@ -46,10 +37,9 @@ export function useApp(actor, preferredView) {
   const [monthTaxonomySummary, setMonthTaxonomySummary] = useState(null);
   const [monthTaxonomyLoading, setMonthTaxonomyLoading] = useState(false);
   const [monthTaxonomyError, setMonthTaxonomyError] = useState("");
-  const [runtimeOptionsVersion, setRuntimeOptionsVersion] = useState(0);
+  const { loadRuntimeOptionLists, runtimeOptionsError, runtimeOptionsVersion } = useRuntimeOptionLists(actor);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const monthTaxonomyRequestId = useRef(0);
-  const runtimeOptionListsLoader = useRef(null);
   const canReadTaxonomy = hasPermission(actor, "taxonomy.read");
   const availableViews = useMemo(
     () =>
@@ -119,37 +109,6 @@ export function useApp(actor, preferredView) {
       active = false;
     };
   }, [activeView, canReadTaxonomy]);
-
-  async function loadRuntimeOptionLists() {
-    return runtimeOptionListsLoader.current?.load() ?? false;
-  }
-
-  useEffect(() => {
-    const loader = createRuntimeOptionListsLoader({
-      apply(optionLists) {
-        configureRequestConstants(optionLists);
-        configureIssueConstants(optionLists);
-        setRuntimeOptionsVersion((current) => current + 1);
-      },
-      load: fetchRuntimeOptionLists,
-    });
-    runtimeOptionListsLoader.current = loader;
-    loader.load().catch((loadError) => {
-      // Build-time defaults remain available if the runtime catalog cannot be loaded.
-      defaultLogger.warn("application.option_lists.load_failed", {
-        context: { workspaceId: actor.workspaceId },
-        error: loadError,
-        message: "Runtime option lists could not be loaded; defaults remain active",
-      });
-    });
-
-    return () => {
-      loader.dispose();
-      if (runtimeOptionListsLoader.current === loader) {
-        runtimeOptionListsLoader.current = null;
-      }
-    };
-  }, [actor.workspaceId]);
 
   useEffect(() => {
     if (!selectedIssue?.id) return undefined;
@@ -356,6 +315,7 @@ export function useApp(actor, preferredView) {
     setMobileMenuOpen,
     issuesProps,
     loadRuntimeOptionLists,
+    runtimeOptionsError,
     runtimeOptionsVersion,
   };
 }

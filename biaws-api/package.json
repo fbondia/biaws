@@ -41,18 +41,18 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "9.1.0",
-    "@better-auth/api-key": "1.7.6",
-    "@better-auth/mongo-adapter": "1.7.6",
-    "@node-rs/argon2": "2.2.1",
-    "better-auth": "1.7.6",
+    "@better-auth/api-key": "1.7.7",
+    "@better-auth/mongo-adapter": "1.7.7",
+    "@node-rs/argon2": "2.2.2",
+    "better-auth": "1.7.7",
     "cors": "^2.8.5",
-    "express": "^5.1.0",
+    "express": "^5.3.0",
     "jsonata": "2.2.2",
-    "mailparser": "^3.9.31",
+    "mailparser": "^3.9.38",
     "mongodb": "^7.7.0",
     "multer": "^2.4.0",
     "swagger-ui-express": "5.0.1",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "overrides": {
     "deepmerge-ts": "^8.0.0"
@@ -62,9 +62,9 @@
     "@types/express": "5.0.6",
     "@types/mailparser": "3.9.0",
     "@types/multer": "2.3.0",
-    "@types/node": "26.6.3",
+    "@types/node": "26.6.5",
     "@types/swagger-ui-express": "4.1.8",
-    "prettier": "^3.9.9",
+    "prettier": "^3.9.10",
     "tsx": "4.23.15",
     "typescript": "7.0.2"
   }

@@ -24,6 +24,7 @@ DOCUMENT_FILES_PATH=""
 SECRET_FILES_PATH=""
 USE_DOCKER_VOLUMES=0
 SKIP_BOOTSTRAP=0
+MCP_HTTP=""
 LIST_INSTANCES=0
 
 usage() {
@@ -54,6 +55,8 @@ Opções:
   --use-docker-volumes       Usa volumes nomeados gerenciados pelo Docker
   --instances-dir <diretório> Diretório de dados; default: ./instances
   --skip-bootstrap           Atualiza apenas a configuração da instância
+  --mcp-http                 Habilita MCP HTTP e OAuth na instância
+  --no-mcp-http              Desabilita MCP, preservando replica set e concessões
   --list-instances           Lista instâncias sem mostrar credenciais
   --help                     Exibe esta ajuda
 
@@ -506,6 +509,14 @@ while [[ "$#" -gt 0 ]]; do
       PUBLIC_URL="${2:-}"
       shift 2
       ;;
+    --mcp-http)
+      MCP_HTTP="true"
+      shift
+      ;;
+    --no-mcp-http)
+      MCP_HTTP="false"
+      shift
+      ;;
     --mongo-port)
       MONGO_PORT="${2:-}"
       shift 2
@@ -818,6 +829,11 @@ fi
 [[ -z "${API_KEY_RATE_LIMIT_WINDOW}" ]] || \
   replace_env_value "${ENV_FILE}" "BIAWS_API_KEY_RATE_LIMIT_WINDOW_SECONDS" "${API_KEY_RATE_LIMIT_WINDOW}"
 chmod 600 "${ENV_FILE}"
+if [[ -n "${MCP_HTTP}" ]]; then
+  node "${ROOT_DIR}/scripts/configure-mcp.mjs" "${ENV_FILE}" "${MCP_HTTP}"
+elif [[ "$(read_env_value "${ENV_FILE}" "BIAWS_MCP_CONFIGURED")" == "true" ]]; then
+  node "${ROOT_DIR}/scripts/configure-mcp.mjs" "${ENV_FILE}" "$(read_env_value "${ENV_FILE}" "BIAWS_MCP_HTTP_ENABLED")"
+fi
 write_instance_control_scripts
 
 if [[ "${SKIP_BOOTSTRAP}" != "1" ]]; then

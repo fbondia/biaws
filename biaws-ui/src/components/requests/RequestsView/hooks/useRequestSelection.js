@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+import { useRoute } from "../../../../navigation/location.js";
 import { fetchRequest } from "../../../../api.js";
 import { normalizeRequest } from "../../requestUtils.js";
 
@@ -13,6 +15,15 @@ export function useRequestSelection({
   setSelectedRequestOverride,
   upsertRequestInList,
 }) {
+  const route = useRoute();
+  const selectionVersion = useRef(0);
+  useEffect(() => {
+    selectionVersion.current += 1;
+    return () => {
+      selectionVersion.current += 1;
+    };
+  }, [route.selections.demand]);
+
   function resetSelectionState() {
     setEditingRequestId("");
     setChecklistDialogLabel("");
@@ -21,6 +32,7 @@ export function useRequestSelection({
   }
 
   async function selectRequest(requestId) {
+    const version = ++selectionVersion.current;
     setSelectedRequestId(requestId);
     resetSelectionState();
     const loadedRequest = requests.find((request) => request.id === requestId);
@@ -31,12 +43,14 @@ export function useRequestSelection({
 
     try {
       const payload = await fetchRequest(requestId);
+      if (version !== selectionVersion.current) return;
       if (payload.request) {
         const request = normalizeRequest(payload.request);
         setSelectedRequestOverride(request);
         upsertRequestInList(request);
       }
     } catch (error) {
+      if (version !== selectionVersion.current) return;
       setRequestError(error.message);
       setSelectedRequestId("");
       setSelectedRequestOverride(null);
@@ -44,6 +58,7 @@ export function useRequestSelection({
   }
 
   function closeSelectedRequest() {
+    selectionVersion.current += 1;
     setSelectedRequestId("");
     setSelectedRequestOverride(null);
     resetSelectionState();

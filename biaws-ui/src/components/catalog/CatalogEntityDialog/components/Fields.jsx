@@ -97,7 +97,7 @@ export function EntityFieldGroup({ active, children }) {
   return children;
 }
 
-export function CatalogEntityFooter({ archiving, editing, error, onArchive, onClose, saving }) {
+export function CatalogEntityFooter({ readOnly = false, archiving, editing, error, onArchive, onClose, saving }) {
   const busy = archiving || saving;
   return (
     <>
@@ -111,12 +111,14 @@ export function CatalogEntityFooter({ archiving, editing, error, onArchive, onCl
         ) : null}
         <div className="catalogEntityFooterActions">
           <button className="secondaryButton" disabled={busy} onClick={onClose} type="button">
-            Cancelar
+            {readOnly ? "Fechar" : "Cancelar"}
           </button>
-          <button className="primaryButton" disabled={busy} type="submit">
-            <Save size={16} />
-            {saving ? "Salvando..." : "Salvar"}
-          </button>
+          {!readOnly ? (
+            <button className="primaryButton" disabled={busy} type="submit">
+              <Save size={16} />
+              {saving ? "Salvando..." : "Salvar"}
+            </button>
+          ) : null}
         </div>
       </footer>
     </>

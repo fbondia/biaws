@@ -1,10 +1,12 @@
-import { Activity, Pencil, Plus, RefreshCw } from "lucide-react";
+import { useEntityState } from "../../../navigation/useEntityState.js";
+import { Activity, Eye, Pencil, Plus, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
   createMonitoringTemplate,
   createMonitoringTemplateVersion,
   deleteMonitoringTemplateVersion,
+  fetchMonitoringTemplate,
   fetchMonitoringTemplates,
   fetchMonitoringTemplateUsage,
   previewMonitoringTemplate,
@@ -24,7 +26,15 @@ import {
 
 export function MonitoringTemplatesView({ actor }) {
   const [templates, setTemplates] = useState([]);
-  const [draft, setDraft] = useState(null);
+  const [draft, setDraft] = useEntityState("template", null, {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => monitoringTemplateDraft((await fetchMonitoringTemplate(reference)).template),
+    onRestore: (draft) => {
+      if (draft) setPreviewSample(draft.inputSampleText);
+      setPreview(null);
+    },
+    onError: (error) => setError(error.message),
+  });
   const [previewSample, setPreviewSample] = useState(JSON.stringify(DEFAULT_PREVIEW_SAMPLE, null, 2));
   const [preview, setPreview] = useState(null);
   const [usageById, setUsageById] = useState({});
@@ -195,21 +205,19 @@ export function MonitoringTemplatesView({ actor }) {
                 <strong>{template.name}</strong>
                 <small>{template.id}</small>
               </div>
-              {canManage ? (
-                <button
-                  aria-label={`Editar ${template.name}`}
-                  className="iconButton"
-                  onClick={() => {
-                    const nextDraft = monitoringTemplateDraft(template);
-                    setDraft(nextDraft);
-                    setPreviewSample(nextDraft.inputSampleText);
-                    setPreview(null);
-                  }}
-                  type="button"
-                >
-                  <Pencil size={16} />
-                </button>
-              ) : null}
+              <button
+                aria-label={`${canManage ? "Editar" : "Abrir"} ${template.name}`}
+                className="iconButton"
+                onClick={() => {
+                  const nextDraft = monitoringTemplateDraft(template);
+                  setDraft(nextDraft);
+                  setPreviewSample(nextDraft.inputSampleText);
+                  setPreview(null);
+                }}
+                type="button"
+              >
+                {canManage ? <Pencil size={16} /> : <Eye size={16} />}
+              </button>
             </header>
             <p>{template.description || "Sem descrição."}</p>
             <ul>
@@ -239,6 +247,7 @@ export function MonitoringTemplatesView({ actor }) {
       {draft ? (
         <TemplateDialog
           draft={draft}
+          readOnly={!canManage}
           onChange={setDraft}
           onClose={() => setDraft(null)}
           onPreview={runPreview}

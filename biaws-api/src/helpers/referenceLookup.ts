@@ -46,6 +46,12 @@ export async function findByReference<T extends Document>(
     const document = await collection.findOne({ $and: [filter, { [idField]: id }] } as Filter<T>, options);
     if (document) return document;
   }
+  // Some domains expose a stable public ID in addition to MongoDB's _id.
+  // Resolve either ID before business identifiers, retaining the same scope.
+  if (idField !== "_id" && ObjectId.isValid(value)) {
+    const document = await collection.findOne({ $and: [filter, { _id: new ObjectId(value) }] } as Filter<T>, options);
+    if (document) return document;
+  }
   if (!identifierField) return null;
   const documents = await collection
     .find(

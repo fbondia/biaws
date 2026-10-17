@@ -56,3 +56,5 @@ export function removePlatformWorkspaceMember(workspaceId, userId) {
     `/api/platform/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(userId)}`,
   );
 }
+
+export const fetchPlatformWorkspace = (id) => fetchJson(`/api/platform/workspaces/${encodeURIComponent(id)}`);

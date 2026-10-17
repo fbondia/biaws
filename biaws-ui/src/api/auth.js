@@ -105,3 +105,5 @@ export function setUserGroups(userId, groupIds) {
     groupIds,
   });
 }
+
+export const fetchUser = (id) => fetchJson(`/api/identity/users/${encodeURIComponent(id)}`);

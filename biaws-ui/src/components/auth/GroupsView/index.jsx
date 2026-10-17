@@ -1,3 +1,4 @@
+import { useEntityState } from "../../../navigation/useEntityState.js";
 import { ChevronDown, CopyPlus, Plus, Save, ShieldCheck } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 
@@ -12,6 +13,7 @@ import {
 } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
 
+import { findEntity } from "../../../navigation/entities.js";
 import { groupPermissionsBySection } from "./model.js";
 import { ReplicationDialog } from "../../shared/ReplicationDialog.jsx";
 import { CreateGroupButton, PermissionCategories } from "./components/GroupsViewPanels.jsx";
@@ -85,7 +87,16 @@ export function GroupsView({ actor }) {
   const [catalog, setCatalog] = useState([]);
   const [applications, setApplications] = useState([]);
   const [draft, setDraft] = useState(EMPTY_GROUP);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useEntityState("group", "", {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => findEntity((await listPermissionGroups()).groups, reference),
+    toValue: (group) => group.id,
+    onRestore: (group) => {
+      if (group) setDraft(group);
+      setEditorOpen(Boolean(group));
+    },
+    onError: (error) => setError(error.message),
+  });
   const [editorOpen, setEditorOpen] = useState(false);
   const [activePermissionDomain, setActivePermissionDomain] = useState("");
   const [error, setError] = useState("");

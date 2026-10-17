@@ -1,3 +1,4 @@
+import { useEntityState } from "../../navigation/useEntityState.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchIssueDetails, fetchIssues, fetchIssueTaxonomy, fetchSummary, updateIssue } from "../../api.js";
@@ -27,7 +28,13 @@ export function useApp(actor, preferredView) {
   const [activeAggregate, setActiveAggregate] = useState("byDate");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedIssue, setSelectedIssue] = useState(null);
+  const [selectedIssue, setSelectedIssue] = useEntityState("issue", null, {
+    workspaceId: actor.workspaceId,
+    isActive: (route) => route.view === "issues",
+    enabled: activeView === "issues",
+    load: async (reference) => (await fetchIssueDetails(reference)).issue,
+    onError: (error) => setError(error.message),
+  });
   const [issueDetails, setIssueDetails] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");

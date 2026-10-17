@@ -1,4 +1,5 @@
 type SkillVersionQuery = string | ParsedQs | (string | ParsedQs)[] | undefined;
+import { ObjectId } from "mongodb";
 import { textValue } from "../../helpers/text.js";
 import type { RepositoryQuery } from "../../types/http.js";
 import type { SkillDocument, PublicSkillDocument } from "../../types/skills.js";
@@ -94,6 +95,21 @@ export async function getSkill(
   const collection = db.collection<SkillDocument>(SKILLS_COLLECTION);
   await ensureIndexes(collection);
   let document;
+  // A Mongo ID identifies one version; skillId selects its current version.
+  if (ObjectId.isValid(String(skillId))) {
+    document = await collection.findOne({
+      _id: new ObjectId(String(skillId)),
+      workspaceId: workspaceId(query),
+      ...(version ? { version: textValue(version) } : {}),
+      ...(query.includeDeprecated === "true" ? {} : { status: "published" }),
+    });
+  }
+  if (document) {
+    return {
+      meta: { database: db.databaseName, collection: SKILLS_COLLECTION },
+      skill: options.includeContents ? normalizeDocument(document) : withoutFileContents(document),
+    };
+  }
   if (version) {
     document = await collection.findOne({
       workspaceId: workspaceId(query),

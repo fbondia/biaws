@@ -1,3 +1,4 @@
+import { useEntityState } from "../../../../navigation/useEntityState.js";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -28,7 +29,20 @@ export function useKnowledgeRecordsView(actor) {
   const [items, setItems] = useState([]);
   const [organizationItems, setOrganizationItems] = useState([]);
   const [taxonomyPackage, setTaxonomyPackage] = useState(null);
-  const [draft, setDraft] = useState(null);
+  const openVersion = useRef(0);
+  const [draft, setDraft] = useEntityState("document", null, {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => {
+      const { document } = await fetchDocument(reference);
+      return document ? normalizedDraft(document) : null;
+    },
+    onRestore: (document) => {
+      openVersion.current += 1;
+      setCreating(false);
+      if (document) collectionsState.setSelectedCollectionId(document.collectionId || "");
+    },
+    onError: (error) => setError(error.message),
+  });
   const [creating, setCreating] = useState(false);
   const [typeFilter, setTypeFilter] = useState("");
   const [createType, setCreateType] = useState("");
@@ -102,10 +116,12 @@ export function useKnowledgeRecordsView(actor) {
   }, [actor]);
 
   async function openRecord(record) {
+    const version = ++openVersion.current;
     setError("");
     setCreating(false);
     try {
       const payload = await fetchDocument(record.id);
+      if (version !== openVersion.current || !mountedRef.current) return;
       setDraft(normalizedDraft(payload.document));
       collectionsState.setSelectedCollectionId(record.collectionId || "");
     } catch (loadError) {
@@ -175,6 +191,7 @@ export function useKnowledgeRecordsView(actor) {
   }
 
   function closeDetail() {
+    openVersion.current += 1;
     setDraft(null);
     setCreating(false);
   }

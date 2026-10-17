@@ -139,6 +139,29 @@ export async function authenticationAndCatalogFixture(scenarioContext) {
     status: "healthy",
   });
 
+  // Every catalog detail accepts its stable public ID, Mongo _id and key.
+  for (const [collectionName, path, entity, field] of [
+    [COLLECTION_NAMES.APPLICATIONS, "applications", application, "application"],
+    [COLLECTION_NAMES.APPLICATION_REPOSITORIES, "repositories", repository, "repository"],
+    [COLLECTION_NAMES.APPLICATION_COMPONENTS, "components", component, "component"],
+    [COLLECTION_NAMES.SERVERS, "servers", topologyServer, "server"],
+    [COLLECTION_NAMES.APPLICATION_DEPLOYMENTS, "deployments", deployment, "deployment"],
+    [COLLECTION_NAMES.DEPLOYMENT_RUNTIMES, "runtimes", runtime, "runtime"],
+  ]) {
+    const stored = await database.collection(collectionName).findOne({ id: entity.id });
+    for (const reference of [entity.id, String(stored._id), entity.key]) {
+      const response = await request(`/api/catalog/${path}/${reference}`, { cookie: adminCookie });
+      assert.equal(response.status, 200, `${path}/${reference}`);
+      assert.equal((await response.json())[field].id, entity.id);
+    }
+  }
+  assert.equal((await request(`/api/identity/users/${admin.user.id}`)).status, 401);
+  assert.equal((await request(`/api/identity/users/${admin.user.id}`, { cookie: readerCookie })).status, 403);
+  const directUser = await request(`/api/identity/users/${reader.user.id}`, { cookie: adminCookie });
+  assert.equal(directUser.status, 200);
+  assert.equal((await directUser.json()).user.id, reader.user.id);
+  assert.equal((await request("/api/identity/users/missing", { cookie: adminCookie })).status, 404);
+
   const updatedApplication = (
     await patch(`/api/catalog/applications/${application.id}`, {
       key: "billing-service",

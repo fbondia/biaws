@@ -1,7 +1,9 @@
+import { useEntityState } from "../../../navigation/useEntityState.js";
 import { CalendarDays, CheckCircle2, Circle, Clock3, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { compareRequestTasks } from "../../../../../shared/requestTaskSorting.js";
 
+import { findEntity } from "../../../navigation/entities.js";
 import { useMessages } from "../../../infrastructure/messages/MessagesProvider.jsx";
 import { formatDate, REQUEST_TASK_STATUS_COLORS, REQUEST_TASK_STATUS_OPTIONS } from "../requestUtils.js";
 import { REQUEST_ALL_TASK_STATUS_OPTIONS, REQUEST_DEFAULTS } from "../../../data/requestConstants.js";
@@ -45,16 +47,18 @@ export function RequestTasksTab({
   onRequestUpdated,
 }) {
   const { confirm } = useMessages();
-  const [dialogTask, setDialogTask] = useState(null);
+  const [routeError, setRouteError] = useState("");
+  const [dialogTask, setDialogTask] = useEntityState("task", null, {
+    scopeKey: request.id,
+    load: async (reference) => findEntity(request.tasks, reference, "code"),
+    onRestore: () => setRouteError(""),
+    onError: (error) => setRouteError(error.message),
+  });
   const tasks = useMemo(
     () =>
       [...request.tasks].sort((first, second) => compareRequestTasks(first, second, REQUEST_ALL_TASK_STATUS_OPTIONS)),
     [request.tasks],
   );
-
-  useEffect(() => {
-    setDialogTask(null);
-  }, [request.id]);
 
   useEffect(() => {
     if (!initialTaskId) return;
@@ -94,6 +98,11 @@ export function RequestTasksTab({
 
   return (
     <section className="requestPanel">
+      {routeError ? (
+        <div className="errorBox" role="alert">
+          {routeError}
+        </div>
+      ) : null}
       <div className="panelHeader">
         <div>
           <h3>Tarefas</h3>

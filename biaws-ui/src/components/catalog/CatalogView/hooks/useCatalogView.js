@@ -1,3 +1,5 @@
+import { useEntityState } from "../../../../navigation/useEntityState.js";
+import { useRoute } from "../../../../navigation/location.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -27,17 +29,58 @@ export function useCatalogView(actor) {
   const { confirm } = useMessages();
   const [workspace, setWorkspace] = useState(null);
   const [applications, setApplications] = useState([]);
-  const [selectedId, setSelectedId] = useState("");
+  const route = useRoute();
+  const [selectedId, setSelectedId, selectionError] = useEntityState("application", "", {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => (await fetchApplication(reference)).application?.id,
+    onError: (error) => setError(error.message),
+  });
   const [context, setContext] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [search, setSearch] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [dialog, setDialog] = useState(null);
+  const childType = Object.keys(CATALOG_ENTITY_API).find((type) => route.selections[type]) || "component";
+  const [dialog, setDialog, dialogError] = useEntityState(childType, null, {
+    workspaceId: actor.workspaceId,
+    scopeKey: route.selections.application,
+    getEntity: (dialog) => dialog?.entity,
+    typeOf: (dialog) => dialog?.kind,
+    load: async (reference) => {
+      const api = CATALOG_ENTITY_API[childType];
+      const [payload, parent] = await Promise.all([
+        api.detail(reference),
+        fetchApplication(route.selections.application),
+      ]);
+      const entity = payload[api.response];
+      if (!entity || entity.applicationId !== parent.application?.id)
+        throw new Error("Registro não encontrado ou sem acesso.");
+      return { kind: childType, entity, deploymentId: entity.deploymentId };
+    },
+    onRestore: (dialog) => {
+      if (dialog)
+        setActiveTab(
+          dialog.kind === "repository" ? "repositories" : dialog.kind === "integration" ? "integrations" : "topology",
+        );
+    },
+    onError: (error) => setError(error.message),
+  });
   const applicationLoadVersionRef = useRef(0);
+  const contextLoadVersion = useRef(0);
+  const entityOpenVersion = useRef(0);
+  useEffect(() => {
+    entityOpenVersion.current += 1;
+    return () => {
+      entityOpenVersion.current += 1;
+    };
+  }, [route.selections.application]);
   const { loadRuntimes, resetRuntimes, runtimeByDeployment, runtimeErrorByDeployment, runtimeLoadingByDeployment } =
     useCatalogRuntimes(actor);
+
+  useEffect(() => {
+    if (route.selections["topology-diagram"]) setActiveTab("topology");
+  }, [route.selections["topology-diagram"]]);
 
   const visibleTabs = useMemo(() => visibleCatalogTabs(actor), [actor]);
 
@@ -52,7 +95,6 @@ export function useCatalogView(actor) {
     });
     if (loadVersion !== applicationLoadVersionRef.current) return;
     setApplications(payload.items || []);
-    setSelectedId((current) => (current && (payload.items || []).some(({ id }) => id === current) ? current : ""));
   }
 
   async function loadWorkspaceAndApplications() {
@@ -71,6 +113,7 @@ export function useCatalogView(actor) {
   }
 
   async function loadContext(applicationId = selectedId) {
+    const version = ++contextLoadVersion.current;
     if (!applicationId) {
       setContext(null);
       return;
@@ -110,6 +153,7 @@ export function useCatalogView(actor) {
       ].map((task) => task || Promise.resolve({ items: [] }));
       const [components, repositories, deployments, servers, integrations, availableApplications, monitoringHealth] =
         await Promise.all(tasks);
+      if (version !== contextLoadVersion.current) return;
       setContext({
         application: applicationPayload.application,
         components: components.items || [],
@@ -122,8 +166,10 @@ export function useCatalogView(actor) {
       });
       resetRuntimes();
     } catch (loadError) {
-      setError(loadError.message);
-      setContext(null);
+      if (version === contextLoadVersion.current) {
+        setError(loadError.message);
+        setContext(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -135,6 +181,9 @@ export function useCatalogView(actor) {
 
   useEffect(() => {
     void loadContext();
+    return () => {
+      contextLoadVersion.current += 1;
+    };
   }, [selectedId]);
 
   useEffect(() => {
@@ -184,10 +233,12 @@ export function useCatalogView(actor) {
   }
 
   async function editEntity(kind, entity) {
+    const version = ++entityOpenVersion.current;
     setError("");
     try {
       const api = CATALOG_ENTITY_API[kind];
       const payload = await api.detail(entity.id);
+      if (version !== entityOpenVersion.current) return;
       setDialog({
         kind,
         entity: payload[api.response],
@@ -327,7 +378,7 @@ export function useCatalogView(actor) {
     includeArchived,
     setIncludeArchived,
     loading,
-    error,
+    error: selectionError?.message || dialogError?.message || error,
     dialog,
     setDialog,
     visibleTabs,

@@ -1,3 +1,5 @@
+import { useRoute, navigate } from "../../../../navigation/location.js";
+import { entityUrl } from "../../../../navigation/model.js";
 import { useEffect, useMemo, useState } from "react";
 
 import { hasPermission } from "../../../../permissions.js";
@@ -22,7 +24,15 @@ export function CatalogTopologyTab({
 }) {
   const [selectedComponentId, setSelectedComponentId] = useState("");
   const [selectedDeploymentId, setSelectedDeploymentId] = useState("");
+  const route = useRoute();
   const [diagramOpen, setDiagramOpen] = useState(false);
+  useEffect(() => {
+    setDiagramOpen(Boolean(route.selections["topology-diagram"]));
+  }, [route.selections["topology-diagram"]]);
+  function closeDiagram() {
+    setDiagramOpen(false);
+    navigate(entityUrl("topology-diagram", null, route));
+  }
   const [deployableOnly, setDeployableOnly] = useState(false);
   const canReadComponents = hasPermission(actor, "components.read");
   const canReadDeployments = hasPermission(actor, "deployments.read");
@@ -153,12 +163,7 @@ export function CatalogTopologyTab({
           />
         ) : null}
       </div>
-      <TopologyDiagramOverlay
-        actor={actor}
-        context={context}
-        onClose={() => setDiagramOpen(false)}
-        open={diagramOpen}
-      />
+      <TopologyDiagramOverlay actor={actor} context={context} onClose={closeDiagram} open={diagramOpen} />
     </section>
   );
 }

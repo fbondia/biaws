@@ -692,3 +692,12 @@ O campo `status` aceita apenas:
 - `Desenvolvimento`
 - `Homologação`
 - `Concluído`
+
+## Leitura por links diretos
+
+A UI reutiliza as leituras autorizadas por referência para abrir registros.
+IDs públicos e Mongo `_id` precedem os identificadores de negócio, mantendo o
+mesmo filtro de workspace e aplicação em todas as consultas.
+`GET /api/identity/users/:userId` lê um usuário específico com `users.read` e
+vínculo confirmado ao workspace, independentemente da paginação de usuários.
+Consulte [o contrato das URLs da interface](../docs/direct-links.md).

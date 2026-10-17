@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- URLs diretas na interface para documentos, melhorias, tarefas, issues,
+  catálogo, monitoramento e administração, com workspace explícito, histórico
+  do navegador e resolução por ID público, Mongo `_id` ou identificador.
+  Links preservam o destino após o login e mantêm as permissões da API.
+
 - O desafio OAuth do MCP HTTP anuncia `mcp:read mcp:write`, permitindo que
   clientes como o ChatGPT solicitem consentimento para escrita, limitado às
   permissões atuais do usuário. Conexões somente de leitura exigem nova

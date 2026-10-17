@@ -1,6 +1,8 @@
 import { buildUrl, deleteJson, fetchJson, readPayload, sendJson, workspaceHeaders } from "./client.js";
 import { defaultMessagesService } from "../infrastructure/messages/runtime.js";
 
+export const fetchSecret = (id) => fetchJson(`/api/secrets/${encodeURIComponent(id)}`);
+
 export function fetchSecrets(params) {
   return fetchJson("/api/secrets", params);
 }

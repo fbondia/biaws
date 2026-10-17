@@ -1,3 +1,5 @@
+import { useEntityState } from "../../../navigation/useEntityState.js";
+import { findEntity } from "../../../navigation/entities.js";
 import { AlertTriangle, ListChecks } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -22,6 +24,12 @@ function retainSelectedLists(groups, current) {
 }
 
 export function OptionListsView({ actor, onRuntimeChanged }) {
+  const [routeList, selectRouteList] = useEntityState("option-list", "", {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => findEntity((await fetchOptionLists()).items, reference, "key"),
+    toValue: (list) => list.key,
+    onError: (error) => setError(error.message),
+  });
   const [lists, setLists] = useState([]);
   const [activeGroupKey, setActiveGroupKey] = useState("");
   const [selectedListByGroup, setSelectedListByGroup] = useState({});
@@ -58,8 +66,9 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
   }
 
   const groupedLists = groupOptionLists(lists);
-  const activeGroup = groupedLists.find((group) => group.key === activeGroupKey) || groupedLists[0];
-  const activeKey = selectedListByGroup[activeGroup?.key] || activeGroup?.lists[0]?.key || "";
+  const routeGroup = groupedLists.find((group) => group.lists.some(({ key }) => key === routeList));
+  const activeGroup = routeGroup || groupedLists.find((group) => group.key === activeGroupKey) || groupedLists[0];
+  const activeKey = routeList || selectedListByGroup[activeGroup?.key] || activeGroup?.lists[0]?.key || "";
 
   return (
     <section className="adminPage optionListsView">
@@ -93,7 +102,10 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
                   }
                   id={`option-list-group-tab-${group.key}`}
                   key={group.key}
-                  onClick={() => setActiveGroupKey(group.key)}
+                  onClick={() => {
+                    selectRouteList(group.lists[0]?.key || "");
+                    setActiveGroupKey(group.key);
+                  }}
                   role="tab"
                   type="button"
                 >
@@ -131,12 +143,7 @@ export function OptionListsView({ actor, onRuntimeChanged }) {
                       className={activeKey === list.key ? "detailTab activeDetailTab" : "detailTab"}
                       id={`option-list-tab-${list.key}`}
                       key={list.key}
-                      onClick={() =>
-                        setSelectedListByGroup((current) => ({
-                          ...current,
-                          [activeGroup.key]: list.key,
-                        }))
-                      }
+                      onClick={() => selectRouteList(list.key)}
                       role="tab"
                       type="button"
                     >

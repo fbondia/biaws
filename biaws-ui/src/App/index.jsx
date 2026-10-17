@@ -1,12 +1,14 @@
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 
 import { ActiveView } from "./components/ActiveView.jsx";
 import { AppHeader } from "./components/AppHeader/index.jsx";
 import { useApp } from "./hooks/useApp.js";
-import { activeViewFromPath, activeViewPath, resolveActiveView } from "./model.js";
+import { activeViewFromPath, resolveActiveView } from "./model.js";
+import { navigate, useRoute } from "../navigation/location.js";
+import { entityUrl, viewUrl } from "../navigation/model.js";
 
 export default function App({ actor, onSignOut, onWorkspaceChange }) {
-  const [requestTaskTarget, setRequestTaskTarget] = useState(null);
+  const route = useRoute();
   const {
     activeView,
     setActiveView,
@@ -21,34 +23,29 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
   } = useApp(actor, activeViewFromPath(window.location.pathname));
 
   useEffect(() => {
-    const expectedPath = activeViewPath(activeView);
-    if (window.location.pathname !== expectedPath) {
-      window.history.replaceState(null, "", expectedPath);
-    }
-  }, [activeView]);
+    if (route.valid) setActiveView(resolveActiveView(actor, route.view));
+  }, [actor, route.view, route.valid, setActiveView]);
 
   useEffect(() => {
-    function restoreViewFromHistory() {
-      setActiveView(resolveActiveView(actor, activeViewFromPath(window.location.pathname)));
+    if (route.valid && !route.workspaceId && actor.workspaceId) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("workspaceId", actor.workspaceId);
+      navigate(`${url.pathname}${url.search}`, {
+        replace: true,
+      });
     }
-
-    window.addEventListener("popstate", restoreViewFromHistory);
-    return () => window.removeEventListener("popstate", restoreViewFromHistory);
-  }, [actor, setActiveView]);
+  }, [route.valid, route.workspaceId, actor.workspaceId]);
 
   function selectActiveView(view) {
     const nextView = resolveActiveView(actor, view);
-    const nextPath = activeViewPath(nextView);
-    if (window.location.pathname !== nextPath) {
-      window.history.pushState(null, "", nextPath);
-    }
+    navigate(viewUrl(nextView, actor.workspaceId));
     setActiveView(nextView);
   }
 
   function openRequestTask(task) {
     if (!task?.requestId || !task?.id) return;
-    setRequestTaskTarget({ requestId: task.requestId, taskId: task.id });
-    selectActiveView("requests");
+    navigate(entityUrl("task", task, { view: "requests", selections: {}, workspaceId: actor.workspaceId }));
+    setActiveView("requests");
   }
 
   return (
@@ -61,7 +58,7 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
         mobileMenuOpen={mobileMenuOpen}
         onMobileMenuChange={setMobileMenuOpen}
         onViewChange={selectActiveView}
-        onWorkspaceChange={onWorkspaceChange}
+        onWorkspaceChange={(workspaceId) => onWorkspaceChange(workspaceId, activeView)}
       />
       {runtimeOptionsError ? (
         <div className="errorBox" role="alert">
@@ -71,25 +68,29 @@ export default function App({ actor, onSignOut, onWorkspaceChange }) {
           </button>
         </div>
       ) : null}
-      <Suspense
-        fallback={
-          <div aria-busy="true" className="emptyState" role="status">
-            Carregando visão…
-          </div>
-        }
-      >
-        <ActiveView
-          activeView={activeView}
-          actor={actor}
-          issuesProps={issuesProps}
-          loadRuntimeOptionLists={loadRuntimeOptionLists}
-          onOpenRequestTask={openRequestTask}
-          onRequestTaskTargetHandled={() => setRequestTaskTarget(null)}
-          onSignOut={onSignOut}
-          requestTaskTarget={requestTaskTarget}
-          runtimeOptionsVersion={runtimeOptionsVersion}
-        />
-      </Suspense>
+      {!route.valid || resolveActiveView(actor, route.view) !== route.view ? (
+        <div className="errorBox" role="alert">
+          {!route.valid ? "Endereço não encontrado." : "Você não tem permissão para acessar este recurso."}
+        </div>
+      ) : (
+        <Suspense
+          fallback={
+            <div aria-busy="true" className="emptyState" role="status">
+              Carregando visão…
+            </div>
+          }
+        >
+          <ActiveView
+            activeView={route.view}
+            actor={actor}
+            issuesProps={issuesProps}
+            loadRuntimeOptionLists={loadRuntimeOptionLists}
+            onOpenRequestTask={openRequestTask}
+            onSignOut={onSignOut}
+            runtimeOptionsVersion={runtimeOptionsVersion}
+          />
+        </Suspense>
+      )}
     </main>
   );
 }

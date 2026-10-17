@@ -1,3 +1,4 @@
+import { useRoute } from "../../../navigation/location.js";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -193,6 +194,10 @@ export function RequestsView({ actor, initialTaskTarget, onInitialTaskTargetHand
     collectionId: collectionState.selectedCollectionId,
     collections: collectionState.collections,
   });
+  const route = useRoute();
+  useEffect(() => {
+    if (route.selections.task && selectedRequest?.id) setActiveDetailTab("tasks");
+  }, [route.selections.task, selectedRequest?.id]);
   const canManageCollections = hasPermission(actor, "demands.update");
   const canReorderRequests = hasPermission(actor, "demands.reorder");
   const canChangeRequestStatus = hasPermission(actor, "demands.update");

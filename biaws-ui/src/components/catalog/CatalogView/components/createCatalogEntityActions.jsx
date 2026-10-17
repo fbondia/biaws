@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, Pencil, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Eye, Pencil, Trash2 } from "lucide-react";
 
 import { hasPermission } from "../../../../permissions.js";
 
@@ -7,6 +7,17 @@ const ARCHIVE_ONLY_IN_EDIT_DIALOG = new Set(["component", "deployment", "runtime
 export function createCatalogEntityActions({ actor, archiveEntity, deleteEntity, editEntity, restoreEntity }) {
   return (kind, updatePermission, archivePermission) => (entity) => (
     <>
+      {!hasPermission(actor, updatePermission) &&
+      hasPermission(actor, updatePermission.replace(/\.update$/u, ".read")) ? (
+        <button
+          aria-label={`Abrir ${entity.name}`}
+          className="iconButton"
+          onClick={() => editEntity(kind, entity)}
+          type="button"
+        >
+          <Eye size={15} />
+        </button>
+      ) : null}
       {entity.status !== "archived" && hasPermission(actor, updatePermission) ? (
         <button
           aria-label={`Editar ${entity.name}`}

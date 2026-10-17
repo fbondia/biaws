@@ -24,6 +24,7 @@ const TEMPLATE_TABS = [
 
 export function TemplateDialog({
   draft,
+  readOnly = false,
   onChange,
   onClose,
   onSave,
@@ -58,7 +59,7 @@ export function TemplateDialog({
       >
         <header>
           <div>
-            <span>{draft.id ? "Nova versão" : "Novo template"}</span>
+            <span>{readOnly ? "Template" : draft.id ? "Nova versão" : "Novo template"}</span>
             <h2 id="monitoring-template-dialog-title">{draft.name || "Template de monitoramento"}</h2>
           </div>
           <button aria-label="Fechar" className="iconButton" disabled={saving} onClick={onClose} type="button">
@@ -88,25 +89,29 @@ export function TemplateDialog({
             id={`monitoring-template-panel-${currentTab.key}`}
             role="tabpanel"
           >
-            <ActiveTab
-              draft={draft}
-              onPreview={runPreview}
-              preview={preview}
-              previewing={previewing}
-              previewSample={previewSample}
-              saving={saving}
-              setPreviewSample={setPreviewSample}
-              update={update}
-            />
+            <fieldset disabled={readOnly}>
+              <ActiveTab
+                draft={draft}
+                onPreview={runPreview}
+                preview={preview}
+                previewing={previewing}
+                previewSample={previewSample}
+                saving={saving}
+                setPreviewSample={setPreviewSample}
+                update={update}
+              />
+            </fieldset>
           </div>
         </div>
         <footer>
           <button className="secondaryButton" disabled={saving} onClick={onClose} type="button">
             Cancelar
           </button>
-          <button className="primaryButton" disabled={saving || previewing} onClick={onSave} type="button">
-            {saving ? "Salvando…" : draft.id ? "Criar versão" : "Criar template"}
-          </button>
+          {!readOnly ? (
+            <button className="primaryButton" disabled={saving || previewing} onClick={onSave} type="button">
+              {saving ? "Salvando…" : draft.id ? "Criar versão" : "Criar template"}
+            </button>
+          ) : null}
         </footer>
       </section>
     </div>

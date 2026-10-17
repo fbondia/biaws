@@ -1,3 +1,5 @@
+import { useEntityState } from "../../../../../../navigation/useEntityState.js";
+import { useRoute } from "../../../../../../navigation/location.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -17,7 +19,21 @@ export function useTopologyDiagram({ actor, context, onClose }) {
   const { confirm } = useMessages();
   const [diagrams, setDiagrams] = useState([]);
   const [diagram, setDiagram] = useState(null);
-  const [selectedId, setSelectedId] = useState("");
+  const route = useRoute();
+  const [selectedId, setSelectedId] = useEntityState("topology-diagram", "", {
+    scopeKey: context.application.id,
+    workspaceId: actor.workspaceId,
+    load: async (reference) => {
+      const { diagram } = await fetchTopologyDiagram(reference);
+      if (diagram?.applicationId !== context.application.id) throw new Error("Registro não encontrado ou sem acesso.");
+      return diagram;
+    },
+    toValue: (diagram) => diagram.id,
+    onRestore: (diagram) => {
+      if (diagram) void openDiagram(diagram.id);
+    },
+    onError: (error) => setError(error.message),
+  });
   const [environment, setEnvironment] = useState("production");
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -199,7 +215,9 @@ export function useTopologyDiagram({ actor, context, onClose }) {
         if (!active) return;
         const items = payload.items || [];
         setDiagrams(items);
-        if (items.length) {
+        if (route.selections["topology-diagram"]) {
+          return;
+        } else if (items.length) {
           await openDiagram(items[0].id);
         } else {
           setCreating(canEdit);

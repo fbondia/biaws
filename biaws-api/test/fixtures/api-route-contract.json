@@ -404,6 +404,11 @@
       "handlers": 2
     },
     {
+      "path": "/users/:userId",
+      "methods": ["get"],
+      "handlers": 3
+    },
+    {
       "path": "/users",
       "methods": ["post"],
       "handlers": 2

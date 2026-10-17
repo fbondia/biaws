@@ -242,6 +242,29 @@ test(
       async function request(route: string, options = {}) {
         return fetch(base + route, options);
       }
+      // Direct UI links may carry the public ID, Mongo _id or business identifier.
+      const storedIssue = await db.collection(C.ISSUES).findOne({ id: "issue-id" });
+      const storedDocument = await db.collection(C.DOCUMENTS).findOne({ id: doc?.id });
+      assert.ok(storedIssue && storedDocument);
+      for (const reference of ["issue-id", "INC123", String(storedIssue._id)]) {
+        const response = await request(`/api/issues/${reference}`);
+        assert.equal(response.status, 200);
+        assert.equal(((await response.json()) as { issue: { id: string } }).issue.id, "issue-id");
+      }
+      for (const reference of [doc?.id, "resource-guide", String(storedDocument._id)]) {
+        const response = await request(`/api/knowledge/documents/${reference}`);
+        assert.equal(response.status, 200);
+        assert.equal(((await response.json()) as { document: { id: string } }).document.id, doc?.id);
+      }
+      for (const id of ["hidden-issue", "other-issue"]) {
+        const outside = await db.collection(C.ISSUES).findOne({ id });
+        assert.equal((await request(`/api/issues/${outside?._id}`)).status, 404);
+      }
+      assert.equal(
+        (await request(`/api/knowledge/documents/${storedDocument._id}`, { headers: { "x-test-deny": "1" } })).status,
+        403,
+      );
+      assert.equal((await request(`/api/issues/${storedIssue._id}`, { headers: { "x-test-deny": "1" } })).status, 403);
       let response = await request("/api/issues/INC123/comments?limit=1");
       assert.equal(response.status, 200);
       let result = await readResourceResponse(response);

@@ -1,8 +1,10 @@
+import { useEntityState } from "../../navigation/useEntityState.js";
 import { UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
   createUser,
+  fetchUser,
   listPermissionGroups,
   listUsers,
   resetUserPassword,
@@ -18,6 +20,14 @@ function toggleId(values, id) {
 }
 
 export function UsersView({ actor }) {
+  const [selectedUser, setSelectedUser] = useEntityState("user", null, {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => (await fetchUser(reference)).user,
+    onRestore: (user) => {
+      if (user) setAccessByUser((current) => ({ ...current, [user.id]: user.groupIds || [] }));
+    },
+    onError: (error) => setError(error.message),
+  });
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [accessByUser, setAccessByUser] = useState({});
@@ -155,12 +165,19 @@ export function UsersView({ actor }) {
         ) : null}
       </header>
       {error ? <div className="authError">{error}</div> : null}
+      {selectedUser ? (
+        <button className="secondaryButton" onClick={() => setSelectedUser(null)} type="button">
+          Voltar para usuários
+        </button>
+      ) : null}
       <div className="securityPanel">
         <div className="userTable">
-          {users.map((user) => (
+          {(selectedUser ? [users.find(({ id }) => id === selectedUser.id) || selectedUser] : users).map((user) => (
             <div className="userRow" key={user.id}>
               <div>
-                <strong>{user.name}</strong>
+                <button className="secondaryButton" onClick={() => setSelectedUser(user)} type="button">
+                  {user.name}
+                </button>
                 <small>
                   {user.email} · {user.role || "user"}
                 </small>

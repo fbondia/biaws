@@ -1,7 +1,9 @@
 import { LockKeyhole } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useSession } from "../../infrastructure/session/SessionProvider.jsx";
+import { navigate, useRoute } from "../../navigation/location.js";
+import { viewUrl } from "../../navigation/model.js";
 import { SESSION_STATUS } from "../../infrastructure/session/service.js";
 import "../../styles/features/auth/index.css";
 
@@ -118,6 +120,39 @@ function ReauthenticationDialog({ credentials, onSubmit, reason, submitting }) {
 
 export function AuthGate({ children, requireWorkspace = true }) {
   const session = useSession();
+  const route = useRoute();
+  const [workspaceError, setWorkspaceError] = useState("");
+  const workspaceAttempt = useRef("");
+  const previousActorWorkspace = useRef(session.actor?.workspaceId);
+  useEffect(() => {
+    if (!requireWorkspace || session.status !== SESSION_STATUS.AUTHENTICATED) return;
+    const previousWorkspace = previousActorWorkspace.current;
+    previousActorWorkspace.current = session.actor.workspaceId;
+    const requested = route.workspaceId;
+    if (previousWorkspace && previousWorkspace !== session.actor.workspaceId && requested === previousWorkspace) {
+      navigate(viewUrl(route.view, session.actor.workspaceId));
+      return;
+    }
+    if (!requested || requested === session.actor.workspaceId) {
+      setWorkspaceError("");
+      workspaceAttempt.current = "";
+      return;
+    }
+    if (workspaceAttempt.current === requested) return;
+    workspaceAttempt.current = requested;
+    setWorkspaceError("");
+    if (!session.actor.workspaces?.some(({ id }) => id === requested)) {
+      setWorkspaceError("Workspace não encontrado ou sem acesso.");
+      return;
+    }
+    session
+      .switchWorkspace(requested)
+      .then((result) => {
+        if (result.actor?.workspaceId !== requested)
+          setWorkspaceError("Não foi possível acessar o workspace solicitado.");
+      })
+      .catch((error) => setWorkspaceError(error.message));
+  }, [requireWorkspace, session.status, session.actor, session.switchWorkspace, route.workspaceId, route.view]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -170,6 +205,21 @@ export function AuthGate({ children, requireWorkspace = true }) {
 
   const actor = session.actor || authenticatedActor.current;
 
+  if (requireWorkspace && route.workspaceId && actor.workspaceId !== route.workspaceId) {
+    return workspaceError ? (
+      <SessionError
+        error={{ message: workspaceError }}
+        onRetry={() => {
+          workspaceAttempt.current = "";
+          setWorkspaceError("");
+          session.refresh();
+        }}
+      />
+    ) : (
+      <div className="authLoading">Abrindo workspace…</div>
+    );
+  }
+
   if (
     requireWorkspace &&
     !actor.workspaceId &&
@@ -184,7 +234,7 @@ export function AuthGate({ children, requireWorkspace = true }) {
       {children({
         actor,
         onSignOut: () => session.signOut().catch(() => {}),
-        onWorkspaceChange: session.switchWorkspace,
+        onWorkspaceChange: (workspaceId, view) => navigate(viewUrl(view || route.view, workspaceId)),
       })}
       {reauthenticationVisible ? (
         <ReauthenticationDialog

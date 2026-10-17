@@ -92,7 +92,7 @@ export function CatalogEntityDialog({ entity, kind, onArchive, onClose, onSave, 
       >
         <header>
           <div>
-            <span>{editing ? `Editar ${label}` : `Novo ${label}`}</span>
+            <span>{options.readOnly ? label : editing ? `Editar ${label}` : `Novo ${label}`}</span>
             <h2 id="catalog-entity-dialog-title">{draft.name || `Novo ${label}`}</h2>
           </div>
           <button
@@ -126,7 +126,7 @@ export function CatalogEntityDialog({ entity, kind, onArchive, onClose, onSave, 
               ))}
             </div>
           </EntityFieldGroup>
-          <div className="catalogFormGrid">
+          <fieldset className="catalogFormGrid" disabled={options.readOnly}>
             <BasicFields
               activeSection={activeSection}
               draft={draft}
@@ -155,8 +155,9 @@ export function CatalogEntityDialog({ entity, kind, onArchive, onClose, onSave, 
               kind={kind}
               options={options}
             />
-          </div>
+          </fieldset>
           <CatalogEntityFooter
+            readOnly={options.readOnly}
             archiving={archiving}
             editing={editing}
             error={error}

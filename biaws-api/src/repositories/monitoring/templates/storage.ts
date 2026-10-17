@@ -1,4 +1,4 @@
-import type { Collection, Filter } from "mongodb";
+import { ObjectId, type Collection, type Filter } from "mongodb";
 import { COLLECTION_NAMES } from "../../../database/collectionNames.js";
 import { getMongoDatabase } from "../../../helpers/mongoClient.js";
 import { textValue } from "../../../helpers/text.js";
@@ -58,7 +58,11 @@ export async function requireTemplate(id: string | string[], version: unknown, w
     status: { $ne: "archived" },
   };
   if (version) filter.version = textValue(version);
-  const template = await collection.findOne(filter, version ? {} : { sort: { versionNumber: -1 } });
+  const template =
+    (await collection.findOne(filter, version ? {} : { sort: { versionNumber: -1 } })) ||
+    (ObjectId.isValid(String(id))
+      ? await collection.findOne({ ...filter, id: { $exists: true }, _id: new ObjectId(String(id)) })
+      : null);
   if (!template) {
     throw createCatalogError(404, "MONITORING_TEMPLATE_NOT_FOUND", "Monitoring template not found");
   }

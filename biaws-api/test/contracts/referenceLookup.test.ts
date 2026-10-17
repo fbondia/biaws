@@ -90,3 +90,34 @@ test("a valid but absent ObjectId also falls back to the business code", async (
   assert.equal(calls[1].$and[1].code, reference);
   assert.deepEqual(calls[0].$and[0], calls[1].$and[0]);
 });
+
+test("Mongo _id lookup keeps the authorized filter and wins over a business identifier", async () => {
+  const reference = "507f1f77bcf86cd799439011";
+  const filter = { workspaceId: "workspace-a", applicationId: { $in: ["app-a"] } };
+  let calls = 0;
+  const collection = {
+    async findOne(query: { $and: Array<Record<string, unknown>> }) {
+      assert.deepEqual(query.$and[0], filter);
+      calls += 1;
+      if (calls === 1) {
+        assert.equal(query.$and[1].id, reference);
+        return null;
+      }
+      assert.equal(String(query.$and[1]._id), reference);
+      return { id: "canonical-id" };
+    },
+    find() {
+      assert.fail("business identifier must not supersede a Mongo ID");
+    },
+  };
+  assert.equal(
+    (
+      await findByReference(collection as unknown as Collection<{ id: string }>, reference, {
+        filter,
+        identifierField: "identifier",
+      })
+    )?.id,
+    "canonical-id",
+  );
+  assert.equal(calls, 2);
+});

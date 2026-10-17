@@ -1,3 +1,4 @@
+import { findByReference } from "../../../helpers/referenceLookup.js";
 import { textValue } from "../../../helpers/text.js";
 import type { RepositoryQuery } from "../../../types/http.js";
 import type { Filter } from "mongodb";
@@ -6,7 +7,6 @@ import { getCollections } from "../storage.js";
 import { ensureDefaultWorkspace } from "./bootstrap.js";
 import { WORKSPACES_COLLECTION } from "../constants.js";
 import { normalizeDocument, createHttpError } from "../support.js";
-import { buildOperationalWorkspaceFilter } from "./filters.js";
 
 export async function listWorkspaces({ workspaceIds = null }: { workspaceIds?: string[] | null } = {}) {
   const { workspaces } = await getCollections();
@@ -68,7 +68,7 @@ export async function listAllWorkspaces(query: RepositoryQuery = {}) {
 export async function getWorkspace(workspaceId: string | string[]) {
   const { workspaces } = await getCollections();
   await ensureDefaultWorkspace();
-  return normalizeDocument(await workspaces.findOne(buildOperationalWorkspaceFilter(workspaceId)));
+  return normalizeDocument(await findByReference(workspaces, workspaceId, { identifierField: "key", lowercase: true }));
 }
 
 export async function requireWorkspace(workspaceId: string | string[], { active = false } = {}) {

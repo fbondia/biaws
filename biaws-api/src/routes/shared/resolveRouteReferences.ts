@@ -3,6 +3,7 @@ import { authorizationQuery } from "../../auth/authorizationMiddleware.js";
 import { resolveEntityReference, resolveTaskReference } from "../../repositories/shared/references.js";
 
 const PARAMETER_TYPES = {
+  diagramId: "topology-diagram",
   applicationId: "application",
   componentId: "component",
   integrationId: "integration",

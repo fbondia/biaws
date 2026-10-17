@@ -1,7 +1,11 @@
+import { useEntityState } from "../../navigation/useEntityState.js";
 import { Boxes, ChevronRight, CloudCog, Folder, FolderOpen, Layers3, Plus, RefreshCw, Send } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
+  fetchApplication,
+  fetchComponent,
+  fetchDeployment,
   fetchApplications,
   fetchComponents,
   fetchDeployments,
@@ -317,7 +321,29 @@ export function PublicationsView({ actor }) {
   const [collectionId, setCollectionId] = useState("");
   const [application, setApplication] = useState(null);
   const [component, setComponent] = useState(null);
-  const [deployment, setDeployment] = useState(null);
+  const [deployment, setDeployment] = useEntityState("deployment", null, {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => {
+      const { deployment } = await fetchDeployment(reference);
+      if (!deployment) return null;
+      const [{ application }, { component }, components] = await Promise.all([
+        fetchApplication(deployment.applicationId),
+        fetchComponent(deployment.componentId),
+        fetchComponents(deployment.applicationId, { limit: 100 }),
+      ]);
+      return { deployment, application, component, components: components.items || [] };
+    },
+    toValue: (context) => context.deployment,
+    onRestore: (context) => {
+      if (context) {
+        setApplication(context.application);
+        setComponent(context.component);
+        setComponents(context.components);
+        setCollectionId(context.application.collectionId || "");
+      }
+    },
+    onError: (error) => setError(error.message),
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const applicationsWithDeployments = useMemo(

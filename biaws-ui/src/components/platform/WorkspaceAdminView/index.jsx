@@ -1,3 +1,5 @@
+import { useEntityState } from "../../../navigation/useEntityState.js";
+import { useRoute } from "../../../navigation/location.js";
 import { Archive, Building2, Check, Copy, Plus, RefreshCw, RotateCcw, Save, UserPlus, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -12,6 +14,7 @@ import {
   listPlatformWorkspaceGroups,
   listPlatformWorkspaceMembers,
   listPlatformWorkspaces,
+  fetchPlatformWorkspace,
   reactivatePlatformWorkspace,
   removePlatformWorkspaceMember,
   setPlatformWorkspaceMember,
@@ -25,7 +28,17 @@ export function WorkspaceAdminView({ actor }) {
   const { confirm, prompt } = useMessages();
   const detailRequestId = useRef(0);
   const [workspaces, setWorkspaces] = useState([]);
-  const [selectedId, setSelectedId] = useState("");
+  const route = useRoute();
+  const [selectedId, setSelectedId] = useEntityState("workspace", "", {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => (await fetchPlatformWorkspace(reference)).workspace,
+    toValue: (workspace) => workspace.id,
+    onRestore: (workspace) => {
+      if (workspace)
+        setWorkspaces((items) => (items.some(({ id }) => id === workspace.id) ? items : [...items, workspace]));
+    },
+    onError: (error) => setError(error.message),
+  });
   const [selected, setSelected] = useState(null);
   const [summary, setSummary] = useState(null);
   const [members, setMembers] = useState([]);
@@ -49,8 +62,11 @@ export function WorkspaceAdminView({ actor }) {
         limit: 100,
       });
       const items = payload.items || [];
-      setWorkspaces(items);
-      if (!items.some(({ id }) => id === selectedId)) {
+      setWorkspaces((current) => [
+        ...items,
+        ...current.filter((item) => item.id === selectedId && !items.some(({ id }) => id === item.id)),
+      ]);
+      if (!route.selections.workspace && !items.some(({ id }) => id === selectedId)) {
         setSelectedId(items[0]?.id || "");
       }
     } catch (loadError) {
@@ -66,7 +82,7 @@ export function WorkspaceAdminView({ actor }) {
     }
     try {
       setError("");
-      const workspace = workspaces.find(({ id }) => id === workspaceId);
+      const { workspace } = await fetchPlatformWorkspace(workspaceId);
       const [summaryPayload, memberPayload, groupPayload, auditPayload] = await Promise.all([
         getPlatformWorkspaceSummary(workspaceId),
         listPlatformWorkspaceMembers(workspaceId),

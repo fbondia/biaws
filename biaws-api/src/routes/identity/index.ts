@@ -1,3 +1,4 @@
+import { registerGetUser } from "./users/getUser.js";
 import { Router } from "express";
 import { registerListUsers } from "./listUsers.js";
 import { registerCreateUser } from "./createUser.js";
@@ -7,6 +8,7 @@ import { registerDeleteUsersSessions } from "./users/deleteUsersSessions.js";
 
 export const identityRouter = Router();
 registerListUsers(identityRouter);
+registerGetUser(identityRouter);
 registerCreateUser(identityRouter);
 registerUpdateUsersDisabled(identityRouter);
 registerReplaceUsersPassword(identityRouter);

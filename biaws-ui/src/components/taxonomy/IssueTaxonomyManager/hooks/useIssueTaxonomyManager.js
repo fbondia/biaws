@@ -1,3 +1,6 @@
+import { useRoute } from "../../../../navigation/location.js";
+import { useEntityState } from "../../../../navigation/useEntityState.js";
+import { findEntity } from "../../../../navigation/entities.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchIssueTaxonomy, saveIssueTaxonomy, transferIssueTaxonomy } from "../../../../api.js";
@@ -33,12 +36,27 @@ function withoutTag(group, tagId) {
 }
 
 export function useIssueTaxonomyManager() {
+  const route = useRoute();
   const uploadInputRef = useRef(null);
   const [catalog, setCatalog] = useState(() => editableCatalog(cloneCatalog(EMPTY_CATALOG)));
   const [persistedSnapshot, setPersistedSnapshot] = useState("");
   const [applications, setApplications] = useState([]);
-  const [selectedGroupId, setSelectedGroupId] = useState(catalog.tagGroups[0]?.id || "");
-  const [selectedNodeId, setSelectedNodeId] = useState(catalog.taxonomy[0]?.id || "");
+  const [selectedGroupReference, setSelectedGroupId] = useEntityState("tag-group", "", {
+    load: async (reference) => findEntity(editableCatalog((await fetchIssueTaxonomy()).taxonomy).tagGroups, reference),
+    toValue: (group) => group.id,
+    onRestore: (group) => {
+      if (group) setActiveDefinitionTab("tags");
+    },
+    onError: (error) => setError(error.message),
+  });
+  const [selectedNodeReference, setSelectedNodeId] = useEntityState("taxonomy-node", "", {
+    load: async (reference) => findTreeNode(editableCatalog((await fetchIssueTaxonomy()).taxonomy).taxonomy, reference),
+    toValue: (node) => node.id,
+    onRestore: (node) => {
+      if (node) setActiveDefinitionTab("classification");
+    },
+    onError: (error) => setError(error.message),
+  });
   const [activeDefinitionTab, setActiveDefinitionTab] = useState("classification");
   const [newTag, setNewTag] = useState("");
   const [addingTag, setAddingTag] = useState(false);
@@ -48,6 +66,10 @@ export function useIssueTaxonomyManager() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  const selectedGroupId =
+    selectedGroupReference || (!route.selections["tag-group"] ? catalog.tagGroups[0]?.id || "" : "");
+  const selectedNodeId =
+    selectedNodeReference || (!route.selections["taxonomy-node"] ? catalog.taxonomy[0]?.id || "" : "");
   const selectedGroup = catalog.tagGroups.find((group) => group.id === selectedGroupId);
   const exportPayload = useMemo(() => editableCatalog(catalog), [catalog]);
   const hasPendingChanges = serializeCatalog(catalog) !== persistedSnapshot;
@@ -55,8 +77,7 @@ export function useIssueTaxonomyManager() {
   function applyCatalog(nextCatalog) {
     const editable = editableCatalog(cloneCatalog(nextCatalog));
     setCatalog(editable);
-    setSelectedGroupId(editable.tagGroups[0]?.id || "");
-    setSelectedNodeId(editable.taxonomy[0]?.id || "");
+
     setNewTag("");
     setAddingTag(false);
   }

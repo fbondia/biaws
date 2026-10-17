@@ -1,9 +1,10 @@
+import { useEntityState } from "../../../navigation/useEntityState.js";
 import { KeyRound, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import "../../../styles/features/secrets.css";
 
-import { moveSecretToCollection } from "../../../api.js";
+import { fetchSecret, moveSecretToCollection } from "../../../api.js";
 import { IllustratedEmptyState } from "../../shared/IllustratedEmptyState.jsx";
 import {
   collectionPathLabel,
@@ -222,7 +223,17 @@ function SecretsNavigator({
 
 export function SecretsView({ actor }) {
   const [search, setSearch] = useState("");
-  const [selectedSecretId, setSelectedSecretId] = useState("");
+  const [directSecret, setDirectSecret] = useState(null);
+  const [selectedSecretId, setSelectedSecretId] = useEntityState("secret", "", {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => (await fetchSecret(reference)).secret,
+    toValue: (secret) => secret.id,
+    onRestore: (secret) => {
+      setDirectSecret(secret);
+      clearRevealed();
+    },
+    onError: (error) => setError(error.message),
+  });
   const {
     allowed,
     applicationNames,
@@ -265,8 +276,10 @@ export function SecretsView({ actor }) {
     },
   });
   const selectedSecret = useMemo(
-    () => secrets.find(({ id }) => id === selectedSecretId) || null,
-    [secrets, selectedSecretId],
+    () =>
+      secrets.find(({ id }) => id === selectedSecretId) ||
+      (directSecret?.id === selectedSecretId ? directSecret : null),
+    [secrets, selectedSecretId, directSecret],
   );
   const visibleSecrets = useMemo(() => {
     return secretsInCollection(secrets, collectionState.selectedCollectionId, search);

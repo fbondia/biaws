@@ -9,6 +9,7 @@ const ENTITIES: Record<
   string,
   readonly [collection: string, idField: string, identifierField: string, lowercase?: boolean]
 > = {
+  "topology-diagram": [C.APPLICATION_TOPOLOGY_DIAGRAMS, "id", ""],
   issue: [C.ISSUES, "id", "identifier"],
   demand: [C.REQUESTS, "_id", "clientCode"],
   task: [C.REQUEST_TASKS, "_id", "code"],

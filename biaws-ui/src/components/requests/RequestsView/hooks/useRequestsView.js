@@ -1,3 +1,4 @@
+import { useEntityState } from "../../../../navigation/useEntityState.js";
 import { useEffect, useState } from "react";
 
 import {
@@ -43,7 +44,21 @@ export function useRequestsView(actor, options = {}) {
   const [requests, setRequests] = useState([]);
   const [requestCollectionItems, setRequestCollectionItems] = useState([]);
   const [selectedRequestId, setSelectedRequestId] = useState("");
-  const [selectedRequestOverride, setSelectedRequestOverride] = useState(null);
+  const [selectedRequestOverride, setSelectedRequestOverride] = useEntityState("demand", null, {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => {
+      const { request } = await fetchRequest(reference);
+      return request ? normalizeRequest(request) : null;
+    },
+    onRestore: (request) => {
+      setSelectedRequestId(request?.id || "");
+      setActiveDetailTab("main");
+    },
+    onError: (error) => {
+      setSelectedRequestId("");
+      setRequestError(error.message);
+    },
+  });
   const [editingRequestId, setEditingRequestId] = useState("");
   const [checklistDialogLabel, setChecklistDialogLabel] = useState("");
   const [loadingRequests, setLoadingRequests] = useState(false);

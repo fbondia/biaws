@@ -165,6 +165,10 @@ export function CatalogDialogs({
           }
           onSave={dialog.kind === "application" ? onPersistApplication : onPersistEntity}
           options={{
+            readOnly: !hasPermission(
+              actor,
+              `${{ application: "applications", component: "components", repository: "repositories", integration: "integrations", deployment: "deployments", runtime: "runtimes" }[dialog.kind]}.update`,
+            ),
             application: context?.application,
             applications: context?.availableApplications || [],
             canReadDocuments: hasPermission(actor, "documents.read"),

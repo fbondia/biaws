@@ -1,3 +1,4 @@
+import { useEntityState } from "../../../navigation/useEntityState.js";
 import { Archive, Server } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -110,7 +111,24 @@ export function ServersView({ actor }) {
   const { confirm } = useMessages();
   const [workspace, setWorkspace] = useState(null);
   const [servers, setServers] = useState([]);
-  const [selected, setSelected] = useState(null);
+  const serverOpenVersion = useRef(0);
+  useEffect(
+    () => () => {
+      serverOpenVersion.current += 1;
+    },
+    [],
+  );
+  const [selected, setSelected, selectionError] = useEntityState("server", null, {
+    workspaceId: actor.workspaceId,
+    load: loadServerContext,
+    toValue: (context) => context.server,
+    onRestore: (context) => {
+      serverOpenVersion.current += 1;
+      setServerApplications(context?.serverApplications || []);
+      if (context) collectionState.setSelectedCollectionId(context.server.collectionId || "");
+    },
+    onError: (error) => setError(error.message),
+  });
   const [serverApplications, setServerApplications] = useState([]);
   const [search, setSearch] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
@@ -152,35 +170,37 @@ export function ServersView({ actor }) {
     }
   }
 
+  async function loadServerContext(reference) {
+    const [detail, runtimePayload, deploymentPayload] = await Promise.all([
+      fetchServer(reference),
+      hasPermission(actor, "runtimes.read") ? fetchServerRuntimes(reference, { limit: 100 }) : { items: [] },
+      hasPermission(actor, "deployments.read") ? fetchServerDeployments(reference, { limit: 100 }) : { items: [] },
+    ]);
+    if (!detail.server) throw new Error("Servidor não encontrado ou sem acesso.");
+    const serverApplications = await loadServerApplicationGroups({
+      actor,
+      deployments: deploymentPayload.items || [],
+      runtimes: runtimePayload.items || [],
+      workspaceId: actor.workspaceId,
+    });
+    return { server: detail.server, serverApplications };
+  }
+
   async function openServer(server) {
+    const version = ++serverOpenVersion.current;
     setLoading(true);
     setError("");
     setServerApplications([]);
     try {
-      const [detail, runtimePayload, deploymentPayload] = await Promise.all([
-        fetchServer(server.id),
-        hasPermission(actor, "runtimes.read")
-          ? fetchServerRuntimes(server.id, { limit: 100 })
-          : Promise.resolve({ items: [] }),
-        hasPermission(actor, "deployments.read")
-          ? fetchServerDeployments(server.id, { limit: 100 })
-          : Promise.resolve({ items: [] }),
-      ]);
-      setSelected(detail.server);
-      const relatedDeployments = deploymentPayload.items || [];
-      setServerApplications(
-        await loadServerApplicationGroups({
-          actor,
-          deployments: relatedDeployments,
-          runtimes: runtimePayload.items || [],
-          workspaceId: workspace.id,
-        }),
-      );
+      const context = await loadServerContext(server.id);
+      if (version !== serverOpenVersion.current) return;
+      setSelected(context.server);
+      setServerApplications(context.serverApplications);
       setActiveTab("overview");
     } catch (loadError) {
-      setError(loadError.message);
+      if (version === serverOpenVersion.current) setError(loadError.message);
     } finally {
-      setLoading(false);
+      if (version === serverOpenVersion.current) setLoading(false);
     }
   }
 
@@ -263,9 +283,9 @@ export function ServersView({ actor }) {
   return (
     <section className="catalogPage serversPage">
       <ServerHeader actor={actor} onCreate={() => setDialog({})} workspace={workspace} />
-      {error ? (
+      {error || selectionError ? (
         <div className="errorBox" role="alert">
-          {error}
+          {selectionError?.message || error}
         </div>
       ) : null}
       <ResourceCollectionsShell

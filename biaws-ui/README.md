@@ -35,6 +35,9 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
 
 ## Recursos
 
+- [URLs diretas](../docs/direct-links.md) para abrir registros com workspace,
+  IDs ou identificadores e preservar o destino após o login
+
 - Catálogo de aplicações com busca, criação, edição, arquivamento e histórico
 - Topologia por aplicação: componentes, repositórios, deployments e runtimes
 - Inventário de servidores com referências reversas de runtimes e deployments

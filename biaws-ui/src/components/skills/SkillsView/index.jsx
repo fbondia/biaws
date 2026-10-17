@@ -1,8 +1,10 @@
+import { useEntityState } from "../../../navigation/useEntityState.js";
 import { AlertTriangle, Archive, CheckCircle2, Package, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import "../../../styles/features/skills.css";
 
+import { loadSkill } from "../../../navigation/entities.js";
 import { fetchSkills, moveSkillToCollection, replicateSkill } from "../../../api.js";
 import { hasPermission } from "../../../permissions.js";
 import { BulkReplicationToolbar } from "../../shared/BulkReplicationToolbar.jsx";
@@ -76,7 +78,14 @@ export function SkillsView({ actor }) {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [publishing, setPublishing] = useState(false);
-  const [selectedSkill, setSelectedSkill] = useState(null);
+  const [selectedSkill, setSelectedSkill] = useEntityState("skill", null, {
+    workspaceId: actor.workspaceId,
+    load: loadSkill,
+    onRestore: (skill) => {
+      if (skill) collectionState.setSelectedCollectionId(skill.collectionId || "");
+    },
+    onError: (error) => setError(error.message),
+  });
   const [selectedSkillIds, setSelectedSkillIds] = useState([]);
   const [bulkReplicationOpen, setBulkReplicationOpen] = useState(false);
   const { run: runWithLoading } = useMessages();
@@ -203,6 +212,7 @@ export function SkillsView({ actor }) {
         >
           {selectedSkill ? (
             <SkillDetailsDialog
+              key={selectedSkill.skillId}
               currentWorkspaceId={actor.workspaceId}
               embedded
               onChanged={loadSkills}

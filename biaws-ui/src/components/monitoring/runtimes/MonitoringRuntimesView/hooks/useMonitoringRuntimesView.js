@@ -1,6 +1,11 @@
+import { useEntityState } from "../../../../../navigation/useEntityState.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  fetchApplication,
+  fetchComponent,
+  fetchDeployment,
+  fetchRuntime,
   fetchApplications,
   fetchComponents,
   fetchDeployments,
@@ -37,7 +42,46 @@ export function useMonitoringRuntimesView(actor) {
   const [application, setApplication] = useState(null);
   const [component, setComponent] = useState(null);
   const [deployment, setDeployment] = useState(null);
-  const [runtime, setRuntime] = useState(null);
+  const [runtime, setRuntime] = useEntityState("runtime", null, {
+    workspaceId: actor.workspaceId,
+    load: async (reference) => {
+      const { runtime } = await fetchRuntime(reference);
+      if (!runtime) return null;
+      const [{ application }, { deployment }] = await Promise.all([
+        fetchApplication(runtime.applicationId),
+        fetchDeployment(runtime.deploymentId),
+      ]);
+      const { component } = await fetchComponent(deployment.componentId);
+      const [components, deployments, runtimes] = await Promise.all([
+        fetchComponents(application.id, { limit: 100 }),
+        fetchDeployments(application.id, { limit: 100 }),
+        fetchRuntimes(deployment.id, runtimeListParams(false)),
+      ]);
+      return {
+        runtime,
+        application,
+        deployment,
+        component,
+        components: components.items || [],
+        deployments: deployments.items || [],
+        runtimes: runtimes.items || [],
+      };
+    },
+    toValue: (context) => context.runtime,
+    onRestore: (context) => {
+      if (!context) return;
+      setMonitoredOnly(false);
+      setApplication(context.application);
+      setComponent(context.component);
+      setDeployment(context.deployment);
+      setSelectedCollectionId(context.application.collectionId || "");
+      setViewMode("navigation");
+      setComponents(context.components);
+      setDeployments(context.deployments);
+      setRuntimes(context.runtimes);
+    },
+    onError: (error) => setError(error.message),
+  });
   const [viewMode, setViewMode] = useState("navigation");
   const [monitoredOnly, setMonitoredOnly] = useState(true);
   const [monitoredTopology, setMonitoredTopology] = useState(EMPTY_MONITORED_TOPOLOGY);

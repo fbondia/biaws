@@ -1,3 +1,4 @@
+import { readRoute, VIEW_ROUTES } from "../navigation/model.js";
 import {
   Activity,
   ListChecks,
@@ -166,42 +167,15 @@ export const NAVIGATION_GROUPS = [
 
 export const GROUPED_VIEWS = NAVIGATION_GROUPS.flatMap(({ sections }) => sections.flatMap(({ views }) => views));
 
-const VIEW_ROUTES = {
-  account: "/account",
-  catalog: "/catalog",
-  documents: "/documents",
-  groups: "/groups",
-  home: "/",
-  issues: "/issues",
-  "option-lists": "/option-lists",
-  "monitoring-runtimes": "/operation/monitoring/runtimes",
-  "monitoring-templates": "/operation/monitoring/templates",
-  publications: "/operation/environment/publications",
-  requests: "/requests",
-  secrets: "/secrets",
-  servers: "/servers",
-  skills: "/skills",
-  taxonomy: "/taxonomy",
-  users: "/users",
-  "workspace-admin": "/workspaces",
-};
+export { VIEW_ROUTES } from "../navigation/model.js";
 
 export function activeViewPath(view) {
   return VIEW_ROUTES[view] || VIEW_ROUTES.home;
 }
 
 export function activeViewFromPath(pathname) {
-  const normalizedPath = `/${String(pathname || "")
-    .split("/")
-    .filter(Boolean)
-    .join("/")}`;
-  if (normalizedPath === "/monitoring-templates") {
-    return "monitoring-templates";
-  }
-  if (normalizedPath === "/operation/monitoring") {
-    return "monitoring-runtimes";
-  }
-  return Object.entries(VIEW_ROUTES).find(([, route]) => route === normalizedPath)?.[0];
+  const route = readRoute({ pathname });
+  return route.valid ? route.view : undefined;
 }
 
 export function resolveActiveView(actor, preferredView) {

@@ -42,7 +42,7 @@ Versão preparada: `biaws@0.6.0`; commit de preparação `ac1fbab`.
 Tarball local validado: `biaws-0.6.0.tgz`.
 SHA-256: `4b2b57f3dd7009276791c1b42836290a171addd4cfded57a1fa5d71100388ca2`.
 Está no mesmo diretório temporário; instalação isolada, help, versão e JSON
-OAuth passaram. Os 103 testes do CLI passaram, incluindo stdio e instâncias.
+OAuth passaram. Os 108 testes do CLI passaram, incluindo stdio e instâncias.
 
 O script `publish-biaws-cli.sh --publish` consulta a versão exata do MCP fixada
 no código e recusa a publicação se estiver ausente, divergente ou indisponível.

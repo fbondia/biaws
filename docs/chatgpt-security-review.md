@@ -85,3 +85,11 @@ A validação do bundle usa o perfil de schema documentado em
 [plugins/README.md](../plugins/README.md). Instalação/jornada real no ChatGPT,
 verificação de domínio, elegibilidade de URLs por cliente, scan do portal,
 publicações npm/catálogo e atualização de instalações permanecem externas.
+
+## Revisão complementar
+
+A revisão completa posterior, com correções e novas evidências, está em
+[chatgpt-review.md](chatgpt-review.md). A execução atual passou com API254
+(e compilada254), UI239, MCP167 sem skips, CLI108 e plugin5; a integração TLS
+em duas instâncias foi repetida. Consulte os
+[passos externos](chatgpt-external-actions.md) antes de publicar ou implantar.

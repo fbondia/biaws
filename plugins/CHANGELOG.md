@@ -7,7 +7,7 @@
   existente da interface BIAWS.
 - Build reproduzível e instalação offline verificados; a URL é uma entrada do
   build. O placeholder do source nunca deve ser distribuído como artefato final.
-- Compatibilidade mínima em `compatibility.json`: plataforma 0.8.0, API 0.10.0,
+- Compatibilidade mínima em `compatibility.json`: plataforma 0.8.0, revisão 3, API 0.10.0,
   UI 0.8.0, MCP 0.15.0 e CLI 0.6.0. São versões preparadas localmente; consulte
   o registry antes de instalar pacotes por npm.
 

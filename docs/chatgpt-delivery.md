@@ -1,8 +1,9 @@
 # Entrega local — CHATGPT-PLUGIN
 
 Implementação automática e preparação de release em 2026-10-17, na branch
-`codex/chatgpt-plugin`. Cada tarefa recebeu um commit com identificador e
-evidências próprias no BIAWS. Há 20 tarefas concluídas e sete com a parte
+`codex/chatgpt-plugin`. A implementação inicial recebeu um commit por tarefa e evidências no BIAWS.
+A [revisão completa](chatgpt-review.md) acrescentou correções rastreáveis; os
+[passos externos](chatgpt-external-actions.md) indicam a sequência restante. Há 20 tarefas concluídas e sete com a parte
 externa pendente. A melhoria permanece aberta.
 
 ## Comportamento entregue
@@ -23,7 +24,7 @@ desse transporte. O pacote remoto oferece as alternativas por conteúdo.
 
 | Unidade           | Versão local                          |
 | ----------------- | ------------------------------------- |
-| Plataforma        | 0.8.0, schema 2, deploymentRevision 2 |
+| Plataforma        | 0.8.0, schema 2, deploymentRevision 3 |
 | API               | 0.10.0                                |
 | UI                | 0.8.0                                 |
 | MCP Docker/npm    | 0.15.0                                |
@@ -43,8 +44,8 @@ instância ou aprovação no catálogo. O plugin tem versão própria e uma
 | API compilada        | Os mesmos 254 testes passaram na execução compilada                          |
 | UI                   | 239 testes, CSS e build passaram                                             |
 | MCP                  | 167 testes, typecheck, build e package:verify passaram                       |
-| CLI                  | 103 testes e release:check passaram                                          |
-| Plugin               | Quatro testes: schemas/casos, determinismo, instalação e seis skills         |
+| CLI                  | 108 testes e release:check passaram                                          |
+| Plugin               | Cinco testes: schemas/casos, determinismo, instalação, skills e evidências   |
 | Publicação CLI       | Cinco cenários com registry falso passaram; sem chamada real npm             |
 | Tarballs             | Instalações isoladas; handshake MCP legacy/2026-07-28; help/versão/JSON CLI  |
 | Compose              | Config com MCP habilitado/desabilitado; quatro imagens construídas           |
@@ -68,11 +69,11 @@ mas não foi executada remotamente. TLS local não comprova acesso pelo ChatGPT.
 
 Os artefatos estão em `plugins/dist/chatgpt-plugin/` (ignorado pelo Git):
 
-| Arquivo                                         | SHA-256                                                            |
-| ----------------------------------------------- | ------------------------------------------------------------------ |
-| `biaws-mcp-0.15.0.tgz`                          | `d8a637a9ff2f213ddf9a237ad27f036614333d4b06930b64f5fff92a7134dd53` |
-| `biaws-0.6.0.tgz`                               | `4b2b57f3dd7009276791c1b42836290a171addd4cfded57a1fa5d71100388ca2` |
-| `plugin-local-test/biaws-plugin-0.1.0-rc.1.zip` | `42ea47eb74d3acb6b3324fc8fb888a8ed6931ed726fe567102c0fd11890187d4` |
+| Arquivo                                        | SHA-256                                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------ |
+| `biaws-mcp-0.15.0.tgz`                         | `d8a637a9ff2f213ddf9a237ad27f036614333d4b06930b64f5fff92a7134dd53` |
+| `biaws-0.6.0.tgz`                              | `4b2b57f3dd7009276791c1b42836290a171addd4cfded57a1fa5d71100388ca2` |
+| `plugin-candidate/biaws-plugin-0.1.0-rc.1.zip` | `42ea47eb74d3acb6b3324fc8fb888a8ed6931ed726fe567102c0fd11890187d4` |
 
 Os tarballs foram regenerados e comparados byte a byte. O ZIP contém dez
 arquivos, nenhum token/ambiente pessoal, seis skills, licença e ícone reais.
@@ -87,7 +88,7 @@ O artefato final deve ser reconstruído com o endpoint HTTPS real escolhido:
 ```sh
 npm --prefix plugins run build -- --url https://<host-real>/mcp --out <diretorio>
 node plugins/scripts/verify-install.mjs <diretorio>/biaws-plugin-0.1.0-rc.1.zip
-node plugins/scripts/catalog-readiness.mjs --require-ready
+node plugins/scripts/catalog-readiness.mjs --archive <diretorio>/biaws-plugin-0.1.0-rc.1.zip --require-ready
 ```
 
 O último comando permanece bloqueado enquanto faltarem evidências externas.
@@ -115,7 +116,7 @@ Nenhum npm publish, push, tag, atualização de instância real, envio ao portal
 ou registro topológico de publicação foi feito. Somente os projetos e dados
 descartáveis criados para os testes desta melhoria são removidos na limpeza.
 
-## Commits por tarefa
+## Commits da implementação inicial por tarefa
 
 | Tarefa | Commit                                                         | Situação                   |
 | ------ | -------------------------------------------------------------- | -------------------------- |

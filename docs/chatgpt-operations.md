@@ -90,6 +90,9 @@ apropriado. Nunca inclua esses arquivos no plugin, Git ou material de revisão.
 Restore mantém as URLs, flags e paths do destino e invalida o snapshot de
 release. Ao mudar a origem/issuer, remove as autorizações/tokens/clientes/JWKS
 restaurados antes de retomar serviços: os usuários precisam conectar novamente.
+Antes de importar o dump, limpa o estado OAuth do destino: coleções ausentes
+em backups legados não podem preservar concessões posteriores ao backup.
+Na mesma origem, somente o estado presente no backup é recuperado.
 Faça update no checkout escolhido para reconciliar as imagens. Restore não
 habilita MCP em um destino que estava desabilitado.
 

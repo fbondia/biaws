@@ -449,6 +449,16 @@ restore_volume "${PAYLOAD_DIR}/files/secrets.tar" /data/secrets
 mongo_db="$(read_env_value_from "${MANIFEST}" mongo_database)"
 mongo_db="${mongo_db:-biaws}"
 echo "Restaurando MongoDB..."
+# mongorestore --drop only clears collections present in the archive. A legacy
+# backup may contain no OAuth collections, so destination grants/keys must be
+# cleared first even when restoring to the same origin.
+clear_oauth_state() {
+  compose exec -T -e "BIAWS_RESTORE_DATABASE=${mongo_db}" mongo mongosh --quiet --eval '
+    const d = db.getSiblingDB(process.env.BIAWS_RESTORE_DATABASE);
+    for (const name of ["oauthGrants", "oauthDelegations", "oauthConsent", "oauthAccessToken", "oauthRefreshToken", "oauthClientAssertion", "oauthClient", "oauthClientResource", "oauthResource", "jwks"]) d.getCollection(name).deleteMany({});
+  '
+}
+clear_oauth_state
 compose exec -T mongo mongorestore \
   --nsInclude="${mongo_db}.*" \
   --archive \
@@ -457,10 +467,7 @@ compose exec -T mongo mongorestore \
 
 if [[ "$(read_env_value_from "${SOURCE_ENV}" BIAWS_PUBLIC_URL)" != "$(read_env_value_from "${destination_env_snapshot}" BIAWS_PUBLIC_URL)" ]]; then
   echo "Origem pública diferente: invalidando autorizações OAuth restauradas; nova conexão será necessária."
-  compose exec -T -e "BIAWS_RESTORE_DATABASE=${mongo_db}" mongo mongosh --quiet --eval '
-    const d = db.getSiblingDB(process.env.BIAWS_RESTORE_DATABASE);
-    for (const name of ["oauthGrants", "oauthDelegations", "oauthConsent", "oauthAccessToken", "oauthRefreshToken", "oauthClientAssertion", "oauthClient", "oauthClientResource", "oauthResource", "jwks"]) d.getCollection(name).deleteMany({});
-  '
+  clear_oauth_state
 fi
 restart_services
 echo "Restauração completa concluída na instância: ${INSTANCE}"

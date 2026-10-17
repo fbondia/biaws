@@ -387,9 +387,11 @@ export async function updateInstance(instance, context, filesystem, processRunne
     throw new CliError("A release mudou após a verificação; execute update novamente.", { code: "RELEASE_CHANGED" });
   }
   const existing = await operateInstance(instance, context, processRunner, "services", { environment });
-  const services = existing.output.split(/\s+/u).includes("monitor-executor")
-    ? ["mongo", "api", "ui", "monitor-executor"]
-    : [];
+  const services = ["mongo", "api", "ui"];
+  if (existing.output.split(/\s+/u).includes("monitor-executor")) services.push("monitor-executor");
+  if (instance.env.BIAWS_MCP_HTTP_ENABLED === "true") services.push("mcp");
+  else if (instance.env.BIAWS_MCP_CONFIGURED === "true")
+    await operateInstance(instance, context, processRunner, "stop", { services: ["mcp"], environment });
   const result = await operateInstance(instance, context, processRunner, "update", {
     environment: { ...environment, BIAWS_VERSION: normalized.version },
     services,

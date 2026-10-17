@@ -2,7 +2,8 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { CliError } from "../core/errors.js";
 
-const COMPONENTS = ["biaws-api", "biaws-ui", "biaws-monitor-executor"];
+const LEGACY_COMPONENTS = ["biaws-api", "biaws-ui", "biaws-monitor-executor"];
+const COMPONENTS = [...LEGACY_COMPONENTS, "biaws-mcp"];
 const VERSION = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u;
 
 function invalid(message) {
@@ -11,22 +12,23 @@ function invalid(message) {
 
 export function validateRelease(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) invalid("Manifesto de release inválido.");
-  if (value.schemaVersion !== 1) invalid("schemaVersion do manifesto não suportada; atualize o CLI.");
+  if (![1, 2].includes(value.schemaVersion)) invalid("schemaVersion do manifesto não suportada; atualize o CLI.");
+  const expected = value.schemaVersion === 1 ? LEGACY_COMPONENTS : COMPONENTS;
   if (typeof value.version !== "string" || !VERSION.test(value.version)) invalid("Versão da release inválida.");
   if (!Number.isSafeInteger(value.deploymentRevision) || value.deploymentRevision < 1) {
     invalid("deploymentRevision deve ser um inteiro positivo.");
   }
-  if (!value.components || Object.keys(value.components).sort().join() !== [...COMPONENTS].sort().join()) {
-    invalid("O manifesto deve conter as versões de biaws-api, biaws-ui e biaws-monitor-executor.");
+  if (!value.components || Object.keys(value.components).sort().join() !== [...expected].sort().join()) {
+    invalid("O manifesto deve conter exatamente os componentes do schema declarado.");
   }
   const components = {};
-  for (const component of COMPONENTS) {
+  for (const component of expected) {
     const version = value.components[component];
     if (typeof version !== "string" || !VERSION.test(version)) invalid(`Versão inválida: ${component}.`);
     components[component] = version;
   }
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: value.schemaVersion,
     version: value.version,
     deploymentRevision: value.deploymentRevision,
     components: Object.freeze(components),
@@ -55,7 +57,7 @@ export async function readRelease(file, filesystem, { optional = false } = {}) {
 
 export async function readAvailableRelease(root, filesystem) {
   const release = await readRelease(path.join(root, "release.json"), filesystem);
-  for (const component of COMPONENTS) {
+  for (const component of Object.keys(release.components)) {
     const manifest = JSON.parse(await filesystem.readFile(path.join(root, component, "package.json"), "utf8"));
     if (manifest.version !== release.components[component]) {
       invalid(`release.json diverge de ${component}/package.json; atualize o manifesto antes de implantar.`);
@@ -66,7 +68,7 @@ export async function readAvailableRelease(root, filesystem) {
 
 export function releaseDifferences(current, available) {
   const differences = [];
-  for (const field of ["version", "deploymentRevision", ...COMPONENTS]) {
+  for (const field of ["schemaVersion", "version", "deploymentRevision", ...COMPONENTS]) {
     const before = COMPONENTS.includes(field) ? current?.components[field] : current?.[field];
     const after = COMPONENTS.includes(field) ? available.components[field] : available[field];
     if (before !== after) differences.push({ field, current: before ?? null, available: after });

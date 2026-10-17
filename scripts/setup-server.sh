@@ -135,12 +135,7 @@ BIAWS_ROOT=${quoted_root}
 BIAWS_ENV_FILE=${quoted_env}
 BIAWS_COMPOSE_PROJECT=${quoted_project}
 
-exec docker compose \\
-  --project-directory "\${BIAWS_ROOT}" \\
-  --file "\${BIAWS_ROOT}/compose.yaml" \\
-  --env-file "\${BIAWS_ENV_FILE}" \\
-  --project-name "\${BIAWS_COMPOSE_PROJECT}" \\
-  up -d --wait "\$@"
+exec node "\${BIAWS_ROOT}/scripts/compose-instance.mjs" "\${BIAWS_ROOT}" "\${BIAWS_ENV_FILE}" "\${BIAWS_COMPOSE_PROJECT}" up -d --wait "\$@"
 EOF
 
   cat > "${stop_file}" <<EOF
@@ -152,12 +147,7 @@ BIAWS_ROOT=${quoted_root}
 BIAWS_ENV_FILE=${quoted_env}
 BIAWS_COMPOSE_PROJECT=${quoted_project}
 
-exec docker compose \\
-  --project-directory "\${BIAWS_ROOT}" \\
-  --file "\${BIAWS_ROOT}/compose.yaml" \\
-  --env-file "\${BIAWS_ENV_FILE}" \\
-  --project-name "\${BIAWS_COMPOSE_PROJECT}" \\
-  stop "\$@"
+exec node "\${BIAWS_ROOT}/scripts/compose-instance.mjs" "\${BIAWS_ROOT}" "\${BIAWS_ENV_FILE}" "\${BIAWS_COMPOSE_PROJECT}" stop "\$@"
 EOF
 
   cat > "${backup_file}" <<EOF

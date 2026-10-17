@@ -23,6 +23,35 @@ import {
 } from "../src/instance/service.js";
 
 const filesystem = { chmod, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile };
+
+test("update includes enabled MCP and stops it when disabled without dropping replica-set configuration", async (t) => {
+  for (const enabled of [true, false]) {
+    const setup = await fixture();
+    t.after(setup.cleanup);
+    const envFile = path.join(setup.context.instancesDirectory, "alpha", ".env");
+    await writeFile(
+      envFile,
+      (await readFile(envFile, "utf8")) + "\nBIAWS_MCP_CONFIGURED=true\nBIAWS_MCP_HTTP_ENABLED=" + enabled + "\n",
+    );
+    const instance = await getInstance(setup.context, filesystem, "alpha");
+    const calls = [];
+    const runner = {
+      async run(_command, args) {
+        calls.push(args);
+        return { stdout: args.includes("--services") ? "mongo\napi\nui\nmcp\nmonitor-executor" : "" };
+      },
+    };
+    await updateInstance(instance, setup.context, filesystem, runner, release);
+    const deploy = calls.find((args) => args.includes("--build"));
+    assert.ok(deploy.includes("monitor-executor"));
+    assert.equal(deploy.includes("mcp"), enabled);
+    assert.equal(
+      calls.some((args) => args.includes("stop") && args.at(-1) === "mcp"),
+      !enabled,
+    );
+    assert.ok(deploy.includes(path.join(setup.root, "compose.mcp.yaml")));
+  }
+});
 const release = {
   schemaVersion: 1,
   version: "1.2.0",
@@ -206,7 +235,7 @@ test("update valida o Compose e grava a versão somente após o deploy", async (
     [
       ["config", "--quiet"],
       ["--all", "--services"],
-      ["--build", "--wait"],
+      ["api", "ui"],
     ],
   );
   assert.equal(invocations[2].options.env.BIAWS_VERSION, "1.2.0");

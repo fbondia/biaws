@@ -22,6 +22,8 @@ jobs:
           node-version: 22
       - run: node scripts/check-documentation.mjs
       - run: node scripts/release-manifest.mjs check
+      - name: Verify deployed MCP schema migration
+        run: node --test biaws-cli/test/releaseMcp.test.js
 
   api:
     runs-on: ubuntu-latest

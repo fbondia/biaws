@@ -1,0 +1,1388 @@
+{
+  "applications_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "applications_get_context": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "components_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "integrations_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "repositories_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "servers_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "deployments_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "runtimes_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "applications_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "applications_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "components_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "components_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "integrations_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "integrations_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "repositories_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "repositories_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "servers_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "servers_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "deployments_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "deployments_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "deployments_record_publication": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "runtimes_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "runtimes_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "resource_collections_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "resource_collections_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "resource_collections_delete": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "applications_move_to_collection": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "servers_move_to_collection": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "secrets_move_to_collection": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "skills_move_to_collection": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_move_to_collection": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "documents_move_to_collection": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "secrets_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "secrets_register": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "knowledge_context_load": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "document_types_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "documents_search": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "documents_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "documents_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "documents_add_observation": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "attachments_upload": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "attachments_download": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "attachments_update_tags": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "attachments_delete": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_update_specification": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_update_checklist": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_update_journeys": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_update_note": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_delete_note": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_get": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_journey_calendar": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_deadlines": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_implementation_context": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_add_note": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_update_description": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_list_tasks": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_create_task": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_update_task": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_update_task_status": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_delete_task": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_add_task_note": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_update_task_note": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "demands_delete_task_note": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "audit_events_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "applications_monitoring_health_get": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "runtime_monitoring_signals_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "monitoring_templates_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "monitoring_templates_preview": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "monitoring_templates_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "monitoring_templates_create_version": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "monitoring_templates_validate": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "monitoring_templates_activate": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes monitor execution/configuration; the executor may contact configured external targets."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": true,
+      "justification": "Changes monitor configuration that can cause the executor to contact external targets."
+    }
+  },
+  "monitoring_templates_deactivate": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes monitor execution/configuration; the executor may contact configured external targets."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": true,
+      "justification": "Changes monitor configuration that can cause the executor to contact external targets."
+    }
+  },
+  "monitoring_templates_archive": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes monitor execution/configuration; the executor may contact configured external targets."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": true,
+      "justification": "Changes monitor configuration that can cause the executor to contact external targets."
+    }
+  },
+  "runtime_monitoring_results_list": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "runtime_monitoring_health_summary": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "runtime_active_monitors_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes monitor execution/configuration; the executor may contact configured external targets."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": true,
+      "justification": "Changes monitor configuration that can cause the executor to contact external targets."
+    }
+  },
+  "runtime_active_monitors_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes monitor execution/configuration; the executor may contact configured external targets."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": true,
+      "justification": "Changes monitor configuration that can cause the executor to contact external targets."
+    }
+  },
+  "runtime_active_monitors_archive": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes monitor execution/configuration; the executor may contact configured external targets."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": true,
+      "justification": "Changes monitor configuration that can cause the executor to contact external targets."
+    }
+  },
+  "issues_search": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_get": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_update": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_add_comment": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_update_comment": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_delete_comment": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_get_classification_catalog": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_create_taxonomy_item": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_update_taxonomy_item": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_summary": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_aggregate": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_create": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Adds a record or evidence without replacing existing content."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_import_eml": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_update_state": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_suggest_taxonomy": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_classify": {
+    "readOnlyHint": {
+      "value": false,
+      "justification": "Changes, replaces, moves, archives or deletes existing workspace state; may discard prior content."
+    },
+    "destructiveHint": {
+      "value": true,
+      "justification": "May replace, remove or change existing state or active configuration."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  },
+  "issues_by_taxonomy": {
+    "readOnlyHint": {
+      "value": true,
+      "justification": "Only reads or evaluates existing data; no domain mutation."
+    },
+    "destructiveHint": {
+      "value": false,
+      "justification": "Preserves existing state, or adds records/evidence without replacing them."
+    },
+    "openWorldHint": {
+      "value": false,
+      "justification": "Operates inside BIAWS's bounded workspace data; does not execute deployment or send external messages."
+    }
+  }
+}

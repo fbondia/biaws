@@ -13,6 +13,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  plugin-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci --prefix biaws-mcp
+      - run: npm run build --prefix biaws-mcp
+      - run: npm ci --prefix plugins
+      - run: npm test --prefix plugins
+      - run: npm run build --prefix plugins -- --url https://ci.example.test/mcp
   documentation:
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "biaws",
+  "version": "0.1.0-dev.0",
+  "description": "Consulte e organize aplicações, issues e melhorias na sua instância Bondia Workspaces.",
+  "author": {
+    "name": "Fabiano Bondia",
+    "url": "https://github.com/fbondia"
+  },
+  "homepage": "https://github.com/fbondia/biaws",
+  "repository": "https://github.com/fbondia/biaws",
+  "license": "Apache-2.0",
+  "keywords": ["biaws", "workspaces", "issues", "melhorias"],
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/setup/SKILL.md",
+      "interface": {
+        "displayName": "Bondia Workspaces",
+        "shortDescription": "Consulte e organize seu workspace BIAWS.",
+        "longDescription": "Conecte sua instância BIAWS com OAuth e use sua conta para consultar aplicações, organizar issues e planejar melhorias conforme suas permissões.",
+        "developerName": "Fabiano Bondia",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "websiteURL": "https://github.com/fbondia/biaws",
+        "defaultPrompt": [
+          "Resuma a situação da melhoria informada no BIAWS.",
+          "Sugira a classificação desta issue sem alterar o registro.",
+          "Crie um plano de tarefas para esta melhoria."
+        ],
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
+      }
+    }
+  }
+}

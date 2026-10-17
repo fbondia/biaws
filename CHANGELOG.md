@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- MCP preparado de `0.14.1` para `0.15.0` (CHATGPT-PLUGIN/P21): entrada
+  Streamable HTTP com OAuth e identidade isolada por requisição, preservando
+  stdio nas duas eras suportadas. Ferramentas de arquivo local ficam restritas
+  a stdio; ambas as entradas são incluídas e verificadas no pacote npm.
+
 - UI preparada de `0.7.0` para `0.8.0` (CHATGPT-PLUGIN/P20): consentimento
   OAuth com login existente e escolha explícita de workspace; Minha conta
   lista/revoga conexões. Inclui updates transitivos de segurança da renderização

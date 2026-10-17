@@ -11,6 +11,7 @@ const versionSource = await readFile(path.join(packageDirectory, "src/version.ts
 
 assert.equal(metadata.name, "biaws-mcp", "nome público inesperado");
 assert.equal(metadata.bin?.["biaws-mcp"], "bin/biaws-mcp.js", "binário inesperado");
+assert.equal(metadata.bin?.["biaws-mcp-http"], "bin/biaws-mcp-http.js", "binário HTTP inesperado");
 assert.equal(metadata.publishConfig?.access, "public", "acesso deve ser público");
 assert.equal(lock.name, metadata.name, "package-lock fora de sincronia");
 assert.equal(lock.version, metadata.version, "versão do lock fora de sincronia");
@@ -27,11 +28,14 @@ assert.equal(
 assert.equal(lock.packages?.[""]?.name, metadata.name, "raiz do lock divergente");
 assert.equal(lock.packages?.[""]?.bin?.["biaws-mcp"], metadata.bin["biaws-mcp"], "binário do lock divergente");
 
-const entrypoint = path.join(packageDirectory, metadata.bin["biaws-mcp"]);
-const contents = await readFile(entrypoint, "utf8");
-assert.equal(contents.split(/\r?\n/u, 1)[0], "#!/usr/bin/env node");
-if (process.platform !== "win32") {
-  assert.notEqual((await stat(entrypoint)).mode & 0o111, 0, "binário sem permissão de execução");
+for (const [name, relativePath] of Object.entries(metadata.bin)) {
+  assert.equal(lock.packages?.[""]?.bin?.[name], relativePath, `binário ${name} do lock divergente`);
+  const entrypoint = path.join(packageDirectory, relativePath);
+  const contents = await readFile(entrypoint, "utf8");
+  assert.equal(contents.split(/\r?\n/u, 1)[0], "#!/usr/bin/env node");
+  if (process.platform !== "win32") {
+    assert.notEqual((await stat(entrypoint)).mode & 0o111, 0, `${name} sem permissão de execução`);
+  }
 }
 
 for (const required of [
@@ -39,6 +43,7 @@ for (const required of [
   "README.md",
   "docs/releasing.md",
   "dist/src/index.js",
+  "dist/src/http.js",
   "dist/src/config/loadEnv.js",
 ]) {
   await access(path.join(packageDirectory, required));

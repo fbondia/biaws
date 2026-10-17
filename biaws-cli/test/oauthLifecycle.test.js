@@ -44,14 +44,18 @@ if(args.includes('mongorestore')) process.stdin.resume();
   };
 }
 
-for (const enabled of [true, false]) {
-  test(`bootstrap reconciles an existing MCP container when enabled=${enabled}`, async (t) => {
+for (const { configured, enabled } of [
+  { configured: true, enabled: true },
+  { configured: true, enabled: false },
+  { configured: false, enabled: false },
+]) {
+  test(`bootstrap reconciles MCP with configured=${configured}, enabled=${enabled}`, async (t) => {
     const f = await fixture(t);
     await fs.writeFile(
       f.envFile,
-      `BETTER_AUTH_SECRET=synthetic\nBIAWS_MCP_CONFIGURED=true\nBIAWS_MCP_HTTP_ENABLED=${enabled}\n`,
+      `BETTER_AUTH_SECRET=synthetic\nBIAWS_MCP_CONFIGURED=${configured}\nBIAWS_MCP_HTTP_ENABLED=${enabled}\n`,
     );
-    const result = spawnSync("bash", [path.join(f.dir, "scripts/bootstrap.sh"), "--instance", "review"], {
+    const result = spawnSync("/bin/bash", [path.join(f.dir, "scripts/bootstrap.sh"), "--instance", "review"], {
       env: f.env,
       encoding: "utf8",
     });
@@ -59,11 +63,11 @@ for (const enabled of [true, false]) {
     const calls = await f.calls();
     assert.equal(
       calls.some((args) => args.includes("stop") && args.at(-1) === "mcp"),
-      !enabled,
+      configured && !enabled,
     );
     const up = calls.find((args) => args.includes("up"));
     assert.equal(up.includes("mcp"), enabled);
-    if (!enabled) assert.ok(calls.findIndex((args) => args.includes("stop")) < calls.indexOf(up));
+    if (configured && !enabled) assert.ok(calls.findIndex((args) => args.includes("stop")) < calls.indexOf(up));
   });
 }
 

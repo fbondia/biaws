@@ -54,7 +54,7 @@ cd "${ROOT_DIR}"
 "${ROOT_DIR}/scripts/check-prerequisites.sh" --quiet
 
 compose() {
-  local extra=()
+  local extra=(--file "${ROOT_DIR}/compose.yaml")
   if [[ "$(read_env_value "BIAWS_MCP_CONFIGURED")" == "true" ]]; then
     extra+=(--file "${ROOT_DIR}/compose.mcp.yaml")
     if [[ "$(read_env_value "BIAWS_MCP_HTTP_ENABLED")" == "true" ]]; then
@@ -62,7 +62,6 @@ compose() {
     fi
   fi
   docker compose \
-    --file "${ROOT_DIR}/compose.yaml" \
     "${extra[@]}" \
     --env-file "${ENV_FILE}" \
     --project-name "${COMPOSE_PROJECT}" \

@@ -12,7 +12,17 @@ if (!prefix || !process.env.BIAWS_CHATGPT_TEST_MONGO_URI) {
   );
 }
 const resolve = createRequire(path.resolve(prefix, "package.json"));
-const dependency = (name) => import(pathToFileURL(resolve.resolve(name)).href);
+const resolveMcp = createRequire(
+  new URL("../../biaws-mcp/package.json", import.meta.url),
+);
+const dependency = (name) =>
+  import(
+    pathToFileURL(
+      (name === "@modelcontextprotocol/server" ? resolveMcp : resolve).resolve(
+        name,
+      ),
+    ).href
+  );
 const [
   { betterAuth },
   { jwt },
@@ -73,6 +83,17 @@ try {
     ],
   });
   const context = await auth.$context;
+  for (const metadataPath of [
+    "/api/auth/.well-known/oauth-authorization-server",
+    "/.well-known/oauth-protected-resource",
+  ]) {
+    const response = await auth.handler(new Request(`${base}${metadataPath}`));
+    assert.equal(response.status, 200, `metadata endpoint ${metadataPath}`);
+    assert.ok(
+      (await response.json()).resource ||
+        metadataPath.includes("authorization-server"),
+    );
+  }
   trace("indexes");
   // The Mongo adapter lazily creates indexes. Warm them before transactions:
   // creating an index after a write in the same transaction can deadlock.

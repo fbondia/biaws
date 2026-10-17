@@ -13,6 +13,12 @@ import { resolveUserAuthorization } from "../repositories/access/index.js";
 import { platformPermissionsForTechnicalRole } from "./authorizationMiddleware.js";
 import { ensureAuthIndexes } from "./authIndexes.js";
 import { hashPassword, verifyPassword } from "./password.js";
+import {
+  createMcpOAuthPlugins,
+  getMcpOAuthConfig,
+  prepareOAuthStorage,
+  warmOAuthIndexes,
+} from "./oauthProvider.js";
 
 let authPromise: ReturnType<typeof initializeAuth> | undefined;
 
@@ -22,7 +28,9 @@ function validateConfig(config: ReturnType<typeof getServerConfig>["auth"]) {
   }
 
   if (config.trustedOrigins.length === 0) {
-    throw new Error("BETTER_AUTH_TRUSTED_ORIGINS must contain at least one UI origin.");
+    throw new Error(
+      "BETTER_AUTH_TRUSTED_ORIGINS must contain at least one UI origin.",
+    );
   }
 }
 
@@ -36,7 +44,11 @@ export async function getAuth() {
   return authPromise;
 }
 
-export async function authHandler(req: Request, res: Response, next: NextFunction) {
+export async function authHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const auth = await getAuth();
     return toNodeHandler(auth)(req, res);
@@ -45,20 +57,34 @@ export async function authHandler(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function getAuthenticatedActor(req: Request): Promise<Actor | null> {
+export async function getAuthenticatedActor(
+  req: Request,
+): Promise<Actor | null> {
   const auth = await getAuth();
   const result = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),
   });
-  if (!result?.user || !result?.session || result.user.banned) return null;
+  if (
+    !result?.user ||
+    !result?.session ||
+    ("banned" in result.user && result.user.banned)
+  )
+    return null;
 
   const authorization = String(req.headers.authorization || "");
   const usesApiKey = /^Bearer\s+/iu.test(authorization);
-  const requestedWorkspaceId = String(req.headers["x-biaws-workspace-id"] || "").trim();
-  const workspaceAuthorization = await resolveUserAuthorization(result.user.id, requestedWorkspaceId);
+  const requestedWorkspaceId = String(
+    req.headers["x-biaws-workspace-id"] || "",
+  ).trim();
+  const workspaceAuthorization = await resolveUserAuthorization(
+    result.user.id,
+    requestedWorkspaceId,
+  );
 
-  const technicalRole = result.user.role || "user";
-  const platformPermissions = platformPermissionsForTechnicalRole(technicalRole);
+  const technicalRole =
+    ("role" in result.user ? result.user.role : undefined) || "user";
+  const platformPermissions =
+    platformPermissionsForTechnicalRole(technicalRole);
 
   return {
     userId: result.user.id,
@@ -88,8 +114,11 @@ async function initializeAuth() {
   const client = await getMongoClient();
   const database = client.db(resolveDatabaseName());
   await ensureAuthIndexes(database);
+  const oauth = getMcpOAuthConfig(config.baseUrl);
+  if (oauth.enabled) await prepareOAuthStorage(database);
 
-  return betterAuth({
+  const auth = betterAuth({
+    disabledPaths: oauth.enabled ? ["/token"] : [],
     appName: "Bondia Workspaces",
     baseURL: config.baseUrl,
     basePath: "/api/auth",
@@ -126,6 +155,7 @@ async function initializeAuth() {
       max: serverConfig.rateLimit.auth.maxRequests,
     },
     plugins: [
+      ...(oauth.enabled ? createMcpOAuthPlugins(oauth.resource) : []),
       admin({
         defaultRole: "user",
         adminRoles: ["admin"],
@@ -155,7 +185,7 @@ async function initializeAuth() {
           maxRequests: serverConfig.rateLimit.apiKey.maxRequests,
         },
       }),
-    ],
+    ] as const,
     advanced: {
       cookiePrefix: "biaws",
       useSecureCookies: config.secureCookies,
@@ -168,4 +198,15 @@ async function initializeAuth() {
       },
     },
   });
+  if (oauth.enabled) {
+    const context = await auth.$context;
+    await warmOAuthIndexes((model) =>
+      context.adapter.updateMany({
+        model,
+        where: [{ field: "id", value: "000000000000000000000000" }],
+        update: { id: "000000000000000000000000" },
+      }),
+    );
+  }
+  return auth;
 }

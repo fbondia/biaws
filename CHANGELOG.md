@@ -8,6 +8,12 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- API preparada de `0.9.0` para `0.10.0` (CHATGPT-PLUGIN/P19): OAuth opt-in
+  com contas existentes, concessões por workspace e credencial delegada curta
+  para MCP. Inclui consentimento/revogação, discovery, índices transacionais,
+  proteção CIMD e correção transitiva proxy-addr. Habilitação requer replica set
+  e origem HTTPS; rotas de domínio não aceitam o token externo do MCP.
+
 - UI atualizada de `0.6.2` para `0.7.0`: a listagem de issues exibe a coluna
   “Última alteração” e permite ordenar por ela em ordem crescente ou decrescente,
   inclusive em dispositivos móveis. A data considera alterações na issue e

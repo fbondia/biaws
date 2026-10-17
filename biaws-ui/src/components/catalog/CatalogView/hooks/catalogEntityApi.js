@@ -15,6 +15,7 @@ import {
   deleteRepository,
   deleteRuntime,
   fetchComponent,
+  fetchApplication,
   fetchDeployment,
   fetchIntegration,
   fetchRepository,
@@ -78,3 +79,15 @@ export const CATALOG_ENTITY_API = {
     response: "runtime",
   },
 };
+
+export async function loadCatalogRouteEntity(kind, reference, applicationReference) {
+  const api = CATALOG_ENTITY_API[kind];
+  const payload = await api.detail(reference);
+  const entity = payload[api.response];
+  if (!entity?.applicationId) throw new Error("Registro não encontrado ou sem acesso.");
+  if (applicationReference) {
+    const parent = await fetchApplication(applicationReference);
+    if (entity.applicationId !== parent.application?.id) throw new Error("Registro não encontrado ou sem acesso.");
+  }
+  return { kind, entity, deploymentId: entity.deploymentId };
+}

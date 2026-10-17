@@ -106,12 +106,15 @@ function renderInlineMarkdown(text, { attachments, onLoadAttachment }) {
         `[${token.text}](${token.href})`
       );
     }
-    if (token.type === "link")
+    if (token.type === "link") {
+      const href = safeMarkdownHref(token.href);
+      if (!href) return token.text;
       return (
-        <a href={safeMarkdownHref(token.href)} key={index} rel="noreferrer" target="_blank">
+        <a href={href} key={index} rel="noreferrer" target="_blank">
           {token.text}
         </a>
       );
+    }
     if (token.type === "image" && onLoadAttachment) {
       const attachment = resolveAttachmentImage(token.reference, attachments);
       if (attachment)

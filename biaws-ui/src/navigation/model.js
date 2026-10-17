@@ -42,6 +42,7 @@ const CHILDREN = {
   "topology-diagrams": "topology-diagram",
 };
 const ALIASES = { "/monitoring-templates": "monitoring-templates", "/operation/monitoring": "monitoring-runtimes" };
+const DIRECT_CATALOG_CHILDREN = ["components", "repositories", "integrations", "deployments", "runtimes"];
 
 export function readRoute(location = {}) {
   const path = `/${String(location.pathname || "")
@@ -51,6 +52,13 @@ export function readRoute(location = {}) {
   const workspaceId = new URLSearchParams(location.search || "").get("workspaceId") || "";
   const empty = { workspaceId, selections: {}, valid: false };
   try {
+    const [, collection, encodedReference, ...extra] = path.split("/");
+    if (DIRECT_CATALOG_CHILDREN.includes(collection)) {
+      const reference = decodeURIComponent(encodedReference || "");
+      return reference && reference.length <= 240 && !extra.length
+        ? { ...empty, view: "catalog", selections: { [CHILDREN[collection]]: reference }, valid: true }
+        : empty;
+    }
     const base = Object.entries(VIEW_ROUTES).find(
       ([, prefix]) => path === prefix || (prefix !== "/" && path.startsWith(`${prefix}/`)),
     );
@@ -102,9 +110,14 @@ export function entityUrl(type, value, route, workspaceId = route.workspaceId) {
   const encode = encodeURIComponent;
   if (view === "catalog" && type !== "application") {
     const applicationId = value?.applicationId || value?.entity?.applicationId || route.selections.application;
-    if (!applicationId) throw new Error("Aplicação necessária para abrir este recurso.");
-    path += `/${encode(applicationId)}`;
-    if (reference) path += `/${Object.keys(CHILDREN).find((key) => CHILDREN[key] === type)}/${encode(reference)}`;
+    const collection = Object.keys(CHILDREN).find((key) => CHILDREN[key] === type);
+    if (!applicationId) {
+      if (reference && DIRECT_CATALOG_CHILDREN.includes(collection)) path = `/${collection}/${encode(reference)}`;
+      else if (reference) throw new Error("Aplicação necessária para abrir este recurso.");
+    } else {
+      path += `/${encode(applicationId)}`;
+      if (reference) path += `/${collection}/${encode(reference)}`;
+    }
   } else if (type === "task") {
     const demandId = value?.requestId || route.selections.demand;
     if (!demandId) throw new Error("Melhoria necessária para abrir esta tarefa.");

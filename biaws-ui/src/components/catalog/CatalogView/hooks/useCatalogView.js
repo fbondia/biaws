@@ -1,5 +1,6 @@
 import { useEntityState } from "../../../../navigation/useEntityState.js";
-import { useRoute } from "../../../../navigation/location.js";
+import { navigate, useRoute } from "../../../../navigation/location.js";
+import { entityUrl } from "../../../../navigation/model.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -22,7 +23,7 @@ import { useMessages } from "../../../../infrastructure/messages/MessagesProvide
 import { hasPermission } from "../../../../permissions.js";
 import { visibleCatalogTabs } from "../model.js";
 import { createCatalogEntityActions } from "../components/createCatalogEntityActions.jsx";
-import { CATALOG_ENTITY_API } from "./catalogEntityApi.js";
+import { CATALOG_ENTITY_API, loadCatalogRouteEntity } from "./catalogEntityApi.js";
 import { useCatalogRuntimes } from "./useCatalogRuntimes.js";
 
 export function useCatalogView(actor) {
@@ -47,22 +48,14 @@ export function useCatalogView(actor) {
     scopeKey: route.selections.application,
     getEntity: (dialog) => dialog?.entity,
     typeOf: (dialog) => dialog?.kind,
-    load: async (reference) => {
-      const api = CATALOG_ENTITY_API[childType];
-      const [payload, parent] = await Promise.all([
-        api.detail(reference),
-        fetchApplication(route.selections.application),
-      ]);
-      const entity = payload[api.response];
-      if (!entity || entity.applicationId !== parent.application?.id)
-        throw new Error("Registro não encontrado ou sem acesso.");
-      return { kind: childType, entity, deploymentId: entity.deploymentId };
-    },
+    load: (reference) => loadCatalogRouteEntity(childType, reference, route.selections.application),
     onRestore: (dialog) => {
-      if (dialog)
+      if (dialog) {
+        if (!route.selections.application) navigate(entityUrl(dialog.kind, dialog.entity, route), { replace: true });
         setActiveTab(
           dialog.kind === "repository" ? "repositories" : dialog.kind === "integration" ? "integrations" : "topology",
         );
+      }
     },
     onError: (error) => setError(error.message),
   });

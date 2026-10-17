@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resources BIAWS no Markdown — teste visual</title>
+  </head>
+  <body>
+    <main class="contentBand">
+      <h1>Referências do BIAWS</h1>
+      <div id="app"></div>
+    </main>
+    <script type="module">
+      import { mountDocumentLinkEditor } from "./MarkdownDocumentLinksHarness.jsx";
+      mountDocumentLinkEditor(
+        document.getElementById("app"),
+        [
+          "## Documentação e trabalho",
+          "[Guia operacional](biaws://workspaces/workspace-exemplo/documents/guia-operacional)",
+          "[Issue INC42](biaws://workspaces/workspace-exemplo/issues/INC42)",
+          "[Melhoria MEL42](biaws://workspaces/workspace-exemplo/demands/MEL42)",
+          "[Tarefa TASK1](biaws://workspaces/workspace-exemplo/demands/MEL42/tasks/TASK1)",
+          "## Catálogo",
+          "[Componente da aplicação](biaws://workspaces/workspace-exemplo/applications/faturamento/components/api)",
+          "[Runtime por ID](biaws://workspaces/workspace-exemplo/runtimes/runtime-exemplo)",
+          "## URI direta e código",
+          "biaws://workspaces/workspace-exemplo/documents/guia-operacional",
+          "`biaws://workspaces/workspace-exemplo/documents/guia-operacional`",
+          "## Resource sem rota equivalente",
+          "[Revisão específica (texto sem link)](biaws://workspaces/workspace-exemplo/documents/guia-operacional/revisions/1)",
+        ].join("\n\n"),
+        { workspaceId: "workspace-origem", permissions: [] },
+        { initialMode: "preview" },
+      );
+    </script>
+  </body>
+</html>

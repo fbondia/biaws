@@ -35,6 +35,9 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
 
 ## Recursos
 
+- Links de resources `biaws://` no Markdown abrem as telas correspondentes,
+  preservando o workspace da URI e as permissões da sessão
+
 - Editor Markdown com busca e seleção de documentos para inserir links com
   workspace, incluindo suporte a seleção de texto e tela cheia
 

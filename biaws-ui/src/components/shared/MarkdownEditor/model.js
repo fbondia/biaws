@@ -1,3 +1,5 @@
+import { resourceLinkHref } from "../../../navigation/resourceLinks.js";
+
 export function markdownToHtml(value) {
   return parseMarkdownBlocks(value).map(markdownBlockToHtml).join("\n");
 }
@@ -231,14 +233,14 @@ export function markdownTableToHtml(lines) {
 export function parseInlineMarkdown(text) {
   const tokens = [];
   const pattern =
-    /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|!\[[^\]]*\]\([^)]+\)|\[(?:\\.|[^\]\\])+\]\([^)]+\)|\[(?:anexo:\s*|cid:)[^\]]+\])/giu;
+    /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|!\[[^\]]*\]\([^)]+\)|\[(?:\\.|[^\]\\])+\]\([^)]+\)|\[(?:anexo:\s*|cid:)[^\]]+\]|<biaws:\/\/[^<>\s]+>|biaws:\/\/[^\s<>()\[\]]+)/giu;
   let cursor = 0;
   let match;
 
   while ((match = pattern.exec(text)) !== null) {
     if (match.index > cursor) tokens.push({ type: "text", text: text.slice(cursor, match.index) });
 
-    const token = match[0];
+    const token = /^biaws:\/\//iu.test(match[0]) ? match[0].replace(/[.,;!]+$/u, "") : match[0];
 
     if (token.startsWith("`")) {
       tokens.push({ type: "code", text: token.slice(1, -1) });
@@ -251,12 +253,16 @@ export function parseInlineMarkdown(text) {
       tokens.push({ type: "image", text: image[1], reference: image[2], raw: token });
     } else if (/^\[(?:anexo:|cid:)/iu.test(token) && !token.includes("](")) {
       tokens.push({ type: "image", text: "", reference: token.slice(1, -1), raw: token });
+    } else if (/^<?biaws:\/\//iu.test(token)) {
+      const href = token.startsWith("<") ? token.slice(1, -1) : token;
+      tokens.push({ type: "link", text: href, href });
     } else {
       const link = token.match(/^\[((?:\\.|[^\]\\])+)\]\(([^)]+)\)$/u);
       tokens.push({ type: "link", text: link[1].replace(/\\([\\\[\]])/gu, "$1"), href: link[2] });
     }
 
     cursor = match.index + token.length;
+    pattern.lastIndex = cursor;
   }
 
   if (cursor < text.length) tokens.push({ type: "text", text: text.slice(cursor) });
@@ -272,8 +278,10 @@ export function renderInlineMarkdownHtml(text) {
       if (token.type === "emphasis") return `<em>${escapeHtml(token.text)}</em>`;
       if (token.type === "link" && /^(attachment:|cid:|anexo:)/iu.test(token.href))
         return escapeHtml(`[${token.text}](${token.href})`);
-      if (token.type === "link")
-        return `<a href="${escapeHtmlAttribute(safeMarkdownHref(token.href))}">${escapeHtml(token.text)}</a>`;
+      if (token.type === "link") {
+        const href = safeMarkdownHref(token.href);
+        return href ? `<a href="${escapeHtmlAttribute(href)}">${escapeHtml(token.text)}</a>` : escapeHtml(token.text);
+      }
       return escapeHtml(token.raw ?? token.text);
     })
     .join("");
@@ -295,6 +303,7 @@ export function escapeHtmlAttribute(value) {
 export function safeMarkdownHref(value) {
   const href = String(value || "").trim();
 
+  if (/^biaws:/iu.test(href)) return resourceLinkHref(href) || "";
   if (/^(https?:|mailto:|\/|#)/iu.test(href)) return href;
 
   return "#";

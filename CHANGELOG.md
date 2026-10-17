@@ -8,6 +8,12 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Plataforma e UI preparadas como `0.10.0`. O Markdown reconhece links de
+  resources `biaws://`, convertendo entidades com tela correspondente em URLs
+  da interface com workspace explícito. Referências curtas de catálogo resolvem
+  a aplicação pela API autorizada; recursos sem destino navegável permanecem
+  como texto. API e MCP mantêm suas versões.
+
 - Plataforma preparada como `0.9.0`, com UI `0.9.0` e API `0.11.0`, incluindo
   as URLs diretas das entidades e o seletor de links de documentos no editor
   Markdown. Manifesto e metadados OpenAPI sincronizados.

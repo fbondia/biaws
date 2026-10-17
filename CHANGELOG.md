@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Revisão CHATGPT-PLUGIN: correções de restore OAuth e desabilitação do MCP
+  elevam a revisão de implantação da candidata `0.8.0` de `2` para `3` (P24).
+  Consentimento mostra a identidade do cliente; pacote recusa headers estáticos
+  e SSE; CI exercita HTTP e o gate de catálogo vincula a evidência ao ZIP.
+
 - Plataforma preparada como `0.8.0`, revisão de implantação `2`, schema `2`
   (CHATGPT-PLUGIN/P24), com API `0.10.0`, UI `0.8.0`, MCP `0.15.0` e executor
   `0.1.0`. MCP HTTP é opcional; CLI mínimo `0.6.0`. A migração para replica set

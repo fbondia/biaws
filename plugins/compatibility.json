@@ -1,6 +1,7 @@
 {
   "plugin": "0.1.0-rc.1",
   "releaseSchema": 2,
+  "minimumDeploymentRevision": 3,
   "minimumVersions": {
     "platform": "0.8.0",
     "biaws-api": "0.10.0",

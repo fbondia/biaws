@@ -10,6 +10,8 @@ import { monitoringTools } from "../../domains/monitoring/tools.js";
 import { secretTools } from "../../domains/secrets/tools.js";
 import { BiawsError } from "../../runtime/errors.js";
 import { toolDefinitions } from "./toolCatalog.js";
+import { toolPolicies } from "./toolPolicies.js";
+import { currentRequestContext } from "../../runtime/requestContext.js";
 import type { ToolResultMap } from "./toolResults.js";
 const handlers: Record<string, ToolHandler> = {};
 const domainTools = [
@@ -26,13 +28,16 @@ const domainTools = [
 for (const tool of domainTools) handlers[tool.name] = tool.handler;
 const tools = toolDefinitions.map((tool) => ({
   ...tool,
+  annotations: toolPolicies[tool.name].annotations,
   handler: handlers[tool.name],
 }));
 
 const toolByName = new Map<string, (typeof tools)[number]>(tools.map((tool) => [tool.name, tool]));
 
 export function listTools(): ToolDefinition[] {
-  return tools.map(({ handler, ...tool }) => tool);
+  return tools
+    .filter((tool) => currentRequestContext()?.transport !== "http" || toolPolicies[tool.name].availability !== "stdio")
+    .map(({ handler, ...tool }) => tool);
 }
 
 export function dispatchTool<N extends keyof ToolResultMap>(name: N, args: unknown): Promise<ToolResultMap[N]>;
@@ -45,6 +50,16 @@ export async function dispatchTool(name: string, args: unknown) {
     error.statusCode = 404;
     error.retryable = false;
     throw error;
+  }
+  if (currentRequestContext()?.transport === "http" && toolPolicies[tool.name].availability === "stdio") {
+    throw Object.assign(
+      new BiawsError("This tool requires a local stdio client and an approved local EML directory."),
+      {
+        code: "LOCAL_CLIENT_REQUIRED",
+        statusCode: 403,
+        retryable: false,
+      },
+    );
   }
   return tool.handler(args);
 }

@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { unzipSync } from "fflate";
-import { validateManifests, rejectSecretContent } from "./validate-package.mjs";
+import { validateManifests, rejectSecretContent, validateIcon } from "./validate-package.mjs";
 import { validateSkills } from "./validate-skills.mjs";
 
 export async function verifyInstall(archive, expectedSha256, { allowLoopback = false } = {}) {
@@ -28,6 +28,7 @@ export async function verifyInstall(archive, expectedSha256, { allowLoopback = f
     },
   });
   if (seen.size !== 10) throw new Error("Incomplete portable payload");
+  validateIcon(entries["assets/icon.png"]);
   const plugin = JSON.parse(Buffer.from(entries["plugin.json"]).toString()),
     mcp = JSON.parse(Buffer.from(entries["mcp.json"]).toString());
   const profile = validateManifests(plugin, mcp, seen, { allowLoopback });

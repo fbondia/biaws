@@ -3,7 +3,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { zipSync, unzipSync } from "fflate";
-import { validateManifests, rejectSecretContent } from "./validate-package.mjs";
+import { validateManifests, rejectSecretContent, validateIcon } from "./validate-package.mjs";
 import { validateSkills } from "./validate-skills.mjs";
 const source = fileURLToPath(new URL("../biaws", import.meta.url));
 async function files(root, prefix = "") {
@@ -39,9 +39,7 @@ export async function buildPlugin({ url, outputDirectory, sourceDirectory = sour
         .map((t) => t.name),
     ),
   );
-  const png = Buffer.from(entries["assets/icon.png"]);
-  if (png.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a" || png.readUInt32BE(16) !== png.readUInt32BE(20))
-    throw new Error("Expected existing square PNG icon");
+  validateIcon(entries["assets/icon.png"]);
   const payload = {};
   for (const name of Object.keys(entries).sort()) {
     rejectSecretContent(name, entries[name]);

@@ -47,6 +47,28 @@ test("plugin ZIP is deterministic from a clean source copy and contains only the
       /Symlinks/,
     );
     await rm(path.join(source, "unexpected-link"));
+    const mcpSource = path.join(source, "mcp.json");
+    const originalMcp = await readFile(mcpSource, "utf8");
+    for (const change of [
+      (server) => {
+        server.type = "sse";
+      },
+      (server) => {
+        server.headers = { "X-Api-Key": "synthetic-private-key" };
+      },
+      (server) => {
+        server.headers = { Cookie: "synthetic-session" };
+      },
+    ]) {
+      const invalid = JSON.parse(originalMcp);
+      change(invalid.mcpServers.biaws);
+      await writeFile(mcpSource, JSON.stringify(invalid));
+      await assert.rejects(
+        buildPlugin({ url: "https://synthetic.example.test/mcp", outputDirectory: root, sourceDirectory: source }),
+        /Only Streamable HTTP.*no static headers/u,
+      );
+    }
+    await writeFile(mcpSource, originalMcp);
     await appendFile(path.join(source, "skills/setup/SKILL.md"), "\n-----BEGIN PRIVATE KEY-----");
     await assert.rejects(
       buildPlugin({ url: "https://synthetic.example.test/mcp", outputDirectory: root, sourceDirectory: source }),

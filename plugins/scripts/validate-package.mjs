@@ -64,6 +64,11 @@ export function validateManifests(plugin, mcp, paths, { allowLoopback = false } 
   }
   if (Object.keys(mcp.mcpServers || {}).join() !== "biaws") throw new Error("Expected one BIAWS server");
   const server = mcp.mcpServers.biaws;
+  if (
+    server.type !== "streamable-http" ||
+    Object.keys(server).some((key) => !["type", "url", "extensions"].includes(key))
+  )
+    throw new Error("Only Streamable HTTP with OAuth discovery and no static headers is allowed");
   if (!validateAuth(server.extensions)) throw new Error("Invalid documented OpenAI OAuth extension");
   const core = structuredClone(mcp);
   delete core.mcpServers.biaws.extensions;
@@ -100,4 +105,19 @@ export function rejectSecretContent(name, bytes) {
     )
   )
     throw new Error("Credential-like content rejected in " + name);
+}
+
+export function validateIcon(bytes) {
+  const png = Buffer.from(bytes || []);
+  if (
+    png.length < 33 ||
+    png.length > 256 * 1024 ||
+    png.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a" ||
+    png.readUInt32BE(8) !== 13 ||
+    png.subarray(12, 16).toString() !== "IHDR" ||
+    png.readUInt32BE(16) !== png.readUInt32BE(20) ||
+    png.readUInt32BE(16) < 48 ||
+    png.readUInt32BE(16) > 4096
+  )
+    throw new Error("Expected a square PNG icon of 48–4096 pixels within the package size limit");
 }

@@ -25,6 +25,9 @@ endpoint, versão e checksum. Não há scripts de instalação, hooks, .app.json
 dados de cliente, ambiente ou token. Arquivos extras/symlinks são rejeitados.
 Os detectores de segredo são uma defesa adicional; não certificam ausência de
 qualquer formato de segredo desconhecido.
+O contrato BIAWS restringe o servidor a `streamable-http` e recusa headers
+estáticos, inclusive Cookie e chaves com nomes arbitrários. Essa restrição vale
+no build e na instalação; a autenticação deve vir do OAuth por usuário.
 
 O pacote usa Agent Plugins 1.0.0 e a extensão OAuth CIMD descrita pela OpenAI.
 **Diferença entre fontes:** o schema MCP 1.0.0 hoje omite extensions nas entradas

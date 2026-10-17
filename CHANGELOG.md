@@ -8,6 +8,12 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Plataforma preparada como `0.8.0`, revisão de implantação `2`, schema `2`
+  (CHATGPT-PLUGIN/P24), com API `0.10.0`, UI `0.8.0`, MCP `0.15.0` e executor
+  `0.1.0`. MCP HTTP é opcional; CLI mínimo `0.6.0`. A migração para replica set
+  exige backup e o procedimento documentado; desabilitar MCP mantém os dados
+  e o formato replica set. Nenhuma instância é atualizada pelo versionamento.
+
 - Plugin preparado como `0.1.0-rc.1` (CHATGPT-PLUGIN/P23), com compatibilidade
   mínima e changelog próprios. Validação no ChatGPT, endpoint de distribuição
   e requisitos externos do catálogo permanecem pendentes.

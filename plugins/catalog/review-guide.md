@@ -59,6 +59,20 @@ dos casos e scans de skills/tools. Atualizar somente com evidência real.
 Capturas são necessárias somente se o scan encontrar UI MCP customizada; o
 plugin atual usa resultados estruturados e não anuncia output templates de UI.
 
+As evidências também devem identificar `pluginVersion` e `artifactSha256`.
+Executar o gate com o ZIP definitivo e seu arquivo `.sha256`:
+
+```sh
+node plugins/scripts/catalog-readiness.mjs --archive /caminho/biaws-plugin-0.1.0-rc.1.zip --require-ready
+```
+
+O comando verifica a instalação/checksum do ZIP e exige correspondência entre
+manifesto atual, versão, checksum aprovado e `reviewEndpoint`. Flags de uma
+versão anterior não bastam. Endpoint de loopback, URL de teste e credenciais
+embutidas não são aceitos para prontidão pública. Depois de alterar o pacote,
+repetir os testes/scans pertinentes e registrar a evidência referente ao novo
+checksum. Esse vínculo local não substitui os scans ou a revisão do portal.
+
 Referências oficiais revalidadas em 2026-10-17:
 
 - [Submissão e campos](https://developers.openai.com/plugins/deploy/submission)

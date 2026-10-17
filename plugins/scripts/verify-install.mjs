@@ -53,6 +53,7 @@ export async function verifyInstall(archive, expectedSha256, { allowLoopback = f
       result: "offline-package-install-passed",
       sha256,
       version: plugin.version,
+      manifestSha256: createHash("sha256").update(JSON.stringify(plugin)).digest("hex"),
       ...profile,
       files: [...seen].sort(),
       skills: skills.map((s) => s.name),

@@ -1,8 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
+import { isIP } from "node:net";
+import { verifyInstall } from "./verify-install.mjs";
 import { listTools } from "../../biaws-mcp/dist/src/mcp/tools/tools.js";
 import { toolPolicies } from "../../biaws-mcp/dist/src/mcp/tools/toolPolicies.js";
-export function catalogReadiness(manifest, evidence = {}) {
+export function catalogReadiness(manifest, evidence = {}, artifact = null) {
   const openai = manifest.extensions?.["com.openai"],
     listing = openai?.interface || {},
     errors = [],
@@ -72,11 +75,32 @@ export function catalogReadiness(manifest, evidence = {}) {
   for (const field of ["reviewEndpoint", "demoRecordingUrl"]) {
     try {
       const url = new URL(evidence[field]);
-      if (url.protocol !== "https:" || url.hostname.endsWith(".invalid")) throw Error();
+      if (url.protocol !== "https:" || url.username || url.password || url.hostname.endsWith(".invalid")) throw Error();
+      if (
+        field === "reviewEndpoint" &&
+        (url.pathname !== "/mcp" ||
+          url.search ||
+          url.hash ||
+          isIP(url.hostname.replace(/^\[|\]$/gu, "")) ||
+          !url.hostname.includes(".") ||
+          /\.(?:test|example|localhost)$/u.test(url.hostname))
+      )
+        throw Error();
     } catch {
       pending.push(field);
     }
   }
+  if (evidence.pluginVersion !== manifest.version) pending.push("pluginVersion");
+  const manifestSha256 = createHash("sha256").update(JSON.stringify(manifest)).digest("hex");
+  if (
+    !artifact ||
+    artifact.version !== manifest.version ||
+    artifact.manifestSha256 !== manifestSha256 ||
+    !/^[a-f0-9]{64}$/u.test(evidence.artifactSha256 || "") ||
+    artifact.sha256 !== evidence.artifactSha256 ||
+    artifact.endpoint !== evidence.reviewEndpoint
+  )
+    pending.push("verifiedArtifact");
   return {
     metadataValid: errors.length === 0,
     submissionReady: errors.length === 0 && pending.length === 0,
@@ -122,12 +146,20 @@ export function toolJustifications() {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const manifest = JSON.parse(await readFile(new URL("../biaws/plugin.json", import.meta.url), "utf8"));
   const evidence = JSON.parse(await readFile(new URL("../catalog/readiness.json", import.meta.url), "utf8"));
+  const archiveIndex = process.argv.indexOf("--archive");
+  let artifact = null;
+  if (archiveIndex !== -1) {
+    const archive = process.argv[archiveIndex + 1];
+    if (!archive || archive.startsWith("--")) throw new Error("--archive requires the reviewed ZIP path");
+    const checksum = (await readFile(archive + ".sha256", "utf8")).trim().split(/\s+/u)[0];
+    artifact = await verifyInstall(archive, checksum);
+  }
   if (process.argv.includes("--write-justifications"))
     await writeFile(
       new URL("../catalog/tool-justifications.json", import.meta.url),
       JSON.stringify(toolJustifications(), null, 2) + "\n",
     );
-  const result = catalogReadiness(manifest, evidence);
+  const result = catalogReadiness(manifest, evidence, artifact);
   console.log(JSON.stringify(result, null, 2));
   if (!result.metadataValid || (process.argv.includes("--require-ready") && !result.submissionReady))
     process.exitCode = 2;

@@ -31,6 +31,25 @@ remove permissões de plataforma e mantém `oauth-delegated` distinto de sessão
 Leitura não concede escrita; OAuth não permite revelar valores de segredos.
 O ator de auditoria mantém usuário, método e identificadores de cliente/concessão.
 
+## Credencial de domínio delegada
+
+`POST /api/auth/mcp/delegate` recebe `subject_token` e exige um segredo próprio
+do serviço no header `X-Biaws-Mcp-Service-Secret`. Configure-o por
+`BIAWS_MCP_SERVICE_SECRET_FILE` (preferível) ou ambiente privado
+`BIAWS_MCP_SERVICE_SECRET`, com pelo menos 32 caracteres. Não reutilize a chave
+mestra nem uma API key administrativa. O endpoint é uma ponte interna e não um
+grant OAuth de máquina exposto ao ChatGPT.
+
+O provider valida o token externo; a ponte verifica audience, scopes,
+usuário/cliente/workspace e concessão ativa. Retorna uma credencial opaca
+`biaws_dlg_*`, distinta do token OAuth, válida por no máximo 60 segundos e nunca
+além da expiração original. Somente o hash fica no banco, com índice TTL.
+
+As rotas de domínio aceitam essa credencial, revalidando concessão, usuário e
+permissões a cada chamada. Um workspace diferente no header é rejeitado. O
+access token destinado ao MCP não é uma credencial das rotas de domínio.
+Revogar a concessão invalida também credenciais internas ainda não expiradas.
+
 Encaminhe ao auth handler os endpoints RFC de `/.well-known/`, incluindo as
 variantes com path de issuer/resource, além de `/api/auth/*`. O proxy deve
 preservar origem/protocolo públicos e não devolver o HTML da SPA para discovery.

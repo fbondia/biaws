@@ -6,6 +6,7 @@ export const COLLECTION_NAMES = Object.freeze({
   AUTH_USERS: "authUsers",
   AUTH_VERIFICATIONS: "authVerifications",
   OAUTH_GRANTS: "oauthGrants",
+  OAUTH_DELEGATIONS: "oauthDelegations",
   APPLICATIONS: "applications",
   APPLICATION_COMPONENTS: "applicationComponents",
   APPLICATION_DEPLOYMENTS: "applicationDeployments",

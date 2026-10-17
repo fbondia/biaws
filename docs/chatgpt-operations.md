@@ -81,6 +81,24 @@ serviço. Não contorne com tokens em URL, credencial administrativa ou acesso
 direto ao banco. O diagnóstico é observado desta máquina e não certifica
 reachability pela infraestrutura do ChatGPT.
 
+### OAuth conclui, mas a descoberta de ferramentas falha
+
+No cadastro de servidor personalizado, use a URL completa
+`https://<origem>/mcp`. A raiz do site atende a UI.
+Se a troca em `/api/auth/oauth2/token` retorna 200, mas
+`/api/auth/mcp/delegate` retorna 401, o problema está na validação da
+credencial antes de `tools/list`. Esse retorno pode não gerar logs no MCP;
+correlacione a tentativa com os logs da API e do proxy.
+
+A correção CHATGPT-PLUGIN/P05 faz a delegação reutilizar o provider OAuth
+inicializado, incluindo a descoberta CIMD. A configuração recriada sem essas
+extensões rejeitava o cliente CIMD mesmo após autenticação bem-sucedida.
+Após incorporar a correção ao checkout do servidor, reconstrua a instância
+em janela de manutenção, com backup pelo CLI. Se o manifesto não mudou, use
+`biaws admin instance update NOME --force`. Depois repita a atualização das
+ferramentas no ChatGPT; reconecte a conta se o cliente solicitar OAuth.
+Essa correção da API não exige republicar MCP/CLI no npm nem gerar outro ZIP.
+
 ## Backup, domínio e chaves
 
 O backup criptografado protege banco completo (incluindo OAuth/JWKS), segredo

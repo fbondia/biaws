@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- CHATGPT-PLUGIN/P05: delegação MCP reutiliza o provider OAuth inicializado
+  para reconhecer clientes CIMD após o login. Teste de integração cobre
+  consentimento, renovação, delegação e revogação para clientes registrados
+  e descobertos por documento de metadados.
+
 - Revisão CHATGPT-PLUGIN: correções de restore OAuth e desabilitação do MCP
   elevam a revisão de implantação da candidata `0.8.0` de `2` para `3` (P24).
   Consentimento mostra a identidade do cliente; pacote recusa headers estáticos

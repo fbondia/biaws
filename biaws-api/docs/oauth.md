@@ -18,6 +18,19 @@ de chaves. DCR e grants de máquina estão desabilitados. O endpoint de JWT de
 sessão `/token` também fica desabilitado. Os scopes são `mcp:read`, `mcp:write`
 e `offline_access`; essa lista não substitui a autorização por domínio.
 
+Cada fluxo usa uma concessão própria em `oauthGrants`, vinculada a usuário,
+sessão de origem, cliente e parâmetros OAuth (incluindo state e PKCE). A
+escolha de workspace não fica em uma variável global nem no workspace atual
+do navegador. Concessões preparadas expiram em dez minutos; a primeira emissão
+de token fixa a autorização. Uma concessão já usada não pode trocar workspace.
+
+Os tokens recebem `biaws_grant_id` e `biaws_workspace_id` somente após o
+provider validar sua continuação assinada e consentimento. Renovação revalida a
+concessão e as permissões atuais. A API limita os scopes às permissões atuais,
+remove permissões de plataforma e mantém `oauth-delegated` distinto de sessão.
+Leitura não concede escrita; OAuth não permite revelar valores de segredos.
+O ator de auditoria mantém usuário, método e identificadores de cliente/concessão.
+
 Encaminhe ao auth handler os endpoints RFC de `/.well-known/`, incluindo as
 variantes com path de issuer/resource, além de `/api/auth/*`. O proxy deve
 preservar origem/protocolo públicos e não devolver o HTML da SPA para discovery.

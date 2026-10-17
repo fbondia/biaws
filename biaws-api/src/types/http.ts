@@ -6,7 +6,10 @@ export interface Actor {
   userId: string;
   email?: string;
   displayName?: string;
-  authenticationMethod?: "session" | "api-key";
+  authenticationMethod?: "session" | "api-key" | "oauth-delegated";
+  oauthGrantId?: string;
+  oauthClientId?: string;
+  oauthScopes?: string[];
   sessionId?: string | null;
   apiKeyId?: string | null;
   technicalRole?: string;

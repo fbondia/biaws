@@ -19,6 +19,8 @@ import {
   prepareOAuthStorage,
   warmOAuthIndexes,
 } from "./oauthProvider.js";
+import { oauthGrantHooks } from "./oauthGrantHooks.js";
+import { ensureOAuthGrantIndexes } from "./oauthGrants.js";
 
 let authPromise: ReturnType<typeof initializeAuth> | undefined;
 
@@ -115,7 +117,10 @@ async function initializeAuth() {
   const database = client.db(resolveDatabaseName());
   await ensureAuthIndexes(database);
   const oauth = getMcpOAuthConfig(config.baseUrl);
-  if (oauth.enabled) await prepareOAuthStorage(database);
+  if (oauth.enabled) {
+    await prepareOAuthStorage(database);
+    await ensureOAuthGrantIndexes();
+  }
 
   const auth = betterAuth({
     disabledPaths: oauth.enabled ? ["/token"] : [],
@@ -155,7 +160,9 @@ async function initializeAuth() {
       max: serverConfig.rateLimit.auth.maxRequests,
     },
     plugins: [
-      ...(oauth.enabled ? createMcpOAuthPlugins(oauth.resource) : []),
+      ...(oauth.enabled
+        ? createMcpOAuthPlugins(oauth.resource, oauthGrantHooks)
+        : []),
       admin({
         defaultRole: "user",
         adminRoles: ["admin"],

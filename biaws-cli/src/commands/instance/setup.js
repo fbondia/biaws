@@ -14,6 +14,7 @@ import {
 const setupFlags = {
   ...contextFlags,
   ...wizardFlags,
+  "mcp-http": Flags.boolean({ allowNo: true, description: "habilita MCP HTTP/OAuth (HTTPS público ou loopback)" }),
   name: Flags.string({ char: "n", description: "nome da instância" }),
   "admin-email": Flags.string({
     description: "e-mail do administrador inicial",
@@ -287,7 +288,10 @@ export default class InstanceSetup extends LocalInstanceCommand {
       terminal: this.adapters.terminal,
     });
     const configuration = await buildSetupConfiguration(
-      Object.fromEntries(definition.questions.map((question) => [question.name, plan.get(question.name)])),
+      {
+        ...Object.fromEntries(definition.questions.map((question) => [question.name, plan.get(question.name)])),
+        mcpHttp: flags["mcp-http"],
+      },
       context,
       this.adapters.filesystem,
     );

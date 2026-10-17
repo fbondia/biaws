@@ -13,6 +13,12 @@ import { resolveUserAuthorization } from "../repositories/access/index.js";
 import { platformPermissionsForTechnicalRole } from "./authorizationMiddleware.js";
 import { ensureAuthIndexes } from "./authIndexes.js";
 import { hashPassword, verifyPassword } from "./password.js";
+import { createMcpOAuthPlugins, getMcpOAuthConfig, prepareOAuthStorage, warmOAuthIndexes } from "./oauthProvider.js";
+import { oauthGrantHooks } from "./oauthGrantHooks.js";
+import { ensureOAuthGrantIndexes } from "./oauthGrants.js";
+import { createOAuthDelegationPlugin } from "./oauthDelegationPlugin.js";
+import { ensureOAuthDelegationIndexes, resolveMcpDelegation } from "./oauthDelegations.js";
+import { DELEGATION_PREFIX } from "./oauthDelegationPolicy.js";
 
 let authPromise: ReturnType<typeof initializeAuth> | undefined;
 
@@ -45,19 +51,24 @@ export async function authHandler(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function getAuthenticatedActor(req: Request): Promise<Actor | null> {
+export async function getAuthenticatedActor(req: Pick<Request, "headers">): Promise<Actor | null> {
+  const bearer = String(req.headers.authorization || "").match(/^Bearer\s+(.+)$/iu)?.[1];
+  if (bearer?.startsWith(DELEGATION_PREFIX)) {
+    if (!getMcpOAuthConfig(getServerConfig().auth.baseUrl).enabled) return null;
+    return resolveMcpDelegation(bearer, String(req.headers["x-biaws-workspace-id"] || "").trim());
+  }
   const auth = await getAuth();
   const result = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),
   });
-  if (!result?.user || !result?.session || result.user.banned) return null;
+  if (!result?.user || !result?.session || ("banned" in result.user && result.user.banned)) return null;
 
   const authorization = String(req.headers.authorization || "");
   const usesApiKey = /^Bearer\s+/iu.test(authorization);
   const requestedWorkspaceId = String(req.headers["x-biaws-workspace-id"] || "").trim();
   const workspaceAuthorization = await resolveUserAuthorization(result.user.id, requestedWorkspaceId);
 
-  const technicalRole = result.user.role || "user";
+  const technicalRole = "role" in result.user && typeof result.user.role === "string" ? result.user.role : "user";
   const platformPermissions = platformPermissionsForTechnicalRole(technicalRole);
 
   return {
@@ -88,8 +99,15 @@ async function initializeAuth() {
   const client = await getMongoClient();
   const database = client.db(resolveDatabaseName());
   await ensureAuthIndexes(database);
+  const oauth = getMcpOAuthConfig(config.baseUrl);
+  if (oauth.enabled) {
+    await prepareOAuthStorage(database);
+    await ensureOAuthGrantIndexes();
+    await ensureOAuthDelegationIndexes();
+  }
 
-  return betterAuth({
+  const auth = betterAuth({
+    disabledPaths: oauth.enabled ? ["/token"] : [],
     appName: "Bondia Workspaces",
     baseURL: config.baseUrl,
     basePath: "/api/auth",
@@ -126,6 +144,8 @@ async function initializeAuth() {
       max: serverConfig.rateLimit.auth.maxRequests,
     },
     plugins: [
+      ...(oauth.enabled ? [createOAuthDelegationPlugin(oauth.resource)] : []),
+      ...(oauth.enabled ? createMcpOAuthPlugins(oauth.resource, oauthGrantHooks) : []),
       admin({
         defaultRole: "user",
         adminRoles: ["admin"],
@@ -155,7 +175,7 @@ async function initializeAuth() {
           maxRequests: serverConfig.rateLimit.apiKey.maxRequests,
         },
       }),
-    ],
+    ] as const,
     advanced: {
       cookiePrefix: "biaws",
       useSecureCookies: config.secureCookies,
@@ -168,4 +188,15 @@ async function initializeAuth() {
       },
     },
   });
+  if (oauth.enabled) {
+    const context = await auth.$context;
+    await warmOAuthIndexes((model) =>
+      context.adapter.updateMany({
+        model,
+        where: [{ field: "id", value: "000000000000000000000000" }],
+        update: { id: "000000000000000000000000" },
+      }),
+    );
+  }
+  return auth;
 }

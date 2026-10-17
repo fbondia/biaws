@@ -90,6 +90,7 @@ export const secretResponseSchema = z.object({ secret: publicSecretSchema }).str
 export type PublicSecret = z.output<typeof publicSecretSchema>;
 
 export const domainBodySchemas = {
+  oauthRouter: optionalObjectBodySchema,
   accessRouter: optionalObjectBodySchema,
   auditRouter: z.unknown(),
   catalogRouter: optionalObjectBodySchema,
@@ -111,6 +112,12 @@ export const domainBodySchemas = {
 export type ContractDomain = keyof typeof domainBodySchemas;
 
 export function operationBodySchema(domain: ContractDomain, method: string, routePath: string): z.ZodType {
+  if (domain === "oauthRouter" && method === "post") {
+    const query = z.string().min(1).max(16384);
+    return routePath === "/decision"
+      ? z.object({ query, accept: z.boolean(), workspaceId: z.string().min(1).max(128).optional() }).strict()
+      : z.object({ query }).strict();
+  }
   if (domain === "issuesRouter" && method === "post" && routePath === "/") {
     return issueCreateBodySchema;
   }

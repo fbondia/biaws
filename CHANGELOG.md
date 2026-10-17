@@ -8,6 +8,43 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Revisão CHATGPT-PLUGIN: correções de restore OAuth e desabilitação do MCP
+  elevam a revisão de implantação da candidata `0.8.0` de `2` para `3` (P24).
+  Consentimento mostra a identidade do cliente; pacote recusa headers estáticos
+  e SSE; CI exercita HTTP e o gate de catálogo vincula a evidência ao ZIP.
+
+- Plataforma preparada como `0.8.0`, revisão de implantação `3`, schema `2`
+  (CHATGPT-PLUGIN/P24), com API `0.10.0`, UI `0.8.0`, MCP `0.15.0` e executor
+  `0.1.0`. MCP HTTP é opcional; CLI mínimo `0.6.0`. A migração para replica set
+  exige backup e o procedimento documentado; desabilitar MCP mantém os dados
+  e o formato replica set. Nenhuma instância é atualizada pelo versionamento.
+
+- Plugin preparado como `0.1.0-rc.1` (CHATGPT-PLUGIN/P23), com compatibilidade
+  mínima e changelog próprios. Validação no ChatGPT, endpoint de distribuição
+  e requisitos externos do catálogo permanecem pendentes.
+
+- CLI preparado de `0.5.3` para `0.6.0` (CHATGPT-PLUGIN/P22): configuração
+  ChatGPT por URL sem credencial local, opções MCP HTTP em setup/update,
+  diagnóstico sanitizado e suporte ao manifesto schema 2. Fixa MCP `0.15.0`,
+  que deve existir no npm antes da publicação deste CLI.
+
+- MCP preparado de `0.14.1` para `0.15.0` (CHATGPT-PLUGIN/P21): entrada
+  Streamable HTTP com OAuth e identidade isolada por requisição, preservando
+  stdio nas duas eras suportadas. Ferramentas de arquivo local ficam restritas
+  a stdio; ambas as entradas são incluídas e verificadas no pacote npm.
+
+- UI preparada de `0.7.0` para `0.8.0` (CHATGPT-PLUGIN/P20): consentimento
+  OAuth com login existente e escolha explícita de workspace; Minha conta
+  lista/revoga conexões. Inclui updates transitivos de segurança da renderização
+  e correção de source-map-js nas ferramentas de desenvolvimento.
+  A versão do pacote permanece distinta de BIAWS_VERSION da instalação.
+
+- API preparada de `0.9.0` para `0.10.0` (CHATGPT-PLUGIN/P19): OAuth opt-in
+  com contas existentes, concessões por workspace e credencial delegada curta
+  para MCP. Inclui consentimento/revogação, discovery, índices transacionais,
+  proteção CIMD e correção transitiva proxy-addr. Habilitação requer replica set
+  e origem HTTPS; rotas de domínio não aceitam o token externo do MCP.
+
 - UI atualizada de `0.6.2` para `0.7.0`: a listagem de issues exibe a coluna
   “Última alteração” e permite ordenar por ela em ordem crescente ou decrescente,
   inclusive em dispositivos móveis. A data considera alterações na issue e

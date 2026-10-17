@@ -54,7 +54,15 @@ cd "${ROOT_DIR}"
 "${ROOT_DIR}/scripts/check-prerequisites.sh" --quiet
 
 compose() {
+  local extra=(--file "${ROOT_DIR}/compose.yaml")
+  if [[ "$(read_env_value "BIAWS_MCP_CONFIGURED")" == "true" ]]; then
+    extra+=(--file "${ROOT_DIR}/compose.mcp.yaml")
+    if [[ "$(read_env_value "BIAWS_MCP_HTTP_ENABLED")" == "true" ]]; then
+      extra+=(--profile mcp-http)
+    fi
+  fi
   docker compose \
+    "${extra[@]}" \
     --env-file "${ENV_FILE}" \
     --project-name "${COMPOSE_PROJECT}" \
     "$@"
@@ -161,7 +169,13 @@ api_port="${api_port:-3100}"
 ui_port="${ui_port:-4400}"
 
 existing_services="$(compose ps --all --services)"
-compose up -d --build --wait mongo api ui
+bootstrap_services=(mongo api ui)
+if [[ "$(read_env_value "BIAWS_MCP_HTTP_ENABLED")" == "true" ]]; then bootstrap_services+=(mcp); fi
+if [[ "$(read_env_value "BIAWS_MCP_CONFIGURED")" == "true" && "$(read_env_value "BIAWS_MCP_HTTP_ENABLED")" != "true" ]] &&
+  printf '%s\n' "${existing_services}" | grep -qx 'mcp'; then
+  compose --profile mcp-http stop mcp
+fi
+compose up -d --build --wait "${bootstrap_services[@]}"
 
 echo "Aguardando a API ficar disponível..."
 for attempt in $(seq 1 60); do

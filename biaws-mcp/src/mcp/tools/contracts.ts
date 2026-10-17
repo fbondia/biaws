@@ -2,6 +2,11 @@ import type { FromSchema } from "json-schema-to-ts";
 import type { toolDefinitions } from "./toolCatalog.js";
 
 export interface ToolDefinition {
+  readonly annotations?: {
+    readonly readOnlyHint: boolean;
+    readonly destructiveHint: boolean;
+    readonly openWorldHint: boolean;
+  };
   readonly name: string;
   readonly description: string;
   readonly inputSchema: Schema & {

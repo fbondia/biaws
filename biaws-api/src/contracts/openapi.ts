@@ -153,11 +153,12 @@ export function buildOpenApiDocument() {
       tags: [contract.domain.replace(/Router$/u, "")],
       summary: `${contract.method.toUpperCase()} ${contract.path}`,
       description: "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
-      security: [{ sessionCookie: [] }, { bearerApiKey: [] }],
+      security:
+        contract.domain === "oauthRouter" ? [{ sessionCookie: [] }] : [{ sessionCookie: [] }, { bearerApiKey: [] }],
       request: {
         params: contract.params as z.ZodObject<z.ZodRawShape>,
         query: commonQuerySchema,
-        ...(contract.domain === "platformRouter" ? {} : { headers: workspaceHeaderSchema }),
+        ...(["platformRouter", "oauthRouter"].includes(contract.domain) ? {} : { headers: workspaceHeaderSchema }),
         ...(contract.method === "get" || contract.method === "delete"
           ? {}
           : { body: { content: bodyContent(contract) } }),
@@ -234,7 +235,7 @@ export function buildOpenApiDocument() {
     openapi: "3.1.0",
     info: {
       title: "Bondia Workspaces API",
-      version: "0.9.0",
+      version: "0.10.0",
       description:
         "Contrato HTTP dos routers BIAWS. As rotas /api/auth/* são delegadas ao Better Auth e descritas em docs/authentication.md; não fazem parte deste documento gerado. Try it out executa operações reais e respeita as permissões do backend.",
     },

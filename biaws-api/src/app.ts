@@ -28,6 +28,7 @@ import { secretsRouter } from "./routes/secrets/index.js";
 import { resourceCollectionsRouter } from "./routes/resourceCollections/index.js";
 import { knowledgeRecordsRouter } from "./routes/knowledgeRecords/index.js";
 import { userPreferencesRouter } from "./routes/userPreferences/index.js";
+import { oauthRouter } from "./routes/oauth/index.js";
 import { installRouteContracts } from "./contracts/routeContracts.js";
 import { contractRouters } from "./contracts/routers.js";
 import { buildOpenApiDocument } from "./contracts/openapi.js";
@@ -94,6 +95,11 @@ export function createApp({ logger = apiLogger } = {}) {
     requireAllPermissions("api_keys.manage.self"),
   );
   app.all("/api/auth/*splat", authHandler);
+  // RFC 8414 / RFC 9728 discovery can live outside the auth base path.
+  app.get(
+    /^\/\.well-known\/(oauth-authorization-server|openid-configuration|oauth-protected-resource)(\/.*)?$/,
+    authHandler,
+  );
 
   app.use(express.json({ limit: config.maxJsonBytes }));
 
@@ -141,6 +147,7 @@ export function createApp({ logger = apiLogger } = {}) {
     rejectDatabaseOverride,
   ];
   app.use("/api/platform", ...platformRoute, platformRouter);
+  app.use("/api/oauth", ...platformRoute, oauthRouter);
   app.use("/api/issues", ...protectedRoute, issuesRouter);
   app.use("/api/home", ...protectedRoute, homeRouter);
   app.use("/api/requests", ...protectedRoute, requestsRouter);

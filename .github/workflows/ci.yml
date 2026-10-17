@@ -13,6 +13,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  chatgpt-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci --prefix biaws-mcp
+      - name: Verify OAuth and MCP over TLS in isolated Docker instances
+        env:
+          BIAWS_CHATGPT_DOCKER_TEST: "1"
+        run: node scripts/chatgpt/docker-integration.mjs
+  plugin-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci --prefix biaws-mcp
+      - run: npm run build --prefix biaws-mcp
+      - run: npm ci --prefix plugins
+      - run: npm test --prefix plugins
+      - run: npm run build --prefix plugins -- --url https://ci.example.test/mcp
   documentation:
     runs-on: ubuntu-latest
     steps:
@@ -22,21 +46,13 @@ jobs:
           node-version: 22
       - run: node scripts/check-documentation.mjs
       - run: node scripts/release-manifest.mjs check
+      - name: Verify deployed MCP schema migration
+        run: node --test biaws-cli/test/releaseMcp.test.js
 
   api:
     runs-on: ubuntu-latest
-    services:
-      mongo:
-        image: mongo:8.0
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
     env:
-      BIAWS_INTEGRATION_MONGO_URI: mongodb://127.0.0.1:27017/biaws_ci
+      BIAWS_INTEGRATION_MONGO_URI: mongodb://127.0.0.1:27017/biaws_ci?directConnection=true
       BIAWS_HTTP_INTEGRATION: "1"
     defaults:
       run:
@@ -48,6 +64,14 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: biaws-api/package-lock.json
+      - name: Start isolated MongoDB replica set
+        run: |
+          docker run -d --name biaws-api-test-mongo -p 127.0.0.1:27017:27017 mongo:8.0 --replSet biawsTest --bind_ip_all
+          for attempt in $(seq 1 60); do
+            if docker exec biaws-api-test-mongo mongosh --quiet --eval 'try { rs.status() } catch(e) { if(e.codeName !== "NotYetInitialized") throw e; rs.initiate({_id:"biawsTest",members:[{_id:0,host:"127.0.0.1:27017"}]}) }; if(!db.hello().isWritablePrimary) quit(1)'; then break; fi
+            sleep 1
+          done
+          docker exec biaws-api-test-mongo mongosh --quiet --eval 'if(!db.hello().isWritablePrimary) quit(1)'
       - run: npm ci
       - run: npm run format:check
       - run: npm run check
@@ -78,6 +102,8 @@ jobs:
 
   mcp:
     runs-on: ubuntu-latest
+    env:
+      BIAWS_MCP_HTTP_INTEGRATION: "1"
     defaults:
       run:
         working-directory: biaws-mcp
@@ -99,13 +125,7 @@ jobs:
           npm pack --pack-destination "${RUNNER_TEMP}"
           install_prefix="${RUNNER_TEMP}/biaws-mcp-global"
           npm install --global --prefix "${install_prefix}" "${RUNNER_TEMP}/${package_file}"
-          printf '%s\n' \
-            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{}}}' \
-            '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
-            '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-            | "${install_prefix}/bin/biaws-mcp" > "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
-          grep -F '"id":2' "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
-          grep -F '"tools":[' "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
+          node ../scripts/chatgpt/smoke-installed-mcp.mjs "${install_prefix}/lib/node_modules/biaws-mcp"
 
   module-integration:
     runs-on: ubuntu-latest
@@ -150,6 +170,8 @@ jobs:
       - run: npm ci
       - run: npm run release:check
       - run: npm audit --omit=dev --audit-level=high
+      - name: Verify publication guards with a fake registry
+        run: node ../scripts/chatgpt/test-publication-guards.mjs
       - name: Install the packed CLI and exercise the shebang
         shell: bash
         run: |

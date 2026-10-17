@@ -21,12 +21,12 @@ mesmo significado operacional:
 O arquivo `release.json` na raiz define a release da plataforma, independente
 da versão do CLI. Seu contrato contém:
 
-- `schemaVersion`: formato do manifesto, atualmente `1`;
+- `schemaVersion`: formato do manifesto, atualmente `2`; snapshots `1` continuam legíveis;
 - `version`: versão SemVer da release, usada em `BIAWS_VERSION`, no health da API
   e nos labels OCI;
 - `deploymentRevision`: inteiro positivo que deve aumentar quando Compose,
   Dockerfiles, bootstrap, migrações ou configuração de implantação mudarem;
-- `components`: versões de `biaws-api`, `biaws-ui` e `biaws-monitor-executor`,
+- `components`: versões de `biaws-api`, `biaws-ui`, `biaws-monitor-executor` e `biaws-mcp`,
   sincronizadas com os respectivos `package.json`.
 
 Ao alterar a versão de um desses componentes, atualize também sua entrada em
@@ -38,8 +38,9 @@ node scripts/release-manifest.mjs check
 
 Cada release distribuída deve receber uma nova `version`. A detecção também
 compara cada componente e `deploymentRevision`, portanto uma alteração nesses
-campos exige atualização mesmo se a versão geral tiver sido mantida. O CLI e o
-MCP são ferramentas distribuídas separadamente e não integram esse manifesto.
+campos exige atualização mesmo se a versão geral tiver sido mantida. O CLI
+continua distribuído separadamente; o MCP também integra o manifesto como serviço
+implantável opcional. A versão npm do MCP e a versão implantada devem coincidir.
 Executores externos mantêm seu processo de publicação e atualização próprio.
 
 Após o setup ou update concluir com sucesso, o manifesto aplicado é gravado em
@@ -57,7 +58,22 @@ habilitado. `setup --skip-bootstrap` não registra uma release aplicada. O resto
 invalida o snapshot, pois restaura dados e configuração, não imagens: execute
 update no checkout desejado para reconciliar a instalação.
 
+O schema 2 exige CLI 0.6.0 ou posterior. Um CLI antigo deve recusar o manifesto,
+sem reinterpretá-lo como schema 1. Atualize primeiro a ferramenta administrativa.
+A migração preserva snapshots legados e mostra diferenças explícitas de
+`schemaVersion` e `biaws-mcp`; o snapshot novo só é gravado após implantação
+saudável. Habilitar MCP converte o MongoDB para replica set de um membro;
+desabilitar MCP mantém esse formato e os dados. Consulte
+[operação Docker](chatgpt-docker.md).
+
 ## Regra geral
+
+O plugin portátil tem versão independente em `plugins/biaws/plugin.json`,
+histórico em `plugins/CHANGELOG.md` e mínimos em `plugins/compatibility.json`.
+Até concluir a validação real no ChatGPT, use uma versão prerelease; a candidata
+`0.1.0-rc.1` não é uma versão de catálogo publicada. Cada ZIP é vinculado ao
+endpoint explícito do build e seu checksum. URLs de loopback só identificam
+artefatos de teste local. O artefato final exige a origem HTTPS real aprovada.
 
 Use [Semantic Versioning](https://semver.org/lang/pt-BR/): `patch` para correção
 compatível, `minor` para funcionalidade compatível e `major` para mudança

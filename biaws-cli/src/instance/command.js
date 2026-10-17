@@ -32,5 +32,6 @@ export function instanceSummary(instance) {
     `API: http://127.0.0.1:${instance.apiPort}`,
     `UI: ${instance.publicUrl}`,
     `Storage: ${instance.storage}`,
+    `MCP HTTP: ${instance.mcp?.enabled ? instance.mcp.resource : "desabilitado"}`,
   ].join("\n");
 }

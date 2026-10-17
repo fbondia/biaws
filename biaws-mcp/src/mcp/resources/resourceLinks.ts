@@ -1,6 +1,7 @@
 import type { ResourceLink } from "@modelcontextprotocol/server";
 import { apiEntitySchema, type ApiEntity } from "../../api/apiContracts.js";
 import { isRecord } from "../../runtime/errors.js";
+import { currentApiIdentity } from "../../runtime/requestContext.js";
 
 function link(uri: string, item: ApiEntity): ResourceLink {
   return {
@@ -19,7 +20,7 @@ function itemLinks(items: unknown, path: (item: ApiEntity) => string): ResourceL
 }
 
 export function resourceLinksForTool(tool: string, value: unknown): ResourceLink[] {
-  const workspaceId = String(process.env.BIAWS_WORKSPACE_ID || "").trim();
+  const workspaceId = currentApiIdentity().workspaceId;
   if (!workspaceId) return [];
   if (!isRecord(value)) return [];
   const result = value;

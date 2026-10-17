@@ -116,7 +116,7 @@ function ReauthenticationDialog({ credentials, onSubmit, reason, submitting }) {
   );
 }
 
-export function AuthGate({ children }) {
+export function AuthGate({ children, requireWorkspace = true }) {
   const session = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -171,6 +171,7 @@ export function AuthGate({ children }) {
   const actor = session.actor || authenticatedActor.current;
 
   if (
+    requireWorkspace &&
     !actor.workspaceId &&
     actor.workspaces?.length > 1 &&
     !actor.platformPermissions?.includes("platform.workspaces.manage")

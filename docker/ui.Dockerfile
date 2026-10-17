@@ -12,8 +12,12 @@ ENV VITE_MONITORING_REFRESH_SECONDS=${VITE_MONITORING_REFRESH_SECONDS}
 RUN npm run build
 
 FROM nginx:1.29-alpine
+COPY docker/safe-logging.conf /etc/nginx/conf.d/00-safe-logging.conf
 
-COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY docker/proxy-api.conf /etc/nginx/templates/proxy-api.conf.template
+ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
+ENV BIAWS_MCP_HTTP_ENABLED=false BIAWS_PUBLIC_SCHEME=http
+COPY docker/nginx.conf.template /etc/nginx/templates/conf.d/default.conf.template
 COPY --from=build /app/biaws-ui/dist /usr/share/nginx/html
 
 EXPOSE 80

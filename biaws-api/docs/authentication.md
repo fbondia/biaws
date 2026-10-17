@@ -1,9 +1,12 @@
 # Autenticação com Better Auth
 
 O Better Auth é a fundação de identidade, credenciais e sessões da `biaws-api`.
-O cadastro público por e-mail/senha está desabilitado. Todas as rotas de negócio
-exigem uma sessão ou chave de API válida; a diferenciação por permissão será
-ativada na Fase 4.
+O cadastro público por e-mail/senha está desabilitado. As rotas de negócio
+exigem sessão, chave de API ou credencial interna delegada válida, além da
+permissão e do escopo aplicáveis. OAuth remoto é opt-in e reutiliza as contas;
+o token externo destinado ao MCP não é credencial direta de domínio.
+Consulte [OAuth e delegação](oauth.md) e
+[operação ChatGPT](../../docs/chatgpt-operations.md).
 
 As versões do Better Auth, adaptador MongoDB e Argon2 estão fixadas no
 `package.json`. Senhas novas usam Argon2id.

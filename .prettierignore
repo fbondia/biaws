@@ -10,3 +10,4 @@ queroqr-web/
 temp/
 **/package-lock.json
 *.archive.gz
+plugins/schemas/

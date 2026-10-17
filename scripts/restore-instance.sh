@@ -101,18 +101,13 @@ validate_restore_target() {
 }
 
 compose() {
-  docker compose \
-    --project-directory "${ROOT_DIR}" \
-    --file "${ROOT_DIR}/compose.yaml" \
-    --env-file "${ENV_FILE}" \
-    --project-name "biaws-${INSTANCE}" \
-    "$@"
+  node "${ROOT_DIR}/scripts/compose-instance.mjs" "${ROOT_DIR}" "${ENV_FILE}" "biaws-${INSTANCE}" "$@"
 }
 
 restart_services() {
   if [[ "${SERVICES_STOPPED}" == "1" && "${#RUNNING_SERVICES[@]}" -gt 0 ]]; then
     echo "Recriando serviços que estavam ativos..."
-    compose up -d "${RUNNING_SERVICES[@]}" >/dev/null
+    compose up -d --no-deps "${RUNNING_SERVICES[@]}" >/dev/null
     SERVICES_STOPPED=0
   fi
 }
@@ -174,7 +169,7 @@ verify_sha256() {
 
 is_deployment_key() {
   case "$1" in
-    COMPOSE_PROJECT_NAME|MONGO_PORT|BIAWS_API_PORT|BIAWS_UI_PORT|BIAWS_API_URL|MONGO_URI|BIAWS_ISSUE_DIR|BIAWS_REQUEST_DIR|BIAWS_DOCUMENT_DIR|ATTACHMENT_STORAGE_LOCAL_DIR|BIAWS_MONGO_DATA_PATH|BIAWS_ISSUE_FILES_PATH|BIAWS_REQUEST_FILES_PATH|BIAWS_DOCUMENT_FILES_PATH|BIAWS_PROCEDURE_FILES_PATH|BIAWS_SECRET_FILES_PATH|BIAWS_SECRETS_DIR|BIAWS_SECRETS_KEY_PATH|BIAWS_SECRETS_KEY_FILE|BIAWS_MONITOR_SECRET_FILES_PATH|BIAWS_MONITOR_SHELL_FILES_PATH|BIAWS_MONITOR_EXECUTOR_UID|BIAWS_MONITOR_EXECUTOR_GID|BIAWS_PUBLIC_URL|BIAWS_TRUSTED_ORIGINS|BETTER_AUTH_URL|BETTER_AUTH_TRUSTED_ORIGINS|BETTER_AUTH_TRUSTED_PROXIES|BETTER_AUTH_SECURE_COOKIES)
+    BIAWS_MCP_CONFIGURED|BIAWS_MCP_HTTP_ENABLED|BIAWS_MCP_SERVICE_SECRET_PATH|BIAWS_MCP_PUBLIC_URL|BIAWS_MCP_UID|BIAWS_MCP_GID|BIAWS_PUBLIC_SCHEME|COMPOSE_PROJECT_NAME|MONGO_PORT|BIAWS_API_PORT|BIAWS_UI_PORT|BIAWS_API_URL|MONGO_URI|BIAWS_ISSUE_DIR|BIAWS_REQUEST_DIR|BIAWS_DOCUMENT_DIR|ATTACHMENT_STORAGE_LOCAL_DIR|BIAWS_MONGO_DATA_PATH|BIAWS_ISSUE_FILES_PATH|BIAWS_REQUEST_FILES_PATH|BIAWS_DOCUMENT_FILES_PATH|BIAWS_PROCEDURE_FILES_PATH|BIAWS_SECRET_FILES_PATH|BIAWS_SECRETS_DIR|BIAWS_SECRETS_KEY_PATH|BIAWS_SECRETS_KEY_FILE|BIAWS_MONITOR_SECRET_FILES_PATH|BIAWS_MONITOR_SHELL_FILES_PATH|BIAWS_MONITOR_EXECUTOR_UID|BIAWS_MONITOR_EXECUTOR_GID|BIAWS_PUBLIC_URL|BIAWS_TRUSTED_ORIGINS|BETTER_AUTH_URL|BETTER_AUTH_TRUSTED_ORIGINS|BETTER_AUTH_TRUSTED_PROXIES|BETTER_AUTH_SECURE_COOKIES)
       return 0
       ;;
     *) return 1 ;;
@@ -321,7 +316,7 @@ if ! node "${CRYPTO_HELPER}" decrypt \
 fi
 chmod 600 "${PLAIN_ARCHIVE}"
 
-tar_warning_args=()
+tar_warning_args=(--exclude='._*')
 if tar --version 2>/dev/null | grep -q "GNU tar"; then
   tar_warning_args+=(--warning=no-unknown-keyword)
 fi
@@ -379,6 +374,19 @@ cp -p "${ENV_FILE}" "${destination_env_snapshot}"
 # Exige reconciliação via update antes de declarar uma release aplicada.
 rm -f -- "${INSTANCE_DIR}/release.json"
 merge_environment "${SOURCE_ENV}" "${ENV_FILE}"
+if [[ -f "${PAYLOAD_DIR}/instance/mcp-service-secret" ]]; then
+  mcp_secret_target="$(read_env_value_from "${destination_env_snapshot}" BIAWS_MCP_SERVICE_SECRET_PATH)"
+  mcp_secret_target="${mcp_secret_target:-${INSTANCE_DIR}/.mcp-service-secret}"
+  mcp_secret_target="$(resolve_host_path "${mcp_secret_target}")"
+  validate_restore_target "${mcp_secret_target}"
+  [[ ! -L "${mcp_secret_target}" ]] || { echo "Destino simbólico de segredo MCP recusado." >&2; exit 1; }
+  mkdir -p "$(dirname "${mcp_secret_target}")"
+  cp -p "${PAYLOAD_DIR}/instance/mcp-service-secret" "${mcp_secret_target}"
+  chmod 600 "${mcp_secret_target}"
+  replace_env_value "${ENV_FILE}" BIAWS_MCP_SERVICE_SECRET_PATH "${mcp_secret_target}"
+  replace_env_value "${ENV_FILE}" BIAWS_MCP_UID "$(id -u)"
+  replace_env_value "${ENV_FILE}" BIAWS_MCP_GID "$(id -g)"
+fi
 
 secrets_key_target="$(read_env_value_from "${destination_env_snapshot}" BIAWS_SECRETS_KEY_PATH)"
 secrets_key_target="${secrets_key_target:-$(read_env_value_from "${destination_env_snapshot}" BIAWS_SECRETS_KEY_FILE)}"
@@ -441,11 +449,25 @@ restore_volume "${PAYLOAD_DIR}/files/secrets.tar" /data/secrets
 mongo_db="$(read_env_value_from "${MANIFEST}" mongo_database)"
 mongo_db="${mongo_db:-biaws}"
 echo "Restaurando MongoDB..."
+# mongorestore --drop only clears collections present in the archive. A legacy
+# backup may contain no OAuth collections, so destination grants/keys must be
+# cleared first even when restoring to the same origin.
+clear_oauth_state() {
+  compose exec -T -e "BIAWS_RESTORE_DATABASE=${mongo_db}" mongo mongosh --quiet --eval '
+    const d = db.getSiblingDB(process.env.BIAWS_RESTORE_DATABASE);
+    for (const name of ["oauthGrants", "oauthDelegations", "oauthConsent", "oauthAccessToken", "oauthRefreshToken", "oauthClientAssertion", "oauthClient", "oauthClientResource", "oauthResource", "jwks"]) d.getCollection(name).deleteMany({});
+  '
+}
+clear_oauth_state
 compose exec -T mongo mongorestore \
   --nsInclude="${mongo_db}.*" \
   --archive \
   --gzip \
   --drop < "${PAYLOAD_DIR}/mongo.archive.gz"
 
+if [[ "$(read_env_value_from "${SOURCE_ENV}" BIAWS_PUBLIC_URL)" != "$(read_env_value_from "${destination_env_snapshot}" BIAWS_PUBLIC_URL)" ]]; then
+  echo "Origem pública diferente: invalidando autorizações OAuth restauradas; nova conexão será necessária."
+  clear_oauth_state
+fi
 restart_services
 echo "Restauração completa concluída na instância: ${INSTANCE}"

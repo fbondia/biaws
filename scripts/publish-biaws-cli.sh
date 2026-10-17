@@ -68,6 +68,21 @@ if [[ "${MODE}" == "publish" ]]; then
     echo "${registry_result}" >&2
     exit 1
   fi
+
+  MCP_PACKAGE_SPEC="$(node -e '
+    const source = require("node:fs").readFileSync(process.argv[1], "utf8");
+    const version = source.match(/export const MCP_PACKAGE_VERSION = "(\d+\.\d+\.\d+)";/u)?.[1];
+    if (!version) process.exit(1);
+    process.stdout.write("biaws-mcp@" + version);
+  ' "${CLI_DIR}/src/commands/agent.js")"
+  published_mcp_version="$(npm view "${MCP_PACKAGE_SPEC}" version --json)" || {
+    echo "Publique e valide ${MCP_PACKAGE_SPEC} antes do CLI." >&2
+    exit 1
+  }
+  if [[ "${published_mcp_version}" != "\"${MCP_PACKAGE_SPEC#*@}\"" ]]; then
+    echo "A versão publicada de ${MCP_PACKAGE_SPEC} não foi confirmada; publicação do CLI recusada." >&2
+    exit 1
+  fi
 fi
 
 cd "${CLI_DIR}"

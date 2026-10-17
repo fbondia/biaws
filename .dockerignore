@@ -8,3 +8,5 @@
 issue-data
 temp
 instances
+**/.mcp-service-secret
+**/.secrets-master-key

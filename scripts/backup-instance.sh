@@ -59,12 +59,7 @@ resolve_host_path() {
 }
 
 compose() {
-  docker compose \
-    --project-directory "${ROOT_DIR}" \
-    --file "${ROOT_DIR}/compose.yaml" \
-    --env-file "${ENV_FILE}" \
-    --project-name "biaws-${INSTANCE}" \
-    "$@"
+  node "${ROOT_DIR}/scripts/compose-instance.mjs" "${ROOT_DIR}" "${ENV_FILE}" "biaws-${INSTANCE}" "$@"
 }
 
 restart_services() {
@@ -256,6 +251,11 @@ for mapping in \
 done
 
 cp -p "${ENV_FILE}" "${PAYLOAD_DIR}/instance/environment.env"
+if [[ "$(read_env_value BIAWS_MCP_CONFIGURED)" == "true" ]]; then
+  mcp_secret_path="$(resolve_host_path "$(read_env_value BIAWS_MCP_SERVICE_SECRET_PATH)")"
+  [[ -f "${mcp_secret_path}" ]] || { echo "Segredo MCP ausente; backup incompleto." >&2; exit 1; }
+  cp -p "${mcp_secret_path}" "${PAYLOAD_DIR}/instance/mcp-service-secret"
+fi
 copy_optional_file \
   "${INSTANCE_DIR}/.bootstrap-admin-password" \
   "${PAYLOAD_DIR}/instance/bootstrap-admin-password"

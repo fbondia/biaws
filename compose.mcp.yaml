@@ -1,0 +1,79 @@
+# Opt-in only: docker compose -f compose.yaml -f compose.mcp.yaml --profile mcp-http ...
+# Use the CLI to generate a private service secret and validated public URL.
+services:
+  mongo:
+    command: ["mongod", "--replSet", "biaws", "--bind_ip_all"]
+  mongo-init:
+    image: mongo:8.0
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["mongosh", "mongodb://mongo:27017", "--quiet", "--eval"]
+    command:
+      - 'try { rs.status() } catch (e) { if (e.codeName !== "NotYetInitialized") throw e; rs.initiate({_id:"biaws",members:[{_id:0,host:"mongo:27017"}]}) }; for(let i=0;i<60;i++){if(db.hello().isWritablePrimary) quit(0); sleep(1000)}; quit(1)'
+  api:
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    environment:
+      MONGO_URI: mongodb://mongo:27017/biaws?replicaSet=biaws
+      BIAWS_MCP_HTTP_ENABLED: ${BIAWS_MCP_HTTP_ENABLED:-false}
+      BIAWS_MCP_PUBLIC_URL: ${BIAWS_MCP_PUBLIC_URL:-http://localhost:4400/mcp}
+      BIAWS_MCP_SERVICE_SECRET_FILE: /run/secrets/mcp-service-secret
+    secrets:
+      - source: mcp_service_secret
+        target: mcp-service-secret
+    networks: [default, mcp-api]
+  mcp:
+    profiles: ["mcp-http"]
+    user: "${BIAWS_MCP_UID:-1000}:${BIAWS_MCP_GID:-1000}"
+    build:
+      context: .
+      dockerfile: docker/mcp.Dockerfile
+    init: true
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      BIAWS_API_URL: http://api:3100
+      BIAWS_MCP_HTTP_HOST: 0.0.0.0
+      BIAWS_MCP_HTTP_PORT: 3120
+      BIAWS_MCP_PUBLIC_URL: ${BIAWS_MCP_PUBLIC_URL:-http://localhost:4400/mcp}
+      BETTER_AUTH_URL: ${BIAWS_PUBLIC_URL:-http://localhost:4400}
+      BIAWS_MCP_SERVICE_SECRET_FILE: /run/secrets/mcp-service-secret
+    secrets:
+      - source: mcp_service_secret
+        target: mcp-service-secret
+    networks: [mcp-api]
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 10s
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3120/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+      start_period: 10s
+  ui:
+    networks: [default, mcp-api]
+    environment:
+      BIAWS_MCP_HTTP_ENABLED: ${BIAWS_MCP_HTTP_ENABLED:-false}
+      BIAWS_PUBLIC_SCHEME: ${BIAWS_PUBLIC_SCHEME:-http}
+
+networks:
+  mcp-api:
+    internal: true
+secrets:
+  mcp_service_secret:
+    file: ${BIAWS_MCP_SERVICE_SECRET_PATH:-.mcp-service-secret}

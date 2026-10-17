@@ -16,6 +16,9 @@ async function createFakeRuntime(root) {
   await writeFile(
     node,
     `#!/usr/bin/env bash
+if [[ "\${1:-}" == */compose-instance.mjs ]]; then
+  exec "${process.execPath}" "\$@"
+fi
 if [[ "\${1:-}" == "-p" ]]; then
   echo 22
 fi

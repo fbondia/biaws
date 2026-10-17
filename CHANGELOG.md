@@ -8,6 +8,12 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- UI preparada de `0.7.0` para `0.8.0` (CHATGPT-PLUGIN/P20): consentimento
+  OAuth com login existente e escolha explícita de workspace; Minha conta
+  lista/revoga conexões. Inclui updates transitivos de segurança da renderização
+  e correção de source-map-js nas ferramentas de desenvolvimento.
+  A versão do pacote permanece distinta de BIAWS_VERSION da instalação.
+
 - API preparada de `0.9.0` para `0.10.0` (CHATGPT-PLUGIN/P19): OAuth opt-in
   com contas existentes, concessões por workspace e credencial delegada curta
   para MCP. Inclui consentimento/revogação, discovery, índices transacionais,

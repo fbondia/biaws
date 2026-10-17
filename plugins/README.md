@@ -1,6 +1,8 @@
 # Plugin BIAWS
 
 Pacote remoto portátil em `biaws/`, preparado para teste por instância.
+Versão candidata `0.1.0-rc.1`; [histórico](CHANGELOG.md) e
+[compatibilidade mínima](compatibility.json) são independentes da versão npm.
 Identidade e licença vêm do repositório; autoria não comprova verificação do
 publicador no portal. Nenhuma URL jurídica ou credencial foi inventada.
 

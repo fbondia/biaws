@@ -62,8 +62,9 @@ export async function verifyInstall(archive, expectedSha256, { allowLoopback = f
   }
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const [archive] = process.argv.slice(2);
-  if (!archive) throw new Error("Usage: verify-install.mjs archive.zip");
+  const [archive, ...options] = process.argv.slice(2);
+  if (!archive || options.some((option) => option !== "--allow-loopback"))
+    throw new Error("Usage: verify-install.mjs archive.zip [--allow-loopback]");
   const checksum = (await readFile(archive + ".sha256", "utf8")).trim().split(/\s+/u)[0];
-  console.log(JSON.stringify(await verifyInstall(archive, checksum), null, 2));
+  console.log(JSON.stringify(await verifyInstall(archive, checksum, { allowLoopback: options.length > 0 }), null, 2));
 }

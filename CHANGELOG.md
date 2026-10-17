@@ -8,6 +8,10 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Plugin preparado como `0.1.0-rc.1` (CHATGPT-PLUGIN/P23), com compatibilidade
+  mínima e changelog próprios. Validação no ChatGPT, endpoint de distribuição
+  e requisitos externos do catálogo permanecem pendentes.
+
 - CLI preparado de `0.5.3` para `0.6.0` (CHATGPT-PLUGIN/P22): configuração
   ChatGPT por URL sem credencial local, opções MCP HTTP em setup/update,
   diagnóstico sanitizado e suporte ao manifesto schema 2. Fixa MCP `0.15.0`,

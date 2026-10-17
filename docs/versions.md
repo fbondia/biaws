@@ -68,6 +68,13 @@ desabilitar MCP mantém esse formato e os dados. Consulte
 
 ## Regra geral
 
+O plugin portátil tem versão independente em `plugins/biaws/plugin.json`,
+histórico em `plugins/CHANGELOG.md` e mínimos em `plugins/compatibility.json`.
+Até concluir a validação real no ChatGPT, use uma versão prerelease; a candidata
+`0.1.0-rc.1` não é uma versão de catálogo publicada. Cada ZIP é vinculado ao
+endpoint explícito do build e seu checksum. URLs de loopback só identificam
+artefatos de teste local. O artefato final exige a origem HTTPS real aprovada.
+
 Use [Semantic Versioning](https://semver.org/lang/pt-BR/): `patch` para correção
 compatível, `minor` para funcionalidade compatível e `major` para mudança
 incompatível. Enquanto um componente estiver em `0.x`, trate mudanças

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "biaws",
-  "version": "0.1.0-dev.0",
+  "version": "0.1.0-rc.1",
   "description": "Connect your Bondia Workspaces instance to manage applications, issues and improvements with your existing permissions.",
   "author": {
     "name": "Fabiano Bondia",

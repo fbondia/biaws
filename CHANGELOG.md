@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- CLI preparado de `0.5.3` para `0.6.0` (CHATGPT-PLUGIN/P22): configuração
+  ChatGPT por URL sem credencial local, opções MCP HTTP em setup/update,
+  diagnóstico sanitizado e suporte ao manifesto schema 2. Fixa MCP `0.15.0`,
+  que deve existir no npm antes da publicação deste CLI.
+
 - MCP preparado de `0.14.1` para `0.15.0` (CHATGPT-PLUGIN/P21): entrada
   Streamable HTTP com OAuth e identidade isolada por requisição, preservando
   stdio nas duas eras suportadas. Ferramentas de arquivo local ficam restritas

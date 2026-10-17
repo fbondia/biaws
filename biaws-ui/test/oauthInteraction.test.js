@@ -34,7 +34,11 @@ test("OAuth shows client/scopes and requires workspace; denial and revocation us
         const body = options.body ? JSON.parse(options.body) : null;
         calls.push({ path, body, method: options.method });
         if (path.endsWith("/context"))
-          return Response.json({ clientName: "Cliente sintético", scopes: ["mcp:read", "offline_access"] });
+          return Response.json({
+            clientName: "Cliente sintético",
+            clientId: "https://requesting-client.example.test/oauth/client.json",
+            scopes: ["mcp:read", "offline_access"],
+          });
         if (path.endsWith("/decision"))
           return Response.json({ error: { message: "Recusa recebida" } }, { status: 400 });
         if (options.method === "DELETE") {
@@ -75,6 +79,7 @@ test("OAuth shows client/scopes and requires workspace; denial and revocation us
       root = harness.mount(document.getElementById("app"));
     });
     assert.match(document.body.textContent, /Cliente sintético/);
+    assert.match(document.querySelector(".oauthClientId").textContent, /https:\/\/requesting-client\.example\.test/u);
     assert.match(document.body.textContent, /Manter a conexão/);
     assert.equal(document.querySelector(".primaryButton").disabled, true);
     const select = document.querySelector("select");

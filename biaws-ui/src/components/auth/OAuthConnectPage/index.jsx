@@ -46,6 +46,9 @@ export function OAuthConnectPage({ actor }) {
             <p>
               <strong>{context.clientName}</strong> solicita os seguintes acessos:
             </p>
+            <p className="oauthClientId">
+              Identificador do aplicativo: <code>{context.clientId}</code>
+            </p>
             <ul>
               {scopeLabels(context.scopes).map((label) => (
                 <li key={label}>{label}</li>

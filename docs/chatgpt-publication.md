@@ -1,8 +1,12 @@
 # Publicação da entrega CHATGPT-PLUGIN
 
-Preparação local concluída em 2026-10-17. Publicações npm, atualização de
-instâncias e submissão ao catálogo exigem a etapa humana definida no escopo.
-Os comandos desta página são o procedimento futuro; não são evidência de execução.
+`biaws-mcp@0.15.0` e `biaws@0.6.0` foram publicados pelo operador e confirmados
+no registry no encerramento de 2026-10-17. P25/P26 estão concluídas. Os comandos
+abaixo preservam o procedimento da entrega; não publique novamente essas mesmas
+versões. Novas versões exigem seu próprio processo de validação/publicação.
+
+Para usar o BIAWS no ChatGPT, siga o [guia de MCP personalizado](chatgpt.md).
+Publicação no catálogo de plugins é uma etapa futura, distinta dos pacotes npm.
 
 ## P25 — MCP primeiro
 

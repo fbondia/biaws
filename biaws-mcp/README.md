@@ -3,10 +3,17 @@
 Servidor MCP para agentes consultarem e atualizarem, de forma controlada, a base de conhecimento operacional mantida pelo `biaws-api`.
 
 Além do stdio, `biaws-mcp-http` oferece Streamable HTTP com OAuth por instância.
+Para usar **diretamente no ChatGPT**, siga o [guia de servidor MCP personalizado](../docs/chatgpt.md):
+cadastre a URL HTTPS com `/mcp`, autentique e escolha o workspace no BIAWS.
+Essa rota não usa chave técnica no ChatGPT e não exige ZIP ou catálogo.
 Nesse modo, token e workspace pertencem a cada requisição, sem chave global
 de usuário. Consulte [HTTP](docs/http.md), [catálogo](docs/catalog-policy.md) e
 [operação](../docs/chatgpt-operations.md). As instruções de BIAWS_API_KEY abaixo
 se aplicam ao stdio.
+
+O desafio OAuth HTTP solicita `mcp:read mcp:write`; as escritas permanecem
+limitadas às permissões do usuário no workspace autorizado. Conexões antigas
+somente de leitura precisam ser autorizadas novamente para incluir `mcp:write`.
 
 O transporte stdio usa o SDK oficial `@modelcontextprotocol/server` 2.2.0,
 com compatibilidade para clientes MCP de 2024/2025 e 2026. A matriz de

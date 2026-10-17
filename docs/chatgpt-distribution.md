@@ -1,17 +1,22 @@
-# Distribuição do plugin BIAWS
+# Conexão no ChatGPT e distribuição futura
 
-Decisão de CHATGPT-PLUGIN/P02. A primeira distribuição conecta diretamente o
-ChatGPT à URL HTTPS da instalação do cliente, com OAuth. Em ChatGPT Plugins,
+Decisão final de CHATGPT-PLUGIN: implementação concluída com aceite do usuário
+para uso por servidor MCP personalizado. Publicação no catálogo adiada, com
+P17/P27 aguardando decisão. O [guia do usuário](chatgpt.md) é o ponto de partida;
+o cadastro não exige ZIP ou publicação.
+
+A conexão atual liga o ChatGPT diretamente à URL HTTPS da instalação do
+cliente, com OAuth. Em ChatGPT Plugins,
 adicionar um MCP personalizado com o endpoint `/mcp` da instância e instalar a
 conexão no contexto pessoal ou workspace permitido. Disponibilidade e políticas
 dependem da conta/workspace do usuário.
 
-O pacote terá identidade estável, skills portáteis e onboarding. Seu build de
-teste deverá receber explicitamente a URL de uma instância; isso não constitui
+O pacote local preservado tem identidade estável, skills portáteis e onboarding. Seu build de
+teste recebe explicitamente a URL de uma instância; isso não constitui
 um plugin universal nem permite substituir o servidor de uma listagem pública
 arbitrariamente. As skills não fazem o registro OAuth no lugar do cliente.
 
-## Pacotes e catálogo
+## Etapa futura: pacotes e catálogo
 
 Preparar raiz portátil `plugin.json`, `mcp.json`, `skills/` e `assets/`. Gerar
 artefato determinístico e checksum. A configuração contém apenas endpoints e
@@ -29,7 +34,7 @@ elegibilidade do BIAWS, suporte a domínio arbitrário ou campo de URL por usuá
 em toda instalação de plugin público. Essa restrição não bloqueia a conexão
 direta personalizada.
 
-## Pendências externas
+## Pendências da futura submissão
 
 - Aprovação da estratégia de endpoints para a listagem pública, inclusive
   confirmação da elegibilidade a templates quando aplicável.

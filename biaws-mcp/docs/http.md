@@ -30,6 +30,13 @@ ou Redis é necessária. Host e Origin são validados; Origin ausente é permiti
 para clientes de servidor. O proxy deve preservar o Host público e streaming.
 
 Sem token, POST responde 401 com `WWW-Authenticate` apontando para discovery.
+O desafio anuncia `scope="mcp:read mcp:write"` para que clientes como o ChatGPT
+solicitem consentimento de leitura e escrita desde a vinculação. A API continua
+limitando cada operação às permissões atuais do usuário no workspace escolhido;
+`mcp:write` não concede permissões de domínio ausentes. Conexões antigas com
+somente `mcp:read` precisam de nova autorização incluindo `mcp:write`; renovar
+o token não amplia o consentimento existente. Em Minha conta → Aplicativos
+conectados, confira se a conexão mostra “Alterar dados conforme suas permissões”.
 A validação do token e a emissão da credencial delegada são feitas pelo servidor
 de autorização da própria instância em `/api/auth/mcp/delegate`. Somente essa
 credencial interna entra no contexto das operações de domínio.

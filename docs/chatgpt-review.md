@@ -1,5 +1,11 @@
 # Revisão completa da CHATGPT-PLUGIN — 2026-10-17
 
+> Registro histórico da revisão inicial. O estado atual está na
+> [entrega](chatgpt-delivery.md): implementação concluída por aceite para
+> servidor MCP personalizado; somente P17/P27 do catálogo permanecem abertas.
+> A correção CIMD posterior foi entregue pela PR #25. Para configurar o uso
+> atual, siga [BIAWS no ChatGPT](chatgpt.md).
+
 Revisão do código e do diff da melhoria, acompanhada de regressões e integração
 em infraestrutura descartável. Abrangeu OAuth/CIMD/contas, concessões e
 delegação, contexto de requisição/tenancy, catálogo MCP/resources, consentimento,
@@ -49,7 +55,11 @@ Os componentes mantêm as versões candidatas não publicadas; plataforma
 Tarballs e ZIP válidos mantiveram os mesmos checksums; as correções do pacote
 mudaram seus verificadores. A UI revisada é distribuída pela imagem Docker.
 
-## Situação e evidências
+## Situação e evidências na revisão inicial (histórico)
+
+O fechamento posterior por aceite para MCP personalizado está no
+[relatório atualizado](chatgpt-delivery.md). Os parágrafos abaixo registram o
+estado anterior ao merge/publicação e à decisão de escopo.
 
 As correções foram registradas nas tarefas correspondentes do BIAWS com seus
 commits e resultados. Permanecem 20 tarefas concluídas e sete aguardando

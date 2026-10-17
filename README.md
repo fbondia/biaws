@@ -1,10 +1,8 @@
 # Bondia Workspaces
 
-Conexão direta ao ChatGPT por MCP HTTP/OAuth e pacote de plugin:
-[operação e limites de publicação](docs/chatgpt-operations.md).
-Consulte também a [entrega local e suas pendências](docs/chatgpt-delivery.md).
-Veja a [revisão da implementação](docs/chatgpt-review.md) e os
-[próximos passos externos](docs/chatgpt-external-actions.md).
+**Use também diretamente no ChatGPT:** [conecte sua instância como servidor
+MCP personalizado](docs/chatgpt.md), com OAuth e sua conta BIAWS existente.
+A publicação no catálogo de plugins fica para uma etapa futura.
 
 **A camada operacional do harness para pessoas e agentes operarem e evoluírem software.**
 
@@ -59,7 +57,7 @@ O BIAWS transforma esse material em uma camada operacional compartilhada:
 - **ferramentas:** operações estruturadas via MCP, CLI e skills versionadas.
 
 O projeto não orquestra modelos nem executa agentes. Ele fornece a camada de
-contexto e controle que clientes como Codex, Claude e outros agentes compatíveis
+contexto e controle que clientes como ChatGPT, Codex, Claude e outros agentes compatíveis
 podem usar para trabalhar sobre sistemas reais.
 
 ## Use o agente que você já assina
@@ -69,6 +67,11 @@ O BIAWS não chama diretamente a API de um provedor de modelos e não exige uma
 contexto e ferramentas ao cliente escolhido pelo usuário. Não há, portanto, um
 token de modelo entregue à plataforma para ficar disponível a automações em
 segundo plano ou fluxos desconhecidos.
+
+Quem quer usar diretamente o ChatGPT pode [adicionar um servidor MCP personalizado](docs/chatgpt.md)
+com a URL HTTPS da instância terminada em `/mcp`, autenticar por OAuth e escolher
+o workspace BIAWS. O consumidor não precisa instalar o CLI, criar chave técnica
+ou gerar um ZIP. A opção depende das permissões e políticas da conta ChatGPT.
 
 Quem já usa o Codex com um plano ChatGPT elegível ou o Claude Code autenticado
 por uma assinatura Pro ou Max pode conectar o MCP do BIAWS e operar dentro do
@@ -187,8 +190,10 @@ biaws config ...     # mantém perfis, URLs e credenciais globais do CLI
 biaws workspace ...  # associa a pasta e opera recursos do workspace
 ```
 
-Quem apenas consumirá um servidor existente precisa somente de Node.js, do CLI
-e de uma chave individual. Quem hospedará uma instância também precisa dos
+Quem consumirá um servidor existente pelo CLI ou stdio precisa de Node.js, do CLI
+e de uma chave individual. Para usar no ChatGPT, basta a conexão OAuth com uma
+instância preparada, conforme o [guia de configuração](docs/chatgpt.md).
+Quem hospedará uma instância também precisa dos
 assets completos de uma release ou checkout, além de Git, Docker Compose, Bash,
 OpenSSL e `curl`.
 
@@ -220,7 +225,7 @@ desenvolvimento, `npm --prefix biaws-cli link` expõe o mesmo comando.
 
 ### Pré-requisitos
 
-Para o CLI e um cliente remoto:
+Para o CLI e um cliente MCP local via stdio:
 
 - Node.js `20.19.0` ou superior;
 - acesso HTTPS à API da instância.
@@ -483,6 +488,19 @@ cd biaws-monitor-executor && npm run check && npm test
 
 ## MCP e CLI
 
+### No ChatGPT
+
+Abra [ChatGPT Plugins](https://chatgpt.com/plugins) na web e escolha
+**+ → Add custom MCP server**. Use `https://SUA-INSTANCIA/mcp`, autenticação
+OAuth/CIMD, entre no BIAWS e selecione o workspace. Depois instale a conexão e
+selecione-a com `@` em uma conversa. Consulte o [passo a passo completo](docs/chatgpt.md)
+para pré-requisitos, primeiros pedidos, atualização das ferramentas e diagnóstico.
+
+O administrador habilita MCP HTTP/OAuth pelo [CLI e Docker](docs/chatgpt-operations.md).
+ZIP e publicação no marketplace são uma etapa futura, separada do uso atual.
+
+### No CLI, Codex e Claude Code
+
 O bootstrap preenche URL e chave no `.env` da instância. Para uma configuração
 manual do CLI, crie uma chave na área da conta e defina:
 
@@ -518,6 +536,7 @@ de ingestão está em [docs/monitoring.md](docs/monitoring.md).
 
 ## Projeto e comunidade
 
+- [Usar o BIAWS no ChatGPT](docs/chatgpt.md)
 - [Status, releases e suporte](docs/project-status.md)
 - [Arquitetura](docs/architecture.md)
 - [Documentos de conhecimento](docs/knowledge.md)

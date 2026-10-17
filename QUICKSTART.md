@@ -1,10 +1,16 @@
 # Início rápido
 
-Este guia cobre as duas formas suportadas de começar com o **Bondia
+Este guia cobre as formas suportadas de começar com o **Bondia
 Workspaces**:
 
 - conectar um projeto a uma instância que já existe;
-- hospedar uma instância local ou compartilhada e depois conectar projetos.
+- hospedar uma instância local ou compartilhada e depois conectar projetos;
+- usar uma instância preparada diretamente no ChatGPT por servidor MCP personalizado.
+
+**Quer usar no ChatGPT?** Siga [este guia](docs/chatgpt.md): informe a URL
+`https://SUA-INSTANCIA/mcp`, use OAuth e selecione o workspace no BIAWS.
+Quem apenas usará a conversa não precisa instalar o CLI nem importar um ZIP.
+As etapas de CLI abaixo atendem administração e clientes de desenvolvimento.
 
 O comando `biaws` é a interface pública. Os scripts em `scripts/` implementam
 partes do ciclo de vida e permanecem disponíveis para compatibilidade e
@@ -29,6 +35,15 @@ biaws workspace ...  # associação da pasta e recursos do workspace
 ```
 
 ## 2. Escolher a rota
+
+### Usar diretamente no ChatGPT
+
+Você precisa da URL HTTPS do MCP habilitado pelo administrador, da sua conta
+BIAWS e de permissão para adicionar servidores MCP personalizados no ChatGPT.
+No navegador, abra [ChatGPT Plugins](https://chatgpt.com/plugins), escolha
+**+ → Add custom MCP server** e cadastre a URL **com `/mcp`** usando OAuth/CIMD.
+Autentique, escolha o workspace BIAWS e autorize. Os detalhes estão no
+[guia do ChatGPT](docs/chatgpt.md). Catálogo/marketplace não é requisito.
 
 ### Conectar a um servidor existente
 
@@ -341,6 +356,7 @@ entre máquinas.
 
 ## Próximos passos
 
+- No ChatGPT: [servidor MCP personalizado e OAuth](docs/chatgpt.md)
 - Visão geral: [README.md](README.md)
 - Referência do CLI: [biaws-cli/README.md](biaws-cli/README.md)
 - Ferramentas MCP: [biaws-mcp/README.md](biaws-mcp/README.md)

@@ -1,10 +1,20 @@
 # Entrega local — CHATGPT-PLUGIN
 
-Implementação automática e preparação de release em 2026-10-17, na branch
-`codex/chatgpt-plugin`. A implementação inicial recebeu um commit por tarefa e evidências no BIAWS.
-A [revisão completa](chatgpt-review.md) acrescentou correções rastreáveis; os
-[passos externos](chatgpt-external-actions.md) indicam a sequência restante. Há 20 tarefas concluídas e sete com a parte
-externa pendente. A melhoria permanece aberta.
+A melhoria foi **concluída por aceite do usuário em 2026-10-17** para uso do
+BIAWS no ChatGPT por **servidor MCP personalizado**, com OAuth e seleção do
+workspace. São 25 tarefas concluídas; apenas **P17 e P27** permanecem
+Aguardando Decisão, relativas à preparação/submissão futura ao catálogo.
+
+Para usar agora, siga [BIAWS no ChatGPT](chatgpt.md). Não é necessário gerar
+ZIP ou publicar no marketplace. A [distribuição](chatgpt-distribution.md)
+explica essa decisão; o [runbook](chatgpt-operations.md) atende à administração.
+
+A implementação inicial e a [revisão](chatgpt-review.md) têm commits e evidências
+nas tarefas BIAWS. A PR [#22](https://github.com/fbondia/biaws/pull/22) foi mergeada.
+A correção de delegação CIMD foi entregue em `280491a` pela PR
+[#25](https://github.com/fbondia/biaws/pull/25), também mergeada. A
+[CI dessa correção](https://github.com/fbondia/biaws/actions/runs/39026451374)
+aprovou 14 verificações, incluindo integração Docker/TLS com MongoDB 8.0.
 
 ## Comportamento entregue
 
@@ -20,9 +30,9 @@ dedicado. O serviço é isolado da rede MongoDB e dos volumes de domínio. Stdio
 continua disponível; as duas ferramentas EML por caminho local são exclusivas
 desse transporte. O pacote remoto oferece as alternativas por conteúdo.
 
-## Versões preparadas
+## Versões da entrega
 
-| Unidade           | Versão local                          |
+| Unidade           | Versão                                |
 | ----------------- | ------------------------------------- |
 | Plataforma        | 0.8.0, schema 2, deploymentRevision 3 |
 | API               | 0.10.0                                |
@@ -32,9 +42,10 @@ desse transporte. O pacote remoto oferece as alternativas por conteúdo.
 | Executor          | 0.1.0, sem alteração                  |
 | Plugin portátil   | 0.1.0-rc.1, candidato local           |
 
-Nenhuma dessas preparações comprova publicação no npm, atualização de uma
-instância ou aprovação no catálogo. O plugin tem versão própria e uma
-[matriz de compatibilidade](../plugins/compatibility.json).
+O usuário confirmou a publicação de `biaws-mcp@0.15.0` e `biaws@0.6.0`;
+versões e integridades foram conferidas no registry npm no encerramento.
+A conclusão da entrega não declara aprovação no catálogo. O pacote portátil
+permanece candidato local com [matriz de compatibilidade](../plugins/compatibility.json).
 
 ## Evidências locais
 
@@ -62,10 +73,12 @@ Host/Origin, escopos, permissões reduzidas, conta bloqueada, remoção de membr
 isolamento de workspace/instância, auditoria e ausência das credenciais geradas
 nos logs. A evidência sanitizada acompanha os artefatos locais.
 O host exigiu MongoDB 7.0 para os testes por incompatibilidade do kernel com
-MongoDB 8.0; Compose de produto continua em 8.0. A CI foi preparada para 8.0,
-mas não foi executada remotamente. TLS local não comprova acesso pelo ChatGPT.
+MongoDB 8.0; Compose de produto continua em 8.0. A CI remota posteriormente
+passou com MongoDB 8.0, nas PRs #22 e #25. O aceite humano para o MCP
+personalizado está registrado no BIAWS; os testes locais não são apresentados
+como execução individual de todos os cenários no cliente ChatGPT.
 
-## Artefatos e reprodução
+## Artefatos locais e reprodução para a futura etapa de catálogo
 
 Os artefatos estão em `plugins/dist/chatgpt-plugin/` (ignorado pelo Git):
 
@@ -95,28 +108,25 @@ O último comando permanece bloqueado enquanto faltarem evidências externas.
 As [instruções de publicação](chatgpt-publication.md) detalham MCP antes do CLI.
 Para operação e rollback, consulte o [runbook](chatgpt-operations.md).
 
-## Pendências humanas e externas
+## Etapa futura: catálogo de plugins
 
-| Tarefas   | Evidência que falta para conclusão integral                                                                                 |
-| --------- | --------------------------------------------------------------------------------------------------------------------------- |
-| P12 / P16 | Instalação real no ChatGPT, endpoint HTTPS acessível, resources/links, streaming, consentimento e casos de aceite           |
-| P17       | Identidade/domínio, privacidade/termos, vídeo, contas de revisão, execução dos 5 casos positivos/3 negativos e scans atuais |
-| P23       | Endpoint real escolhido e ZIP final por instância; versão e matriz já preparadas                                            |
-| P25       | Publicação humana MCP 0.15.0 no npm, integridade e smoke do registry                                                        |
-| P26       | Publicação humana CLI 0.6.0 após P25, integridade e smoke do registry                                                       |
-| P27       | Consolidar novamente o artefato final com endpoint real e pacotes publicados, após as evidências anteriores                 |
+| Tarefa | Situação preservada |
+| --- | --- |
+| P17 | Aguardando Decisão: materiais, identidade/domínio, URLs jurídicas, elegibilidade, vídeo, acesso de revisão e scans. |
+| P27 | Aguardando Decisão: pacote/checksum final e relatório de prontidão para submissão. |
 
-Uma conexão personalizada por instância não comprova elegibilidade ao catálogo
-público. O modelo de URLs de clientes via template depende da elegibilidade
-confirmada pela OpenAI; não foi criado gateway central nem prometido um campo
-livre universal no catálogo. O [dossiê](../plugins/catalog/review-guide.md) e
-`plugins/catalog/readiness.json` preservam todas as pendências explicitamente.
+Essas tarefas não bloqueiam o uso por MCP personalizado nem o encerramento
+aceito pelo usuário. Uma eventual publicação requer decisão e evidências
+próprias. O [dossiê](../plugins/catalog/review-guide.md) e
+`plugins/catalog/readiness.json` preservam as pendências; não houve submissão
+ou aprovação da OpenAI. Não há gateway central ou promessa de URL arbitrária
+para qualquer usuário de uma futura listagem pública.
 
-Nenhum npm publish, push, tag, atualização de instância real, envio ao portal
-ou registro topológico de publicação foi feito. Somente os projetos e dados
-descartáveis criados para os testes desta melhoria são removidos na limpeza.
+Publicações npm foram feitas pelo operador. Não se registra implantação na
+topologia por inferência da publicação, de CI ou do aceite. Para novas
+instâncias e operação contínua, veja [as ações do administrador](chatgpt-external-actions.md).
 
-## Commits da implementação inicial por tarefa
+## Commits da implementação inicial e situação após o aceite
 
 | Tarefa | Commit                                                         | Situação                   |
 | ------ | -------------------------------------------------------------- | -------------------------- |
@@ -131,19 +141,19 @@ descartáveis criados para os testes desta melhoria são removidos na limpeza.
 | P09    | 3070aa0                                                        | Concluída                  |
 | P10    | 05fe0ab                                                        | Concluída                  |
 | P11    | 4f1dcca                                                        | Concluída                  |
-| P12    | 7bfb661                                                        | Parte externa pendente     |
+| P12    | 7bfb661                                                        | Concluída por aceite do escopo atual |
 | P13    | 3077b1f                                                        | Concluída                  |
 | P14    | e0aeeb2                                                        | Concluída                  |
 | P15    | 4264d9a                                                        | Concluída                  |
-| P16    | fea82ea                                                        | Parte externa pendente     |
+| P16    | fea82ea                                                        | Concluída por aceite do escopo atual |
 | P17    | db0604d                                                        | Parte externa pendente     |
 | P18    | e5d46ca                                                        | Concluída                  |
 | P19    | d3a5b34                                                        | Concluída                  |
 | P20    | 7f16586                                                        | Concluída                  |
 | P21    | 544ad91                                                        | Concluída                  |
 | P22    | ac1fbab                                                        | Concluída                  |
-| P23    | 47c2345                                                        | Parte externa pendente     |
+| P23    | 47c2345                                                        | Concluída por aceite do escopo atual |
 | P24    | 7af6ce4                                                        | Concluída                  |
-| P25    | 7bf2f86                                                        | Publicação humana pendente |
-| P26    | 81655e0                                                        | Publicação humana pendente |
+| P25    | 7bf2f86                                                        | Concluída por aceite do escopo atual |
+| P26    | 81655e0                                                        | Concluída por aceite do escopo atual |
 | P27    | Commit desta consolidação, identificado por CHATGPT-PLUGIN/P27 | Parte externa pendente     |

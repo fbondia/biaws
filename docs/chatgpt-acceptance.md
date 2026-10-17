@@ -1,56 +1,60 @@
-# Aceite no ChatGPT — CHATGPT-PLUGIN/P16
+# Aceite e roteiro de validação no ChatGPT
 
-A extração/instalação offline do ZIP foi automatizada. A jornada no ChatGPT
-ainda não ocorreu: não há endpoint público de revisão autorizado, e a atualização
-de instalações existentes está fora da execução automática solicitada.
-O teste P15 usa HTTPS local com CA privada e SDK oficial; não substitui o cliente.
+Em 2026-10-17, o usuário aceitou a implementação para uso por **servidor MCP
+personalizado** e solicitou o encerramento da melhoria e das tarefas, exceto
+P17/P27, relacionadas à futura submissão ao catálogo. Esse aceite não é
+apresentado como execução individual de todos os cenários abaixo no ChatGPT.
 
-## Preparação disponível
+Para configurar uma conexão, comece pelo [guia do usuário](chatgpt.md).
+O roteiro abaixo serve para validar novas instâncias e alterações de versão.
+Não exige pacote ZIP para a conexão personalizada.
 
-Gere o ZIP com endpoint HTTPS confirmado usando plugins/scripts/build.mjs.
-Confira SHA-256 e execute:
+## Validar a conexão e as ferramentas
+
+1. Disponibilize a instância atualizada com HTTPS confiável, MCP HTTP/OAuth
+   habilitado e dados de teste. Confira discovery e diagnóstico do administrador.
+2. No ChatGPT pela web, adicione um servidor MCP personalizado com a URL
+   completa `/mcp` e OAuth/CIMD. Use uma conta ChatGPT com essa opção permitida.
+3. Autentique com a conta BIAWS existente, confira o cliente e os acessos,
+   selecione o workspace BIAWS e consinta. Confirme a descoberta das ferramentas.
+4. Instale/selecione a conexão com `@` em uma conversa nova. Consulte uma
+   aplicação, melhoria e issue conhecidas. Confirme a instância e o escopo.
+5. Crie ou altere um registro sintético permitido, confira o estado persistido
+   e a autoria na auditoria. Verifique negativa com conta somente leitura e
+   aplicação fora do escopo.
+6. Recuse um consentimento, revogue a conexão em Minha conta, confira a
+   negativa e conecte novamente. Valide renovação e outra autorização para
+   um workspace diferente.
+7. Após atualizar o servidor, atualize as ferramentas no ChatGPT e confirme a
+   nova definição. Registre as capacidades efetivamente usadas, incluindo
+   resources/links/streaming quando disponíveis no cliente.
+
+## Registrar a evidência
+
+Anote versão/revisão da instância, cenário, resultado, horário e configuração
+de conta/workspace, sem credenciais. Testes automatizados em infraestrutura
+descartável não substituem evidência de cada cenário no cliente real.
+
+O histórico da entrega inclui os testes API/UI/MCP/CLI e integração TLS/SDK,
+a correção de delegação CIMD da PR #25 e o aceite humano para o escopo atual.
+Consulte o [relatório](chatgpt-delivery.md) e as notas de P16 no BIAWS.
+
+## Testar o pacote de marketplace em uma etapa futura
+
+A instalação offline do ZIP foi automatizada. Quando a etapa de catálogo for
+retomada, gere o candidato para o endpoint HTTPS escolhido e execute:
 
 ```sh
 node plugins/scripts/verify-install.mjs CAMINHO/biaws-plugin-VERSAO.zip
 ```
 
-Esse teste extrai em diretório vazio, limita o ZIP, valida os manifestos,
-referências, seis skills e conteúdo permitido e remove a cópia. Não instala
-uma conexão pessoal no ChatGPT nem requer configuração prévia do usuário.
+O teste verifica checksum, extrai em diretório vazio, valida os manifestos,
+referências, seis skills e conteúdo permitido e remove a cópia. Não cria nem
+autentica uma conexão pessoal no ChatGPT. A skill setup é uma orientação
+textual, não um botão de login.
 
-## Jornada pendente do operador
-
-1. Disponibilizar uma instância de revisão HTTPS com certificado confiável e
-   dados sintéticos, usando as versões preparadas. Confirmar reachability pelo
-   ChatGPT e discovery da mesma origem.
-2. Usar conta/workspace ChatGPT com permissão para adicionar MCP/plugin. Criar
-   uma conexão nova com a URL /mcp e OAuth, sem reaproveitar uma conexão pessoal.
-   Copiar do painel o callback e o client metadata URI exatos quando necessário.
-3. Instalar o pacote correspondente à instância e invocar setup em conversa
-   nova e durante uma conversa existente.
-4. Autenticar com conta BIAWS existente, selecionar o workspace e consentir.
-   Verificar nome do cliente, acessos, retorno ao ChatGPT e workspace efetivo.
-5. Consultar uma melhoria e uma issue; testar resources/links/streaming no
-   cliente, anotando as capacidades efetivamente utilizadas.
-6. Criar/alterar um registro sintético permitido; conferir usuário, concessão e
-   estado persistido na auditoria. Testar conta somente leitura e aplicação fora
-   do escopo, sem usar dados de cliente.
-7. Recusar um fluxo, revogar conexão em Minha conta, testar negativa e conectar
-   de novo. Exercitar refresh e nova autorização para outro workspace.
-8. Registrar resultado por cenário, versão/SHA-256 do ZIP, versões dos
-   componentes, configuração de conta/workspace e capturas/vídeo sanitizados.
-
-## Registro de evidência
-
-| Cenário                               | Evidência local                    | Cliente ChatGPT |
-| ------------------------------------- | ---------------------------------- | --------------- |
-| ZIP em instalação vazia e checksum    | verify-install automatizado        | Pendente        |
-| Login, consentimento, PKCE e recusa   | Testes de API/UI e P15             | Pendente        |
-| Leitura/escrita, permissões e autoria | Duas instâncias TLS/SDK em P15     | Pendente        |
-| Resources e links                     | SDK nas duas eras                  | Pendente        |
-| Refresh/replay, revogação e reconexão | Provider/API/MCP em P15            | Pendente        |
-| Onboarding e seis skills              | Portabilidade/contratos em P13/P14 | Pendente        |
-
-Não colocar credenciais, tokens, URLs com segredo ou dados reais nas capturas,
-ZIP, Git ou notas BIAWS. Acessos demonstrativos do portal são fornecidos apenas
-no canal seguro apropriado. Instalação local não declara publicação/aprovação.
+Teste então skills e ferramentas em conjunto pelo fluxo de distribuição
+aplicável, em conversa nova e existente. Registre versão/checksum do ZIP,
+capturas e vídeo sanitizados quando exigidos pela revisão. Revalide os
+requisitos no [dossiê de catálogo](../plugins/catalog/review-guide.md).
+Não inclua senhas/tokens no ZIP, Git, capturas ou notas das tarefas.

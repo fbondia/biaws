@@ -12,7 +12,7 @@ export function authenticationChallenge(config: HttpConfig, status = 401) {
     headers: {
       "content-type": "application/json",
       "cache-control": "no-store",
-      "www-authenticate": `Bearer resource_metadata="${metadata.href}", scope="mcp:read"`,
+      "www-authenticate": `Bearer resource_metadata="${metadata.href}", scope="mcp:read mcp:write"`,
     },
   });
 }

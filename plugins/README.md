@@ -1,5 +1,10 @@
 # Plugin BIAWS
 
+**Uso atual no ChatGPT:** [adicione sua instância como servidor MCP personalizado](../docs/chatgpt.md),
+com OAuth e seleção de workspace. Esse cadastro não exige este ZIP.
+A publicação no catálogo está adiada (P17/P27). O material abaixo preserva o
+empacotamento local para testes e uma futura submissão, sem promessa de aprovação.
+
 Pacote remoto portátil em `biaws/`, preparado para teste por instância.
 Versão candidata `0.1.0-rc.1`; [histórico](CHANGELOG.md) e
 [compatibilidade mínima](compatibility.json) são independentes da versão npm.
@@ -37,9 +42,11 @@ núcleo e valida separadamente a extensão documentada. O relatório explicita
 esse perfil; não alega validação integral pelo schema base. Revalidar no host
 e antes de submissão. Schemas vendorizados em schemas/ permitem build offline.
 
-Para instalação de teste, use o fluxo documentado de plugin/MCP personalizado
-e siga a skill setup. Nenhuma conexão pessoal plugin_asdk_app é embutida.
-A instalação real no ChatGPT e a acessibilidade externa são evidências de P16.
+Para testar o MCP, comece pela [conexão personalizada](../docs/chatgpt.md).
+Importar o ZIP e executar a skill setup não substitui cadastrar e autenticar
+essa conexão; o setup é uma orientação textual. Nenhuma conexão pessoal
+plugin_asdk_app é embutida. A implementação foi aceita pelo usuário nesse
+escopo; a validação do pacote de marketplace pertence à etapa futura.
 O portal público usa **With MCP**, com HTTPS e domínio verificáveis; um ZIP
 não torna arbitrárias URLs de clientes elegíveis no catálogo. Não existe
 endpoint universal nem gateway central neste escopo.

@@ -8,6 +8,11 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- O desafio OAuth do MCP HTTP anuncia `mcp:read mcp:write`, permitindo que
+  clientes como o ChatGPT solicitem consentimento para escrita, limitado às
+  permissões atuais do usuário. Conexões somente de leitura exigem nova
+  autorização para incluir escrita.
+
 - CHATGPT-PLUGIN/P05: delegação MCP reutiliza o provider OAuth inicializado
   para reconhecer clientes CIMD após o login. Teste de integração cobre
   consentimento, renovação, delegação e revogação para clientes registrados

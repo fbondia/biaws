@@ -6,6 +6,9 @@ global e operar os recursos do workspace associado à pasta atual.
 Setup/update aceitam MCP HTTP/OAuth opcional. Veja
 [configuração ChatGPT](docs/chatgpt.md) e o
 [runbook de operação](../docs/chatgpt-operations.md).
+Para quem vai conversar com a instância no navegador, consulte
+[BIAWS no ChatGPT por servidor MCP personalizado](../docs/chatgpt.md).
+O consumidor dessa conexão OAuth não precisa instalar o CLI ou um ZIP.
 
 ## Instalação
 

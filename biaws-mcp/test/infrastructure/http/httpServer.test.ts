@@ -50,6 +50,7 @@ test("HTTP rejects Host Origin and methods and exposes OAuth challenge without a
     const response = await handler.fetch(new Request(config.publicUrl, { method: "POST" }));
     assert.equal(response.status, 401);
     assert.ok(response.headers.get("www-authenticate")?.includes("oauth-protected-resource/mcp"));
+    assert.ok(response.headers.get("www-authenticate")?.includes('scope="mcp:read mcp:write"'));
   } finally {
     await handler.close();
   }

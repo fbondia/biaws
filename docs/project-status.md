@@ -6,6 +6,13 @@ O projeto está em **alpha**. O foco atual é tornar instalação, contratos e
 segurança reproduzíveis. Recursos podem mudar sem migração automática durante a
 série `0.x`.
 
+## Uso no ChatGPT
+
+A integração HTTP/OAuth está entregue para conexão por **servidor MCP
+personalizado**. O [guia do ChatGPT](chatgpt.md) explica a configuração com
+`/mcp`, login, escolha do workspace e uso das ferramentas. A publicação do
+plugin no catálogo fica para uma etapa futura; não é requisito para essa rota.
+
 ## Versionamento
 
 O projeto adota Semantic Versioning:

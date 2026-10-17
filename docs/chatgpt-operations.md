@@ -1,6 +1,10 @@
 # Operação da conexão ChatGPT
 
 Este runbook cobre a conexão direta à instância, com a conta BIAWS existente.
+O uso atual é via **servidor MCP personalizado** no ChatGPT. O passo a passo
+do usuário está em [BIAWS no ChatGPT](chatgpt.md); este documento atende ao
+administrador da instância. Gerar ZIP ou publicar no catálogo não faz parte
+do cadastro de uma conexão personalizada.
 As validações locais estão em [chatgpt-security-review.md](chatgpt-security-review.md).
 A instalação/jornada no cliente real segue [chatgpt-acceptance.md](chatgpt-acceptance.md).
 
@@ -54,6 +58,12 @@ SDK oficial; GET/DELETE não são canais de sessão e retornam 405.
 Buffering/cache ficam desligados na rota MCP. O access log omite query/referer.
 
 ## Conectar e administrar
+
+No ChatGPT pela web, abra Plugins, escolha **+ → Add custom MCP server** e
+cadastre `https://instancia.example/mcp`, com OAuth/CIMD. Complete o login,
+selecione o workspace no BIAWS e autorize. Confira a descoberta das ferramentas,
+instale a conexão e selecione-a com `@` em uma nova conversa.
+Veja [as instruções completas](chatgpt.md#1-cadastre-o-servidor-mcp).
 
 ```sh
 biaws workspace agent configure chatgpt --url https://instancia.example --json
@@ -147,6 +157,10 @@ versão física do MongoDB exige um plano específico e teste do backup; não é
 uma reversão automática sem perda de dados.
 
 ## Pacote e catálogo
+
+A implementação foi aceita para uso por MCP personalizado. A futura submissão
+do plugin está adiada (P17/P27); os comandos de pacote e os materiais abaixo
+são para essa retomada, não pré-requisitos para usar a conexão atual.
 
 O build do plugin exige URL da instância, gera ZIP/checksum determinísticos
 e inclui somente seis skills, manifestos, ícone e licença. HTTP não oferece

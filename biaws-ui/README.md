@@ -1,5 +1,10 @@
 # Bondia Workspaces UI
 
+A rota /oauth/connect reutiliza login/sessão, mostra cliente/acessos e exige
+seleção explícita de workspace. Minha conta lista e revoga conexões OAuth.
+Consulte [o runbook](../docs/chatgpt-operations.md) e
+[o aceite no cliente real](../docs/chatgpt-acceptance.md).
+
 UI React para pessoas operarem trabalho, topologia, monitoramento, conhecimento
 e controles de acesso expostos pelo `biaws-api`.
 

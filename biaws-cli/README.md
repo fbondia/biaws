@@ -3,6 +3,10 @@
 CLI do Bondia Workspaces para administrar instalações, configurar o acesso
 global e operar os recursos do workspace associado à pasta atual.
 
+Setup/update aceitam MCP HTTP/OAuth opcional. Veja
+[configuração ChatGPT](docs/chatgpt.md) e o
+[runbook de operação](../docs/chatgpt-operations.md).
+
 ## Instalação
 
 ```bash

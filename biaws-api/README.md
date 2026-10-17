@@ -9,6 +9,10 @@ auditoria e persistência. Também recebe e sanitiza importações EML.
 
 A fundação de identidade usa Better Auth e as rotas de negócio exigem sessão ou
 chave de API válida, além das permissões específicas de cada operação. A API
+aceita também credencial interna curta derivada de OAuth quando o MCP remoto
+está habilitado. Veja [OAuth](docs/oauth.md) e
+[operação ChatGPT](../docs/chatgpt-operations.md). O token externo do MCP não
+autentica diretamente as rotas de domínio. A API
 carrega o `.env` pelo `shared/loadEnv.js`
 do próprio repositório, nesta precedência:
 

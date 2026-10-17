@@ -1,5 +1,8 @@
 # Bondia Workspaces
 
+Conexão direta ao ChatGPT por MCP HTTP/OAuth e pacote de plugin:
+[operação e limites de publicação](docs/chatgpt-operations.md).
+
 **A camada operacional do harness para pessoas e agentes operarem e evoluírem software.**
 
 O Bondia Workspaces (`biaws`) é uma plataforma open source e agent-native que

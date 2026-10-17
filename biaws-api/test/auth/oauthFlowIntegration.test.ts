@@ -25,6 +25,7 @@ test(
     const { createWorkspace } = await import("../../src/repositories/catalog/index.js");
     const { createPermissionGroup, setUserGroups } = await import("../../src/repositories/access/index.js");
     const { prepareOAuthGrant, requireOAuthGrant, revokeOAuthGrant } = await import("../../src/auth/oauthGrants.js");
+    const { oauthConsentContext, decideOAuthConsent } = await import("../../src/auth/oauthConsent.js");
     const db = await getMongoDatabase();
     try {
       const auth = await getAuth();
@@ -104,6 +105,48 @@ test(
       const authorize = await call(`/api/auth/oauth2/authorize?${query}`);
       assert.equal(authorize.status, 302);
       const choice = new URL(authorize.headers.get("location")!, base);
+      const deniedQuery = new URLSearchParams(query);
+      deniedQuery.set("state", "denied-flow");
+      const deniedStart = await call(`/api/auth/oauth2/authorize?${deniedQuery}`);
+      const deniedChoice = new URL(deniedStart.headers.get("location")!, base);
+      const denied = await decideOAuthConsent(
+        {
+          userId: created.user.id,
+          authenticationMethod: "session",
+          sessionId: session.session.id,
+        },
+        { cookie },
+        { query: deniedChoice.searchParams.toString(), accept: false },
+      );
+      assert.equal(new URL(denied.redirectUrl).searchParams.get("error"), "access_denied");
+      const forged = new URLSearchParams(choice.searchParams);
+      forged.set("state", "forged");
+      await assert.rejects(
+        decideOAuthConsent(
+          {
+            userId: created.user.id,
+            authenticationMethod: "session",
+            sessionId: session.session.id,
+          },
+          { cookie },
+          { query: forged.toString(), accept: true, workspaceId: workspace.id },
+        ),
+        { code: "OAUTH_CONTINUATION_REJECTED" },
+      );
+      const consentContext = await oauthConsentContext({ cookie }, choice.searchParams.toString());
+      assert.equal(consentContext.clientId, client.client_id);
+      assert.deepEqual(consentContext.scopes, ["mcp:read", "offline_access"]);
+      await assert.rejects(
+        decideOAuthConsent(
+          {
+            userId: created.user.id,
+            authenticationMethod: "session",
+            sessionId: session.session.id,
+          },
+          { cookie },
+          { query: choice.searchParams.toString(), accept: true, workspaceId: "forbidden" },
+        ),
+      );
       const grant = await prepareOAuthGrant(
         {
           userId: created.user.id,
@@ -113,26 +156,16 @@ test(
         choice.searchParams.toString(),
         workspace.id,
       );
-      const continued = await call("/api/auth/oauth2/continue", {
-        postLogin: true,
-        oauth_query: choice.searchParams.toString(),
-      });
-      const continuedBody = (await continued.json()) as {
-        redirect_uri?: string;
-        url: string;
-      };
-      assert.equal(continued.status, 200, JSON.stringify(continuedBody));
-      const consent = new URL(continuedBody.redirect_uri ?? continuedBody.url, base);
-      const accepted = await call("/api/auth/oauth2/consent", {
-        accept: true,
-        oauth_query: consent.searchParams.toString(),
-      });
-      const acceptedBody = (await accepted.json()) as {
-        redirect_uri?: string;
-        url: string;
-      };
-      assert.equal(accepted.status, 200, JSON.stringify(acceptedBody));
-      const redirect = new URL(acceptedBody.redirect_uri ?? acceptedBody.url);
+      const decision = await decideOAuthConsent(
+        {
+          userId: created.user.id,
+          authenticationMethod: "session",
+          sessionId: session.session.id,
+        },
+        { cookie },
+        { query: choice.searchParams.toString(), accept: true, workspaceId: workspace.id },
+      );
+      const redirect = new URL(decision.redirectUrl);
       const exchanged = await call(
         "/api/auth/oauth2/token",
         new URLSearchParams({

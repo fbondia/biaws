@@ -38,6 +38,7 @@ function BootstrapStatus({ status }) {
 export function InfrastructureProvider({
   capabilities = DEFAULT_INFRASTRUCTURE_CAPABILITIES,
   children,
+  requireWorkspace = true,
   onDisposeError = reportInfrastructureDisposeError,
   onStateChange,
 }) {
@@ -75,7 +76,7 @@ export function InfrastructureProvider({
     <AccessibilityProvider>
       <MessagesProvider>
         <SessionProvider>
-          <AuthGate>{children}</AuthGate>
+          <AuthGate requireWorkspace={requireWorkspace}>{children}</AuthGate>
         </SessionProvider>
       </MessagesProvider>
     </AccessibilityProvider>

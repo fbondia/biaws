@@ -4,11 +4,7 @@ import { getMongoDatabase } from "../helpers/mongoClient.js";
 import { COLLECTION_NAMES } from "../database/collectionNames.js";
 import { resolveUserAuthorization } from "../repositories/access/index.js";
 import type { Actor } from "../types/http.js";
-import {
-  oauthError,
-  oauthFlow,
-  restrictOAuthActor,
-} from "./oauthGrantPolicy.js";
+import { oauthError, oauthFlow, restrictOAuthActor } from "./oauthGrantPolicy.js";
 
 export interface OAuthGrant {
   id: string;
@@ -24,9 +20,7 @@ export interface OAuthGrant {
   expiresAt?: Date;
 }
 async function grants() {
-  return (await getMongoDatabase()).collection<OAuthGrant>(
-    COLLECTION_NAMES.OAUTH_GRANTS,
-  );
+  return (await getMongoDatabase()).collection<OAuthGrant>(COLLECTION_NAMES.OAUTH_GRANTS);
 }
 export async function ensureOAuthGrantIndexes() {
   const c = await grants();
@@ -37,16 +31,8 @@ export async function ensureOAuthGrantIndexes() {
     c.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
   ]);
 }
-export async function prepareOAuthGrant(
-  actor: Actor,
-  query: string,
-  workspaceId: string,
-) {
-  if (
-    actor.authenticationMethod !== "session" ||
-    !actor.sessionId ||
-    !workspaceId
-  )
+export async function prepareOAuthGrant(actor: Actor, query: string, workspaceId: string) {
+  if (actor.authenticationMethod !== "session" || !actor.sessionId || !workspaceId)
     throw oauthError("SESSION_AND_WORKSPACE_REQUIRED", 403);
   await resolveUserAuthorization(actor.userId, workspaceId);
   const flow = oauthFlow(query),
@@ -56,8 +42,7 @@ export async function prepareOAuthGrant(
     sessionId: actor.sessionId,
     flowKey: flow.key,
   });
-  if (existing && existing.state !== "prepared")
-    throw oauthError("OAUTH_FLOW_ALREADY_USED", 409);
+  if (existing && existing.state !== "prepared") throw oauthError("OAUTH_FLOW_ALREADY_USED", 409);
   const now = new Date();
   const grant: OAuthGrant = {
     id: randomUUID(),
@@ -83,17 +68,12 @@ export async function prepareOAuthGrant(
   try {
     await c.insertOne(grant);
   } catch (error) {
-    if ((error as { code?: number }).code === 11000)
-      throw oauthError("OAUTH_FLOW_CONFLICT", 409);
+    if ((error as { code?: number }).code === 11000) throw oauthError("OAUTH_FLOW_CONFLICT", 409);
     throw error;
   }
   return grant;
 }
-export async function findOAuthFlowGrant(
-  userId: string,
-  sessionId: string,
-  query: string,
-) {
+export async function findOAuthFlowGrant(userId: string, sessionId: string, query: string) {
   const { key } = oauthFlow(query);
   return (await grants()).findOne({
     userId,
@@ -103,22 +83,14 @@ export async function findOAuthFlowGrant(
     expiresAt: { $gt: new Date() },
   });
 }
-export async function authorizeOAuthGrant(
-  id: string,
-  userId: string,
-  scopes: string[],
-) {
+export async function authorizeOAuthGrant(id: string, userId: string, scopes: string[]) {
   const c = await grants();
   const grant = await c.findOne({
     id,
     userId,
     state: { $in: ["prepared", "authorized"] },
   });
-  if (
-    !grant ||
-    (grant.expiresAt && grant.expiresAt <= new Date()) ||
-    scopes.some((s) => !grant.scopes.includes(s))
-  )
+  if (!grant || (grant.expiresAt && grant.expiresAt <= new Date()) || scopes.some((s) => !grant.scopes.includes(s)))
     throw oauthError("OAUTH_GRANT_INVALID");
   await resolveOAuthGrantActor(grant, scopes);
   const result = await c.updateOne(
@@ -131,22 +103,12 @@ export async function authorizeOAuthGrant(
   if (!result.matchedCount) throw oauthError("OAUTH_GRANT_REVOKED");
   return grant;
 }
-export async function requireOAuthGrant(
-  id: string,
-  userId: string,
-  scopes: string[],
-) {
-  const grant = await (
-    await grants()
-  ).findOne({ id, userId, state: "authorized" });
-  if (!grant || scopes.some((s) => !grant.scopes.includes(s)))
-    throw oauthError("OAUTH_GRANT_INVALID");
+export async function requireOAuthGrant(id: string, userId: string, scopes: string[]) {
+  const grant = await (await grants()).findOne({ id, userId, state: "authorized" });
+  if (!grant || scopes.some((s) => !grant.scopes.includes(s))) throw oauthError("OAUTH_GRANT_INVALID");
   return grant;
 }
-export async function resolveOAuthGrantActor(
-  grant: OAuthGrant,
-  scopes: string[],
-) {
+export async function resolveOAuthGrantActor(grant: OAuthGrant, scopes: string[]) {
   const db = await getMongoDatabase();
   const users = db.collection<{
     _id: ObjectId | string;
@@ -161,10 +123,7 @@ export async function resolveOAuthGrantActor(
     $or: [{ _id: { $in: ids } }, { id: grant.userId }],
   });
   if (!user || user.banned) throw oauthError("OAUTH_USER_INACTIVE");
-  const access = await resolveUserAuthorization(
-    grant.userId,
-    grant.workspaceId,
-  );
+  const access = await resolveUserAuthorization(grant.userId, grant.workspaceId);
   return restrictOAuthActor(
     {
       userId: grant.userId,
@@ -178,7 +137,7 @@ export async function resolveOAuthGrantActor(
 }
 export async function listOAuthGrants(userId: string) {
   return (await grants())
-    .find({ userId, state: { $ne: "revoked" } })
+    .find({ userId, state: "authorized" })
     .project({ _id: 0, sessionId: 0, flowKey: 0 })
     .sort({ createdAt: -1, id: 1 })
     .limit(100)

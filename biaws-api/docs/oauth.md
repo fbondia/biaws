@@ -59,3 +59,11 @@ protegido da instância; restaurar em outra URL/issuer exige nova vinculação.
 
 Contrato e limites: [arquitetura](../../docs/chatgpt-architecture.md) e
 [distribuição](../../docs/chatgpt-distribution.md).
+
+A rota da interface `/oauth/connect` preserva o fluxo durante o login existente,
+exige a escolha explícita de um workspace acessível e mostra cliente e scopes.
+As decisões passam por `POST /api/oauth/decision`, que usa a continuação assinada
+do provider antes de retornar qualquer callback. Recusa não exige workspace.
+As conexões autorizadas aparecem em Minha conta; a revogação é imediata para a
+delegação. Essas rotas exigem sessão e verificam Origin nas mutações; não aceitam
+API keys nem tokens delegados. Respostas usam no-store e no-referrer.

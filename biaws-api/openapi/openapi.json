@@ -12380,6 +12380,301 @@
         }
       }
     },
+    "/api/oauth/connections": {
+      "get": {
+        "operationId": "oauth_get_connections",
+        "tags": ["oauth"],
+        "summary": "GET /api/oauth/connections",
+        "description": "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          {
+            "schema": { "type": "string", "description": "Página; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Página; interpretação e defaults dependem da operação",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "description": "Limite; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Limite; interpretação e defaults dependem da operação",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Consulta ou requisição inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "401": {
+            "description": "Autenticação necessária",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "403": {
+            "description": "Acesso negado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "422": {
+            "description": "Entrada ou regra de domínio inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          }
+        }
+      }
+    },
+    "/api/oauth/connections/{id}": {
+      "delete": {
+        "operationId": "oauth_delete_connections_id",
+        "tags": ["oauth"],
+        "summary": "DELETE /api/oauth/connections/:id",
+        "description": "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          { "schema": { "type": "string", "minLength": 1 }, "required": true, "name": "id", "in": "path" },
+          {
+            "schema": { "type": "string", "description": "Página; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Página; interpretação e defaults dependem da operação",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "description": "Limite; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Limite; interpretação e defaults dependem da operação",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Consulta ou requisição inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "401": {
+            "description": "Autenticação necessária",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "403": {
+            "description": "Acesso negado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "422": {
+            "description": "Entrada ou regra de domínio inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          }
+        }
+      }
+    },
+    "/api/oauth/context": {
+      "post": {
+        "operationId": "oauth_post_context",
+        "tags": ["oauth"],
+        "summary": "POST /api/oauth/context",
+        "description": "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          {
+            "schema": { "type": "string", "description": "Página; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Página; interpretação e defaults dependem da operação",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "description": "Limite; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Limite; interpretação e defaults dependem da operação",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "query": { "type": "string", "minLength": 1, "maxLength": 16384 } },
+                "required": ["query"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Consulta ou requisição inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "401": {
+            "description": "Autenticação necessária",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "403": {
+            "description": "Acesso negado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "422": {
+            "description": "Entrada ou regra de domínio inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          }
+        }
+      }
+    },
+    "/api/oauth/decision": {
+      "post": {
+        "operationId": "oauth_post_decision",
+        "tags": ["oauth"],
+        "summary": "POST /api/oauth/decision",
+        "description": "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          {
+            "schema": { "type": "string", "description": "Página; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Página; interpretação e defaults dependem da operação",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "description": "Limite; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Limite; interpretação e defaults dependem da operação",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": { "type": "string", "minLength": 1, "maxLength": 16384 },
+                  "accept": { "type": "boolean" },
+                  "workspaceId": { "type": "string", "minLength": 1, "maxLength": 128 }
+                },
+                "required": ["query", "accept"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Consulta ou requisição inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "401": {
+            "description": "Autenticação necessária",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "403": {
+            "description": "Acesso negado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "422": {
+            "description": "Entrada ou regra de domínio inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          }
+        }
+      }
+    },
     "/api/option-lists": {
       "get": {
         "operationId": "optionLists_get_root",

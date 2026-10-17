@@ -18,8 +18,10 @@ import { resourceCollectionsRouter } from "../../src/routes/resourceCollections/
 import { secretsRouter } from "../../src/routes/secrets/index.js";
 import { skillsRouter } from "../../src/routes/skills/index.js";
 import { userPreferencesRouter } from "../../src/routes/userPreferences/index.js";
+import { oauthRouter } from "../../src/routes/oauth/index.js";
 
 const routers = {
+  oauthRouter,
   accessRouter,
   auditRouter,
   catalogRouter,

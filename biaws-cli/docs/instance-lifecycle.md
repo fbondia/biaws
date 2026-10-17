@@ -137,3 +137,17 @@ O restore valida checksum, descriptografia, versão e entradas do tar antes de
 substituir dados. Portas, URLs e caminhos de storage do destino são
 preservados. Em falhas após a pausa, o mecanismo tenta recompor os serviços e
 mantém o erro original como evidência.
+
+O schema 2 inclui a versão MCP implantável e aceita a leitura dos snapshots de
+schema 1. Use CLI >=0.6.0; uma mudança isolada de MCP passa a exigir update.
+Start/stop/status/update conservam o overlay e o perfil persistidos por instância.
+Ao desabilitar, o update para o container MCP e mantém o replica set e suas chaves.
+Os scripts gerados e os comandos de backup/restore usam o mesmo seletor de Compose.
+
+Backup criptografado inclui o segredo dedicado e todo o banco, incluindo chaves
+de assinatura, concessões e tokens. Restore mantém URL, flags e paths do destino
+e restaura o segredo em arquivo privado. Se a origem pública mudou, remove os
+dados OAuth e as chaves de assinatura restaurados antes de reiniciar: cada usuário
+deve autorizar uma nova conexão. O snapshot de release continua invalidado até
+um update bem-sucedido. Restore não habilita MCP automaticamente em um destino
+que não estava configurado para ele.

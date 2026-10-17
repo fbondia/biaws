@@ -1,5 +1,6 @@
 import path from "node:path";
 import os from "node:os";
+import { mcpInstanceSummary, mcpPublicConfiguration } from "./mcp.js";
 import {
   appliedReleasePath,
   readAvailableRelease,
@@ -137,6 +138,7 @@ export async function listInstances(context, filesystem) {
       uiPort: Number(env.BIAWS_UI_PORT || 4_400),
       publicUrl: env.BIAWS_PUBLIC_URL || `http://localhost:${env.BIAWS_UI_PORT || 4_400}`,
       storage: Object.values(STORAGE_FIELDS).some((key) => env[key]) ? "directories" : "volumes",
+      mcp: mcpInstanceSummary({ env }),
       env,
     });
   }
@@ -238,11 +240,14 @@ export async function buildSetupConfiguration(values, context, filesystem) {
   const storageChanged = Boolean(
     previousStorage && Object.keys(STORAGE_FIELDS).some((key) => previousStorage[key] !== storage[key]),
   );
+  const publicUrl = validatePublicUrl(values.publicUrl || existing?.publicUrl || `http://localhost:${ports.uiPort}`);
+  if (values.mcpHttp === true || (values.mcpHttp === undefined && existing?.mcp.enabled))
+    mcpPublicConfiguration(publicUrl);
   return Object.freeze({
     name,
     ...ports,
     ...storage,
-    publicUrl: validatePublicUrl(values.publicUrl || `http://localhost:${ports.uiPort}`),
+    publicUrl,
     storage: values.storage,
     storageChanged,
     adminEmail: String(values.adminEmail).trim(),
@@ -257,6 +262,7 @@ export async function buildSetupConfiguration(values, context, filesystem) {
     apiKeyRateLimitMax: integer(values.apiKeyRateLimitMax, "Rate limit da chave de API"),
     apiKeyRateLimitWindow: integer(values.apiKeyRateLimitWindow, "Janela da chave de API"),
     existing: Boolean(existing),
+    mcpHttp: values.mcpHttp,
   });
 }
 
@@ -289,6 +295,7 @@ export function setupArguments(configuration, context) {
     String(configuration.apiKeyRateLimitWindow),
   ];
   if (configuration.disableRateLimit) args.push("--disable-rate-limit");
+  if (configuration.mcpHttp !== undefined) args.push(configuration.mcpHttp ? "--mcp-http" : "--no-mcp-http");
   if (configuration.storage === "volumes") args.push("--use-docker-volumes");
   else {
     for (const [name, flag] of [
@@ -344,6 +351,10 @@ export function composeArguments(instance, context, operation) {
     "--project-name",
     `biaws-${instance.name}`,
   ];
+  if (instance.env?.BIAWS_MCP_CONFIGURED === "true") {
+    base.push("--file", path.join(context.repositoryRoot, "compose.mcp.yaml"));
+    if (instance.env.BIAWS_MCP_HTTP_ENABLED === "true" || operation === "stop") base.push("--profile", "mcp-http");
+  }
   if (operation === "services") return [...base, "ps", "--all", "--services"];
   if (operation === "start") return [...base, "up", "-d", "--wait"];
   if (operation === "update") return [...base, "up", "-d", "--build", "--wait"];
@@ -376,9 +387,11 @@ export async function updateInstance(instance, context, filesystem, processRunne
     throw new CliError("A release mudou após a verificação; execute update novamente.", { code: "RELEASE_CHANGED" });
   }
   const existing = await operateInstance(instance, context, processRunner, "services", { environment });
-  const services = existing.output.split(/\s+/u).includes("monitor-executor")
-    ? ["mongo", "api", "ui", "monitor-executor"]
-    : [];
+  const services = ["mongo", "api", "ui"];
+  if (existing.output.split(/\s+/u).includes("monitor-executor")) services.push("monitor-executor");
+  if (instance.env.BIAWS_MCP_HTTP_ENABLED === "true") services.push("mcp");
+  else if (instance.env.BIAWS_MCP_CONFIGURED === "true")
+    await operateInstance(instance, context, processRunner, "stop", { services: ["mcp"], environment });
   const result = await operateInstance(instance, context, processRunner, "update", {
     environment: { ...environment, BIAWS_VERSION: normalized.version },
     services,

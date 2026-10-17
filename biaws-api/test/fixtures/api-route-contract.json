@@ -1271,5 +1271,33 @@
       "methods": ["put"],
       "handlers": 1
     }
+  ],
+  "oauthRouter": [
+    {
+      "middleware": "<anonymous>"
+    },
+    {
+      "path": "/connections",
+      "methods": ["get"],
+      "handlers": 1
+    },
+    {
+      "middleware": "<anonymous>"
+    },
+    {
+      "path": "/context",
+      "methods": ["post"],
+      "handlers": 1
+    },
+    {
+      "path": "/decision",
+      "methods": ["post"],
+      "handlers": 1
+    },
+    {
+      "path": "/connections/:id",
+      "methods": ["delete"],
+      "handlers": 1
+    }
   ]
 }

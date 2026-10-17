@@ -1,0 +1,16 @@
+{
+  "plugin": "0.1.0-rc.1",
+  "releaseSchema": 2,
+  "minimumDeploymentRevision": 3,
+  "minimumVersions": {
+    "platform": "0.8.0",
+    "biaws-api": "0.10.0",
+    "biaws-ui": "0.8.0",
+    "biaws-mcp": "0.15.0",
+    "biaws": "0.6.0"
+  },
+  "protocolsTested": ["2025-11-25", "2026-07-28"],
+  "status": "local-release-candidate",
+  "realChatgptValidation": "pending",
+  "npmPublication": "pending"
+}

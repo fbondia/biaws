@@ -3,7 +3,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { parseApiPayload, type ApiPayload } from "./apiContracts.js";
 import { BiawsError, errorInfo } from "../runtime/errors.js";
 import type { Logger } from "../runtime/logger.js";
-import { currentRequestContext, currentRequestSignal } from "../runtime/requestContext.js";
+import { currentApiIdentity, currentRequestContext, currentRequestSignal } from "../runtime/requestContext.js";
 interface HttpContext {
   url: URL;
   signal: AbortSignal;
@@ -62,8 +62,7 @@ function buildUrl(path: string, params: Record<string, unknown> = {}) {
 }
 
 function authenticationHeaders() {
-  const apiKey = String(process.env.BIAWS_API_KEY || "").trim();
-  const workspaceId = String(process.env.BIAWS_WORKSPACE_ID || "").trim();
+  const { token: apiKey, workspaceId } = currentApiIdentity();
   return {
     Accept: "application/json",
     ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),

@@ -1,0 +1,14 @@
+{
+  "pluginVersion": null,
+  "artifactSha256": null,
+  "publisherIdentityVerified": false,
+  "domainVerified": false,
+  "reviewEndpoint": null,
+  "templateEligibilityConfirmed": false,
+  "realChatgptValidationPassed": false,
+  "skillsScanPassed": false,
+  "toolsScanPassed": false,
+  "legalUrlsReviewed": false,
+  "demoRecordingUrl": null,
+  "reviewCasesExecuted": false
+}

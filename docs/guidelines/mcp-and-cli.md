@@ -31,6 +31,9 @@ A definição deve:
 - diferenciar argumentos de leitura dos de mutação;
 - não aceitar connection string, nome de coleção ou query Mongo;
 - descrever defaults que realmente sejam aplicados.
+- classificar explicitamente readOnlyHint, destructiveHint e openWorldHint,
+  com justificativa no catálogo; ferramentas novas precisam da política exaustiva;
+- diferenciar dependências de filesystem local e capacidades remotas.
 
 O service deve:
 
@@ -57,6 +60,11 @@ dry run antes da efetivação.
 - alterações em catálogo, nome ou schema exigem teste de `tools/list` e dispatch.
 
 ## Novo comando CLI
+
+No HTTP, usar identidade e workspace por requisição e delegação destinada à
+API; não trocar process.env nem usar credencial stdio como fallback. Conexões
+OAuth têm workspace fixo. Manter stdio e HTTP compatíveis conforme a matriz
+documentada e validar recursos com o cliente oficial.
 
 Separe:
 

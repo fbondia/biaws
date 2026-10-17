@@ -1,4 +1,5 @@
 import { scalarText } from "../../runtime/text.js";
+import { currentApiIdentity } from "../../runtime/requestContext.js";
 import type { ReadResourceResult } from "@modelcontextprotocol/server";
 import { apiEntitySchema, requireEntity, type ApiEntity, type ApiPayload } from "../../api/apiContracts.js";
 import { BiawsError } from "../../runtime/errors.js";
@@ -17,7 +18,7 @@ function resourceError(code: string, message: string, statusCode = 422) {
 }
 
 function configuredWorkspace() {
-  return String(process.env.BIAWS_WORKSPACE_ID || "").trim();
+  return currentApiIdentity().workspaceId;
 }
 
 function replaceVariables(template: string, values: Record<string, string>) {

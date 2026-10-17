@@ -2,6 +2,7 @@ import { Flags } from "@oclif/core";
 
 import { LocalInstanceCommand } from "../../baseCommands.js";
 import { contextFlags, contextInput, instanceArgument } from "../../instance/command.js";
+import { configureMcpInstance } from "../../instance/mcp.js";
 import {
   backupArguments,
   executeInstanceScript,
@@ -85,6 +86,11 @@ export default class InstanceUpdate extends LocalInstanceCommand {
   static args = { instance: instanceArgument };
   static flags = {
     ...contextFlags,
+    "mcp-http": Flags.boolean({
+      allowNo: true,
+      description: "habilita/desabilita MCP HTTP, preservando configuração",
+      exclusive: ["check"],
+    }),
     "backup-output": Flags.string({
       description: "arquivo de destino do backup anterior à atualização",
     }),
@@ -109,19 +115,24 @@ export default class InstanceUpdate extends LocalInstanceCommand {
   async run() {
     const { args, flags } = await this.parse(InstanceUpdate);
     const context = await this.localContext(contextInput(flags, args.instance));
-    const instance = await getInstance(context, this.adapters.filesystem, args.instance);
+    let instance = await getInstance(context, this.adapters.filesystem, args.instance);
     const versionStatus = await getInstanceUpdateStatus(instance, context, this.adapters.filesystem);
     if (flags.check) {
       this.output({ json: flags.json }).result(versionCheckResult(instance, versionStatus, flags.json));
       return;
     }
-    if (!versionStatus.updateRequired && !flags.force) {
+    if (!versionStatus.updateRequired && !flags.force && flags["mcp-http"] === undefined) {
       this.output({ json: flags.json }).result(unchangedResult(instance, versionStatus, flags.json));
       return;
     }
 
     await validateInstanceUpdate(instance, context, this.adapters.processRunner);
     const backupOutput = await createUpdateBackup(this, instance, context, flags);
+    if (flags["mcp-http"] !== undefined) {
+      await configureMcpInstance(instance.envFile, flags["mcp-http"], this.adapters.filesystem);
+      instance = await getInstance(context, this.adapters.filesystem, args.instance);
+      await validateInstanceUpdate(instance, context, this.adapters.processRunner);
+    }
 
     await updateInstance(
       instance,

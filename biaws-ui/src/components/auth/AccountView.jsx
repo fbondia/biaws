@@ -11,6 +11,7 @@ import {
   revokeSession,
 } from "../../api.js";
 import { hasPermission } from "../../permissions.js";
+import { OAuthConnections } from "./OAuthConnections/index.jsx";
 
 const EMPTY_PASSWORD_FORM = {
   currentPassword: "",
@@ -317,6 +318,7 @@ export function AccountView({ actor, onSignOut }) {
         </article>
       </div>
 
+      <OAuthConnections actor={actor} />
       {passwordDialogOpen ? (
         <ChangePasswordDialog
           onChanged={() => {

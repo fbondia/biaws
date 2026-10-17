@@ -14,9 +14,11 @@ import { resourceCollectionsRouter } from "../routes/resourceCollections/index.j
 import { secretsRouter } from "../routes/secrets/index.js";
 import { skillsRouter } from "../routes/skills/index.js";
 import { userPreferencesRouter } from "../routes/userPreferences/index.js";
+import { oauthRouter } from "../routes/oauth/index.js";
 import type { ContractRouter } from "./routeContracts.js";
 
 export const contractRouters: readonly ContractRouter[] = [
+  { domain: "oauthRouter", prefix: "/api/oauth", router: oauthRouter },
   { domain: "accessRouter", prefix: "/api/access", router: accessRouter },
   { domain: "auditRouter", prefix: "/api/audit", router: auditRouter },
   { domain: "catalogRouter", prefix: "/api/catalog", router: catalogRouter },

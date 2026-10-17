@@ -76,6 +76,7 @@ function normalizeActor(actor: Partial<Actor> = {}) {
     displayName: actor.displayName || "",
     email: actor.email || "",
     authenticationMethod: actor.authenticationMethod || "",
+    ...(actor.oauthGrantId ? { oauthGrantId: actor.oauthGrantId, oauthClientId: actor.oauthClientId } : {}),
   };
 }
 

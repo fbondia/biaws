@@ -22,6 +22,7 @@ async function fixture(t) {
     "biaws-api/package.json",
     "biaws-ui/package.json",
     "biaws-monitor-executor/package.json",
+    "biaws-mcp/package.json",
   ]) {
     await fs.mkdir(path.dirname(path.join(root, file)), { recursive: true });
     await fs.copyFile(path.join(repository, file), path.join(root, file));

@@ -10,6 +10,11 @@ async function startServer() {
       import("./helpers/mongoClient.js"),
     ]);
     const config = getServerConfig();
+    const { getMcpOAuthConfig } = await import("./auth/oauthProvider.js");
+    if (getMcpOAuthConfig(config.auth.baseUrl).enabled) {
+      const { getAuth } = await import("./auth/auth.js");
+      await getAuth();
+    }
     const app = createApp();
     const server = app.listen(config.port, config.host, () => {
       apiLogger.info("server_started", {

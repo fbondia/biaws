@@ -48,6 +48,14 @@ global. Depois da publicação, confirme também `npx biaws@<versão> --help`.
 
 ## Compatibilidade e migração
 
+A série `0.6.0` suporta os manifests de plataforma schema 1 e 2 e fixa
+`biaws-mcp@0.15.0`. Publique esse MCP antes de `biaws@0.6.0`; o CLI antigo
+não deve aplicar o manifesto schema 2. Atualizar somente o CLI não atualiza
+instâncias. Para MCP HTTP, use setup/update com `--mcp-http` e os requisitos
+HTTPS/replica set de [operação ChatGPT](../../docs/chatgpt-operations.md).
+`workspace agent configure chatgpt --url https://<host> --json` fornece
+instruções sem API key ou senha; a conta é autenticada no consentimento OAuth.
+
 O shebang canônico está em `biaws-cli/bin/biaws.js`. O pacote npm cria o comando
 `biaws`; no checkout, `npm --prefix biaws-cli link` oferece a mesma experiência.
 O antigo `node biaws-cli/src/index.js ...` continua funcional durante a série

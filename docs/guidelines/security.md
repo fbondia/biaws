@@ -84,6 +84,12 @@ de banco, path físico, stack ou configuração interna.
 
 ## Mudanças sensíveis
 
+MCP HTTP usa OAuth por instância e credencial interna delegada curta. Validar
+issuer/audience/expiração e reavaliar concessão, usuário e permissões atuais.
+OAuth não equivale à sessão web para segredos. Fetches CIMD exigem proteção
+contra SSRF/redirect e DNS pinning. O plugin distribui endpoints e instruções,
+nunca tokens. Consulte [revisão ChatGPT](../chatgpt-security-review.md).
+
 Exigem revisão explícita de segurança:
 
 - autenticação, sessão, API keys e permissões;

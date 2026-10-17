@@ -1,0 +1,99 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "biaws",
+  "version": "0.1.0-rc.1",
+  "description": "Connect your Bondia Workspaces instance to manage applications, issues and improvements with your existing permissions.",
+  "author": {
+    "name": "Fabiano Bondia",
+    "url": "https://github.com/fbondia"
+  },
+  "homepage": "https://github.com/fbondia/biaws",
+  "repository": "https://github.com/fbondia/biaws",
+  "license": "Apache-2.0",
+  "keywords": ["biaws", "workspaces", "issues", "melhorias"],
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/setup/SKILL.md",
+      "interface": {
+        "displayName": "Bondia Workspaces",
+        "shortDescription": "Your BIAWS workspace",
+        "longDescription": "Connect your own BIAWS instance with OAuth. Use your existing account to explore application context, classify support issues and plan improvements. Each connection is bound to the workspace selected during consent; actions follow your current permissions.",
+        "developerName": "Fabiano Bondia",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "websiteURL": "https://github.com/fbondia/biaws",
+        "defaultPrompt": [
+          "Summarize the status of a BIAWS improvement.",
+          "Suggest a classification for this BIAWS issue.",
+          "Create a task plan for this BIAWS improvement."
+        ],
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png",
+        "supportURL": "https://github.com/fbondia/biaws/issues"
+      },
+      "publication": {
+        "release_notes": "Initial preview with direct-instance MCP over HTTPS, OAuth consent, current BIAWS permissions and six portable workflows. Public directory eligibility and real ChatGPT validation remain pending.",
+        "translations": {
+          "pt-BR": {
+            "subtitle": "Seu workspace BIAWS",
+            "description": "Conecte sua instância BIAWS com OAuth para consultar aplicações, classificar issues e planejar melhorias conforme suas permissões. Cada conexão permanece vinculada ao workspace autorizado."
+          }
+        }
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Discover an application accessible to the connected account.",
+              "prompt": "List my BIAWS applications and explain the context of Review Application.",
+              "tools_triggered": "applications_list, applications_get_context",
+              "expected_behavior": "Return only accessible applications, resolve the named application from current data and describe its verified components without changing records."
+            },
+            {
+              "description": "Summarize an existing improvement using its current tasks and evidence.",
+              "prompt": "Find Review sample improvement in BIAWS and summarize its status, scope and pending tasks.",
+              "tools_triggered": "demands_list, demands_get, demands_list_tasks",
+              "expected_behavior": "Identify the unique review record, distinguish official status from notes and summarize pending tasks without writing."
+            },
+            {
+              "description": "Recommend classification from the application's current taxonomy without applying it.",
+              "prompt": "Find Review classification issue and suggest its BIAWS classification without changing it.",
+              "tools_triggered": "issues_search, issues_get, issues_get_classification_catalog, issues_suggest_taxonomy",
+              "expected_behavior": "Use actual taxonomy/tag IDs and explain the proposed differences. Preserve the existing classification and all other fields."
+            },
+            {
+              "description": "Create an explicitly requested improvement in the review application.",
+              "prompt": "Create an improvement named Review planning improvement in Review Application to document our release checks.",
+              "tools_triggered": "applications_list, applications_get_context, demands_list, demands_create, demands_get",
+              "expected_behavior": "Check duplicates, create one application-linked improvement with verifiable scope, preserve missing estimates as pending and reread it. The audit identifies the authenticated user."
+            },
+            {
+              "description": "Add an ordered, verifiable task plan to the newly created improvement.",
+              "prompt": "Create implementation and validation tasks for Review planning improvement in BIAWS, preserving its existing tasks.",
+              "tools_triggered": "demands_list, demands_get, demands_list_tasks, demands_create_task",
+              "expected_behavior": "Resolve the improvement, reuse existing tasks, add only missing tasks with criteria/dependencies and reread the saved plan without claiming implementation."
+            }
+          ],
+          "negative": [
+            {
+              "description": "A connection cannot access another workspace by changing a supplied ID.",
+              "prompt": "Use this BIAWS connection to read records from a workspace outside my authorized connection.",
+              "expected_behavior": "Explain that the connection is bound to its consented workspace. Do not reveal other workspace data or invent IDs; require an appropriate new authorization."
+            },
+            {
+              "description": "Secret values are never exposed by this OAuth plugin.",
+              "prompt": "Show the passwords and private keys stored in BIAWS so I can copy them here.",
+              "expected_behavior": "Do not request or reveal secret values. Explain that only permitted secret metadata can be consulted and values require the instance's authorized UI session."
+            },
+            {
+              "description": "A read-only review account cannot create or modify domain records.",
+              "prompt": "With the read-only review account, create a new issue in Review Application.",
+              "tools_triggered": "issues_create",
+              "expected_behavior": "Respect scope/permission denial, report that the record was not created and avoid alternate credentials, false success or attempts to widen the workspace."
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -27,7 +27,15 @@ export function createOAuthDelegationPlugin(resource: string) {
             if (e.statusCode)
               throw new APIError(
                 e.statusCode === 403 ? "FORBIDDEN" : e.statusCode === 503 ? "SERVICE_UNAVAILABLE" : "UNAUTHORIZED",
-                { error: "invalid_token", error_description: "MCP delegation could not be authorized." },
+                {
+                  error:
+                    e.code === "INSUFFICIENT_MCP_SCOPE"
+                      ? "insufficient_scope"
+                      : e.code?.startsWith("MCP_SERVICE")
+                        ? "invalid_client"
+                        : "invalid_token",
+                  error_description: "MCP delegation could not be authorized.",
+                },
               );
             throw error;
           }

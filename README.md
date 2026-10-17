@@ -2,6 +2,7 @@
 
 Conexão direta ao ChatGPT por MCP HTTP/OAuth e pacote de plugin:
 [operação e limites de publicação](docs/chatgpt-operations.md).
+Consulte também a [entrega local e suas pendências](docs/chatgpt-delivery.md).
 
 **A camada operacional do harness para pessoas e agentes operarem e evoluírem software.**
 

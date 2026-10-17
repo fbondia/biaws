@@ -529,3 +529,118 @@
     padding: 12px;
   }
 }
+
+.markdownDocumentLinkBackdrop {
+  z-index: var(--z-nested-dialog);
+}
+
+.markdownDocumentLinkDialog {
+  display: flex;
+  width: min(680px, 100%);
+  max-height: calc(100dvh - 40px);
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: 0 24px 70px var(--color-shadow-dialog);
+}
+
+.markdownDocumentLinkDialog > header,
+.markdownDocumentLinkDialog > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.markdownDocumentLinkDialog > header {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.markdownDocumentLinkDialog h2,
+.markdownDocumentLinkDialog p {
+  margin: 0;
+}
+
+.markdownDocumentLinkDialog header p,
+.markdownDocumentLinkPagination {
+  color: var(--color-text-subtle);
+  font-size: 13px;
+}
+
+.markdownDocumentLinkBody {
+  overflow: auto;
+  padding: var(--space-4);
+}
+
+.markdownDocumentLinkBody .field > span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.markdownDocumentLinkResults {
+  min-height: 120px;
+  margin-top: var(--space-3);
+}
+
+.markdownDocumentLinkOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.markdownDocumentLinkOption > input {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.markdownDocumentLinkOption:has(input:checked) {
+  background: var(--color-info-surface);
+}
+
+.markdownDocumentLinkOption > span {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+.markdownDocumentLinkOption small {
+  color: var(--color-text-subtle);
+}
+
+.markdownDocumentLinkPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.markdownDocumentLinkDialog > footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 720px) {
+  .markdownDocumentLinkDialog {
+    max-height: calc(100dvh - 20px);
+  }
+
+  .markdownDocumentLinkDialog h2 {
+    font-size: 18px;
+  }
+
+  .markdownDocumentLinkPagination {
+    flex-wrap: wrap;
+  }
+}

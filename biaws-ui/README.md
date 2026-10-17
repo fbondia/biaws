@@ -35,6 +35,9 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
 
 ## Recursos
 
+- Editor Markdown com busca e seleção de documentos para inserir links com
+  workspace, incluindo suporte a seleção de texto e tela cheia
+
 - [URLs diretas](../docs/direct-links.md) para abrir registros com workspace,
   IDs ou identificadores e preservar o destino após o login
 

@@ -231,7 +231,7 @@ export function markdownTableToHtml(lines) {
 export function parseInlineMarkdown(text) {
   const tokens = [];
   const pattern =
-    /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|!\[[^\]]*\]\([^)]+\)|\[[^\]]+\]\([^)]+\)|\[(?:anexo:\s*|cid:)[^\]]+\])/giu;
+    /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|!\[[^\]]*\]\([^)]+\)|\[(?:\\.|[^\]\\])+\]\([^)]+\)|\[(?:anexo:\s*|cid:)[^\]]+\])/giu;
   let cursor = 0;
   let match;
 
@@ -252,8 +252,8 @@ export function parseInlineMarkdown(text) {
     } else if (/^\[(?:anexo:|cid:)/iu.test(token) && !token.includes("](")) {
       tokens.push({ type: "image", text: "", reference: token.slice(1, -1), raw: token });
     } else {
-      const link = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/u);
-      tokens.push({ type: "link", text: link[1], href: link[2] });
+      const link = token.match(/^\[((?:\\.|[^\]\\])+)\]\(([^)]+)\)$/u);
+      tokens.push({ type: "link", text: link[1].replace(/\\([\\\[\]])/gu, "$1"), href: link[2] });
     }
 
     cursor = match.index + token.length;

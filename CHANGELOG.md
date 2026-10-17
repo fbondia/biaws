@@ -8,6 +8,10 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Plataforma preparada como `0.9.0`, com UI `0.9.0` e API `0.11.0`, incluindo
+  as URLs diretas das entidades e o seletor de links de documentos no editor
+  Markdown. Manifesto e metadados OpenAPI sincronizados.
+
 - URLs diretas na interface para documentos, melhorias, tarefas, issues,
   catálogo, monitoramento e administração, com workspace explícito, histórico
   do navegador e resolução por ID público, Mongo `_id` ou identificador.
@@ -202,6 +206,10 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
   rede interna do Compose.
 
 ### Added
+
+- Editor Markdown com botão para buscar e selecionar documentos acessíveis e
+  inserir links com workspace, preservando a posição do cursor. Inclui busca
+  paginada, seleção por teclado e uso em tela cheia.
 
 - consultas MCP de auditoria, revisões e observações de documentos, topologia
   monitorada, alvos, perfis de metadados, saúde de aplicações e sinais passivos;

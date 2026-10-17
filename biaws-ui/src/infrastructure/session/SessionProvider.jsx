@@ -21,8 +21,12 @@ export function SessionProvider({ children, service = defaultSessionService }) {
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
+export function useOptionalSession() {
+  return useContext(SessionContext);
+}
+
 export function useSession() {
-  const session = useContext(SessionContext);
+  const session = useOptionalSession();
   if (!session) {
     throw new Error("useSession must be used within SessionProvider");
   }

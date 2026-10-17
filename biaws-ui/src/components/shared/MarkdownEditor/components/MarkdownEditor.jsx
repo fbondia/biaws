@@ -1,7 +1,11 @@
-import { Check, Copy, Eye, FileText, ImagePlus, Maximize2, Paperclip, X } from "lucide-react";
+import { Check, Copy, Eye, FileText, ImagePlus, Link2, Maximize2, Paperclip, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { useOptionalSession } from "../../../../infrastructure/session/SessionProvider.jsx";
+import { hasPermission } from "../../../../permissions.js";
+import { documentLinkMarkdown, insertMarkdownReference } from "../documentLinks.js";
+import { DocumentLinkDialog } from "./DocumentLinkDialog.jsx";
 import { markdownToHtml } from "../model.js";
 import { attachmentImageMarkdown, attachmentLinkMarkdown } from "../attachmentImages.js";
 import { previewKind } from "../../filePreviewModel.js";
@@ -19,6 +23,11 @@ export function MarkdownEditor({
   attachments = [],
   onLoadAttachment,
 }) {
+  const session = useOptionalSession();
+  const actor = session?.actor;
+  const canLinkDocuments = Boolean(actor?.workspaceId && hasPermission(actor, "documents.read"));
+  const [documentPickerOpen, setDocumentPickerOpen] = useState(false);
+  const documentSelectionRef = useRef(null);
   const [mode, setMode] = useState(() => (initialMode === "text" ? "text" : "preview"));
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -42,12 +51,12 @@ export function MarkdownEditor({
     if (!isFullscreen) return undefined;
 
     function closeOnEscape(event) {
-      if (event.key === "Escape") setIsFullscreen(false);
+      if (event.key === "Escape" && !documentPickerOpen) setIsFullscreen(false);
     }
 
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [isFullscreen]);
+  }, [isFullscreen, documentPickerOpen]);
 
   useEffect(() => () => window.clearTimeout(copyResetTimerRef.current), []);
 
@@ -62,6 +71,24 @@ export function MarkdownEditor({
     insertionCursorRef.current = start + reference.length;
     onChange(`${text.slice(0, start)}${reference}${text.slice(end)}`);
     setMode("text");
+  }
+
+  function openDocumentPicker() {
+    const length = String(value || "").length;
+    documentSelectionRef.current = {
+      start: textareaRef.current?.selectionStart ?? length,
+      end: textareaRef.current?.selectionEnd ?? length,
+    };
+    setDocumentPickerOpen(true);
+  }
+
+  function insertDocument(document) {
+    const reference = documentLinkMarkdown(document, actor.workspaceId);
+    const insertion = insertMarkdownReference(value, reference, documentSelectionRef.current);
+    insertionCursorRef.current = insertion.cursor;
+    onChange(insertion.value);
+    setMode("text");
+    setDocumentPickerOpen(false);
   }
 
   async function copyContent() {
@@ -122,6 +149,17 @@ export function MarkdownEditor({
         >
           {copied ? <Check size={15} /> : <Copy size={15} />}
         </button>
+        {canLinkDocuments ? (
+          <button
+            aria-label="Inserir link de documento"
+            className="markdownEditorTab"
+            onClick={openDocumentPicker}
+            title="Inserir link de documento"
+            type="button"
+          >
+            <Link2 size={15} />
+          </button>
+        ) : null}
         {allowFullscreen ? (
           <button
             aria-label="Editar em tela cheia"
@@ -183,6 +221,15 @@ export function MarkdownEditor({
       ) : (
         <MarkdownPreview attachments={attachments} onLoadAttachment={onLoadAttachment} value={value} />
       )}
+
+      {documentPickerOpen && canLinkDocuments ? (
+        <DocumentLinkDialog
+          key={actor.workspaceId}
+          workspaceId={actor.workspaceId}
+          onClose={() => setDocumentPickerOpen(false)}
+          onSelect={insertDocument}
+        />
+      ) : null}
 
       {isFullscreen
         ? createPortal(

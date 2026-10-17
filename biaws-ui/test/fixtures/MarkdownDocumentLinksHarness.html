@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Links de documentos — teste visual</title>
+  </head>
+  <body>
+    <main class="contentBand">
+      <h1>Editor Markdown</h1>
+      <div id="app"></div>
+    </main>
+    <script type="module">
+      import { mountDocumentLinkEditor } from "./MarkdownDocumentLinksHarness.jsx";
+      const documents = [
+        {
+          id: "synthetic-guide",
+          identifier: "guia-operacional",
+          title: "Guia operacional [API]",
+          summary: "Instruções para operação e suporte da aplicação.",
+          workspaceId: "workspace-preview",
+        },
+        {
+          id: "synthetic-architecture",
+          identifier: "arquitetura",
+          title: "Arquitetura e integrações",
+          summary: "Componentes, interfaces e dependências da aplicação.",
+          workspaceId: "workspace-preview",
+        },
+        {
+          id: "synthetic-rule",
+          identifier: "regra",
+          title: "Regra de negócio",
+          summary: "Condições e critérios de aplicação da regra.",
+          workspaceId: "workspace-preview",
+        },
+      ];
+      window.fetch = async (url) => {
+        const search = new URL(url).searchParams.get("search")?.toLocaleLowerCase("pt-BR") || "";
+        return Response.json({
+          items: documents.filter((document) =>
+            `${document.title} ${document.identifier}`.toLocaleLowerCase("pt-BR").includes(search),
+          ),
+          meta: { totalPages: 1 },
+        });
+      };
+      mountDocumentLinkEditor(
+        document.getElementById("app"),
+        "Consulte a documentação relacionada.\n\nInsira um link para outro documento usando a barra do editor.",
+        { workspaceId: "workspace-preview", permissions: ["documents.read"] },
+      );
+    </script>
+  </body>
+</html>

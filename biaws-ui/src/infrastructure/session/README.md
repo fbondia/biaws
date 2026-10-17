@@ -39,3 +39,7 @@ seleção para o último workspace cuja restauração foi confirmada.
 
 Testes unitários usam `testing.js`, que oferece um adapter falso sem importar o
 runtime HTTP.
+
+`useOptionalSession` permite que componentes compartilhados, como o editor
+Markdown, ofereçam ações contextuais quando há uma sessão e continuem
+funcionando em consumidores independentes sem `SessionProvider`.

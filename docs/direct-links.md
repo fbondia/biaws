@@ -49,6 +49,19 @@ Exemplos com dados sintéticos:
 /catalog/faturamento/components/api?workspaceId=workspace-exemplo
 ```
 
+## Inserir links no editor Markdown
+
+O botão **Inserir link de documento**, disponível para quem possui
+`documents.read`, abre uma busca paginada nos documentos acessíveis do
+workspace atual. Busque por título, identificador ou conteúdo, selecione um
+documento e confirme em **Inserir link**. A busca exclui documentos arquivados.
+
+O editor substitui o trecho selecionado ou insere na posição do cursor. No modo
+de visualização, o link é acrescentado ao final. O texto usa o título do documento;
+a URL usa seu ID estável e inclui automaticamente `workspaceId`, sem depender de
+mudanças futuras no identificador. A funcionalidade também está disponível em
+tela cheia. `Esc` cancela a seleção sem fechar a edição em tela cheia.
+
 ## Referências e segurança
 
 A referência pode ser o ID público, o `_id` do MongoDB ou o identificador de

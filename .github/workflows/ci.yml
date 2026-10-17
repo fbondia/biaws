@@ -102,6 +102,8 @@ jobs:
 
   mcp:
     runs-on: ubuntu-latest
+    env:
+      BIAWS_MCP_HTTP_INTEGRATION: "1"
     defaults:
       run:
         working-directory: biaws-mcp
@@ -123,13 +125,7 @@ jobs:
           npm pack --pack-destination "${RUNNER_TEMP}"
           install_prefix="${RUNNER_TEMP}/biaws-mcp-global"
           npm install --global --prefix "${install_prefix}" "${RUNNER_TEMP}/${package_file}"
-          printf '%s\n' \
-            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{}}}' \
-            '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
-            '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-            | "${install_prefix}/bin/biaws-mcp" > "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
-          grep -F '"id":2' "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
-          grep -F '"tools":[' "${RUNNER_TEMP}/biaws-mcp-handshake.jsonl"
+          node ../scripts/chatgpt/smoke-installed-mcp.mjs "${install_prefix}/lib/node_modules/biaws-mcp"
 
   module-integration:
     runs-on: ubuntu-latest

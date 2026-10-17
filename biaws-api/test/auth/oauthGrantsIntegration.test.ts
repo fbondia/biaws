@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  isolatedDatabaseName,
-  restoreEnvironmentAfter,
-} from "../support/integration.js";
+import { isolatedDatabaseName, restoreEnvironmentAfter } from "../support/integration.js";
 import { COLLECTION_NAMES } from "../../src/database/collectionNames.js";
 
 test(
@@ -13,12 +10,9 @@ test(
     restoreEnvironmentAfter(t);
     process.env.MONGO_URI = process.env.BIAWS_INTEGRATION_MONGO_URI;
     process.env.MONGO_DB = isolatedDatabaseName();
-    const { closeMongoClient, getMongoDatabase } =
-      await import("../../src/helpers/mongoClient.js");
-    const { createWorkspace } =
-      await import("../../src/repositories/catalog/index.js");
-    const { createPermissionGroup, setUserGroups } =
-      await import("../../src/repositories/access/index.js");
+    const { closeMongoClient, getMongoDatabase } = await import("../../src/helpers/mongoClient.js");
+    const { createWorkspace } = await import("../../src/repositories/catalog/index.js");
+    const { createPermissionGroup, setUserGroups } = await import("../../src/repositories/access/index.js");
     const {
       ensureOAuthGrantIndexes,
       prepareOAuthGrant,
@@ -43,14 +37,8 @@ test(
         name: "OAuth",
         email: "oauth@example.test",
       });
-      const a = await createWorkspace(
-        { key: "oauth-a", name: "OAuth A" },
-        operator,
-      );
-      const b = await createWorkspace(
-        { key: "oauth-b", name: "OAuth B" },
-        operator,
-      );
+      const a = await createWorkspace({ key: "oauth-a", name: "OAuth A" }, operator);
+      const b = await createWorkspace({ key: "oauth-b", name: "OAuth B" }, operator);
       for (const workspace of [a, b]) {
         const group = await createPermissionGroup(
           {
@@ -88,14 +76,11 @@ test(
       assert.notEqual(ga.id, gb.id);
       await authorizeOAuthGrant(ga.id, userId, ["mcp:read"]);
       await authorizeOAuthGrant(gb.id, userId, ["mcp:read", "mcp:write"]);
-      const aa = await resolveOAuthGrantActor(
-        await requireOAuthGrant(ga.id, userId, ["mcp:read"]),
-        ["mcp:read"],
-      );
-      const ab = await resolveOAuthGrantActor(
-        await requireOAuthGrant(gb.id, userId, ["mcp:read", "mcp:write"]),
-        ["mcp:read", "mcp:write"],
-      );
+      const aa = await resolveOAuthGrantActor(await requireOAuthGrant(ga.id, userId, ["mcp:read"]), ["mcp:read"]);
+      const ab = await resolveOAuthGrantActor(await requireOAuthGrant(gb.id, userId, ["mcp:read", "mcp:write"]), [
+        "mcp:read",
+        "mcp:write",
+      ]);
       assert.equal(aa.workspaceId, a.id);
       assert.equal(ab.workspaceId, b.id);
       assert.deepEqual(aa.permissions, ["issues.read"]);
@@ -103,16 +88,9 @@ test(
       await assert.rejects(prepareOAuthGrant(actor, query("a"), b.id), {
         code: "OAUTH_FLOW_ALREADY_USED",
       });
-      await assert.rejects(
-        requireOAuthGrant(ga.id, "other-user", ["mcp:read"]),
-        { code: "OAUTH_GRANT_INVALID" },
-      );
+      await assert.rejects(requireOAuthGrant(ga.id, "other-user", ["mcp:read"]), { code: "OAUTH_GRANT_INVALID" });
       await setUserGroups(userId, [], { ...operator, workspaceId: b.id });
-      assert.deepEqual(
-        (await resolveOAuthGrantActor(gb, ["mcp:read", "mcp:write"]))
-          .permissions,
-        [],
-      );
+      assert.deepEqual((await resolveOAuthGrantActor(gb, ["mcp:read", "mcp:write"])).permissions, []);
       await users.updateOne({ _id: userId }, { $set: { banned: true } });
       await assert.rejects(resolveOAuthGrantActor(ga, ["mcp:read"]), {
         code: "OAUTH_USER_INACTIVE",

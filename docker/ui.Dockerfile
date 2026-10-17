@@ -12,6 +12,7 @@ ENV VITE_MONITORING_REFRESH_SECONDS=${VITE_MONITORING_REFRESH_SECONDS}
 RUN npm run build
 
 FROM nginx:1.29-alpine
+COPY docker/safe-logging.conf /etc/nginx/conf.d/00-safe-logging.conf
 
 COPY docker/proxy-api.conf /etc/nginx/templates/proxy-api.conf.template
 ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx

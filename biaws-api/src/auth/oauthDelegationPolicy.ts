@@ -5,6 +5,26 @@ import { oauthError } from "./oauthGrantPolicy.js";
 export const DELEGATION_PREFIX = "biaws_dlg_";
 export const hashDelegation = (token: string) => createHash("sha256").update(token).digest("hex");
 
+export function classifyMcpDelegationFailure(error: unknown) {
+  const e = error as { statusCode?: number; code?: string };
+  const code = typeof e?.code === "string" ? e.code : "";
+  const cryptographicFailure = /^ERR_(?:JOSE|JWT|JWS|JWK|JWKS)_/u.test(code);
+  if (!e?.statusCode && !cryptographicFailure) return null;
+  const status =
+    e.statusCode && e.statusCode >= 500
+      ? "SERVICE_UNAVAILABLE"
+      : code === "INSUFFICIENT_MCP_SCOPE" || code === "MCP_SERVICE_FORBIDDEN"
+        ? "FORBIDDEN"
+        : "UNAUTHORIZED";
+  const kind =
+    code === "INSUFFICIENT_MCP_SCOPE"
+      ? "insufficient_scope"
+      : code.startsWith("MCP_SERVICE")
+        ? "invalid_client"
+        : "invalid_token";
+  return { status, error: kind } as const;
+}
+
 export function requireMcpServiceSecret(header: string | null, env: NodeJS.ProcessEnv = process.env) {
   let expected = env.BIAWS_MCP_SERVICE_SECRET || "";
   if (env.BIAWS_MCP_SERVICE_SECRET_FILE) {

@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  oauthFlow,
-  restrictOAuthActor,
-} from "../../src/auth/oauthGrantPolicy.js";
+import { oauthFlow, restrictOAuthActor } from "../../src/auth/oauthGrantPolicy.js";
 const query = new URLSearchParams({
   client_id: "client",
   redirect_uri: "https://client.example.test/cb",

@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  getMcpOAuthConfig,
-  createMcpOAuthPlugins,
-} from "../../src/auth/oauthProvider.js";
+import { getMcpOAuthConfig, createMcpOAuthPlugins } from "../../src/auth/oauthProvider.js";
 
 test("MCP OAuth is disabled by default and does not require a public URL", () => {
   assert.equal(getMcpOAuthConfig("http://api:3100", {}).enabled, false);

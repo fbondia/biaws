@@ -5,26 +5,11 @@ import { oauthError } from "./oauthGrantPolicy.js";
 export const oauthGrantHooks = {
   postLogin: {
     page: "/oauth/connect",
-    async shouldRedirect({
-      user,
-      session,
-    }: {
-      user: { id: string };
-      session: { id: string };
-    }) {
+    async shouldRedirect({ user, session }: { user: { id: string }; session: { id: string } }) {
       const state = await getOAuthProviderState();
-      return (
-        !state?.query ||
-        !(await findOAuthFlowGrant(user.id, session.id, state.query))
-      );
+      return !state?.query || !(await findOAuthFlowGrant(user.id, session.id, state.query));
     },
-    async consentReferenceId({
-      user,
-      session,
-    }: {
-      user: { id: string };
-      session: { id: string };
-    }) {
+    async consentReferenceId({ user, session }: { user: { id: string }; session: { id: string } }) {
       const state = await getOAuthProviderState();
       if (!state?.query) throw oauthError("OAUTH_FLOW_MISSING", 400);
       const grant = await findOAuthFlowGrant(user.id, session.id, state.query);

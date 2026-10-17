@@ -1,6 +1,27 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hashDelegation, mcpSubjectClaims, requireMcpServiceSecret } from "../../src/auth/oauthDelegationPolicy.js";
+import {
+  hashDelegation,
+  mcpSubjectClaims,
+  requireMcpServiceSecret,
+  classifyMcpDelegationFailure,
+} from "../../src/auth/oauthDelegationPolicy.js";
+test("invalid cryptographic tokens and removed grants return authentication errors, preserving infrastructure failures", () => {
+  for (const code of [
+    "ERR_JWT_CLAIM_VALIDATION_FAILED",
+    "ERR_JWS_SIGNATURE_VERIFICATION_FAILED",
+    "ERR_JWKS_NO_MATCHING_KEY",
+  ]) {
+    assert.deepEqual(classifyMcpDelegationFailure({ code }), { status: "UNAUTHORIZED", error: "invalid_token" });
+  }
+  assert.equal(classifyMcpDelegationFailure({ statusCode: 403, code: "WORKSPACE_FORBIDDEN" })?.status, "UNAUTHORIZED");
+  assert.equal(classifyMcpDelegationFailure({ statusCode: 403, code: "INSUFFICIENT_MCP_SCOPE" })?.status, "FORBIDDEN");
+  assert.equal(
+    classifyMcpDelegationFailure({ statusCode: 503, code: "MCP_SERVICE_UNAVAILABLE" })?.status,
+    "SERVICE_UNAVAILABLE",
+  );
+  assert.equal(classifyMcpDelegationFailure(new Error("database unavailable")), null);
+});
 test("MCP service authentication requires a configured strong secret", () => {
   assert.throws(() => requireMcpServiceSecret("x", {}), { code: "MCP_SERVICE_UNAVAILABLE" });
   const env = { BIAWS_MCP_SERVICE_SECRET: "a".repeat(40) };

@@ -179,6 +179,7 @@ test(
       );
       const tokens = (await exchanged.json()) as {
         access_token: string;
+        refresh_token: string;
         error?: string;
         error_description?: string;
       };
@@ -193,6 +194,26 @@ test(
       const claims = JSON.parse(Buffer.from(tokens.access_token.split(".")[1], "base64url").toString());
       assert.equal(claims.biaws_grant_id, grant.id);
       assert.equal(claims.biaws_workspace_id, workspace.id);
+      assert.equal(typeof tokens.refresh_token, "string");
+      const refreshed = await call(
+        "/api/auth/oauth2/token",
+        new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: tokens.refresh_token,
+          client_id: client.client_id,
+          resource: `${base}/mcp`,
+        }),
+      );
+      if (refreshed.status !== 200) {
+        const failure = (await refreshed.json()) as Record<string, unknown>;
+        assert.fail(
+          JSON.stringify({
+            error: failure.error,
+            error_description: failure.error_description,
+            message: failure.message,
+          }),
+        );
+      }
       const delegate = (secret: string, token: string) =>
         auth.handler(
           new Request(`${base}/api/auth/mcp/delegate`, {

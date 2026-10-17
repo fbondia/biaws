@@ -3,7 +3,7 @@ import { getOAuthProviderApi } from "@better-auth/oauth-provider";
 import { z } from "zod";
 import { oauthGrantHooks } from "./oauthGrantHooks.js";
 import { createMcpOAuthOptions } from "./oauthProvider.js";
-import { requireMcpServiceSecret } from "./oauthDelegationPolicy.js";
+import { requireMcpServiceSecret, classifyMcpDelegationFailure } from "./oauthDelegationPolicy.js";
 import { issueMcpDelegation } from "./oauthDelegations.js";
 
 export function createOAuthDelegationPlugin(resource: string) {
@@ -23,20 +23,12 @@ export function createOAuthDelegationPlugin(resource: string) {
             const claims = await provider.requireActiveAccessToken(ctx.body.subject_token);
             return ctx.json(await issueMcpDelegation(claims, resource));
           } catch (error) {
-            const e = error as { statusCode?: number; code?: string };
-            if (e.statusCode)
-              throw new APIError(
-                e.statusCode === 403 ? "FORBIDDEN" : e.statusCode === 503 ? "SERVICE_UNAVAILABLE" : "UNAUTHORIZED",
-                {
-                  error:
-                    e.code === "INSUFFICIENT_MCP_SCOPE"
-                      ? "insufficient_scope"
-                      : e.code?.startsWith("MCP_SERVICE")
-                        ? "invalid_client"
-                        : "invalid_token",
-                  error_description: "MCP delegation could not be authorized.",
-                },
-              );
+            const failure = classifyMcpDelegationFailure(error);
+            if (failure)
+              throw new APIError(failure.status, {
+                error: failure.error,
+                error_description: "MCP delegation could not be authorized.",
+              });
             throw error;
           }
         },

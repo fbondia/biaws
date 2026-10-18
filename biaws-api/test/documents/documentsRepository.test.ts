@@ -248,3 +248,25 @@ test("replication preserves catalog entries and flattens them when the destinati
   assert.equal(converted.markdown, "## API\n\n**Contrato**");
   assert.equal(converted.details, undefined);
 });
+
+test("catalog storage validates parent relationships and keeps stable tree order", () => {
+  const valid = { id: "root", title: "Serviço", description: "Contrato" };
+  const child = { id: "child", parentId: "root", title: "Endpoint", description: "GET /status" };
+  const tree = normalizeDocumentPayload({
+    documentType: "catalog",
+    title: "Serviços",
+    details: { items: [valid, child] },
+  });
+  assert.deepEqual(tree.details.items, [valid, child]);
+  for (const items of [
+    [child],
+    [{ ...valid, parentId: "root" }],
+    [{ ...valid, parentId: "child" }, child],
+    [{ ...valid, parentId: 42 }],
+  ]) {
+    assert.throws(
+      () => normalizeDocumentPayload({ documentType: "catalog", title: "Inválido", details: { items } }),
+      (error) => errorCode(error) === "INVALID_DOCUMENT_DETAILS",
+    );
+  }
+});

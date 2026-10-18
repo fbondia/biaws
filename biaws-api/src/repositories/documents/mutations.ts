@@ -77,13 +77,14 @@ export async function updateDocument(
   id: string | string[],
   payload: Record<string, unknown> = {},
   query: RepositoryQuery = {},
+  { allowTypeChange = false, expectedUpdatedAt }: { allowTypeChange?: boolean; expectedUpdatedAt?: Date } = {},
 ) {
   id = (await requireDocument(id, query)).id;
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const filter = { id: String(id), ...buildKnowledgeContextFilter(query) };
   const current = await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).findOne(filter);
   if (!current) throw httpError(404, "DOCUMENT_NOT_FOUND", "Documento não encontrado");
-  const normalized = normalizeDocumentPayload(payload, current);
+  const normalized = normalizeDocumentPayload(payload, current, { allowTypeChange });
   const config = documentTypeConfig(normalized.documentType);
   const context = knowledgeContextWasProvided(payload)
     ? await resolveKnowledgeContext(db, payload, current, {
@@ -109,12 +110,17 @@ export async function updateDocument(
     query,
   );
   await validateReferences(db, normalized.references, context.workspaceId, query.authorizationScope, String(id));
-  const updatedAt = new Date();
+  const updatedAt = new Date(Math.max(Date.now(), new Date(current.updatedAt || 0).getTime() + 1));
   const updatedBy = textValue(payload.updatedBy || "biaws-api");
+  let document: StoredKnowledgeDocument | null = null;
   try {
-    await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).updateOne(filter, {
-      $set: { ...context, ...normalized, updatedAt, updatedBy },
-    });
+    document = await db
+      .collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS)
+      .findOneAndUpdate(
+        { ...filter, ...(expectedUpdatedAt ? { updatedAt: expectedUpdatedAt } : {}) },
+        { $set: { ...context, ...normalized, updatedAt, updatedBy } },
+        { returnDocument: "after" },
+      );
   } catch (error) {
     if (isRecord(error) && error.code === 11000 && isRecord(error.keyPattern) && error.keyPattern.identifier) {
       throw httpError(
@@ -125,11 +131,8 @@ export async function updateDocument(
     }
     throw error;
   }
-  const document = await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).findOne({
-    id: String(id),
-    workspaceId: current.workspaceId,
-  });
-  if (!document) throw new Error("Updated document is unavailable");
+  if (!document)
+    throw httpError(409, "DOCUMENT_CHANGED", "O documento foi alterado. Recarregue antes de tentar novamente.");
   await appendRevision(db, document, updatedBy, textValue(payload.changeSummary || "Documento atualizado"));
   return {
     meta: { database: db.databaseName, collection: COLLECTION_NAMES.DOCUMENTS },

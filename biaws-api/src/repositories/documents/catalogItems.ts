@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { catalogHierarchyError } from "../../../../shared/catalogTree.js";
 import { isRecord } from "../../helpers/records.js";
 import { httpError } from "./support.js";
 
@@ -7,7 +8,7 @@ export function normalizeCatalogItems(value: unknown = []) {
     throw httpError(422, "INVALID_DOCUMENT_DETAILS", "details.items deve ser um array com até 500 elementos");
   }
   const ids = new Set<string>();
-  return value.map((item, index) => {
+  const items = value.map((item, index) => {
     const field = `details.items[${index}]`;
     if (!isRecord(item)) {
       throw httpError(422, "INVALID_DOCUMENT_DETAILS", `${field} deve ser um objeto`);
@@ -23,6 +24,18 @@ export function normalizeCatalogItems(value: unknown = []) {
       throw httpError(422, "INVALID_DOCUMENT_DETAILS", `${field}.id deve ser único e ter entre 1 e 80 caracteres`);
     }
     ids.add(id.trim());
-    return { id: id.trim(), title: item.title.trim(), description: item.description.trim() };
+    if (item.parentId !== undefined && (typeof item.parentId !== "string" || item.parentId.length > 80)) {
+      throw httpError(422, "INVALID_DOCUMENT_DETAILS", `${field}.parentId deve ser um ID de até 80 caracteres`);
+    }
+    const parentId = typeof item.parentId === "string" ? item.parentId.trim() : "";
+    return {
+      id: id.trim(),
+      title: item.title.trim(),
+      description: item.description.trim(),
+      ...(parentId ? { parentId } : {}),
+    };
   });
+  const hierarchyError = catalogHierarchyError(items);
+  if (hierarchyError) throw httpError(422, "INVALID_DOCUMENT_DETAILS", hierarchyError);
+  return items;
 }

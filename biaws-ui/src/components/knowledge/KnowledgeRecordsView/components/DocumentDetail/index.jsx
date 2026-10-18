@@ -14,6 +14,7 @@ import {
 } from "./DocumentChrome.jsx";
 import { DocumentFilesPanel } from "./DocumentFilesPanel.jsx";
 import { CatalogEditor, CatalogItems } from "./CatalogContent.jsx";
+import { DocumentConversionDialog } from "./DocumentConversionDialog.jsx";
 import { DocumentOverview } from "./DocumentOverview.jsx";
 import { ReferencesEditor } from "./ReferencesEditor.jsx";
 import { useDocumentDetail } from "./hooks/useDocumentDetail.js";
@@ -58,7 +59,7 @@ function DocumentTabContent({
     case "content":
       return (
         <div className="dialogForm knowledgeRecordPanel">
-          <div className="field">
+          <div className={draft.documentType === "catalog" ? "field knowledgeCatalogIntroduction" : "field"}>
             {draft.documentType === "catalog" ? <span>Introdução (opcional)</span> : null}
             {canUpdate ? (
               <MarkdownEditor
@@ -141,6 +142,7 @@ export function DocumentDetail({
   draft,
   onArchive,
   onChange,
+  onConvert,
   onDelete,
   onRestore,
   onSave,
@@ -149,6 +151,7 @@ export function DocumentDetail({
   workspaces,
 }) {
   const config = DOCUMENT_TYPES[draft.documentType];
+  const [conversionDialogOpen, setConversionDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [replicationDialogOpen, setReplicationDialogOpen] = useState(false);
   const { contentRef, exportMarkdown, exportPdf } = useDocumentExports(draft);
@@ -163,6 +166,7 @@ export function DocumentDetail({
     observations,
     referenceOptions,
     refreshKey,
+    refreshDetail,
     revisions,
     setObservationDraft,
     setShowDetails,
@@ -198,6 +202,9 @@ export function DocumentDetail({
         onExport={() => setExportDialogOpen(true)}
         onReplicate={
           workspaces.some(({ id }) => id !== currentWorkspaceId) ? () => setReplicationDialogOpen(true) : undefined
+        }
+        onConvert={
+          canUpdate && onConvert && draft.status !== "archived" ? () => setConversionDialogOpen(true) : undefined
         }
         onSave={onSave}
         saving={saving}
@@ -264,6 +271,19 @@ export function DocumentDetail({
         >
           {detailsPanel}
         </div>
+      ) : null}
+      {conversionDialogOpen ? (
+        <DocumentConversionDialog
+          draft={draft}
+          catalog={catalog}
+          onClose={() => setConversionDialogOpen(false)}
+          onConvert={async (options) => {
+            await onConvert(options);
+            setShowDetails(false);
+            setTab("overview");
+            refreshDetail();
+          }}
+        />
       ) : null}
       <DocumentExportDialog
         onClose={() => setExportDialogOpen(false)}

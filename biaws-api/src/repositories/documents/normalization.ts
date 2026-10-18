@@ -164,11 +164,16 @@ function summaryFrom(markdown: string) {
 export function normalizeDocumentPayload(
   payload: Record<string, unknown> = {},
   current: KnowledgeDocument | null = null,
+  { allowTypeChange = false } = {},
 ) {
   const documentType = textValue(payload.documentType ?? current?.documentType ?? "").trim();
   const config = documentTypeConfig(documentType);
-  if (current && documentType !== current.documentType) {
-    throw httpError(422, "DOCUMENT_TYPE_IMMUTABLE", "documentType não pode ser alterado após a criação");
+  if (current && documentType !== current.documentType && !allowTypeChange) {
+    throw httpError(
+      422,
+      "DOCUMENT_TYPE_IMMUTABLE",
+      "documentType não pode ser alterado nesta operação; use a conversão de documento",
+    );
   }
   const title = textValue(payload.title ?? current?.title ?? "").trim();
   const markdown = textValue(payload.markdown ?? current?.markdown ?? "").trim();

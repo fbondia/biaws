@@ -18,6 +18,10 @@ export function saveDocument(id, document) {
   return sendJson(`${BASE_PATH}/${encodeURIComponent(id)}`, document, undefined, "PUT");
 }
 
+export function convertDocument(id, options) {
+  return sendJson(`${BASE_PATH}/${encodeURIComponent(id)}/convert`, options, undefined, "POST");
+}
+
 export function archiveDocument(id) {
   return deleteJson(`${BASE_PATH}/${encodeURIComponent(id)}`);
 }

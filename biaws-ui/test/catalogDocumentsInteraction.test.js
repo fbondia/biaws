@@ -67,7 +67,10 @@ async function mount(document, props = {}) {
 }
 async function click(element) {
   assert.ok(element);
-  await harnessModule.act(async () => element.click());
+  await harnessModule.act(async () => {
+    element.focus();
+    element.click();
+  });
 }
 const button = (label) =>
   [...document.querySelectorAll("button")].find(
@@ -192,4 +195,143 @@ test("catalog exports include all collapsed descriptions in Markdown and printab
   assert.ok(printDom.window.document.body.textContent.includes("Processamento assíncrono"));
   assert.equal(document.querySelector(".knowledgeDocumentReading details").open, false);
   printDom.window.close();
+});
+
+async function select(label, value) {
+  const element = document.querySelector(`[aria-label="${label}"]`);
+  assert.ok(element);
+  await harnessModule.act(async () => {
+    element.value = value;
+    element.dispatchEvent(new window.Event("change", { bubbles: true }));
+  });
+}
+async function drag(handle, target) {
+  const dataTransfer = { setData() {}, effectAllowed: "", dropEffect: "" };
+  await harnessModule.act(async () => {
+    const start = new window.Event("dragstart", { bubbles: true });
+    Object.defineProperty(start, "dataTransfer", { value: dataTransfer });
+    handle.dispatchEvent(start);
+  });
+  const dropTarget = target();
+  assert.ok(dropTarget);
+  await harnessModule.act(async () => {
+    for (const type of ["dragover", "drop"]) {
+      const event = new window.Event(type, { bubbles: true, cancelable: true });
+      Object.defineProperty(event, "dataTransfer", { value: dataTransfer });
+      dropTarget.dispatchEvent(event);
+    }
+  });
+}
+
+test("conversion button opens a focused dialog and sends the selected target and metadata policy", async () => {
+  const calls = [];
+  await mount(
+    {
+      id: "rule-one",
+      documentType: "business-rule",
+      title: "Regra",
+      applicationId: "app-one",
+      details: { ruleCode: "RN-1" },
+      markdown: "Regra",
+    },
+    { onConvert: async (options) => calls.push(options) },
+  );
+  await click(button("Detalhes"));
+  await click(button("Trocar tipo de documento"));
+  assert.equal(document.activeElement.getAttribute("aria-label"), "Tipo de destino");
+  assert.equal(button("Converter documento").disabled, true);
+  await select("Tipo de destino", "free-text");
+  await click(
+    [...document.querySelectorAll(".knowledgeConversionDialog label")]
+      .find((element) => element.textContent.includes("Descartar os dados adicionais"))
+      .querySelector("input"),
+  );
+  await click(button("Converter documento"));
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].targetType, "free-text");
+  assert.equal(calls[0].additionalData, "discard");
+  assert.equal(document.querySelector(".knowledgeConversionDialog"), null);
+});
+
+test("catalog target offers conversion or incorporation and loads only other active catalogs", async () => {
+  const calls = [];
+  let catalogRequests = 0;
+  globalThis.fetch = async (url) => {
+    if (url.searchParams.get("documentType") === "catalog") {
+      catalogRequests += 1;
+      return Response.json({
+        items: [
+          catalog,
+          { id: "target", documentType: "catalog", title: "Destino" },
+          { id: "archived", status: "archived", title: "Arquivo" },
+        ],
+        meta: { totalPages: 1 },
+      });
+    }
+    return Response.json({ items: [], meta: { totalPages: 1 } });
+  };
+  await mount(catalog, { onConvert: async (options) => calls.push(options) });
+  await click(button("Detalhes"));
+  await click(button("Trocar tipo de documento"));
+  await select("Tipo de destino", "catalog");
+  assert.equal(catalogRequests, 1);
+  const target = document.querySelector('[aria-label="Catálogo de destino"]');
+  assert.deepEqual(
+    [...target.options].map(({ value }) => value),
+    ["", "target"],
+  );
+  await select("Catálogo de destino", "target");
+  await click(button("Incorporar ao catálogo"));
+  assert.deepEqual(calls[0], {
+    targetType: "catalog",
+    additionalData: "append",
+    mode: "catalog-item",
+    targetCatalogId: "target",
+  });
+});
+
+test("conversion reports errors, requires the target application, and closes on Escape", async () => {
+  await mount(
+    { id: "text-one", documentType: "free-text", title: "Notas", markdown: "Texto" },
+    {
+      onConvert: async () => {
+        throw new Error("Destino sem permissão");
+      },
+      catalog: { applications: [{ id: "app-one", name: "Aplicação" }], components: [] },
+    },
+  );
+  await click(button("Detalhes"));
+  await click(button("Trocar tipo de documento"));
+  await select("Tipo de destino", "business-rule");
+  assert.equal(button("Converter documento").disabled, true);
+  await select("Aplicação do documento", "app-one");
+  await click(button("Converter documento"));
+  assert.equal(document.querySelector(".knowledgeConversionDialog [role=alert]").textContent, "Destino sem permissão");
+  await harnessModule.act(async () =>
+    document
+      .querySelector(".knowledgeConversionDialog")
+      .dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+  );
+  assert.equal(document.querySelector(".knowledgeConversionDialog"), null);
+  assert.equal(document.activeElement.getAttribute("aria-label"), "Trocar tipo de documento");
+});
+
+test("catalog drag nests an item and preserves its text when moving it back to root", async () => {
+  await mount(catalog);
+  await click(button("Detalhes"));
+  await click(button("Conteúdo"));
+  await drag(button("Arrastar elemento 2"), () =>
+    document.querySelector(".knowledgeDetailsDialog .knowledgeCatalogSummary"),
+  );
+  const editor = document.querySelector(".knowledgeDetailsDialog .knowledgeCatalogEditor");
+  assert.equal(editor.querySelectorAll(":scope > .knowledgeCatalogItems > details").length, 1);
+  assert.equal(editor.querySelector("details details input").value, "Worker");
+  assert.equal(editor.querySelector("details details textarea").value, "Processamento assíncrono");
+  await drag(button("Arrastar elemento 2"), () =>
+    [...editor.querySelectorAll('[aria-label="Mover para a raiz do catálogo"]')].at(-1),
+  );
+  assert.equal(editor.querySelectorAll(":scope > .knowledgeCatalogItems > details").length, 2);
+  await click(button("Aninhar elemento 2"));
+  await click(button("Mover elemento 2 para o nível acima"));
+  assert.equal(editor.querySelectorAll(":scope > .knowledgeCatalogItems > details").length, 2);
 });

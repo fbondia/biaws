@@ -47,3 +47,97 @@
 .knowledgeCatalogItemBody > button {
   justify-self: start;
 }
+
+.knowledgeCatalogEditor {
+  overflow-x: auto;
+}
+
+.knowledgeCatalogSummary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+}
+
+.knowledgeCatalogSummary::-webkit-details-marker {
+  display: none;
+}
+
+.knowledgeCatalogSummary > span {
+  min-width: 0;
+  flex: 1;
+}
+
+.knowledgeCatalogSummary > small {
+  color: var(--color-accent-text);
+  font-size: 12px;
+}
+
+.knowledgeCatalogItem[open] > .knowledgeCatalogSummary > .knowledgeCatalogChevron {
+  transform: rotate(90deg);
+}
+
+.knowledgeCatalogDragHandle {
+  flex: 0 0 auto;
+  cursor: grab;
+}
+
+.knowledgeCatalogItemActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.knowledgeCatalogItemBody > .knowledgeCatalogItems {
+  border-left: 2px solid var(--color-border);
+  padding-left: 10px;
+}
+
+.knowledgeCatalogItemBody .knowledgeCatalogItem {
+  min-width: 240px;
+}
+
+.knowledgeCatalogDragging {
+  opacity: 0.55;
+}
+
+.knowledgeCatalogDropZone {
+  position: relative;
+  height: 0;
+}
+
+.knowledgeCatalogDropZone > span {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 auto;
+  min-height: 20px;
+  transform: translateY(-50%);
+  border: 1px dashed var(--color-accent-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: 2px 10px;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+
+.knowledgeCatalogDropZone.knowledgeCatalogDropActive > span {
+  outline: 2px solid var(--color-focus);
+  background: var(--color-accent-soft);
+}
+
+.knowledgeCatalogDropActive {
+  outline: 2px solid var(--color-focus);
+  background: var(--color-accent-soft);
+}
+
+.knowledgeCatalogItemBody > .markdownPreview {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.knowledgeRecordPanel > .knowledgeCatalogIntroduction .markdownEditor > textarea,
+.knowledgeRecordPanel > .knowledgeCatalogIntroduction .markdownPreview {
+  min-height: 120px;
+}

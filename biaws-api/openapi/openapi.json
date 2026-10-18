@@ -9304,6 +9304,126 @@
         }
       }
     },
+    "/api/knowledge/documents/{id}/convert": {
+      "post": {
+        "operationId": "knowledgeRecords_post_documents_id_convert",
+        "tags": ["knowledgeRecords"],
+        "summary": "POST /api/knowledge/documents/:id/convert",
+        "description": "A autorização por operação/campo e as regras de domínio continuam aplicadas pelo backend.",
+        "security": [{ "sessionCookie": [] }, { "bearerApiKey": [] }],
+        "parameters": [
+          { "schema": { "type": "string", "minLength": 1 }, "required": true, "name": "id", "in": "path" },
+          {
+            "schema": { "type": "string", "description": "Página; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Página; interpretação e defaults dependem da operação",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "description": "Limite; interpretação e defaults dependem da operação" },
+            "required": false,
+            "description": "Limite; interpretação e defaults dependem da operação",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Necessário quando a identidade possui acesso a múltiplos workspaces; dispensado em rotas de plataforma"
+            },
+            "required": false,
+            "description": "Necessário quando a identidade possui acesso a múltiplos workspaces; dispensado em rotas de plataforma",
+            "name": "X-Biaws-Workspace-Id",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "targetType": {
+                    "type": "string",
+                    "enum": [
+                      "business-rule",
+                      "architecture-decision",
+                      "guideline",
+                      "feature",
+                      "technical-reference",
+                      "procedure",
+                      "free-text",
+                      "catalog"
+                    ]
+                  },
+                  "additionalData": { "type": "string", "enum": ["discard", "append"] },
+                  "mode": { "type": "string", "enum": ["convert", "catalog-item"] },
+                  "targetCatalogId": { "type": "string", "minLength": 1 },
+                  "applicationId": { "type": ["string", "null"] },
+                  "affectedComponentIds": {
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 },
+                    "maxItems": 100
+                  },
+                  "expectedUpdatedAt": { "type": "string", "format": "date-time" }
+                },
+                "required": ["targetType", "additionalData"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Resposta pública",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": {},
+                  "description": "Objeto JSON público; formato específico permanece no contrato do domínio"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Consulta ou requisição inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "401": {
+            "description": "Autenticação necessária",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "403": {
+            "description": "Acesso negado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "404": {
+            "description": "Recurso não encontrado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          },
+          "422": {
+            "description": "Entrada ou regra de domínio inválida",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicError" } } }
+          }
+        }
+      }
+    },
     "/api/knowledge/documents/{id}/observations": {
       "get": {
         "operationId": "knowledgeRecords_get_documents_id_observations",

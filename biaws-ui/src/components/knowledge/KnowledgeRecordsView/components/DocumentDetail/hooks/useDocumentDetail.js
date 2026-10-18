@@ -63,6 +63,7 @@ export function useDocumentDetail(draft) {
     observations,
     referenceOptions,
     refreshKey,
+    refreshDetail: () => setRefreshKey((value) => value + 1),
     revisions,
     setObservationDraft,
     setShowDetails,

@@ -578,6 +578,11 @@
       "handlers": 2
     },
     {
+      "path": "/documents/:id/convert",
+      "methods": ["post"],
+      "handlers": 2
+    },
+    {
       "path": "/documents/:id/attachments",
       "methods": ["post"],
       "handlers": 3

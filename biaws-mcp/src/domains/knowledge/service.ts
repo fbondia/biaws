@@ -52,7 +52,7 @@ export function listDocumentTypes() {
     commonRules: {
       workspaceId: "implicit-from-mcp-configuration",
       affectedComponentIds: "requires-applicationId",
-      documentType: "immutable-after-creation",
+      documentType: "change-only-through-explicit-conversion",
       repositorySource: "repositoryId-and-path-required",
     },
   };

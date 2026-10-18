@@ -1,11 +1,11 @@
-import { Archive, ArchiveRestore, CopyPlus, Download, Save, Settings2, Trash2, X } from "lucide-react";
+import { ArrowRightLeft, Archive, ArchiveRestore, CopyPlus, Download, Save, Settings2, Trash2, X } from "lucide-react";
 
 import { MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
 import { EntityIdentifier } from "../../../../shared/EntityIdentifier/index.jsx";
 import { CatalogItems } from "./CatalogContent.jsx";
 import { DOCUMENT_TABS } from "../../model.js";
 
-function DocumentActionButtons({ onExport, onReplicate }) {
+function DocumentActionButtons({ onExport, onReplicate, onConvert }) {
   return (
     <>
       <button aria-label="Exportar documento" className="iconButton" onClick={onExport} title="Exportar" type="button">
@@ -22,6 +22,17 @@ function DocumentActionButtons({ onExport, onReplicate }) {
           <CopyPlus aria-hidden="true" size={16} />
         </button>
       ) : null}
+      {onConvert ? (
+        <button
+          aria-label="Trocar tipo de documento"
+          className="iconButton"
+          onClick={onConvert}
+          title="Trocar tipo"
+          type="button"
+        >
+          <ArrowRightLeft aria-hidden="true" size={16} />
+        </button>
+      ) : null}
     </>
   );
 }
@@ -33,6 +44,7 @@ export function KnowledgeRecordHeader({
   onClose,
   onExport,
   onReplicate,
+  onConvert,
   onSave,
   saving,
   titleId,
@@ -50,7 +62,9 @@ export function KnowledgeRecordHeader({
         </div>
       </div>
       <div className="knowledgeRecordActions">
-        {draft.id ? <DocumentActionButtons onExport={onExport} onReplicate={onReplicate} /> : null}
+        {draft.id ? (
+          <DocumentActionButtons onExport={onExport} onReplicate={onReplicate} onConvert={onConvert} />
+        ) : null}
         {canUpdate ? (
           <button className="primaryButton" disabled={saving} onClick={() => onSave()} type="button">
             <Save size={16} /> {saving ? "Salvando..." : "Salvar"}

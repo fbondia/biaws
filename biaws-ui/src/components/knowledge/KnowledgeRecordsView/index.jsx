@@ -122,6 +122,7 @@ export function KnowledgeRecordsView({ actor }) {
     collectionsState,
     componentFilter,
     continueCreation,
+    convert,
     createType,
     creating,
     draft,
@@ -297,6 +298,7 @@ export function KnowledgeRecordsView({ actor }) {
             key={draft.id || `new-${draft.documentType}`}
             onArchive={() => archive(draft)}
             onChange={setDraft}
+            onConvert={convert}
             onDelete={() => remove(draft)}
             onRestore={() => restore(draft)}
             onSave={persist}

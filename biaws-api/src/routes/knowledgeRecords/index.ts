@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { registerListDocumentTypes } from "./listDocumentTypes.js";
+import { registerCreateDocumentsConversion } from "./documents/createDocumentsConversion.js";
 import { registerListDocuments } from "./listDocuments.js";
 import { registerCreateDocument } from "./createDocument.js";
 import { registerCreateDocumentsAttachment } from "./documents/createDocumentsAttachment.js";
@@ -27,6 +28,7 @@ export const knowledgeRecordsRouter = Router();
 registerListDocumentTypes(knowledgeRecordsRouter);
 registerListDocuments(knowledgeRecordsRouter);
 registerCreateDocument(knowledgeRecordsRouter);
+registerCreateDocumentsConversion(knowledgeRecordsRouter);
 registerCreateDocumentsAttachment(knowledgeRecordsRouter);
 registerGetDocumentsAttachment(knowledgeRecordsRouter);
 registerDeleteDocumentsAttachment(knowledgeRecordsRouter);

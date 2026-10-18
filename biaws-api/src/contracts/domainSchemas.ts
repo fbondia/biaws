@@ -1,5 +1,18 @@
 import { textValue } from "../helpers/text.js";
 import { z } from "zod";
+import { DOCUMENT_TYPES } from "../../../shared/documentTypes.js";
+
+export const documentConversionBodySchema = z
+  .object({
+    targetType: z.enum(DOCUMENT_TYPES as [string, ...string[]]),
+    additionalData: z.enum(["discard", "append"]),
+    mode: z.enum(["convert", "catalog-item"]).optional(),
+    targetCatalogId: z.string().min(1).optional(),
+    applicationId: z.string().nullable().optional(),
+    affectedComponentIds: z.array(z.string().min(1)).max(100).optional(),
+    expectedUpdatedAt: z.iso.datetime().optional(),
+  })
+  .strict();
 
 // These schemas describe the HTTP boundary. Database relations, authorization,
 // dynamic option lists and uniqueness remain in the domain repositories.
@@ -112,6 +125,9 @@ export const domainBodySchemas = {
 export type ContractDomain = keyof typeof domainBodySchemas;
 
 export function operationBodySchema(domain: ContractDomain, method: string, routePath: string): z.ZodType {
+  if (domain === "knowledgeRecordsRouter" && method === "post" && routePath === "/documents/:id/convert") {
+    return documentConversionBodySchema;
+  }
   if (domain === "oauthRouter" && method === "post") {
     const query = z.string().min(1).max(16384);
     return routePath === "/decision"

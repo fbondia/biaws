@@ -12,6 +12,7 @@ const catalogDetailsSchema = {
         required: ["title", "description"],
         properties: {
           id: { type: "string", minLength: 1, maxLength: 80 },
+          parentId: { type: "string", maxLength: 80 },
           title: { type: "string", minLength: 1, maxLength: 240 },
           description: { type: "string", minLength: 1 },
         },

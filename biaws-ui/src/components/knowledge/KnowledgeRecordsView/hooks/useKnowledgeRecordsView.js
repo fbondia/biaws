@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   archiveDocument,
   createDocument,
+  convertDocument,
   deleteDocument,
   fetchDocument,
   fetchDocuments,
@@ -143,6 +144,22 @@ export function useKnowledgeRecordsView(actor) {
     }
   }
 
+  async function convert(options) {
+    setSaving(true);
+    setError("");
+    try {
+      // Save pending edits before applying the explicit conversion policy.
+      const saved = await saveDocument(draft.id, draft);
+      setDraft(normalizedDraft(saved.document));
+      const result = await convertDocument(draft.id, { ...options, expectedUpdatedAt: saved.document.updatedAt });
+      setDraft(normalizedDraft(result.document));
+      collectionsState.setSelectedCollectionId(result.document.collectionId || "");
+      await load();
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function archive(record) {
     if (!(await confirm(`Arquivar “${record.title}”?`))) return;
     try {
@@ -229,6 +246,7 @@ export function useKnowledgeRecordsView(actor) {
     collectionsState,
     componentFilter,
     continueCreation,
+    convert,
     createType,
     creating,
     draft,

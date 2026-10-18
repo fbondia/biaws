@@ -2,8 +2,9 @@
 
 O Bondia Workspaces mantém regras de negócio, decisões arquiteturais, guidelines,
 features, referências técnicas, procedimentos, textos livres e catálogos em uma
-única coleção de documentos. O campo `documentType` é um discriminador obrigatório e imutável;
-ele define validação, template, metadados específicos e ciclo de vida.
+única coleção de documentos. O campo `documentType` é um discriminador obrigatório;
+ele define validação, template, metadados específicos e ciclo de vida. A edição
+comum não altera esse campo; trocas exigem a operação explícita de conversão.
 
 ## Tipos e ciclos de vida
 
@@ -41,8 +42,10 @@ letras minúsculas, números e hífens simples. Campos específicos ficam em
 - feature: `maturity`;
 - referência técnica: `referenceKind`;
 - catálogo: `items`, uma lista ordenada de até 500 elementos com `id`, `title` e
-  `description` (Markdown). O título tem até 240 caracteres e a descrição é
-  obrigatória; o ID estável é gerado quando omitido.
+  `description` (Markdown), além de `parentId` opcional para aninhamento. O título
+  tem até 240 caracteres e a descrição é obrigatória; o ID estável é gerado
+  quando omitido. O item pai deve pertencer ao mesmo catálogo. Ciclos são
+  recusados e a árvore permite até 20 níveis.
 
 Procedimentos não possuem campos adicionais em `details`; sua estrutura é
 definida pelo template Markdown do tipo. Textos livres também não possuem
@@ -52,7 +55,11 @@ para um catálogo vazio, do título.
 
 O catálogo permite adicionar, editar e remover elementos na aba **Conteúdo**.
 Cada elemento pode ser expandido ou contraído independentemente, tanto na leitura
-quanto na edição. O Markdown do documento é uma introdução opcional; o conteúdo
+quanto na edição. Arraste pela alça para ordenar; solte sobre o título de outro
+item para aninhar ou nas faixas entre itens para mudar de posição ou nível.
+Os botões de organização oferecem as mesmas ações por teclado. A ordem dos
+irmãos segue a lista `items`, e `parentId` define a árvore. Remover um elemento
+remove também seus descendentes do rascunho. Salvar persiste a nova estrutura. O Markdown do documento é uma introdução opcional; o conteúdo
 dos elementos fica em `details.items` e acompanha as revisões. A exportação
 Markdown, o recurso de conteúdo e o PDF incluem todos os elementos, mesmo
 contraídos na tela.
@@ -80,6 +87,36 @@ Auto-referências, duplicatas e alvos fora do escopo autorizado são recusados.
 `definedAt`, `lastReviewedAt`, `nextReviewAt` e `reviewedBy` distinguem vigência
 conceitual das datas técnicas. Cada alteração cria uma revisão imutável;
 observações são append-only.
+
+## Conversão de documentos
+
+No cabeçalho do diálogo de detalhes, **Trocar tipo de documento** fica ao lado
+das ações de exportação e replicação, para usuários com permissão de atualização.
+O diálogo permite escolher o tipo de destino e descartar os dados adicionais do
+tipo anterior ou incorporá-los em uma seção no rodapé do Markdown. Para catálogos,
+essa escolha inclui todos os itens e seus descendentes.
+
+As alterações pendentes são salvas antes da operação. Converter preserva ID,
+identificador, conteúdo, anexos, referências e histórico, inicializa os metadados
+específicos do destino e ajusta o estado ao ciclo de vida do novo tipo. Quando
+necessário, o diálogo exige uma aplicação. Documentos arquivados precisam ser
+restaurados antes da conversão.
+
+Ao escolher **Catálogo**, pode-se converter o próprio documento (seu Markdown
+vira a introdução) ou incorporá-lo como item de um catálogo existente, no mesmo
+workspace. Na incorporação, o título e o conteúdo viram um item raiz; o documento
+original é preservado. O item contém um link para o original, onde permanecem os
+anexos e o histórico. Referências Markdown a anexos passam a apontar para esse
+documento, sem compartilhar arquivos entre permissões diferentes.
+
+A rota `POST /api/knowledge/documents/:id/convert` exige `documents.update` na
+origem e no destino. O corpo contém `targetType`, `additionalData` (`append` ou
+`discard`) e, para incorporação, `mode: "catalog-item"` e `targetCatalogId`.
+`applicationId` e `affectedComponentIds` podem adequar o contexto da conversão.
+`expectedUpdatedAt` protege a versão de origem; a escrita usa comparação de
+versão para recusar alterações concorrentes. Toda mudança gera revisão e auditoria.
+Incorporar novamente o mesmo documento no mesmo catálogo é recusado para evitar
+duplicação em retentativas.
 
 ## Arquivos no Markdown
 

@@ -60,8 +60,20 @@ test("new document types validate catalog entries and preserve existing Markdown
       }),
     );
   }
+  assert.doesNotThrow(() =>
+    validateArguments(create, {
+      documentType: "catalog",
+      title: "Serviços",
+      details: {
+        items: [
+          { title: "API", hideDescription: true },
+          { title: "Worker", description: "" },
+        ],
+      },
+    }),
+  );
   for (const payload of [
-    { documentType: "catalog", title: "Inválido", details: { items: [{ title: "API" }] } },
+    { documentType: "catalog", title: "Inválido", details: { items: [{ title: "API", description: {} }] } },
     { documentType: "catalog", title: "Inválido", details: { items: "texto" } },
     { documentType: "catalog", title: "Inválido", affectedComponentIds: ["sem-aplicação"] },
     { documentType: "free-text", title: "Sem conteúdo", markdown: "" },

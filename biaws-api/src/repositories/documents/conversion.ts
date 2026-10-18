@@ -55,7 +55,7 @@ export async function convertDocument(
   const items = normalizeCatalogItems(target.details.items);
   if (items.some(({ id }) => id === item.id))
     throw httpError(409, "DOCUMENT_ALREADY_IN_CATALOG", "Este documento já foi incorporado ao catálogo");
-  const nextItems = normalizeCatalogItems([...items, item]);
+  const nextItems = normalizeCatalogItems([item, ...items]);
   const db = await getMongoDatabase({ db: query.db, database: query.database });
   const document = await db.collection<StoredKnowledgeDocument>(COLLECTION_NAMES.DOCUMENTS).findOneAndUpdate(
     {

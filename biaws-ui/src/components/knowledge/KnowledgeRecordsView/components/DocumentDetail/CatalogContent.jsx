@@ -4,11 +4,13 @@ import {
   ChevronRight,
   CornerDownRight,
   CornerUpLeft,
+  Eye,
+  EyeOff,
   GripVertical,
   Plus,
   Trash2,
 } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Fragment, useLayoutEffect, useRef, useState } from "react";
 
 import {
   MAX_CATALOG_DEPTH,
@@ -19,19 +21,25 @@ import {
 } from "../../../../../../../shared/catalogTree.js";
 import { MarkdownEditor, MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
 
-export function CatalogItems({ items = [], attachments, onLoadAttachment, parentId = "" }) {
+export function CatalogItems({ items = [], attachments, onLoadAttachment, parentId = "", depth = 0 }) {
   const children = catalogChildren(items, parentId);
   if (!children.length) return parentId ? null : <p className="muted">Nenhum elemento no catálogo.</p>;
   return (
     <div className="knowledgeCatalogItems">
       {children.map((item) => (
-        <details className="knowledgeCatalogItem" key={item.id}>
+        <details
+          className={`knowledgeCatalogItem${depth % 2 ? " knowledgeCatalogItemAlternateSurface" : ""}`}
+          key={item.id}
+        >
           <summary>{item.title}</summary>
           <div className="knowledgeCatalogItemBody">
-            <MarkdownPreview attachments={attachments} onLoadAttachment={onLoadAttachment} value={item.description} />
+            {!item.hideDescription && item.description?.trim() ? (
+              <MarkdownPreview attachments={attachments} onLoadAttachment={onLoadAttachment} value={item.description} />
+            ) : null}
             <CatalogItems
               items={items}
               parentId={item.id}
+              depth={depth + 1}
               attachments={attachments}
               onLoadAttachment={onLoadAttachment}
             />
@@ -46,6 +54,23 @@ export function CatalogEditor({ draft, onChange, onLoadAttachment }) {
   const items = draft.details.items || [];
   const [dragId, setDragId] = useState("");
   const [dropTarget, setDropTarget] = useState("");
+  const editorRef = useRef(null);
+  const pendingFocusId = useRef("");
+
+  useLayoutEffect(() => {
+    if (!pendingFocusId.current) return;
+    const input = [...(editorRef.current?.querySelectorAll("[data-catalog-item-title]") || [])].find(
+      (element) => element.dataset.catalogItemTitle === pendingFocusId.current,
+    );
+    if (!input) return;
+    // Reveal the new item and its ancestors before moving focus into it.
+    for (let details = input.closest("details"); details; details = details.parentElement?.closest("details")) {
+      details.open = true;
+    }
+    pendingFocusId.current = "";
+    input.focus();
+    input.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [items]);
   function changeItems(nextItems) {
     onChange({ ...draft, details: { ...draft.details, items: nextItems } });
   }
@@ -54,7 +79,9 @@ export function CatalogEditor({ draft, onChange, onLoadAttachment }) {
   }
   function addItem(parentId = "") {
     if (items.length >= 500) return;
-    changeItems([...items, { id: crypto.randomUUID(), title: "", description: "", ...(parentId ? { parentId } : {}) }]);
+    const id = crypto.randomUUID();
+    pendingFocusId.current = id;
+    changeItems([{ id, title: "", description: "", ...(parentId ? { parentId } : {}) }, ...items]);
   }
   function move(id, parentId = "", beforeId = "") {
     changeItems(moveCatalogItem(items, id, parentId, beforeId));
@@ -100,7 +127,7 @@ export function CatalogEditor({ draft, onChange, onLoadAttachment }) {
       </div>
     );
   }
-  function renderItems(parentId = "") {
+  function renderItems(parentId = "", depth = 0) {
     const siblings = catalogChildren(items, parentId);
     return (
       <div className="knowledgeCatalogItems">
@@ -115,7 +142,7 @@ export function CatalogEditor({ draft, onChange, onLoadAttachment }) {
             <Fragment key={item.id}>
               {dropZone(parentId, item.id)}
               <details
-                className={`knowledgeCatalogItem ${dragId === item.id ? "knowledgeCatalogDragging" : ""} ${dropTarget === `inside:${item.id}` ? "knowledgeCatalogDropActive" : ""}`}
+                className={`knowledgeCatalogItem ${depth % 2 ? "knowledgeCatalogItemAlternateSurface" : ""} ${dragId === item.id ? "knowledgeCatalogDragging" : ""} ${dropTarget === `inside:${item.id}` ? "knowledgeCatalogDropActive" : ""}`}
               >
                 <summary className="knowledgeCatalogSummary" {...dropHandlers(item.id, "", `inside:${item.id}`)}>
                   <ChevronRight className="knowledgeCatalogChevron" size={16} aria-hidden="true" />
@@ -196,47 +223,66 @@ export function CatalogEditor({ draft, onChange, onLoadAttachment }) {
                   </span>
                 </summary>
                 <div className="knowledgeCatalogItemBody">
-                  <label className="field">
-                    <span>Título / nome</span>
-                    <input
-                      aria-label={`Título do elemento ${number}`}
-                      maxLength={240}
-                      onChange={(event) => updateItem(item.id, { title: event.target.value })}
-                      required
-                      value={item.title}
-                    />
-                  </label>
-                  <div className="field">
-                    <span>Descrição em Markdown</span>
-                    <MarkdownEditor
-                      ariaLabel={`Descrição do elemento ${number}`}
-                      attachments={draft.attachments}
-                      initialMode="text"
-                      onChange={(description) => updateItem(item.id, { description })}
-                      onLoadAttachment={onLoadAttachment}
-                      value={item.description}
-                    />
-                  </div>
-                  <div className="knowledgeCatalogItemActions">
+                  <div className="knowledgeCatalogTitleEditor">
+                    <label className="field">
+                      <span>Título / nome</span>
+                      <input
+                        aria-label={`Título do elemento ${number}`}
+                        data-catalog-item-title={item.id}
+                        maxLength={240}
+                        onChange={(event) => updateItem(item.id, { title: event.target.value })}
+                        required
+                        value={item.title}
+                      />
+                    </label>
                     <button
-                      className="secondaryButton"
+                      aria-label={`${item.hideDescription ? "Exibir" : "Ocultar"} descrição do elemento ${number}`}
+                      aria-pressed={Boolean(item.hideDescription)}
+                      className="iconButton knowledgeCatalogDescriptionToggle"
+                      title={item.hideDescription ? "Exibir descrição" : "Ocultar descrição"}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        updateItem(item.id, { hideDescription: !item.hideDescription });
+                      }}
+                      type="button"
+                    >
+                      {item.hideDescription ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                    <button
+                      aria-label="Adicionar subitem"
+                      className="iconButton"
+                      title="Adicionar subitem"
                       disabled={items.length >= 500 || !canDropDepth(item.id)}
                       onClick={() => addItem(item.id)}
                       type="button"
                     >
-                      <Plus size={16} /> Adicionar subitem
+                      <Plus size={16} aria-hidden="true" />
                     </button>
                     <button
                       aria-label={`Remover elemento ${number}`}
-                      className="dangerButton"
+                      className="iconButton dangerIconButton"
+                      title={subtreeSize > 1 ? `Remover elemento e ${subtreeSize - 1} subitens` : "Remover elemento"}
                       onClick={() => changeItems(removeCatalogItem(items, item.id))}
                       type="button"
                     >
-                      <Trash2 size={16} />{" "}
-                      {subtreeSize > 1 ? `Remover elemento e ${subtreeSize - 1} subitens` : "Remover elemento"}
+                      <Trash2 size={16} aria-hidden="true" />
                     </button>
                   </div>
-                  {renderItems(item.id)}
+                  {!item.hideDescription ? (
+                    <div className="field">
+                      <span>Descrição em Markdown (opcional)</span>
+                      <MarkdownEditor
+                        ariaLabel={`Descrição do elemento ${number}`}
+                        attachments={draft.attachments}
+                        initialMode="text"
+                        onChange={(description) => updateItem(item.id, { description })}
+                        onLoadAttachment={onLoadAttachment}
+                        value={item.description || ""}
+                      />
+                    </div>
+                  ) : null}
+                  {renderItems(item.id, depth + 1)}
                 </div>
               </details>
             </Fragment>
@@ -255,7 +301,7 @@ export function CatalogEditor({ draft, onChange, onLoadAttachment }) {
     return depth <= MAX_CATALOG_DEPTH;
   }
   return (
-    <section className="knowledgeCatalogEditor" aria-label="Elementos do catálogo">
+    <section className="knowledgeCatalogEditor" aria-label="Elementos do catálogo" ref={editorRef}>
       <div className="knowledgeCatalogToolbar">
         <h3>Elementos do catálogo ({items.length})</h3>
         <button className="secondaryButton" disabled={items.length >= 500} onClick={() => addItem()} type="button">

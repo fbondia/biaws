@@ -43,8 +43,9 @@ letras minúsculas, números e hífens simples. Campos específicos ficam em
 - referência técnica: `referenceKind`;
 - catálogo: `items`, uma lista ordenada de até 500 elementos com `id`, `title` e
   `description` (Markdown), além de `parentId` opcional para aninhamento. O título
-  tem até 240 caracteres e a descrição é obrigatória; o ID estável é gerado
-  quando omitido. O item pai deve pertencer ao mesmo catálogo. Ciclos são
+  tem até 240 caracteres e a descrição é opcional; o ID estável é gerado
+  quando omitido. `hideDescription` permite ocultar a descrição de cada item sem
+  apagar o conteúdo salvo. O item pai deve pertencer ao mesmo catálogo. Ciclos são
   recusados e a árvore permite até 20 níveis.
 
 Procedimentos não possuem campos adicionais em `details`; sua estrutura é
@@ -54,6 +55,11 @@ Nos dois novos tipos, o resumo pode ser omitido: ele é derivado do conteúdo ou
 para um catálogo vazio, do título.
 
 O catálogo permite adicionar, editar e remover elementos na aba **Conteúdo**.
+Novos itens e subitens entram no topo de seu nível. O botão ao lado direito do
+campo de digitação do título de cada item permite ocultar ou exibir sua descrição
+opcional. A escolha
+também se aplica à leitura e preserva o texto salvo. A exportação Markdown mantém
+esse conteúdo.
 Cada elemento pode ser expandido ou contraído independentemente, tanto na leitura
 quanto na edição. Arraste pela alça para ordenar; solte sobre o título de outro
 item para aninhar ou nas faixas entre itens para mudar de posição ou nível.

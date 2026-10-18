@@ -12,7 +12,9 @@ export function catalogMarkdown(items = [], parentId = "", level = 2) {
   return catalogChildren(items, parentId)
     .map((item) =>
       [
-        `${"#".repeat(Math.min(level, 6))} ${escapeMarkdownTitle(item.title)}\n\n${item.description}`,
+        [`${"#".repeat(Math.min(level, 6))} ${escapeMarkdownTitle(item.title)}`, item.description || ""]
+          .filter(Boolean)
+          .join("\n\n"),
         item.id ? catalogMarkdown(items, item.id, level + 1) : "",
       ]
         .filter(Boolean)

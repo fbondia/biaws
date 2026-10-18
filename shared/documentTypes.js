@@ -111,12 +111,13 @@ export const DOCUMENT_TYPE_CATALOG = Object.freeze({
         maxItems: 500,
         items: Object.freeze({
           type: "object",
-          required: Object.freeze(["title", "description"]),
+          required: Object.freeze(["title"]),
           properties: Object.freeze({
             id: Object.freeze({ type: "string", minLength: 1, maxLength: 80 }),
             parentId: Object.freeze({ type: "string", maxLength: 80 }),
             title: Object.freeze({ type: "string", minLength: 1, maxLength: 240 }),
-            description: Object.freeze({ type: "string", minLength: 1 }),
+            description: Object.freeze({ type: "string" }),
+            hideDescription: Object.freeze({ type: "boolean" }),
           }),
         }),
       }),

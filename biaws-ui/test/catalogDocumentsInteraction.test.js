@@ -137,22 +137,29 @@ test("catalog editing adds, renames and removes entries without losing other des
   await click(button("Arrastar elemento 1"));
   assert.equal(editor.querySelector("details").open, false);
   await click(button("Adicionar elemento"));
-  const added = editor.querySelectorAll(":scope > .knowledgeCatalogItems > details")[2];
-  assert.equal(added.open, false);
-  await click(added.querySelector("summary"));
-  await type("Título do elemento 3", "Fila");
-  await type("Descrição do elemento 3", "## Eventos\n\n**Entrega garantida**");
-  await click(editor.querySelector("details > summary"));
-  await click(button("Remover elemento 1"));
-  assert.equal(document.querySelector('[aria-label="Título do elemento 1"]').value, "Worker");
-  assert.equal(document.querySelector('[aria-label="Título do elemento 2"]').value, "Fila");
+  const added = editor.querySelectorAll(":scope > .knowledgeCatalogItems > details")[0];
+  assert.equal(added.open, true);
+  assert.equal(document.activeElement, added.querySelector("input"));
   assert.equal(
-    document.querySelector('[aria-label="Descrição do elemento 2"]').value,
+    [...editor.querySelectorAll("details")].filter((item) => item !== added).every((item) => !item.open),
+    true,
+  );
+  await type("Título do elemento 1", "Fila");
+  const description = added.querySelector("textarea");
+  description.focus();
+  await type("Descrição do elemento 1", "## Eventos\n\n**Entrega garantida**");
+  assert.equal(document.activeElement, description);
+  await click(editor.querySelectorAll(":scope > .knowledgeCatalogItems > details")[1].querySelector("summary"));
+  await click(button("Remover elemento 2"));
+  assert.equal(document.querySelector('[aria-label="Título do elemento 2"]').value, "Worker");
+  assert.equal(document.querySelector('[aria-label="Título do elemento 1"]').value, "Fila");
+  assert.equal(
+    document.querySelector('[aria-label="Descrição do elemento 1"]').value,
     "## Eventos\n\n**Entrega garantida**",
   );
   await click(button("Fechar detalhes"));
   const summaries = [...document.querySelectorAll(".knowledgeCatalogItem > summary")].map((item) => item.textContent);
-  assert.deepEqual(summaries, ["Worker", "Fila"]);
+  assert.deepEqual(summaries, ["Fila", "Worker"]);
   assert.equal(document.querySelector(".knowledgeCatalogItems strong").textContent, "Entrega garantida");
 });
 
@@ -360,4 +367,55 @@ test("catalog drag nests an item and preserves its text when moving it back to r
   assert.equal(editor.querySelector("details details").open, false);
   await click(button("Mover elemento 2 para o nível acima"));
   assert.equal(editor.querySelectorAll(":scope > .knowledgeCatalogItems > details").length, 2);
+});
+
+test("catalog descriptions can be hidden beside the title input without losing their content", async () => {
+  await mount(catalog);
+  await click(button("Detalhes"));
+  await click(button("Conteúdo"));
+  const editor = document.querySelector(".knowledgeDetailsDialog .knowledgeCatalogEditor");
+  const first = editor.querySelector("details");
+  assert.equal(first.querySelector("summary .knowledgeCatalogDescriptionToggle"), null);
+  const titleEditor = first.querySelector(".knowledgeCatalogTitleEditor");
+  assert.ok(titleEditor.querySelector('input[aria-label="Título do elemento 1"]'));
+  assert.ok(titleEditor.querySelector(".knowledgeCatalogDescriptionToggle"));
+  assert.ok(titleEditor.querySelector('[aria-label="Adicionar subitem"]'));
+  assert.ok(titleEditor.querySelector('[aria-label="Remover elemento 1"]'));
+  assert.equal(
+    [...titleEditor.querySelectorAll("button")].every((item) => !item.textContent.trim()),
+    true,
+  );
+  await click(first.querySelector("summary"));
+  await click(button("Ocultar descrição do elemento 1"));
+  assert.equal(first.open, true);
+  assert.equal(editor.querySelector('[aria-label="Descrição do elemento 1"]'), null);
+  assert.equal(button("Exibir descrição do elemento 1").getAttribute("aria-pressed"), "true");
+  await click(button("Exibir descrição do elemento 1"));
+  assert.equal(editor.querySelector('[aria-label="Descrição do elemento 1"]').value, "**Contrato**\n\n- GET /status");
+  await click(button("Ocultar descrição do elemento 1"));
+  await click(button("Fechar detalhes"));
+  const reading = document.querySelector(".knowledgeDocumentReading .knowledgeCatalogItem");
+  await click(reading.querySelector("summary"));
+  assert.equal(reading.querySelector(".markdownPreview"), null);
+});
+
+test("new subitems are inserted before existing siblings and may omit descriptions", async () => {
+  await mount({
+    ...catalog,
+    details: {
+      items: [...catalog.details.items, { id: "child", parentId: "api", title: "Existente", description: "" }],
+    },
+  });
+  await click(button("Detalhes"));
+  await click(button("Conteúdo"));
+  const editor = document.querySelector(".knowledgeDetailsDialog .knowledgeCatalogEditor");
+  await click(editor.querySelector("details > summary"));
+  await click(button("Adicionar subitem"));
+  const children = [...editor.querySelectorAll("details details")];
+  assert.equal(children.length, 2);
+  assert.equal(children[0].querySelector("input").value, "");
+  assert.equal(children[1].querySelector("input").value, "Existente");
+  assert.equal(children[0].open, true);
+  assert.equal(document.activeElement, children[0].querySelector("input"));
+  assert.equal(children[1].open, false);
 });

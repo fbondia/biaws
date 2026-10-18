@@ -214,7 +214,7 @@ test("catalogs save structured entries without requiring an introduction or summ
   assert.equal(normalizeDocumentPayload({ documentType: "catalog", title: "Vazio" }).summary, "Vazio");
 });
 
-test("catalog entries require valid title, Markdown description and unique stable IDs", () => {
+test("catalog entries require valid titles and IDs while descriptions are optional", () => {
   const validItem = { id: "api", title: "API", description: "# Contrato" };
   for (const items of [
     null,
@@ -222,7 +222,6 @@ test("catalog entries require valid title, Markdown description and unique stabl
     [null],
     [{ title: "", description: "Texto" }],
     [{ title: "x".repeat(241), description: "Texto" }],
-    [{ title: "API", description: "  " }],
     [{ title: "API", description: {} }],
     [{ ...validItem, id: "" }],
     [validItem, validItem],
@@ -232,6 +231,18 @@ test("catalog entries require valid title, Markdown description and unique stabl
       () => normalizeDocumentPayload({ documentType: "catalog", title: "Serviços", details: { items } }),
       (error) => errorCode(error) === "INVALID_DOCUMENT_DETAILS",
     );
+  }
+});
+
+test("catalog entries allow omitted, empty or whitespace descriptions", () => {
+  for (const entry of [{ title: "API" }, { title: "API", description: "" }, { title: "API", description: "  " }]) {
+    const document = normalizeDocumentPayload({
+      documentType: "catalog",
+      title: "Serviços",
+      details: { items: [entry] },
+    });
+    assert.ok(Array.isArray(document.details.items));
+    assert.equal(document.details.items[0].description, "");
   }
 });
 
@@ -269,4 +280,30 @@ test("catalog storage validates parent relationships and keeps stable tree order
       (error) => errorCode(error) === "INVALID_DOCUMENT_DETAILS",
     );
   }
+});
+
+test("catalog description visibility survives normalization and rejects non-boolean flags", () => {
+  const hidden = normalizeDocumentPayload({
+    documentType: "catalog",
+    title: "Serviços",
+    details: {
+      items: [{ id: "api", title: "API", description: "Conteúdo preservado", hideDescription: true }],
+    },
+  });
+  assert.ok(Array.isArray(hidden.details.items));
+  assert.equal(hidden.details.items[0].description, "Conteúdo preservado");
+  assert.equal(hidden.details.items[0].hideDescription, true);
+  const saved = normalizeDocumentPayload({ title: "Serviços internos" }, hidden);
+  assert.deepEqual(saved.details.items, hidden.details.items);
+  assert.throws(
+    () =>
+      normalizeDocumentPayload({
+        documentType: "catalog",
+        title: "Inválido",
+        details: {
+          items: [{ title: "API", hideDescription: "sim" }],
+        },
+      }),
+    (error) => errorCode(error) === "INVALID_DOCUMENT_DETAILS",
+  );
 });

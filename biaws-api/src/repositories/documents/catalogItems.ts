@@ -16,8 +16,11 @@ export function normalizeCatalogItems(value: unknown = []) {
     if (typeof item.title !== "string" || !item.title.trim() || item.title.trim().length > 240) {
       throw httpError(422, "INVALID_DOCUMENT_DETAILS", `${field}.title é obrigatório e deve ter até 240 caracteres`);
     }
-    if (typeof item.description !== "string" || !item.description.trim()) {
-      throw httpError(422, "INVALID_DOCUMENT_DETAILS", `${field}.description é obrigatório e deve ser Markdown`);
+    if (item.description !== undefined && typeof item.description !== "string") {
+      throw httpError(422, "INVALID_DOCUMENT_DETAILS", `${field}.description deve ser texto Markdown`);
+    }
+    if (item.hideDescription !== undefined && typeof item.hideDescription !== "boolean") {
+      throw httpError(422, "INVALID_DOCUMENT_DETAILS", `${field}.hideDescription deve ser booleano`);
     }
     const id = item.id === undefined ? randomUUID() : item.id;
     if (typeof id !== "string" || !id.trim() || id.trim().length > 80 || ids.has(id.trim())) {
@@ -31,7 +34,8 @@ export function normalizeCatalogItems(value: unknown = []) {
     return {
       id: id.trim(),
       title: item.title.trim(),
-      description: item.description.trim(),
+      description: typeof item.description === "string" ? item.description.trim() : "",
+      ...(item.hideDescription === true ? { hideDescription: true } : {}),
       ...(parentId ? { parentId } : {}),
     };
   });

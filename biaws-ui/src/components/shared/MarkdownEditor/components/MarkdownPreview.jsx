@@ -32,7 +32,7 @@ function MarkdownBlock({ block, imageOptions }) {
   if (block.type === "horizontal-rule") return <hr />;
   if (block.type === "quote") return <blockquote>{renderMultilineInlineMarkdown(block.text, imageOptions)}</blockquote>;
   if (block.type === "table") return <MarkdownTable imageOptions={imageOptions} lines={block.lines} />;
-  return <p>{renderInlineMarkdown(block.text, imageOptions)}</p>;
+  return <p>{renderMultilineInlineMarkdown(block.text, imageOptions)}</p>;
 }
 
 function renderMultilineInlineMarkdown(text, imageOptions) {

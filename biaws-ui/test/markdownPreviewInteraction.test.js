@@ -9,7 +9,7 @@ import react from "@vitejs/plugin-react";
 import { JSDOM } from "jsdom";
 import { build } from "vite";
 
-test("code block can be copied without opening the fullscreen dialog", async () => {
+test("preview preserves paragraph line breaks and copies code without opening the fullscreen dialog", async () => {
   const outputDirectory = await mkdtemp(join(tmpdir(), "biaws-markdown-ui-"));
   const dom = new JSDOM("<!doctype html><div id=app></div>", {
     url: "https://biaws.example.test",
@@ -46,7 +46,22 @@ test("code block can be copied without opening the fullscreen dialog", async () 
     });
     const { mountMarkdownPreview } = await import(pathToFileURL(join(outputDirectory, "markdown-preview-harness.js")));
     const source = "const answer = 42;";
-    const harness = mountMarkdownPreview(document.getElementById("app"), `\`\`\`js\n${source}\n\`\`\``);
+    const harness = mountMarkdownPreview(
+      document.getElementById("app"),
+      "## Identificação e idade\n**Nome:** Ana\n**Idade nas anotações:** 32 anos\n**Estado narrativo:** morador/personagem de interesse, com disponibilidade a verificar\n\nOutro parágrafo.",
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    assert.equal(document.querySelector("h2").textContent, "Identificação e idade");
+    const paragraphs = document.querySelectorAll(".markdownPreview p");
+    assert.equal(paragraphs.length, 2);
+    assert.equal(
+      paragraphs[0].innerHTML,
+      "<strong>Nome:</strong> Ana<br><strong>Idade nas anotações:</strong> 32 anos<br><strong>Estado narrativo:</strong> morador/personagem de interesse, com disponibilidade a verificar",
+    );
+    assert.equal(paragraphs[1].textContent, "Outro parágrafo.");
+
+    harness.update(`\`\`\`js\n${source}\n\`\`\``);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const copyButton = document.querySelector(".markdownBlockCopyButton");

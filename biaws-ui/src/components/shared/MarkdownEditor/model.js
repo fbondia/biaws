@@ -111,7 +111,7 @@ function readParagraphBlock(lines, startIndex) {
     index += 1;
   }
   return {
-    value: { type: "paragraph", text: content.join(" ") },
+    value: { type: "paragraph", text: content.join("\n") },
     nextIndex: index,
   };
 }
@@ -127,7 +127,7 @@ function markdownBlockToHtml(block) {
   if (block.type === "quote")
     return `<blockquote>${block.text.split("\n").map(renderInlineMarkdownHtml).join("<br>")}</blockquote>`;
   if (block.type === "table") return markdownTableToHtml(block.lines);
-  return `<p>${renderInlineMarkdownHtml(block.text)}</p>`;
+  return `<p>${block.text.split("\n").map(renderInlineMarkdownHtml).join("<br>")}</p>`;
 }
 
 export function isMarkdownListLine(line) {

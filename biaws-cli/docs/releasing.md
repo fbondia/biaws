@@ -48,8 +48,8 @@ global. Depois da publicação, confirme também `npx biaws@<versão> --help`.
 
 ## Compatibilidade e migração
 
-A série `0.6.0` suporta os manifests de plataforma schema 1 e 2 e fixa
-`biaws-mcp@0.15.0`. Publique esse MCP antes de `biaws@0.6.0`; o CLI antigo
+A série `0.6.x` suporta os manifests de plataforma schema 1 e 2 e fixa
+`biaws-mcp@0.16.0`. Publique esse MCP antes de `biaws@0.6.1`; o CLI antigo
 não deve aplicar o manifesto schema 2. Atualizar somente o CLI não atualiza
 instâncias. Para MCP HTTP, use setup/update com `--mcp-http` e os requisitos
 HTTPS/replica set de [operação ChatGPT](../../docs/chatgpt-operations.md).

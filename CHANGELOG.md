@@ -8,6 +8,13 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
+- Plataforma preparada como `0.11.0`, com API `0.12.0`, UI `0.11.0` e MCP
+  `0.16.0`: documentos de texto livre e catálogo, conversão entre tipos e
+  incorporação em catálogos existentes. Catálogos permitem hierarquia e ordenação,
+  descrições opcionais ou ocultas e edição com foco automático em novos itens.
+  CLI `0.6.1` passa a fixar o MCP `0.16.0`. Manifesto, locks e OpenAPI sincronizados;
+  revisão de implantação mantida em `3`.
+
 - Plataforma e UI preparadas como `0.10.0`. O Markdown reconhece links de
   resources `biaws://`, convertendo entidades com tela correspondente em URLs
   da interface com workspace explícito. Referências curtas de catálogo resolvem

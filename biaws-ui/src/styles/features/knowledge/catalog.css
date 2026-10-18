@@ -54,6 +54,7 @@
 
 .knowledgeCatalogSummary {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   list-style: none;
@@ -63,9 +64,20 @@
   display: none;
 }
 
-.knowledgeCatalogSummary > span {
+.knowledgeCatalogSummary > .knowledgeCatalogItemTitle {
   min-width: 0;
-  flex: 1;
+  flex: 1 1 120px;
+}
+
+.knowledgeCatalogSummary > .knowledgeCatalogSummaryActions {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.knowledgeCatalogChevron {
+  flex: 0 0 auto;
 }
 
 .knowledgeCatalogSummary > small {

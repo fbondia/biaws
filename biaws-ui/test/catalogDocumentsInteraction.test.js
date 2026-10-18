@@ -118,9 +118,31 @@ test("catalog editing adds, renames and removes entries without losing other des
   await click(button("Detalhes"));
   assert.equal(document.body.textContent.includes("Natureza da referência"), false);
   await click(button("Conteúdo"));
+  const editor = document.querySelector(".knowledgeDetailsDialog .knowledgeCatalogEditor");
+  assert.equal(
+    [...editor.querySelectorAll("details")].every((item) => !item.open),
+    true,
+  );
+  const actions = editor.querySelector("summary [role=group]");
+  assert.deepEqual(
+    [...actions.querySelectorAll("button")].map((item) => item.getAttribute("aria-label")),
+    [
+      "Mover elemento 1 acima",
+      "Mover elemento 1 abaixo",
+      "Aninhar elemento 1",
+      "Mover elemento 1 para o nível acima",
+      "Arrastar elemento 1",
+    ],
+  );
+  await click(button("Arrastar elemento 1"));
+  assert.equal(editor.querySelector("details").open, false);
   await click(button("Adicionar elemento"));
+  const added = editor.querySelectorAll(":scope > .knowledgeCatalogItems > details")[2];
+  assert.equal(added.open, false);
+  await click(added.querySelector("summary"));
   await type("Título do elemento 3", "Fila");
   await type("Descrição do elemento 3", "## Eventos\n\n**Entrega garantida**");
+  await click(editor.querySelector("details > summary"));
   await click(button("Remover elemento 1"));
   assert.equal(document.querySelector('[aria-label="Título do elemento 1"]').value, "Worker");
   assert.equal(document.querySelector('[aria-label="Título do elemento 2"]').value, "Fila");
@@ -325,13 +347,17 @@ test("catalog drag nests an item and preserves its text when moving it back to r
   );
   const editor = document.querySelector(".knowledgeDetailsDialog .knowledgeCatalogEditor");
   assert.equal(editor.querySelectorAll(":scope > .knowledgeCatalogItems > details").length, 1);
+  assert.equal(editor.querySelector("details").open, false);
+  await click(editor.querySelector("details > summary"));
   assert.equal(editor.querySelector("details details input").value, "Worker");
   assert.equal(editor.querySelector("details details textarea").value, "Processamento assíncrono");
   await drag(button("Arrastar elemento 2"), () =>
     [...editor.querySelectorAll('[aria-label="Mover para a raiz do catálogo"]')].at(-1),
   );
   assert.equal(editor.querySelectorAll(":scope > .knowledgeCatalogItems > details").length, 2);
+  assert.equal(editor.querySelectorAll(":scope > .knowledgeCatalogItems > details")[1].open, false);
   await click(button("Aninhar elemento 2"));
+  assert.equal(editor.querySelector("details details").open, false);
   await click(button("Mover elemento 2 para o nível acima"));
   assert.equal(editor.querySelectorAll(":scope > .knowledgeCatalogItems > details").length, 2);
 });

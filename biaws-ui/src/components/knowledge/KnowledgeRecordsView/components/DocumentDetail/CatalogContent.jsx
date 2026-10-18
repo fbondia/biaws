@@ -116,38 +116,20 @@ export function CatalogEditor({ draft, onChange, onLoadAttachment }) {
               {dropZone(parentId, item.id)}
               <details
                 className={`knowledgeCatalogItem ${dragId === item.id ? "knowledgeCatalogDragging" : ""} ${dropTarget === `inside:${item.id}` ? "knowledgeCatalogDropActive" : ""}`}
-                open
               >
                 <summary className="knowledgeCatalogSummary" {...dropHandlers(item.id, "", `inside:${item.id}`)}>
                   <ChevronRight className="knowledgeCatalogChevron" size={16} aria-hidden="true" />
-                  <button
-                    aria-label={`Arrastar elemento ${number}`}
-                    className="iconButton knowledgeCatalogDragHandle"
-                    draggable
-                    type="button"
-                    title="Arraste para ordenar, soltar dentro de outro item ou mover para a raiz"
+                  <span className="knowledgeCatalogItemTitle">{item.title || `Novo elemento ${number}`}</span>
+                  {dragId && canDrop(item.id) ? <small>Soltar dentro</small> : null}
+                  <span
+                    className="knowledgeCatalogItemActions knowledgeCatalogSummaryActions"
+                    role="group"
+                    aria-label={`Organizar elemento ${number}`}
                     onClick={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
                     }}
-                    onDragStart={(event) => {
-                      event.stopPropagation();
-                      event.dataTransfer.setData("text/plain", item.id);
-                      event.dataTransfer.effectAllowed = "move";
-                      setDragId(item.id);
-                    }}
-                    onDragEnd={() => {
-                      setDragId("");
-                      setDropTarget("");
-                    }}
                   >
-                    <GripVertical size={16} aria-hidden="true" />
-                  </button>
-                  <span>{item.title || `Novo elemento ${number}`}</span>
-                  {dragId && canDrop(item.id) ? <small>Soltar dentro</small> : null}
-                </summary>
-                <div className="knowledgeCatalogItemBody">
-                  <div className="knowledgeCatalogItemActions" role="group" aria-label={`Organizar elemento ${number}`}>
                     <button
                       aria-label={`Mover elemento ${number} acima`}
                       className="iconButton"
@@ -188,7 +170,32 @@ export function CatalogEditor({ draft, onChange, onLoadAttachment }) {
                     >
                       <CornerUpLeft size={16} />
                     </button>
-                  </div>
+                    <button
+                      aria-label={`Arrastar elemento ${number}`}
+                      className="iconButton knowledgeCatalogDragHandle"
+                      draggable
+                      type="button"
+                      title="Arraste para ordenar, soltar dentro de outro item ou mover para a raiz"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }}
+                      onDragStart={(event) => {
+                        event.stopPropagation();
+                        event.dataTransfer.setData("text/plain", item.id);
+                        event.dataTransfer.effectAllowed = "move";
+                        setDragId(item.id);
+                      }}
+                      onDragEnd={() => {
+                        setDragId("");
+                        setDropTarget("");
+                      }}
+                    >
+                      <GripVertical size={16} aria-hidden="true" />
+                    </button>
+                  </span>
+                </summary>
+                <div className="knowledgeCatalogItemBody">
                   <label className="field">
                     <span>Título / nome</span>
                     <input

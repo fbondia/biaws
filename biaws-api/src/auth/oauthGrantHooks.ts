@@ -1,4 +1,5 @@
 import { getOAuthProviderState } from "@better-auth/oauth-provider";
+import { APIError } from "better-auth/api";
 import { authorizeOAuthGrant, findOAuthFlowGrant } from "./oauthGrants.js";
 import { oauthError } from "./oauthGrantPolicy.js";
 
@@ -27,7 +28,17 @@ export const oauthGrantHooks = {
     scopes: string[];
   }) {
     if (!user || !referenceId) throw oauthError("OAUTH_GRANT_REQUIRED");
-    const grant = await authorizeOAuthGrant(referenceId, user.id, scopes);
-    return { biaws_grant_id: grant.id, biaws_workspace_id: grant.workspaceId };
+    try {
+      const grant = await authorizeOAuthGrant(referenceId, user.id, scopes);
+      return { biaws_grant_id: grant.id, biaws_workspace_id: grant.workspaceId };
+    } catch (error) {
+      const { statusCode } = error as { statusCode?: number };
+      if (statusCode && statusCode >= 400 && statusCode < 500)
+        throw new APIError("BAD_REQUEST", {
+          error: "invalid_grant",
+          error_description: "The OAuth connection is no longer authorized.",
+        });
+      throw error;
+    }
   },
 };

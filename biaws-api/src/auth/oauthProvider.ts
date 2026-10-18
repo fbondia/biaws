@@ -5,6 +5,8 @@ import { jwt } from "better-auth/plugins";
 import type { Db } from "mongodb";
 
 export const MCP_SCOPES = ["mcp:read", "mcp:write", "offline_access"];
+export const MCP_ACCESS_TOKEN_TTL_SECONDS = 60 * 60;
+export const MCP_REFRESH_TOKEN_TTL_SECONDS = 365 * 24 * 60 * 60;
 const OAUTH_MODELS = [
   "jwks",
   "oauthClient",
@@ -54,6 +56,8 @@ export function createMcpOAuthOptions(resource: string, options: Partial<McpOpti
     loginPage: "/oauth/connect",
     consentPage: "/oauth/connect",
     scopes: MCP_SCOPES,
+    accessTokenExpiresIn: MCP_ACCESS_TOKEN_TTL_SECONDS,
+    refreshTokenExpiresIn: MCP_REFRESH_TOKEN_TTL_SECONDS,
     grantTypes: ["authorization_code", "refresh_token"],
     allowDynamicClientRegistration: false,
     allowUnauthenticatedClientRegistration: false,

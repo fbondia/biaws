@@ -12,7 +12,7 @@ default `<origem>/mcp`. As URLs exigem HTTPS, exceto loopback de desenvolvimento
 e não aceitam credenciais, query ou fragmento. Configure-as explicitamente
 quando UI, API e MCP tiverem origens diferentes.
 
-A composição usa JWT, MCP provider e CIMD fixados na versão 1.7.6. O provider
+A composição usa JWT, MCP provider e CIMD fixados na versão 1.7.7. O provider
 usa códigos com PKCE, consentimento, refresh com replay estrito e persistência
 de chaves. DCR e grants de máquina estão desabilitados. O endpoint de JWT de
 sessão `/token` também fica desabilitado. Os scopes são `mcp:read`, `mcp:write`
@@ -30,6 +30,32 @@ concessão e as permissões atuais. A API limita os scopes às permissões atuai
 remove permissões de plataforma e mantém `oauth-delegated` distinto de sessão.
 Leitura não concede escrita; OAuth não permite revelar valores de segredos.
 O ator de auditoria mantém usuário, método e identificadores de cliente/concessão.
+
+## Duração e independência da sessão web
+
+Depois da autorização, a conexão MCP é controlada pela concessão OAuth, sem
+depender da validade ou existência da sessão usada para login/consentimento.
+Expirar a sessão, sair do BIAWS ou remover a sessão não revoga a conexão.
+O login e a troca inicial do código continuam exigindo uma sessão válida.
+
+O access token JWT dura uma hora. Com `offline_access`, o refresh token dura
+365 dias e cada renovação bem-sucedida o substitui por outro válido por mais
+365 dias. Não há limite total fixo para a conexão enquanto houver renovação
+dentro desse prazo. O cliente deve persistir o novo refresh token, pois reutilizar
+um token já rotacionado invalida sua família. A renovação não exige cookies de
+sessão nem novo consentimento.
+
+A delegação valida assinatura, tipo de access token, issuer, audience,
+expiração e cliente ativo usando as chaves do provider inicializado. O `sid`
+é apenas referência à sessão de origem; não é usado como autorização MCP.
+A concessão, o usuário e suas permissões atuais são reavaliados em cada
+delegação e uso da credencial interna. Revogar a conexão em Minha conta
+impede imediatamente novas delegações, o uso das existentes e o refresh.
+Esta ponte aceita somente bearer tokens, sem suporte a tokens vinculados a DPoP.
+
+Tokens existentes ainda não expirados continuam utilizáveis. O prazo maior
+do refresh passa a valer na próxima renovação; tokens já expirados exigem
+nova autorização.
 
 ## Credencial de domínio delegada
 

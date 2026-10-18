@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { randomBytes, createHash } from "node:crypto";
 import { createCimdClientDiscovery } from "@better-auth/cimd";
+import { createAuthEndpoint } from "better-auth/api";
+import { signJWT } from "better-auth/plugins/jwt";
+import { COLLECTION_NAMES } from "../../src/database/collectionNames.js";
 import { isolatedDatabaseName, restoreEnvironmentAfter } from "../support/integration.js";
 
 test(
@@ -44,11 +47,11 @@ test(
         },
         asResponse: true,
       });
-      const cookie = login.headers
+      let cookie = login.headers
         .getSetCookie()
         .map((v) => v.split(";")[0])
         .join("; ");
-      const session = await auth.api.getSession({
+      let session = await auth.api.getSession({
         headers: new Headers({ cookie }),
       });
       assert.ok(session);
@@ -66,12 +69,12 @@ test(
         userId: "synthetic-operator",
         workspaceId: workspace.id,
       });
-      const call = (path: string, body?: Record<string, unknown> | URLSearchParams) =>
+      const call = (path: string, body?: Record<string, unknown> | URLSearchParams, withSession = true) =>
         auth.handler(
           new Request(`${base}${path}`, {
             method: body ? "POST" : "GET",
             headers: {
-              cookie,
+              ...(withSession ? { cookie } : {}),
               origin: base,
               ...(body
                 ? {
@@ -122,6 +125,18 @@ test(
         },
       ];
       for (const client of [clientRegistration, { client_id: cimdClientId }]) {
+        if (client.client_id === cimdClientId) {
+          const nextLogin = await auth.api.signInEmail({
+            body: { email: "flow@example.test", password: "Synthetic-flow-password-42" },
+            asResponse: true,
+          });
+          cookie = nextLogin.headers
+            .getSetCookie()
+            .map((v) => v.split(";")[0])
+            .join("; ");
+          session = await auth.api.getSession({ headers: new Headers({ cookie }) });
+        }
+        assert.ok(session);
         const verifier = randomBytes(32).toString("base64url");
         const query = new URLSearchParams({
           client_id: client.client_id,
@@ -211,6 +226,7 @@ test(
         const tokens = (await exchanged.json()) as {
           access_token: string;
           refresh_token: string;
+          expires_in: number;
           error?: string;
           error_description?: string;
         };
@@ -226,6 +242,19 @@ test(
         assert.equal(claims.biaws_grant_id, grant.id);
         assert.equal(claims.biaws_workspace_id, workspace.id);
         assert.equal(typeof tokens.refresh_token, "string");
+        assert.equal(tokens.expires_in, 3600);
+        const context = await auth.$context;
+        const refresh = (token: string) =>
+          call(
+            "/api/auth/oauth2/token",
+            new URLSearchParams({
+              grant_type: "refresh_token",
+              refresh_token: token,
+              client_id: client.client_id,
+              resource: `${base}/mcp`,
+            }),
+            false,
+          );
         const refreshed = await call(
           "/api/auth/oauth2/token",
           new URLSearchParams({
@@ -258,7 +287,7 @@ test(
         const delegation = (await response.json()) as { accessToken: string; workspaceId: string };
         assert.equal(response.status, 200, JSON.stringify(delegation));
         assert.notEqual(delegation.accessToken, tokens.access_token);
-        const refreshedTokens = (await refreshed.json()) as { access_token: string };
+        const refreshedTokens = (await refreshed.json()) as { access_token: string; refresh_token: string };
         assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, refreshedTokens.access_token)).status, 200);
         const actorRequest = (token: string, workspaceId: string) => ({
           headers: { authorization: `Bearer ${token}`, "x-biaws-workspace-id": workspaceId },
@@ -271,8 +300,116 @@ test(
           code: "DELEGATION_WORKSPACE_MISMATCH",
         });
         assert.equal((await requireOAuthGrant(grant.id, created.user.id, ["mcp:read"])).workspaceId, workspace.id);
+
+        const sign = (patch: Record<string, unknown>, typ = "at+jwt") =>
+          createAuthEndpoint("/synthetic-sign", { method: "POST" }, (ctx) =>
+            signJWT(ctx, { payload: { ...claims, ...patch }, header: { typ } }),
+          )({ context });
+        // These tokens have real signatures from this instance. Reject them on
+        // their claims, not merely because a tampered signature is invalid.
+        for (const patch of [
+          { iss: "https://other.example.test/api/auth" },
+          { aud: "https://other.example.test/mcp" },
+          { exp: Math.floor(Date.now() / 1000) - 60 },
+          { sub: "other-user" },
+          { client_id: "other-client", azp: "other-client" },
+          { biaws_workspace_id: "other-workspace" },
+          { biaws_grant_id: "other-grant" },
+          { cnf: { jkt: "synthetic-dpop-thumbprint" } },
+        ]) {
+          assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, await sign(patch))).status, 401);
+        }
+        assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, await sign({}, "JWT"))).status, 401);
+        assert.equal(
+          (await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, await sign({ scope: "mcp:write" }))).status,
+          403,
+        );
+        const tampered = tokens.access_token.split(".");
+        tampered[1] = Buffer.from(JSON.stringify({ ...claims, exp: claims.exp + 3600 })).toString("base64url");
+        assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, tampered.join("."))).status, 401);
+        if (client.client_id === clientRegistration.client_id) {
+          await context.adapter.update({
+            model: "oauthClient",
+            where: [{ field: "clientId", value: client.client_id }],
+            update: { disabled: true },
+          });
+          assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, tokens.access_token)).status, 401);
+          await context.adapter.update({
+            model: "oauthClient",
+            where: [{ field: "clientId", value: client.client_id }],
+            update: { disabled: false },
+          });
+        }
+        await context.adapter.update({
+          model: "user",
+          where: [{ field: "id", value: created.user.id }],
+          update: { banned: true },
+        });
+        assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, tokens.access_token)).status, 401);
+        assert.equal((await refresh(refreshedTokens.refresh_token)).status, 400);
+        await context.adapter.update({
+          model: "user",
+          where: [{ field: "id", value: created.user.id }],
+          update: { banned: false },
+        });
+
+        // An expired browser session must not invalidate an already issued JWT
+        // or prevent an OAuth refresh made without cookies.
+        await context.adapter.update({
+          model: "session",
+          where: [{ field: "id", value: session.session.id }],
+          update: { expiresAt: new Date(Date.now() - 60_000) },
+        });
+        assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, tokens.access_token)).status, 200);
+        const afterExpiry = await refresh(refreshedTokens.refresh_token);
+        assert.equal(afterExpiry.status, 200, "offline refresh survives expired login");
+        const expiryTokens = (await afterExpiry.json()) as { access_token: string; refresh_token: string };
+        assert.notEqual(expiryTokens.refresh_token, refreshedTokens.refresh_token);
+        assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, expiryTokens.access_token)).status, 200);
+
+        // Make the current refresh nearly expire, then log out through the real
+        // provider. Its replacement must receive a full new year, not the
+        // original token's remaining lifetime.
+        const currentRefresh = await db.collection("oauthRefreshToken").findOne({
+          referenceId: grant.id,
+          revoked: null,
+        });
+        assert.ok(currentRefresh);
+        assert.ok(Math.abs(currentRefresh.expiresAt.getTime() - Date.now() - 365 * 24 * 60 * 60 * 1000) < 10_000);
+        await db
+          .collection("oauthRefreshToken")
+          .updateOne({ _id: currentRefresh._id }, { $set: { expiresAt: new Date(Date.now() - 60_000) } });
+        assert.equal((await refresh(expiryTokens.refresh_token)).status, 400, "expired refresh tokens remain invalid");
+        await db
+          .collection("oauthRefreshToken")
+          .updateOne({ _id: currentRefresh._id }, { $set: { expiresAt: new Date(Date.now() + 60_000) } });
+        await context.adapter.update({
+          model: "session",
+          where: [{ field: "id", value: session.session.id }],
+          update: { expiresAt: new Date(Date.now() + 60 * 60 * 1000) },
+        });
+        assert.equal((await call("/api/auth/sign-out", {})).status, 200);
+        assert.equal(
+          await db.collection(COLLECTION_NAMES.AUTH_SESSIONS).countDocuments({ userId: created.user.id }),
+          0,
+        );
+        assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, tokens.access_token)).status, 200);
+        const afterLogout = await refresh(expiryTokens.refresh_token);
+        assert.equal(afterLogout.status, 200, "offline refresh survives logout and deletion of the original session");
+        const logoutTokens = (await afterLogout.json()) as { access_token: string; refresh_token: string };
+        assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, logoutTokens.access_token)).status, 200);
+        const rotatedRefresh = await db
+          .collection("oauthRefreshToken")
+          .findOne({ referenceId: grant.id, revoked: null });
+        assert.ok(rotatedRefresh);
+        assert.ok(Math.abs(rotatedRefresh.expiresAt.getTime() - Date.now() - 365 * 24 * 60 * 60 * 1000) < 10_000);
+
         await revokeOAuthGrant(grant.id, created.user.id);
         assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, tokens.access_token)).status, 401);
+        assert.equal((await delegate(process.env.BIAWS_MCP_SERVICE_SECRET!, logoutTokens.access_token)).status, 401);
+        const revokedRefresh = await refresh(logoutTokens.refresh_token);
+        assert.equal(revokedRefresh.status, 400, "revoking the connection also prevents refresh");
+        assert.equal(((await revokedRefresh.json()) as { error: string }).error, "invalid_grant");
         await assert.rejects(getAuthenticatedActor(actorRequest(delegation.accessToken, workspace.id)), {
           code: "OAUTH_GRANT_INVALID",
         });

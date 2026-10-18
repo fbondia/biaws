@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getMcpOAuthConfig, createMcpOAuthPlugins } from "../../src/auth/oauthProvider.js";
+import { getMcpOAuthConfig, createMcpOAuthOptions, createMcpOAuthPlugins } from "../../src/auth/oauthProvider.js";
 
 test("MCP OAuth is disabled by default and does not require a public URL", () => {
   assert.equal(getMcpOAuthConfig("http://api:3100", {}).enabled, false);
@@ -42,4 +42,12 @@ test("MCP OAuth uses one provider, persistent JWT keys and explicit CIMD", () =>
     createMcpOAuthPlugins("https://example.test/mcp").map((p) => p.id),
     ["jwt", "oauth-provider", "cimd"],
   );
+});
+test("MCP OAuth supports one-hour access and a rolling year of offline refresh with strict rotation", () => {
+  const options = createMcpOAuthOptions("https://example.test/mcp");
+  assert.equal(options.accessTokenExpiresIn, 3600);
+  assert.equal(options.refreshTokenExpiresIn, 365 * 24 * 60 * 60);
+  assert.ok(options.scopes?.includes("offline_access"));
+  assert.ok(options.grantTypes?.includes("refresh_token"));
+  assert.equal(options.refreshTokenReuseInterval, 0);
 });

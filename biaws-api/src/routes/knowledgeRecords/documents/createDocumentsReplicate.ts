@@ -71,7 +71,7 @@ export function registerCreateDocumentsReplicate(router: Router) {
             ? await updateDocument(
                 before.id,
                 {
-                  ...documentReplicationPayload(source),
+                  ...documentReplicationPayload(source, before),
                   changeSummary: `Conteúdo replicado de ${source.workspaceId}`,
                   updatedBy: actorId(req),
                 },

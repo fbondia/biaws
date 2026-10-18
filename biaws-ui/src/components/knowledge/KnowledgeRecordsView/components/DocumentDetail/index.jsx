@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 import { fetchEntityAttachment } from "../../../../../api.js";
 import { AuditHistory } from "../../../../shared/AuditHistory.jsx";
-import { MarkdownEditor } from "../../../../shared/MarkdownEditor/index.jsx";
+import { MarkdownEditor, MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
 import { guidelineScope, DOCUMENT_TYPES } from "../../model.js";
 import { DocumentObservations, DocumentRevisions } from "./DocumentActivityPanels.jsx";
 import { DocumentExportDialog, DocumentReplicationDialog } from "./DocumentActionDialogs.jsx";
@@ -13,6 +13,7 @@ import {
   KnowledgeRecordTabs,
 } from "./DocumentChrome.jsx";
 import { DocumentFilesPanel } from "./DocumentFilesPanel.jsx";
+import { CatalogEditor, CatalogItems } from "./CatalogContent.jsx";
 import { DocumentOverview } from "./DocumentOverview.jsx";
 import { ReferencesEditor } from "./ReferencesEditor.jsx";
 import { useDocumentDetail } from "./hooks/useDocumentDetail.js";
@@ -58,13 +59,35 @@ function DocumentTabContent({
       return (
         <div className="dialogForm knowledgeRecordPanel">
           <div className="field">
-            <MarkdownEditor
-              attachments={draft.attachments}
-              onChange={(markdown) => onChange({ ...draft, markdown })}
-              onLoadAttachment={onLoadAttachment}
-              value={draft.markdown}
-            />
+            {draft.documentType === "catalog" ? <span>Introdução (opcional)</span> : null}
+            {canUpdate ? (
+              <MarkdownEditor
+                ariaLabel="Conteúdo do documento"
+                attachments={draft.attachments}
+                initialMode={["free-text", "catalog"].includes(draft.documentType) ? "text" : "preview"}
+                onChange={(markdown) => onChange({ ...draft, markdown })}
+                onLoadAttachment={onLoadAttachment}
+                value={draft.markdown}
+              />
+            ) : (
+              <MarkdownPreview
+                attachments={draft.attachments}
+                onLoadAttachment={onLoadAttachment}
+                value={draft.markdown}
+              />
+            )}
           </div>
+          {draft.documentType === "catalog" ? (
+            canUpdate ? (
+              <CatalogEditor draft={draft} onChange={onChange} onLoadAttachment={onLoadAttachment} />
+            ) : (
+              <CatalogItems
+                items={draft.details.items}
+                attachments={draft.attachments}
+                onLoadAttachment={onLoadAttachment}
+              />
+            )
+          ) : null}
         </div>
       );
     case "references":

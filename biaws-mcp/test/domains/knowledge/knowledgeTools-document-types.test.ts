@@ -4,7 +4,7 @@ import { dispatchTool } from "../../../src/mcp/tools/tools.js";
 import { required } from "../../helpers/types.js";
 test("document type catalog exposes context, states and typed details", async () => {
   const result = await dispatchTool("document_types_list", {});
-  assert.equal(result.documentTypes.length, 6);
+  assert.equal(result.documentTypes.length, 8);
   assert.equal(
     required(result.documentTypes.find(({ type }) => type === "business-rule")).context.applicationId,
     "required",

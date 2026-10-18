@@ -3,7 +3,7 @@ function updateDetails(draft, onChange, field, value) {
 }
 
 export function DocumentDetailsFields({ disabled, draft, onChange }) {
-  if (draft.documentType === "procedure") return null;
+  if (["procedure", "free-text", "catalog"].includes(draft.documentType)) return null;
   if (draft.documentType === "business-rule") {
     return (
       <div className="formGrid">

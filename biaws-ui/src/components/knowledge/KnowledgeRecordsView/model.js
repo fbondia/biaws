@@ -92,6 +92,34 @@ export const DOCUMENT_TYPES = Object.freeze({
     details: {},
     template: "## Objetivo\n\n## Pré-requisitos\n\n## Passos\n\n## Validação\n\n## Rollback\n",
   },
+  "free-text": {
+    label: "Texto livre",
+    plural: "Textos livres",
+    description: "Escreva livremente em Markdown, sem um modelo predefinido.",
+    icon: FileText,
+    statuses: [
+      ["draft", "Rascunho"],
+      ["published", "Publicado"],
+      ["deprecated", "Descontinuado"],
+    ],
+    defaultStatus: "draft",
+    details: {},
+    template: "",
+  },
+  catalog: {
+    label: "Catálogo",
+    plural: "Catálogos",
+    description: "Organize elementos com nome e descrição Markdown em itens expansíveis.",
+    icon: BookMarked,
+    statuses: [
+      ["draft", "Rascunho"],
+      ["published", "Publicado"],
+      ["deprecated", "Descontinuado"],
+    ],
+    defaultStatus: "draft",
+    details: { items: [] },
+    template: "",
+  },
 });
 
 export const TYPE_FILTERS = [

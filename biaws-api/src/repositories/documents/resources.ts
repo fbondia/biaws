@@ -1,3 +1,4 @@
+import { documentMarkdown } from "../../../../shared/documentContent.js";
 import type { RepositoryQuery } from "../../types/http.js";
 import { getDocument } from "./queries.js";
 import { required, resourceResponse, attachmentResourceResponse } from "../shared/resourceReads.js";
@@ -30,7 +31,7 @@ export async function readDocumentResource(
       }),
     );
     value = { ...value, _id: value._id?.toString() };
-  } else value = part === "content" ? root.markdown || "" : root.references || [];
+  } else value = part === "content" ? documentMarkdown(root) : root.references || [];
 
   return resourceResponse(root, value, params, query);
 }

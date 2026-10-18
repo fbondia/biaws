@@ -2,6 +2,7 @@ import { Archive, ArchiveRestore, CopyPlus, Download, Save, Settings2, Trash2, X
 
 import { MarkdownPreview } from "../../../../shared/MarkdownEditor/index.jsx";
 import { EntityIdentifier } from "../../../../shared/EntityIdentifier/index.jsx";
+import { CatalogItems } from "./CatalogContent.jsx";
 import { DOCUMENT_TABS } from "../../model.js";
 
 function DocumentActionButtons({ onExport, onReplicate }) {
@@ -132,7 +133,16 @@ export function KnowledgeDocumentReading({
         </div>
       </header>
       <article className="knowledgeDocumentMarkdown" ref={contentRef}>
-        <MarkdownPreview attachments={draft.attachments} onLoadAttachment={onLoadAttachment} value={draft.markdown} />
+        {draft.markdown ? (
+          <MarkdownPreview attachments={draft.attachments} onLoadAttachment={onLoadAttachment} value={draft.markdown} />
+        ) : null}
+        {draft.documentType === "catalog" ? (
+          <CatalogItems
+            items={draft.details.items}
+            attachments={draft.attachments}
+            onLoadAttachment={onLoadAttachment}
+          />
+        ) : null}
       </article>
     </section>
   );

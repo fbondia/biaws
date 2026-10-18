@@ -63,7 +63,9 @@ export function DocumentOverview({ canUpdate, catalog, config, draft, onChange, 
             components={catalog.components}
             disabled={!canUpdate}
             onChange={onContextChange}
-            optional={["guideline", "procedure", "technical-reference"].includes(draft.documentType)}
+            optional={["guideline", "procedure", "technical-reference", "free-text", "catalog"].includes(
+              draft.documentType,
+            )}
           />
           <DocumentClassificationSelectors
             applications={catalog.applications}
@@ -74,10 +76,12 @@ export function DocumentOverview({ canUpdate, catalog, config, draft, onChange, 
           />
         </div>
       </section>
-      <section className="knowledgeOverviewCard knowledgeOverviewSection">
-        <h3>Detalhes Adicionais</h3>
-        <DocumentDetailsFields disabled={!canUpdate} draft={draft} onChange={onChange} />
-      </section>
+      {!["procedure", "free-text", "catalog"].includes(draft.documentType) ? (
+        <section className="knowledgeOverviewCard knowledgeOverviewSection">
+          <h3>Detalhes Adicionais</h3>
+          <DocumentDetailsFields disabled={!canUpdate} draft={draft} onChange={onChange} />
+        </section>
+      ) : null}
       <section className="knowledgeOverviewCard knowledgeOverviewSection">
         <h3>Governança e origem</h3>
         <div className="formGrid">

@@ -1,3 +1,5 @@
+import { documentMarkdown } from "../../../../shared/documentContent.js";
+import { normalizeCatalogItems } from "./catalogItems.js";
 import { Document } from "mongodb";
 import { isRecord } from "../../helpers/records.js";
 import { normalizeResourceIdentifier } from "../../helpers/resourceIdentifier.js";
@@ -44,12 +46,21 @@ function normalizeClassification(value: unknown, current: Record<string, unknown
   return { primaryTaxonomyId, secondaryTaxonomyIds, tags };
 }
 
-export function documentReplicationPayload(document: KnowledgeDocument = {}) {
+export function documentReplicationPayload(
+  document: KnowledgeDocument = {},
+  destination: KnowledgeDocument | null = null,
+) {
   return {
     identifier: document.identifier,
     title: document.title,
     summary: document.summary,
-    markdown: document.markdown,
+    markdown:
+      document.documentType === "catalog" && destination && destination.documentType !== "catalog"
+        ? documentMarkdown(document)
+        : document.markdown,
+    ...(document.documentType === "catalog" && (!destination || destination.documentType === "catalog")
+      ? { details: { items: document.details?.items || [] } }
+      : {}),
   };
 }
 
@@ -107,7 +118,10 @@ function normalizeDetails(type: string, value: unknown = {}, current: Record<str
       ),
     };
   }
-  if (type === "procedure") return {};
+  if (type === "catalog") {
+    return { items: normalizeCatalogItems(details.items === undefined ? previous.items : details.items) };
+  }
+  if (type === "procedure" || type === "free-text") return {};
   return {
     referenceKind: enumValue(
       details.referenceKind ?? previous.referenceKind,
@@ -158,7 +172,11 @@ export function normalizeDocumentPayload(
   }
   const title = textValue(payload.title ?? current?.title ?? "").trim();
   const markdown = textValue(payload.markdown ?? current?.markdown ?? "").trim();
-  const summary = textValue(payload.summary ?? current?.summary ?? summaryFrom(markdown)).trim();
+  const details = normalizeDetails(documentType, payload.details, current?.details);
+  const suppliedSummary = textValue(payload.summary ?? current?.summary ?? "").trim();
+  const summary = ["free-text", "catalog"].includes(documentType)
+    ? suppliedSummary || summaryFrom(documentMarkdown({ documentType, markdown, details })) || title
+    : textValue(payload.summary ?? current?.summary ?? summaryFrom(markdown)).trim();
   const status = textValue(payload.status ?? current?.status ?? config.defaultStatus).trim();
   if (!title || title.length > MAX_TITLE) {
     throw httpError(422, "INVALID_DOCUMENT", `title é obrigatório e deve ter até ${MAX_TITLE} caracteres`);
@@ -166,7 +184,7 @@ export function normalizeDocumentPayload(
   if (!summary || summary.length > MAX_SUMMARY) {
     throw httpError(422, "INVALID_DOCUMENT", `summary é obrigatório e deve ter até ${MAX_SUMMARY} caracteres`);
   }
-  if (!markdown) throw httpError(422, "INVALID_DOCUMENT", "markdown é obrigatório");
+  if (!markdown && documentType !== "catalog") throw httpError(422, "INVALID_DOCUMENT", "markdown é obrigatório");
   if (!config.statuses.includes(status)) {
     throw httpError(422, "INVALID_DOCUMENT_STATUS", `status inválido para ${documentType}: ${status}`);
   }
@@ -180,7 +198,7 @@ export function normalizeDocumentPayload(
     summary,
     markdown,
     status,
-    details: normalizeDetails(documentType, payload.details, current?.details),
+    details,
     classification: normalizeClassification(payload.classification, current?.classification),
     source: normalizeSource(payload.source, current?.source),
     collectionId: textValue(payload.collectionId ?? current?.collectionId ?? "").trim(),

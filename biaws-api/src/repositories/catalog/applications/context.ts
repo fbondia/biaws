@@ -196,7 +196,7 @@ export async function getApplicationContext(applicationId: string | string[], qu
             { documentType: "architecture-decision", status: "accepted" },
             {
               documentType: {
-                $in: ["guideline", "feature", "technical-reference", "procedure"],
+                $in: ["guideline", "feature", "technical-reference", "procedure", "free-text", "catalog"],
               },
               status: "published",
             },
@@ -233,7 +233,12 @@ export async function getApplicationContext(applicationId: string | string[], qu
     demands.find(knowledgeScope).sort({ updatedAt: -1, _id: 1 }).limit(limit).toArray(),
     issues.countDocuments(knowledgeScope),
     demands.countDocuments(knowledgeScope),
-    documents.find(documentScope).project({ markdown: 0 }).sort({ updatedAt: -1, id: 1 }).limit(limit).toArray(),
+    documents
+      .find(documentScope)
+      .project({ markdown: 0, "details.items.description": 0 })
+      .sort({ updatedAt: -1, id: 1 })
+      .limit(limit)
+      .toArray(),
     documents.countDocuments(documentScope),
     listIntegrations(application.id, {
       includeArchived: query.includeArchived,

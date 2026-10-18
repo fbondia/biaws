@@ -20,7 +20,7 @@ export async function listDocuments(query: RepositoryQuery = {}) {
   const [items, total] = await Promise.all([
     collection
       .find(filter)
-      .project<StoredKnowledgeDocument>({ markdown: 0 })
+      .project<StoredKnowledgeDocument>({ markdown: 0, "details.items.description": 0 })
       .sort({ documentType: 1, title: 1, id: 1 })
       .skip(pagination.skip)
       .limit(pagination.limit)

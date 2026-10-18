@@ -1,8 +1,8 @@
 # Documentos de conhecimento
 
 O Bondia Workspaces mantém regras de negócio, decisões arquiteturais, guidelines,
-features, referências técnicas e procedimentos em uma única coleção de
-documentos. O campo `documentType` é um discriminador obrigatório e imutável;
+features, referências técnicas, procedimentos, textos livres e catálogos em uma
+única coleção de documentos. O campo `documentType` é um discriminador obrigatório e imutável;
 ele define validação, template, metadados específicos e ciclo de vida.
 
 ## Tipos e ciclos de vida
@@ -15,9 +15,12 @@ ele define validação, template, metadados específicos e ciclo de vida.
 | `feature`               | Descrição funcional e técnica aprofundada de uma capacidade    | `draft`, `published`, `deprecated`, `archived`               |
 | `technical-reference`   | Arquitetura atual, contratos, schemas, protocolos e mecanismos | `draft`, `published`, `deprecated`, `archived`               |
 | `procedure`             | Instruções operacionais reutilizáveis                          | `draft`, `published`, `deprecated`, `archived`               |
+| `free-text`             | Texto Markdown livre, sem modelo predefinido                   | `draft`, `published`, `deprecated`, `archived`               |
+| `catalog`               | Elementos com título e descrição Markdown                      | `draft`, `published`, `deprecated`, `archived`               |
 
 Regras, decisões e features exigem uma aplicação. Guidelines, referências
-técnicas e procedimentos também podem existir no escopo geral do workspace.
+técnicas, procedimentos, textos livres e catálogos também podem existir no escopo
+geral do workspace.
 Componentes somente podem ser associados quando houver uma aplicação.
 
 Para guidelines, `details.scope` define o contexto: `workspace` não aceita
@@ -36,10 +39,23 @@ letras minúsculas, números e hífens simples. Campos específicos ficam em
 - decisão: `decidedAt`;
 - guideline: `scope` e `enforcement`;
 - feature: `maturity`;
-- referência técnica: `referenceKind`.
+- referência técnica: `referenceKind`;
+- catálogo: `items`, uma lista ordenada de até 500 elementos com `id`, `title` e
+  `description` (Markdown). O título tem até 240 caracteres e a descrição é
+  obrigatória; o ID estável é gerado quando omitido.
 
 Procedimentos não possuem campos adicionais em `details`; sua estrutura é
-definida pelo template Markdown do tipo.
+definida pelo template Markdown do tipo. Textos livres também não possuem
+metadados específicos e começam com o Markdown em branco, sem seções obrigatórias.
+Nos dois novos tipos, o resumo pode ser omitido: ele é derivado do conteúdo ou,
+para um catálogo vazio, do título.
+
+O catálogo permite adicionar, editar e remover elementos na aba **Conteúdo**.
+Cada elemento pode ser expandido ou contraído independentemente, tanto na leitura
+quanto na edição. O Markdown do documento é uma introdução opcional; o conteúdo
+dos elementos fica em `details.items` e acompanha as revisões. A exportação
+Markdown, o recurso de conteúdo e o PDF incluem todos os elementos, mesmo
+contraídos na tela.
 
 `source.mode` distingue conteúdo `native` de conteúdo canônico em `repository`.
 Nesse segundo caso, `repositoryId` e `path` são obrigatórios. O Markdown permite
@@ -92,7 +108,9 @@ replicação para múltiplos workspaces. Replicar exige um identificador. Quando
 não há correspondência no destino, a API cria uma cópia limpa com o tipo e o
 conteúdo da origem. Quando há correspondência, preserva tipo, ID, contexto,
 classificação, referências, estado e histórico do destino, substituindo somente
-título, resumo e Markdown. A
+título, resumo e Markdown. Entre catálogos, os elementos também são substituídos.
+Ao replicar um catálogo para um documento de outro tipo, os elementos são
+convertidos em seções Markdown, preservando o tipo do destino. A
 permissão `documents.*` é híbrida: pode abranger todo o workspace ou aplicações
 selecionadas.
 
@@ -103,4 +121,5 @@ campos específicos. `documents_create` usa um schema discriminado por tipo para
 recusar combinações inválidas antes da chamada HTTP. `knowledge_context_load`
 carrega documentos vigentes — regras ativas, decisões aceitas e demais tipos
 publicados — aplicáveis à aplicação ou componente. Listagens e o contexto
-agregado omitem o Markdown; o conteúdo completo é carregado sob demanda.
+agregado omitem o Markdown e as descrições dos elementos de catálogos; o conteúdo
+completo é carregado sob demanda.

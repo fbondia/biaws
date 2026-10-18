@@ -13,6 +13,8 @@ function textFilter(search: string) {
       { title: { $regex: escaped, $options: "i" } },
       { summary: { $regex: escaped, $options: "i" } },
       { markdown: { $regex: escaped, $options: "i" } },
+      { "details.items.title": { $regex: escaped, $options: "i" } },
+      { "details.items.description": { $regex: escaped, $options: "i" } },
     ],
   };
 }

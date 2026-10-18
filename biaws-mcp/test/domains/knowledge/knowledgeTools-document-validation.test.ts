@@ -37,3 +37,39 @@ test("document creation validates its discriminated contract before HTTP", async
       fieldErrors(error).some(({ path }) => path === "source.repositoryId"),
   );
 });
+
+test("new document types validate catalog entries and preserve existing Markdown requirements", async () => {
+  const { knowledgeTools } = await import("../../../src/domains/knowledge/tools.js");
+  const { validateArguments } = await import("../../../src/mcp/tools/validation.js");
+  const { required } = await import("../../helpers/types.js");
+  const create = required(knowledgeTools.find(({ name }) => name === "documents_create"));
+  assert.doesNotThrow(() =>
+    validateArguments(create, {
+      documentType: "free-text",
+      title: "Notas",
+      markdown: "Texto livre",
+    }),
+  );
+  for (const application of [{}, { applicationId: "app-1", affectedComponentIds: ["component-1"] }]) {
+    assert.doesNotThrow(() =>
+      validateArguments(create, {
+        documentType: "catalog",
+        title: "Serviços",
+        ...application,
+        details: { items: [{ title: "API", description: "**Contrato**" }] },
+      }),
+    );
+  }
+  for (const payload of [
+    { documentType: "catalog", title: "Inválido", details: { items: [{ title: "API" }] } },
+    { documentType: "catalog", title: "Inválido", details: { items: "texto" } },
+    { documentType: "catalog", title: "Inválido", affectedComponentIds: ["sem-aplicação"] },
+    { documentType: "free-text", title: "Sem conteúdo", markdown: "" },
+    { documentType: "procedure", title: "Sem conteúdo", summary: "Resumo" },
+  ]) {
+    assert.throws(
+      () => validateArguments(create, payload),
+      (error) => errorInfo(error).code === "VALIDATION_ERROR",
+    );
+  }
+});

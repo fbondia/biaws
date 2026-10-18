@@ -84,7 +84,13 @@ export async function getDocument(args: { documentId?: string } = {}) {
 }
 
 export async function createDocument(args: ServiceArguments<"documents_create"> = {}) {
-  for (const field of ["documentType", "title", "summary", "markdown"] as const) {
+  const fields =
+    args.documentType === "catalog"
+      ? (["documentType", "title"] as const)
+      : args.documentType === "free-text"
+        ? (["documentType", "title", "markdown"] as const)
+        : (["documentType", "title", "summary", "markdown"] as const);
+  for (const field of fields) {
     if (!String(args[field] || "").trim()) throw new BiawsError(`${field} is required`);
   }
   return sendJson(BASE_PATH, documentPayload(args), {}, "POST");

@@ -87,6 +87,40 @@ export const DOCUMENT_TYPE_CATALOG = Object.freeze({
     applicationRequired: false,
     details: Object.freeze({}),
   }),
+  "free-text": Object.freeze({
+    type: "free-text",
+    label: "Texto livre",
+    description: "Conteúdo Markdown livre, sem estrutura ou metadados específicos.",
+    defaultStatus: "draft",
+    statuses: Object.freeze(["draft", "published", "deprecated", "archived"]),
+    currentStatuses: Object.freeze(["published"]),
+    applicationRequired: false,
+    details: Object.freeze({}),
+  }),
+  catalog: Object.freeze({
+    type: "catalog",
+    label: "Catálogo",
+    description: "Elementos com título e descrição Markdown, expansíveis na leitura.",
+    defaultStatus: "draft",
+    statuses: Object.freeze(["draft", "published", "deprecated", "archived"]),
+    currentStatuses: Object.freeze(["published"]),
+    applicationRequired: false,
+    details: Object.freeze({
+      items: Object.freeze({
+        type: "array",
+        maxItems: 500,
+        items: Object.freeze({
+          type: "object",
+          required: Object.freeze(["title", "description"]),
+          properties: Object.freeze({
+            id: Object.freeze({ type: "string", minLength: 1, maxLength: 80 }),
+            title: Object.freeze({ type: "string", minLength: 1, maxLength: 240 }),
+            description: Object.freeze({ type: "string", minLength: 1 }),
+          }),
+        }),
+      }),
+    }),
+  }),
 });
 
 export const DOCUMENT_TYPES = Object.freeze(Object.keys(DOCUMENT_TYPE_CATALOG));

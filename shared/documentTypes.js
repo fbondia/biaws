@@ -17,13 +17,7 @@ export const DOCUMENT_TYPE_CATALOG = Object.freeze({
     label: "Decisão arquitetural",
     description: "Escolhas técnicas, contexto, alternativas e consequências.",
     defaultStatus: "proposed",
-    statuses: Object.freeze([
-      "proposed",
-      "accepted",
-      "rejected",
-      "superseded",
-      "archived",
-    ]),
+    statuses: Object.freeze(["proposed", "accepted", "rejected", "superseded", "archived"]),
     currentStatuses: Object.freeze(["accepted"]),
     applicationRequired: true,
     details: Object.freeze({
@@ -78,13 +72,7 @@ export const DOCUMENT_TYPE_CATALOG = Object.freeze({
     details: Object.freeze({
       referenceKind: Object.freeze({
         type: "string",
-        enum: Object.freeze([
-          "architecture",
-          "contract",
-          "schema",
-          "protocol",
-          "mechanism",
-        ]),
+        enum: Object.freeze(["architecture", "contract", "schema", "protocol", "mechanism"]),
         default: "architecture",
       }),
     }),
@@ -94,15 +82,44 @@ export const DOCUMENT_TYPE_CATALOG = Object.freeze({
     label: "Procedimento",
     description: "Instruções operacionais reutilizáveis.",
     defaultStatus: "draft",
-    statuses: Object.freeze([
-      "draft",
-      "published",
-      "deprecated",
-      "archived",
-    ]),
+    statuses: Object.freeze(["draft", "published", "deprecated", "archived"]),
     currentStatuses: Object.freeze(["published"]),
     applicationRequired: false,
     details: Object.freeze({}),
+  }),
+  "free-text": Object.freeze({
+    type: "free-text",
+    label: "Texto livre",
+    description: "Conteúdo Markdown livre, sem estrutura ou metadados específicos.",
+    defaultStatus: "draft",
+    statuses: Object.freeze(["draft", "published", "deprecated", "archived"]),
+    currentStatuses: Object.freeze(["published"]),
+    applicationRequired: false,
+    details: Object.freeze({}),
+  }),
+  catalog: Object.freeze({
+    type: "catalog",
+    label: "Catálogo",
+    description: "Elementos com título e descrição Markdown, expansíveis na leitura.",
+    defaultStatus: "draft",
+    statuses: Object.freeze(["draft", "published", "deprecated", "archived"]),
+    currentStatuses: Object.freeze(["published"]),
+    applicationRequired: false,
+    details: Object.freeze({
+      items: Object.freeze({
+        type: "array",
+        maxItems: 500,
+        items: Object.freeze({
+          type: "object",
+          required: Object.freeze(["title", "description"]),
+          properties: Object.freeze({
+            id: Object.freeze({ type: "string", minLength: 1, maxLength: 80 }),
+            title: Object.freeze({ type: "string", minLength: 1, maxLength: 240 }),
+            description: Object.freeze({ type: "string", minLength: 1 }),
+          }),
+        }),
+      }),
+    }),
   }),
 });
 

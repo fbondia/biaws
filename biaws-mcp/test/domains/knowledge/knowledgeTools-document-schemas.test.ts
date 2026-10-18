@@ -25,7 +25,7 @@ test("document tools expose one bounded discriminated knowledge API", () => {
   }
 
   const create = required(knowledgeTools.find(({ name }) => name === "documents_create"));
-  assert.deepEqual(create.inputSchema.required, ["documentType", "title", "summary", "markdown"]);
+  assert.deepEqual(create.inputSchema.required, ["documentType", "title"]);
   assert.deepEqual(create.inputSchema.properties.documentType.enum, [
     "business-rule",
     "architecture-decision",
@@ -33,9 +33,11 @@ test("document tools expose one bounded discriminated knowledge API", () => {
     "feature",
     "technical-reference",
     "procedure",
+    "free-text",
+    "catalog",
   ]);
   assert.equal(create.inputSchema.properties.references.maxItems, 100);
   assert.ok(create.inputSchema.properties.identifier);
-  assert.equal(required(create.inputSchema.oneOf).length, 10);
+  assert.equal(required(create.inputSchema.oneOf).length, 14);
   assert.deepEqual(MCP_DOCUMENT_TYPE_CATALOG, SHARED_DOCUMENT_TYPE_CATALOG);
 });

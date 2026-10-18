@@ -20,7 +20,7 @@ test("documents keep type-specific lifecycle states in one model", () => {
     "archived",
   ]);
   assert.deepEqual(documentTypeConfig("procedure").statuses, ["draft", "published", "deprecated", "archived"]);
-  assert.equal(Object.keys(DOCUMENT_TYPES).length, 6);
+  assert.equal(Object.keys(DOCUMENT_TYPES).length, 8);
 });
 
 test("document restoration preserves its previous status with a safe fallback", () => {
@@ -178,4 +178,73 @@ test("document identifier is optional, editable and validated", () => {
     () => normalizeDocumentPayload({ ...current, identifier: "Inválido id" }),
     (error) => errorCode(error) === "INVALID_RESOURCE_IDENTIFIER",
   );
+});
+
+test("free text has no typed metadata and derives its summary from Markdown", () => {
+  const document = normalizeDocumentPayload({
+    documentType: "free-text",
+    title: "Notas da equipe",
+    markdown: "## Ideias\n\nUma anotação **livre**.",
+    summary: "",
+  });
+  assert.deepEqual(document.details, {});
+  assert.equal(document.summary, "Ideias Uma anotação livre .");
+  assert.equal(document.status, "draft");
+  assert.equal(documentTypeConfig("free-text").applicationRequired, false);
+});
+
+test("catalogs save structured entries without requiring an introduction or summary", () => {
+  const document = normalizeDocumentPayload({
+    documentType: "catalog",
+    title: "Serviços",
+    details: { items: [{ title: " API ", description: " **Contrato**\n\nGET /status " }] },
+  });
+  const items = document.details.items;
+  assert.ok(Array.isArray(items));
+  assert.match(items[0].id, /^[a-f\d-]{36}$/u);
+  assert.equal(items[0].title, "API");
+  assert.equal(items[0].description, "**Contrato**\n\nGET /status");
+  assert.equal(document.markdown, "");
+  assert.ok(document.summary.includes("Contrato"));
+  assert.equal(documentTypeConfig("catalog").applicationRequired, false);
+  const renamed = normalizeDocumentPayload({ title: "Serviços internos" }, document);
+  assert.deepEqual(renamed.details.items, items);
+  const cleared = normalizeDocumentPayload({ details: { items: [] } }, renamed);
+  assert.deepEqual(cleared.details.items, []);
+  assert.equal(normalizeDocumentPayload({ documentType: "catalog", title: "Vazio" }).summary, "Vazio");
+});
+
+test("catalog entries require valid title, Markdown description and unique stable IDs", () => {
+  const validItem = { id: "api", title: "API", description: "# Contrato" };
+  for (const items of [
+    null,
+    {},
+    [null],
+    [{ title: "", description: "Texto" }],
+    [{ title: "x".repeat(241), description: "Texto" }],
+    [{ title: "API", description: "  " }],
+    [{ title: "API", description: {} }],
+    [{ ...validItem, id: "" }],
+    [validItem, validItem],
+    Array(501).fill(validItem),
+  ]) {
+    assert.throws(
+      () => normalizeDocumentPayload({ documentType: "catalog", title: "Serviços", details: { items } }),
+      (error) => errorCode(error) === "INVALID_DOCUMENT_DETAILS",
+    );
+  }
+});
+
+test("replication preserves catalog entries and flattens them when the destination has another type", () => {
+  const document = normalizeDocumentPayload({
+    documentType: "catalog",
+    title: "Catálogo",
+    details: { items: [{ id: "api", title: "API", description: "**Contrato**" }] },
+  });
+  const copy = documentReplicationPayload(document);
+  assert.deepEqual(copy.details, document.details);
+  assert.deepEqual(documentReplicationPayload(document, document).details, document.details);
+  const converted = documentReplicationPayload(document, { documentType: "free-text" });
+  assert.equal(converted.markdown, "## API\n\n**Contrato**");
+  assert.equal(converted.details, undefined);
 });

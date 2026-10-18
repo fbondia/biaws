@@ -1,4 +1,25 @@
 import type { ToolDefinition } from "../../mcp/tools/contracts.js";
+const catalogDetailsSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    items: {
+      type: "array",
+      maxItems: 500,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "description"],
+        properties: {
+          id: { type: "string", minLength: 1, maxLength: 80 },
+          title: { type: "string", minLength: 1, maxLength: 240 },
+          description: { type: "string", minLength: 1 },
+        },
+      },
+    },
+  },
+} as const;
+
 export const knowledgeTools = [
   {
     name: "knowledge_context_load",
@@ -50,7 +71,16 @@ export const knowledgeTools = [
         },
         documentType: {
           type: "string",
-          enum: ["business-rule", "architecture-decision", "guideline", "feature", "technical-reference", "procedure"],
+          enum: [
+            "business-rule",
+            "architecture-decision",
+            "guideline",
+            "feature",
+            "technical-reference",
+            "procedure",
+            "free-text",
+            "catalog",
+          ],
           description: "Tipo imutável do documento. Consulte document_types_list para o contrato completo.",
         },
         applicationId: {
@@ -108,7 +138,7 @@ export const knowledgeTools = [
       "Cria um documento usando o contrato discriminado pelo documentType. O workspace vem da configuração do MCP; applicationId e details seguem as regras de cada tipo.",
     inputSchema: {
       type: "object",
-      required: ["documentType", "title", "summary", "markdown"],
+      required: ["documentType", "title"],
       additionalProperties: false,
       properties: {
         identifier: {
@@ -119,7 +149,16 @@ export const knowledgeTools = [
         },
         documentType: {
           type: "string",
-          enum: ["business-rule", "architecture-decision", "guideline", "feature", "technical-reference", "procedure"],
+          enum: [
+            "business-rule",
+            "architecture-decision",
+            "guideline",
+            "feature",
+            "technical-reference",
+            "procedure",
+            "free-text",
+            "catalog",
+          ],
           description: "Tipo imutável do documento. Consulte document_types_list para o contrato completo.",
         },
         title: {
@@ -134,7 +173,7 @@ export const knowledgeTools = [
         },
         markdown: {
           type: "string",
-          minLength: 1,
+          description: "Conteúdo Markdown; opcional para catálogos, cujos elementos ficam em details.items.",
         },
         applicationId: {
           type: "string",
@@ -280,6 +319,7 @@ export const knowledgeTools = [
         {
           description: "Regra de negócio: Condições e comportamentos esperados do domínio.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "business-rule",
             },
@@ -303,11 +343,12 @@ export const knowledgeTools = [
               },
             },
           },
-          required: ["documentType", "applicationId"],
+          required: ["summary", "markdown", "documentType", "applicationId"],
         },
         {
           description: "Decisão arquitetural: Escolhas técnicas, contexto, alternativas e consequências.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "architecture-decision",
             },
@@ -327,11 +368,12 @@ export const knowledgeTools = [
               },
             },
           },
-          required: ["documentType", "applicationId"],
+          required: ["summary", "markdown", "documentType", "applicationId"],
         },
         {
           description: "Feature: Descrição funcional e técnica aprofundada de uma capacidade.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "feature",
             },
@@ -351,11 +393,12 @@ export const knowledgeTools = [
               },
             },
           },
-          required: ["documentType", "applicationId"],
+          required: ["summary", "markdown", "documentType", "applicationId"],
         },
         {
           description: "Referência técnica geral do workspace; applicationId e componentes devem ser omitidos.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "technical-reference",
             },
@@ -382,11 +425,12 @@ export const knowledgeTools = [
               maxItems: 0,
             },
           },
-          required: ["documentType"],
+          required: ["summary", "markdown", "documentType"],
         },
         {
           description: "Referência técnica vinculada a uma aplicação e, opcionalmente, a seus componentes.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "technical-reference",
             },
@@ -406,11 +450,12 @@ export const knowledgeTools = [
               },
             },
           },
-          required: ["documentType", "applicationId"],
+          required: ["summary", "markdown", "documentType", "applicationId"],
         },
         {
           description: "Procedimento geral do workspace; applicationId e componentes devem ser omitidos.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "procedure",
             },
@@ -431,11 +476,12 @@ export const knowledgeTools = [
               maxItems: 0,
             },
           },
-          required: ["documentType"],
+          required: ["summary", "markdown", "documentType"],
         },
         {
           description: "Procedimento vinculada a uma aplicação e, opcionalmente, a seus componentes.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "procedure",
             },
@@ -449,11 +495,12 @@ export const knowledgeTools = [
               properties: {},
             },
           },
-          required: ["documentType", "applicationId"],
+          required: ["summary", "markdown", "documentType", "applicationId"],
         },
         {
           description: "Guideline geral do workspace; applicationId deve ser omitido.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "guideline",
             },
@@ -484,11 +531,12 @@ export const knowledgeTools = [
               maxItems: 0,
             },
           },
-          required: ["documentType", "details"],
+          required: ["summary", "markdown", "documentType", "details"],
         },
         {
           description: "Guideline vinculada a uma aplicação.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "guideline",
             },
@@ -512,11 +560,12 @@ export const knowledgeTools = [
               required: ["scope"],
             },
           },
-          required: ["documentType", "details", "applicationId"],
+          required: ["summary", "markdown", "documentType", "details", "applicationId"],
         },
         {
           description: "Guideline vinculada a ao menos um componente da aplicação.",
           properties: {
+            markdown: { type: "string", minLength: 1 },
             documentType: {
               const: "guideline",
             },
@@ -549,7 +598,51 @@ export const knowledgeTools = [
               },
             },
           },
-          required: ["documentType", "details", "applicationId", "affectedComponentIds"],
+          required: ["summary", "markdown", "documentType", "details", "applicationId", "affectedComponentIds"],
+        },
+        {
+          description: "Texto Markdown livre.",
+          properties: {
+            documentType: { const: "free-text" },
+            status: { type: "string", enum: ["draft", "published", "deprecated", "archived"] },
+            markdown: { type: "string", minLength: 1 },
+            details: { type: "object", additionalProperties: false, properties: {} },
+            applicationId: { const: null },
+            affectedComponentIds: { type: "array", maxItems: 0 },
+          },
+          required: ["documentType", "markdown"],
+        },
+        {
+          description: "Texto Markdown livre.",
+          properties: {
+            documentType: { const: "free-text" },
+            status: { type: "string", enum: ["draft", "published", "deprecated", "archived"] },
+            markdown: { type: "string", minLength: 1 },
+            details: { type: "object", additionalProperties: false, properties: {} },
+          },
+          required: ["documentType", "markdown", "applicationId"],
+        },
+        {
+          description: "Catálogo com elementos expansíveis.",
+          properties: {
+            documentType: { const: "catalog" },
+            status: { type: "string", enum: ["draft", "published", "deprecated", "archived"] },
+            markdown: { type: "string" },
+            details: catalogDetailsSchema,
+            applicationId: { const: null },
+            affectedComponentIds: { type: "array", maxItems: 0 },
+          },
+          required: ["documentType"],
+        },
+        {
+          description: "Catálogo com elementos expansíveis.",
+          properties: {
+            documentType: { const: "catalog" },
+            status: { type: "string", enum: ["draft", "published", "deprecated", "archived"] },
+            markdown: { type: "string" },
+            details: catalogDetailsSchema,
+          },
+          required: ["documentType", "applicationId"],
         },
       ],
     },
@@ -575,7 +668,16 @@ export const knowledgeTools = [
         },
         documentType: {
           type: "string",
-          enum: ["business-rule", "architecture-decision", "guideline", "feature", "technical-reference", "procedure"],
+          enum: [
+            "business-rule",
+            "architecture-decision",
+            "guideline",
+            "feature",
+            "technical-reference",
+            "procedure",
+            "free-text",
+            "catalog",
+          ],
           description: "Tipo imutável do documento. Consulte document_types_list para o contrato completo.",
         },
         title: {
@@ -590,7 +692,6 @@ export const knowledgeTools = [
         },
         markdown: {
           type: "string",
-          minLength: 1,
         },
         applicationId: {
           type: "string",

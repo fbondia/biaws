@@ -1,3 +1,4 @@
+import { documentMarkdown } from "../../../../../../../../shared/documentContent.js";
 import { useRef } from "react";
 
 function safeFilename(title, extension) {
@@ -44,6 +45,8 @@ export function printableDocumentHtml(draft, renderedMarkdown) {
       th, td { border: 1px solid #d9dee7; padding: 6px 8px; text-align: left; vertical-align: top; }
       th { background: #f3f5f8; }
       a { color: #1e58b0; text-decoration: none; }
+      .knowledgeCatalogItem { margin: 0 0 16px; }
+      .knowledgeCatalogItem > summary { font-size: 14pt; font-weight: 700; margin-bottom: 8px; break-after: avoid; }
       .markdownPreview { min-height: 0; border: 0; background: transparent; padding: 0; }
     </style>
   </head>
@@ -70,7 +73,7 @@ export function useDocumentExports(draft) {
   const contentRef = useRef(null);
 
   function exportMarkdown() {
-    downloadBlob(draft.markdown, "text/markdown;charset=utf-8", safeFilename(draft.title, "md"));
+    downloadBlob(documentMarkdown(draft), "text/markdown;charset=utf-8", safeFilename(draft.title, "md"));
   }
 
   function exportPdf() {
@@ -91,7 +94,11 @@ export function useDocumentExports(draft) {
       });
       window.setTimeout(() => frame.remove(), 60_000);
     };
-    frame.srcdoc = printableDocumentHtml(draft, contentRef.current?.innerHTML || "");
+    const content = contentRef.current?.cloneNode(true);
+    content?.querySelectorAll("details").forEach((item) => {
+      item.open = true;
+    });
+    frame.srcdoc = printableDocumentHtml(draft, content?.innerHTML || "");
     document.body.append(frame);
   }
 

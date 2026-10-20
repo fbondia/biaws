@@ -58,6 +58,19 @@ O job Compose da CI empacota o MCP do checkout e o instala temporariamente na
 raiz, sem alterar manifestos ou lockfiles. Assim, o bootstrap e o doctor usam a
 versão em desenvolvimento pelo `npx`, mesmo antes de sua publicação no npm.
 
+Os jobs `compose`, `api` e `chatgpt-integration` usam temporariamente
+`ubuntu-22.04` (kernel 6.8), pois o MongoDB 8.0 recusa iniciar nos kernels
+afetados pela [SERVER-121912](https://jira.mongodb.org/browse/SERVER-121912).
+Reavalie essa fixação quando houver compatibilidade com o kernel dos runners
+mais recentes. O job de documentação também verifica a regressão de links em
+exemplos de código; para executá-lo localmente:
+
+```bash
+node --test scripts/test/checkDocumentation.test.mjs
+node scripts/check-documentation.mjs
+node scripts/release-manifest.mjs check
+```
+
 A UI fixa `lodash-es` em `4.18.1` por override para corrigir as vulnerabilidades
 GHSA-r5fr-rjxr-66jc e GHSA-f23m-r3pf-42rh nas dependências transitivas do Mermaid.
 Revise a necessidade do override quando Chevrotain adotar uma versão corrigida.

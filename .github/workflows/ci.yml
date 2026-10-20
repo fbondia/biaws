@@ -14,7 +14,8 @@ concurrency:
 
 jobs:
   chatgpt-integration:
-    runs-on: ubuntu-latest
+    # MongoDB 8.0 requires a kernel below 6.19 (SERVER-121912).
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -44,13 +45,15 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+      - run: node --test scripts/test/checkDocumentation.test.mjs
       - run: node scripts/check-documentation.mjs
       - run: node scripts/release-manifest.mjs check
       - name: Verify deployed MCP schema migration
         run: node --test biaws-cli/test/releaseMcp.test.js
 
   api:
-    runs-on: ubuntu-latest
+    # Keep the replica-set tests on the same MongoDB-compatible runner as Compose.
+    runs-on: ubuntu-22.04
     env:
       BIAWS_INTEGRATION_MONGO_URI: mongodb://127.0.0.1:27017/biaws_ci?directConnection=true
       BIAWS_HTTP_INTEGRATION: "1"
@@ -210,7 +213,8 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
 
   compose:
-    runs-on: ubuntu-latest
+    # MongoDB containers share the runner kernel; see SERVER-121912.
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7

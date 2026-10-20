@@ -29,6 +29,8 @@
   margin-top: 14px;
   color: var(--color-text-secondary);
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .messagesPromptField {

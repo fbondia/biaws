@@ -7,7 +7,7 @@ export function DocumentExportDialog({ onClose, onExportMarkdown, onExportPdf, o
   if (!open) return null;
   return (
     <div
-      className="tagFilterDialogBackdrop"
+      className="tagFilterDialogBackdrop knowledgeDocumentActionBackdrop"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}

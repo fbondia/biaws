@@ -3,6 +3,7 @@ import { parseInlineMarkdown, parseMarkdownBlocks, safeMarkdownHref, splitTableR
 import { MarkdownAttachmentImage } from "./MarkdownAttachmentImage.jsx";
 import { MarkdownAttachmentLink } from "./MarkdownAttachmentLink.jsx";
 import { MarkdownBlockViewer } from "./MarkdownBlockViewer.jsx";
+import { MarkdownLink } from "./MarkdownLink.jsx";
 
 export function MarkdownPreview({ value, attachments, onLoadAttachment }) {
   const blocks = markdownBlocks(value, { attachments, onLoadAttachment });
@@ -94,8 +95,10 @@ function MarkdownTable({ lines, imageOptions }) {
 function renderInlineMarkdown(text, { attachments, onLoadAttachment }) {
   return parseInlineMarkdown(text).map((token, index) => {
     if (token.type === "code") return <code key={index}>{token.text}</code>;
-    if (token.type === "strong") return <strong key={index}>{token.text}</strong>;
-    if (token.type === "emphasis") return <em key={index}>{token.text}</em>;
+    if (token.type === "strong")
+      return <strong key={index}>{renderInlineMarkdown(token.text, { attachments, onLoadAttachment })}</strong>;
+    if (token.type === "emphasis")
+      return <em key={index}>{renderInlineMarkdown(token.text, { attachments, onLoadAttachment })}</em>;
     if (token.type === "link" && /^(attachment:|cid:|anexo:)/iu.test(token.href)) {
       const attachment = onLoadAttachment && resolveAttachment(token.href, attachments);
       return attachment ? (
@@ -110,9 +113,9 @@ function renderInlineMarkdown(text, { attachments, onLoadAttachment }) {
       const href = safeMarkdownHref(token.href);
       if (!href) return token.text;
       return (
-        <a href={href} key={index} rel="noreferrer" target="_blank">
+        <MarkdownLink href={href} key={index}>
           {token.text}
-        </a>
+        </MarkdownLink>
       );
     }
     if (token.type === "image" && onLoadAttachment) {

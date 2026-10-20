@@ -124,6 +124,21 @@ versão para recusar alterações concorrentes. Toda mudança gera revisão e au
 Incorporar novamente o mesmo documento no mesmo catálogo é recusado para evitar
 duplicação em retentativas.
 
+## Links no Markdown
+
+A visualização reconhece automaticamente URLs com `http://`, `https://` e
+`www.`, inclusive entre `<...>`. Endereços iniciados por `www.` usam HTTPS.
+Pontuação ao redor do endereço fica fora do link; URLs dentro de código
+permanecem como texto. Links explícitos no formato `[texto](url)` continuam
+disponíveis.
+
+Ao ativar um link de navegação, a interface apresenta o endereço completo e
+um aviso sobre sites maliciosos, golpes e downloads perigosos. **Cancelar**
+mantém a página atual; **Abrir link** abre o destino com `target="_blank"`,
+sem acesso à janela de origem nem envio de referência. A confirmação também
+se aplica ao clique com o botão do meio e com modificadores. Links de anexos
+mantêm seu fluxo de download autenticado.
+
 ## Arquivos no Markdown
 
 Depois de salvar o documento, envie seus anexos pela aba **Arquivos**. No editor

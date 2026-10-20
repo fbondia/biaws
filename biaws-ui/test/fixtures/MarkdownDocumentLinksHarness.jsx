@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { configureApiSession } from "../../src/api/client.js";
 import { MarkdownEditor } from "../../src/components/shared/MarkdownEditor/index.jsx";
 import { SessionProvider } from "../../src/infrastructure/session/SessionProvider.jsx";
+import { MessagesProvider } from "../../src/infrastructure/messages/MessagesProvider.jsx";
 import "../../src/styles.css";
 
 export { act } from "react";
@@ -23,7 +24,9 @@ export function mountDocumentLinkEditor(element, initialValue, actor, props = {}
     const [value, setValue] = useState(initialValue);
     return (
       <SessionProvider service={service}>
-        <MarkdownEditor initialMode="text" {...props} value={value} onChange={setValue} />
+        <MessagesProvider>
+          <MarkdownEditor initialMode="text" {...props} value={value} onChange={setValue} />
+        </MessagesProvider>
       </SessionProvider>
     );
   }

@@ -120,6 +120,10 @@
   color: var(--color-text);
 }
 
+.knowledgeDocumentActionBackdrop {
+  z-index: var(--z-nested-dialog);
+}
+
 .knowledgeDocumentActionDialog {
   width: min(560px, calc(100vw - 40px));
 }

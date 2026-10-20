@@ -6,7 +6,16 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+### Fixed
+
+- A escolha de formato para exportar documentos aparece acima do diálogo de
+  detalhes, permitindo acessar as opções Markdown e PDF.
+
 ### Changed
+
+- A visualização Markdown reconhece URLs HTTP/HTTPS e endereços iniciados por
+  `www.`. Links automáticos e explícitos pedem confirmação com aviso de riscos e
+  endereço de destino antes de abrir uma nova janela.
 
 - Plataforma preparada como `0.11.0`, com API `0.12.0`, UI `0.11.0` e MCP
   `0.16.0`: documentos de texto livre e catálogo, conversão entre tipos e

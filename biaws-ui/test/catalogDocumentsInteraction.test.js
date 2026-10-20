@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, symlink } from "node:fs/promises";
+import { mkdtemp, readFile, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -14,6 +14,15 @@ before(async () => {
   process.env.NODE_ENV = "development";
   output = await mkdtemp(join(tmpdir(), "biaws-catalog-ui-"));
   dom = new JSDOM("<div id=app></div>", { url: "https://biaws.example.test" });
+  const style = dom.window.document.createElement("style");
+  style.textContent = (
+    await Promise.all(
+      ["foundations/tokens.css", "shared/filter-dialogs.css", "features/knowledge/details.css"].map((file) =>
+        readFile(join(process.cwd(), "src/styles", file), "utf8"),
+      ),
+    )
+  ).join("\n");
+  dom.window.document.head.append(style);
   previous = Object.fromEntries(
     ["document", "navigator", "window", "fetch", "IS_REACT_ACT_ENVIRONMENT"].map((key) => [
       key,
@@ -98,6 +107,33 @@ const catalog = {
     ],
   },
 };
+
+test("export options open above document details and closing them preserves the document", async () => {
+  await mount(catalog);
+  await click(button("Detalhes"));
+  await click(button("Exportar documento"));
+  const dialog = document.querySelector('[role="dialog"][aria-label="Exportar documento"]');
+  const details = document.querySelector(".knowledgeDetailsDialog");
+  assert.ok(dialog);
+  assert.ok(details);
+  function stackingLevel(element) {
+    // JSDOM exposes custom property references without resolving them.
+    const value = window.getComputedStyle(element).zIndex;
+    return Number(
+      value.replace(/var\((--[\w-]+)\)/gu, (_, token) =>
+        window.getComputedStyle(document.documentElement).getPropertyValue(token).trim(),
+      ),
+    );
+  }
+  assert.ok(stackingLevel(dialog.parentElement) > stackingLevel(details.parentElement));
+  assert.deepEqual(
+    [...dialog.querySelectorAll(".knowledgeDocumentActionOption strong")].map((item) => item.textContent),
+    ["Markdown", "PDF"],
+  );
+  await click(button("Fechar exportação"));
+  assert.equal(document.querySelector('[role="dialog"][aria-label="Exportar documento"]'), null);
+  assert.ok(document.querySelector(".knowledgeDetailsDialog"));
+});
 
 test("catalog reading expands and collapses each entry independently and renders Markdown", async () => {
   await mount(catalog);

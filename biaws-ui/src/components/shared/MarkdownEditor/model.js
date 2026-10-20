@@ -230,17 +230,29 @@ export function markdownTableToHtml(lines) {
   ].join("");
 }
 
+function trimAutolinkPunctuation(value) {
+  let trimmed = value.replace(/[.,;:!?]+$/u, "");
+  const pairs = { ")": "(", "]": "[", "}": "{" };
+  while (pairs[trimmed.at(-1)]) {
+    const closing = trimmed.at(-1);
+    const opening = pairs[closing];
+    if (trimmed.split(closing).length <= trimmed.split(opening).length) break;
+    trimmed = trimmed.slice(0, -1).replace(/[.,;:!?]+$/u, "");
+  }
+  return trimmed;
+}
+
 export function parseInlineMarkdown(text) {
   const tokens = [];
   const pattern =
-    /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|!\[[^\]]*\]\([^)]+\)|\[(?:\\.|[^\]\\])+\]\([^)]+\)|\[(?:anexo:\s*|cid:)[^\]]+\]|<biaws:\/\/[^<>\s]+>|biaws:\/\/[^\s<>()\[\]]+)/giu;
+    /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|!\[[^\]]*\]\([^)]+\)|\[(?:\\.|[^\]\\])+\]\([^)]+\)|\[(?:anexo:\s*|cid:)[^\]]+\]|<(?:biaws:\/\/|https?:\/\/|www\.)[^<>\s]+>|biaws:\/\/[^\s<>()\[\]]+|(?<![\p{L}\p{N}_@])(?:https?:\/\/|www\.)[^\s<>"`]+)/giu;
   let cursor = 0;
   let match;
 
   while ((match = pattern.exec(text)) !== null) {
     if (match.index > cursor) tokens.push({ type: "text", text: text.slice(cursor, match.index) });
 
-    const token = /^biaws:\/\//iu.test(match[0]) ? match[0].replace(/[.,;!]+$/u, "") : match[0];
+    const token = /^(?:biaws:\/\/|https?:\/\/|www\.)/iu.test(match[0]) ? trimAutolinkPunctuation(match[0]) : match[0];
 
     if (token.startsWith("`")) {
       tokens.push({ type: "code", text: token.slice(1, -1) });
@@ -253,9 +265,10 @@ export function parseInlineMarkdown(text) {
       tokens.push({ type: "image", text: image[1], reference: image[2], raw: token });
     } else if (/^\[(?:anexo:|cid:)/iu.test(token) && !token.includes("](")) {
       tokens.push({ type: "image", text: "", reference: token.slice(1, -1), raw: token });
-    } else if (/^<?biaws:\/\//iu.test(token)) {
-      const href = token.startsWith("<") ? token.slice(1, -1) : token;
-      tokens.push({ type: "link", text: href, href });
+    } else if (/^<?(?:biaws:\/\/|https?:\/\/|www\.)/iu.test(token)) {
+      const text = token.startsWith("<") ? token.slice(1, -1) : token;
+      const href = /^www\./iu.test(text) ? `https://${text}` : text;
+      tokens.push({ type: "link", text, href });
     } else {
       const link = token.match(/^\[((?:\\.|[^\]\\])+)\]\(([^)]+)\)$/u);
       tokens.push({ type: "link", text: link[1].replace(/\\([\\\[\]])/gu, "$1"), href: link[2] });
@@ -274,8 +287,8 @@ export function renderInlineMarkdownHtml(text) {
   return parseInlineMarkdown(text)
     .map((token) => {
       if (token.type === "code") return `<code>${escapeHtml(token.text)}</code>`;
-      if (token.type === "strong") return `<strong>${escapeHtml(token.text)}</strong>`;
-      if (token.type === "emphasis") return `<em>${escapeHtml(token.text)}</em>`;
+      if (token.type === "strong") return `<strong>${renderInlineMarkdownHtml(token.text)}</strong>`;
+      if (token.type === "emphasis") return `<em>${renderInlineMarkdownHtml(token.text)}</em>`;
       if (token.type === "link" && /^(attachment:|cid:|anexo:)/iu.test(token.href))
         return escapeHtml(`[${token.text}](${token.href})`);
       if (token.type === "link") {

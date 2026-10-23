@@ -13,17 +13,18 @@
   border-bottom: 1px solid var(--color-border);
 }
 .publicationWorkspaceHeader span,
-.publicationWorkspace header > span,
+.publicationHistory > header > span,
 .publicationHistory header > div > span,
 .publicationComposer header > span {
   color: var(--color-text-muted);
   font-size: 0.8rem;
 }
-.publicationWorkspace h2,
-.publicationWorkspace h3 {
+.publicationWorkspaceHeader h2,
+.publicationHistory > header h3,
+.publicationComposer > header h3 {
   margin: 4px 0;
 }
-.publicationWorkspace p {
+.publicationWorkspaceHeader p {
   margin: 5px 0 0;
   color: var(--color-text-muted);
 }
@@ -33,6 +34,7 @@
 }
 .publicationHistory,
 .publicationComposer {
+  min-width: 0;
   padding: 22px 24px;
 }
 .publicationComposer {
@@ -49,31 +51,33 @@
 .publicationHistory > header > small {
   color: var(--color-text-muted);
 }
-.publicationHistory ol {
+.publicationHistory > ol {
   display: grid;
   gap: 10px;
   margin: 16px 0 0;
   padding: 0;
   list-style: none;
 }
-.publicationHistory li {
+.publicationHistory > ol > li {
+  min-width: 0;
   padding: 13px;
   border: 1px solid var(--color-border);
   border-radius: 10px;
 }
-.publicationHistory li > div {
+.publicationMetadata {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
-.publicationHistory li small {
+.publicationHistory > ol > li > small {
   display: block;
   color: var(--color-text-muted);
   margin-top: 5px;
 }
-.publicationHistory li p {
-  font-size: 0.9rem;
+.publicationHistory > ol > li > .markdownPreview {
+  min-height: 0;
+  margin-top: var(--space-3);
 }
 .publicationStatus,
 .publicationDeploymentStatus {

@@ -8,6 +8,9 @@ versionamento seguirá [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Fixed
 
+- Descrições de publicações usam editor e visualização Markdown na tela de
+  Publicações e no histórico do deployment, preservando quebras de linha e listas.
+
 - A escolha de formato para exportar documentos aparece acima do diálogo de
   detalhes, permitindo acessar as opções Markdown e PDF.
 

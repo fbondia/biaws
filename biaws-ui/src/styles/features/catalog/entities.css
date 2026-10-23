@@ -453,20 +453,24 @@
   padding: var(--space-3) var(--space-4);
 }
 
-.catalogHistoryItem strong {
+.catalogHistoryItem > strong {
   font-size: 0.84rem;
 }
 
-.catalogHistoryItem small {
+.catalogHistoryItem > small {
   color: var(--color-text-subtle);
   font-size: 0.7rem;
 }
 
-.catalogHistoryItem p {
+.catalogHistoryItem > p {
   margin: 3px 0 0;
   color: var(--color-text-secondary);
   font-size: 0.76rem;
   white-space: pre-wrap;
+}
+
+.catalogHistoryItem > .markdownPreview {
+  min-height: 0;
 }
 
 .catalogHistoryEmpty {

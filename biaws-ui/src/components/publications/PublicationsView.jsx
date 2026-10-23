@@ -18,6 +18,7 @@ import "../../styles/features/catalog/index.css";
 import "../../styles/features/monitoring-center.css";
 import "../../styles/features/publications.css";
 import { PUBLICATION_STATUSES } from "../catalog/CatalogEntityDialog/constants.js";
+import { MarkdownEditor, MarkdownPreview } from "../shared/MarkdownEditor/index.jsx";
 import { applicationsInCollection, collectionColumns, deploymentsForComponent } from "../monitoring/runtimes/model.js";
 
 const EMPTY_PUBLICATION = {
@@ -201,7 +202,7 @@ function PublicationPanel({ actor, deployment, onSaved }) {
             <ol>
               {publications.map((publication) => (
                 <li key={publication.id}>
-                  <div>
+                  <div className="publicationMetadata">
                     <strong>{publication.version}</strong>
                     <span className={`publicationStatus ${publication.status || "deployed"}`}>
                       {publication.status || "deployed"}
@@ -211,7 +212,7 @@ function PublicationPanel({ actor, deployment, onSaved }) {
                     {formatDate(publication.publishedAt)}
                     {publication.revision ? ` · ${publication.revision}` : ""}
                   </small>
-                  {publication.description ? <p>{publication.description}</p> : null}
+                  {publication.description ? <MarkdownPreview value={publication.description} /> : null}
                 </li>
               ))}
             </ol>
@@ -288,20 +289,19 @@ function PublicationPanel({ actor, deployment, onSaved }) {
               ))}
             </select>
           </label>
-          <label className="field">
-            <span>Descrição</span>
-            <textarea
-              disabled={!canUpdate || saving}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  description: event.target.value,
-                }))
-              }
-              rows={4}
-              value={draft.description}
-            />
-          </label>
+          <div className="field">
+            <span>Descrição (Markdown)</span>
+            {canUpdate && !saving ? (
+              <MarkdownEditor
+                ariaLabel="Descrição da publicação"
+                initialMode="text"
+                onChange={(description) => setDraft((current) => ({ ...current, description }))}
+                value={draft.description}
+              />
+            ) : (
+              <MarkdownPreview value={draft.description} />
+            )}
+          </div>
           <button className="primaryButton" disabled={!canUpdate || saving || !draft.version.trim()} type="submit">
             <Plus size={16} />
             {saving ? "Registrando…" : "Registrar publicação"}

@@ -1,4 +1,5 @@
 import { DEPLOYMENT_STATUSES, ENVIRONMENTS, PUBLICATION_STATUSES } from "../constants.js";
+import { MarkdownEditor, MarkdownPreview } from "../../../shared/MarkdownEditor/index.jsx";
 import { EntityFieldGroup, HistoryItems, SelectField, TextField } from "./Fields.jsx";
 
 function formatDate(value) {
@@ -116,19 +117,20 @@ export function DeploymentFields({
               required
               value={publicationDraft.status}
             />
-            <label className="field catalogHistoryDescription">
-              <span>Descrição da publicação</span>
-              <textarea
-                onChange={(event) =>
+            <div className="field catalogHistoryDescription">
+              <span>Descrição da publicação (Markdown)</span>
+              <MarkdownEditor
+                ariaLabel="Descrição da publicação"
+                initialMode="text"
+                onChange={(description) =>
                   setPublicationDraft((current) => ({
                     ...current,
-                    description: event.target.value,
+                    description,
                   }))
                 }
-                rows={3}
                 value={publicationDraft.description}
               />
-            </label>
+            </div>
             <button
               className="secondaryButton"
               disabled={!publicationDraft.version.trim()}
@@ -163,7 +165,7 @@ export function DeploymentFields({
                   {formatDate(publication.publishedAt)}
                   {publication.revision ? ` · ${publication.revision}` : ""}
                 </small>
-                {publication.description ? <p>{publication.description}</p> : null}
+                {publication.description ? <MarkdownPreview value={publication.description} /> : null}
               </>
             )}
           />

@@ -95,7 +95,8 @@ VITE_BIAWS_API_URL=http://127.0.0.1:3100 npm run dev
   horário existentes, inclusive uma data desconhecida (`null`).
 - Cores por grupo de tags, filtros por tag e exibição de tags na grid de issues
 - Home pessoal com widgets configuráveis e filtrados pelas permissões do ator
-- Histórico de publicações por deployment
+- Histórico de publicações por deployment, com edição e visualização das descrições
+  em Markdown na tela de Publicações e no catálogo, preservando quebras de linha
 - Runtimes, templates e histórico agregado de monitoramento
 - Catálogo de skills e documentos tipados em Markdown
 - Cofre de segredos, usuários, grupos, listas de opções e auditoria funcional

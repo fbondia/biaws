@@ -23,7 +23,7 @@ function SelectedEditor({ controller, selectedEdge, selectedElement, selectedGro
   return null;
 }
 
-export function TopologyDiagramCanvas({ controller }) {
+export function TopologyDiagramCanvas({ controller, flowRef }) {
   const {
     actions,
     canEdit,
@@ -76,6 +76,7 @@ export function TopologyDiagramCanvas({ controller }) {
       {diagram ? (
         <ReactFlow
           key={`${diagram.id}-${environment}-${flowRevision}-${hiddenIntegrationIds.join(",")}-${hiddenServerIds.join(",")}`}
+          ref={flowRef}
           colorMode="light"
           connectionMode={ConnectionMode.Loose}
           edges={visibleGraph.edges}

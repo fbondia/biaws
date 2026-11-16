@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 import { CreateTopologyDiagramForm } from "./components/CreateTopologyDiagramForm.jsx";
 import { TopologyDiagramCanvas } from "./components/TopologyDiagramCanvas.jsx";
 import { TopologyDiagramToolbar } from "./components/TopologyDiagramToolbar.jsx";
@@ -6,6 +8,7 @@ import { useTopologyDiagram } from "./hooks/useTopologyDiagram.js";
 
 export function TopologyDiagramDialog({ actor, context, onClose }) {
   const controller = useTopologyDiagram({ actor, context, onClose });
+  const flowRef = useRef(null);
 
   return (
     <div
@@ -27,11 +30,11 @@ export function TopologyDiagramDialog({ actor, context, onClose }) {
           onClose={controller.actions.requestClose}
           saving={controller.saving}
         />
-        <TopologyDiagramToolbar controller={controller} />
+        <TopologyDiagramToolbar controller={controller} flowRef={flowRef} />
         {controller.creating ? <CreateTopologyDiagramForm controller={controller} /> : null}
         {controller.error ? <div className="errorBox">{controller.error}</div> : null}
         {controller.integrationWarning ? <div className="warningBox">{controller.integrationWarning}</div> : null}
-        <TopologyDiagramCanvas controller={controller} />
+        <TopologyDiagramCanvas controller={controller} flowRef={flowRef} />
       </section>
     </div>
   );

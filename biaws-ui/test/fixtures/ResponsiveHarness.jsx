@@ -1,6 +1,6 @@
 // Local visual fixture: real components, synthetic data, no API writes.
 import { AlertCircle, FileText, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../../src/styles.css";
 import "@xyflow/react/dist/style.css";
@@ -98,6 +98,7 @@ const topologyController = {
 };
 
 function Harness() {
+  const flowRef = useRef(null);
   const [selectedIssue, setSelectedIssue] = useState(false);
   const [creatingIssue, setCreatingIssue] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
@@ -325,8 +326,8 @@ function Harness() {
         <div className="dialogBackdrop topologyDiagramBackdrop">
           <section className="topologyDiagramDialog" role="dialog">
             <TopologyDialogHeader applicationName="Aplicação de atendimento e serviços" onClose={noop} />
-            <TopologyDiagramToolbar controller={topologyController} />
-            <TopologyDiagramCanvas controller={topologyController} />
+            <TopologyDiagramToolbar controller={topologyController} flowRef={flowRef} />
+            <TopologyDiagramCanvas controller={topologyController} flowRef={flowRef} />
           </section>
         </div>
       )}

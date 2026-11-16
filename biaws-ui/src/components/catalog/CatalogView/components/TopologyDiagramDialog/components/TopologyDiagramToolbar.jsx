@@ -1,11 +1,15 @@
-import { Box, ChevronDown, ChevronUp, Layers3, Plus, Save } from "lucide-react";
+import { Box, ChevronDown, ChevronUp, Download, Layers3, Plus, Save } from "lucide-react";
 import { useId, useState } from "react";
 
+import { useMessages } from "../../../../../../infrastructure/messages/MessagesProvider.jsx";
 import { TOPOLOGY_ENVIRONMENTS } from "../models/topologyDiagramModel.js";
+import { downloadTopologyPng } from "../models/topologyPngExport.js";
 import { TopologyVisibilityMenu } from "./TopologyVisibilityMenu.jsx";
 
-export function TopologyDiagramToolbar({ controller }) {
+export function TopologyDiagramToolbar({ controller, flowRef }) {
   const [toolsExpanded, setToolsExpanded] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const { error: showError } = useMessages();
   const toolsId = useId();
   const {
     actions,
@@ -23,12 +27,24 @@ export function TopologyDiagramToolbar({ controller }) {
     selectedId,
     serverOptions,
     topologyLoading,
+    visibleGraph,
   } = controller;
 
   function changeVisibility(setter, next) {
     setter(next);
     actions.setSelectedEdgeId("");
     if (canEdit) actions.setDirty(true);
+  }
+
+  async function exportPng() {
+    setExporting(true);
+    try {
+      await downloadTopologyPng(flowRef.current, diagram.name, environment);
+    } catch {
+      showError("Não foi possível gerar o PNG da topologia. Tente novamente.");
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
@@ -87,6 +103,15 @@ export function TopologyDiagramToolbar({ controller }) {
           </div>
           <div className="topologyDiagramToolbarActions">
             {dirty ? <small>Alterações não salvas</small> : null}
+            <button
+              aria-busy={exporting}
+              className="secondaryButton"
+              disabled={!diagram || loading || topologyLoading || !visibleGraph.nodes.length || exporting}
+              onClick={exportPng}
+              type="button"
+            >
+              <Download aria-hidden="true" size={15} /> {exporting ? "Gerando PNG…" : "Baixar PNG"}
+            </button>
             {canEdit ? (
               <button
                 className="primaryButton"

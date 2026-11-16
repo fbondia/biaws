@@ -272,6 +272,7 @@
 .topologyDiagramToolbarActions {
   display: flex;
   min-width: 190px;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-3);

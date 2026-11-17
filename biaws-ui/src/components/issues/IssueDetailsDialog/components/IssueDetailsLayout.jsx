@@ -31,10 +31,12 @@ export function IssueDetailsLayout({
         <header className="dialogHeader">
           <div className="dialogTitleBlock">
             <div className="dialogKicker">
-              <EntityIdentifier fallback="Issue" label="Código do issue" value={issue.id} variant="chip" />
-              {issue.identifier ? (
-                <EntityIdentifier label="Identificador do issue" value={issue.identifier} variant="chip" />
-              ) : null}
+              <EntityIdentifier
+                fallback="Issue"
+                label="Identificador do issue"
+                value={issue.identifier || issue.id}
+                variant="chip"
+              />
               <span className="typeBadge">
                 <TypeIcon size={14} />
                 {typeLabel}

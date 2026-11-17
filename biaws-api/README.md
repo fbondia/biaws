@@ -284,7 +284,8 @@ pré-visualizar alterações ainda não salvas.
 
 Filtros aceitos em `GET /api/issues`:
 
-- `codigo`, `code` ou `id`: busca parcial em `id`
+- `codigo` ou `code`: busca parcial no identificador ou no código original
+- `id`: busca parcial no código original
 - `tipo` ou `type`: um ou mais tipos separados por vírgula
 - `status`: um ou mais status separados por vírgula
 - `texto`, `text` ou `q`: busca textual em `id`, `title`, `text`, origem e anexos
@@ -295,7 +296,7 @@ Filtros aceitos em `GET /api/issues`:
 - `taxonomy`: uma ou mais classificações separadas por vírgula; encontra correspondências no assunto principal ou nos assuntos secundários
 - `workspaceId`, `applicationId` e `componentId`: restringem a consulta ao
   contexto do catálogo de aplicações
-- `sort`: `date`, `id`, `type`, `status`, `title`, `updatedAt`, `receivedEmailAt`, `issueCreatedAt`, `firstThreadEmailAt`, `closedAt`; prefixe com `-` para descendente
+- `sort`: `date`, `code` (identificador ou código original), `id`, `type`, `status`, `title`, `updatedAt`, `receivedEmailAt`, `issueCreatedAt`, `firstThreadEmailAt`, `closedAt`; prefixe com `-` para descendente
 - `order`: `asc` ou `desc`
 - `page`: página, começando em `1`
 - `limit`: tamanho da página, máximo `100`

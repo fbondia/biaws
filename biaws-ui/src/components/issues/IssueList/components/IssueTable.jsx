@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { IssueTableRow } from "./IssueTableRow.jsx";
 
 const SORTABLE_COLUMNS = [
-  ["id", "Código"],
+  ["code", "Código"],
   ["type", "Tipo"],
   ["status", "Status"],
   ["date", "Data"],

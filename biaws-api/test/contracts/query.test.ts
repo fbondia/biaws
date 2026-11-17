@@ -36,6 +36,19 @@ test("adds application context to issue filters", () => {
   assert.equal(filter.affectedComponentIds, "component-1");
 });
 
+test("searches issue codes and identifiers literally alongside other filters", () => {
+  const codeMatch = { $regex: "inc\\.42", $options: "i" };
+  const titleMatch = { $regex: "reported", $options: "i" };
+
+  for (const key of ["codigo", "code"]) {
+    assert.deepEqual(buildIssueFilter({ [key]: "inc.42", title: "reported", workspaceId: "workspace-1" }), {
+      workspaceId: "workspace-1",
+      $and: [{ $or: [{ id: codeMatch }, { identifier: codeMatch }] }, { title: titleMatch }],
+    });
+  }
+  assert.deepEqual(buildIssueFilter({ id: "inc.42" }), { id: codeMatch });
+});
+
 test("invalid query values are classified as actionable client errors", () => {
   assert.throws(
     () => getPagination({ page: "invalid" }),

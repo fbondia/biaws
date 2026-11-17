@@ -8,11 +8,17 @@ export function useIssueIdentityEditor({ issue, onIssueUpdated }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const requestRef = useRef(0);
+  const currentIdentifier = issue.identifier || issue.id || "";
   const identifier = draft.identifier.trim();
+  const nextIdentifier = identifier === issue.id ? "" : identifier;
   const title = draft.title.trim();
+  const identifierChanged = identifier !== currentIdentifier && nextIdentifier !== (issue.identifier || "");
+  const titleChanged = title !== (issue.title || "");
   const identifierError =
-    identifier.length > 100 || /[\s/\\]/u.test(identifier) ? "Use até 100 caracteres, sem espaços ou barras." : "";
-  const hasChanges = identifier !== (issue.identifier || "") || title !== (issue.title || "");
+    identifierChanged && (nextIdentifier.length > 100 || /[\s/\\]/u.test(nextIdentifier))
+      ? "Use até 100 caracteres, sem espaços ou barras."
+      : "";
+  const hasChanges = identifierChanged || titleChanged;
   const canSave = Boolean(issue.id && title && !identifierError && hasChanges && !saving);
 
   useEffect(() => {
@@ -24,7 +30,7 @@ export function useIssueIdentityEditor({ issue, onIssueUpdated }) {
   }, [issue.id]);
 
   function openEditor() {
-    setDraft({ identifier: issue.identifier || "", title: issue.title || "" });
+    setDraft({ identifier: currentIdentifier, title: issue.title || "" });
     setError("");
     setEditing(true);
   }
@@ -40,7 +46,10 @@ export function useIssueIdentityEditor({ issue, onIssueUpdated }) {
     setSaving(true);
     setError("");
     try {
-      const payload = await updateIssue(issue.id, { identifier, title });
+      const payload = await updateIssue(issue.id, {
+        ...(identifierChanged ? { identifier: nextIdentifier } : {}),
+        ...(titleChanged ? { title } : {}),
+      });
       if (requestId !== requestRef.current) return;
       await onIssueUpdated?.(payload.issue);
       if (requestId === requestRef.current) setEditing(false);

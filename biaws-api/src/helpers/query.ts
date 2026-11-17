@@ -15,6 +15,7 @@ const DATE_FIELDS = new Set(["receivedEmailAt", "issueCreatedAt", "firstThreadEm
 
 const SORT_FIELDS = new Set([
   "date",
+  "code",
   "id",
   "type",
   "status",
@@ -137,14 +138,10 @@ export function getPagination(query: RepositoryQuery = {}) {
   };
 }
 
-function addRegexFilter(target: Filter<Document>[], field: string, value: string) {
+function addRegexFilter(target: Filter<Document>[], field: string | string[], value: string) {
   if (!value) return;
-  target.push({
-    [field]: {
-      $regex: escapeRegex(value),
-      $options: "i",
-    },
-  });
+  const regex = { $regex: escapeRegex(value), $options: "i" };
+  target.push(Array.isArray(field) ? { $or: field.map((name) => ({ [name]: regex })) } : { [field]: regex });
 }
 
 function addListFilter(filter: Filter<Document>, field: string, values: string[]) {
@@ -190,7 +187,7 @@ function addTextFilter(and: Filter<Document>[], text: string) {
 export function buildIssueFilter(query: RepositoryQuery = {}, options: { taxonomyIds?: string[] } = {}) {
   const and: Filter<Document>[] = [];
   const filter = buildKnowledgeContextFilter(query);
-  const issueCode = readString(query, "codigo", "code", "id");
+  const issueCode = readString(query, "codigo", "code");
   const title = readString(query, "title");
   const text = readString(query, "texto", "text", "q");
   const types = readList(query, "tipo", "type");
@@ -202,7 +199,7 @@ export function buildIssueFilter(query: RepositoryQuery = {}, options: { taxonom
   const toDate = parseDate(readString(query, "to", "dateTo"), "end");
   const tagFilters = readTagFilters(query);
 
-  addRegexFilter(and, "id", issueCode);
+  addRegexFilter(and, issueCode ? ["id", "identifier"] : "id", issueCode || readString(query, "id"));
   addRegexFilter(and, "title", title);
   addListFilter(filter, "type", types);
   addListFilter(filter, "status", statuses);

@@ -86,9 +86,9 @@ async function until(predicate) {
 async function mount(path, options = {}) {
   window.history.replaceState(null, "", path);
   globalThis.fetch = async (url, request) => {
-    const path = new URL(url).pathname;
+    const { pathname: path, searchParams } = new URL(url);
     calls.push({ path, method: request.method || "GET", workspaceId: request.headers["X-Biaws-Workspace-Id"] });
-    const customResponse = options.respond?.(path);
+    const customResponse = options.respond?.(path, searchParams);
     if (customResponse) return customResponse;
     if (path === "/api/requests/MEL42")
       return Response.json({
@@ -153,6 +153,44 @@ test("document and issue aliases open details outside the current list", async (
   await module.act(async () => module.navigate("/issues/INC42?workspaceId=workspace-a"));
   await until(() => document.querySelector('[role="dialog"]')?.textContent.includes("Issue direta"));
   assert.equal(window.location.pathname, "/issues/INC42");
+});
+
+test("the issue list shows identifiers and uses the code column for sorting and filtering", async () => {
+  const items = [
+    { id: "2026-11-16-001", identifier: "xxx", title: "Issue com identificador" },
+    { id: "2026-11-16-002", title: "Issue com código original" },
+  ];
+  const queries = [];
+  await mount("/issues?workspaceId=workspace-a", {
+    respond(path, params) {
+      if (path !== "/api/issues") return;
+      queries.push(params);
+      const matches = params.get("codigo") === "xxx" ? items.slice(0, 1) : items;
+      return Response.json({ items: matches, meta: { total: matches.length, totalPages: 1 } });
+    },
+  });
+  const displayedCodes = () =>
+    [...document.querySelectorAll(".issueTable .codeCell code")].map((item) => item.textContent);
+  await until(() => displayedCodes().length === 2);
+  assert.deepEqual(displayedCodes(), ["xxx", items[1].id]);
+
+  const sortButton = document.querySelector('.issueTable button[title="Ordenar por código"]');
+  await module.act(async () => sortButton.click());
+  await until(() => queries.at(-1)?.get("sort") === "code" && !sortButton.disabled);
+
+  const filtersButton = document.querySelector('button[aria-controls="issue-filters"]');
+  if (!document.getElementById("issue-filters")) await module.act(async () => filtersButton.click());
+  const form = document.querySelector(".filterGrid");
+  const input = form.querySelector(".filterCode input");
+  await module.act(async () => {
+    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set.call(input, "xxx");
+    input.dispatchEvent(new window.Event("input", { bubbles: true }));
+    input.dispatchEvent(new window.Event("change", { bubbles: true }));
+  });
+  await module.act(async () => form.querySelector('button[type="submit"]').click());
+  await until(() => displayedCodes().length === 1);
+  assert.equal(queries.at(-1).get("codigo"), "xxx");
+  assert.deepEqual(displayedCodes(), ["xxx"]);
 });
 
 test("unknown workspace and forbidden entity view do not mount business views", async () => {

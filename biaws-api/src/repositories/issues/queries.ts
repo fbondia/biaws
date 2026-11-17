@@ -1,6 +1,6 @@
 import type { RepositoryQuery } from "../../types/http.js";
 import type { IssueDocument, IssueCommentDocument } from "../../types/issues.js";
-import type { Filter } from "mongodb";
+import type { Filter, WithId } from "mongodb";
 import { ensureIndexes } from "./indexes.js";
 import { ISSUES_COLLECTION, COMMENTS_COLLECTION } from "./constants.js";
 import { buildExpandedIssueFilter } from "./filters.js";
@@ -19,10 +19,25 @@ export async function listIssues(query: RepositoryQuery = {}) {
   const filter = await buildExpandedIssueFilter(db, query);
   const sort = buildIssueSort(query);
   const pagination = getPagination(query);
-  const [items, total] = await Promise.all([
-    collection.find(filter).sort(sort).skip(pagination.skip).limit(pagination.limit).toArray(),
-    collection.countDocuments(filter),
-  ]);
+  const cursor = sort.code
+    ? collection.aggregate<WithId<IssueDocument>>(
+        [
+          { $match: filter },
+          {
+            $project: {
+              issue: "$$ROOT",
+              code: { $cond: [{ $eq: [{ $ifNull: ["$identifier", ""] }, ""] }, "$id", "$identifier"] },
+            },
+          },
+          { $sort: sort },
+          { $skip: pagination.skip },
+          { $limit: pagination.limit },
+          { $replaceWith: "$issue" },
+        ],
+        { allowDiskUse: true },
+      )
+    : collection.find(filter).sort(sort).skip(pagination.skip).limit(pagination.limit);
+  const [items, total] = await Promise.all([cursor.toArray(), collection.countDocuments(filter)]);
 
   return {
     meta: {

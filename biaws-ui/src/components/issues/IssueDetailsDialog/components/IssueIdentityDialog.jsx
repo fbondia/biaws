@@ -56,7 +56,7 @@ export function IssueIdentityDialog({ canSave, draft, error, identifierError, on
               value={draft.identifier}
             />
             <small id="issueIdentityIdentifierHint" role={identifierError ? "alert" : undefined}>
-              {identifierError || "Deixe em branco para remover o identificador."}
+              {identifierError || "Deixe em branco para voltar a exibir o código original da issue."}
             </small>
           </div>
           <label className="field">

@@ -39,7 +39,7 @@ export function IssueTableRow({
       title="Abrir detalhes"
     >
       <td className="codeCell" data-label="Código">
-        <EntityIdentifier fallback="-" label="Código do issue" value={issue.id} />
+        <EntityIdentifier fallback="-" label="Código do issue" value={issue.identifier || issue.id} />
       </td>
       <td data-label="Tipo">
         <InlineIssueSelect

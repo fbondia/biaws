@@ -77,10 +77,10 @@ after(async () => {
   await rm(outputDirectory, { force: true, recursive: true });
 });
 
-async function mount({ onPatch, options } = {}) {
+async function mount({ identifier = initialIssue.identifier, onPatch, options } = {}) {
   const requests = [];
   const updates = [];
-  let issue = initialIssue;
+  let issue = { ...initialIssue, identifier };
   globalThis.fetch = async (url, request = {}) => {
     if (url.pathname.endsWith("/taxonomy")) return Response.json({ taxonomy: { taxonomy: [], tagGroups: [] } });
     assert.equal(url.pathname, `/api/issues/${initialIssue.id}`);
@@ -109,6 +109,10 @@ function editor() {
 
 function editButton() {
   return document.querySelector('[aria-label="Editar identificador e título"]');
+}
+
+function displayedIdentifiers() {
+  return [...document.querySelectorAll(".dialogKicker .entityIdentifier code")].map((chip) => chip.textContent);
 }
 
 function button(label, scope = editor()) {
@@ -144,14 +148,32 @@ test("the header editor saves identifier and title together and refreshes the di
   assert.deepEqual(requests, [{ identifier: "INC002", title: "Novo título" }]);
   assert.equal(editor(), null);
   assert.equal(document.getElementById("issue-dialog-title").textContent, "Novo título");
-  assert.match(document.querySelector(".dialogKicker").textContent, /INC002/u);
-  assert.match(document.querySelector(".dialogKicker").textContent, /SYNTHETIC-IDENTITY-001/u);
+  assert.deepEqual(displayedIdentifiers(), ["INC002"]);
+  assert.equal(updates[0].id, initialIssue.id);
   assert.equal(updates[0].text, initialIssue.text);
   assert.equal(updates[0].status, initialIssue.status);
   await click(editButton());
   assert.equal(editor().querySelector('input[name="identifier"]').value, "INC002");
   assert.equal(editor().querySelector('input[name="title"]').value, "Novo título");
   assert.equal(button("Salvar alterações").disabled, true);
+});
+
+test("editing an issue without a custom identifier replaces the generated code in the header", async () => {
+  const { requests } = await mount({ identifier: null });
+  assert.deepEqual(displayedIdentifiers(), [initialIssue.id]);
+  await click(editButton());
+  assert.equal(editor().querySelector('input[name="identifier"]').value, initialIssue.id);
+  assert.equal(button("Salvar alterações").disabled, true);
+  await changeField("title", "Novo título");
+  await click(button("Salvar alterações"));
+  assert.deepEqual(requests, [{ title: "Novo título" }]);
+  assert.deepEqual(displayedIdentifiers(), [initialIssue.id]);
+
+  await click(editButton());
+  await changeField("identifier", "xxx");
+  await click(button("Salvar alterações"));
+  assert.deepEqual(requests[1], { identifier: "xxx" });
+  assert.deepEqual(displayedIdentifiers(), ["xxx"]);
 });
 
 test("the editor rejects an empty title or invalid identifier and permits removing the identifier", async () => {
@@ -170,7 +192,9 @@ test("the editor rejects an empty title or invalid identifier and permits removi
   await changeField("identifier", "");
   await click(button("Salvar alterações"));
   assert.deepEqual(requests, [{ identifier: "", title: "Título válido" }]);
-  assert.doesNotMatch(document.querySelector(".dialogKicker").textContent, /INC001/u);
+  assert.deepEqual(displayedIdentifiers(), [initialIssue.id]);
+  await click(editButton());
+  assert.equal(editor().querySelector('input[name="identifier"]').value, initialIssue.id);
 });
 
 test("canceling discards the draft without saving or closing the details dialog", async () => {

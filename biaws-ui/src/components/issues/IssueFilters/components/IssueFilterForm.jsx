@@ -35,7 +35,7 @@ export function IssueFilterForm({
           <input
             value={draftFilters.codigo}
             onChange={(event) => onChange("codigo", event.target.value)}
-            placeholder="INC, REQ ou ID"
+            placeholder="Identificador ou código original"
           />
         </label>
 

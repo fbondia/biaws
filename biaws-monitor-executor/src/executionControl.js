@@ -6,7 +6,6 @@ export function timeoutSignal(timeoutMs) {
     error.code = "PROVIDER_TIMEOUT";
     controller.abort(error);
   }, timeoutMs);
-  timer.unref?.();
   return { controller, clear: () => clearTimeout(timer) };
 }
 
